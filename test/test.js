@@ -1,5 +1,9 @@
+/// <reference path="../tools/definitions/crm.d.ts" />
+/// <reference path="../tools/definitions/crmapi.d.ts" />
+/// <reference path="../app/js/background.ts" />
+
 'use strict';
-var mochaSteps = require('mocha-steps');
+import { step } from 'mocha-steps';
 var assert = require('chai').assert;
 var request = require('request');
 var fs = require('fs'); 
@@ -8,40 +12,56 @@ function isDefaultKey(key) {
 	return !(key !== 'getItem' && key !== 'setItem' && key !== 'length' && key !== 'clear' && key !== 'removeItem');
 }
 
+/**
+ * @returns {Storage}
+ */
 function createLocalStorageObject() {
-	var obj = {};
-	obj.getItem = (key) => {
-		if (!isDefaultKey(key)) {
-			return obj[key];
-		}
-		return undefined;
-	};
-	obj.setItem = (key, value) => {
-		if (!isDefaultKey(key)) {
-			obj[key] = value;
-		}
-	};
-	obj.removeItem = (key) => {
-		if (!isDefaultKey(key)) {
-			delete obj[key];
-		}
-	};
-	obj.length = () => {
-		var keys = 0;
-		for (var key in obj) {
-			if (obj.hasOwnProperty(key) && !isDefaultKey(key)) {
-				keys++;
+	var obj = {
+		getItem(key) {
+			if (!isDefaultKey(key)) {
+				return obj[key];
+			}
+			return undefined;
+		},
+		setItem(key, value) {
+			if (!isDefaultKey(key)) {
+				obj[key] = value;
+			}
+		},
+		removeItem(key) {
+			if (!isDefaultKey(key)) {
+				delete obj[key];
+			}
+		},
+		get length() {
+			var keys = 0;
+			for (var key in obj) {
+				if (obj.hasOwnProperty(key) && !isDefaultKey(key)) {
+					keys++;
+				}
+			}
+			return keys;
+		},
+		key(index) {
+			var keyIndex = 0;
+			var lastKey = null;
+			for (var key in obj) {
+				if (keyIndex === index) {
+					return key;
+				}
+				keyIndex++;
+				lastKey = key;
+			}
+			return lastKey;
+		},
+		clear() {
+			for (var key in obj) {
+				if (obj.hasOwnProperty(key) && !isDefaultKey(key)) {
+					obj.removeItem(key);
+				}
 			}
 		}
-		return keys;
-	};
-	obj.clear = () => {
-		for (var key in obj) {
-			if (obj.hasOwnProperty(key) && !isDefaultKey(key)) {
-				obj.removeItem(key);
-			}
-		}
-	};
+	}
 	return obj;
 }
 
@@ -93,6 +113,9 @@ function toOldCrmNode(node) {
 	return oldNodes;
 }
 
+/**
+ * @returns {Storage}
+ */
 function createCrmLocalStorage(nodes, newTab) {
 	var obj = createLocalStorageObject();
 	obj.whatpage = !!newTab;
@@ -435,9 +458,13 @@ function resetTree() {
 }
 
 /**
- * HACKING
+ * @type {GlobalObject & {crmAPI: CRM.CRMAPI.CrmAPIInstance; changelogLog: {[key: string]: Array<string>;}}}
  */
 var window;
+/**
+ * @type {GlobalObject & {crmAPI: CRM.CRMAPI.CrmAPIInstance; changelogLog: {[key: string]: Array<string>;}}}
+ */
+// @ts-ignore
 var backgroundPageWindow = window = {
 	HTMLElement: function HTMLElement() {
 		return {};
@@ -454,22 +481,6 @@ var backgroundPageWindow = window = {
 	clearInterval: clearInterval,
 	md5: function() {
 		return generateRandomString();
-	},
-	app: {
-		util: {
-			waitFor: function(rootObj, key, fn) {
-				if (rootObj[key]) {
-					fn(rootObj[key]);
-				}
-
-				var interval = setInterval(() => {
-					if (rootObj[key]) {
-						clearInterval(interval);
-						fn(rootObj[key]);
-					}	
-				}, 10);
-			}
-		}
 	},
 	document: {
 		querySelector: function() {
@@ -1191,7 +1202,8 @@ describe('Conversion', () => {
 	describe('is testable', function() {
 		this.slow(1000);
 		var backgroundCode;
-		step('should be able to read background.js', () => {
+		step('should be able to read background.js and its dependencies', () => {
+			// @ts-ignore
 			window.localStorage = {
 				setItem: () => { },
 				getItem: (key) => {
@@ -1205,7 +1217,7 @@ describe('Conversion', () => {
 				}
 			};
 			assert.doesNotThrow(run(() => {
-				backgroundCode = fs.readFileSync('./app/js/background.js', {
+				backgroundCode = fs.readFileSync('./build/js/background.js', {
 					encoding: 'utf8'
 				});
 			}), 'File background.js is readable');
@@ -1216,14 +1228,16 @@ describe('Conversion', () => {
 		step('background.js should be runnable', () => {
 			assert.doesNotThrow(run(() => {
 				eval(backgroundCode);
-				backgroundPageWindowResolve();
 			}), 'File background.js is executable');
 		});
-		step('should be defined', (done) => {
-			const timer = setInterval(() => {
-				
-			}, 500);
+		step('should be defined', () => {
 			assert.isDefined(backgroundPageWindow, 'backgroundPage is defined');
+		});
+		step('should finish loading', (done) => {
+			backgroundPageWindow.backgroundPageLoaded.then(() => {
+				done();
+				backgroundPageWindowResolve();
+			});
 		});
 		step('should have a transferCRMFromOld property that is a function', () => {
 			assert.isDefined(backgroundPageWindow.TransferFromOld.transferCRMFromOld, 'Function is defined');
@@ -1235,7 +1249,7 @@ describe('Conversion', () => {
 		});
 		step('generateScriptUpgradeErrorHandler should be overwritable', () => {
 			assert.doesNotThrow(run(() => {
-				backgroundPageWindow.generateScriptUpgradeErrorHandler = () => {
+				backgroundPageWindow.TransferFromOld.legacyScriptReplace.generateScriptUpgradeErrorHandler = () => {
 					return (oldScriptErrs, newScriptErrs, parseErrors, errors) => {
 						if (Array.isArray(errors)) {
 							if (Array.isArray(errors[0])) {
@@ -1259,6 +1273,24 @@ describe('Conversion', () => {
 			}), 'generateScriptUpgradeErrorHandler is overwritable');
 		});
 	});
+
+	/**
+	 * @param fn {() => CRM.Tree}
+	 * @param msg {string}
+	 * 
+	 * @returns {any}
+	 */
+	function doesNotThrow(fn, msg) {
+		/**
+		 * @type {any}
+		 */
+		var result;
+		assert.doesNotThrow(() => {
+			result = run(fn);	
+		}, msg);
+		return result;
+	}
+
 	describe('of a CRM', () => {
 		before((done) => {
 			backgroundPageWindowDone.then(done);
@@ -1266,10 +1298,9 @@ describe('Conversion', () => {
 		it('should convert an empty crm', () => {
 			var openInNewTab = false;
 			var oldStorage = createCrmLocalStorage([], false);
-			var result;
-			assert.doesNotThrow(run(() => {
-				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
-			}), 'Converting does not throw an error');
+			var result = doesNotThrow(() => {
+				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
+			}, 'Converting does not throw an error');
 			assert.isDefined(result, 'Result is defined');
 			assert.isArray(result, 'Resulting CRM is an array');
 			assert.lengthOf(result, 0, 'Resulting CRM is empty');
@@ -1288,10 +1319,9 @@ describe('Conversion', () => {
 		it('should convert a CRM with one link with openInNewTab false', () => {
 			var openInNewTab = false;
 			var oldStorage = createCrmLocalStorage(singleLinkBaseCase, false);
-			var result;
-			assert.doesNotThrow(run(() => {
-				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
-			}), 'Converting does not throw an error');
+			var result = doesNotThrow(() => {
+				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
+			}, 'Converting does not throw an error');
 			var expectedLinks = singleLinkBaseCase[0].value.map((url) => {
 				return {
 					url: url.url,
@@ -1311,10 +1341,9 @@ describe('Conversion', () => {
 		it('should convert a CRM with one link with openInNewTab true', () => {
 			var openInNewTab = true;
 			var oldStorage = createCrmLocalStorage(singleLinkBaseCase, true);
-			var result;
-			assert.doesNotThrow(run(() => {
-				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
-			}), 'Converting does not throw an error');
+			var result = doesNotThrow(() => {
+				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
+			}, 'Converting does not throw an error');
 			var expectedLinks = singleLinkBaseCase[0].value.map((url) => {
 				return {
 					url: url.url,
@@ -1333,72 +1362,67 @@ describe('Conversion', () => {
 		});
 		it('should be able to handle spaces in the name', () => {
 			var testName = 'a b c d e f g';
-			var result;
-			assert.doesNotThrow(run(() => {
-				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+			var result = doesNotThrow(() => {
+				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage(
 					[mergeObjects(singleLinkBaseCase[0], {
 						name: testName
 					})]
 				  )
 				);
-			}), 'Converting does not throw an error');
+			}, 'Converting does not throw an error');
 			assert.isDefined(result, 'Result is defined');
 			assert.strictEqual(result[0].name, testName, 'Names should match');
 		});
 		it('should be able to handle newlines in the name', () => {
 			var testName = 'a\nb\nc\nd\ne\nf\ng';
-			var result;
-			assert.doesNotThrow(run(() => {
-				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+			var result = doesNotThrow(() => {
+				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage(
 					[mergeObjects(singleLinkBaseCase[0], {
 						name: testName
 					})]
 				  ));
-			}), 'Converting does not throw an error');
+			}, 'Converting does not throw an error');
 			assert.isDefined(result, 'Result is defined');
 			assert.strictEqual(result[0].name, testName, 'Names should match');
 		});
 		it('should be able to handle quotes in the name', () => {
 			var testName = 'a\'b"c\'\'d""e`f`g';
-			var result;
-			assert.doesNotThrow(run(() => {
-				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+			var result = doesNotThrow(() => {
+				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage(
 					[mergeObjects(singleLinkBaseCase[0], {
 						name: testName
 					})]
 				  ));
-			}), 'Converting does not throw an error');
+			}, 'Converting does not throw an error');
 			assert.isDefined(result, 'Result is defined');
 			assert.strictEqual(result[0].name, testName, 'Names should match');
 		});
 		it('should be able to handle an empty name', () => {
 			var testName = '';
-			var result;
-			assert.doesNotThrow(run(() => {
-				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+			var result = doesNotThrow(() => {
+				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage(
 					[mergeObjects(singleLinkBaseCase[0], {
 						name: testName
 					})]
 				  ));
-			}), 'Converting does not throw an error');
+			}, 'Converting does not throw an error');
 			assert.isDefined(result, 'Result is defined');
 			assert.strictEqual(result[0].name, testName, 'Names should match');
 		});
 		it('should be able to convert an empty menu', () => {
-			var result;
-			assert.doesNotThrow(run(() => {
-				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+			var result = doesNotThrow(() => {
+				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage([{
 				  	type: 'menu',
 				  	name: 'test-menu',
 				  	children: []
 				  }])
 				);
-			}), 'Converting does not throw an error');
+			}, 'Converting does not throw an error');
 			assert.isDefined(result, 'Result is defined');
 			assert.isArray(result, 'Resulting CRM is an array');
 			assert.lengthOf(result, 1, 'Resulting CRM has one child');
@@ -1412,9 +1436,8 @@ describe('Conversion', () => {
 		it('should be able to convert a script with triggers', function() {
 			this.slow(300);
 
-			var result;
-			assert.doesNotThrow(run(() => {
-				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+			var result = doesNotThrow(() => {
+				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 					createCrmLocalStorage([{
 						type: 'script',
 						name: 'testscript',
@@ -1430,7 +1453,7 @@ describe('Conversion', () => {
 						}
 					}])
 				);
-			}), 'Converting does not throw an error');
+			}, 'Converting does not throw an error');
 			assert.isDefined(result, 'Result is defined');
 			assert.isArray(result, 'Resulting CRM is an array');
 			assert.lengthOf(result, 1, 'Resulting CRM has one child');
@@ -1452,9 +1475,8 @@ describe('Conversion', () => {
 			}], 'Triggers match expected');
 		});
 		it('should be able to convert a menu with some children with various types', () => {
-			var result;
-			assert.doesNotThrow(run(() => {
-				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+			var result = doesNotThrow(() => {
+				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage([{
 				  	type: 'menu',
 				  	name: 'test-menu',
@@ -1468,7 +1490,7 @@ describe('Conversion', () => {
 				  	]
 				  }])
 				);
-			}), 'Converting does not throw an error');
+			}, 'Converting does not throw an error');
 			assert.isDefined(result, 'Result is defined');
 			assert.isArray(result, 'Resulting CRM is an array');
 			assert.lengthOf(result, 1, 'Resulting CRM has one child');
@@ -1483,10 +1505,9 @@ describe('Conversion', () => {
 			assert.strictEqual(result[0].children[3].type, 'link', 'Fourth child is a divider');
 		});
 		it('should be able to convert a menu which contains menus itself', () => {
-			var result;
 			var nameIndex = 0;
-			assert.doesNotThrow(run(() => {
-				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+			var result = doesNotThrow(() => {
+				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage([{
 				  	type: 'menu',
 				  	name: `test-menu${nameIndex++}`,
@@ -1533,7 +1554,7 @@ describe('Conversion', () => {
 				  	}]
 				  }])
 				);
-			}), 'Converting does not throw an error');
+			}, 'Converting does not throw an error');
 			assert.isDefined(result, 'Result is defined');
 			assert.isArray(result, 'Result is an array');
 			assert.lengthOf(result, 1, 'Result only has one child');
@@ -1580,16 +1601,15 @@ describe('Conversion', () => {
 				testType = expected;
 				expected = script;
 			}
-			var result;
-			assert.doesNotThrow(run(() => {
-				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
-				createCrmLocalStorage(
-					[mergeObjects(singleScriptBaseCase, {
-						value: {
-							script: script
-						}
-					})]), testType);
-			}), 'Converting does not throw an error');
+			var result = doesNotThrow(() => {
+				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+					createCrmLocalStorage(
+						[mergeObjects(singleScriptBaseCase, {
+							value: {
+								script: script
+							}
+						})]), testType);
+			}, 'Converting does not throw an error');
 			assert.isDefined(result, 'Result is defined');
 			assert.property(result[0], 'value', 'Script has property value');
 			assert.property(result[0].value, 'script', "Script's value property has a script property");
@@ -1932,9 +1952,9 @@ describe('CRMAPI', () => {
 			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
 			globalExcludes: [''],
 			key: {},
-			lastUpdatedAt: JSON.parse(String(fs.readFileSync('./build/manifest.json'), {
-								encoding: 'utf8'
-							}).replace(/\/\*.+\*\//g, '')).version,
+			lastUpdatedAt: JSON.parse(fs.readFileSync('./build/manifest.json', {
+				encoding: 'utf8'
+			}).replace(/\/\*.+\*\//g, '')).version,
 			catchErrors: true,
 			notFirstTime: true,
 			authorName: 'anonymous',
@@ -2231,34 +2251,29 @@ describe('CRMAPI', () => {
 	var crmAPI;
 	var nodeStorage;
 	var usedKeys = {};
-	window.crmAPIs = [];
+	var crmAPIs = [];
 	(() => {
 		//Simulation data
+		/**
+		 * @type {CRM.ScriptNode}
+		 */
 		var node = {
 			"name": "script",
 			"onContentTypes": [true, true, true, false, false, false],
 			"type": "script",
 			"showOnSpecified": false,
 			"isLocal": true,
+			"children": null,
+			"menuVal": null,
+			"stylesheetVal": null,
+			"scriptVal": null,
+			"permissions": [],
 			"value": {
 				"launchMode": 0,
 				"backgroundLibraries": [],
 				"libraries": [],
 				"script": "// ==UserScript==\n// @name\tscript\n// @CRM_contentTypes\t[true, true, true, false, false, false]\n// @CRM_launchMode\t2\n// @grant\tnone\n// @match\t*://*.google.com/*\n// @exclude\t*://*.example.com/*\n// ==/UserScript==\nconsole.log('Hello');",
 				"backgroundScript": "",
-				"triggers": [{
-					"url": "*://*.example.com/*",
-					"not": false
-				}, {
-					"url": ["*://*.example.com/*"],
-					"not": false
-				}, {
-					"url": ["*://*.google.com/*"],
-					"not": false
-				}, {
-					"url": ["*://*.example.com/*"],
-					"not": true
-				}],
 				"metaTags": {
 					"name": ["script"],
 					"CRM_contentTypes": ["[true, true, true, false, false, false]"],
@@ -2266,10 +2281,15 @@ describe('CRMAPI', () => {
 					"grant": ["none"],
 					"match": ["*://*.google.com/*"],
 					"exclude": ["*://*.example.com/*"]
+				},
+				"options": {},
+				"ts": {
+					"enabled": false,
+					"script": {},
+					"backgroundScript": {}
 				}
 			},
 			"id": 2,
-			"expanded": false,
 			"path": [2],
 			"index": 2,
 			"linkVal": [{
@@ -2277,7 +2297,7 @@ describe('CRMAPI', () => {
 				"url": "https://www.example.com"
 			}],
 			"nodeInfo": {
-				"permissions": ["none"]
+				"permissions": []
 			},
 			"triggers": [{
 				"url": "*://*.google.com/*",
@@ -2299,8 +2319,9 @@ describe('CRMAPI', () => {
 			for (i = 0; i < 25; i++) {
 				key[i] = Math.round(Math.random() * 100);
 			}
-			if (!usedKeys[key]) {
-				usedKeys[key] = true;
+			var joined = key.join(',');
+			if (!usedKeys[joined]) {
+				usedKeys[joined] = true;
 				return key;
 			} else {
 				return createSecretKey();
@@ -2309,6 +2330,10 @@ describe('CRMAPI', () => {
 		var tabData = {id: 0, testKey: createSecretKey()};
 		var clickData = {selection: 'some text', testKey: createSecretKey()};
 		nodeStorage = {testKey: createSecretKey()};
+		/**
+		 * @type {CRM.CRMAPI.GreaseMonkeyData}
+		 */
+		// @ts-ignore
 		var greaseMonkeyData = {
 			info: {
 				testKey: createSecretKey()
@@ -2318,7 +2343,8 @@ describe('CRMAPI', () => {
 		step('CrmAPIInit class can be created', () => {
 			assert.doesNotThrow(run(() => {
 				window.globals.crmValues.tabData[0].nodes[node.id] = [{
-					secretKey: secretKey
+					secretKey: secretKey,
+					usesLocalStorage: false
 				}];
 				window.globals.availablePermissions = ['sessions'];
 				window.globals.crm.crmById[2] = node;
@@ -2425,8 +2451,9 @@ describe('CRMAPI', () => {
 					for (i = 0; i < 25; i++) {
 						key[i] = Math.round(Math.random() * 100);
 					}
-					if (!usedKeys[key]) {
-						usedKeys[key] = true;
+					const joined = key.join(',')
+					if (!usedKeys[joined]) {
+						usedKeys[joined] = true;
 						return key;
 					} else {
 						return createSecretKey();
@@ -2442,17 +2469,19 @@ describe('CRMAPI', () => {
 				var secretKey = createSecretKey();
 				assert.doesNotThrow(run(() => {
 					window.globals.crmValues.tabData[tabId] = {
-						nodes: { }
+						nodes: { },
+						libraries: {}
 					};
 					window.globals.crmValues.tabData[tabId].nodes[node.id] = 
 						window.globals.crmValues.tabData[tabId].nodes[node.id] || [];
 					window.globals.crmValues.tabData[tabId].nodes[node.id].push({
-						secretKey: secretKey
+						secretKey: secretKey,
+						usesLocalStorage: false
 					});
 					var indentUnit = '	'; //Tab
 
 					//Actual code
-					var code = 'window.crmAPIs.push(new window.CrmAPIInit(' +
+					var code = 'crmAPIs.push(new window.CrmAPIInit(' +
 						[node, node.id, tabData, clickData, secretKey, {
 							testKey: createSecretKey() }, {}, greaseMonkeyData, false, {}, false, 
 							window.globals.crmValues.tabData[tabId].nodes[node.id].length - 1, 'abcdefg']
@@ -2501,14 +2530,14 @@ describe('CRMAPI', () => {
 			listenersCalled[idx] = 0;
 			listeners.push(fn);
 			assert.doesNotThrow(run(() => {
-				var num = window.crmAPIs[idx].comm.addListener(fn);
+				var num = crmAPIs[idx].comm.addListener(fn);
 				listenerRemovals.push(num);
 			}), 'adding listeners does not throw');
 		}
 
 		step('addListener() setup', () => {
-			assert.isAtLeast(window.crmAPIs.length, 1, 'at least one API was registered');
-			for (var i = 0; i < window.crmAPIs.length; i++) {
+			assert.isAtLeast(crmAPIs.length, 1, 'at least one API was registered');
+			for (var i = 0; i < crmAPIs.length; i++) {
 				setupListener(i);
 			}
 		});
@@ -2546,9 +2575,9 @@ describe('CRMAPI', () => {
 			assert.doesNotThrow(run(() => {
 				for (var i = 0 ; i < listeners.length; i++) {
 					if (Math.floor(Math.random() * 2) === 0) {
-						window.crmAPIs[i].comm.removeListener(listeners[i]);
+						crmAPIs[i].comm.removeListener(listeners[i]);
 					} else {
-						window.crmAPIs[i].comm.removeListener(listenerRemovals[i]);
+						crmAPIs[i].comm.removeListener(listenerRemovals[i]);
 					}
 				}
 			}), 'calling removeListener works');
@@ -2701,6 +2730,7 @@ describe('CRMAPI', () => {
 		step('exists', () => {
 			assert.isFunction(crmAPI.chrome);
 		});
+		// @ts-ignore
 		window.chrome = {
 			sessions: {
 				testReturnSimple: function(a, b) {

@@ -2029,6 +2029,377 @@ declare namespace CRM {
 		}
 
 		/**
+		 * The GM API that fills in any APIs that GreaseMonkey uses and points them to their
+		 *		CRM counterparts
+		 * 		Documentation can be found here http://wiki.greasespot.net/Greasemonkey_Manual:API
+		 * 		and here http://tampermonkey.net/documentation.php
+		 */
+		interface GM_Fns {
+			/**
+			 * Returns any info about the script
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_info}
+			 * @returns {Object} - Data about the script
+			 */
+			GM_info(): GreaseMonkeyDataInfo,
+
+			/**
+			 * This method retrieves a value that was set with GM_setValue. See GM_setValue
+			 *		for details on the storage of these values.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_getValue}
+			 * @param {String} name - The property name to get
+			 * @param {any} [defaultValue] - Any value to be returned, when no value has previously been set
+			 * @returns {any} - Returns the value if the value is defined, if it's undefined, returns defaultValue
+			 *		when defaultValue is also undefined, returns undefined
+			 */
+			GM_getValue<T>(name: string, defaultValue: T): T,
+			/**
+			 * This method retrieves a value that was set with GM_setValue. See GM_setValue
+			 *		for details on the storage of these values.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_getValue}
+			 * @param {String} name - The property name to get
+			 * @param {any} [defaultValue] - Any value to be returned, when no value has previously been set
+			 * @returns {void} - Returns the value if the value is defined, if it's undefined, returns defaultValue
+			 *		when defaultValue is also undefined, returns undefined
+			 */
+			GM_getValue<T>(name: string, defaultValue: T): void,
+			/**
+			 * This method retrieves a value that was set with GM_setValue. See GM_setValue
+			 *		for details on the storage of these values.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_getValue}
+			 * @param {String} name - The property name to get
+			 * @param {any} [defaultValue] - Any value to be returned, when no value has previously been set
+			 * @returns {any} - Returns the value if the value is defined, if it's undefined, returns defaultValue
+			 *		when defaultValue is also undefined, returns undefined
+			 */
+			GM_getValue<T>(name: string, defaultValue: T): any,
+
+			/**
+			 * This method allows user script authors to persist simple values across page-loads.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_setValue}
+			 * @param {String} name - The unique (within this script) name for this value. Should be restricted to valid Javascript identifier characters.
+			 * @param {any} value - The value to store
+			 */
+			GM_setValue(name: string, value: any): void,
+
+			/**
+			 * This method deletes an existing name / value pair from storage.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_deleteValue}
+			 * @param {String} name - Property name to delete.
+			 */
+			GM_deleteValue(name: string): void,
+
+			/**
+			 * This method retrieves an array of storage keys that this script has stored.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_listValues}
+			 * @returns {String[]} All keys of the storage
+			 */
+			GM_listValues(): Array<string>,
+
+			/**
+			 * Gets the resource URL for given resource name
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_getResourceURL}
+			 * @param {String} name - The name of the resource
+			 * @returns {String} - A URL that can be used to get the resource value
+			 */
+			GM_getResourceURL(name: string): string,
+
+			/**
+			 * Gets the resource string for given resource name
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_getResourceString}
+			 * @param {String} name - The name of the resource
+			 * @returns {String} - The resource value
+			 */
+			GM_getResourceString(name: string): string,
+
+			/**
+			 * This method adds a string of CSS to the document. It creates a new `style` element,
+			 * adds the given CSS to it, and inserts it into the `head`.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_addStyle}
+			 * @param {String} css - The CSS to put on the page
+			 */
+			GM_addStyle(css: string): void,
+
+			/**
+			 * Logs to the console
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_log}
+			 * @param {any} any - The data to log
+			 */
+			GM_log(...params: Array<any>): void,
+
+			/**
+			 * Open specified URL in a new tab, open_in_background is not available here since that
+			 *		not possible in chrome
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_openInTab}
+			 * @param {String} url - The url to open
+			 */
+			GM_openInTab(url: string): void,
+
+			/**
+			 * This is only here to prevent errors from occuring when calling any of these functions,
+			 * this function does nothing
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_registerMenuCommand}
+			 * @param {any} ignoredArguments - An argument that is ignored
+			 */
+			GM_registerMenuCommand: EmptyFn,
+
+			/**
+			 * This is only here to prevent errors from occuring when calling any of these functions,
+			 * this function does nothing
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_unregisterMenuCommand}
+			 * @param {any} ignoredArguments - An argument that is ignored
+			 */
+			GM_unregisterMenuCommand: EmptyFn;
+
+			/**
+			 * This is only here to prevent errors from occuring when calling any of these functions,
+			 * this function does nothing
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_setClipboard}
+			 * @param {any} ignoredArguments - An argument that is ignored
+			 */
+			GM_setClipboard: EmptyFn;
+
+			/**
+			 * Sends an xmlhttpRequest with given parameters
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_xmlhttpRequest}
+			 * @param {Object} options - The options
+			 * @param {string} [options.method] - The method to use (GET, HEAD or POST)
+			 * @param {string} [options.url] - The url to request
+			 * @param {Object} [options.headers] - The headers for the request
+			 * @param {Object} [options.data] - The data to send along
+			 * @param {boolean} [options.binary] - Whether the data should be sent in binary mode
+			 * @param {number} [options.timeout] - The time to wait in ms
+			 * @param {Object} [options.context] - A property which will be applied to the response object
+			 * @param {string} [options.responseType] - The type of response, arraybuffer, blob or json
+			 * @param {string} [options.overrideMimeType] - The MIME type to use
+			 * @param {boolean} [options.anonymous] - If true, sends no cookies along with the request
+			 * @param {boolean} [options.fetch] - Use a fetch instead of an xhr
+			 * @param {string} [options.username] - A username for authentication
+			 * @param {string} [options.password] - A password for authentication
+			 * @param {function} [options.onload] - A callback on that event
+			 * @param {function} [options.onerror] - A callback on that event
+			 * @param {function} [options.onreadystatechange] - A callback on that event
+			 * @param {function} [options.onprogress] - A callback on that event
+			 * @param {function} [options.onloadstart] - A callback on that event
+			 * @param {function} [options.ontimeout] - A callback on that event
+			 * @returns {XMLHttpRequest} The XHR
+			 */
+			GM_xmlhttpRequest(options: {
+				/**
+				 * The method to use (GET, HEAD or POST)
+				 */
+				method?: string,
+				/**
+				 * The url to request
+				 */
+				url?: string,
+				/**
+				 * The headers for the request
+				 */
+				headers?: { [headerKey: string]: string },
+				/**
+				 * The data to send along
+				 */
+				data?: any,
+				/**
+				 * Whether the data should be sent in binary mode
+				 */
+				binary?: boolean,
+				/**
+				 * The time to wait in ms
+				 */
+				timeout?: number,
+				/**
+				 * A property which will be applied to the response object
+				 */
+				context?: any,
+				/**
+				 * The type of response, arraybuffer, blob or json
+				 */
+				responseType?: string,
+				/**
+				 * The MIME type to use
+				 */
+				overrideMimeType?: string,
+				/**
+				 * If true, sends no cookies along with the request
+				 */
+				anonymous?: boolean,
+				/**
+				 * Use a fetch instead of an xhr
+				 */
+				fetch?: boolean,
+				/**
+				 * A username for authentication
+				 */
+				username?: string,
+				/**
+				 * A password for authentication
+				 */
+				password?: string,
+				/**
+				 * A callback on that event
+				 */
+				onload?: (e: Event) => void,
+				/**
+				 * A callback on that event
+				 */
+				onerror?: (e: Event) => void,
+				/**
+				 * A callback on that event
+				 */
+				onreadystatechange?: (e: Event) => void,
+				/**
+				 * A callback on that event
+				 */
+				onprogress?: (e: Event) => void,
+				/**
+				 * A callback on that event
+				 */
+				onloadstart?: (e: Event) => void,
+				/**
+				 * A callback on that event
+				 */
+				ontimeout?: (e: Event) => void
+			}): XMLHttpRequest
+
+			/**
+			 * Adds a change listener to the storage and returns the listener ID.
+			 *		'name' is the name of the observed variable. The 'remote' argument
+			 *		of the callback function shows whether this value was modified
+			 *		from the instance of another tab (true) or within this script
+			 *		instance (false). Therefore this functionality can be used by
+			 *		scripts of different browser tabs to communicate with each other.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_addValueChangeListener}
+			 * @param {string} name - The name of the observed variable
+			 * @param {function} callback - A callback in which the first argument is
+			 *		the name of the observed, variable, the second one is the old value,
+			 *		the third one is the new value and the fourth one is a boolean that
+			 *		indicates whether the change was from a remote tab
+			 * @returns {number} - The id of the listener, used for removing it
+			 */
+			GM_addValueChangeListener(name: string, callback: StorageListener): number,
+
+			/**
+			 * Removes a change listener by its ID.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_removeValueChangeListener}
+			 * @param {number} listenerId - The id of the listener
+			 */
+			GM_removeValueChangeListener(listenerId: number): void,
+
+			/**
+			 * Downloads the file at given URL
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_GM_download}
+			 * @param {string|Object} details - A details object containing any data
+			 * @param {string} [details.url] - The url of the download
+			 * @param {string} [details.name] - The name of the file after download
+			 * @param {Object} [details.headers] - The headers for the request
+			 * @param {function} [details.onload] - Called when the request loads
+			 * @param {function} [details.onerror] - Called on error, gets called with an object
+			 *		containing an error attribute that specifies the reason for the error
+			 *		and a details attribute that gives a more detailed description of the error
+			 * @param {string} name - The name of the file after download
+			 */
+			GM_download(details: DownloadSettings): void,
+			/**
+			 * Downloads the file at given URL
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_GM_download}
+			 * @param {string} url - The URL
+			 * @param {string} name - The name of the file after download
+			 */
+			GM_download(url: string, name: string): void,
+
+			/**
+			 * Please use the comms API instead of this one
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_getTab}
+			 * @param {function} callback - A callback that is immediately called
+			 */
+			GM_getTab: InstantCB,
+
+			/**
+			 * Please use the comms API instead of this one
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_getTabs}
+			 * @param {function} callback - A callback that is immediately called
+			 */
+			GM_getTabs: InstantCB,
+
+			/**
+			 * Please use the comms API instead of this one, this one does nothing
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_saveTab}
+			 * @param {any} ignoredArguments - An argument that is ignored
+			 */
+			GM_saveTab: EmptyFn;
+
+			/**
+			 * The unsafeWindow object provides full access to the pages javascript functions and variables.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#unsafeWindow}
+			 * @type Window
+			 */
+			unsafeWindow: Window,
+
+			/**
+			 * Shows a HTML5 Desktop notification and/or highlight the current tab.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_notification}
+			 * @param {string|Object} options - The message of the notification
+			 * @param {string} [options.text] - The message of the notification
+			 * @param {string} [options.imageUrl] - The URL of the image to use
+			 * @param {string} [options.title] - The title of the notification
+			 * @param {function} [options.onclick] - A function to call on clicking
+			 * @param {boolean} [options.isClickable] - Whether the notification is clickable
+			 * @param {function} [options.ondone] - A function to call when the notification
+			 * 		disappears or is closed by the user.
+			 * @param {string} [title] - The title of the notification
+			 * @param {string} [image] - A url to the image to use for the notification
+			 * @param {function} [onclick] - A function to run on clicking the notification
+			 */
+			GM_notification(options: NotificationOptions): void,
+			/**
+			 * Shows a HTML5 Desktop notification and/or highlight the current tab.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_notification}
+			 * @param {string|Object} text - The message of the notification
+			 * @param {string} [title] - The title of the notification
+			 * @param {string} [image] - A url to the image to use for the notification
+			 * @param {function} [onclick] - A function to run on clicking the notification
+			 */
+			GM_notification(text: string, title?: string, image?: string, onclick?: Function): void,
+
+			//This seems to be deprecated from the tampermonkey documentation page, removed somewhere between january 1st 2016
+			//	and january 24th 2016 waiting for any update
+			/**
+			 * THIS FUNCTION DOES NOT WORK AND IS DEPRECATED
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_installScript}
+			 * @param {any} ignoredArguments - An argument that is ignored
+			 */
+			GM_installScript: EmptyFn
+		}
+
+		/**
 		 * A class for constructing the CRM API
 		 *
 		 * @class
@@ -3107,370 +3478,7 @@ declare namespace CRM {
 			 * 		Documentation can be found here http://wiki.greasespot.net/Greasemonkey_Manual:API
 			 * 		and here http://tampermonkey.net/documentation.php
 			 */
-			GM: {
-				/**
-				 * Returns any info about the script
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_info}
-				 * @returns {Object} - Data about the script
-				 */
-				GM_info(): GreaseMonkeyDataInfo,
-	
-				/**
-				 * This method retrieves a value that was set with GM_setValue. See GM_setValue
-				 *		for details on the storage of these values.
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_getValue}
-				 * @param {String} name - The property name to get
-				 * @param {any} [defaultValue] - Any value to be returned, when no value has previously been set
-				 * @returns {any} - Returns the value if the value is defined, if it's undefined, returns defaultValue
-				 *		when defaultValue is also undefined, returns undefined
-				 */
-				GM_getValue<T>(name: string, defaultValue: T): T,
-				/**
-				 * This method retrieves a value that was set with GM_setValue. See GM_setValue
-				 *		for details on the storage of these values.
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_getValue}
-				 * @param {String} name - The property name to get
-				 * @param {any} [defaultValue] - Any value to be returned, when no value has previously been set
-				 * @returns {void} - Returns the value if the value is defined, if it's undefined, returns defaultValue
-				 *		when defaultValue is also undefined, returns undefined
-				 */
-				GM_getValue<T>(name: string, defaultValue: T): void,
-				/**
-				 * This method retrieves a value that was set with GM_setValue. See GM_setValue
-				 *		for details on the storage of these values.
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_getValue}
-				 * @param {String} name - The property name to get
-				 * @param {any} [defaultValue] - Any value to be returned, when no value has previously been set
-				 * @returns {any} - Returns the value if the value is defined, if it's undefined, returns defaultValue
-				 *		when defaultValue is also undefined, returns undefined
-				 */
-				GM_getValue<T>(name: string, defaultValue: T): any,
-	
-				/**
-				 * This method allows user script authors to persist simple values across page-loads.
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_setValue}
-				 * @param {String} name - The unique (within this script) name for this value. Should be restricted to valid Javascript identifier characters.
-				 * @param {any} value - The value to store
-				 */
-				GM_setValue(name: string, value: any): void,
-	
-				/**
-				 * This method deletes an existing name / value pair from storage.
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_deleteValue}
-				 * @param {String} name - Property name to delete.
-				 */
-				GM_deleteValue(name: string): void,
-	
-				/**
-				 * This method retrieves an array of storage keys that this script has stored.
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_listValues}
-				 * @returns {String[]} All keys of the storage
-				 */
-				GM_listValues(): Array<string>,
-	
-				/**
-				 * Gets the resource URL for given resource name
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_getResourceURL}
-				 * @param {String} name - The name of the resource
-				 * @returns {String} - A URL that can be used to get the resource value
-				 */
-				GM_getResourceURL(name: string): string,
-	
-				/**
-				 * Gets the resource string for given resource name
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_getResourceString}
-				 * @param {String} name - The name of the resource
-				 * @returns {String} - The resource value
-				 */
-				GM_getResourceString(name: string): string,
-	
-				/**
-				 * This method adds a string of CSS to the document. It creates a new `style` element,
-				 * adds the given CSS to it, and inserts it into the `head`.
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_addStyle}
-				 * @param {String} css - The CSS to put on the page
-				 */
-				GM_addStyle(css: string): void,
-	
-				/**
-				 * Logs to the console
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_log}
-				 * @param {any} any - The data to log
-				 */
-				GM_log(...params: Array<any>): void,
-	
-				/**
-				 * Open specified URL in a new tab, open_in_background is not available here since that
-				 *		not possible in chrome
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_openInTab}
-				 * @param {String} url - The url to open
-				 */
-				GM_openInTab(url: string): void,
-	
-				/**
-				 * This is only here to prevent errors from occuring when calling any of these functions,
-				 * this function does nothing
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_registerMenuCommand}
-				 * @param {any} ignoredArguments - An argument that is ignored
-				 */
-				GM_registerMenuCommand: EmptyFn,
-	
-				/**
-				 * This is only here to prevent errors from occuring when calling any of these functions,
-				 * this function does nothing
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_unregisterMenuCommand}
-				 * @param {any} ignoredArguments - An argument that is ignored
-				 */
-				GM_unregisterMenuCommand: EmptyFn;
-	
-				/**
-				 * This is only here to prevent errors from occuring when calling any of these functions,
-				 * this function does nothing
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_setClipboard}
-				 * @param {any} ignoredArguments - An argument that is ignored
-				 */
-				GM_setClipboard: EmptyFn;
-	
-				/**
-				 * Sends an xmlhttpRequest with given parameters
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_xmlhttpRequest}
-				 * @param {Object} options - The options
-				 * @param {string} [options.method] - The method to use (GET, HEAD or POST)
-				 * @param {string} [options.url] - The url to request
-				 * @param {Object} [options.headers] - The headers for the request
-				  * @param {Object} [options.data] - The data to send along
-				 * @param {boolean} [options.binary] - Whether the data should be sent in binary mode
-				 * @param {number} [options.timeout] - The time to wait in ms
-				 * @param {Object} [options.context] - A property which will be applied to the response object
-				 * @param {string} [options.responseType] - The type of response, arraybuffer, blob or json
-				 * @param {string} [options.overrideMimeType] - The MIME type to use
-				  * @param {boolean} [options.anonymous] - If true, sends no cookies along with the request
-				 * @param {boolean} [options.fetch] - Use a fetch instead of an xhr
-				 * @param {string} [options.username] - A username for authentication
-				 * @param {string} [options.password] - A password for authentication
-				 * @param {function} [options.onload] - A callback on that event
-				 * @param {function} [options.onerror] - A callback on that event
-				 * @param {function} [options.onreadystatechange] - A callback on that event
-				 * @param {function} [options.onprogress] - A callback on that event
-				 * @param {function} [options.onloadstart] - A callback on that event
-				 * @param {function} [options.ontimeout] - A callback on that event
-				 * @returns {XMLHttpRequest} The XHR
-				 */
-				GM_xmlhttpRequest(options: {
-					/**
-					 * The method to use (GET, HEAD or POST)
-					 */
-					method?: string,
-					/**
-					 * The url to request
-					 */
-					url?: string,
-					/**
-					 * The headers for the request
-					 */
-					headers?: { [headerKey: string]: string },
-					/**
-					 * The data to send along
-					 */
-					data?: any,
-					/**
-					 * Whether the data should be sent in binary mode
-					 */
-					binary?: boolean,
-					/**
-					 * The time to wait in ms
-					 */
-					timeout?: number,
-					/**
-					 * A property which will be applied to the response object
-					 */
-					context?: any,
-					/**
-					 * The type of response, arraybuffer, blob or json
-					 */
-					responseType?: string,
-					/**
-					 * The MIME type to use
-					 */
-					overrideMimeType?: string,
-					/**
-					 * If true, sends no cookies along with the request
-					 */
-					anonymous?: boolean,
-					/**
-					 * Use a fetch instead of an xhr
-					 */
-					fetch?: boolean,
-					/**
-					 * A username for authentication
-					 */
-					username?: string,
-					/**
-					 * A password for authentication
-					 */
-					password?: string,
-					/**
-					 * A callback on that event
-					 */
-					onload?: (e: Event) => void,
-					/**
-					 * A callback on that event
-					 */
-					onerror?: (e: Event) => void,
-					/**
-					 * A callback on that event
-					 */
-					onreadystatechange?: (e: Event) => void,
-					/**
-					 * A callback on that event
-					 */
-					onprogress?: (e: Event) => void,
-					/**
-					 * A callback on that event
-					 */
-					onloadstart?: (e: Event) => void,
-					/**
-					 * A callback on that event
-					 */
-					ontimeout?: (e: Event) => void
-				}): XMLHttpRequest
-	
-				/**
-				 * Adds a change listener to the storage and returns the listener ID.
-				 *		'name' is the name of the observed variable. The 'remote' argument
-				 *		of the callback function shows whether this value was modified
-				 *		from the instance of another tab (true) or within this script
-				 *		instance (false). Therefore this functionality can be used by
-				 *		scripts of different browser tabs to communicate with each other.
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_addValueChangeListener}
-				 * @param {string} name - The name of the observed variable
-				 * @param {function} callback - A callback in which the first argument is
-				 *		the name of the observed, variable, the second one is the old value,
-				 *		the third one is the new value and the fourth one is a boolean that
-				 *		indicates whether the change was from a remote tab
-				 * @returns {number} - The id of the listener, used for removing it
-				 */
-				GM_addValueChangeListener(name: string, callback: StorageListener): number,
-	
-				/**
-				 * Removes a change listener by its ID.
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_removeValueChangeListener}
-				 * @param {number} listenerId - The id of the listener
-				 */
-				GM_removeValueChangeListener(listenerId: number): void,
-	
-				/**
-				 * Downloads the file at given URL
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_GM_download}
-				 * @param {string|Object} details - A details object containing any data
-				 * @param {string} [details.url] - The url of the download
-				 * @param {string} [details.name] - The name of the file after download
-				 * @param {Object} [details.headers] - The headers for the request
-				 * @param {function} [details.onload] - Called when the request loads
-				 * @param {function} [details.onerror] - Called on error, gets called with an object
-				 *		containing an error attribute that specifies the reason for the error
-				 *		and a details attribute that gives a more detailed description of the error
-				 * @param {string} name - The name of the file after download
-				 */
-				GM_download(details: DownloadSettings): void,
-				/**
-				 * Downloads the file at given URL
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_GM_download}
-				 * @param {string} url - The URL
-				 * @param {string} name - The name of the file after download
-				 */
-				GM_download(url: string, name: string): void,
-	
-				/**
-				 * Please use the comms API instead of this one
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_getTab}
-				 * @param {function} callback - A callback that is immediately called
-				 */
-				GM_getTab: InstantCB,
-	
-				/**
-				 * Please use the comms API instead of this one
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_getTabs}
-				 * @param {function} callback - A callback that is immediately called
-				 */
-				GM_getTabs: InstantCB,
-	
-				/**
-				 * Please use the comms API instead of this one, this one does nothing
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_saveTab}
-				 * @param {any} ignoredArguments - An argument that is ignored
-				 */
-				GM_saveTab: EmptyFn;
-	
-				/**
-				 * The unsafeWindow object provides full access to the pages javascript functions and variables.
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#unsafeWindow}
-				 * @type Window
-				 */
-				unsafeWindow: Window,
-	
-				/**
-				 * Shows a HTML5 Desktop notification and/or highlight the current tab.
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_notification}
-				 * @param {string|Object} options - The message of the notification
-				 * @param {string} [options.text] - The message of the notification
-				 * @param {string} [options.imageUrl] - The URL of the image to use
-				 * @param {string} [options.title] - The title of the notification
-				 * @param {function} [options.onclick] - A function to call on clicking
-				 * @param {boolean} [options.isClickable] - Whether the notification is clickable
-				 * @param {function} [options.ondone] - A function to call when the notification
-				 * 		disappears or is closed by the user.
-				 * @param {string} [title] - The title of the notification
-				 * @param {string} [image] - A url to the image to use for the notification
-				 * @param {function} [onclick] - A function to run on clicking the notification
-				 */
-				GM_notification(options: NotificationOptions): void,
-				/**
-				 * Shows a HTML5 Desktop notification and/or highlight the current tab.
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_notification}
-				 * @param {string|Object} text - The message of the notification
-				 * @param {string} [title] - The title of the notification
-				 * @param {string} [image] - A url to the image to use for the notification
-				 * @param {function} [onclick] - A function to run on clicking the notification
-				 */
-				GM_notification(text: string, title?: string, image?: string, onclick?: Function): void,
-	
-				//This seems to be deprecated from the tampermonkey documentation page, removed somewhere between january 1st 2016
-				//	and january 24th 2016 waiting for any update
-				/**
-				 * THIS FUNCTION DOES NOT WORK AND IS DEPRECATED
-				 *
-				 * @see {@link https://tampermonkey.net/documentation.php#GM_installScript}
-				 * @param {any} ignoredArguments - An argument that is ignored
-				 */
-				GM_installScript: EmptyFn
-			}
+			GM: GM_Fns;
 	
 			/**
 			 * Gets the current text selection
@@ -3520,7 +3528,7 @@ type crmAPIQuerySelector = <T extends keyof ElementMaps>(selector: T, context?: 
 
 declare var crmAPI: typeof CRM.CRMAPI.CrmAPIInstance;
 
-interface Window {
+interface Window extends CRM.CRMAPI.GM_Fns {
 	crmAPI: typeof CRM.CRMAPI.CrmAPIInstance
 	$?: crmAPIQuerySelector
 }

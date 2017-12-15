@@ -206,7 +206,6 @@ interface Window {
 	ecma6: any;
 	browserDefs: any;
 	tern: Tern.Tern;
-	backgroundPageLoaded: Promise<void>;
 
 	log: typeof console.log;
 	testLog?: typeof console.log;
@@ -313,7 +312,11 @@ const enum SCRIPT_CONVERSION_TYPE {
 	BOTH = 2
 }
 
-interface GlobalObject {
+
+type UpgradeErrorHandler = (oldScriptErrors: Array<CursorPosition>,
+	newScriptErrors: Array<CursorPosition>, parseError: boolean) => void;
+
+interface GlobalObject extends Partial<Window> {
 	globals?: {
 		latestId: number;
 		storages: {
@@ -478,11 +481,17 @@ interface GlobalObject {
 		};
 	};
 	TransferFromOld?: {
-		transferCRMFromOld(openInNewTab: boolean, storageSource: {
+		transferCRMFromOld(openInNewTab: boolean, storageSource?: {
 			getItem(index: string | number): any;
-		}, method: SCRIPT_CONVERSION_TYPE): CRM.Tree;
+		}, method?: SCRIPT_CONVERSION_TYPE): CRM.Tree;
+		legacyScriptReplace: {
+			generateScriptUpgradeErrorHandler(id: number): UpgradeErrorHandler
+		}
 	};
-	Storages?: any;
+	backgroundPageLoaded?: Promise<void>;
+
+	HTMLElement?: any;
+	JSON?: JSON;
 }
 
 interface Extensions<T> extends CRM.Extendable<T> { }
@@ -8348,9 +8357,6 @@ if (typeof module === 'undefined') {
 		expression: Tern.Expression;
 	}
 
-	type UpgradeErrorHandler = (oldScriptErrors: Array<CursorPosition>,
-		newScriptErrors: Array<CursorPosition>, parseError: boolean) => void;
-
 	type TransferOnErrorError = {
 		from: {
 			line: number;
@@ -10103,7 +10109,7 @@ if (typeof module === 'undefined') {
 		}
 		window.console.group('Initialization');
 		window.console.group('Loading storage data');
-		window.backgroundPageLoaded = new Promise((resolve) => {
+		globalObject.backgroundPageLoaded = new Promise((resolve) => {
 			Storages.loadStorages(async () => {
 				window.console.groupEnd();
 				try {

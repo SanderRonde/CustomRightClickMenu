@@ -94,7 +94,7 @@ declare namespace CRM {
 	/**
 	 * The GreaseMonkey permissions descriptions
 	 */
-	interface GMPermissioNDescriptions {
+	interface GMPermissionDescriptions {
 		GM_addStyle: string;
 		GM_deleteValue: string;
 		GM_listValues: string;
@@ -122,7 +122,7 @@ declare namespace CRM {
 	/**
 	 * The permission descriptions
 	 */
-	type PermissionDescriptions = ChromePermissionDescriptions & CRMPermissionDescriptions & GMPermissioNDescriptions;
+	type PermissionDescriptions = ChromePermissionDescriptions & CRMPermissionDescriptions & GMPermissionDescriptions;
 
 	/**
 	 * The chrome permissions
