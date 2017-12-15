@@ -206,6 +206,7 @@ interface Window {
 	ecma6: any;
 	browserDefs: any;
 	tern: Tern.Tern;
+	backgroundPageLoaded: Promise<void>;
 
 	log: typeof console.log;
 	testLog?: typeof console.log;
@@ -10102,70 +10103,69 @@ if (typeof module === 'undefined') {
 		}
 		window.console.group('Initialization');
 		window.console.group('Loading storage data');
-		Storages.loadStorages(async () => {
-			window.console.groupEnd();
-			try {
-				globalObject.globals.latestId = globalObject.globals.storages.settingsStorage.latestId;
-				window.log('Registering permission listeners');
-				GlobalDeclarations.refreshPermissions();
-				window.log('Setting CRMAPI message handler');
-				GlobalDeclarations.setHandlerFunction();
-				chrome.runtime.onConnect.addListener((port) => {
-					port.onMessage.addListener(window.createHandlerFunction(port));
-				});
-				chrome.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
-				window.log('Compiling typescript');
-				await CRM.TS.compileAllInTree();
-				window.log('Building Custom Right-Click Menu');
-				CRM.buildPageCRM();
-				window.console.groupCollapsed('Restoring previous open tabs');
-				await GlobalDeclarations.restoreOpenTabs();
+		window.backgroundPageLoaded = new Promise((resolve) => {
+			Storages.loadStorages(async () => {
 				window.console.groupEnd();
-				window.console.groupCollapsed('Creating backgroundpages');
-				CRM.Script.Background.createBackgroundPages();
-				window.console.groupEnd();
-				window.log('Registering global handlers');
-				GlobalDeclarations.init();
-
-				//Checks if all values are still correct
-				window.console.group('Checking Resources');
-				window.log('Updating resources');
-				Resources.updateResourceValues();
-				window.log('Updating scripts');
-				CRM.Script.Updating.updateScripts();
-				window.setInterval(() => {
+				try {
+					globalObject.globals.latestId = globalObject.globals.storages.settingsStorage.latestId;
+					window.log('Registering permission listeners');
+					GlobalDeclarations.refreshPermissions();
+					window.log('Setting CRMAPI message handler');
+					GlobalDeclarations.setHandlerFunction();
+					chrome.runtime.onConnect.addListener((port) => {
+						port.onMessage.addListener(window.createHandlerFunction(port));
+					});
+					chrome.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
+					window.log('Compiling typescript');
+					await CRM.TS.compileAllInTree();
+					window.log('Building Custom Right-Click Menu');
+					CRM.buildPageCRM();
+					window.console.groupCollapsed('Restoring previous open tabs');
+					await GlobalDeclarations.restoreOpenTabs();
+					window.console.groupEnd();
+					window.console.groupCollapsed('Creating backgroundpages');
+					CRM.Script.Background.createBackgroundPages();
+					window.console.groupEnd();
+					window.log('Registering global handlers');
+					GlobalDeclarations.init();
+	
+					//Checks if all values are still correct
+					window.console.group('Checking Resources');
+					window.log('Updating resources');
+					Resources.updateResourceValues();
+					window.log('Updating scripts');
 					CRM.Script.Updating.updateScripts();
-				}, 6 * 60 * 60 * 1000);
-				window.console.groupEnd();
-
-				window.log('Registering console user interface');
-				GlobalDeclarations.initGlobalFunctions();
-
-				if (location.href.indexOf('test') > -1) {
-					globalObject.Storages = Storages;
-				}
-				if (typeof module !== 'undefined') {
-					globalObject.TransferFromOld =
-						Storages.SetupHandling.TransferFromOld;
-				}
-				
-				for (let i = 0; i < 5; i++) {
+					window.setInterval(() => {
+						CRM.Script.Updating.updateScripts();
+					}, 6 * 60 * 60 * 1000);
 					window.console.groupEnd();
+	
+					window.log('Registering console user interface');
+					GlobalDeclarations.initGlobalFunctions();
+	
+					if (location.href.indexOf('test') > -1) {
+						globalObject.Storages = Storages;
+					}
+					if (typeof module !== 'undefined') {
+						globalObject.TransferFromOld =
+							Storages.SetupHandling.TransferFromOld;
+					}
+					
+					for (let i = 0; i < 5; i++) {
+						window.console.groupEnd();
+					}
+	
+					window.log('Done!');
+					resolve(null);
+				} catch (e) {
+					for (let i = 0; i < 10; i++) {
+						window.console.groupEnd();
+					}
+	
+					window.log(e);
+					throw e;
 				}
-
-				window.log('Done!');
-
-				const event = document.createEvent('Event');
-				event.initEvent('CRMLoaded', true, true);
-				window.dispatchEvent(event);
-			} catch (e) {
-				for (let i = 0; i < 10; i++) {
-					window.console.groupEnd();
-				}
-
-				window.log(e);
-				throw e;
-			}
+			});
 		});
 	})();
 })(
