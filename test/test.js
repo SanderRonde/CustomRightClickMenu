@@ -1376,7 +1376,7 @@ describe('Conversion', () => {
 	});
 
 	/**
-	 * @param fn {() => CRM.Tree}
+	 * @param fn {() => Promise<CRM.Tree>}
 	 * @param msg {string}
 	 * 
 	 * @returns {any}
