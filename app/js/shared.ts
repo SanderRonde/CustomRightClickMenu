@@ -174,6 +174,8 @@ interface Window {
 		return res;
 	}
 
-	const event = new Event('ObjectifyReady');
-	window.dispatchEvent(event);
+	if (typeof Event !== 'undefined') {
+		const event = new Event('ObjectifyReady');
+		window.dispatchEvent(event);
+	}
 })();
