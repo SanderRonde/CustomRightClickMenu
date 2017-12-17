@@ -1312,7 +1312,8 @@ describe('Conversion', () => {
 		step('should be defined', () => {
 			assert.isDefined(backgroundPageWindow, 'backgroundPage is defined');
 		});
-		step('should finish loading', (done) => {
+		step('should finish loading', function(done) {
+			this.timeout(5000);
 			backgroundPageWindow.backgroundPageLoaded.then(() => {
 				done();
 				backgroundPageWindowResolve();
