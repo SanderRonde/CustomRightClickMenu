@@ -462,7 +462,8 @@ function resetTree() {
 class xhr {
 	constructor() {
 		this.readyState = 0;
-		this.status = 0;
+		this.status = xhr.UNSENT;
+		this.responseText = '';
 	}
 	open(method, path) {
 		//Strip chrome-extension://
@@ -475,7 +476,16 @@ class xhr {
 			});
 			res.on('end', () => {
 				this.readyState = xhr.DONE;
+			if (err) {
+				if (err.code === 'ENOENT') {
+					this.status = 404;
+				} else {
+					this.status = 500;
+				}
+			} else {
 				this.status = 200;
+			}
+			this.responseText = data;
 				this.onreadystatechange();
 			});
 		});
@@ -484,6 +494,18 @@ class xhr {
 		console.log('This should not be called, onreadystatechange is not overridden');
 	}
 
+	static get UNSENT() {
+		return 0;
+	}
+	static get OPENED() {
+		return 1;
+	}
+	static get HEADERS_RECEIVED() {
+		return 2;
+	}
+	static get LOADING() {
+		return 3;
+	}
 	static get DONE() {
 		return 4;
 	}
