@@ -3,7 +3,8 @@
 /// <reference path="../app/js/background.ts" />
 
 'use strict';
-require('mocha-steps');
+var mochaSteps = require('mocha-steps');
+var step = mochaSteps.step;
 var assert = require('chai').assert;
 var request = require('request');
 var fs = require('fs'); 
