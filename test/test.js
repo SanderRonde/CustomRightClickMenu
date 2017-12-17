@@ -7,7 +7,6 @@ require('mocha-steps');
 var assert = require('chai').assert;
 var request = require('request');
 var fs = require('fs'); 
-var http = require('http');
 var path = require('path');
 
 function isDefaultKey(key) {
@@ -465,17 +464,15 @@ class xhr {
 		this.status = xhr.UNSENT;
 		this.responseText = '';
 	}
-	open(method, path) {
+	open(method, filePath) {
 		//Strip chrome-extension://
-		path = path.split('chrome-extension://something/')[1];
+		filePath = filePath.split('chrome-extension://something/')[1];
 
-		http.get(`http://localhost:1234/build/${path}`, (res) => {
-			var data = '';
-			res.on('data', (chunk) => {
-				data += chunk;
-			});
-			res.on('end', () => {
-				this.readyState = xhr.DONE;
+		this.readyState = xhr.UNSENT;
+		fs.readFile(path.join(__dirname, '..', 'build/', filePath), {
+			encoding: 'utf8',
+		}, (err, data) => {
+			this.readyState = xhr.DONE;
 			if (err) {
 				if (err.code === 'ENOENT') {
 					this.status = 404;
@@ -486,9 +483,11 @@ class xhr {
 				this.status = 200;
 			}
 			this.responseText = data;
-				this.onreadystatechange();
-			});
+			this.onreadystatechange();
 		});
+		if (this.readyState === xhr.UNSENT) {
+			this.readyState = xhr.LOADING;
+		}
 	}
 	onreadystatechange() { 
 		console.log('This should not be called, onreadystatechange is not overridden');
