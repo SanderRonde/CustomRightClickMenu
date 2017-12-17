@@ -13,8 +13,8 @@
 // single type.
 
 (function(root, mod) {
-	mod(root.tern || (root.tern = {}), acorn, acorn, acorn.walk, tern.def, tern.signal); // Plain browser env
-  })(this, function(exports, acorn, acorn_loose, walk, def, signal) {
+	mod(root.tern || (root.tern = {}), root.acorn, root.acorn, root.acorn.walk, root.tern.def, root.tern.signal); // Plain browser env
+  })(window, function(exports, acorn, acorn_loose, walk, def, signal) {
 	"use strict";
   
 	var toString = exports.toString = function(type, maxDepth, parent) {

@@ -1,6 +1,6 @@
-(function(mod) {
-	mod(tern.comment || (tern.comment = {}));
-  })(function(exports) {
+(function(root, mod) {
+	mod(root.tern.comment || (root.tern.comment = {}));
+  })(window, function(exports) {
 	function isSpace(ch) {
 	  return (ch < 14 && ch > 8) || ch === 32 || ch === 160;
 	}

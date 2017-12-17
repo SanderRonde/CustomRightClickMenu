@@ -1,6 +1,6 @@
 (function (global, factory) {
 	(factory((global.acorn = global.acorn || {}, global.acorn.walk = global.acorn.walk || {})));
-  }(this, function (exports) { 'use strict';
+  }(window, function (exports) { 'use strict';
   
 	// AST walker module for Mozilla Parser API compatible trees
   

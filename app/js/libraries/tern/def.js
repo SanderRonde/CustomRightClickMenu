@@ -8,9 +8,10 @@
 // B) to cheaply load the types for big libraries, or libraries that
 //    can't be inferred well
 
-(function(mod) {
-	tern.def = {init: mod};
-  })(function(exports, infer) {
+(function(root, mod) {
+	root.tern = root.tern || {};
+	root.tern.def = {init: mod};
+  })(window, function(exports, infer) {
 	"use strict";
   
 	function hop(obj, prop) {

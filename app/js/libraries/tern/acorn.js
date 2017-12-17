@@ -1,6 +1,6 @@
 (function (global, factory) {
   (factory((global.acorn = global.acorn || {})));
-}(this, function (exports) { 'use strict';
+}(window, function (exports) { 'use strict';
 
   // Reserved word lists for various dialects of the language
 

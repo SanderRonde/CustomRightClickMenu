@@ -1,6 +1,6 @@
 (function(root, mod) {
 	mod((root.tern || (root.tern = {})).signal = {}); // Plain browser env
-  })(this, function(exports) {
+  })(window, function(exports) {
   
 	function on(type, f) {
 	  var handlers = this._handlers || (this._handlers = Object.create(null));
