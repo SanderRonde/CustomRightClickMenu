@@ -1397,7 +1397,7 @@ describe('Conversion', () => {
 		before((done) => {
 			backgroundPageWindowDone.then(done);
 		});
-		it('should convert an empty crm', () => {
+		it('should convert an empty crm', (done) => {
 			var openInNewTab = false;
 			var oldStorage = createCrmLocalStorage([], false);
 			assert.doesNotThrow(() => {
@@ -1405,6 +1405,7 @@ describe('Conversion', () => {
 					assert.isDefined(result, 'Result is defined');
 					assert.isArray(result, 'Resulting CRM is an array');
 					assert.lengthOf(result, 0, 'Resulting CRM is empty');
+					done();
 				});
 			}, 'Converting does not throw an error');
 		});
@@ -1419,7 +1420,7 @@ describe('Conversion', () => {
 				url: 'badurl'
 			}]
 		}];
-		it('should convert a CRM with one link with openInNewTab false', () => {
+		it('should convert a CRM with one link with openInNewTab false', (done) => {
 			var openInNewTab = false;
 			var oldStorage = createCrmLocalStorage(singleLinkBaseCase, false);
 			assert.doesNotThrow(() => {
@@ -1440,10 +1441,11 @@ describe('Conversion', () => {
 					// @ts-ignore
 					assert.lengthOf(result[0].value, 3, "Link's value array has a length of 3");
 					assert.deepEqual(result[0].value, expectedLinks, "Link's value array should match the expected values");
+					done();
 				});
 			}, 'Converting does not throw an error');
 		});
-		it('should convert a CRM with one link with openInNewTab true', () => {
+		it('should convert a CRM with one link with openInNewTab true', (done) => {
 			var openInNewTab = true;
 			var oldStorage = createCrmLocalStorage(singleLinkBaseCase, true);
 			assert.doesNotThrow(() => {
@@ -1464,10 +1466,11 @@ describe('Conversion', () => {
 					// @ts-ignore
 					assert.lengthOf(result[0].value, 3, "Link's value array has a length of 3");
 					assert.deepEqual(result[0].value, expectedLinks, "Link's value array should match the expected values");
+					done();
 				});
 			}, 'Converting does not throw an error');
 		});
-		it('should be able to handle spaces in the name', () => {
+		it('should be able to handle spaces in the name', (done) => {
 			var testName = 'a b c d e f g';
 			assert.doesNotThrow(() => {
 				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
@@ -1478,10 +1481,11 @@ describe('Conversion', () => {
 					)).then((result) => {
 						assert.isDefined(result, 'Result is defined');
 						assert.strictEqual(result[0].name, testName, 'Names should match');
+						done();
 					});
 			}, 'Converting does not throw an error');
 		});
-		it('should be able to handle newlines in the name', () => {
+		it('should be able to handle newlines in the name', (done) => {
 			var testName = 'a\nb\nc\nd\ne\nf\ng';
 			assert.doesNotThrow(() => {
 				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
@@ -1492,10 +1496,11 @@ describe('Conversion', () => {
 					)).then((result) => {
 						assert.isDefined(result, 'Result is defined');
 						assert.strictEqual(result[0].name, testName, 'Names should match');
+						done();
 					});
 			}, 'Converting does not throw an error');
 		});
-		it('should be able to handle quotes in the name', () => {
+		it('should be able to handle quotes in the name', (done) => {
 			var testName = 'a\'b"c\'\'d""e`f`g';
 			assert.doesNotThrow(() => {
 				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
@@ -1506,10 +1511,11 @@ describe('Conversion', () => {
 					)).then((result) => {
 						assert.isDefined(result, 'Result is defined');
 						assert.strictEqual(result[0].name, testName, 'Names should match');
+						done();
 					});
 			}, 'Converting does not throw an error');
 		});
-		it('should be able to handle an empty name', () => {
+		it('should be able to handle an empty name', (done) => {
 			var testName = '';
 			assert.doesNotThrow(() => {
 				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
@@ -1520,12 +1526,13 @@ describe('Conversion', () => {
 					)).then((result) => {
 						assert.isDefined(result, 'Result is defined');
 						assert.strictEqual(result[0].name, testName, 'Names should match');
+						done();
 					});
 			}, 'Converting does not throw an error');
 		});
-		it('should be able to convert an empty menu', () => {
+		it('should be able to convert an empty menu', (done) => {
 			assert.doesNotThrow(() => {
-				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 					createCrmLocalStorage([{
 						type: 'menu',
 						name: 'test-menu',
@@ -1541,10 +1548,11 @@ describe('Conversion', () => {
 						assert.isArray(result[0].children, "Resulting node's children property is an array");
 						// @ts-ignore
 						assert.lengthOf(result[0].children, 0, "Resulting node's children array has length 0");
+						done();
 					});
 			}, 'Converting does not throw an error');
 		});
-		it('should be able to convert a script with triggers', function() {
+		it('should be able to convert a script with triggers', function(done) {
 			this.slow(300);
 
 			assert.doesNotThrow(() => {
@@ -1583,10 +1591,11 @@ describe('Conversion', () => {
 							not: false,
 							url: 'youtube.com'
 						}], 'Triggers match expected');
+						done();
 					});
 			}, 'Converting does not throw an error');
 		});
-		it('should be able to convert a menu with some children with various types', () => {
+		it('should be able to convert a menu with some children with various types', (done) => {
 			assert.doesNotThrow(() => {
 				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 					createCrmLocalStorage([{
@@ -1601,23 +1610,24 @@ describe('Conversion', () => {
 						singleLinkBaseCase[0]
 						]
 				  }])).then((result) => {
-					  assert.isDefined(result, 'Result is defined');
-					  assert.isArray(result, 'Resulting CRM is an array');
-					  assert.lengthOf(result, 1, 'Resulting CRM has one child');
-					  assert.isObject(result[0], 'Resulting node is an object');
-					  assert.strictEqual(result[0].type, 'menu', 'Resulting node is of type menu');
-					  assert.property(result[0], 'children', 'Resulting node has a children property');
-					  assert.isArray(result[0].children, "Resulting node's children property is an array");
-					  // @ts-ignore
-					assert.lengthOf(result[0].children, 4, "Resulting node's children array has length 4");
-					  assert.strictEqual(result[0].children[0].type, 'divider', 'First child is a divider');
-					  assert.strictEqual(result[0].children[1].type, 'link', 'second child is a divider');
-					  assert.strictEqual(result[0].children[2].type, 'link', 'Third child is a divider');
-					  assert.strictEqual(result[0].children[3].type, 'link', 'Fourth child is a divider');
+						assert.isDefined(result, 'Result is defined');
+						assert.isArray(result, 'Resulting CRM is an array');
+						assert.lengthOf(result, 1, 'Resulting CRM has one child');
+						assert.isObject(result[0], 'Resulting node is an object');
+						assert.strictEqual(result[0].type, 'menu', 'Resulting node is of type menu');
+						assert.property(result[0], 'children', 'Resulting node has a children property');
+						assert.isArray(result[0].children, "Resulting node's children property is an array");
+						// @ts-ignore
+						assert.lengthOf(result[0].children, 4, "Resulting node's children array has length 4");
+						assert.strictEqual(result[0].children[0].type, 'divider', 'First child is a divider');
+						assert.strictEqual(result[0].children[1].type, 'link', 'second child is a divider');
+						assert.strictEqual(result[0].children[2].type, 'link', 'Third child is a divider');
+						assert.strictEqual(result[0].children[3].type, 'link', 'Fourth child is a divider');
+						done();
 				  });
 			}, 'Converting does not throw an error');
 		});
-		it('should be able to convert a menu which contains menus itself', () => {
+		it('should be able to convert a menu which contains menus itself', (done) => {
 			var nameIndex = 0;
 			assert.doesNotThrow(() => {
 				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
@@ -1686,6 +1696,7 @@ describe('Conversion', () => {
 							assert.isArray(child.children, `First node's first child's child at index ${index} has children array`);
 							assert.lengthOf(child.children, 0, `First node's first child's child at index ${index} has 0 children`);
 						});
+						done();
 					});
 			}, 'Converting does not throw an error');
 		});
@@ -1736,7 +1747,9 @@ describe('Conversion', () => {
 			}), 'Converting does not throw an error');
 		}
 		describe('localStorage', function() {
-			it('should be able to convert a oneline no-localStorage-calls script', (done) => {
+			it('should be able to convert a oneline no-localStorage-calls script', function (done) {
+				debugger;
+				this.timeout(10000000);
 				testScript('console.log("hi");', SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE, done);
 			});
 			it('should be able to convert a multiline script with indentation with no localStorage-calls', (done) => {
