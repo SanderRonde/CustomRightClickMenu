@@ -91,7 +91,7 @@ const btoa = require('btoa');
 const assert = chai.assert;
 
 let driver: webdriver.WebDriver;
-
+const PORT = 1234;
 
 let capabilities: {
 	browserName: string;
@@ -152,7 +152,7 @@ before('Driver connect', function(done: any) {
 		}
 	}
 
-	result.get('http://localhost:1234/test/UI/built/UITest.html#noClear-test').then(() => {
+	result.get(`http://localhost:${PORT}/test/UI/built/UITest.html#noClear-test`).then(() => {
 		driver = result;
 		let timer = setInterval(() => {
 			driver.executeScript(inlineFn(() => {
