@@ -9191,7 +9191,7 @@ if (typeof module === 'undefined') {
 					getItem(index: string | number): any;
 				} = localStorage, method: SCRIPT_CONVERSION_TYPE = SCRIPT_CONVERSION_TYPE.BOTH): Promise<CRM.Tree> {
 					this._backupLocalStorage();
-					await SetupHandling.loadTernFiles();
+					await Storages.SetupHandling.loadTernFiles();
 
 					const amount = parseInt(storageSource.getItem('numberofrows'), 10) + 1;
 
