@@ -144,10 +144,14 @@ declare namespace Tern {
 		body: Array<Expression>;
 	}
 
-	export interface File {
-		new(name: string): File;
+	export class File {
+		parent: any;
+		scope: any;
 		text: string;
-		ast: ParsedFile;
+		ast: Tern.ParsedFile;
+		lineOffsets: Array<number>;
+
+		constructor(name: string);
 	}
 
 	type Context = any;

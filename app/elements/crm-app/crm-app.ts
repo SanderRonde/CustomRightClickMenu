@@ -1001,6 +1001,16 @@ namespace CRMAppElement {
 			this.show = false;
 		};
 
+		private static TernFile = class TernFile {
+			parent: any;
+			scope: any;
+			text: string;
+			ast: Tern.ParsedFile;
+			lineOffsets: Array<number>;
+
+			constructor(public name: string) { }
+		}
+
 		/**
 		 * Functions related to transferring from version 1.0
 		 */
@@ -2018,7 +2028,7 @@ namespace CRMAppElement {
 				}
 				static replaceCalls(lines: Array<string>): string {
 					//Analyze the file
-					const file = new window.TernFile('[doc]');
+					const file = new window.app.TernFile('[doc]');
 					file.text = lines.join('\n');
 					const srv = new window.CodeMirror.TernServer({
 						defs: [window.ecma5, window.ecma6, window.browserDefs]
@@ -2520,7 +2530,7 @@ namespace CRMAppElement {
 				private static replaceChromeCalls(lines: Array<string>, passes: number,
 					onError: TransferOnError): string {
 					//Analyze the file
-					var file = new window.TernFile('[doc]');
+					var file = new window.app.TernFile('[doc]');
 					file.text = lines.join('\n');
 					var srv = new window.CodeMirror.TernServer({
 						defs: [window.ecma5, window.ecma6, window.browserDefs]

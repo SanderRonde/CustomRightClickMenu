@@ -8373,6 +8373,15 @@ if (typeof module === 'undefined') {
 		static readonly SetupHandling = class SetupHandling {
 			static readonly TransferFromOld = class TransferFromOld {
 				static readonly legacyScriptReplace = class LegacyScriptReplace {
+					private static TernFile = class TernFile {
+						parent: any;
+						scope: any;
+						text: string;
+						ast: Tern.ParsedFile;
+						lineOffsets: Array<number>;
+
+						constructor(public name: string) { }
+					}
 					private static readonly localStorageReplace = class LogalStorageReplace {
 						private static findLocalStorageExpression(expression: Tern.Expression, data: PersistentData): boolean {
 							switch (expression.type) {
@@ -8488,7 +8497,7 @@ if (typeof module === 'undefined') {
 						}
 						static replaceCalls(lines: Array<string>): string {
 							//Analyze the file
-							const file = new window.TernFile('[doc]');
+							const file = new LegacyScriptReplace.TernFile('[doc]');
 							file.text = lines.join('\n');
 							const srv = new window.CodeMirror.TernServer({
 								defs: [window.ecma5, window.ecma6, window.browserDefs]
@@ -8984,7 +8993,7 @@ if (typeof module === 'undefined') {
 						private static replaceChromeCalls(lines: Array<string>, passes: number,
 							onError: TransferOnErrorHandler): string {
 							//Analyze the file
-							var file = new window.TernFile('[doc]');
+							var file = new LegacyScriptReplace.TernFile('[doc]');
 							file.text = lines.join('\n');
 							var srv = new window.CodeMirror.TernServer({
 								defs: [window.ecma5, window.ecma6, window.browserDefs]
