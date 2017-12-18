@@ -58,7 +58,7 @@
 	  if (this.options.useWorker) {
 		this.server = new WorkerServer(this);
 	  } else {
-		this.server = new tern.Server({
+		this.server = new window.tern.Server({
 		  getFile: function(name, c) { return getFile(self, name, c); },
 		  async: true,
 		  defs: this.options.defs || [],
