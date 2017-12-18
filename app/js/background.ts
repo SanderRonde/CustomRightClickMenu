@@ -202,9 +202,6 @@ interface Window {
 	md5: (data: any) => string;
 	ts: Typescript & typeof ts;
 	TernFile: Tern.File;
-	ecma5: any;
-	ecma6: any;
-	browserDefs: any;
 	tern: Tern.Tern;
 
 	log: typeof console.log;
@@ -8500,7 +8497,7 @@ if (typeof module === 'undefined') {
 							const file = new LegacyScriptReplace.TernFile('[doc]');
 							file.text = lines.join('\n');
 							const srv = new window.CodeMirror.TernServer({
-								defs: [window.ecma5, window.ecma6, window.browserDefs]
+								defs: []
 							});
 							window.tern.withContext(srv.cx, () => {
 								file.ast = window.tern.parse(file.text, srv.passes, {
@@ -9466,6 +9463,7 @@ if (typeof module === 'undefined') {
 						'/js/libraries/tern/signal.js',
 						'/js/libraries/tern/acorn.js',
 						'/js/libraries/tern/tern.js',
+						'/js/libraries/tern/ternserver.js',
 						'/js/libraries/tern/def.js',
 						'/js/libraries/tern/comment.js',
 						'/js/libraries/tern/infer.js'

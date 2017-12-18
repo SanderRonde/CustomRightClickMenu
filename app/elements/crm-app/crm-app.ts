@@ -1174,6 +1174,7 @@ namespace CRMAppElement {
 						'/js/libraries/tern/signal.js',
 						'/js/libraries/tern/acorn.js',
 						'/js/libraries/tern/tern.js',
+						'/js/libraries/tern/ternserver.js',
 						'/js/libraries/tern/def.js',
 						'/js/libraries/tern/comment.js',
 						'/js/libraries/tern/infer.js'
@@ -2031,7 +2032,7 @@ namespace CRMAppElement {
 					const file = new window.app.TernFile('[doc]');
 					file.text = lines.join('\n');
 					const srv = new window.CodeMirror.TernServer({
-						defs: [window.ecma5, window.ecma6, window.browserDefs]
+						defs: []
 					});
 					window.tern.withContext(srv.cx, () => {
 						file.ast = window.tern.parse(file.text, srv.passes, {
