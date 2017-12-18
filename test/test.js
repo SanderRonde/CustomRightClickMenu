@@ -1400,12 +1400,13 @@ describe('Conversion', () => {
 		it('should convert an empty crm', () => {
 			var openInNewTab = false;
 			var oldStorage = createCrmLocalStorage([], false);
-			var result = doesNotThrow(() => {
-				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
+			assert.doesNotThrow(() => {
+				backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage).then((result) => {
+					assert.isDefined(result, 'Result is defined');
+					assert.isArray(result, 'Resulting CRM is an array');
+					assert.lengthOf(result, 0, 'Resulting CRM is empty');
+				});
 			}, 'Converting does not throw an error');
-			assert.isDefined(result, 'Result is defined');
-			assert.isArray(result, 'Resulting CRM is an array');
-			assert.lengthOf(result, 0, 'Resulting CRM is empty');
 		});
 		var singleLinkBaseCase = [{
 			name: 'linkname',
@@ -1421,125 +1422,133 @@ describe('Conversion', () => {
 		it('should convert a CRM with one link with openInNewTab false', () => {
 			var openInNewTab = false;
 			var oldStorage = createCrmLocalStorage(singleLinkBaseCase, false);
-			var result = doesNotThrow(() => {
-				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
+			assert.doesNotThrow(() => {
+				backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage).then((result) => {
+					var expectedLinks = singleLinkBaseCase[0].value.map((url) => {
+						return {
+							url: url.url,
+							newTab: openInNewTab
+						};
+					});
+					assert.isDefined(result, 'Result is defined');
+					assert.isArray(result, 'Resulting CRM is an array');
+					assert.lengthOf(result, 1, 'Resulting CRM has one child');
+					assert.isObject(result[0], "Resulting CRM's first (and only) child is an object");
+					assert.strictEqual(result[0].type, 'link', 'Link has type link');
+					assert.strictEqual(result[0].name, 'linkname', 'Link has name linkname');
+					assert.isArray(result[0].value, "Link's value is an array");
+					// @ts-ignore
+					assert.lengthOf(result[0].value, 3, "Link's value array has a length of 3");
+					assert.deepEqual(result[0].value, expectedLinks, "Link's value array should match the expected values");
+				});
 			}, 'Converting does not throw an error');
-			var expectedLinks = singleLinkBaseCase[0].value.map((url) => {
-				return {
-					url: url.url,
-					newTab: openInNewTab
-				};
-			});
-			assert.isDefined(result, 'Result is defined');
-			assert.isArray(result, 'Resulting CRM is an array');
-			assert.lengthOf(result, 1, 'Resulting CRM has one child');
-			assert.isObject(result[0], "Resulting CRM's first (and only) child is an object");
-			assert.strictEqual(result[0].type, 'link', 'Link has type link');
-			assert.strictEqual(result[0].name, 'linkname', 'Link has name linkname');
-			assert.isArray(result[0].value, "Link's value is an array");
-			assert.lengthOf(result[0].value, 3, "Link's value array has a length of 3");
-			assert.deepEqual(result[0].value, expectedLinks, "Link's value array should match the expected values");
 		});
 		it('should convert a CRM with one link with openInNewTab true', () => {
 			var openInNewTab = true;
 			var oldStorage = createCrmLocalStorage(singleLinkBaseCase, true);
-			var result = doesNotThrow(() => {
-				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
+			assert.doesNotThrow(() => {
+				backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage).then((result) => {
+					var expectedLinks = singleLinkBaseCase[0].value.map((url) => {
+						return {
+							url: url.url,
+							newTab: openInNewTab
+						};
+					});
+					assert.isDefined(result, 'Result is defined');
+					assert.isArray(result, 'Resulting CRM is an array');
+					assert.lengthOf(result, 1, 'Resulting CRM has one child');
+					assert.isObject(result[0], "Resulting CRM's first (and only) child is an object");
+					assert.strictEqual(result[0].type, 'link', 'Link has type link');
+					assert.strictEqual(result[0].name, 'linkname', 'Link has name linkname');
+					assert.isArray(result[0].value, "Link's value is an array");
+					// @ts-ignore
+					assert.lengthOf(result[0].value, 3, "Link's value array has a length of 3");
+					assert.deepEqual(result[0].value, expectedLinks, "Link's value array should match the expected values");
+				});
 			}, 'Converting does not throw an error');
-			var expectedLinks = singleLinkBaseCase[0].value.map((url) => {
-				return {
-					url: url.url,
-					newTab: openInNewTab
-				};
-			});
-			assert.isDefined(result, 'Result is defined');
-			assert.isArray(result, 'Resulting CRM is an array');
-			assert.lengthOf(result, 1, 'Resulting CRM has one child');
-			assert.isObject(result[0], "Resulting CRM's first (and only) child is an object");
-			assert.strictEqual(result[0].type, 'link', 'Link has type link');
-			assert.strictEqual(result[0].name, 'linkname', 'Link has name linkname');
-			assert.isArray(result[0].value, "Link's value is an array");
-			assert.lengthOf(result[0].value, 3, "Link's value array has a length of 3");
-			assert.deepEqual(result[0].value, expectedLinks, "Link's value array should match the expected values");
 		});
 		it('should be able to handle spaces in the name', () => {
 			var testName = 'a b c d e f g';
-			var result = doesNotThrow(() => {
-				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
-				  createCrmLocalStorage(
-					[mergeObjects(singleLinkBaseCase[0], {
-						name: testName
-					})]
-				  )
-				);
+			assert.doesNotThrow(() => {
+				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+				  	createCrmLocalStorage(
+						[mergeObjects(singleLinkBaseCase[0], {
+							name: testName
+						})]
+					)).then((result) => {
+						assert.isDefined(result, 'Result is defined');
+						assert.strictEqual(result[0].name, testName, 'Names should match');
+					});
 			}, 'Converting does not throw an error');
-			assert.isDefined(result, 'Result is defined');
-			assert.strictEqual(result[0].name, testName, 'Names should match');
 		});
 		it('should be able to handle newlines in the name', () => {
 			var testName = 'a\nb\nc\nd\ne\nf\ng';
-			var result = doesNotThrow(() => {
-				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
-				  createCrmLocalStorage(
-					[mergeObjects(singleLinkBaseCase[0], {
-						name: testName
-					})]
-				  ));
+			assert.doesNotThrow(() => {
+				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+					createCrmLocalStorage(
+						[mergeObjects(singleLinkBaseCase[0], {
+							name: testName
+						})]
+					)).then((result) => {
+						assert.isDefined(result, 'Result is defined');
+						assert.strictEqual(result[0].name, testName, 'Names should match');
+					});
 			}, 'Converting does not throw an error');
-			assert.isDefined(result, 'Result is defined');
-			assert.strictEqual(result[0].name, testName, 'Names should match');
 		});
 		it('should be able to handle quotes in the name', () => {
 			var testName = 'a\'b"c\'\'d""e`f`g';
-			var result = doesNotThrow(() => {
-				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
-				  createCrmLocalStorage(
-					[mergeObjects(singleLinkBaseCase[0], {
-						name: testName
-					})]
-				  ));
+			assert.doesNotThrow(() => {
+				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+					createCrmLocalStorage(
+						[mergeObjects(singleLinkBaseCase[0], {
+							name: testName
+						})]
+					)).then((result) => {
+						assert.isDefined(result, 'Result is defined');
+						assert.strictEqual(result[0].name, testName, 'Names should match');
+					});
 			}, 'Converting does not throw an error');
-			assert.isDefined(result, 'Result is defined');
-			assert.strictEqual(result[0].name, testName, 'Names should match');
 		});
 		it('should be able to handle an empty name', () => {
 			var testName = '';
-			var result = doesNotThrow(() => {
-				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
-				  createCrmLocalStorage(
-					[mergeObjects(singleLinkBaseCase[0], {
-						name: testName
-					})]
-				  ));
+			assert.doesNotThrow(() => {
+				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+					createCrmLocalStorage(
+						[mergeObjects(singleLinkBaseCase[0], {
+							name: testName
+						})]
+					)).then((result) => {
+						assert.isDefined(result, 'Result is defined');
+						assert.strictEqual(result[0].name, testName, 'Names should match');
+					});
 			}, 'Converting does not throw an error');
-			assert.isDefined(result, 'Result is defined');
-			assert.strictEqual(result[0].name, testName, 'Names should match');
 		});
 		it('should be able to convert an empty menu', () => {
-			var result = doesNotThrow(() => {
+			assert.doesNotThrow(() => {
 				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
-				  createCrmLocalStorage([{
-				  	type: 'menu',
-				  	name: 'test-menu',
-				  	children: []
-				  }])
-				);
+					createCrmLocalStorage([{
+						type: 'menu',
+						name: 'test-menu',
+						children: []
+					}])).then((result) => {
+						assert.isDefined(result, 'Result is defined');
+						assert.isArray(result, 'Resulting CRM is an array');
+						assert.lengthOf(result, 1, 'Resulting CRM has one child');
+						assert.isObject(result[0], 'Resulting node is an object');
+						assert.strictEqual(result[0].type, 'menu', 'Resulting node is of type menu');
+						assert.strictEqual(result[0].name, 'test-menu', "Resulting node's name should match given name");
+						assert.property(result[0], 'children', 'Resulting node has a children property');
+						assert.isArray(result[0].children, "Resulting node's children property is an array");
+						// @ts-ignore
+						assert.lengthOf(result[0].children, 0, "Resulting node's children array has length 0");
+					});
 			}, 'Converting does not throw an error');
-			assert.isDefined(result, 'Result is defined');
-			assert.isArray(result, 'Resulting CRM is an array');
-			assert.lengthOf(result, 1, 'Resulting CRM has one child');
-			assert.isObject(result[0], 'Resulting node is an object');
-			assert.strictEqual(result[0].type, 'menu', 'Resulting node is of type menu');
-			assert.strictEqual(result[0].name, 'test-menu', "Resulting node's name should match given name");
-			assert.property(result[0], 'children', 'Resulting node has a children property');
-			assert.isArray(result[0].children, "Resulting node's children property is an array");
-			assert.lengthOf(result[0].children, 0, "Resulting node's children array has length 0");
 		});
 		it('should be able to convert a script with triggers', function() {
 			this.slow(300);
 
-			var result = doesNotThrow(() => {
-				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+			assert.doesNotThrow(() => {
+				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 					createCrmLocalStorage([{
 						type: 'script',
 						name: 'testscript',
@@ -1553,129 +1562,132 @@ describe('Conversion', () => {
 						value: {
 							launchMode: 2
 						}
-					}])
-				);
+					}])).then((result) => {
+						assert.isDefined(result, 'Result is defined');
+						assert.isArray(result, 'Resulting CRM is an array');
+						assert.lengthOf(result, 1, 'Resulting CRM has one child');
+						assert.isObject(result[0], 'Resulting node is an object');
+						assert.strictEqual(result[0].type, 'script', 'Resulting node is of type script');
+						assert.strictEqual(result[0].name, 'testscript', "Resulting node's name should match given name");
+						assert.property(result[0], 'triggers', 'Resulting node has a triggers property');
+						assert.property(result[0].value, 'launchMode', 'Resulting node has a launchMode property');
+						// @ts-ignore
+						assert.strictEqual(result[0].value.launchMode, 2, 'Resulting launch mode matches expected');
+						assert.deepEqual(result[0].triggers, [{
+							not: false,
+							url: 'google.com'
+						}, {
+							not: false,
+							url: 'example.com'
+						}, {
+							not: false,
+							url: 'youtube.com'
+						}], 'Triggers match expected');
+					});
 			}, 'Converting does not throw an error');
-			assert.isDefined(result, 'Result is defined');
-			assert.isArray(result, 'Resulting CRM is an array');
-			assert.lengthOf(result, 1, 'Resulting CRM has one child');
-			assert.isObject(result[0], 'Resulting node is an object');
-			assert.strictEqual(result[0].type, 'script', 'Resulting node is of type script');
-			assert.strictEqual(result[0].name, 'testscript', "Resulting node's name should match given name");
-			assert.property(result[0], 'triggers', 'Resulting node has a triggers property');
-			assert.property(result[0].value, 'launchMode', 'Resulting node has a launchMode property');
-			assert.strictEqual(result[0].value.launchMode, 2, 'Resulting launch mode matches expected');
-			assert.deepEqual(result[0].triggers, [{
-				not: false,
-				url: 'google.com'
-			}, {
-				not: false,
-				url: 'example.com'
-			}, {
-				not: false,
-				url: 'youtube.com'
-			}], 'Triggers match expected');
 		});
 		it('should be able to convert a menu with some children with various types', () => {
-			var result = doesNotThrow(() => {
-				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
-				  createCrmLocalStorage([{
-				  	type: 'menu',
-				  	name: 'test-menu',
-				  	children: [{
-				  		type: 'divider',
-				  		name: 'test-divider'
-				  	},
-					  singleLinkBaseCase[0],
-					  singleLinkBaseCase[0],
-					  singleLinkBaseCase[0]
-				  	]
-				  }])
-				);
+			assert.doesNotThrow(() => {
+				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+					createCrmLocalStorage([{
+						type: 'menu',
+						name: 'test-menu',
+						children: [{
+							type: 'divider',
+							name: 'test-divider'
+						},
+						singleLinkBaseCase[0],
+						singleLinkBaseCase[0],
+						singleLinkBaseCase[0]
+						]
+				  }])).then((result) => {
+					  assert.isDefined(result, 'Result is defined');
+					  assert.isArray(result, 'Resulting CRM is an array');
+					  assert.lengthOf(result, 1, 'Resulting CRM has one child');
+					  assert.isObject(result[0], 'Resulting node is an object');
+					  assert.strictEqual(result[0].type, 'menu', 'Resulting node is of type menu');
+					  assert.property(result[0], 'children', 'Resulting node has a children property');
+					  assert.isArray(result[0].children, "Resulting node's children property is an array");
+					  // @ts-ignore
+					assert.lengthOf(result[0].children, 4, "Resulting node's children array has length 4");
+					  assert.strictEqual(result[0].children[0].type, 'divider', 'First child is a divider');
+					  assert.strictEqual(result[0].children[1].type, 'link', 'second child is a divider');
+					  assert.strictEqual(result[0].children[2].type, 'link', 'Third child is a divider');
+					  assert.strictEqual(result[0].children[3].type, 'link', 'Fourth child is a divider');
+				  });
 			}, 'Converting does not throw an error');
-			assert.isDefined(result, 'Result is defined');
-			assert.isArray(result, 'Resulting CRM is an array');
-			assert.lengthOf(result, 1, 'Resulting CRM has one child');
-			assert.isObject(result[0], 'Resulting node is an object');
-			assert.strictEqual(result[0].type, 'menu', 'Resulting node is of type menu');
-			assert.property(result[0], 'children', 'Resulting node has a children property');
-			assert.isArray(result[0].children, "Resulting node's children property is an array");
-			assert.lengthOf(result[0].children, 4, "Resulting node's children array has length 4");
-			assert.strictEqual(result[0].children[0].type, 'divider', 'First child is a divider');
-			assert.strictEqual(result[0].children[1].type, 'link', 'second child is a divider');
-			assert.strictEqual(result[0].children[2].type, 'link', 'Third child is a divider');
-			assert.strictEqual(result[0].children[3].type, 'link', 'Fourth child is a divider');
 		});
 		it('should be able to convert a menu which contains menus itself', () => {
 			var nameIndex = 0;
-			var result = doesNotThrow(() => {
-				return backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
-				  createCrmLocalStorage([{
-				  	type: 'menu',
-				  	name: `test-menu${nameIndex++}`,
-				  	children: [{
-				  		type: 'menu',
-				  		name: `test-menu${nameIndex++}`,
-				  		children: [{
-				  			type: 'menu',
-				  			name: `test-menu${nameIndex++}`,
-				  			children: [{
-				  				type: 'menu',
-				  				name: `test-menu${nameIndex++}`,
-				  				children: []
-				  			}, {
-				  				type: 'menu',
-				  				name: `test-menu${nameIndex++}`,
-				  				children: []
-				  			}, {
-				  				type: 'menu',
-				  				name: `test-menu${nameIndex++}`,
-				  				children: []
-				  			}, {
-				  				type: 'menu',
-				  				name: `test-menu${nameIndex++}`,
-				  				children: []
-				  			}]
-				  		}, {
-				  			type: 'menu',
-				  			name: `test-menu${nameIndex++}`,
-				  			children: [{
-				  				type: 'menu',
-				  				name: `test-menu${nameIndex++}`,
-				  				children: []
-				  			}, {
-				  				type: 'menu',
-				  				name: `test-menu${nameIndex++}`,
-				  				children: []
-				  			}, {
-				  				type: 'menu',
-				  				name: `test-menu${nameIndex++}`,
-				  				children: []
-				  			}]
-				  		}]
-				  	}]
-				  }])
-				);
+			assert.doesNotThrow(() => {
+				backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
+					createCrmLocalStorage([{
+						type: 'menu',
+						name: `test-menu${nameIndex++}`,
+						children: [{
+							type: 'menu',
+							name: `test-menu${nameIndex++}`,
+							children: [{
+								type: 'menu',
+								name: `test-menu${nameIndex++}`,
+								children: [{
+									type: 'menu',
+									name: `test-menu${nameIndex++}`,
+									children: []
+								}, {
+									type: 'menu',
+									name: `test-menu${nameIndex++}`,
+									children: []
+								}, {
+									type: 'menu',
+									name: `test-menu${nameIndex++}`,
+									children: []
+								}, {
+									type: 'menu',
+									name: `test-menu${nameIndex++}`,
+									children: []
+								}]
+							}, {
+								type: 'menu',
+								name: `test-menu${nameIndex++}`,
+								children: [{
+									type: 'menu',
+									name: `test-menu${nameIndex++}`,
+									children: []
+								}, {
+									type: 'menu',
+									name: `test-menu${nameIndex++}`,
+									children: []
+								}, {
+									type: 'menu',
+									name: `test-menu${nameIndex++}`,
+									children: []
+								}]
+							}]
+						}]
+					}])).then((result) => {
+						assert.isDefined(result, 'Result is defined');
+						assert.isArray(result, 'Result is an array');
+						assert.lengthOf(result, 1, 'Result only has one child');
+						assert.isArray(result[0].children, 'First node has a children array');
+						// @ts-ignore
+						assert.lengthOf(result[0].children, 1, 'First node has only one child');
+						assert.isArray(result[0].children[0].children, "First node's child has children");
+						assert.lengthOf(result[0].children[0].children, 2, 'First node\s child has 2 children');
+						assert.isArray(result[0].children[0].children[0].children, "First node's first child has children");
+						assert.lengthOf(result[0].children[0].children[0].children, 4, "First node's first child has 4 children");
+						result[0].children[0].children[0].children.forEach((child, index) => {
+							assert.isArray(child.children, `First node's first child's child at index ${index} has children array`);
+							assert.lengthOf(child.children, 0, `First node's first child's child at index ${index} has 0 children`);
+						});
+						assert.isArray(result[0].children[0].children[1].children, "First node's second child has children");
+						assert.lengthOf(result[0].children[0].children[1].children, 3, "First node's second child has 3 children");
+						result[0].children[0].children[1].children.forEach((child, index) => {
+							assert.isArray(child.children, `First node's first child's child at index ${index} has children array`);
+							assert.lengthOf(child.children, 0, `First node's first child's child at index ${index} has 0 children`);
+						});
+					});
 			}, 'Converting does not throw an error');
-			assert.isDefined(result, 'Result is defined');
-			assert.isArray(result, 'Result is an array');
-			assert.lengthOf(result, 1, 'Result only has one child');
-			assert.isArray(result[0].children, 'First node has a children array');
-			assert.lengthOf(result[0].children, 1, 'First node has only one child');
-			assert.isArray(result[0].children[0].children, "First node's child has children");
-			assert.lengthOf(result[0].children[0].children, 2, 'First node\s child has 2 children');
-			assert.isArray(result[0].children[0].children[0].children, "First node's first child has children");
-			assert.lengthOf(result[0].children[0].children[0].children, 4, "First node's first child has 4 children");
-			result[0].children[0].children[0].children.forEach((child, index) => {
-				assert.isArray(child.children, `First node's first child's child at index ${index} has children array`);
-				assert.lengthOf(child.children, 0, `First node's first child's child at index ${index} has 0 children`);
-			});
-			assert.isArray(result[0].children[0].children[1].children, "First node's second child has children");
-			assert.lengthOf(result[0].children[0].children[1].children, 3, "First node's second child has 3 children");
-			result[0].children[0].children[1].children.forEach((child, index) => {
-				assert.isArray(child.children, `First node's first child's child at index ${index} has children array`);
-				assert.lengthOf(child.children, 0, `First node's first child's child at index ${index} has 0 children`);
-			});
 		});
 	});
 	describe('converting scripts', function() {
