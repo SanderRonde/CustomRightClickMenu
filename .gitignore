@@ -248,3 +248,7 @@ documentation/
 app/js/libraries/typescript.js
 app/js/libraries/crmapi.d.ts
 test/UI/built/UITest.html
+
+test/UI/UITest.html
+test/UI/background.js
+test/UI/options.js

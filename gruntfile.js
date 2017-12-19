@@ -51,17 +51,6 @@ module.exports = function(grunt) {
 					src: ['**/*.html'],
 					dest: 'buildBeforePolymer/elements'
 				}]
-			},
-			buildUITest: {
-				options: {
-					strip: false
-				},
-				files: [{
-					expand: true,
-					cwd: 'test/UI',
-					src: ['UITest.html'],
-					dest: 'test/UI/built/'
-				}]
 			}
 		},
 		uglify: {
@@ -315,6 +304,14 @@ module.exports = function(grunt) {
 						'crmapi.d.ts'
 					],
 					dest: 'buildBeforePolymer/js/libraries/'
+				}]
+			},
+			testBuild: {
+				files: [{
+					expand: true,
+					cwd: 'build/html/',
+					src: ['background.js', 'options.js'],
+					dest: 'test/UI/'
 				}]
 			}
 		},
@@ -674,6 +671,15 @@ module.exports = function(grunt) {
 			typedoc: 'typedoc --mode file --out documentation/ --includeDeclarations ' +
 				'--entryPoint CRM --theme docs/theme --name "CRM API" ' +
 				'--readme none tools/definitions/crmapi.d.ts'
+		},
+		joinPages: {
+			test: {
+				options: {
+					optionsPage: 'build/html/options.html',
+					backgroundPage: 'build/html/background.html',
+					destination: 'test/UI/UITest.html'
+				}
+			}
 		}
 	});
 
@@ -780,7 +786,7 @@ module.exports = function(grunt) {
 		'cleanBuild', 'documentationWebsite', 'cleanBuild']);
 
 	//Builds the test page
-	grunt.registerTask('buildTest', ['processhtml:buildUITest']);
+	grunt.registerTask('buildTest', ['joinPages:test', 'copy:testBuild']);
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
 	grunt.registerTask('test', ['testBuild', 'build', 'buildTest', 'compile', 'mochaTest']);
