@@ -2810,6 +2810,10 @@ htmlparser2@^3.9.2:
     inherits "^2.0.1"
     readable-stream "^2.0.2"
 
+htmlparser@^1.7.7:
+  version "1.7.7"
+  resolved "https://registry.yarnpkg.com/htmlparser/-/htmlparser-1.7.7.tgz#19e7b3997ff6fbac99ae5a7d2766489efe7e2d0e"
+
 htmlprocessor@0.2.3:
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/htmlprocessor/-/htmlprocessor-0.2.3.tgz#c043bbc803fc7b3d97a64b0ce779b4ef38bcc7eb"

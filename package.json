@@ -98,6 +98,7 @@
     "gulp-if": "^2.0.2",
     "html-minifier": "^3.5.6",
     "html-typings": "^1.0.10",
+    "htmlparser": "^1.7.7",
     "htmlparser2": "^3.9.2",
     "http-server": "^0.9.0",
     "json3": "^3.3.2",
