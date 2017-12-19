@@ -48,10 +48,6 @@ function findReverse(haystack, needle) {
 
 function getBodyContent(file, parsed) {
 	const bodyStart = getByTagName(getByTagName(parsed, 'html').children, 'body');
-	console.log(file.indexOf(`${bodyStart.raw}>`) + `${bodyStart.raw}>`.length);
-	console.log(findReverse(file, '</body>'));
-	console.log(file.slice(file.indexOf(`${bodyStart.raw}>`) + `${bodyStart.raw}>`.length, 
-	findReverse(file, '</body>')));
 	return file.slice(file.indexOf(`${bodyStart.raw}>`) + `${bodyStart.raw}>`.length, 
 		findReverse(file, '</body>'));
 }
