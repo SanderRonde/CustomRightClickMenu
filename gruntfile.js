@@ -305,14 +305,6 @@ module.exports = function(grunt) {
 					],
 					dest: 'buildBeforePolymer/js/libraries/'
 				}]
-			},
-			testBuild: {
-				files: [{
-					expand: true,
-					cwd: 'build/html/',
-					src: ['background.js', 'options.js'],
-					dest: 'test/UI/'
-				}]
 			}
 		},
 		htmlmin: {
@@ -677,7 +669,7 @@ module.exports = function(grunt) {
 				options: {
 					optionsPage: 'build/html/options.html',
 					backgroundPage: 'build/html/background.html',
-					destination: 'test/UI/UITest.html'
+					destination: 'build/html/UITest.html'
 				}
 			}
 		}
@@ -786,7 +778,7 @@ module.exports = function(grunt) {
 		'cleanBuild', 'documentationWebsite', 'cleanBuild']);
 
 	//Builds the test page
-	grunt.registerTask('buildTest', ['joinPages:test', 'copy:testBuild']);
+	grunt.registerTask('buildTest', ['build', 'joinPages:test']);
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
 	grunt.registerTask('test', ['testBuild', 'build', 'buildTest', 'compile', 'mochaTest']);
