@@ -128,6 +128,11 @@ class Promise<T> implements Promise<T> {
 			});
 		});
 	}
+	static resolve(): Promise<void> {
+		return new Promise((resolve) => {
+			resolve(undefined);
+		});
+	}
 }
 
 interface Withable {
