@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
 	<title>View your scripts' logs</title>
-	<script src="../bower_components/webcomponentsjs/webcomponents.min.js"></script>
-	<link rel="import" href="../bower_components/polymer/polymer.html"/>
+	<!-- build:template
+		<script src="../bower_components/webcomponentsjs/custom-elements-es5-adapter.js"></script>
+	/build -->
+	<!-- build:remove -->
+	<link rel="import" href="../bower_components/polymer/polymer.html">
+	<!-- /build -->
+	<script src="../bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+	<link rel="import" href="../bower_components/polymer/lib/legacy/class.html" />
 	<link rel="import" href="../elements/log-page/log-page.html" />
 	<link rel="stylesheet" href="../fonts/fonts.css">
 	<link rel="stylesheet" href="../css/codemirror.css" />
@@ -11,6 +17,8 @@
 </head>
 <body style="margin: 0;">
 	<log-page></log-page>
+	<!-- build:js inline -->
 	<script src="../js/calcPolyfill.js" defer async></script>
+	<!-- /build -->
 </body>
 </html>
