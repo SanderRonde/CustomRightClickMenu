@@ -7,9 +7,9 @@ app-header {
 	color: white;
 }
 
-#title {
+.title {
 	text-align: center;
-	font-size: 300% !important;
+	font-size: 200% !important;
 	height: 35px;
 	margin-left: 0!important;
 }
