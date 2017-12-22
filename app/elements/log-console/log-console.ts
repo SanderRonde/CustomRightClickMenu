@@ -329,7 +329,7 @@ namespace LogConsoleElement {
 			});
 
 			this.async(() => {
-				const menus = Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('paper-dropdown-menu')) as Array<PaperDropdownInstance>;
+				const menus = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-dropdown-menu')) as Array<PaperDropdownInstance>;
 				menus.forEach((menu) => {
 					menu.onopen = () => {
 						(menu.querySelector('template') as HTMLDomRepeatElement).render();
