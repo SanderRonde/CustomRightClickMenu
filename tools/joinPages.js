@@ -52,6 +52,16 @@ function getBodyContent(file, parsed) {
 		findReverse(file, '</body>'));
 }
 
+function getHeadContent(file, parsed) {
+	const headStart = getByTagName(getByTagName(parsed, 'html').children, 'head');
+	return file.slice(file.indexOf(`${headStart.raw}>`) + `${headStart.raw}>`.length, 
+		findReverse(file, '</head>'));
+}
+
+function filterTitle(content) {
+	return content.replace(/<title>\w*<\/title>/g, '');
+}
+
 module.exports = function (grunt) {
 	grunt.registerMultiTask('joinPages', 'Joines the options.html and background.html pages', async function() {
 		const options = this.options({});
@@ -73,18 +83,25 @@ module.exports = function (grunt) {
 		const optionsPageFile = await readFile(grunt, done, optionsPageLocation);
 		const backgroundPageFile = await readFile(grunt, done, backgroundPageLocation);
 
-		const optionsParsed = getBodyContent(optionsPageFile, htmlParseFile(grunt, done, optionsPageFile));
-		const backgroundParsed = getBodyContent(backgroundPageFile, htmlParseFile(grunt, done, backgroundPageFile));
+		const optionsPageParsed = htmlParseFile(grunt, done, optionsPageFile);
+		const backgroundPageParsed = htmlParseFile(grunt, done, backgroundPageFile);
+
+		const optionsHead = filterTitle(getHeadContent(optionsPageFile, optionsPageParsed));
+		const backgroundHead = filterTitle(getHeadContent(backgroundPageFile, backgroundPageParsed));
+		const optionsBody = getBodyContent(optionsPageFile, optionsPageParsed);
+		const backgroundBody = getBodyContent(backgroundPageFile, backgroundPageParsed);
 
 		const joinedFile = `<html>
 			<head>
 				<title>Test</title>
 				<link rel="shortcut icon" href="../../test/UI/favicon.ico"/>
+				${backgroundHead}
+				${optionsHead}
 			</head>
 			<body>
 				<script src="../../test/UI/chrome-api-dummy.js"></script>
-				${backgroundParsed}
-				${optionsParsed}
+				${backgroundBody}
+				${optionsBody}
 			</body>
 		</html>`;
 
