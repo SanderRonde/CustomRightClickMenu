@@ -20,7 +20,7 @@
 							<div id="idFilter" class="dropdownFilter centerVertical">
 								<paper-dropdown-menu id="idDropdown" label="ID" init overflowing indent="false" selected="0">
 									<paper-menu slot="menu" selected="0">
-										<slot class="content">
+										<div slot="content">
 											<paper-item>
 												<div class="menuSelectedCheckmark">
 													<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
@@ -35,14 +35,14 @@
 													<span title$="[[id.title]]" class="menuOptionName">[[id.id]]</span>
 												</paper-item>
 											</template>
-										</slot>
+										</div>
 									</paper-menu>
 								</paper-dropdown-menu>
 							</div>
 							<div id="tabFilter" class="dropdownFilter centerVertical">
 								<paper-dropdown-menu id="tabDropdown" label="Tab" init overflowing indent="false" selected="0">
 									<paper-menu slot="menu" selected="0">
-										<slot class="content">
+										<div slot="content">
 											<paper-item>
 												<div class="menuSelectedCheckmark">
 													<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
@@ -57,14 +57,14 @@
 													<span title$="[[tab.title]]" class="menuOptionName">[[tab.id]]</span>
 												</paper-item>
 											</template>
-										</slot>
+										</div>
 									</paper-menu>
 								</paper-dropdown-menu>
 							</div>
 							<div id="tabIndexFilter" class="dropdownFilter centerVertical">
 								<paper-dropdown-menu id="tabIndexDropdown" label="TabIndex" init overflowing indent="false" selected="0">
 									<paper-menu slot="menu" selected="0">
-										<slot class="content">
+										<div slot="content">
 											<paper-item>
 												<div class="menuSelectedCheckmark">
 													<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
@@ -79,7 +79,7 @@
 													<span title$="[[tabIndex]]" class="menuOptionName">[[tabIndex]]</span>
 												</paper-item>
 											</template>
-										</slot>
+										</div>
 									</paper-menu>
 								</paper-dropdown-menu>
 							</div>
