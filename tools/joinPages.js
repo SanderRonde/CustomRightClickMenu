@@ -82,7 +82,7 @@ module.exports = function (grunt) {
 				<link rel="shortcut icon" href="../../test/UI/favicon.ico"/>
 			</head>
 			<body>
-				<script src="../../test/UI/chrome-api-dummy.js"/>
+				<script src="../../test/UI/chrome-api-dummy.js"></script>
 				${backgroundParsed}
 				${optionsParsed}
 			</body>
