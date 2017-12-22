@@ -2,8 +2,9 @@ body {
 	overflow: hidden;
 }
 
-#toolbar {
-	background: rgb(255, 87, 34)!important;
+app-header {
+	background-color: rgb(255, 87, 34)!important;
+	color: white;
 }
 
 #title {
