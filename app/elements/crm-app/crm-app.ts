@@ -630,7 +630,7 @@ namespace CRMAppElement {
 						overlay.style.maxHeight = 'initial!important';
 						overlay.style.top = 'initial!important';
 						overlay.removeEventListener('iron-overlay-opened', handler);
-						$(window.app.util.querySlot(overlay, '.requestPermissionsShowBot')).off('click').on('click', function (this: HTMLElement) {
+						$(window.app.util.getQuerySlot()(overlay, '.requestPermissionsShowBot')).off('click').on('click', function (this: HTMLElement) {
 							el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
 							svg = $(this).find('.requestPermissionsSvg')[0];
 							svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
@@ -734,10 +734,10 @@ namespace CRMAppElement {
 					const interval = window.setInterval(() => {
 						try {
 							const centerer = window.doc.requestPermissionsCenterer as CenterElement;
-							overlay = window.app.util.querySlot(centerer)[0] as HTMLPaperDialogElement
+							overlay = window.app.util.getQuerySlot()(centerer)[0] as HTMLPaperDialogElement
 							if (overlay.open) {
 								window.clearInterval(interval);
-								const innerOverlay = window.app.util.querySlot(overlay)[0] as HTMLElement;
+								const innerOverlay = window.app.util.getQuerySlot()(overlay)[0] as HTMLElement;
 								(innerOverlay.querySelector('#requestedPermissionsTemplate') as HTMLDomRepeatElement).items = requested;
 								(innerOverlay.querySelector('#requestedPermissionsOtherTemplate') as HTMLDomRepeatElement).items = other;
 								overlay.addEventListener('iron-overlay-opened', () => {
@@ -4424,38 +4424,9 @@ namespace CRMAppElement {
 				return tree;
 			};
 
-			static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
-				selector?: string, slotSelector?: string): Array<HTMLElement|Polymer.PolymerElement> | null
-			static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
-				selector?: K, slotSelector?: string): Array<Polymer.ElementTagNameMap[K]> | null
-			static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
-				selector?: string, slotSelector?: string): Array<HTMLElement> | null
-			static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
-				selector: K|string = null, slotSelector: string = 'slot'): Array<Polymer.ElementTagNameMap[K]|HTMLElement> | null {
-					const selectFn = '$$' in parent ? (parent as any).$$ : parent.querySelector;
-					const slotChildren = (selectFn.bind(parent)(slotSelector) as HTMLSlotElement).assignedNodes().filter((node) => {
-						return node.nodeType !== node.TEXT_NODE;
-					}) as Array<HTMLElement>;
-					if (!selector) {
-						return slotChildren;
-					}
-					const result = (slotChildren.map((node: HTMLElement) => {
-						return node.querySelectorAll(selector)
-					}).reduce((prev, current) => {
-						let arr: Array<HTMLElement|Polymer.ElementTagNameMap[K]> = [];
-						if (prev) {
-							arr = arr.concat(Array.prototype.slice.apply(prev));
-						}
-						if (current) {
-							arr = arr.concat(Array.prototype.slice.apply(current));
-						}
-						return arr as any;
-					}) as any) as Array<Polymer.ElementTagNameMap[K]|HTMLElement>;
-					if (!Array.isArray(result)) {
-						return Array.prototype.slice.apply(result);
-					}
-					return result;
-				}
+			static getQuerySlot() {
+				return Polymer.PaperDropdownBehavior.querySlot;
+			}
 
 			static parent(): CrmApp {
 				return window.app;

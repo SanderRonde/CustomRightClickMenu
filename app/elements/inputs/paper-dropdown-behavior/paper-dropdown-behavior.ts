@@ -118,11 +118,44 @@ namespace PaperDropdownBehaviorNamespace {
 			return this.getMenu().$.content.assignedNodes()[0] as HTMLElement;
 		}
 
+		static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
+			selector?: string, slotSelector?: string): Array<HTMLElement|Polymer.PolymerElement> | null
+		static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
+			selector?: K, slotSelector?: string): Array<Polymer.ElementTagNameMap[K]> | null
+		static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
+			selector?: string, slotSelector?: string): Array<HTMLElement> | null
+		static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
+			selector: K|string = null, slotSelector: string = 'slot'): Array<Polymer.ElementTagNameMap[K]|HTMLElement> | null {
+				const selectFn = '$$' in parent ? (parent as any).$$ : parent.querySelector;
+				const slotChildren = (selectFn.bind(parent)(slotSelector) as HTMLSlotElement).assignedNodes().filter((node) => {
+					return node.nodeType !== node.TEXT_NODE;
+				}) as Array<HTMLElement>;
+				if (!selector) {
+					return slotChildren;
+				}
+				const result = (slotChildren.map((node: HTMLElement) => {
+					return node.querySelectorAll(selector)
+				}).reduce((prev, current) => {
+					let arr: Array<HTMLElement|Polymer.ElementTagNameMap[K]> = [];
+					if (prev) {
+						arr = arr.concat(Array.prototype.slice.apply(prev));
+					}
+					if (current) {
+						arr = arr.concat(Array.prototype.slice.apply(current));
+					}
+					return arr as any;
+				}) as any) as Array<Polymer.ElementTagNameMap[K]|HTMLElement>;
+				if (!Array.isArray(result)) {
+					return Array.prototype.slice.apply(result);
+				}
+				return result;
+			}
+
 		static doHighlight(this: PaperDropdownInstance) {
 			const content = this._getMenuContent();
 			const paperItems = Array.prototype.slice.apply(content.querySelectorAll('paper-item'));
 			paperItems.forEach((paperItem: HTMLPaperItemElement, index: number) => {
-				const checkMark = window.app.util.querySlot(paperItem)[0] as HTMLElement;
+				const checkMark = this.querySlot(paperItem)[0] as HTMLElement;
 				if (!checkMark) {
 					return;
 				}
@@ -202,7 +235,7 @@ namespace PaperDropdownBehaviorNamespace {
 
 					const innerInterval = window.setInterval(() => {
 						if (this._getMenuContent().querySelectorAll('paper-item')[0] && 
-							window.app.util.querySlot(this._getMenuContent().querySelectorAll('paper-item')[0]).length > 0) {
+							this.querySlot(this._getMenuContent().querySelectorAll('paper-item')[0]).length > 0) {
 								this.doHighlight();
 								window.clearInterval(innerInterval);
 							}
