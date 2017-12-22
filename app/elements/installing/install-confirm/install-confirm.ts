@@ -332,9 +332,9 @@ namespace InstallConfirmElement {
 			const editor = await this.$.editorCont.create(this.$.editorCont.EditorMode.JS_META, {
 				value: this.script,
 				language: 'javascript',
-				theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
+				theme: this.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
 				wordWrap: 'off',
-				fontSize: (~~window.app.settings.editor.zoom / 100) * 14,
+				fontSize: (~~this.settings.editor.zoom / 100) * 14,
 				folding: true
 			});
 			this.editorLoaded(editor);
