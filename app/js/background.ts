@@ -466,8 +466,11 @@ interface GlobalObject extends Partial<Window> {
 			tamperMonkeyExtensions: Array<string>;
 		};
 		listeners: {
-			idVals: Array<number>;
-			tabVals: Array<number>;
+			idVals: Array<{
+				id: number;
+				title: string;
+			}>;
+			tabVals: Array<TabData>;
 			ids: Array<(updatedIds: Array<{
 				id: number;
 				title: string;
@@ -1454,13 +1457,17 @@ if (typeof module === 'undefined') {
 				id: number;
 				title: string;
 			}>) => void) => {
-				listener(Logging.Listeners.updateTabAndIdLists(true).ids);
-				globalObject.globals.listeners.ids.push(listener);
+				Logging.Listeners.updateTabAndIdLists(true, ({ids}) => {
+					listener(ids);
+					globalObject.globals.listeners.ids.push(listener);
+				});
 			};
 
 			window._listenTabs = (listener: (tabs: Array<TabData>) => void) => {
-				listener(Logging.Listeners.updateTabAndIdLists(true).tabs);
-				globalObject.globals.listeners.tabs.push(listener);
+				Logging.Listeners.updateTabAndIdLists(true, ({tabs}) => {
+					listener(tabs);
+					globalObject.globals.listeners.tabs.push(listener);
+				});
 			};
 
 			function sortMessages(messages: Array<LogListenerLine>):
@@ -1584,6 +1591,7 @@ if (typeof module === 'undefined') {
 				}
 			}
 
+			console.log('definig');
 			window._getIdCurrentTabs = (id: number, currentTabs: Array<TabData>, callback: (tabs: Array<TabData>) => void) => {
 				const jobs: Array<{
 					done: boolean;
@@ -2259,20 +2267,20 @@ if (typeof module === 'undefined') {
 		static Listeners = class Listeners {
 			static readonly parent = Logging;
 
-			static updateTabAndIdLists(force?: boolean): {
+			static updateTabAndIdLists(force?: boolean, callback?: (result: {
 				ids: Array<{
 					id: number;
 					title: string;
 				}>;
 				tabs: Array<TabData>
-			} {
+			}) => void) {
 				//Make sure anybody is listening
 				const listeners = globalObject.globals.listeners;
 				if (!force && listeners.ids.length === 0 && listeners.tabs.length === 0) {
-					return {
+					callback && callback({
 						ids: [],
 						tabs: []
-					};
+					});
 				}
 
 				const ids: {
@@ -2306,18 +2314,7 @@ if (typeof module === 'undefined') {
 					}
 				}
 
-				let tabArr: Array<any> = [];
-				for (let tabId in tabIds) {
-					if (tabIds.hasOwnProperty(tabId)) {
-						tabArr.push((tabId as any) as number);
-					}
-				}
-
 				idArr = idArr.sort((a, b) => {
-					return a - b;
-				});
-
-				tabArr = tabArr.sort((a, b) => {
 					return a - b;
 				});
 
@@ -2331,23 +2328,32 @@ if (typeof module === 'undefined') {
 					};
 				});
 
-				if (!Util.compareArray(idArr, listeners.idVals)) {
+				if (!Util.compareArray(idPairs, listeners.idVals)) {
 					listeners.ids.forEach((idListener) => {
 						idListener(idPairs);
 					});
-					listeners.idVals = idArr;
-				}
-				if (!Util.compareArray(tabArr, listeners.tabVals)) {
-					listeners.tabs.forEach((tabListener) => {
-						tabListener(tabArr);
-					});
-					listeners.tabVals = tabArr;
+					listeners.idVals = idPairs;
 				}
 
-				return {
-					ids: idPairs,
-					tabs: tabArr
-				};
+				if (window._getIdCurrentTabs) {
+					window._getIdCurrentTabs(0, [], (tabs) => {
+						if (!Util.compareArray(tabs, listeners.tabVals)) {
+							listeners.tabs.forEach((tabListener) => {
+								tabListener(tabs);
+							});
+							listeners.tabVals = tabs;
+						}
+						callback && callback({
+							ids: idPairs,
+							tabs: tabs
+						});
+					});
+				} else {
+					callback && callback({
+						ids: idPairs,
+						tabs: []
+					});
+				}
 			}
 		};
 
