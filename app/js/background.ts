@@ -242,7 +242,7 @@ interface LogLineData {
 interface LogListenerLine {
 	id: number | string;
 	tabId: number | string;
-	tabIndex: number;
+	tabInstanceIndex: number;
 	nodeTitle?: string;
 	tabTitle?: string;
 	data?: Array<LogLineData>;
@@ -2251,7 +2251,7 @@ if (typeof module === 'undefined') {
 				globalObject.globals.listeners.log[message.data.callbackIndex].listener({
 					id: message.id,
 					tabId: message.tabId,
-					tabIndex: message.tabIndex,
+					tabInstanceIndex: message.tabIndex,
 					type: 'hints',
 					suggestions: message.data.hints
 				});
@@ -2431,7 +2431,7 @@ if (typeof module === 'undefined') {
 						globalObject.globals.listeners.log[message.callbackIndex].listener({
 							id: message.id,
 							tabId: message.tabId,
-							tabIndex: message.tabIndex,
+							tabInstanceIndex: message.tabIndex,
 							nodeTitle: globalObject.globals.crm.crmById[message.id].name,
 							tabTitle: tab.title,
 							type: 'evalResult',

@@ -160,7 +160,7 @@ namespace LogConsoleElement {
 					isEval: true,
 					nodeTitle: selectedItems.id.title,
 					tabTitle: selectedItems.tab.title,
-					tabIndex: selectedItems.tabIndex,
+					tabInstanceIndex: selectedItems.tabIndex,
 					id: selectedItems.id.id,
 					tabId: selectedItems.tab.id,
 					lineNumber: '<eval>:0',
@@ -403,7 +403,7 @@ namespace LogConsoleElement {
 			this.logLines.add([source.props.value as LogLineData], {
 				id: 'local',
 				tabId: 'local',
-				tabIndex: 0,
+				tabInstanceIndex: 0,
 				nodeTitle: 'logger page',
 				tabTitle: 'logger page',
 				value: [source.props.value as LogLineData],
