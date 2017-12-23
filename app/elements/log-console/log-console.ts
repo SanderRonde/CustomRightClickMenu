@@ -406,7 +406,7 @@ namespace LogConsoleElement {
 				tabInstanceIndex: 0,
 				nodeTitle: 'logger page',
 				tabTitle: 'logger page',
-				value: [source.props.value as LogLineData],
+				data: [source.props.value as LogLineData],
 				lineNumber: '<log-console>:0:0',
 				timestamp: new Date().toLocaleString()
 			});

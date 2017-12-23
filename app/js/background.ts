@@ -264,7 +264,6 @@ interface LogListenerLine {
 	isEval?: boolean;
 	isError?: boolean;
 	suggestions?: Array<string>;
-	value?: Array<LogLineData>;
 }
 
 type LogListener = (newLine: LogListenerLine) => void;
@@ -2375,7 +2374,7 @@ if (typeof module === 'undefined') {
 				tabId: 'background',
 				nodeTitle: globalObject.globals.crm.crmById[id].name,
 				tabTitle: 'Background Page',
-				value: args,
+				data: args,
 				lineNumber: sourceData[0],
 				logId: sourceData[1],
 				timestamp: new Date().toLocaleString()
