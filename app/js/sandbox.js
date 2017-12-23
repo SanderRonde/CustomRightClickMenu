@@ -106,7 +106,7 @@
 			(function(script, log) {
 				try {
 					eval(['(function(window) {', script, '}(typeof window === \'undefined\' ? self : window));'].join(''));
-					log('Succesfully launched sript');
+					log('Succesfully launched script');
 				} catch (error) {
 					self.logNoStack([
 						error.name,
