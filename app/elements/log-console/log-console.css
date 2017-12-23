@@ -160,12 +160,13 @@
 }
 
 .dropdownFilter paper-item {
-	color: white;
+	color: black;
 	display: block;
 	padding: 8px;
 }
 
 .dropdownFilter .menuSelectedCheckmark {
+	display: inline;
 	transform: translateY(2px);
 }
 
