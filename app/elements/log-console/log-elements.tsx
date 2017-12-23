@@ -352,6 +352,67 @@ window.logElements = (() => {
 		}
 	}
 
+	class LogSource extends React.Component<{
+		line: LogListenerLine;
+	}, {}> {
+		constructor(props: {
+			line: LogListenerLine;
+		}) {
+			super(props);
+		}
+		takeToTab() {
+			if (this.props.line.tabId === 'background') {
+				window.logConsole.$.genericToast.text = 'Can\'t open a background page';
+				window.logConsole.$.genericToast.show();
+			} else {
+				chrome.tabs.get(~~this.props.line.tabId, function(tab) {
+					if (chrome.runtime.lastError) {
+						window.logConsole.$.genericToast.text = 'Tab has been closed';
+						window.logConsole.$.genericToast.show();
+						return;
+					}
+
+					chrome.tabs.highlight({
+						windowId: tab.windowId,
+						tabs: tab.index
+					}, () => {
+						if (chrome.runtime.lastError) {
+							console.log(chrome.runtime.lastError);
+							console.log('Something went wrong highlighting the tab');
+						}
+					});
+				});
+			}
+		}
+		getLineNumber() {
+			return (this.props.line.lineNumber && this.props.line.lineNumber.trim()) || '?';
+		}
+		listenClick<T extends () => void>(fn: T) {
+			return (target: HTMLElement|null) => {
+				if (target !== null) {
+					target.addEventListener('click', fn);
+				}
+			}
+		}
+		render() {
+			return (
+				<div className="lineSource">
+					<span className="lineSourceIdCont" title={`Node name: ${this.props.line.nodeTitle}`}>
+						[id-<span className="lineSourceId">{this.props.line.id}</span>]
+					</span>
+					<span className="lineSourceTabCont">
+						[<span ref={this.listenClick(this.takeToTab.bind(this))} className="lineSourceTabsInner" title={`Tab name: ${this.props.line.tabTitle}, instance: ${this.props.line.tabInstanceIndex || 0}`} tabIndex={1}>
+							tab-<span className="lineSourceTab">{this.props.line.tabId}</span>:{this.props.line.tabInstanceIndex || 0}
+						</span>]
+					</span>
+					<span title="Log source file and line number" className="lineSourceLineCont">@
+						<span className="lineSourceLineNumber">{this.getLineNumber()}</span>
+					</span>
+				</div>
+			);
+		}
+	}
+
 	class LogLine extends React.Component<{
 		value: Array<LogLineData>;
 		line: LogListenerLine;	
@@ -368,8 +429,8 @@ window.logElements = (() => {
 		takeToTab() {
 			chrome.tabs.get(~~this.props.line.tabId, function(tab) {
 				if (chrome.runtime.lastError) {
-					window.logConsole.$['genericToast'].text = 'Tab has been closed';
-					window.logConsole.$['genericToast'].show();
+					window.logConsole.$.genericToast.text = 'Tab has been closed';
+					window.logConsole.$.genericToast.show();
 					return;
 				}
 
@@ -385,22 +446,19 @@ window.logElements = (() => {
 			});
 		}
 		render() {
-			const takeToTab = this.takeToTab.bind(this);
 			return (
 				<div data-error={this.props.line.isError} className="logLine">
 					<div className="lineData">
 						<div className="lineTimestamp">{this.props.line.timestamp}</div>
 						<div className="lineContent">
-							{this.props.value.map((value: any) => {
+							{this.props.value.map((value: LogLineData) => {
 								return getTag(value, this, {
 									isEval: this.props.line.isEval
 								});
 							})}
 						</div>
 					</div>
-					<div className="lineSource">
-						<span className="lineSourceIdCont" title={this.props.line.nodeTitle}>[id-<span className="lineSourceId">{this.props.line.id}</span>]</span><span className="lineSourceTabCont" onClick={takeToTab} tabIndex={1} title={this.props.line.tabTitle}>[tab-<span className="lineSourceTab">{this.props.line.tabId}</span>][{this.props.line.tabIndex}]</span><span className="lineSourceLineCont">@<span className="lineSourceLineNumber">{this.props.line.lineNumber.trim()}</span></span>
-					</div>
+					<LogSource line={this.props.line} />
 				</div>
 			);
 		}
@@ -418,7 +476,7 @@ window.logElements = (() => {
 		constructor(props: {}) {
 			super(props);
 		}
-		add(lineData: Array<LogLineData>, line: LogListenerLine): void {
+		add(lineData: Array<LogLineData> = [], line: LogListenerLine): void {
 			this.setState({
 				lines: this.state.lines.concat([{
 					data: lineData,
