@@ -303,6 +303,33 @@ namespace LogConsoleElement {
 			this.waitingForEval = false;
 		};
 
+		private static _closeMenus(this: LogConsole) {
+			this.$.idDropdown.close();
+			this.$.tabDropdown.close();
+			this.$.tabIndexDropdown.close();
+		}
+
+		private static _refreshMenu(this: LogConsole, menu: PaperDropdownMenu, template: HTMLDomRepeatElement) {
+			template.render();
+			this.async(() => {
+				menu.refreshListeners();
+			}, 100);
+			menu.onValueChange = (oldState: number, newState: number) => {
+				this._closeMenus();
+				switch (menu.id) {
+					case 'idDropdown':
+						this.set('selectedId', newState);
+						break;
+					case 'tabDropdown':
+						this.set('selectedTab', newState);
+						break;
+					case 'tabIndexDropdown':
+						this.set('selectedTabIndex', newState);
+						break;
+				}
+			}
+		}
+
 		private static _init(this: LogConsole, callback: () => void) {
 			chrome.runtime.getBackgroundPage((bgPage) => {
 				this.bgPage = bgPage;
@@ -329,27 +356,9 @@ namespace LogConsoleElement {
 			});
 
 			this.async(() => {
-				const menus = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-dropdown-menu')) as Array<PaperDropdownInstance>;
-				menus.forEach((menu) => {
-					menu.onopen = () => {
-						(menu.querySelector('template') as HTMLDomRepeatElement).render();
-						this.async(() => {
-							menu.refreshListeners.apply(menu);
-						}, 100);
-					};
-					const __this = this;
-					(menu as PaperDropdownMenu).onchange= function(oldState: number, newState: number) {
-						menus.forEach(function(menu) {
-							menu.close();
-						});
-
-						if (menu.id === 'idDropdown') {
-							__this.set('selectedId', newState);
-						} else {
-							__this.set('selectedTab', newState);
-						}
-					} as any;
-				});
+				this._refreshMenu(this.$.idDropdown, this.$.idRepeat);
+				this._refreshMenu(this.$.tabDropdown, this.$.tabRepeat);
+				this._refreshMenu(this.$.tabIndexDropdown, this.$.tabIndexRepeat);
 
 				callback && callback();
 			}, 1000);

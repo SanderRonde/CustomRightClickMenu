@@ -99,6 +99,8 @@ namespace PaperDropdownBehaviorNamespace {
 			}
 		};
 
+		static onValueChange(this: PaperDropdownInstance, oldState: number|Array<number>, newState: number|Array<number>) { }
+
 		/**
 		 * Fires all added listeners, triggers when a new value is selected
 		 */
@@ -109,9 +111,7 @@ namespace PaperDropdownBehaviorNamespace {
 					listener.listener.apply(listener.thisArg, [oldState, newState]);
 				}
 			});
-			if (this.onchange) {
-				(this.onchange as any)(oldState, newState);
-			}
+			this.onValueChange(oldState, newState);
 		};
 
 		static _getMenuContent(this: PaperDropdownInstance) {
