@@ -23,10 +23,6 @@
 
 #linesCont {
 	font-family: 'Consolas';
-	overflow-y: scroll;
-	overflow-x: hidden;
-	padding: 0 10px;
-	max-height: calc(100vh - 114px);
 }
 
 .line:first-child {
@@ -177,20 +173,20 @@
 	color: white;
 }
 
-.lineSourceTabCont {
+.lineSourceTabsInner {
 	cursor: pointer;
 	position: relative;
 }
 
-.lineSourceTabCont:hover {
+.lineSourceTabsInner:hover {
 	text-decoration: underline;
 }
 
-.lineSourceTabCont:focus {
+.lineSourceTabsInner:focus {
 	outline: none;
 }
 
-.lineSourceTabCont:focus::before {
+.lineSourceTabsInner:focus::before {
 	background-color: rgba(0,0,0,.1);
 	border-radius: 2px;
 	bottom: -4px;
@@ -436,4 +432,16 @@
 
 #inputFieldPrefix[hidden] {
 	display: none!important;
+}
+
+#lines {
+	overflow-y: scroll;
+	overflow-x: hidden;
+	max-height: calc(100vh - 130px);
+	padding: 0 15px;
+}
+
+.lineSource {
+	-webkit-user-select: none;
+	user-select: none;
 }
