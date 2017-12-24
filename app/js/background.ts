@@ -1571,32 +1571,6 @@ if (typeof module === 'undefined') {
 				return getLog('all', 'all', '');
 			};
 
-			function checkJobs<T>(jobs: Array<{
-				done: boolean;
-				result?: T;
-				finished?: boolean;
-			}>, oldResults: Array<T>, onDone: (results: Array<T>) => void): void {
-				if (jobs[0].finished) {
-					return;
-				}
-				for (let i = 0; i < jobs.length; i++) {
-					if (jobs[i].done === false) {
-						return;
-					}
-				}
-				jobs[0].finished = true;
-				const newResults = jobs
-					.map((job) => job.result)
-					.filter((jobResult) => !!jobResult);
-
-				//Preserve === equality if nothing changed
-				if (JSON.stringify(newResults) === JSON.stringify(oldResults)) {
-					onDone(oldResults);
-				} else {
-					onDone(newResults);
-				}
-			}
-
 			window._getIdsAndTabs = async (selectedId: number, selectedTab: number|'background', callback: (result: {
 				ids: Array<{
 					id: string|number;
