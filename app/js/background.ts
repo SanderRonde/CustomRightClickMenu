@@ -2209,19 +2209,27 @@ if (typeof module === 'undefined') {
 		static Listeners = class Listeners {
 			static readonly parent = Logging;
 
+			private static _iterateInt<T>(target: {
+				[key: number]: T;
+			}, callback: (key: number, value: T) => void) {
+				for (const key in target) {
+					callback(~~key, target[key]);
+				}
+			}
+
 			static getIds(filterTabId: number = -1) {
 				const tabData = globalObject.globals.crmValues.tabData;
 				const ids: Array<number> = [];
-				for (const tabId in tabData) {
-					if (filterTabId === -1 || filterTabId === (<any>tabId as number)) {
-						const nodes = tabData[tabId].nodes;
-						for (const nodeId in nodes) {
-							if (ids.indexOf((<any>nodeId) as number) === -1) {
-								ids.push((<any>nodeId) as number);
-							}
-						}
+				this._iterateInt(tabData, (tabId, tab) => {
+					if (filterTabId !== -1 && filterTabId !== tabId) {
+						return;
 					}
+					this._iterateInt(tab.nodes, (nodeId) => {
+						if (ids.indexOf(nodeId) === -1) {
+							ids.push(nodeId);
 				}
+					});
+				});
 
 				return ids.sort((a, b) => {
 					return a - b;
@@ -2246,33 +2254,32 @@ if (typeof module === 'undefined') {
 				return new Promise<Array<TabData>>(async (resolveOuter) => {
 					const tabData = globalObject.globals.crmValues.tabData;
 					const tabs: Array<Promise<TabData>> = [];
-					for (let tabId in tabData) {
-						if (tabData.hasOwnProperty(tabId)) {
-							if (tabData[tabId].nodes[nodeId] || nodeId === 0) {
-								if (tabId === '0') {
+					this._iterateInt(tabData, (tabId, tab) => {
+						if (!tab.nodes[nodeId] && nodeId !== 0) {
+							return;
+						}
+						if (tabId === 0) {
 									tabs.push(Promise.resolve({
 										id: 'background',
 										title: 'background'
 									} as TabData));
 								} else {
 									tabs.push(new Promise((resolve) => {
-										chrome.tabs.get(~~tabId, (tab) => {
+								chrome.tabs.get(tabId, (tab) => {
 											if (chrome.runtime.lastError) {
 												//Tab does not exist, remove it from tabData
-												Util.removeTab(~~tabId);
+										Util.removeTab(tabId);
 												resolve(null);
 											} else {
 												resolve({
-													id: ~~tabId,
+											id: tabId,
 													title: tab.title
 												});
 											}
 										});
 									}));
 								}
-							}
-						}
-					}
+					});
 					return (await Promise.all(tabs)).filter(val => val !== null);
 				});
 			}
