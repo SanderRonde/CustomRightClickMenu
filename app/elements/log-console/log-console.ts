@@ -267,10 +267,12 @@ namespace LogConsoleElement {
 			title: string;
 		}>, prop: string) {
 			//Find the previous selected value in the new batch
-			for (let index in arr) {
-				if (arr[index].id === prev.id) {
-					this.set(prop, ~~index + 1);
-					return;
+			if (prev) {
+				for (let index in arr) {
+					if (arr[index].id === prev.id) {
+						this.set(prop, ~~index + 1);
+						return;
+					}
 				}
 			}
 			this.set(prop, 0);
@@ -282,7 +284,8 @@ namespace LogConsoleElement {
 			}, 10);
 
 			if (this.bgPage) {
-				this.bgPage._getIdsAndTabs(~~this.ids[~~selectedId - 1].id, -1, ({tabs}) => {
+				const id = selectedId === 0 ? 0 : ~~this.ids[~~selectedId - 1].id;
+				this.bgPage._getIdsAndTabs(id, -1, ({tabs}) => {
 					if (!this._hasChanged(this.tabs, tabs)) {
 						return;
 					}
@@ -304,7 +307,8 @@ namespace LogConsoleElement {
 			}, 10);
 
 			if (this.bgPage) {
-				this.bgPage._getIdsAndTabs(0, this.tabs[selectedTab - 1].id, ({ids}) => {
+				const tab = selectedTab === 0 ? -1 : this.tabs[selectedTab - 1].id;
+				this.bgPage._getIdsAndTabs(0, tab, ({ids}) => {
 					if (!this._hasChanged(this.ids, ids)) {
 						return;
 					}
@@ -326,7 +330,9 @@ namespace LogConsoleElement {
 				return [];
 			}
 			if (this.bgPage) {
-				this.bgPage._getCurrentTabIndex(~~this.ids[~~selectedId - 1].id, this.tabs[this.selectedTab - 1].id, (newTabIndexes: Array<number>) => {
+				const id = selectedId === 0 ? 0 : ~~this.ids[~~selectedId - 1].id;
+				const tab = selectedTab === 0 ? -1 : this.tabs[selectedTab - 1].id;
+				this.bgPage._getCurrentTabIndex(id, tab, (newTabIndexes: Array<number>) => {
 					this.set('tabIndexes', newTabIndexes);
 				});
 			}
