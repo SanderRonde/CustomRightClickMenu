@@ -21,3 +21,13 @@
 	font-size: 60%;
 	font-weight: normal;
 }
+
+#dropdownLabel[inline] {
+	display: inline-block;
+}
+
+#dropdownSelected[inline] {
+	margin: 0;
+	font-size: 100%;
+	margin-left: -10xp;
+}

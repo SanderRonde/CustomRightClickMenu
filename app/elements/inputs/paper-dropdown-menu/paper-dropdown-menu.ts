@@ -8,6 +8,7 @@ namespace PaperDropdownMenuElement {
 		subtext: string;
 		fallback: string;
 		updater: number;
+		inline: boolean;
 	} = {
 		/**
 		 * The currently selected item
@@ -37,6 +38,11 @@ namespace PaperDropdownMenuElement {
 		updater: {
 			type: Number,
 			value: 0,
+			notify: true
+		},
+		inline: {
+			type: Boolean,
+			value: false,
 			notify: true
 		}
 	} as any;
