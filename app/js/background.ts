@@ -187,8 +187,14 @@ interface Window {
 	}) => (message: any, port: chrome.runtime.Port) => void;
 	backgroundPageLog: (id: number, sourceData: [string, number], ...params: Array<any>) => void;
 	filter: (nodeId: any, tabId: any) => void;
-	_getIdCurrentTabs: (id: number, currentTabs: Array<TabData>, callback: (tabs: Array<TabData>) => void) => void;
 	_getCurrentTabIndex: (id: number, currentTab: number|'background', callback: (newTabIndexes: Array<number>) => void) => void;
+	_getIdsAndTabs: (selectedId: number, selectedTab: number|'background', callback: (result: {
+		ids: Array<{
+			id: string|number;
+			title: string;
+		}>;
+		tabs: Array<TabData>;
+	}) => void) => void;
 	_listenIds: (listener: (newIds: Array<{
 		id: number;
 		title: string;
@@ -1591,11 +1597,18 @@ if (typeof module === 'undefined') {
 				}
 			}
 
-			window._getIdCurrentTabs = (id: number, currentTabs: Array<TabData>, callback: (tabs: Array<TabData>) => void) => {
-				Logging.Listeners.getTabs(id).then((tabs) => {
-					callback(tabs);
+			window._getIdsAndTabs = async (selectedId: number, selectedTab: number|'background', callback: (result: {
+				ids: Array<{
+					id: string|number;
+					title: string;
+				}>;
+				tabs: Array<TabData>;
+			}) => void) => {
+				callback({
+					ids: Logging.Listeners.getIds(selectedTab === 'background' ? 0 : selectedTab),
+					tabs: await Logging.Listeners.getTabs(selectedId)
 				});
-			};
+			}
 			window._getCurrentTabIndex = (id: number, currentTab: number|'background', listener: (newTabIndexes: Array<number>) => void) => {
 				if (currentTab === 'background') {
 					listener([0]);
@@ -2222,14 +2235,16 @@ if (typeof module === 'undefined') {
 		static Listeners = class Listeners {
 			static readonly parent = Logging;
 
-			private static _getIds() {
+			static getIds(filterTabId: number = -1) {
 				const tabData = globalObject.globals.crmValues.tabData;
 				const ids: Array<number> = [];
 				for (const tabId in tabData) {
-					const nodes = tabData[tabId].nodes;
-					for (const nodeId in nodes) {
-						if (ids.indexOf((<any>nodeId) as number) === -1) {
-							ids.push((<any>nodeId) as number);
+					if (filterTabId === -1 || filterTabId === (<any>tabId as number)) {
+						const nodes = tabData[tabId].nodes;
+						for (const nodeId in nodes) {
+							if (ids.indexOf((<any>nodeId) as number) === -1) {
+								ids.push((<any>nodeId) as number);
+							}
 						}
 					}
 				}
@@ -2296,7 +2311,7 @@ if (typeof module === 'undefined') {
 			}> {
 				const listeners = globalObject.globals.listeners;
 
-				const ids = this._getIds();
+				const ids = this.getIds();
 				this._compareToCurrent(ids, listeners.idVals, listeners.ids, 'id');
 
 				const tabs = await this.getTabs();
