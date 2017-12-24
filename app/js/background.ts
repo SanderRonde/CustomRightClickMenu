@@ -1591,7 +1591,6 @@ if (typeof module === 'undefined') {
 				}
 			}
 
-			console.log('definig');
 			window._getIdCurrentTabs = (id: number, currentTabs: Array<TabData>, callback: (tabs: Array<TabData>) => void) => {
 				const jobs: Array<{
 					done: boolean;
