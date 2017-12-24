@@ -7,6 +7,7 @@ namespace PaperDropdownMenuElement {
 		fancylabel: boolean;
 		subtext: string;
 		fallback: string;
+		updater: number;
 	} = {
 		/**
 		 * The currently selected item
@@ -32,6 +33,11 @@ namespace PaperDropdownMenuElement {
 		fallback: {
 			type: String,
 			value: ''
+		},
+		updater: {
+			type: Number,
+			value: 0,
+			notify: true
 		}
 	} as any;
 
@@ -54,6 +60,10 @@ namespace PaperDropdownMenuElement {
 
 		static _hasFancyLabel(this: PaperDropdownMenu, fancylabel: boolean) {
 			return !!this.fancylabel;
+		}
+
+		static updateSelectedContent(this: PaperDropdownMenu) {
+			this.updater += 1;
 		}
 
 		static _getSelectedValue(this: PaperDropdownMenu) {

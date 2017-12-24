@@ -312,7 +312,8 @@ namespace LogConsoleElement {
 		private static _refreshMenu(this: LogConsole, menu: PaperDropdownMenu, template: HTMLDomRepeatElement) {
 			template.render();
 			this.async(() => {
-				menu.refreshListeners();
+				menu.init();
+				menu.updateSelectedContent();
 			}, 100);
 			menu.onValueChange = (oldState: number, newState: number) => {
 				this._closeMenus();
