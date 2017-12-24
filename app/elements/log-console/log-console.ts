@@ -23,7 +23,6 @@ namespace LogConsoleElement {
 		tabs: Array<TabData>;
 		textfilter: string;
 		waitingForEval: boolean;
-		update: number;
 		__this: LogConsole;
 	} = {
 		lines: {
@@ -69,11 +68,6 @@ namespace LogConsoleElement {
 		waitingForEval: {
 			type: Boolean,
 			value: false,
-			notify: true
-		},
-		update: {
-			type: Number,
-			value: 0,
 			notify: true
 		},
 		__this: { }
@@ -254,56 +248,89 @@ namespace LogConsoleElement {
 		static _getTotalLines(this: LogConsole) {
 			return this.lines;
 		};
-		
-		static forceDropdownUpdate(this: LogConsole) {
-			this.update += 1;
+
+		private static _hasChanged(this: LogConsole, prev: Array<{
+			id: string|number;
+			title: string;
+		}>, current: Array<{
+			id: string|number;
+			title: string;
+		}>) {
+			return JSON.stringify(prev) !== JSON.stringify(current);
+		}
+
+		private static _transitionSelected(this: LogConsole, prev: {
+			id: string|number;
+			title: string;
+		}, arr: Array<{
+			id: string|number;
+			title: string;
+		}>, prop: string) {
+			//Find the previous selected value in the new batch
+			for (let index in arr) {
+				if (arr[index].id === prev.id) {
+					this.set(prop, ~~index + 1);
+					return;
+				}
+			}
+			this.set(prop, 0);
 		}
 
 		static _getIdTabs(this: LogConsole, selectedId: string|number): Array<TabData> {
-			if (~~selectedId === 0) {
-				//All
-				return this.tabs;
-			}
+			this.async(() => {
+				this._refreshMenu(this.$.tabDropdown, this.$.tabRepeat);
+			}, 10);
+
 			if (this.bgPage) {
 				this.bgPage._getIdsAndTabs(~~this.ids[~~selectedId - 1].id, -1, ({tabs}) => {
+					if (!this._hasChanged(this.tabs, tabs)) {
+						return;
+					}
+
+					const prevTabsSelected = this.tabs[this.selectedTab - 1];
 					this.set('tabs', tabs);
+					this._transitionSelected(prevTabsSelected, tabs, 'selectedTab');
 				});
-				return this.tabs;
-			} else {
-				return [];
 			}
+			return this.tabs;
 		};
 
 		static _getTabsIds(this: LogConsole, selectedTab: number): Array<{
 			id: number|string;
 			title: string;
 		}> {
-			if (selectedTab === 0) {
-				//All
-				return this.ids;
-			}
+			this.async(() => {
+				this._refreshMenu(this.$.idDropdown, this.$.idRepeat);
+			}, 10);
+
 			if (this.bgPage) {
 				this.bgPage._getIdsAndTabs(0, this.tabs[selectedTab - 1].id, ({ids}) => {
+					if (!this._hasChanged(this.ids, ids)) {
+						return;
+					}
+
+					const prevIdsSelected = this.ids[~~this.selectedId - 1];
 					this.set('ids', ids);
+					this._transitionSelected(prevIdsSelected, ids, 'selectedId');
 				});
-				return this.ids;
-			} else {
-				return [];
 			}
+			return this.ids;
 		}
 
 		static _getTabIndexes(this: LogConsole, selectedId: string|number, selectedTab: number): Array<number> {
+			this.async(() => {
+				this._refreshMenu(this.$.tabIndexDropdown, this.$.tabIndexRepeat);
+			}, 10);
+
 			if (selectedId === 0 || selectedTab === 0) {
 				return [];
 			}
 			if (this.bgPage) {
-				this.bgPage._getCurrentTabIndex(~~this.ids[~~selectedId - 1].id, this.tabs[this.selectedTab].id, (newTabIndexes: Array<number>) => {
+				this.bgPage._getCurrentTabIndex(~~this.ids[~~selectedId - 1].id, this.tabs[this.selectedTab - 1].id, (newTabIndexes: Array<number>) => {
 					this.set('tabIndexes', newTabIndexes);
 				});
-				return this.tabIndexes;
-			} else {
-				return [];
 			}
+			return this.tabIndexes;
 		}
 
 		static _escapeHTML(this: LogConsole, string: string): string {
@@ -365,15 +392,19 @@ namespace LogConsoleElement {
 				this.bgPage = bgPage;
 
 				bgPage._listenIds((ids) => {
+					const prevSelected = this.ids[~~this.selectedId - 1];
 					this.set('ids', ids);
-					this.forceDropdownUpdate();
+					this._transitionSelected(prevSelected, ids, 'selectedId');
+					
 					this.async(() => {
 						this._refreshMenu(this.$.idDropdown, this.$.idRepeat);
 					}, 50);
 				});
 				bgPage._listenTabs((tabs) => {
+					const prevSelected = this.tabs[this.selectedTab - 1];
 					this.set('tabs', tabs);
-					this.forceDropdownUpdate();
+					this._transitionSelected(prevSelected, tabs, 'selectedTab');
+
 					this.async(() => {
 						this._refreshMenu(this.$.tabDropdown, this.$.tabRepeat);
 					}, 50);
