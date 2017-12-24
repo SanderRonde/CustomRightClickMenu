@@ -23,6 +23,7 @@ namespace LogConsoleElement {
 		tabs: Array<TabData>;
 		textfilter: string;
 		waitingForEval: boolean;
+		update: number;
 		__this: LogConsole;
 	} = {
 		lines: {
@@ -68,6 +69,11 @@ namespace LogConsoleElement {
 		waitingForEval: {
 			type: Boolean,
 			value: false,
+			notify: true
+		},
+		update: {
+			type: Number,
+			value: 0,
 			notify: true
 		},
 		__this: { }
@@ -248,23 +254,46 @@ namespace LogConsoleElement {
 		static _getTotalLines(this: LogConsole) {
 			return this.lines;
 		};
+		
+		static forceDropdownUpdate(this: LogConsole) {
+			this.update += 1;
+		}
 
-		static _getIdTabs(this: LogConsole, selectedId: string|number, tabs: Array<TabData>): Array<TabData> {
+		static _getIdTabs(this: LogConsole, selectedId: string|number): Array<TabData> {
 			if (~~selectedId === 0) {
-				return tabs;
+				//All
+				return this.tabs;
 			}
 			if (this.bgPage) {
-				this.bgPage._getIdCurrentTabs(~~this.ids[~~selectedId - 1].id, this.tabs, (newTabs) => {
-					this.set('tabs', newTabs);
+				this.bgPage._getIdsAndTabs(~~this.ids[~~selectedId - 1].id, -1, ({tabs}) => {
+					this.set('tabs', tabs);
 				});
-				return tabs;
+				return this.tabs;
 			} else {
 				return [];
 			}
 		};
 
+		static _getTabsIds(this: LogConsole, selectedTab: number): Array<{
+			id: number|string;
+			title: string;
+		}> {
+			if (selectedTab === 0) {
+				//All
+				return this.ids;
+			}
+			if (this.bgPage) {
+				this.bgPage._getIdsAndTabs(0, this.tabs[selectedTab - 1].id, ({ids}) => {
+					this.set('ids', ids);
+				});
+				return this.ids;
+			} else {
+				return [];
+			}
+		}
+
 		static _getTabIndexes(this: LogConsole, selectedId: string|number, selectedTab: number): Array<number> {
-			if (~~selectedId === 0) {
+			if (selectedId === 0 || selectedTab === 0) {
 				return [];
 			}
 			if (this.bgPage) {
@@ -337,9 +366,17 @@ namespace LogConsoleElement {
 
 				bgPage._listenIds((ids) => {
 					this.set('ids', ids);
+					this.forceDropdownUpdate();
+					this.async(() => {
+						this._refreshMenu(this.$.idDropdown, this.$.idRepeat);
+					}, 50);
 				});
 				bgPage._listenTabs((tabs) => {
 					this.set('tabs', tabs);
+					this.forceDropdownUpdate();
+					this.async(() => {
+						this._refreshMenu(this.$.tabDropdown, this.$.tabRepeat);
+					}, 50);
 				});
 				bgPage._listenLog((logLine) => {
 					if (logLine.type && logLine.type === 'evalResult') {
@@ -357,12 +394,10 @@ namespace LogConsoleElement {
 			});
 
 			this.async(() => {
-				this._refreshMenu(this.$.idDropdown, this.$.idRepeat);
-				this._refreshMenu(this.$.tabDropdown, this.$.tabRepeat);
 				this._refreshMenu(this.$.tabIndexDropdown, this.$.tabIndexRepeat);
 
 				callback && callback();
-			}, 1000);
+			}, 50);
 		};
 
 		static _contextStoreAsLocal(this: LogConsole) {
