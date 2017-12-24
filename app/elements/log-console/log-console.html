@@ -30,7 +30,7 @@
 												</div>
 												<span class="menuOptionName">ALL</span>
 											</paper-item>
-											<template id="idRepeat" is="dom-repeat" items="{{ids}}" as="id">
+											<template id="idRepeat" is="dom-repeat" items="{{_getTabsIds(selectedTab, update)}}" as="id">
 												<paper-item>
 													<div class="menuSelectedCheckmark">
 														<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
@@ -56,7 +56,7 @@
 												</div>
 												<span class="menuOptionName">ALL</span>
 											</paper-item>
-											<template id="tabRepeat" is="dom-repeat" items="{{_getIdTabs(selectedId, tabs)}}" as="tab">
+											<template id="tabRepeat" is="dom-repeat" items="{{_getIdTabs(selectedId, update)}}" as="tab">
 												<paper-item>
 													<div class="menuSelectedCheckmark">
 														<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
@@ -82,7 +82,7 @@
 												</div>
 												<span class="menuOptionName">ALL</span>
 											</paper-item>
-											<template id="tabIndexRepeat" is="dom-repeat" items="{{_getTabIndexes(selectedId, selectedTab)}}" as="tabIndex">
+											<template id="tabIndexRepeat" is="dom-repeat" items="{{_getTabIndexes(selectedId, selectedTab, update)}}" as="tabIndex">
 												<paper-item>
 													<div class="menuSelectedCheckmark">
 														<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
