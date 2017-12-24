@@ -164,12 +164,7 @@ interface ContextMenuSettings extends chrome.contextMenus.CreateProperties {
 
 interface Logging {
 	[nodeId: number]: {
-		logMessages: Array<{
-			tabId: number | string;
-			value?: Array<any>;
-			logId?: number;
-			timestamp?: string;
-		}>;
+		logMessages: Array<LogListenerLine>;
 		values: Array<any>;
 		[tabId: number]: any;
 	};
@@ -1507,17 +1502,18 @@ if (typeof module === 'undefined') {
 			function getLog(id: string | number, tab: string | number, text: string):
 				Array<LogListenerLine> {
 				let messages: Array<LogListenerLine> = [];
+				const logging = globalObject.globals.logging;
 				if (id === 'all') {
-					for (let nodeId in globalObject.globals.logging) {
-						if (globalObject.globals.logging.hasOwnProperty(nodeId) &&
-							nodeId !== 'filter') {
+					for (let nodeId in logging) {
+						if (logging.hasOwnProperty(nodeId) && nodeId !== 'filter') {
 							messages = messages.concat(
-								globalObject.globals.logging[nodeId].logMessages as Array<LogListenerLine>
+								logging[nodeId].logMessages
 							);
 						}
 					}
 				} else {
-					messages = globalObject.globals.logging[id as number].logMessages as Array<LogListenerLine> || [];
+					const idLogs = logging[id as number];
+					messages = (idLogs && idLogs.logMessages) || [];
 				}
 				if (tab === 'all') {
 					return sortMessages(filterMessageText(messages, text));
@@ -2227,7 +2223,7 @@ if (typeof module === 'undefined') {
 					this._iterateInt(tab.nodes, (nodeId) => {
 						if (ids.indexOf(nodeId) === -1) {
 							ids.push(nodeId);
-				}
+						}
 					});
 				});
 
@@ -2259,26 +2255,26 @@ if (typeof module === 'undefined') {
 							return;
 						}
 						if (tabId === 0) {
-									tabs.push(Promise.resolve({
-										id: 'background',
-										title: 'background'
-									} as TabData));
-								} else {
-									tabs.push(new Promise((resolve) => {
+							tabs.push(Promise.resolve({
+								id: 'background',
+								title: 'background'
+							} as TabData));
+						} else {
+							tabs.push(new Promise((resolve) => {
 								chrome.tabs.get(tabId, (tab) => {
-											if (chrome.runtime.lastError) {
-												//Tab does not exist, remove it from tabData
+									if (chrome.runtime.lastError) {
+										//Tab does not exist, remove it from tabData
 										Util.removeTab(tabId);
-												resolve(null);
-											} else {
-												resolve({
+										resolve(null);
+									} else {
+										resolve({
 											id: tabId,
-													title: tab.title
-												});
-											}
+											title: tab.title
 										});
-									}));
-								}
+									}
+								});
+							}));
+						}
 					});
 					return (await Promise.all(tabs)).filter(val => val !== null);
 				});
