@@ -268,7 +268,7 @@ namespace LogConsoleElement {
 				return [];
 			}
 			if (this.bgPage) {
-				this.bgPage._getCurrentTabIndex(~~this.ids[~~selectedId - 1].id, this.tabs[this.selectedTab], (newTabIndexes: Array<number>) => {
+				this.bgPage._getCurrentTabIndex(~~this.ids[~~selectedId - 1].id, this.tabs[this.selectedTab].id, (newTabIndexes: Array<number>) => {
 					this.set('tabIndexes', newTabIndexes);
 				});
 				return this.tabIndexes;

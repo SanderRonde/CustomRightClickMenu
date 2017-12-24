@@ -188,7 +188,7 @@ interface Window {
 	backgroundPageLog: (id: number, sourceData: [string, number], ...params: Array<any>) => void;
 	filter: (nodeId: any, tabId: any) => void;
 	_getIdCurrentTabs: (id: number, currentTabs: Array<TabData>, callback: (tabs: Array<TabData>) => void) => void;
-	_getCurrentTabIndex: (id: number, currentTab: TabData, callback: (newTabIndexes: Array<number>) => void) => void;
+	_getCurrentTabIndex: (id: number, currentTab: number|'background', callback: (newTabIndexes: Array<number>) => void) => void;
 	_listenIds: (listener: (newIds: Array<{
 		id: number;
 		title: string;
@@ -1639,14 +1639,14 @@ if (typeof module === 'undefined') {
 				}
 				checkJobs(jobs, currentTabs, callback);
 			};
-			window._getCurrentTabIndex = (id: number, currentTab: TabData, listener: (newTabIndexes: Array<number>) => void) => {
-				if (currentTab.id === 'background') {
+			window._getCurrentTabIndex = (id: number, currentTab: number|'background', listener: (newTabIndexes: Array<number>) => void) => {
+				if (currentTab === 'background') {
 					listener([0]);
 				} else {
 					listener(globalObject
 						.globals
 						.crmValues
-						.tabData[currentTab.id as number]
+						.tabData[currentTab as number]
 						.nodes[id].map((element, index) => {
 							return index;
 						}));
