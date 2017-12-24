@@ -159,10 +159,15 @@
 	color: white;
 }
 
-.dropdownFilter paper-item {
+paper-item {
+	width: 125px;
 	color: black;
 	display: block;
 	padding: 8px;
+}
+
+paper-item:hover {
+	background-color: rgb(238, 238, 238);
 }
 
 .dropdownFilter .menuSelectedCheckmark {
