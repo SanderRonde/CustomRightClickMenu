@@ -128,9 +128,9 @@ class Promise<T> implements Promise<T> {
 			});
 		});
 	}
-	static resolve(): Promise<void> {
-		return new Promise((resolve) => {
-			resolve(undefined);
+	static resolve<T>(value?: T): Promise<T> {
+		return new Promise<T>((resolve) => {
+			resolve(value);
 		});
 	}
 }
