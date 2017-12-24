@@ -1457,14 +1457,14 @@ if (typeof module === 'undefined') {
 				id: number;
 				title: string;
 			}>) => void) => {
-				Logging.Listeners.updateTabAndIdLists(true).then(({ids}) => {
+				Logging.Listeners.updateTabAndIdLists().then(({ids}) => {
 					listener(ids);
 					globalObject.globals.listeners.ids.push(listener);
 				});
 			};
 
 			window._listenTabs = (listener: (tabs: Array<TabData>) => void) => {
-				Logging.Listeners.updateTabAndIdLists(true).then(({tabs}) => {
+				Logging.Listeners.updateTabAndIdLists().then(({tabs}) => {
 					listener(tabs);
 					globalObject.globals.listeners.tabs.push(listener);
 				});
