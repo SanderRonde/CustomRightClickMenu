@@ -1457,14 +1457,14 @@ if (typeof module === 'undefined') {
 				id: number;
 				title: string;
 			}>) => void) => {
-				Logging.Listeners.updateTabAndIdLists(true, ({ids}) => {
+				Logging.Listeners.updateTabAndIdLists(true).then(({ids}) => {
 					listener(ids);
 					globalObject.globals.listeners.ids.push(listener);
 				});
 			};
 
 			window._listenTabs = (listener: (tabs: Array<TabData>) => void) => {
-				Logging.Listeners.updateTabAndIdLists(true, ({tabs}) => {
+				Logging.Listeners.updateTabAndIdLists(true).then(({tabs}) => {
 					listener(tabs);
 					globalObject.globals.listeners.tabs.push(listener);
 				});
@@ -1592,51 +1592,9 @@ if (typeof module === 'undefined') {
 			}
 
 			window._getIdCurrentTabs = (id: number, currentTabs: Array<TabData>, callback: (tabs: Array<TabData>) => void) => {
-				const jobs: Array<{
-					done: boolean;
-					result?: {
-						id: number | 'background';
-						title: string;
-					};
-					finished?: boolean;
-				}> = [];
-
-				const tabData = globalObject.globals.crmValues.tabData;
-				for (let tabId in tabData) {
-					if (tabData.hasOwnProperty(tabId)) {
-						if (tabData[tabId].nodes[id] || id === 0) {
-							if (tabId === '0') {
-								jobs.push({
-									done: true,
-									result: {
-										id: 'background',
-										title: 'background'
-									}
-								});
-							} else {
-								let index = jobs.length;
-								jobs.push({
-									done: false
-								});
-								chrome.tabs.get(~~tabId, (tab) => {
-									if (chrome.runtime.lastError) {
-										//Tab does not exist, remove it from tabData
-										Util.removeTab(~~tabId);
-										return;
-									}
-
-									jobs[index].done = true;
-									jobs[index].result = ({
-										id: ~~tabId,
-										title: tab.title
-									});
-									checkJobs(jobs, currentTabs, callback);
-								});
-							}
-						}
-					}
-				}
-				checkJobs(jobs, currentTabs, callback);
+				Logging.Listeners.getTabs(id).then((tabs) => {
+					callback(tabs);
+				});
 			};
 			window._getCurrentTabIndex = (id: number, currentTab: number|'background', listener: (newTabIndexes: Array<number>) => void) => {
 				if (currentTab === 'background') {
@@ -2264,92 +2222,89 @@ if (typeof module === 'undefined') {
 		static Listeners = class Listeners {
 			static readonly parent = Logging;
 
-			static updateTabAndIdLists(force?: boolean, callback?: (result: {
+			private static _getIds() {
+				const tabData = globalObject.globals.crmValues.tabData;
+				const ids: Array<number> = [];
+				for (const tabId in tabData) {
+					const nodes = tabData[tabId].nodes;
+					for (const nodeId in nodes) {
+						if (ids.indexOf((<any>nodeId) as number) === -1) {
+							ids.push((<any>nodeId) as number);
+						}
+					}
+				}
+
+				return ids.sort((a, b) => {
+					return a - b;
+				}).map((id) => ({
+					id,
+					title: globalObject.globals.crm.crmById[id].name
+				}));
+			}
+			private static _compareToCurrent<T extends Array<U>, U>(current: T, previous: T, changeListeners: Array<(result: T) => void>, type: 'id'|'tab') {
+				if (!Util.compareArray(current, previous)) {
+					changeListeners.forEach((listener) => {
+						listener(current);
+					});
+					if (type === 'id') {
+						globalObject.globals.listeners.idVals = current as any;
+					} else {
+						globalObject.globals.listeners.tabVals = current as any;
+					}
+				}
+			}
+			static getTabs(nodeId: number = 0): Promise<Array<TabData>> {
+				return new Promise<Array<TabData>>(async (resolveOuter) => {
+					const tabData = globalObject.globals.crmValues.tabData;
+					const tabs: Array<Promise<TabData>> = [];
+					for (let tabId in tabData) {
+						if (tabData.hasOwnProperty(tabId)) {
+							if (tabData[tabId].nodes[nodeId] || nodeId === 0) {
+								if (tabId === '0') {
+									tabs.push(Promise.resolve({
+										id: 'background',
+										title: 'background'
+									} as TabData));
+								} else {
+									tabs.push(new Promise((resolve) => {
+										chrome.tabs.get(~~tabId, (tab) => {
+											if (chrome.runtime.lastError) {
+												//Tab does not exist, remove it from tabData
+												Util.removeTab(~~tabId);
+												resolve(null);
+											} else {
+												resolve({
+													id: ~~tabId,
+													title: tab.title
+												});
+											}
+										});
+									}));
+								}
+							}
+						}
+					}
+					return (await Promise.all(tabs)).filter(val => val !== null);
+				});
+			}
+			static async updateTabAndIdLists(force?: boolean): Promise<{
 				ids: Array<{
 					id: number;
 					title: string;
 				}>;
 				tabs: Array<TabData>
-			}) => void) {
-				//Make sure anybody is listening
+			}> {
 				const listeners = globalObject.globals.listeners;
-				if (!force && listeners.ids.length === 0 && listeners.tabs.length === 0) {
-					callback && callback({
-						ids: [],
-						tabs: []
-					});
-				}
 
-				const ids: {
-					[nodeId: number]: boolean;
-				} = {};
-				const tabIds: {
-					[tabId: string]: boolean,
-					[tabId: number]: boolean;
-				} = {};
-				const tabData = globalObject.globals.crmValues.tabData;
-				for (let tabId in tabData) {
-					if (tabData.hasOwnProperty(tabId)) {
-						if (tabId === '0') {
-							tabIds['background'] = true;
-						} else {
-							tabIds[tabId] = true;
-						}
-						const nodes = tabData[tabId].nodes;
-						for (let nodeId in nodes) {
-							if (nodes.hasOwnProperty(nodeId)) {
-								ids[(nodeId as any) as number] = true;
-							}
-						}
-					}
-				}
+				const ids = this._getIds();
+				this._compareToCurrent(ids, listeners.idVals, listeners.ids, 'id');
 
-				let idArr: Array<number> = [];
-				for (let id in ids) {
-					if (ids.hasOwnProperty(id)) {
-						idArr.push((id as any) as number);
-					}
-				}
+				const tabs = await this.getTabs();
+				this._compareToCurrent(tabs, listeners.tabVals, listeners.tabs, 'tab');
 
-				idArr = idArr.sort((a, b) => {
-					return a - b;
-				});
-
-				const idPairs: Array<{
-					id: number;
-					title: string;
-				}> = idArr.map((id) => {
-					return {
-						id: id,
-						title: globalObject.globals.crm.crmById[id].name
-					};
-				});
-
-				if (!Util.compareArray(idPairs, listeners.idVals)) {
-					listeners.ids.forEach((idListener) => {
-						idListener(idPairs);
-					});
-					listeners.idVals = idPairs;
-				}
-
-				if (window._getIdCurrentTabs) {
-					window._getIdCurrentTabs(0, [], (tabs) => {
-						if (!Util.compareArray(tabs, listeners.tabVals)) {
-							listeners.tabs.forEach((tabListener) => {
-								tabListener(tabs);
-							});
-							listeners.tabVals = tabs;
-						}
-						callback && callback({
-							ids: idPairs,
-							tabs: tabs
-						});
-					});
-				} else {
-					callback && callback({
-						ids: idPairs,
-						tabs: []
-					});
+				return {
+					ids,
+					tabs
 				}
 			}
 		};
