@@ -1642,9 +1642,7 @@ if (typeof module === 'undefined') {
 				if (currentTab === 'background') {
 					listener([0]);
 				} else {
-					listener(globalObject
-						.globals
-						.crmValues
+					listener(globalObject.globals.crmValues
 						.tabData[currentTab as number]
 						.nodes[id].map((element, index) => {
 							return index;
