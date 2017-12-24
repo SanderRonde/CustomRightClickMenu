@@ -2287,7 +2287,7 @@ if (typeof module === 'undefined') {
 					return (await Promise.all(tabs)).filter(val => val !== null);
 				});
 			}
-			static async updateTabAndIdLists(force?: boolean): Promise<{
+			static async updateTabAndIdLists(): Promise<{
 				ids: Array<{
 					id: number;
 					title: string;
