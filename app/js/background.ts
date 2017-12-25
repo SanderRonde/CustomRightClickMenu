@@ -1235,7 +1235,7 @@ if (typeof module === 'undefined') {
 		static convertFileToDataURI(url: string, callback: (dataURI: string,
 			dataString: string) => void,
 			onError?: () => void) {
-			const xhr = new window.XMLHttpRequest();
+			const xhr: XMLHttpRequest = new window.XMLHttpRequest();
 			xhr.responseType = 'blob';
 			xhr.onload = () => {
 				const readerResults: [string, string] = [null, null];
@@ -1366,7 +1366,7 @@ if (typeof module === 'undefined') {
 		private static _requiredFiles: Array<string> = [];
 		private static _loadFile(path: string): Promise<string> {
 			return new Promise<string>((resolve, reject) => {
-				const xhr = new window.XMLHttpRequest();
+				const xhr: XMLHttpRequest = new window.XMLHttpRequest();
 				xhr.open('GET', chrome.runtime.getURL(path));
 				xhr.onreadystatechange = () => {
 					if (xhr.readyState === window.XMLHttpRequest.DONE) {
@@ -3437,7 +3437,7 @@ if (typeof module === 'undefined') {
 							msg['url'].length - 3) {
 							//Use URL
 							let done = false;
-							const xhr = new window.XMLHttpRequest();
+							const xhr: XMLHttpRequest = new window.XMLHttpRequest();
 							xhr.open('GET', msg['url'], true);
 							xhr.onreadystatechange = async () => {
 								if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 300) {

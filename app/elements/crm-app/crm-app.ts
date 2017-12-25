@@ -1150,7 +1150,7 @@ namespace CRMAppElement {
 			}
 			private static _loadFile(path: string): Promise<string> {
 				return new Promise<string>((resolve, reject) => {
-					const xhr = new window.XMLHttpRequest();
+					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
 					xhr.open('GET', chrome.runtime.getURL(path));
 					xhr.onreadystatechange = () => {
 						if (xhr.readyState === XMLHttpRequest.DONE) {
