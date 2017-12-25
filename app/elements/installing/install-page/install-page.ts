@@ -1,4 +1,4 @@
-﻿/// <reference path="../../elements.d.ts" />
+/// <reference path="../../elements.d.ts" />
 
 namespace InstallPageElement {
 	export const installPageProperties: {
@@ -101,7 +101,7 @@ namespace InstallPageElement {
 		private static _xhr(this: InstallPage, url: string): Promise<string> {
 			return new Promise<string>((resolve, reject) => {
 				const xhr = new window.XMLHttpRequest();
-				xhr.open('GET', chrome.runtime.getURL(url));
+				xhr.open('GET', url);
 				xhr.onreadystatechange = () => {
 					if (xhr.readyState === window.XMLHttpRequest.DONE) {
 						if (xhr.status >= 200 && xhr.status < 300) {
