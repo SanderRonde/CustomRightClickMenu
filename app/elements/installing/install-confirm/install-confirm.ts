@@ -296,7 +296,7 @@ namespace InstallConfirmElement {
 			this.setMetaTag('descriptionValue', tags['description']);
 			this.setMetaTag('authorValue', tags['author']);
 
-			window.installPage.$.title.innerHTML = 'Installing ' + (tags['name'] && tags['name'][0]);
+			window.installPage.$.title.innerHTML = `Installing <b>${(tags['name'] && tags['name'][0])}</b>`;
 
 			this.$.sourceValue.innerText = window.installPage.userscriptUrl;
 			this.$.permissionsEmpty.style.display = 'none';
