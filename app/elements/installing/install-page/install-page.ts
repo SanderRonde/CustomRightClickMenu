@@ -51,11 +51,11 @@ namespace InstallPageElement {
 		};
 
 		static getInstallSource(): string {
-			const searchParams = this.getSearchParams(location.href);
+			const searchParams = this._getSearchParams(location.href);
 			return searchParams['s'];
 		}
 
-		private static getSearchParams(url: string): {
+		private static _getSearchParams(url: string): {
 			[key: string]: string;
 		} {
 			//Split at the first ?
@@ -80,11 +80,11 @@ namespace InstallPageElement {
 			return searchParams;
 		}
 
-		static getUserscriptUrl(this: InstallPage): string {
+		private static _getUserscriptUrl(this: InstallPage): string {
 			this.userscriptUrlCalculated = true;
 
 			//Polyfill URL().searchParams for chrome 26
-			const searchParams = this.getSearchParams(location.href);
+			const searchParams = this._getSearchParams(location.href);
 
 			return searchParams['i'];
 		};
@@ -98,20 +98,32 @@ namespace InstallPageElement {
 			this.fetchFailed = true;
 		};
 
+		private static _xhr(this: InstallPage, url: string): Promise<string> {
+			return new Promise<string>((resolve, reject) => {
+				const xhr = new window.XMLHttpRequest();
+				xhr.open('GET', chrome.runtime.getURL(url));
+				xhr.onreadystatechange = () => {
+					if (xhr.readyState === window.XMLHttpRequest.DONE) {
+						if (xhr.status >= 200 && xhr.status < 300) {
+							resolve(xhr.responseText);
+						} else {
+							reject(null);
+						}
+					}
+				}
+			});
+		}
+
 		static fetchUserscript(this: InstallPage, url: string) {
-			//TODO: change
-			$.ajax({
-				url: url + '?noInstall',
-				dataType: 'text'
-			}).done((script) => {
+			this._xhr(`${url}?noInstall`).then((script) => {
 				this.displayFetchedUserscript(script);
-			}).fail(() => {
+			}).catch(() => {
 				this.notifyFetchError();
 			});
 		};
 
 		static ready(this: InstallPage) {
-			this.userscriptUrl = this.getUserscriptUrl();
+			this.userscriptUrl = this._getUserscriptUrl();
 			this.$.title.innerHTML = 'Installing userscript from ' + this.userscriptUrl;
 			this.fetchUserscript(this.userscriptUrl);
 			window.installPage = this;
