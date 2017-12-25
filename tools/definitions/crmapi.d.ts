@@ -1145,17 +1145,9 @@ declare namespace CRM {
 	 */
 	interface EditorSettings {
 		/**
-		 * Whether to use tabs (spaces if false)
-		 */
-		useTabs: boolean;
-		/**
-		 * The size of tabs
-		 */
-		tabSize: number;
-		/**
 		 * The theme to use for the editor
 		 */
-		theme: string;
+		theme: 'white'|'dark';
 		/**
 		 * The zoom on the editor (in percentage)
 		 */
@@ -1164,6 +1156,14 @@ declare namespace CRM {
 		 * The keybindings for the editor
 		 */
 		keyBindings: KeyBindings;
+		/**
+		 * Whether to disable the underlining of css colors
+		 */
+		cssUnderlineDisabled: boolean;
+		/**
+		 * Whether to disable the highlight of userscript metadata at the top of the file
+		 */
+		disabledMetaDataHighlight: boolean;
 	}
 
 	/**
