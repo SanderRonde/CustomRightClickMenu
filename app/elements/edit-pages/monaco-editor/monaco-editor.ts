@@ -316,7 +316,11 @@ namespace MonacoEditorElement {
 				}
 				return this._userScriptHighlightChange();
 			});
-			this._isMetaDataHighlightDisabled = window.app.settings.editor.disabledMetaDataHighlight;
+			if (window.app) {
+				this._isMetaDataHighlightDisabled = window.app.settings.editor.disabledMetaDataHighlight;
+			} else {
+				this._isMetaDataHighlightDisabled = window.installPage.settings.editor.disabledMetaDataHighlight;
+			}
 			if (!this._isDiff(this._editor)) {
 				this._disposables.push(this._editor.addAction({
 					id: 'disable-metadata-highlight',
@@ -739,7 +743,11 @@ namespace MonacoEditorElement {
 				window.clearInterval(timer);
 			}));
 
-			this._underlineDisabled = window.app.settings.editor.cssUnderlineDisabled;
+			if (window.app) {
+				this._underlineDisabled = window.app.settings.editor.cssUnderlineDisabled;
+			} else {
+				this._underlineDisabled = window.installPage.settings.editor.cssUnderlineDisabled;
+			}
 			if (!this._isDiff(this._editor)) {
 				this._disposables.push(this._editor.addAction({
 					id: 'disable-css-underline',

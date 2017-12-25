@@ -1,4 +1,4 @@
-/// <reference path="../../elements.d.ts" />
+﻿/// <reference path="../../elements.d.ts" />
 
 namespace InstallPageElement {
 	export const installPageProperties: {
@@ -46,6 +46,10 @@ namespace InstallPageElement {
 
 		static properties = installPageProperties;
 
+		static settings: CRM.SettingsStorage;
+
+		static settingsReady: Promise<void>;
+
 		static isPageLoading(this: InstallPage, fetchFailed: boolean, fetchCompleted: boolean): boolean {
 			return !fetchFailed && !fetchCompleted;
 		};
@@ -89,7 +93,8 @@ namespace InstallPageElement {
 			return searchParams['i'];
 		};
 
-		static displayFetchedUserscript(this: InstallPage, script: string) {
+		static async displayFetchedUserscript(this: InstallPage, script: string) {
+			await this.settingsReady;
 			this.fetchCompleted = true;
 			this.fetchedData = script;
 		};
@@ -126,11 +131,73 @@ namespace InstallPageElement {
 			});
 		};
 
+		private static _initSettings(this: InstallPage) {
+			this.settingsReady = new Promise((resolve) => {
+				chrome.storage.local.get((local: CRM.StorageLocal & {
+					settings: CRM.SettingsStorage;
+				}) => {
+					if (local.useStorageSync) {
+						//Parse the data before sending it to the callback
+						chrome.storage.sync.get((storageSync: {
+							[key: string]: string
+						} & {
+							indexes: Array<string>;
+						}) => {
+							let indexes = storageSync.indexes;
+							if (!indexes) {
+								chrome.storage.local.set({
+									useStorageSync: false
+								});
+								this.settings = local.settings;
+							} else {
+								const settingsJsonArray: Array<string> = [];
+								indexes.forEach(function (index) {
+									settingsJsonArray.push(storageSync[index]);
+								});
+								const jsonString = settingsJsonArray.join('');
+								this.settings = JSON.parse(jsonString);
+							}
+							resolve(null);
+						});
+					} else {
+						//Send the "settings" object on the storage.local to the callback
+						if (!local.settings) {
+							chrome.storage.local.set({
+								useStorageSync: true
+							});
+							chrome.storage.sync.get((storageSync: {
+								[key: string]: string
+							} & {
+								indexes: Array<string>;
+							}) => {
+								const indexes = storageSync.indexes;
+								const settingsJsonArray: Array<string> = [];
+								indexes.forEach(function (index) {
+									settingsJsonArray.push(storageSync[index]);
+								});
+								const jsonString = settingsJsonArray.join('');
+								this.settings = JSON.parse(jsonString);
+								resolve(null);
+							});
+						} else {
+							this.settings = local.settings;
+							resolve(null);
+						}
+					}
+				});
+				chrome.storage.sync.get((e: CRM.SettingsStorage) => {
+					this.settings = e;
+					resolve(null);
+				});
+			});
+		}
+
 		static ready(this: InstallPage) {
 			this.userscriptUrl = this.getUserscriptUrl();
 			this.$.title.innerHTML = 'Installing userscript from ' + this.userscriptUrl;
 			this.fetchUserscript(this.userscriptUrl);
 			window.installPage = this;
+			this._initSettings();
 		}
 	}
 
