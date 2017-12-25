@@ -21,5 +21,8 @@
     "compileOnSave": true,
     "include": [
         "app/"
+    ],
+    "exclude": [
+        "app/js/libraries/crmapi.d.ts"
     ]
 }
