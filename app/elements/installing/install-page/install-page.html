@@ -39,7 +39,7 @@
 						</center-element>
 					</div>
 					<template is="dom-if" if="{{fetchFailed}}">
-						<install-error></install-error>
+						<install-error id="installError"></install-error>
 					</template>
 					<template is="dom-if" if="{{fetchCompleted}}">
 						<install-confirm script="{{fetchedData}}"></install-confirm>

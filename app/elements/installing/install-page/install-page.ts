@@ -1,4 +1,4 @@
-/// <reference path="../../elements.d.ts" />
+﻿/// <reference path="../../elements.d.ts" />
 
 namespace InstallPageElement {
 	export const installPageProperties: {
@@ -94,8 +94,11 @@ namespace InstallPageElement {
 			this.fetchedData = script;
 		};
 
-		static notifyFetchError(this: InstallPage) {
+		static notifyFetchError(this: InstallPage, statusCode: number) {
 			this.fetchFailed = true;
+			this.async(() => {
+				this.$$('install-error').$.errCode.innerText = statusCode + '';
+			}, 50);
 		};
 
 		private static _xhr(this: InstallPage, url: string): Promise<string> {
@@ -107,7 +110,7 @@ namespace InstallPageElement {
 						if (xhr.status >= 200 && xhr.status < 300) {
 							resolve(xhr.responseText);
 						} else {
-							reject(null);
+							reject(xhr.status);
 						}
 					}
 				}
@@ -118,8 +121,8 @@ namespace InstallPageElement {
 		static fetchUserscript(this: InstallPage, url: string) {
 			this._xhr(`${url}?noInstall`).then((script) => {
 				this.displayFetchedUserscript(script);
-			}).catch(() => {
-				this.notifyFetchError();
+			}).catch((statusCode) => {
+				this.notifyFetchError(statusCode);
 			});
 		};
 
