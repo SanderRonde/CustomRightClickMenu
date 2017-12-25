@@ -60,21 +60,37 @@
 							</div>
 						</div>
 						<div class="infoValue">
-							<span id="permissionsEmpty">None</span>
-							<template is="dom-repeat" id="permissionValue" class="infoValue" as="permission">
+							<template is="dom-if" if="{{lengthIs(permissions, 0)}}">
 								<div class="infoPermissionContainer">
 									<div class="infoPermissionToggleContainer">
 										<div class="infoPermission">
-											<b>{{permission}}</b>
+											<b>None</b>
 										</div>
 										<div on-tap="showPermissionDescription" class="infoPermissionArrow">
 											<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
 										</div>
-										<paper-checkbox permission$="{{permission}}" on-tap="checkPermission" disabled$="{{isNonePermission(permission)}}" class="infoPermissionCheckbox">Allow</paper-checkbox>
+										<paper-checkbox permission$="{{permission}}" on-tap="checkPermission" disabled class="infoPermissionCheckbox">Allow</paper-checkbox>
 									</div>
-									<div class="infoPermissionExtraText">{{getDescription(permission)}}</div>
+									<div class="infoPermissionExtraText">No permissions required</div>
 								</div>
 							</template>
+							<div hidden="{{lengthIs(permissions, 0)}}">
+								<template is="dom-repeat" id="permissionValue" class="infoValue" as="permission" items="{{permissions}}">
+									<div class="infoPermissionContainer">
+										<div class="infoPermissionToggleContainer">
+											<div class="infoPermission">
+												<b>{{permission}}</b>
+											</div>
+											<div on-tap="showPermissionDescription" class="infoPermissionArrow">
+												<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
+											</div>
+											<paper-checkbox permission$="{{permission}}" on-tap="checkPermission" class="infoPermissionCheckbox">Allow</paper-checkbox>
+										</div>
+										<div class="infoPermissionExtraText">{{getDescription(permission)}}</div>
+									</div>
+								</template>
+								<paper-checkbox id="permissionsToggleAll" on-tap="toggleAll">Toggle All</paper-checkbox>
+							</div>
 						</div>
 					</div>
 				</div>

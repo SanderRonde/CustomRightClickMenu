@@ -3,11 +3,17 @@
 namespace InstallConfirmElement {
 	export const installConfirmProperties: {
 		script: string;
+		permissions: Array<CRM.Permission>;
 	} = {
 		script: {
 			type: String,
 			notify: true,
 			value: ''
+		},
+		permissions: {
+			type: Array,
+			notify: true,
+			value: []
 		}
 	} as any;
 
@@ -30,6 +36,23 @@ namespace InstallConfirmElement {
 		private static _editorManager: MonacoEditor;
 
 		static properties = installConfirmProperties;
+
+		static lengthIs(this: InstallConfirm, arr: Array<any>, length: number): boolean {
+			if (arr.length === 1 && arr[0] === 'none') {
+				return length === 0;
+			}
+			return arr.length === length;
+		}
+
+		static toggleAll(this: InstallConfirm) {
+			this.async(() => {
+				const checked = this.$.permissionsToggleAll.checked;
+				const checkboxes = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-checkbox'));
+				checkboxes.forEach((checkbox: HTMLPaperCheckboxElement) => {
+					checkbox.checked = checked;
+				});
+			}, 0);
+		}
 
 		private static loadSettings(this: InstallConfirm, cb: () => void) {
 			const __this = this;
@@ -163,10 +186,6 @@ namespace InstallConfirmElement {
 			return descriptions[permission];
 		};
 
-		static isNonePermission(this: InstallConfirm, permission: CRM.Permission|'none'): boolean {
-			return permission === 'none';
-		};
-
 		static showPermissionDescription(this: InstallConfirm, e: Polymer.ClickEvent) {
 			let el = e.target;
 			if (el.tagName.toLowerCase() === 'div') {
@@ -181,11 +200,21 @@ namespace InstallConfirmElement {
 			if (el.classList.contains('shown')) {
 				$(description).stop().animate({
 					height: 0
-				}, 250);
+				}, {
+					duration: 250,
+					complete: () => {
+						window.installConfirm._editorManager.editor.layout();
+					}
+				});
 			} else {
 				$(description).stop().animate({
 					height: (description.scrollHeight + 7) + 'px'
-				}, 250);
+				}, {
+					duration: 250,
+					complete: () => {
+						window.installConfirm._editorManager.editor.layout();	
+					}
+				});
 			}
 			el.classList.toggle('shown');
 		};
@@ -299,8 +328,8 @@ namespace InstallConfirmElement {
 			window.installPage.$.title.innerHTML = `Installing <b>${(tags['name'] && tags['name'][0])}</b>`;
 
 			this.$.sourceValue.innerText = window.installPage.userscriptUrl;
-			this.$.permissionsEmpty.style.display = 'none';
-			this.$.permissionValue.items = tags['grant'] || ['none'];
+			const permissions = tags['grant'] as Array<CRM.Permission>;
+			this.permissions = permissions;
 			this.metaTags = tags;
 
 			this._editorManager.editor.layout();

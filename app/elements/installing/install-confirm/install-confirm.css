@@ -263,3 +263,7 @@ paper-checkbox #checkbox.checked.paper-checkbox {
 	font-weight:normal;
 	cursor: default;
 }
+
+#permissionsToggleAll {
+	margin-top: 15px;
+}
