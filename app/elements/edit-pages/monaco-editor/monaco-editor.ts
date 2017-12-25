@@ -2254,11 +2254,24 @@ namespace MonacoEditorElement {
 				'crmapi.d.ts');
 		}
 
+		private static _captureMonacoErrors() {
+			window.onerror = (msg, filename) => {
+				const firstLine = msg.split('\n')[0];
+				if (firstLine.indexOf(`Uncaught Error: Cannot read property 'kind' of undefined`) > -1 &&
+					filename.indexOf('vs/editor/editor.main.js') > -1) {
+						console.log('Caught monaco editor error (ignore these)');
+						return true;
+					}
+				return undefined;
+			}
+		}
+
 		static setup() {
 			if (this._setup) {
 				return;
 			}
 			this._setup = true;
+			this._captureMonacoErrors();
 			this.monacoReady = new window.Promise<void>(async (resolve) => {
 				this._setupRequire();
 				window.onExists('monaco').then(() => {
