@@ -330,7 +330,7 @@ namespace InstallConfirmElement {
 				cssUnderlineDisabled: false,
 				disabledMetaDataHighlight: false
 			});
-			const editor = await this.$.editorCont.create(this.$.editorCont.EditorMode.JS_META, {
+			const editorManager = await this.$.editorCont.create(this.$.editorCont.EditorMode.JS_META, {
 				value: this.script,
 				language: 'javascript',
 				theme: this.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
@@ -338,7 +338,10 @@ namespace InstallConfirmElement {
 				fontSize: (~~this.settings.editor.zoom / 100) * 14,
 				folding: true
 			});
-			this.editorLoaded(editor);
+			window.addEventListener('resize', () => {
+				editorManager.editor.layout();
+			});
+			this.editorLoaded(editorManager);
 		};
 
 		static ready(this: InstallConfirm) {
