@@ -8,11 +8,11 @@
 
 .infoName {
 	font-weight: 500;
-	width: 100px;
+	min-width: 100px;
 }
 
 .infoValue {
-	margin-left:10px;
+	padding-left: 15px;
 }
 
 #scriptInfo {
@@ -36,9 +36,7 @@
 
 .infoData {
 	font-size: 150%;
-	margin-bottom:15px;
-	display: -webkit-flex;
-	display: flex;
+	margin-bottom: 15px;
 }
 
 html {
