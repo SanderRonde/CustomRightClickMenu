@@ -2076,7 +2076,7 @@ namespace MonacoEditorElement {
 		}
 
 		private static _setupRequire() {
-			this.monacoReady = new window.Promise<void>(async (resolve) => {
+			new window.Promise<void>(async (resolve) => {
 				await window.onExists('require');
 				window.require.config({
 					paths: {
@@ -2251,11 +2251,14 @@ namespace MonacoEditorElement {
 				return;
 			}
 			this._setup = true;
-			this._setupRequire();
-			window.onExists('monaco').then(() => {
-				MonacoEditorJSONOptionsMods.enableSchema();
-				this._defineProperties();
-				this._setupCRMDefs();
+			this.monacoReady = new window.Promise<void>(async (resolve) => {
+				this._setupRequire();
+				window.onExists('monaco').then(() => {
+					MonacoEditorJSONOptionsMods.enableSchema();
+					this._defineProperties();
+					this._setupCRMDefs();
+					resolve(null);
+				});
 			});
 		}
 	};
