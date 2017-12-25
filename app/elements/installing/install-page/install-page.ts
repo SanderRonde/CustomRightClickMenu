@@ -80,7 +80,7 @@ namespace InstallPageElement {
 			return searchParams;
 		}
 
-		private static _getUserscriptUrl(this: InstallPage): string {
+		static getUserscriptUrl(this: InstallPage): string {
 			this.userscriptUrlCalculated = true;
 
 			//Polyfill URL().searchParams for chrome 26
@@ -123,7 +123,7 @@ namespace InstallPageElement {
 		};
 
 		static ready(this: InstallPage) {
-			this.userscriptUrl = this._getUserscriptUrl();
+			this.userscriptUrl = this.getUserscriptUrl();
 			this.$.title.innerHTML = 'Installing userscript from ' + this.userscriptUrl;
 			this.fetchUserscript(this.userscriptUrl);
 			window.installPage = this;
