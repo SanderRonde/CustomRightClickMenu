@@ -60,7 +60,7 @@ html {
 	color:white;
 }
 
-#installButton {
+#installButton, #acceptAndInstallbutton {
 	background: #4CAF50;
 }
 
@@ -204,11 +204,9 @@ paper-checkbox #checkbox.checked.paper-checkbox {
 	display: none;
 }
 
-#installButtons.installed #installButton {
-	display: none;
-}
-
-#installButtons.installed #cancelButton {
+#installButtons.installed #installButton, 
+#installButtons.installed #cancelButton,
+#installButtons.installed #acceptAndInstallbutton {
 	display: none;
 }
 

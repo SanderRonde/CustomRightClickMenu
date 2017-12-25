@@ -44,13 +44,19 @@ namespace InstallConfirmElement {
 			return arr.length === length;
 		}
 
+		private static _getCheckboxes(this: InstallConfirm): Array<HTMLPaperCheckboxElement> {
+			return Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-checkbox'));
+		}
+
+		private static _setChecked(this: InstallConfirm, checked: boolean) {
+			this._getCheckboxes().forEach((checkbox) => {
+				checkbox.checked = checked;
+			});
+		}
+
 		static toggleAll(this: InstallConfirm) {
 			this.async(() => {
-				const checked = this.$.permissionsToggleAll.checked;
-				const checkboxes = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-checkbox'));
-				checkboxes.forEach((checkbox: HTMLPaperCheckboxElement) => {
-					checkbox.checked = checked;
-				});
+				this._setChecked(this.$.permissionsToggleAll.checked);
 			}, 0);
 		}
 
@@ -294,8 +300,7 @@ namespace InstallConfirmElement {
 
 		static completeInstall(this: InstallConfirm) {
 			const allowedPermissions: Array<CRM.Permission> = [];
-			const checkboxes = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.infoPermissionCheckbox'));
-			checkboxes.forEach((checkbox: HTMLPaperCheckboxElement) => {
+			this._getCheckboxes().forEach((checkbox) => {
 				checkbox.checked && allowedPermissions.push(checkbox.getAttribute('permission') as CRM.Permission);
 			});
 			chrome.runtime.sendMessage({
@@ -310,6 +315,14 @@ namespace InstallConfirmElement {
 			this.$.installButtons.classList.add('installed');
 			this.$.scriptInstalled.classList.add('visible');
 		};
+
+		static acceptAndCompleteInstall(this: InstallConfirm) {
+			this._setChecked(true);
+			this.$.permissionsToggleAll.checked = true;
+			this.async(() => {
+				this.completeInstall();
+			}, 150);
+		}
 
 		private static setMetaTag(this: InstallConfirm, name: keyof ModuleMap['install-confirm'], values: Array<string|number>) {
 			let value;
