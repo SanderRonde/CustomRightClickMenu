@@ -335,6 +335,7 @@ namespace InstallConfirmElement {
 				language: 'javascript',
 				theme: this.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
 				wordWrap: 'off',
+				readOnly: true,
 				fontSize: (~~this.settings.editor.zoom / 100) * 14,
 				folding: true
 			});
