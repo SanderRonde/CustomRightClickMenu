@@ -405,7 +405,7 @@ namespace MonacoEditorElement {
 			return state;
 		}
 
-		private static readonly _metaPropRegex = /@(\w+)(\s+)(.+)?/g;
+		private static readonly _metaPropRegex = /@(\w+)(\s+)(.+)?/;
 
 		private _getMetaContent(outlines: {
 			start: monaco.Position;
@@ -415,7 +415,7 @@ namespace MonacoEditorElement {
 
 			const tags: CRM.MetaTags = {};
 			const regex = MonacoEditorMetaBlockMods._metaPropRegex;
-			for (let line in content.split('\n')) {
+			for (let line of content.split('\n')) {
 				const matches = regex.exec(line);
 				if (matches) {
 					const key = matches[1];
