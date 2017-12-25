@@ -24,22 +24,23 @@
 			<div id="scriptInfo">
 				<div id="scriptInfoMeta">
 					<div class="infoData" id="descriptionInfo">
-						<div class="infoName">Description</div>
-						<div id="descriptionValue" class="infoValue"></div>
+						<div class="infoName">Description:</div>
+						<div id="descriptionValue" class="infoValue">?</div>
 					</div>
 					<div class="infoData" id="authorInfo">
-						<div class="infoName">Author</div>
-						<div id="authorValue" class="infoValue"></div>
+						<div class="infoName">Author:</div>
+						<div id="authorValue" class="infoValue">?</div>
 					</div>
 					<div class="infoData" id="sourceInfo">
-						<div class="infoName">Source</div>
-						<div id="sourceValue" class="infoValue"></div>
+						<div class="infoName">Source:</div>
+						<div id="sourceValue" class="infoValue">?</div>
 					</div>
 				</div>
 				<div id="scriptInfoPermissions">
 					<div class="infoData" id="permissionInfo">
-						<div class="infoName">Permissions</div>
+						<div class="infoName">Permissions:</div>
 						<div class="infoValue">
+							<span id="permissionsEmpty">None</span>
 							<template is="dom-repeat" id="permissionValue" class="infoValue" as="permission">
 								<div class="infoPermissionContainer">
 									<div class="infoPermissionToggleContainer">

@@ -294,6 +294,7 @@ namespace InstallConfirmElement {
 			window.installPage.$.title.innerHTML = 'Installing ' + (tags['name'] && tags['name'][0]);
 
 			this.$.sourceValue.innerText = window.installPage.userscriptUrl;
+			this.$.permissionsEmpty.style.display = 'none';
 			this.$.permissionValue.items = tags['grant'] || ['none'];
 			this.metaTags = tags;
 		};
