@@ -2189,7 +2189,7 @@ namespace MonacoEditorElement {
 		}
 
 		private static async _loadCRMAPI() {
-			return await this.Libraries.readFile('js/crmapi.d.ts');
+			return await this.Libraries.readFile('js/libraries/crmapi.d.ts');
 		}
 
 		private static async _setupCRMDefs() {

@@ -289,7 +289,7 @@ module.exports = function(grunt) {
 			crmapiLibDev: {
 				files: [{
 					expand: true,
-					cwd: 'tools/defintions/',
+					cwd: 'tools/definitions/',
 					src: [
 						'crmapi.d.ts'
 					],
@@ -299,7 +299,7 @@ module.exports = function(grunt) {
 			crmapiLibBuild: {
 				files: [{
 					expand: true,
-					cwd: 'tools/defintions/',
+					cwd: 'tools/definitions/',
 					src: [
 						'crmapi.d.ts'
 					],
