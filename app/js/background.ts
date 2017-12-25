@@ -1370,7 +1370,7 @@ if (typeof module === 'undefined') {
 				xhr.open('GET', chrome.runtime.getURL(path));
 				xhr.onreadystatechange = () => {
 					if (xhr.readyState === window.XMLHttpRequest.DONE) {
-						if (xhr.status === 200) {
+						if (xhr.status >= 200 && xhr.status < 300) {
 							resolve(xhr.responseText);
 						} else {
 							reject(null);
@@ -3439,7 +3439,7 @@ if (typeof module === 'undefined') {
 							const xhr = new window.XMLHttpRequest();
 							xhr.open('GET', msg['url'], true);
 							xhr.onreadystatechange = async () => {
-								if (xhr.readyState === 4 && xhr.status === 200) {
+								if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 300) {
 									done = true;
 									newLibrary = {
 										name: msg['name'],
