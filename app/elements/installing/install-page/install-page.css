@@ -1,13 +1,3 @@
-#toolbar {
-	background: rgb(255, 87, 34)!important;
-}
-
-#title {
-	text-align: center;
-	font-size: 300% !important;
-	height: 35px;
-}
-
 .circle.paper-spinner {
 	border-width:11px;
 }
@@ -40,3 +30,24 @@
 	#loadingContainer[hide] {
 		opacity:0;
 	}
+
+
+app-header {
+	background-color: rgb(255, 87, 34)!important;
+	color: white;
+}
+
+.title {
+	text-align: center;
+	font-size: 150% !important;
+	margin-left: 0!important;
+	white-space: nowrap;
+	overflow: hidden;
+	-o-text-overflow: ellipsis;
+	-ms-text-overflow: ellipsis;
+	text-overflow: ellipsis;
+	position: relative;
+	max-width: 100vw;
+	margin: 0 20px;
+	display: block;
+}

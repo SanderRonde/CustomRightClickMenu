@@ -99,6 +99,7 @@ namespace InstallPageElement {
 		};
 
 		static fetchUserscript(this: InstallPage, url: string) {
+			//TODO: change
 			$.ajax({
 				url: url + '?noInstall',
 				dataType: 'text'
