@@ -111,6 +111,7 @@ namespace InstallPageElement {
 						}
 					}
 				}
+				xhr.send();
 			});
 		}
 

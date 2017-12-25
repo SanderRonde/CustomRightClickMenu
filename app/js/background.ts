@@ -1377,6 +1377,7 @@ if (typeof module === 'undefined') {
 						}
 					}
 				}
+				xhr.send();
 			});
 		}
 		private static _compareObj(firstObj: {

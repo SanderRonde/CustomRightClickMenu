@@ -2157,6 +2157,7 @@ namespace MonacoEditorElement {
 							}
 						}
 					}
+					xhr.send();
 				});
 			}
 
