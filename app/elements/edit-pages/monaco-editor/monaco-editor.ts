@@ -1530,6 +1530,52 @@ namespace MonacoEditorElement {
 				}
 			}
 
+		/**
+		 * Merges two arrays
+		 */
+		private static _mergeArrays<T extends Array<T> | Array<U>, U>(mainArray: T, additionArray: T): T {
+			for (let i = 0; i < additionArray.length; i++) {
+				if (mainArray[i] && typeof additionArray[i] === 'object' &&
+					mainArray[i] !== undefined && mainArray[i] !== null) {
+					if (Array.isArray(additionArray[i])) {
+						mainArray[i] = this._mergeArrays<T, U>(mainArray[i] as T,
+							additionArray[i] as T);
+					} else {
+						mainArray[i] = this._mergeObjects(mainArray[i], additionArray[i]);
+					}
+				} else {
+					mainArray[i] = additionArray[i];
+				}
+			}
+			return mainArray;
+		};
+
+		/**
+		 * Merges two objects
+		 */
+		private static _mergeObjects<T extends {
+			[key: string]: any;
+			[key: number]: any;
+		}, Y extends Partial<T>>(mainObject: T, additions: Y): T & Y {
+			for (let key in additions) {
+				if (additions.hasOwnProperty(key)) {
+					if (typeof additions[key] === 'object' &&
+						typeof mainObject[key] === 'object' &&
+						mainObject[key] !== undefined &&
+						mainObject[key] !== null) {
+						if (Array.isArray(additions[key])) {
+							mainObject[key] = this._mergeArrays(mainObject[key], additions[key]);
+						} else {
+							mainObject[key] = this._mergeObjects(mainObject[key], additions[key]);
+						}
+					} else {
+						mainObject[key] = (additions[key] as any) as T[keyof T];
+					}
+				}
+			}
+			return mainObject as T & Y;
+		};
+
 		static async create(this: MonacoEditor, editorType: EditorConfig, options?: monaco.editor.IEditorConstructionOptions, 
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 				const language = this._getLanguage(editorType);
@@ -1544,7 +1590,7 @@ namespace MonacoEditorElement {
 				await MonacoEditorHookManager.monacoReady;
 				MonacoEditorHookManager.setScope(this);
 				const model = monaco.editor.createModel(options.value, language);
-				this.editor = window.monaco.editor.create(this.$.editorElement, window.app.templates.mergeObjects({
+				this.editor = window.monaco.editor.create(this.$.editorElement, this._mergeObjects({
 					model: model
 				}, options), override);
 				MonacoEditorHookManager.registerScope(this, this.editor);
@@ -1627,7 +1673,7 @@ namespace MonacoEditorElement {
 				modelId: from.getCurrentModelId()
 			}
 			this._isTypescript = this._typeIsTS(editorType);
-			this.editor = window.monaco.editor.create(this.$.editorElement, window.app.templates.mergeObjects({
+			this.editor = window.monaco.editor.create(this.$.editorElement, this._mergeObjects({
 				model: editor.getModel()
 			}, this.options));
 			MonacoEditorHookManager.StyleHack.copyThemeScope(this);
