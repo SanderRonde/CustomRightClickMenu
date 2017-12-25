@@ -24,6 +24,11 @@ namespace InstallConfirmElement {
 		 */
 		private static metaTags: CRM.MetaTags = {};
 
+		/**
+		 * The manager for the main code editor
+		 */
+		private static _editorManager: MonacoEditor;
+
 		static properties = installConfirmProperties;
 
 		private static loadSettings(this: InstallConfirm, cb: () => void) {
@@ -297,6 +302,8 @@ namespace InstallConfirmElement {
 			this.$.permissionsEmpty.style.display = 'none';
 			this.$.permissionValue.items = tags['grant'] || ['none'];
 			this.metaTags = tags;
+
+			this._editorManager.editor.layout();
 		};
 
 		private static editorLoaded(this: InstallConfirm, editor: MonacoEditor) {
@@ -330,7 +337,7 @@ namespace InstallConfirmElement {
 				cssUnderlineDisabled: false,
 				disabledMetaDataHighlight: false
 			});
-			const editorManager = await this.$.editorCont.create(this.$.editorCont.EditorMode.JS_META, {
+			const editorManager = this._editorManager = await this.$.editorCont.create(this.$.editorCont.EditorMode.JS_META, {
 				value: this.script,
 				language: 'javascript',
 				theme: this.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
