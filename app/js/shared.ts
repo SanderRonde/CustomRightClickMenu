@@ -7,22 +7,42 @@ class Promise<T> implements Promise<T> {
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => Promise<T>)
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void)
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void|Promise<T>) {
-		initializer((result: T|Promise<T>) => {
-			if (this._status !== 'pending') {
-				return;
-			}
+		let isSync: boolean = true;
+		try {
+			initializer((result: T|Promise<T>) => {
+				if (this._status !== 'pending') {
+					return;
+				}
 
-			this._resolve(result);
-		}, (rejectReason) => {
-			if (this._status !== 'pending') {
-				return;
-			}
-			this._rejectReason = rejectReason;
-			this._status = 'rejected';
-			this._rejectListeners.forEach((rejectListener) => {
-				rejectListener(rejectReason);
+				this._resolve(result);
+			}, (rejectReason) => {
+				this._reject(rejectReason, isSync);		
 			});
-		});
+			isSync = false;
+		} catch(e) {
+			this._reject(e, true);
+		}
+	}
+	_reject(reason: any, isSync: boolean = false) {
+		if (this._status !== 'pending') {
+			return;
+		}
+		this._rejectReason = reason;
+		this._status = 'rejected';
+		if (this._rejectListeners.length === 0) {
+			if (isSync) {
+				//Wait for any listeners to get set before throwing
+				setTimeout(() => {
+					this._reject(reason, false);
+				}, 0);
+			} else {
+				throw reason;
+			}
+		} else {
+			this._rejectListeners.forEach((rejectListener) => {
+				rejectListener(reason);
+			});
+		}
 	}
 	_signalDone(result: T) {
 		if (this._status === 'fulfilled') {
