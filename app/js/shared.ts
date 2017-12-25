@@ -7,7 +7,7 @@ class Promise<T> implements Promise<T> {
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => Promise<T>)
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void)
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void|Promise<T>) {
-		const initializerResult = initializer((result: T|Promise<T>) => {
+		initializer((result: T|Promise<T>) => {
 			if (this._status !== 'pending') {
 				return;
 			}
@@ -23,9 +23,6 @@ class Promise<T> implements Promise<T> {
 				rejectListener(rejectReason);
 			});
 		});
-		if (this._isThennable(initializerResult)) {
-			this._resolve(initializerResult as Promise<T>);
-		}
 	}
 	_signalDone(result: T) {
 		if (this._status === 'fulfilled') {
