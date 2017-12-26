@@ -106,7 +106,7 @@ namespace CrmEditPageElement {
 			"neon-animation-finish": '_onNeonAnimationFinish'
 		};
 
-		private static _isLocal(this: CrmEditPage, source: {
+		static isLocal(this: CrmEditPage, source: {
 			updateURL?: string;
 			downloadURL?: string;
 			url?: string;
@@ -124,10 +124,10 @@ namespace CrmEditPageElement {
 
 		static hideNodeInfo(this: CrmEditPage, nodeInfo: CRM.NodeInfo): boolean {
 			return !this._nodeInfoExists(nodeInfo) ||
-				(this._isLocal(nodeInfo.source) && !this._hasInstallDate(nodeInfo));
+				(this.isLocal(nodeInfo.source) && !this.hasInstallDate(nodeInfo));
 		};
 
-		private static _hasInstallDate(nodeInfo: CRM.NodeInfo): boolean {
+		static hasInstallDate(nodeInfo: CRM.NodeInfo): boolean {
 			return this._nodeInfoExists(nodeInfo) && !!nodeInfo.installDate;
 		};
 

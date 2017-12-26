@@ -119,7 +119,7 @@ namespace CenterElementElement {
 		/**
 		 * Recalculates all the styles that should be applied
 		 */
-		private static _recalculateStyles(this: CenterElement) {
+		static recalculateStyles(this: CenterElement) {
 			if (this.nostyle || !this._isReady) {
 				return;
 			}
@@ -151,7 +151,7 @@ namespace CenterElementElement {
 
 		static ready(this: CenterElement) {
 			this._isReady = true;
-			this._recalculateStyles();
+			this.recalculateStyles();
 		};
 	}
 

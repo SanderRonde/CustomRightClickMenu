@@ -663,7 +663,7 @@ namespace EditCrmElement {
 
 		static toggleAddState(this: EditCrm) {
 			if (!this.isAdding) {
-				this.isSelecting && this._cancelSelecting();
+				this.isSelecting && this.cancelSelecting();
 				this.isAdding = true;
 
 				this.build({
@@ -1055,7 +1055,7 @@ namespace EditCrmElement {
 			this._exportGivenNodeIDs(toExport);
 		};
 
-		private static _cancelSelecting(this: EditCrm) {
+		static cancelSelecting(this: EditCrm) {
 			const editCrmItems = document.getElementsByTagName('edit-crm-item');
 			//Select items
 			for (let i = 0; i < editCrmItems.length; i++) {
