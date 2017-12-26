@@ -3052,13 +3052,13 @@ namespace CRMAppElement {
 								height: newHeightPx
 							}
 						], {
-								duration: 500,
-								easing: 'bez'
-							}).onfinish = () => {
-								tabCont.style.height = newHeightPx;
-								selector.style.height = 'auto';
-								this.parent().versionUpdateTab = nextTabIndex;
-							};
+							duration: 500,
+							easing: 'bez'
+						}).onfinish = () => {
+							tabCont.style.height = newHeightPx;
+							selector.style.height = 'auto';
+							this.parent().versionUpdateTab = nextTabIndex;
+						};
 					} else {
 						selector.style.height = 'auto';
 						this.parent().versionUpdateTab = nextTabIndex;
@@ -3102,36 +3102,32 @@ namespace CRMAppElement {
 
 					const currentHeight = tabCont.getBoundingClientRect().height;
 					if (newHeight > currentHeight) {
-						tabCont.animate([
-							{
-								height: currentHeight + 'px'
-							}, {
-								height: newHeightPx
-							}
-						], {
-								duration: 500,
-								easing: 'bez'
-							}).onfinish = () => {
-								tabCont.style.height = newHeightPx;
-								selector.style.height = 'auto';
-								this.parent().versionUpdateTab = prevTabIndex;
-							};
+						tabCont.animate([{
+							height: currentHeight + 'px'
+						}, {
+							height: newHeightPx
+						}], {
+							duration: 500,
+							easing: 'bez'
+						}).onfinish = () => {
+							tabCont.style.height = newHeightPx;
+							selector.style.height = 'auto';
+							this.parent().versionUpdateTab = prevTabIndex;
+						};
 					} else {
 						selector.style.height = 'auto';
 						this.parent().versionUpdateTab = prevTabIndex;
 						setTimeout(function () {
-							tabCont.animate([
-								{
-									height: currentHeight + 'px'
-								}, {
-									height: newHeightPx
-								}
-							], {
-									duration: 500,
-									easing: 'bez'
-								}).onfinish = function () {
-									tabCont.style.height = newHeightPx;
-								};
+							tabCont.animate([{
+								height: currentHeight + 'px'
+							}, {
+								height: newHeightPx
+							}], {
+								duration: 500,
+								easing: 'bez'
+							}).onfinish = function () {
+								tabCont.style.height = newHeightPx;
+							};
 						}, 500);
 					}
 				}
