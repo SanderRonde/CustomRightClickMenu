@@ -1217,3 +1217,7 @@ paper-checkbox {
 #editorTypescript:hover {
 	background-color: rgb(230, 230, 230);
 }
+
+app-header {
+	right: 0!important;
+}
