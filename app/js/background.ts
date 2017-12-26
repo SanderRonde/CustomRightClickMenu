@@ -355,6 +355,8 @@ interface GlobalObject extends Partial<Window> {
 					};
 				};
 			};
+			insufficientPermissions: Array<string>;
+			failedLookups: Array<number>;
 		};
 		background: {
 			workers: Array<CRMSandboxWorker>;
@@ -517,11 +519,13 @@ if (typeof module === 'undefined') {
 	globalObject.globals = {
 		latestId: 0,
 		storages: {
+			insufficientPermissions: [],
 			settingsStorage: null,
 			globalExcludes: null,
 			resourceKeys: null,
 			urlDataPairs: null,
 			storageLocal: null,
+			failedLookups: [],
 			nodeStorage: null,
 			resources: null
 		},
@@ -1833,7 +1837,11 @@ if (typeof module === 'undefined') {
 				const currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
 				chrome.tabs.get(currentTabId, (tab) => {
 					if (chrome.runtime.lastError) {
-						window.log(chrome.runtime.lastError.message);
+						if (chrome.runtime.lastError.message.indexOf('No tab with id:') > -1) {
+							globalObject.globals.storages.failedLookups.push(currentTabId);
+						} else {
+							window.log(chrome.runtime.lastError.message);
+						}
 						return;
 					}
 
@@ -4879,6 +4887,14 @@ if (typeof module === 'undefined') {
 				}
 
 				if (!permitted) {
+					globalObject.globals.storages.insufficientPermissions.push(
+						`Script id ${this.message.id} asked for and was rejected permission${
+							notPermitted.length === 1 ?
+							` ${notPermitted[0]}` :
+							`s ${notPermitted
+								.join(', ')}`
+						}`
+					);
 					this.respondError(`Permission${notPermitted.length === 1 ?
 						` ${notPermitted[0]}` :
 						`s ${notPermitted
@@ -10102,6 +10118,13 @@ if (typeof module === 'undefined') {
 					window.setInterval(() => {
 						CRM.Script.Updating.updateScripts();
 					}, 6 * 60 * 60 * 1000);
+					window.console.groupEnd();
+
+					//Debugging data
+					window.console.groupCollapsed('Debugging'); 
+					window.log('For all of these arrays goes, close and re-expand them to "refresh" their contents')
+					window.log('Invalidated tabs:', globalObject.globals.storages.failedLookups);
+					window.log('Insufficient permissions:', globalObject.globals.storages.insufficientPermissions);
 					window.console.groupEnd();
 	
 					window.log('Registering console user interface');
