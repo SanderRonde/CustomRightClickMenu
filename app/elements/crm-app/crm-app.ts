@@ -1611,51 +1611,37 @@ namespace CRMAppElement {
 			};
 
 			static setupLoadingBar(): Promise<void> {
-				return new Promise<void>((resolve) => {
-					const importsAmount = 49;
-
-					let registeredElements = Polymer.telemetry.registrations.length;
-					const registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
-					const splashScreen = document.getElementsByTagName('splash-screen')[0];
-					splashScreen.init(importsAmount);
-					registrationArray.push = (element: HTMLElement) => {
-						Array.prototype.push.call(registrationArray, element);
-						registeredElements++;
-						const progress = Math.round((registeredElements / importsAmount) * 100) / 100;
-						splashScreen.setProgress(progress);
-
-						if (registeredElements >= importsAmount) {
-							//Wait until the element is actually registered to the DOM
+				return new Promise(async (resolve) => {
+					window.splashScreen.init(49);
+					window.splashScreen.done.then(() => {
+						//Wait until the element is actually registered to the DOM
+						window.setTimeout(() => {
+							//All elements have been loaded, unhide them all
 							window.setTimeout(() => {
-								resolve(null);
-								//All elements have been loaded, unhide them all
-								window.setTimeout(() => {
-									//Clear the annoying CSS mime type messages and the /deep/ warning
-									if (!window.lastError && location.hash.indexOf('noClear') === -1) {
-										console.clear();
-									}
-
-									window.setTimeout(() => {
-										//Wait for the fade to pass
-										window.polymerElementsLoaded = true;
-									}, 500);
-
-									console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
-										'font-size:120%;font-weight:bold;');
-								}, 200);
-
-								window.CRMLoaded = window.CRMLoaded || {
-									listener: null,
-									register(fn) {
-										fn();
-									}
+								//Clear the annoying CSS mime type messages and the /deep/ warning
+								if (!window.lastError && location.hash.indexOf('noClear') === -1) {
+									console.clear();
 								}
-								window.CRMLoaded.listener && window.CRMLoaded.listener();
-								splashScreen.finish();
-							}, 25);
-						}
-					};
-					Polymer.telemetry.registrations = registrationArray;
+
+								window.setTimeout(() => {
+									//Wait for the fade to pass
+									window.polymerElementsLoaded = true;
+								}, 500);
+
+								console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
+									'font-size:120%;font-weight:bold;');
+							}, 200);
+
+							window.CRMLoaded = window.CRMLoaded || {
+								listener: null,
+								register(fn) {
+									fn();
+								}
+							}
+							window.CRMLoaded.listener && window.CRMLoaded.listener();
+							resolve(null);
+						}, 25);
+					});
 				});
 			};
 

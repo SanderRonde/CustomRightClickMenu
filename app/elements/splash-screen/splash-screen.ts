@@ -31,6 +31,8 @@ namespace SplashScreenElement {
 			shouldAnimate: boolean;
 		};
 
+		static done: Promise<void>;
+
 		static _onFinish(this: SplashScreen) {
 			if (this.finished) {
 				this.setAttribute('invisible', 'invisible');
@@ -78,8 +80,35 @@ namespace SplashScreenElement {
 			this._onFinish();
 		}
 
+		private static _onRegistration(this: SplashScreen, registered: number, resolve: (res: void) => void) {
+			const progress = Math.round((registered / this._settings.max) * 100) / 100;
+			this.setProgress(progress);
+
+			if (registered >= this._settings.max) {
+				resolve(null);
+				this.finish();
+			}
+		}
+
+		private static _listenForRegistrations(this: SplashScreen) {
+			this.done = new Promise<void>((resolve) => {
+				let registeredElements = Polymer.telemetry.registrations.length;
+				const registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
+				registrationArray.push = (element: HTMLElement) => {
+					Array.prototype.push.call(registrationArray, element);
+					registeredElements++;
+					this._onRegistration(registeredElements, resolve);
+				}
+
+				this._onRegistration(registeredElements, resolve);
+
+				Polymer.telemetry.registrations = registrationArray;
+			});
+		}
+
 		static init(this: SplashScreen, max: number) {
 			this._settings.max = max;
+			this._listenForRegistrations();
 		}
 
 		static ready(this: SplashScreen) {
