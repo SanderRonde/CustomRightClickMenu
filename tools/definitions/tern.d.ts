@@ -200,7 +200,4 @@ interface Window {
 	}
 	TernFile: Tern.File;
 	tern: Tern.Tern;
-	ecma5: JSDefinitions;
-	ecma6: JSDefinitions;
-	browserDefs: JSDefinitions;
 }

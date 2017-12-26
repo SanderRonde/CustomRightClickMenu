@@ -2465,7 +2465,7 @@ namespace CRMAppElement {
 					var file = new window.app._TernFile('[doc]');
 					file.text = lines.join('\n');
 					var srv = new window.CodeMirror.TernServer({
-						defs: [window.ecma5, window.ecma6, window.browserDefs]
+						defs: []
 					});
 					window.tern.withContext(srv.cx, () => {
 						file.ast = window.tern.parse(file.text, srv.passes, {
