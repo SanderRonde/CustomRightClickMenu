@@ -250,6 +250,17 @@ declare namespace Polymer {
 			easing?: string;
 			fill?: 'forwards'|'backwards'|'both';
 		}): Animation;
+		animateTo<K extends {
+			[key: string]: string;
+		} = {
+			[key: string]: string;
+		}>(this: HTMLElement, properties: {
+			[key in keyof K]: string;
+		}, options: {
+			duration?: number;
+			easing?: string;
+			fill?: 'forwards'|'backwards'|'both';
+		}): Animation;
 		disabled: boolean;
 		getRootNode(): ShadowRoot;
 	} & ElementBase;
