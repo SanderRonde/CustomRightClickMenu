@@ -66,6 +66,7 @@ namespace SplashScreenElement {
 				this._settings.toReach = progress;
 				this._settings.shouldAnimate = true;
 			} else {
+				this._settings.isAnimating = true;
 				await this._animateTo(progress, scaleAfter);
 				this._animateLoadingBar(this._settings.toReach);
 			}
@@ -85,8 +86,10 @@ namespace SplashScreenElement {
 			this.setProgress(progress);
 
 			if (registered >= this._settings.max) {
-				resolve(null);
-				this.finish();
+				this.async(() => {
+					this.finish();
+					resolve(null);
+				}, 500);
 			}
 		}
 
