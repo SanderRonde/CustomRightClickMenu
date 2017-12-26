@@ -738,8 +738,8 @@ namespace CRMAppElement {
 							if (overlay.open) {
 								window.clearInterval(interval);
 								const innerOverlay = window.app.util.getQuerySlot()(overlay)[0] as HTMLElement;
-								(innerOverlay.querySelector('#requestedPermissionsTemplate') as HTMLDomRepeatElement).items = requested;
-								(innerOverlay.querySelector('#requestedPermissionsOtherTemplate') as HTMLDomRepeatElement).items = other;
+								window.app.$.requestedPermissionsTemplate.items = requested;
+								window.app.$.requestedPermissionsOtherTemplate.items = other;
 								overlay.addEventListener('iron-overlay-opened', () => {
 									handler.apply(this);
 								});
