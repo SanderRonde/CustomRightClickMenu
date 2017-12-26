@@ -20,7 +20,7 @@ namespace StylesheetEditElement {
 
 		static editorPlaceHolderAnimation: Animation;
 
-		private static getExportData(this: NodeEditBehaviorStylesheetInstance): CRM.StylesheetNode {
+		private static _getExportData(this: NodeEditBehaviorStylesheetInstance): CRM.StylesheetNode {
 			const settings = {};
 			this.save(null, settings);
 			this.$.dropdownMenu.selected = 0;
@@ -28,15 +28,15 @@ namespace StylesheetEditElement {
 		};
 
 		static exportStylesheetAsCRM(this: NodeEditBehaviorStylesheetInstance) {
-			window.app.editCRM.exportSingleNode(this.getExportData(), 'CRM');
+			window.app.editCRM.exportSingleNode(this._getExportData(), 'CRM');
 		};
 
 		static exportStylesheetAsUserscript(this: NodeEditBehaviorStylesheetInstance) {
-			window.app.editCRM.exportSingleNode(this.getExportData(), 'Userscript');
+			window.app.editCRM.exportSingleNode(this._getExportData(), 'Userscript');
 		};
 
 		static exportStylesheetAsUserstyle(this: NodeEditBehaviorStylesheetInstance) {
-			window.app.editCRM.exportSingleNode(this.getExportData(), 'Userstyle');
+			window.app.editCRM.exportSingleNode(this._getExportData(), 'Userstyle');
 		};
 
 		static cancelChanges(this: NodeEditBehaviorStylesheetInstance) {
@@ -116,7 +116,7 @@ namespace StylesheetEditElement {
 		/**
 		 * Loads the monaco editor
 		 */
-		private static async loadEditor(this: NodeEditBehaviorStylesheetInstance, content: string = this.item.value.stylesheet,
+		private static async _loadEditor(this: NodeEditBehaviorStylesheetInstance, content: string = this.item.value.stylesheet,
 			disable: boolean = false) {
 			const placeHolder = $(this.$.editor);
 			this.editorHeight = placeHolder.height();
@@ -187,7 +187,7 @@ namespace StylesheetEditElement {
 			}
 			this.active = true;
 			setTimeout(() => {
-				this.loadEditor();
+				this._loadEditor();
 			}, 750);
 		}
 

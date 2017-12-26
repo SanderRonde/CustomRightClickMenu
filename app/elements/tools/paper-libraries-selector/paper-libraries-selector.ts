@@ -113,7 +113,7 @@ namespace PaperLibrariesSelectorElement {
 			}
 		}
 
-		private static getLibraries(this: PaperLibrariesSelector, selectedObj: {
+		private static _getLibraries(this: PaperLibrariesSelector, selectedObj: {
 			[key: string]: boolean;
 		}) {
 			let libraries: Array<LibrarySelectorLibrary> = [];
@@ -135,7 +135,7 @@ namespace PaperLibrariesSelectorElement {
 			return libraries;
 		}
 
-		private static setSelectedLibraries(this: PaperLibrariesSelector, libraries: Array<LibrarySelectorLibrary>) {
+		private static _setSelectedLibraries(this: PaperLibrariesSelector, libraries: Array<LibrarySelectorLibrary>) {
 			const selected: Array<number> = [];
 			libraries.forEach(function(item, index) {
 				if (item.selected === 'true') {
@@ -156,8 +156,8 @@ namespace PaperLibrariesSelectorElement {
 				anonymous,
 				selectedObj
 			} = this.categorizeLibraries();
-			let libraries = this.getLibraries(selectedObj)
-			this.setSelectedLibraries(libraries);
+			let libraries = this._getLibraries(selectedObj)
+			this._setSelectedLibraries(libraries);
 			const anonymousLibraries: Array<LibrarySelectorLibrary> = [];
 			anonymous.forEach(function(item) {
 				const itemCopy: LibrarySelectorLibrary = {
@@ -181,7 +181,7 @@ namespace PaperLibrariesSelectorElement {
 			this.libraries = libraries;
 		};
 
-		private static resetAfterAddDesision() {
+		private static _resetAfterAddDesision() {
 			window.doc.addLibraryConfirmAddition.removeEventListener('click');
 			window.doc.addLibraryDenyConfirmation.removeEventListener('click');
 			window.doc.addLibraryUrlInput.removeAttribute('invalid');
@@ -196,12 +196,12 @@ namespace PaperLibrariesSelectorElement {
 					window.doc.addLibraryConfirmAddition.addEventListener('click', () => {
 						window.doc.addLibraryConfirmationInput.value = '';
 						this.addLibraryFile(name, isTypescript, code, url);
-						this.resetAfterAddDesision();
+						this._resetAfterAddDesision();
 					});
 					window.doc.addLibraryDenyConfirmation.addEventListener('click', () => {
 						window.doc.addLibraryConfirmationContainer.style.display = 'none';
 						window.doc.addLibraryProcessContainer.style.display = 'block';
-						this.resetAfterAddDesision();
+						this._resetAfterAddDesision();
 						window.doc.addLibraryConfirmationInput.value = '';
 					});
 					window.doc.addLibraryLoadingDialog.style.display = 'none';
@@ -209,7 +209,7 @@ namespace PaperLibrariesSelectorElement {
 				}, 250);
 			};
 
-		private static addLibraryToState(this: PaperLibrariesSelector, name: string, isTypescript: boolean, code: string, url: string) {
+		private static _addLibraryToState(this: PaperLibrariesSelector, name: string, isTypescript: boolean, code: string, url: string) {
 			this.installedLibraries.push({
 				name,
 				code,
@@ -225,13 +225,13 @@ namespace PaperLibrariesSelectorElement {
 			});
 		}
 		
-		private static hideElements<T extends keyof typeof window.doc>(...els: Array<T>) {
+		private static _hideElements<T extends keyof typeof window.doc>(...els: Array<T>) {
 			for (let i = 0; i < els.length; i++) {
 				(window.doc[els[i]] as any).style.display = 'none';
 			}
 		}
 
-		private static showElements<T extends keyof typeof window.doc>(...els: Array<T>) {
+		private static _showElements<T extends keyof typeof window.doc>(...els: Array<T>) {
 			for (let i = 0; i < els.length; i++) {
 				(window.doc[els[i]] as any).style.display = 'block';
 			}
@@ -255,7 +255,7 @@ namespace PaperLibrariesSelectorElement {
 			window.doc.addLibraryLoadingDialog.style.display = 'flex';
 
 			setTimeout(() => {
-				this.addLibraryToState(name, isTypescript, code, url);
+				this._addLibraryToState(name, isTypescript, code, url);
 				this._setLibraries(this.installedLibraries);
 				this.splice('libraries', this.libraries.length - 1, 0, {
 					name: name,
@@ -272,21 +272,21 @@ namespace PaperLibrariesSelectorElement {
 					easing: 'swing'
 				});
 
-				this.hideElements('addLibraryLoadingDialog', 'addLibraryConfirmationContainer',
+				this._hideElements('addLibraryLoadingDialog', 'addLibraryConfirmationContainer',
 					'addLibraryProcessContainer', 'addLibraryDialogSuccesCheckmark')
-				this.showElements('addLibraryDialogSucces');
+				this._showElements('addLibraryDialogSucces');
 				$(window.doc.addLibraryDialogSucces).animate({
 					backgroundColor: 'rgb(38,153,244)'
 				}, {
 					duration: 300,
 					easing: 'easeOutCubic',
 					complete: () => {
-						this.showElements('addLibraryDialogSuccesCheckmark');
+						this._showElements('addLibraryDialogSuccesCheckmark');
 						window.doc.addLibraryDialogSuccesCheckmark.classList.add('animateIn');
 						setTimeout(() => {
 							window.doc.addLibraryDialog.toggle();
-							this.hideElements('addLibraryDialogSucces');
-							this.showElements('addLibraryLoadingDialog');
+							this._hideElements('addLibraryDialogSucces');
+							this._showElements('addLibraryLoadingDialog');
 						}, 2500);
 					}
 				});
@@ -298,15 +298,15 @@ namespace PaperLibrariesSelectorElement {
 			}, 250);
 		};
 
-		private static addNewLibrary(this: PaperLibrariesSelector) {
+		private static _addNewLibrary(this: PaperLibrariesSelector) {
 			//Add new library dialog
 			window.doc.addedLibraryName.$$('input').value = '';
 			window.doc.addLibraryUrlInput.$$('input').value = '';
 			window.doc.addLibraryManualInput.$$('textarea').value = '';
 			window.doc.addLibraryIsTS.checked = false;
 
-			this.showElements('addLibraryProcessContainer');
-			this.hideElements('addLibraryLoadingDialog', 'addLibraryConfirmationContainer',
+			this._showElements('addLibraryProcessContainer');
+			this._hideElements('addLibraryLoadingDialog', 'addLibraryConfirmationContainer',
 				'addLibraryDialogSucces');
 
 			window.doc.addedLibraryName.invalid = false;
@@ -353,7 +353,7 @@ namespace PaperLibrariesSelectorElement {
 				});
 		}
 
-		private static handleCheckmarkClick(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
+		private static _handleCheckmarkClick(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
 			//Checking or un-checking something
 			const lib = (e.target as HTMLElement & {
 				dataLib: LibrarySelectorLibrary;
@@ -399,9 +399,9 @@ namespace PaperLibrariesSelectorElement {
 					return;
 				}
 			if (e.target.classList.contains('addLibrary')) {
-				this.addNewLibrary();
+				this._addNewLibrary();
 			} else if (this.mode === 'main') {
-				this.handleCheckmarkClick(e);
+				this._handleCheckmarkClick(e);
 			}
 		};
 

@@ -114,13 +114,13 @@ namespace CenterElementElement {
 
 		static properties = centerElementProperties;
 
-		private static isReady: boolean = false;
+		private static _isReady: boolean = false;
 
 		/**
 		 * Recalculates all the styles that should be applied
 		 */
-		private static recalculateStyles(this: CenterElement) {
-			if (this.nostyle || !this.isReady) {
+		private static _recalculateStyles(this: CenterElement) {
+			if (this.nostyle || !this._isReady) {
 				return;
 			}
 			if (this.fullscreenoverlay) {
@@ -150,8 +150,8 @@ namespace CenterElementElement {
 		};
 
 		static ready(this: CenterElement) {
-			this.isReady = true;
-			this.recalculateStyles();
+			this._isReady = true;
+			this._recalculateStyles();
 		};
 	}
 

@@ -72,12 +72,12 @@ namespace UseExternalEditorElement {
 		/**
 		 * The port at which the app is located
 		 */
-		private static appPort: chrome.runtime.Port = null;
+		private static _appPort: chrome.runtime.Port = null;
 
 		/**
 		 * The connection to the app and its status
 		 */
-		private static connection: {
+		private static _connection: {
 			status: string;
 			state?: string;
 			connected: boolean;
@@ -93,17 +93,17 @@ namespace UseExternalEditorElement {
 		/**
 		 * The choose-script hide animation for the main div
 		 */
-		private static dialogMainDivAnimationHide: Animation = null;
+		private static _dialogMainDivAnimationHide: Animation = null;
 
 		/**
 		 * The animation for expanding the dialog
 		 */
-		private static dialogExpansionAnimation: Animation = null;
+		private static _dialogExpansionAnimation: Animation = null;
 
 		/**
 		 * The style properties of the dialog before expanding
 		 */
-		private static dialogStyleProperties: ClientRect;
+		private static _dialogStyleProperties: ClientRect;
 
 		/**
 		 * The node that is currently being edited
@@ -129,15 +129,15 @@ namespace UseExternalEditorElement {
 		 *
 		 * @param {string} error - What went wrong
 		 */
-		private static errorHandler(this: UseExternalEditor, error: string = 'Something went wrong') {
+		private static _errorHandler(this: UseExternalEditor, error: string = 'Something went wrong') {
 			const toast = window.doc.externalEditorErrorToast;
 			toast.text = error;
 			toast.show();
 		};
 
-		private static postMessage(this: UseExternalEditor, msg: any) {
+		private static _postMessage(this: UseExternalEditor, msg: any) {
 			try {
-				this.appPort.postMessage(msg);
+				this._appPort.postMessage(msg);
 			} catch (e) {
 				//Closed connection
 			}
@@ -147,8 +147,8 @@ namespace UseExternalEditorElement {
 		/**
 		 * Updates the local copy of the script to what the external file's value is (external->local)
 		 */
-		private static updateFromExternal(this: UseExternalEditor, msg: UpdateFromAppMessage) {
-			if (this.connection.id === msg.connectionId) {
+		private static _updateFromExternal(this: UseExternalEditor, msg: UpdateFromAppMessage) {
+			if (this._connection.id === msg.connectionId) {
 				if (window.scriptEdit && window.scriptEdit.active) {
 
 					window.scriptEdit.editorManager.setValue(msg.code);
@@ -165,7 +165,7 @@ namespace UseExternalEditorElement {
 			window.doc.externalEditorDialogTrigger.disabled = false;
 
 			try {
-				this.appPort.postMessage({
+				this._appPort.postMessage({
 					status: 'connected',
 					action: 'disconnect'
 				});
@@ -173,8 +173,8 @@ namespace UseExternalEditorElement {
 			}
 		};
 
-		private static EditingOverlay =  class EditingOverlay {
-			private static createToolsCont(): HTMLElement {
+		private static _EditingOverlay =  class EditingOverlay {
+			private static _createToolsCont(): HTMLElement {
 				const toolsCont = window.app.util.createElement('div', {
 					id: 'externalEditingTools'
 				});
@@ -184,7 +184,7 @@ namespace UseExternalEditorElement {
 				return toolsCont as HTMLElement;
 			}
 
-			private static createDisconnect(): HTMLElement {
+			private static _createDisconnect(): HTMLElement {
 				const el = window.app.util.createElement('div', {
 					id: 'externalEditingToolsDisconnect'
 				}, [
@@ -226,7 +226,7 @@ namespace UseExternalEditorElement {
 				return el as HTMLElement;
 			}
 
-			private static createShowLocation() {
+			private static _createShowLocation() {
 				const el = window.app.util.createElement('div', {
 					id: 'externalEditingToolsShowLocation'
 				}, [
@@ -265,7 +265,7 @@ namespace UseExternalEditorElement {
 				]);
 				el.addEventListener('click', () => {
 					//Show location toast
-					let location = this.parent().connection.filePath;
+					let location = this.parent()._connection.filePath;
 					location = location.replace(/\\/g, '/');
 					window.doc.externalEditoOpenLocationInBrowser.setAttribute('href', 'file:///' + location);
 					const externalEditorLocationToast = window.doc.externalEditorLocationToast;
@@ -275,7 +275,7 @@ namespace UseExternalEditorElement {
 				return el;
 			}
 
-			private static createNewFile() {
+			private static _createNewFile() {
 				window.app.util.createElement('div', {
 					id: 'externalEditingToolsCreateNewFile'
 				}, [
@@ -312,7 +312,7 @@ namespace UseExternalEditorElement {
 						classes: ['externalEditingToolText']
 					}, ['Move'])
 				]).addEventListener('click', () => {
-					this.parent().postMessage({
+					this.parent()._postMessage({
 						status: 'connected',
 						action: 'createNewFile',
 						isCss: (!!window.scriptEdit),
@@ -321,7 +321,7 @@ namespace UseExternalEditorElement {
 				});
 			}
 
-			private static createUpdate() {
+			private static _createUpdate() {
 				const el = window.app.util.createElement('div', {
 					id: 'externalEditingToolsUpdate'
 				}, [
@@ -360,7 +360,7 @@ namespace UseExternalEditorElement {
 					}, ['Refresh'])
 				]);
 				el.addEventListener('click', () => {
-					this.parent().postMessage({
+					this.parent()._postMessage({
 						status: 'connected',
 						action: 'refreshFromApp'
 					});
@@ -368,19 +368,19 @@ namespace UseExternalEditorElement {
 				return el;
 			}
 
-			private static createCont(toolsCont: HTMLElement) {
+			private static _createCont(toolsCont: HTMLElement) {
 				const cont = toolsCont.appendChild(window.app.util.createElement('div', {
 					id: 'externalEditingToolsButtonsCont'
 				}));
-				cont.appendChild(this.createDisconnect())
-				cont.appendChild(this.createShowLocation());
-				this.createNewFile();
-				cont.appendChild(this.createUpdate());
+				cont.appendChild(this._createDisconnect())
+				cont.appendChild(this._createShowLocation());
+				this._createNewFile();
+				cont.appendChild(this._createUpdate());
 			}
 
 			static generateOverlay() {
-				const toolsCont = this.createToolsCont();
-				this.createCont(toolsCont);
+				const toolsCont = this._createToolsCont();
+				this._createCont(toolsCont);
 			}
 
 			static parent() {
@@ -388,37 +388,37 @@ namespace UseExternalEditorElement {
 			}
 		}
 
-		private static createEditingOverlay(this: UseExternalEditor) {
+		private static _createEditingOverlay(this: UseExternalEditor) {
 			window.doc.externalEditorDialogTrigger.style.color = 'rgb(175, 175, 175)';
 			window.doc.externalEditorDialogTrigger.disabled = true;
 			window.doc.externalEditorDialogTrigger.classList.add('disabled');
 
-			this.EditingOverlay.generateOverlay();
+			this._EditingOverlay.generateOverlay();
 		};
 
 		static setupExternalEditing(this: UseExternalEditor) {
 			//Send a message to the app to create the item with its current script and name
-			if (this.connection.connected) {
+			if (this._connection.connected) {
 				const item = this.editingCRMItem;
 				const tempListener = (msg: SetupExistingFileMessage | SetupNewFileMessage) => {
-					if (msg.status === 'connected' && (msg.action === 'setupScript' || msg.action === 'setupStylesheet') && msg.connectionId === this.connection.id) {
+					if (msg.status === 'connected' && (msg.action === 'setupScript' || msg.action === 'setupStylesheet') && msg.connectionId === this._connection.id) {
 						if (msg.existed === false) {
 							item.file = {
 								id: msg.id,
 								path: msg.path
 							};
 						}
-						this.connection.filePath = msg.path;
+						this._connection.filePath = msg.path;
 						window.app.upload();
-						this.connection.fileConnected = true;
+						this._connection.fileConnected = true;
 						(window.scriptEdit && window.scriptEdit.active ? window.scriptEdit.reloadEditor(true) : window.stylesheetEdit.reloadEditor(true));
-						this.createEditingOverlay();
-						this.appPort.onMessage.removeListener(tempListener);
+						this._createEditingOverlay();
+						this._appPort.onMessage.removeListener(tempListener);
 					}
 				};
-				this.appPort.onMessage.addListener(tempListener);
+				this._appPort.onMessage.addListener(tempListener);
 				if (item.file) {
-					this.appPort.postMessage({
+					this._appPort.postMessage({
 						status: 'connected',
 						action: (window.scriptEdit && window.scriptEdit.active ? 'setupScript' : 'setupStylesheet'),
 						name: item.name,
@@ -427,7 +427,7 @@ namespace UseExternalEditorElement {
 						id: item.file.id
 					});
 				} else {
-					this.appPort.postMessage({
+					this._appPort.postMessage({
 						status: 'connected',
 						action: (window.scriptEdit && window.scriptEdit.active ? 'setupScript' : 'setupStylesheet'),
 						name: item.name,
@@ -436,7 +436,7 @@ namespace UseExternalEditorElement {
 					});
 				}
 			} else {
-				this.errorHandler('Could not establish connection');
+				this._errorHandler('Could not establish connection');
 			}
 		};
 
@@ -447,13 +447,13 @@ namespace UseExternalEditorElement {
 			chrome.runtime.onConnectExternal.addListener((port) => {
 				if (port.sender.id === 'obnfehdnkjmbijebdllfcnccllcfceli') {
 					port.onMessage.addListener((msg: ExternalEditorMessage) => {
-						this.messageHandler(msg);
+						this._messageHandler(msg);
 					});
 				}
 			});
 		};
 
-		private static appMessageHandler(this: UseExternalEditor, msg: ConnectedEditorMessage) {
+		private static _appMessageHandler(this: UseExternalEditor, msg: ConnectedEditorMessage) {
 			switch (msg.action) {
 				case 'chooseFile':
 					const chooseFileDialog = window.doc.externalEditorChooseFile;
@@ -465,7 +465,7 @@ namespace UseExternalEditorElement {
 								window.stylesheetEdit.newSettings.value.stylesheet = result;
 								window.stylesheetEdit.editorManager.setValue(result);
 							}
-							this.appPort.postMessage({
+							this._appPort.postMessage({
 								status: 'connected',
 								action: 'chooseFile',
 								code: result
@@ -477,7 +477,7 @@ namespace UseExternalEditorElement {
 					chooseFileDialog.open();
 					break;
 				case 'updateFromApp':
-					this.updateFromExternal(msg);
+					this._updateFromExternal(msg);
 					break;
 			}
 		};
@@ -485,13 +485,13 @@ namespace UseExternalEditorElement {
 		/**
 		 * Takes actions based on what messages are received from the other extension
 		 */
-		private static messageHandler(this: UseExternalEditor, msg: ExternalEditorMessage) {
+		private static _messageHandler(this: UseExternalEditor, msg: ExternalEditorMessage) {
 			switch (msg.status) {
 				case 'connected':
-					this.appMessageHandler(msg);
+					this._appMessageHandler(msg);
 					break;
 				case 'ping':
-					this.appPort.postMessage({
+					this._appPort.postMessage({
 						status: 'ping',
 						message: 'received'
 					});
@@ -502,17 +502,17 @@ namespace UseExternalEditorElement {
 		/**
 		 * Tries to establish a connection to the app (if installed)
 		 */
-		private static establishConnection(this: UseExternalEditor, retry: boolean = false) {
+		private static _establishConnection(this: UseExternalEditor, retry: boolean = false) {
 			const __this = this;
-			if (!this.appPort) {
-				this.appPort = chrome.runtime.connect(EXTERNAL_EDITOR_APP_ID);
-				this.connection.status = 'connecting';
-				this.connection.stage = 0;
-				this.connection.fileConnected = false;
+			if (!this._appPort) {
+				this._appPort = chrome.runtime.connect(EXTERNAL_EDITOR_APP_ID);
+				this._connection.status = 'connecting';
+				this._connection.stage = 0;
+				this._connection.fileConnected = false;
 				(function(resolve, reject) {
 					function promiseListener(msg: ExternalEditorMessage) {
 						if (msg.status === 'connecting' && msg.stage === 1 && msg.message === 'hey') {
-							__this.appPort.onMessage.removeListener(promiseListener);
+							__this._appPort.onMessage.removeListener(promiseListener);
 							resolve(msg);
 						}
 					}
@@ -523,30 +523,30 @@ namespace UseExternalEditorElement {
 						}, 5000);
 					}
 
-					__this.appPort.onMessage.addListener(promiseListener);
-					__this.appPort.onMessage.addListener((msg: ExternalEditorMessage) => {
-						__this.messageHandler(msg);
+					__this._appPort.onMessage.addListener(promiseListener);
+					__this._appPort.onMessage.addListener((msg: ExternalEditorMessage) => {
+						__this._messageHandler(msg);
 					});
 
-					__this.appPort.postMessage({
+					__this._appPort.postMessage({
 						status: 'connecting',
 						message: 'hi',
 						stage: 0
 					});
 				}(function(msg: ExternalEditorMessage) {
-					__this.connection.stage = 2; //We have sent confirmation that we are there
-					__this.appPort.postMessage({
+					__this._connection.stage = 2; //We have sent confirmation that we are there
+					__this._appPort.postMessage({
 						status: 'connecting',
 						message: 'hello',
 						stage: 2
 					});
 
 					//Connection is now done
-					__this.connection.connected = true;
-					__this.connection.state = 'connected';
-					__this.connection.id = msg.connectionId;
+					__this._connection.connected = true;
+					__this._connection.state = 'connected';
+					__this._connection.id = msg.connectionId;
 				}, function() {
-					__this.errorHandler();
+					__this._errorHandler();
 				}));
 			}
 		};
@@ -575,7 +575,7 @@ namespace UseExternalEditorElement {
 			return animation;
 		}
 
-		private static playIfExists(animation: Animation|void): boolean {
+		private static _playIfExists(animation: Animation|void): boolean {
 			if (animation) {
 				animation.play();
 				return true;
@@ -589,8 +589,8 @@ namespace UseExternalEditorElement {
 				window.doc.chooseFileMainDialog.style.marginTop = '0';
 				window.doc.chooseFileMainDialog.style.opacity = '1';
 
-				this.playIfExists(__this.dialogExpansionAnimation) ||
-					(__this.dialogExpansionAnimation = __this.doCSSAnimation(window.doc.externalEditorChooseFile, [{
+				this._playIfExists(__this._dialogExpansionAnimation) ||
+					(__this._dialogExpansionAnimation = __this.doCSSAnimation(window.doc.externalEditorChooseFile, [{
 						width: dialogRect.width,
 						height: dialogRect.height,
 						marginTop: '24px',
@@ -617,7 +617,7 @@ namespace UseExternalEditorElement {
 			const dialogRect = window.doc.externalEditorChooseFile.getBoundingClientRect();
 			const dialogStyle = window.doc.externalEditorChooseFile.style;
 
-			this.dialogStyleProperties = dialogRect;
+			this._dialogStyleProperties = dialogRect;
 
 			dialogStyle.maxWidth = '100vw';
 			dialogStyle.width = dialogRect.width + 'px';
@@ -625,8 +625,8 @@ namespace UseExternalEditorElement {
 			document.body.style.overflow = 'hidden';
 			window.doc.chooseFileMainDialog.style.position = 'absolute';
 
-			this.playIfExists(this.dialogMainDivAnimationHide) || 
-				(this.dialogMainDivAnimationHide = window.doc.chooseFileMainDialog.animate([
+			this._playIfExists(this._dialogMainDivAnimationHide) || 
+				(this._dialogMainDivAnimationHide = window.doc.chooseFileMainDialog.animate([
 					{
 						marginTop: '20px',
 						opacity: 1
@@ -638,7 +638,7 @@ namespace UseExternalEditorElement {
 					duration: 240,
 					easing: 'bez'
 				}));
-			this.dialogMainDivAnimationHide.onfinish = () => {
+			this._dialogMainDivAnimationHide.onfinish = () => {
 				this.onDialogMainDivAnimationHideEnd(this, dialogRect, dialogStyle, oldScript, newScript)
 			};
 		};
@@ -675,14 +675,14 @@ namespace UseExternalEditorElement {
 			};
 		};
 
-		private static resetStyles(target: CSSStyleDeclaration, source: ClientRect) {
+		private static _resetStyles(target: CSSStyleDeclaration, source: ClientRect) {
 			target.width = source.width + 'px';
 			target.height = source.height + 'px';
 			target.top = source.top + 'px';
 			target.left = source.left + 'px';
 		}
 
-		private static chooseFileDialog(this: UseExternalEditor, chooseFileDialog: ChooseFileDialog): (local: string, file: string, callback: (result: string|false) => void,
+		private static _chooseFileDialog(this: UseExternalEditor, chooseFileDialog: ChooseFileDialog): (local: string, file: string, callback: (result: string|false) => void,
 			isUpdate?: boolean, updateErrors?: {
 				parseError: boolean;
 				newScript: Array<CursorPosition>;
@@ -696,8 +696,8 @@ namespace UseExternalEditorElement {
 					window.doc.chooseFileMainDialog.style.position = 'static';
 					window.doc.chooseFileMainDialog.style.display = 'block';
 
-					if (this.dialogStyleProperties) {
-						this.resetStyles(chooseFileDialog.style, this.dialogStyleProperties)
+					if (this._dialogStyleProperties) {
+						this._resetStyles(chooseFileDialog.style, this._dialogStyleProperties)
 					}
 				}
 			}
@@ -709,21 +709,21 @@ namespace UseExternalEditorElement {
 			window.onExists('app').then(() => {
 				const __this = this;
 				window.externalEditor = this;
-				this.establishConnection();
+				this._establishConnection();
 				this.init();
 				window.onfocus = function() {
-					if (__this.connection.fileConnected) {
+					if (__this._connection.fileConnected) {
 						//File is connected, ask for an update
-						__this.postMessage({
+						__this._postMessage({
 							status: 'connected',
 							action: 'refreshFromApp'
 						});
 					}
 				};
 				const chooseFileDialog = window.doc.externalEditorChooseFile as ChooseFileDialog;
-				chooseFileDialog.init = this.chooseFileDialog(chooseFileDialog)
+				chooseFileDialog.init = this._chooseFileDialog(chooseFileDialog)
 				window.doc.externalEditorTryAgainButton.addEventListener('click', function() {
-					__this.establishConnection(true);
+					__this._establishConnection(true);
 					window.doc.externalEditorErrorToast.hide();
 				});
 				window.doc.chooseFileChooseFirst.addEventListener('click', function() {

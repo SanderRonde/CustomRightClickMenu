@@ -23,12 +23,12 @@ namespace InstallConfirmElement {
 		/**
 		 * The synced settings of the app
 		 */
-		private static settings: CRM.SettingsStorage;
+		private static _settings: CRM.SettingsStorage;
 
 		/**
 		 * The metatags for the script
 		 */
-		private static metaTags: CRM.MetaTags = {};
+		private static _metaTags: CRM.MetaTags = {};
 
 		/**
 		 * The manager for the main code editor
@@ -60,11 +60,11 @@ namespace InstallConfirmElement {
 			}, 0);
 		}
 
-		private static loadSettings(this: InstallConfirm, cb: () => void) {
+		private static _loadSettings(this: InstallConfirm, cb: () => void) {
 			const __this = this;
 
 			function callback(items: CRM.SettingsStorage) {
-				__this.settings = items;
+				__this._settings = items;
 				cb && cb.apply(__this);
 			}
 
@@ -225,7 +225,7 @@ namespace InstallConfirmElement {
 			el.classList.toggle('shown');
 		};
 
-		private static isManifestPermissions(this: InstallConfirm, permission: CRM.Permission): boolean {
+		private static _isManifestPermissions(this: InstallConfirm, permission: CRM.Permission): boolean {
 			const permissions = [
 				'alarms',
 				'activeTab',
@@ -273,7 +273,7 @@ namespace InstallConfirmElement {
 			const checkbox = el as HTMLPaperCheckboxElement;
 			if (checkbox.checked) {
 				const permission = checkbox.getAttribute('permission');
-				if (this.isManifestPermissions(permission as CRM.Permission)) {
+				if (this._isManifestPermissions(permission as CRM.Permission)) {
 					chrome.permissions.getAll(function(permissions) {
 						const allowed = permissions.permissions;
 						if (allowed.indexOf(permission) === -1) {
@@ -306,7 +306,7 @@ namespace InstallConfirmElement {
 			chrome.runtime.sendMessage({
 				type: 'installUserScript',
 				data: {
-					metaTags: this.metaTags,
+					metaTags: this._metaTags,
 					script: this.script,
 					downloadURL: window.installPage.getInstallSource(),
 					allowedPermissions: allowedPermissions 
@@ -324,7 +324,7 @@ namespace InstallConfirmElement {
 			}, 150);
 		}
 
-		private static setMetaTag(this: InstallConfirm, name: keyof ModuleMap['install-confirm'], values: Array<string|number>) {
+		private static _setMetaTag(this: InstallConfirm, name: keyof ModuleMap['install-confirm'], values: Array<string|number>) {
 			let value;
 			if (values) {
 				value = values[values.length - 1];
@@ -334,25 +334,25 @@ namespace InstallConfirmElement {
 			this.$[name].innerText = value + '';
 		};
 
-		private static setMetaInformation(this: InstallConfirm, tags: CRM.MetaTags) {
-			this.setMetaTag('descriptionValue', tags['description']);
-			this.setMetaTag('authorValue', tags['author']);
+		private static _setMetaInformation(this: InstallConfirm, tags: CRM.MetaTags) {
+			this._setMetaTag('descriptionValue', tags['description']);
+			this._setMetaTag('authorValue', tags['author']);
 
 			window.installPage.$.title.innerHTML = `Installing <b>${(tags['name'] && tags['name'][0])}</b>`;
 
 			this.$.sourceValue.innerText = window.installPage.userscriptUrl;
 			const permissions = tags['grant'] as Array<CRM.Permission>;
 			this.permissions = permissions;
-			this.metaTags = tags;
+			this._metaTags = tags;
 
 			this._editorManager.editor.layout();
 		};
 
-		private static editorLoaded(this: InstallConfirm, editor: MonacoEditor) {
+		private static _editorLoaded(this: InstallConfirm, editor: MonacoEditor) {
 			const el = document.createElement('style');
 			el.id = 'editorZoomStyle';
 			el.innerText = `.CodeMirror, .CodeMirror-focused {
-				font-size: ${1.25 * ~~window.installConfirm.settings.editor.zoom}'%!important;
+				font-size: ${1.25 * ~~window.installConfirm._settings.editor.zoom}'%!important;
 			}`;
 
 			//Show info about the script, if available
@@ -362,14 +362,14 @@ namespace InstallConfirmElement {
 					window.clearInterval(interval);
 					const metaBlock = typeHandler.getMetaBlock();
 					if (metaBlock && metaBlock.content) {
-						this.setMetaInformation(metaBlock.content);
+						this._setMetaInformation(metaBlock.content);
 					}
 				}
 			}, 25);
 		};
 
-		private static async loadEditor(this: InstallConfirm) {
-			!this.settings.editor && (this.settings.editor = {
+		private static async _loadEditor(this: InstallConfirm) {
+			!this._settings.editor && (this._settings.editor = {
 				theme: 'dark',
 				zoom: '100',
 				keyBindings: {
@@ -382,21 +382,21 @@ namespace InstallConfirmElement {
 			const editorManager = this._editorManager = await this.$.editorCont.create(this.$.editorCont.EditorMode.JS_META, {
 				value: this.script,
 				language: 'javascript',
-				theme: this.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
+				theme: this._settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
 				wordWrap: 'off',
 				readOnly: true,
-				fontSize: (~~this.settings.editor.zoom / 100) * 14,
+				fontSize: (~~this._settings.editor.zoom / 100) * 14,
 				folding: true
 			});
 			window.addEventListener('resize', () => {
 				editorManager.editor.layout();
 			});
-			this.editorLoaded(editorManager);
+			this._editorLoaded(editorManager);
 		};
 
 		static ready(this: InstallConfirm) {
-			this.loadSettings(() => {
-				this.loadEditor();
+			this._loadSettings(() => {
+				this._loadEditor();
 			});
 			window.installConfirm = this;
 		}

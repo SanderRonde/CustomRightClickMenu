@@ -63,42 +63,42 @@ namespace CrmEditPageElement {
 		/**
 		 * The link item
 		 */
-		private static linkItem: CRM.LinkNode = {} as any;
+		private static _linkItem: CRM.LinkNode = {} as any;
 
 		/**
 		 * The script item
 		 */
-		private static scriptItem: CRM.ScriptNode = {} as any;
+		private static _scriptItem: CRM.ScriptNode = {} as any;
 
 		/**
 		 * The divider item
 		 */
-		private static dividerItem: CRM.DividerNode = {} as any;
+		private static _dividerItem: CRM.DividerNode = {} as any;
 
 		/**
 		 * The menu item
 		 */
-		private static menuItem: CRM.MenuNode = {} as any;
+		private static _menuItem: CRM.MenuNode = {} as any;
 
 		/**
 		 * The stylesheet item
 		 */
-		private static stylesheetItem: CRM.StylesheetNode = {} as any;
+		private static _stylesheetItem: CRM.StylesheetNode = {} as any;
 
 		/**
 		 * Whether the page is opened
 		 */
-		private static opened: boolean =  false;
+		private static _opened: boolean =  false;
 
 		/**
 		 * The backdrop element associated with the current dialog
 		 */
-		private static backdropEl: HTMLElement;
+		private static _backdropEl: HTMLElement;
 
 		/**
 		 * The overlayEl animation
 		 */
-		private static overlayAnimation: Animation = null;
+		private static _overlayAnimation: Animation = null;
 
 		static properties = crmEditPageProperties;
 
@@ -106,7 +106,7 @@ namespace CrmEditPageElement {
 			"neon-animation-finish": '_onNeonAnimationFinish'
 		};
 
-		private static isLocal(this: CrmEditPage, source: {
+		private static _isLocal(this: CrmEditPage, source: {
 			updateURL?: string;
 			downloadURL?: string;
 			url?: string;
@@ -118,40 +118,40 @@ namespace CrmEditPageElement {
 			return source === 'local' || this.item.isLocal;
 		};
 
-		private static nodeInfoExists(nodeInfo: CRM.NodeInfo): boolean {
+		private static _nodeInfoExists(nodeInfo: CRM.NodeInfo): boolean {
 			return !!nodeInfo;
 		};
 
 		static hideNodeInfo(this: CrmEditPage, nodeInfo: CRM.NodeInfo): boolean {
-			return !this.nodeInfoExists(nodeInfo) ||
-				(this.isLocal(nodeInfo.source) && !this.hasInstallDate(nodeInfo));
+			return !this._nodeInfoExists(nodeInfo) ||
+				(this._isLocal(nodeInfo.source) && !this._hasInstallDate(nodeInfo));
 		};
 
-		private static hasInstallDate(nodeInfo: CRM.NodeInfo): boolean {
-			return this.nodeInfoExists(nodeInfo) && !!nodeInfo.installDate;
+		private static _hasInstallDate(nodeInfo: CRM.NodeInfo): boolean {
+			return this._nodeInfoExists(nodeInfo) && !!nodeInfo.installDate;
 		};
 
-		private static onAnimationDone(this: CrmEditPage) {
-			if (!this.opened) {
-				this.backdropEl.style.display = 'none';
+		private static _onAnimationDone(this: CrmEditPage) {
+			if (!this._opened) {
+				this._backdropEl.style.display = 'none';
 				this.$.overlayCont.style.display = 'none';
 				document.body.style.overflow = 'auto';
 				document.body.style.marginRight = '0';
 				window.app.show = false;
-				this.opened = false;
+				this._opened = false;
 				window.app.item = null;
-				this.unassignItems();
+				this._unassignItems();
 			}
 		};
 
-		private static unassignItems(this: CrmEditPage) {
+		private static _unassignItems(this: CrmEditPage) {
 			this.isLink = this.isScript = this.isStylesheet = this.isMenu = this.isDivider = false;
-			this.linkItem = this.scriptItem = this.stylesheetItem = this.menuItem = this.dividerItem = {} as any;
+			this._linkItem = this._scriptItem = this._stylesheetItem = this._menuItem = this._dividerItem = {} as any;
 		};
 
-		private static animateIn(this: CrmEditPage) {
-			this.backdropEl.style.display = 'block';
-			(this.overlayAnimation && this.overlayAnimation.play()) || (this.overlayAnimation = this.backdropEl.animate([
+		private static _animateIn(this: CrmEditPage) {
+			this._backdropEl.style.display = 'block';
+			(this._overlayAnimation && this._overlayAnimation.play()) || (this._overlayAnimation = this._backdropEl.animate([
 				{
 					opacity: 0
 				}, {
@@ -166,7 +166,7 @@ namespace CrmEditPageElement {
 			document.body.style.overflow = 'hidden';
 			document.body.style.marginRight = '17px';
 			window.app.show = true;
-			this.opened = true;
+			this._opened = true;
 			this.$.overlayCont.style.display = 'block';
 			this.$.overlayCont.animate([{
 				transform: 'scale(0)'
@@ -180,7 +180,7 @@ namespace CrmEditPageElement {
 		};
 		
 		static animateOut(this: CrmEditPage) {
-			this.overlayAnimation.reverse();
+			this._overlayAnimation.reverse();
 			const animation = this.$.overlayCont.animate([{
 				transform: 'scale(0)'
 			}, {
@@ -192,9 +192,9 @@ namespace CrmEditPageElement {
 			});
 			animation.reverse();
 			animation.onfinish = () => {
-				this.onAnimationDone();
+				this._onAnimationDone();
 			}
-			this.opened = false;
+			this._opened = false;
 			document.body.parentElement.style.overflow = 'auto';
 		};
 
@@ -284,7 +284,7 @@ namespace CrmEditPageElement {
 				e.stopPropagation();
 			});
 			window.onExists('app').then(() => {
-				this.backdropEl = window.app.$$('.backdropCont');
+				this._backdropEl = window.app.$$('.backdropCont');
 				window.crmEditPage = this;
 				this.isLink = this.isMenu = this.isScript = this.isDivider = false;
 
@@ -310,23 +310,23 @@ namespace CrmEditPageElement {
 				isStylesheet: false
 			};
 			this.hideUpdateMessage = false;
-			this.scriptItem = this.linkItem = this.dividerItem = this.menuItem = this.stylesheetItem = {} as any;
+			this._scriptItem = this._linkItem = this._dividerItem = this._menuItem = this._stylesheetItem = {} as any;
 			const node = this.item;
 			if ((valueStorer.isScript = node.type === 'script')) {
-				this.scriptItem = node as CRM.ScriptNode;
+				this._scriptItem = node as CRM.ScriptNode;
 				valueStorer.isLink = valueStorer.isMenu = valueStorer.isDivider = valueStorer.isStylesheet = false;
 			} else if ((valueStorer.isLink = node.type === 'link')) {
-				this.linkItem = node as CRM.LinkNode;
+				this._linkItem = node as CRM.LinkNode;
 				valueStorer.isMenu = valueStorer.isDivider = valueStorer.isStylesheet = false;
 			} else if ((valueStorer.isStylesheet = node.type === 'stylesheet')) {
-				this.stylesheetItem = node as CRM.StylesheetNode;
+				this._stylesheetItem = node as CRM.StylesheetNode;
 				valueStorer.isMenu = valueStorer.isDivider = false;
 			} else if ((valueStorer.isMenu = node.type === 'menu')) {
-				this.menuItem = node as CRM.MenuNode;
+				this._menuItem = node as CRM.MenuNode;
 				valueStorer.isDivider = false;
 			} else {
 				valueStorer.isDivider = true;
-				this.dividerItem = node as CRM.DividerNode;
+				this._dividerItem = node as CRM.DividerNode;
 
 			}
 			setTimeout(() => {
@@ -338,7 +338,7 @@ namespace CrmEditPageElement {
 				this.isStylesheet = valueStorer.isStylesheet;
 				const page = this.shadowRoot.querySelector('#editPageCont > :not([hidden])') as EditPage;
 				page.init.apply(page);
-				this.animateIn();
+				this._animateIn();
 			}, 300);
 		}
 	}

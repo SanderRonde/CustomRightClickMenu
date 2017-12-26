@@ -81,7 +81,7 @@ namespace ScriptEditElement {
 		static onKeyBindingKeyDown(this: NodeEditBehaviorScriptInstance, e: Polymer.PolymerKeyDownEvent) {
 			const input = window.app.util.findElementWithTagname(e.path, 'paper-input');
 			const index = ~~input.getAttribute('data-index');
-			this.createKeyBindingListener(input, this.keyBindings[index]);
+			this._createKeyBindingListener(input, this.keyBindings[index]);
 		}
 
 		static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
@@ -94,15 +94,15 @@ namespace ScriptEditElement {
 			(this as NodeEditBehaviorInstance).clearTrigger(e);
 		};
 
-		private static disableButtons(this: NodeEditBehaviorScriptInstance) {
+		private static _disableButtons(this: NodeEditBehaviorScriptInstance) {
 			this.$.dropdownMenu.disable();
 		};
 
-		private static enableButtons(this: NodeEditBehaviorScriptInstance) {
+		private static _enableButtons(this: NodeEditBehaviorScriptInstance) {
 			this.$.dropdownMenu.enable();
 		};
 
-		private static changeTab(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background') {
+		private static _changeTab(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background') {
 			if (mode !== this.editorMode) {
 				const isTs = this.item.value.ts && this.item.value.ts.enabled;
 				if (mode === 'main') {
@@ -110,7 +110,7 @@ namespace ScriptEditElement {
 						this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
 					}
 					this.editorMode = 'main';
-					this.enableButtons();
+					this._enableButtons();
 					this.editorManager.switchToModel('default', this.newSettings.value.script, 
 						isTs ? this.editorManager.EditorMode.TS_META : 
 							this.editorManager.EditorMode.JS_META);
@@ -119,7 +119,7 @@ namespace ScriptEditElement {
 						this.newSettings.value.script = this.editorManager.editor.getValue();
 					}
 					this.editorMode = 'background';
-					this.disableButtons();
+					this._disableButtons();
 					this.editorManager.switchToModel('background', this.newSettings.value.backgroundScript || '', 
 						isTs ? this.editorManager.EditorMode.TS_META : 
 							this.editorManager.EditorMode.JS_META);
@@ -144,7 +144,7 @@ namespace ScriptEditElement {
 				}
 			}
 			this.hideCodeOptions();
-			this.initKeyBindings();
+			this._initKeyBindings();
 		}
 
 		static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
@@ -160,10 +160,10 @@ namespace ScriptEditElement {
 			}
 			if (isMain && this.editorMode !== 'main') {
 				this.switchBetweenScripts(element);
-				this.changeTab('main');
+				this._changeTab('main');
 			} else if (isBackground && this.editorMode !== 'background') {
 				this.switchBetweenScripts(element);
-				this.changeTab('background');
+				this._changeTab('background');
 			} else if (isOptions && this.editorMode !== 'options') {
 				if (this.editorMode === 'main') {
 					this.newSettings.value.script = this.editorManager.editor.getValue();
@@ -185,7 +185,7 @@ namespace ScriptEditElement {
 			element.classList.add('active');
 		};
 
-		private static getExportData(this: NodeEditBehaviorScriptInstance) {
+		private static _getExportData(this: NodeEditBehaviorScriptInstance) {
 			const settings = {};
 			this.save(null, settings);
 			this.$.dropdownMenu.selected = 0;
@@ -193,11 +193,11 @@ namespace ScriptEditElement {
 		};
 
 		static exportScriptAsCRM(this: NodeEditBehaviorScriptInstance) {
-			window.app.editCRM.exportSingleNode(this.getExportData(), 'CRM');
+			window.app.editCRM.exportSingleNode(this._getExportData(), 'CRM');
 		};
 
 		static exportScriptAsUserscript(this: NodeEditBehaviorScriptInstance) {
-			window.app.editCRM.exportSingleNode(this.getExportData(), 'Userscript');
+			window.app.editCRM.exportSingleNode(this._getExportData(), 'Userscript');
 		};
 
 		static cancelChanges(this: NodeEditBehaviorScriptInstance) {
@@ -230,11 +230,11 @@ namespace ScriptEditElement {
 			this.editorManager.destroy();
 			this.fullscreenEditorManager && 
 				this.fullscreenEditorManager.destroy();
-			this.changeTab('main');
+			this._changeTab('main');
 			this.active = false;
 		};
 
-		private static onPermissionsDialogOpen(extensionWideEnabledPermissions: Array<string>,
+		private static _onPermissionsDialogOpen(extensionWideEnabledPermissions: Array<string>,
 			settingsStorage: Partial<CRM.ScriptNode>) {
 				let el, svg;
 				const showBotEls = Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.requestPermissionsShowBot'));
@@ -395,7 +395,7 @@ namespace ScriptEditElement {
 				window.app.shadowRoot.querySelector('.requestPermissionsScriptName').innerHTML = 'Managing permisions for script "' + nodeItem.name;
 				const scriptPermissionDialog = window.app.$.scriptPermissionDialog;
 				scriptPermissionDialog.addEventListener('iron-overlay-opened', () => {
-					this.onPermissionsDialogOpen(permissions, settingsStorage);
+					this._onPermissionsDialogOpen(permissions, settingsStorage);
 				});
 				scriptPermissionDialog.addEventListener('iron-overlay-closed', callback);
 				scriptPermissionDialog.open();
@@ -449,7 +449,7 @@ namespace ScriptEditElement {
 			}
 		};
 
-		private static createKeyBindingListener(this: NodeEditBehaviorScriptInstance, element: HTMLPaperInputElement, keyBinding: {
+		private static _createKeyBindingListener(this: NodeEditBehaviorScriptInstance, element: HTMLPaperInputElement, keyBinding: {
 			name: string;
 			defaultKey: string;
 			monacoKey: string;
@@ -481,7 +481,7 @@ namespace ScriptEditElement {
 						};
 
 						window.app.settings.editor.keyBindings[keyBinding.storageKey] = value;
-						this.initKeyBinding(keyBinding);
+						this._initKeyBinding(keyBinding);
 					}
 				}
 
@@ -508,7 +508,7 @@ namespace ScriptEditElement {
 			}
 		];
 
-		private static translateKeyCombination(this: NodeEditBehaviorScriptInstance, keys: string): Array<number> {
+		private static _translateKeyCombination(this: NodeEditBehaviorScriptInstance, keys: string): Array<number> {
 			const monacoKeys: Array<number> = [];
 			for (const key of keys.split('-')) {
 				if (key === 'Ctrl') {
@@ -526,7 +526,7 @@ namespace ScriptEditElement {
 			return monacoKeys;
 		}
 
-		private static initKeyBinding(this: NodeEditBehaviorScriptInstance, keyBinding: {
+		private static _initKeyBinding(this: NodeEditBehaviorScriptInstance, keyBinding: {
 			name: string;
 			defaultKey: string;
 			monacoKey: string;
@@ -548,7 +548,7 @@ namespace ScriptEditElement {
 					run: () => {
 						oldAction.run();
 					},
-					keybindings: this.translateKeyCombination(key),
+					keybindings: this._translateKeyCombination(key),
 					precondition: oldAction._precondition.expr.map((condition) => {
 						return condition.key;
 					}).join('&&')
@@ -559,9 +559,9 @@ namespace ScriptEditElement {
 		/**
 		 * Initializes the keybindings for the editor
 		 */
-		private static initKeyBindings(this: NodeEditBehaviorScriptInstance) {
+		private static _initKeyBindings(this: NodeEditBehaviorScriptInstance) {
 			for (const keyBinding of this.keyBindings) {
-				this.initKeyBinding(keyBinding);
+				this._initKeyBinding(keyBinding);
 			}
 		};
 
@@ -585,7 +585,7 @@ namespace ScriptEditElement {
 			if (this.fullscreen) {
 				this.$.editorFullScreen.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 			}
-			this.initKeyBindings();
+			this._initKeyBindings();
 		};
 
 		/**

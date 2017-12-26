@@ -86,13 +86,13 @@ namespace LogConsoleElement {
 	export class LC {
 		static is: string = 'log-console';
 
-		private static bgPage: Window;
+		private static _bgPage: Window;
 
 		static properties: any = logConsoleProperties;
 
 		private static _logListener: LogListenerObject;
 
-		private static logLines: LogLineContainerInterface;
+		private static _logLines: LogLineContainerInterface;
 
 		static observers = [
 			'_updateLog(selectedId, selectedTab, textfilter)'
@@ -154,7 +154,7 @@ namespace LogConsoleElement {
 					}
 				});
 				this.waitingForEval = true;
-				this.logLines.add([{
+				this._logLines.add([{
 					code: code
 				}], {
 					isEval: true,
@@ -235,10 +235,10 @@ namespace LogConsoleElement {
 					textfilter
 				)) || [];
 			
-			if (this.logLines) {
-				this.logLines.clear();
+			if (this._logLines) {
+				this._logLines.clear();
 				lines.forEach((line) => {
-					this.logLines.add(line.data, line);
+					this._logLines.add(line.data, line);
 				});
 			}
 
@@ -283,9 +283,9 @@ namespace LogConsoleElement {
 				this._refreshMenu(this.$.tabDropdown, this.$.tabRepeat);
 			}, 10);
 
-			if (this.bgPage) {
+			if (this._bgPage) {
 				const id = selectedId === 0 ? 0 : ~~this.ids[~~selectedId - 1].id;
-				this.bgPage._getIdsAndTabs(id, -1, ({tabs}) => {
+				this._bgPage._getIdsAndTabs(id, -1, ({tabs}) => {
 					if (!this._hasChanged(this.tabs, tabs)) {
 						return;
 					}
@@ -306,9 +306,9 @@ namespace LogConsoleElement {
 				this._refreshMenu(this.$.idDropdown, this.$.idRepeat);
 			}, 10);
 
-			if (this.bgPage) {
+			if (this._bgPage) {
 				const tab = selectedTab === 0 ? -1 : this.tabs[selectedTab - 1].id;
-				this.bgPage._getIdsAndTabs(0, tab, ({ids}) => {
+				this._bgPage._getIdsAndTabs(0, tab, ({ids}) => {
 					if (!this._hasChanged(this.ids, ids)) {
 						return;
 					}
@@ -329,10 +329,10 @@ namespace LogConsoleElement {
 			if (selectedId === 0 || selectedTab === 0) {
 				return [];
 			}
-			if (this.bgPage) {
+			if (this._bgPage) {
 				const id = selectedId === 0 ? 0 : ~~this.ids[~~selectedId - 1].id;
 				const tab = selectedTab === 0 ? -1 : this.tabs[selectedTab - 1].id;
-				this.bgPage._getCurrentTabIndex(id, tab, (newTabIndexes: Array<number>) => {
+				this._bgPage._getCurrentTabIndex(id, tab, (newTabIndexes: Array<number>) => {
 					this.set('tabIndexes', newTabIndexes);
 				});
 			}
@@ -348,7 +348,7 @@ namespace LogConsoleElement {
 		};
 
 		private static _processLine(this: LogConsole, line: LogListenerLine) {
-			this.logLines.add(line.data, line);
+			this._logLines.add(line.data, line);
 		};
 
 		private static _processEvalLine(this: LogConsole, line: LogListenerLine) {
@@ -356,8 +356,8 @@ namespace LogConsoleElement {
 				line.isError = true;
 			}
 
-			const lastEval = this.logLines.popEval();
-			this.logLines.add([{
+			const lastEval = this._logLines.popEval();
+			this._logLines.add([{
 				code: lastEval.data[0].code,
 				result: line.val.result,
 				hasResult: true
@@ -395,7 +395,7 @@ namespace LogConsoleElement {
 
 		private static _init(this: LogConsole, callback: () => void) {
 			chrome.runtime.getBackgroundPage((bgPage) => {
-				this.bgPage = bgPage;
+				this._bgPage = bgPage;
 
 				bgPage._listenIds((ids) => {
 					const prevSelected = this.ids[~~this.selectedId - 1];
@@ -473,7 +473,7 @@ namespace LogConsoleElement {
 
 		static _contextLogValue(this: LogConsole) {
 			const source = this.$.contextMenu.source;
-			this.logLines.add([source.props.value as LogLineData], {
+			this._logLines.add([source.props.value as LogLineData], {
 				id: 'local',
 				tabId: 'local',
 				tabInstanceIndex: 0,
@@ -486,7 +486,7 @@ namespace LogConsoleElement {
 		};
 
 		static _contextClearConsole(this: LogConsole) {
-			this.logLines.clear();
+			this._logLines.clear();
 		};
 
 		private static _copy(this: LogConsole, value: string) {
@@ -585,7 +585,7 @@ namespace LogConsoleElement {
 			this.__this = this;
 			window.logConsole = this;
 
-			this.logLines = (ReactDOM.render(
+			this._logLines = (ReactDOM.render(
 				(React.createElement as any)(
 					(window.logElements.logLines as any) as string, {
 						items: [],

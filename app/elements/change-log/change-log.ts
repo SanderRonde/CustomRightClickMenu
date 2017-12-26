@@ -32,16 +32,16 @@ namespace ChangeLogElement {
 
 		static properties = changeLogProperties;
 
-		private static makeLink(name: string, url: string): string {
+		private static _makeLink(name: string, url: string): string {
 			return `<a target="_blank" rel="noopener" href="${url}" title="${name}">${name}</a>`;
 		}
 
-		private static stringSplice(str: string, startIndex: number, endIndex: number, 
+		private static _stringSplice(str: string, startIndex: number, endIndex: number, 
 			newContents: string): string {
 				return str.slice(0, startIndex) + newContents + str.slice(endIndex);
 			}
 
-		private static convertLinks(change: string): string {
+		private static _convertLinks(change: string): string {
 			const state: {
 				startIndex: number,
 				inBlock: boolean;
@@ -73,8 +73,8 @@ namespace ChangeLogElement {
 				} else if (char === ')') {
 					state.inBrackets = false;
 					if (state.blockContents) {
-						return this.convertLinks(this.stringSplice(change, state.startIndex,
-							i, this.makeLink(state.blockContents, buf)));
+						return this._convertLinks(this._stringSplice(change, state.startIndex,
+							i, this._makeLink(state.blockContents, buf)));
 					}
 				} else if (state.inBlock || state.inBrackets) {
 					buf += char;
@@ -92,7 +92,7 @@ namespace ChangeLogElement {
 		 * Turns the object-based changelog into an array-based changelog 
 		 * for polymer to iterate through
 		 */
-		private static makeChangelogArray(changelog: {
+		private static _makeChangelogArray(changelog: {
 			[key: string]: Array<string>;
 		}): Array<{
 			version: string;
@@ -106,7 +106,7 @@ namespace ChangeLogElement {
 				if (changelog.hasOwnProperty(versionEntry)) {
 					arrayChangelog.push({
 						version: versionEntry,
-						changes: changelog[versionEntry].map(change => this.convertLinks(change))
+						changes: changelog[versionEntry].map(change => this._convertLinks(change))
 					});
 				}
 			}
@@ -116,7 +116,7 @@ namespace ChangeLogElement {
 		/**
 		 * Turns a version string into 3 seperate version parts
 		 */
-		private static splitVersion(versionString: string): Version {
+		private static _splitVersion(versionString: string): Version {
 			const split = versionString.split('.');
 			return {
 				baseVersion: parseInt(split[0], 10),
@@ -129,9 +129,9 @@ namespace ChangeLogElement {
 		 * Compares two versions and returns true if A is lower,
 		 *		false if B is lower and 0 if they are equal
 		*/
-		private static compareVersions(versionStringA: string, versionStringB: string): number {
-			const aSplit = this.splitVersion(versionStringA);
-			const bSplit = this.splitVersion(versionStringB);
+		private static _compareVersions(versionStringA: string, versionStringB: string): number {
+			const aSplit = this._splitVersion(versionStringA);
+			const bSplit = this._splitVersion(versionStringB);
 
 			if (aSplit.baseVersion !== bSplit.baseVersion) {
 				return aSplit.baseVersion < bSplit.baseVersion ? -1 : 1;
@@ -151,32 +151,32 @@ namespace ChangeLogElement {
 		/**
 		 * The function used in javascript's sort function
 		 */
-		private static sortFunction(a: {
+		private static _sortFunction(a: {
 			version: string;
 			changes: Array<string>;
 		}, b: {
 			version: string;
 			changes: Array<string>;
 		}): number {
-			return window.changeLog.compareVersions(a.version, b.version);
+			return window.changeLog._compareVersions(a.version, b.version);
 		};
 
 		/**
 		 * Sorts the changelog from highest version first to lowest last
 		 */
-		private static sortChangelog(changelog: Array<{
+		private static _sortChangelog(changelog: Array<{
 			version: string;
 			changes: Array<string>;
 		}>): Array<{
 			version: string;
 			changes: Array<string>;
 		}> {
-			return changelog.sort(this.sortFunction);
+			return changelog.sort(this._sortFunction);
 		};
 
 		static ready(this: ChangeLog) {
 			window.changeLog = this;
-			this.changelog = this.sortChangelog(this.makeChangelogArray((window as any).changelogLog));
+			this.changelog = this._sortChangelog(this._makeChangelogArray((window as any).changelogLog));
 		}
 	};
 

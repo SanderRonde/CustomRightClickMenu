@@ -181,7 +181,7 @@ namespace EditCrmElement {
 		/**
 		 * The currently used timeout for settings the crm
 		 */
-		private static currentTimeout: number = null;
+		private static _currentTimeout: number = null;
 
 		/**
 		 * The currently used set menus
@@ -196,17 +196,17 @@ namespace EditCrmElement {
 		/**
 		 * A list of all the column elements
 		 */
-		private static columns: Array<CRMColumnElement> = [];
+		private static _columns: Array<CRMColumnElement> = [];
 
 		/**
 		 * The menus that are set to be shown in the crm
 		 */
-		private static setItems: Array<number>;
+		private static _setItems: Array<number>;
 
 		/**
 		 * The sortable object
 		 */
-		private static sortables: Array<Sortable.Instance> = [];
+		private static _sortables: Array<Sortable.Instance> = [];
 
 		static properties = editCrmProperties;
 
@@ -229,12 +229,12 @@ namespace EditCrmElement {
 		/**
 		 * Gets the columns in this crm-edit element
 		 */
-		private static getColumns(this: EditCrm): Array<CRMColumnElement> {
+		private static _getColumns(this: EditCrm): Array<CRMColumnElement> {
 			//Check if the nodes still exist 
-			if (this.columns && document.contains(this.columns[0])) {
-				return this.columns;
+			if (this._columns && document.contains(this._columns[0])) {
+				return this._columns;
 			}
-			return (this.columns = Array.prototype.slice.apply(this.$.mainCont.children).filter(function(element: CRMColumnElement|HTMLElement) {
+			return (this._columns = Array.prototype.slice.apply(this.$.mainCont.children).filter(function(element: CRMColumnElement|HTMLElement) {
 				return element.classList.contains('CRMEditColumnCont');
 			}).map((columnCont: CRMColumnElement) => {
 				return columnCont.querySelector('.CRMEditColumn');
@@ -250,7 +250,7 @@ namespace EditCrmElement {
 		 *
 		 * @return The last menu on the given list.
 		 */
-		private static getLastMenu(this: EditCrm, list: Array<CRM.Node>, hidden: {
+		private static _getLastMenu(this: EditCrm, list: Array<CRM.Node>, hidden: {
 			[nodeId: number]: boolean
 		}, exclude: number) {
 			let lastMenu = -1;
@@ -278,14 +278,14 @@ namespace EditCrmElement {
 		/**
 		 * Returns whether the node is visible or not (1 if it's visible)
 		 */
-		private static isNodeVisible(this: EditCrm, result: {
+		private static _isNodeVisible(this: EditCrm, result: {
 			[nodeId: number]: boolean;
 		}, node: CRM.Node, showContentType: number): 0|1 {
 			let length;
 			if (node.children && node.children.length > 0) {
 				length = node.children.length;
 				for (let i = 0; i < length; i++) {
-					this.isNodeVisible(result, node.children[i], showContentType);
+					this._isNodeVisible(result, node.children[i], showContentType);
 				}
 			}
 			if (!node.onContentTypes[showContentType]) {
@@ -295,7 +295,7 @@ namespace EditCrmElement {
 			return 1;
 		};
 
-		private static getIndent(this: EditCrm, data: Array<CRM.Node>, lastMenu: number, hiddenNodes: {
+		private static _getIndent(this: EditCrm, data: Array<CRM.Node>, lastMenu: number, hiddenNodes: {
 			[nodeId: number]: boolean;
 		}): number {
 			let i;
@@ -317,7 +317,7 @@ namespace EditCrmElement {
 		 *
 		 * @return the CRM edit object
 		 */
-		private static buildCRMEditObj(this: EditCrm, setMenus: Array<number>, unsetMenus: Array<number>): {
+		private static _buildCRMEditObj(this: EditCrm, setMenus: Array<number>, unsetMenus: Array<number>): {
 			crm: CRMBuilder;
 			setMenus: Array<number>;
 		} {
@@ -351,7 +351,7 @@ namespace EditCrmElement {
 			} = {};
 			let shown: number = 0;
 			for (let i = 0; i < list.length; i++) {
-				shown += this.isNodeVisible(hiddenNodes, list[i], showContentTypes);
+				shown += this._isNodeVisible(hiddenNodes, list[i], showContentTypes);
 			}
 
 			if (shown || this.isAdding) {
@@ -360,11 +360,11 @@ namespace EditCrmElement {
 							!hiddenNodes[list[setMenus[columnNum]].id]) {
 						lastMenu = setMenus[columnNum];
 					} else {
-						lastMenu = this.getLastMenu(list, hiddenNodes, unsetMenus[columnNum]);
+						lastMenu = this._getLastMenu(list, hiddenNodes, unsetMenus[columnNum]);
 					}
 					newSetMenus[columnNum] = lastMenu;
 
-					indent = this.getIndent(list, lastMenu, hiddenNodes);
+					indent = this._getIndent(list, lastMenu, hiddenNodes);
 					const columnIndent = [];
 					columnIndent[indentTop - 1] = undefined;
 
@@ -417,7 +417,7 @@ namespace EditCrmElement {
 				}
 			}
 
-			this.columns = null;
+			this._columns = null;
 
 			return {
 				crm: crmEditObj,
@@ -425,7 +425,7 @@ namespace EditCrmElement {
 			};
 		};
 
-		private static setColumnContOffset(column: HTMLElement & {
+		private static _setColumnContOffset(column: HTMLElement & {
 			offset: number;
 		}, offset: number, force: boolean = false) {
 			if (column.offset === undefined) {
@@ -440,26 +440,26 @@ namespace EditCrmElement {
 			column.style.transform = `translateY(${column.offset}px)`;
 		}
 
-		private static moveFollowingColumns(startColumn: CRMColumnElement, offset: number) {
+		private static _moveFollowingColumns(startColumn: CRMColumnElement, offset: number) {
 			const topLevelColumns = window.app.editCRM.shadowRoot.querySelectorAll('.CRMEditColumnCont');
 			for (let i = startColumn.index + 1; i < topLevelColumns.length; i++) {
-				this.setColumnContOffset(topLevelColumns[i] as HTMLDivElement & {
+				this._setColumnContOffset(topLevelColumns[i] as HTMLDivElement & {
 					offset: number;
 				}, offset);
 			}
 		}
 
-		private static createSorter(this: EditCrm) {
-			this.sortables = this.sortables.filter((sortable) => {
+		private static _createSorter(this: EditCrm) {
+			this._sortables = this._sortables.filter((sortable) => {
 				sortable.destroy();
 				return false;
 			});
-			this.getColumns().forEach((column, columnIndex, allColumns) => {
+			this._getColumns().forEach((column, columnIndex, allColumns) => {
 				let draggedNode: EditCrmItem = null;
 				let moves: number = 0;
 				let movedUp: boolean = false;
 
-				this.sortables.push(new Sortable<EditCrmItem, CRMColumnElement>(column, {
+				this._sortables.push(new Sortable<EditCrmItem, CRMColumnElement>(column, {
 					group: 'crm',
 					animation: 50,
 					handle: '.dragger',
@@ -506,7 +506,7 @@ namespace EditCrmElement {
 								}>;
 								const leftmostColumn = Math.min(event.dragged.currentColumn.index, event.to.index);
 
-								this.setColumnContOffset(topLevelColumns[leftmostColumn], 0, true);
+								this._setColumnContOffset(topLevelColumns[leftmostColumn], 0, true);
 
 								for (let i = leftmostColumn; i < topLevelColumns.length - 1; i++) {
 									const col = topLevelColumns[i];
@@ -525,7 +525,7 @@ namespace EditCrmElement {
 									//Get the base offset of the next column
 									const baseOffset = window.app.editCRM.crm[i + 1].indent.length;
 
-									this.setColumnContOffset(topLevelColumns[i + 1], (
+									this._setColumnContOffset(topLevelColumns[i + 1], (
 										(colMenuIndex - baseOffset) * 50
 									), true);
 								}
@@ -542,12 +542,12 @@ namespace EditCrmElement {
 										//Above the menu node, move all other columns down
 										if (moves !== 1 || !movedUp) {
 											//Ignore second move-up, some weird bug in sortable causes this
-											this.moveFollowingColumns(event.to, 50);
+											this._moveFollowingColumns(event.to, 50);
 											movedUp = true;
 										}
 									} else {
 										//Below the menu node, move all other columns up
-										this.moveFollowingColumns(event.to, -50);
+										this._moveFollowingColumns(event.to, -50);
 									}
 								}
 							}
@@ -588,7 +588,7 @@ namespace EditCrmElement {
 			quick = quick || false;
 			superquick = superquick || false;
 
-			const obj = this.buildCRMEditObj(setItems, unsetItems);
+			const obj = this._buildCRMEditObj(setItems, unsetItems);
 			this.setMenus = obj.setMenus;
 			const crmBuilder = obj.crm;
 
@@ -603,16 +603,16 @@ namespace EditCrmElement {
 			this.$.mainCont.style.minHeight = (highest * 50) + 'px';
 
 			this.crm = [];
-			if (this.currentTimeout !== null) {
-				window.clearTimeout(this.currentTimeout);
+			if (this._currentTimeout !== null) {
+				window.clearTimeout(this._currentTimeout);
 			}
 			this.crmLoading = true;
-			this.columns = null;
+			this._columns = null;
 
 			function func(this: EditCrm) {
 				this.crm = crmBuilder;
 				this.notifyPath('crm', this.crm);
-				this.currentTimeout = null;
+				this._currentTimeout = null;
 				setTimeout(() => {
 					this.crmLoading = false;
 					const els = document.getElementsByTagName('edit-crm-item') as NodeListOf<EditCrmItem>;
@@ -621,7 +621,7 @@ namespace EditCrmElement {
 					}
 					setTimeout(() => {
 						window.app.pageDemo.create();
-						this.createSorter();
+						this._createSorter();
 					}, 0);
 				}, 50);
 			}
@@ -629,7 +629,7 @@ namespace EditCrmElement {
 			if (superquick) {
 				func.apply(this);
 			} else {
-				this.currentTimeout = window.setTimeout(func.bind(this), quick ? 150 : 1000);
+				this._currentTimeout = window.setTimeout(func.bind(this), quick ? 150 : 1000);
 			}
 			return crmBuilder;
 		};
@@ -647,7 +647,7 @@ namespace EditCrmElement {
 		static addToPosition(this: EditCrm, e: Polymer.ClickEvent) {
 			const node = window.app.util.findElementWithClassName(e.path, 'addingItemPlaceholder');
 
-			this.addItem(JSON.parse(node.getAttribute('data-path')));
+			this._addItem(JSON.parse(node.getAttribute('data-path')));
 			this.isAdding = false;
 		};
 
@@ -655,7 +655,7 @@ namespace EditCrmElement {
 			if (this.isAdding) {
 				this.isAdding = false;
 				this.build({
-					setItems: this.setItems,
+					setItems: this._setItems,
 					superquick: true
 				});
 			}
@@ -663,11 +663,11 @@ namespace EditCrmElement {
 
 		static toggleAddState(this: EditCrm) {
 			if (!this.isAdding) {
-				this.isSelecting && this.cancelSelecting();
+				this.isSelecting && this._cancelSelecting();
 				this.isAdding = true;
 
 				this.build({
-					setItems: this.setItems,
+					setItems: this._setItems,
 					superquick: true
 				});
 			} else {
@@ -675,7 +675,7 @@ namespace EditCrmElement {
 			}
 		};
 
-		private static addItem(this: EditCrm, path: Array<number>) {
+		private static _addItem(this: EditCrm, path: Array<number>) {
 			const newItem = window.app.templates.getDefaultLinkNode({
 				id: window.app.generateItemId()
 			});
@@ -689,7 +689,7 @@ namespace EditCrmElement {
 			window.app.upload();
 		};
 
-		private static getSelected(this: EditCrm): Array<number> {
+		private static _getSelected(this: EditCrm): Array<number> {
 			const selected = [];
 			const editCrmItems = document.getElementsByTagName('edit-crm-item') as NodeListOf<EditCrmItem>;
 			let i;
@@ -701,7 +701,7 @@ namespace EditCrmElement {
 			return selected;
 		};
 		
-		private static ifDefSet(this: EditCrm, node: CRM.Node, target: Partial<CRM.SafeNode>, ...props: Array<keyof CRM.SafeNode>) { 
+		private static _ifDefSet(this: EditCrm, node: CRM.Node, target: Partial<CRM.SafeNode>, ...props: Array<keyof CRM.SafeNode>) { 
 			for (let i = 0; i < props.length; i++) {
 				const property = props[i];
 				if (node[property] !== void 0) {
@@ -712,7 +712,7 @@ namespace EditCrmElement {
 
 		static makeNodeSafe(this: EditCrm, node: CRM.Node): CRM.SafeNode {
 			const newNode: Partial<CRM.SafeNode> = {};
-			this.ifDefSet(node, newNode, 'type', 'name', 'value',
+			this._ifDefSet(node, newNode, 'type', 'name', 'value',
 				'linkVal', 'menuVal', 'nodeInfo', 'triggers', 'scriptVal',
 				'stylesheetVal', 'onContentTypes', 'showOnSpecified');
 			if (node.children) {
@@ -724,26 +724,26 @@ namespace EditCrmElement {
 			return newNode as CRM.SafeNode;
 		};
 
-		private static extractUniqueChildren(this: EditCrm, node: CRM.Node, toExportIds: Array<number>, results: Array<CRM.Node>) {
+		private static _extractUniqueChildren(this: EditCrm, node: CRM.Node, toExportIds: Array<number>, results: Array<CRM.Node>) {
 			if (toExportIds.indexOf(node.id) > -1) {
 				results.push(node);
 			} else {
 				for (let i = 0; node.children && i < node.children.length; i++) {
-					this.extractUniqueChildren(node.children[i], toExportIds, results);
+					this._extractUniqueChildren(node.children[i], toExportIds, results);
 				}
 			}
 		};
 
-		private static changeAuthor(this: EditCrm, node: CRM.Node|CRM.SafeNode, authorName: string) {
+		private static _changeAuthor(this: EditCrm, node: CRM.Node|CRM.SafeNode, authorName: string) {
 			if (node.nodeInfo.source !== 'local') {
 				node.nodeInfo.source.author = authorName;
 				for (let i = 0; node.children && i < node.children.length; i++) {
-					this.changeAuthor(node.children[i], authorName);
+					this._changeAuthor(node.children[i], authorName);
 				}
 			}
 		};
 
-		private static crmExportNameChange(this: EditCrm, node: CRM.Node, author: string): string {
+		private static _crmExportNameChange(this: EditCrm, node: CRM.Node, author: string): string {
 			if (author) {
 				node.nodeInfo && node.nodeInfo.source && node.nodeInfo.source !== 'local' &&
 					(node.nodeInfo.source.author = author);
@@ -751,7 +751,7 @@ namespace EditCrmElement {
 			return JSON.stringify(node);
 		};
 
-		private static getMetaIndexes(this: EditCrm, script: string): {
+		private static _getMetaIndexes(this: EditCrm, script: string): {
 			start: number;
 			end: number;
 		} {
@@ -774,8 +774,8 @@ namespace EditCrmElement {
 			};
 		};
 
-		private static getMetaLines(this: EditCrm, script: string): Array<string> {
-			const metaIndexes = this.getMetaIndexes(script);
+		private static _getMetaLines(this: EditCrm, script: string): Array<string> {
+			const metaIndexes = this._getMetaIndexes(script);
 			if (metaIndexes.start === -1) {
 				return null;
 			}
@@ -787,10 +787,10 @@ namespace EditCrmElement {
 			return metaLines;
 		};
 
-		private static getMetaTags(this: EditCrm, script: string): {
+		private static _getMetaTags(this: EditCrm, script: string): {
 			[key: string]: Array<string|number>;
 		} {
-			const metaLines = this.getMetaLines(script);
+			const metaLines = this._getMetaLines(script);
 
 			const metaTags: CRM.MetaTags = {};
 			const regex = new RegExp(/@(\w+)(\s+)(.+)/);
@@ -806,7 +806,7 @@ namespace EditCrmElement {
 			return metaTags;
 		};
 
-		private static setMetaTagIfSet<K extends keyof U, U>(this: EditCrm, metaTags: CRM.MetaTags, metaTagKey: string, nodeKey: K, node: U) {
+		private static _setMetaTagIfSet<K extends keyof U, U>(this: EditCrm, metaTags: CRM.MetaTags, metaTagKey: string, nodeKey: K, node: U) {
 			if (node && node[nodeKey]) {
 				if (Array.isArray(node[nodeKey])) {
 					metaTags[metaTagKey] = node[nodeKey] as any;
@@ -816,21 +816,21 @@ namespace EditCrmElement {
 			}
 		};
 
-		private static getUserscriptString(this: EditCrm, node: CRM.ScriptNode|CRM.StylesheetNode, author: string): string {
+		private static _getUserscriptString(this: EditCrm, node: CRM.ScriptNode|CRM.StylesheetNode, author: string): string {
 			let i;
 			const code = (node.type === 'script' ? node.value.script : node.value.stylesheet);
 			let codeSplit = code.split('\n');
-			const metaIndexes = this.getMetaIndexes(code);
+			const metaIndexes = this._getMetaIndexes(code);
 			let metaTags: {
 				[key: string]: Array<string | number>;
 			} = {};
 			if (metaIndexes.start !== -1) {
 				//Remove metaLines
 				codeSplit.splice(metaIndexes.start, (metaIndexes.end - metaIndexes.start) + 1);
-				metaTags = this.getMetaTags(code);
+				metaTags = this._getMetaTags(code);
 			}
 
-			this.setMetaTagIfSet(metaTags, 'name', 'name', node);
+			this._setMetaTagIfSet(metaTags, 'name', 'name', node);
 			author = (metaTags['nodeInfo'] && JSON.parse(metaTags['nodeInfo'][0] as string).author) || author || 'anonymous';
 			let authorArr: Array<string> = [];
 			if (!Array.isArray(author)) {
@@ -838,11 +838,11 @@ namespace EditCrmElement {
 			}
 			metaTags['author'] = authorArr;
 			if (node.nodeInfo.source !== 'local') {
-				this.setMetaTagIfSet(metaTags, 'downloadURL', 'url', node.nodeInfo.source);
+				this._setMetaTagIfSet(metaTags, 'downloadURL', 'url', node.nodeInfo.source);
 			}
-			this.setMetaTagIfSet(metaTags, 'version', 'version', node.nodeInfo);
+			this._setMetaTagIfSet(metaTags, 'version', 'version', node.nodeInfo);
 			metaTags['CRM_contentTypes'] = [JSON.stringify(node.onContentTypes)];
-			this.setMetaTagIfSet(metaTags, 'grant', 'permissions', node);
+			this._setMetaTagIfSet(metaTags, 'grant', 'permissions', node);
 
 			const matches = [];
 			const excludes = [];
@@ -857,7 +857,7 @@ namespace EditCrmElement {
 			metaTags['match'] = matches;
 			metaTags['exclude'] = excludes;
 
-			this.setMetaTagIfSet(metaTags, 'CRM_launchMode', 'launchMode', node.value);
+			this._setMetaTagIfSet(metaTags, 'CRM_launchMode', 'launchMode', node.value);
 			if (node.type === 'script' && node.value.libraries) {
 				metaTags['require'] = [];
 				for (i = 0; i < node.value.libraries.length; i++) {
@@ -870,8 +870,8 @@ namespace EditCrmElement {
 
 			if (node.type === 'stylesheet') {
 				metaTags['CRM_stylesheet'] = ['true'];
-				this.setMetaTagIfSet(metaTags, 'CRM_toggle', 'toggle', node.value);
-				this.setMetaTagIfSet(metaTags, 'CRM_defaultOn', 'defaultOn', node.value);
+				this._setMetaTagIfSet(metaTags, 'CRM_toggle', 'toggle', node.value);
+				this._setMetaTagIfSet(metaTags, 'CRM_defaultOn', 'defaultOn', node.value);
 
 				//Convert stylesheet to GM API stylesheet insertion
 				const stylesheetCode = codeSplit.join('\n');
@@ -896,7 +896,7 @@ namespace EditCrmElement {
 			return newScript;
 		};
 
-		private static generateDocumentRule(this: EditCrm, node: CRM.StylesheetNode): string {
+		private static _generateDocumentRule(this: EditCrm, node: CRM.StylesheetNode): string {
 			const rules = node.triggers.map(function (trigger) {
 				if (trigger.url.indexOf('*') === -1) {
 					return 'url(' + trigger + ')';
@@ -944,28 +944,28 @@ namespace EditCrmElement {
 				'}';
 		};
 
-		private static getExportString(this: EditCrm, node: CRM.Node, type: string, author: string) {
+		private static _getExportString(this: EditCrm, node: CRM.Node, type: string, author: string) {
 			switch (type) {
 				case 'Userscript':
-					return this.getUserscriptString(node as CRM.ScriptNode, author);
+					return this._getUserscriptString(node as CRM.ScriptNode, author);
 				case 'Userstyle':
 					//Turn triggers into @document rules
 					if ((node as CRM.StylesheetNode).value.launchMode === 0 || (node as CRM.StylesheetNode).value.launchMode === 1) {
 						//On clicking
 						return (node as CRM.StylesheetNode).value.stylesheet;
 					} else {
-						return this.generateDocumentRule(node as CRM.StylesheetNode);
+						return this._generateDocumentRule(node as CRM.StylesheetNode);
 					}
 				default:
 				case 'CRM':
-					return this.crmExportNameChange(node as CRM.Node, author);
+					return this._crmExportNameChange(node as CRM.Node, author);
 			}
 		};
 
 		static exportSingleNode(this: EditCrm, exportNode: CRM.Node, exportType: string) {
 			const textArea = window.doc.exportJSONData;
 
-			textArea.value = this.getExportString(exportNode, exportType, null);
+			textArea.value = this._getExportString(exportNode, exportType, null);
 			window.doc.exportAuthorName.value = 
 				(exportNode.nodeInfo && exportNode.nodeInfo.source && 
 					exportNode.nodeInfo.source &&
@@ -978,7 +978,7 @@ namespace EditCrmElement {
 						authorName: author
 					});
 					let data;
-					data = this.getExportString(exportNode, exportType, author);
+					data = this._getExportString(exportNode, exportType, author);
 					textArea.value = data;
 				}, 0);
 			});
@@ -989,7 +989,7 @@ namespace EditCrmElement {
 			}, 150);
 		};
 
-		private static exportGivenNodes(this: EditCrm, exports: Array<CRM.Node>) {
+		private static _exportGivenNodes(this: EditCrm, exports: Array<CRM.Node>) {
 			const __this = this;
 
 			const safeExports: Array<CRM.SafeNode> = [];
@@ -1014,7 +1014,7 @@ namespace EditCrmElement {
 					authorName: author
 				});
 				for (let j = 0; j < safeExports.length; j++) {
-					__this.changeAuthor(safeExports[j], author);
+					__this._changeAuthor(safeExports[j], author);
 				}
 				const dataJson = JSON.stringify({
 					crm: safeExports
@@ -1041,21 +1041,21 @@ namespace EditCrmElement {
 			}
 		};
 
-		private static exportGivenNodeIDs(this: EditCrm, toExport: Array<number>) {
+		private static _exportGivenNodeIDs(this: EditCrm, toExport: Array<number>) {
 			const exports: Array<CRM.Node> = [];
 			for (let i = 0; i < window.app.settings.crm.length; i++) {
-				this.extractUniqueChildren(window.app.settings.crm[i], toExport, exports);
+				this._extractUniqueChildren(window.app.settings.crm[i], toExport, exports);
 			}
 
-			this.exportGivenNodes(exports);
+			this._exportGivenNodes(exports);
 		};
 
 		static exportSelected(this: EditCrm) {
-			const toExport = this.getSelected();
-			this.exportGivenNodeIDs(toExport);
+			const toExport = this._getSelected();
+			this._exportGivenNodeIDs(toExport);
 		};
 
-		private static cancelSelecting(this: EditCrm) {
+		private static _cancelSelecting(this: EditCrm) {
 			const editCrmItems = document.getElementsByTagName('edit-crm-item');
 			//Select items
 			for (let i = 0; i < editCrmItems.length; i++) {
@@ -1073,7 +1073,7 @@ namespace EditCrmElement {
 		static removeSelected(this: EditCrm) {
 			let j;
 			let arr;
-			const toRemove = this.getSelected();
+			const toRemove = this._getSelected();
 			for (let i = 0; i < toRemove.length; i++) {
 				arr = window.app.crm.lookupId(toRemove[i], true);
 				if (!arr) {

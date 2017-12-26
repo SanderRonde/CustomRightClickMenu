@@ -341,7 +341,7 @@ namespace CRMAppElement {
 		/**
 		 * The last-used unique ID
 		 */
-		private static latestId: number = -1;
+		private static _latestId: number = -1;
 
 		/**
 		 * The value of the storage.local
@@ -351,18 +351,18 @@ namespace CRMAppElement {
 		/**
 		 * A copy of the storage.local to compare when calling upload
 		 */
-		private static storageLocalCopy: CRM.StorageLocal;
+		private static _storageLocalCopy: CRM.StorageLocal;
 
 		/**
 		 * A copy of the settings to compare when calling upload
 		 */
-		private static settingsCopy: CRM.SettingsStorage;
+		private static _settingsCopy: CRM.SettingsStorage;
 
 		/**
 		 * The nodes in an object where the key is the ID and the
 		 * value is the node
 		 */
-		private static nodesById: {
+		private static _nodesById: {
 			[key: number]: CRM.Node
 		} = {};
 
@@ -494,17 +494,17 @@ namespace CRMAppElement {
 		};
 
 		static _getNodeName(this: CrmApp, nodeId: number) {
-			return window.app.nodesById[nodeId].name;
+			return window.app._nodesById[nodeId].name;
 		};
 
 		static _getNodeVersion(this: CrmApp, nodeId: number) {
-			return (window.app.nodesById[nodeId].nodeInfo && window.app.nodesById[nodeId].nodeInfo.version) ||
+			return (window.app._nodesById[nodeId].nodeInfo && window.app._nodesById[nodeId].nodeInfo.version) ||
 				'1.0';
 		};
 
 		static _placeCommas(this: CrmApp, number: number): string {
-			const split = this.reverseString(number.toString()).match(/[0-9]{1,3}/g);
-			return this.reverseString(split.join(','));
+			const split = this._reverseString(number.toString()).match(/[0-9]{1,3}/g);
+			return this._reverseString(split.join(','));
 		};
 
 		static _getSettingsJsonLengthColor(this: CrmApp): string {
@@ -526,28 +526,28 @@ namespace CRMAppElement {
 			return 'color: rgb(' + red + ', ' + green + ', 0);';
 		};
 
-		private static findScriptsInSubtree(this: CrmApp, toFind: CRM.Node, container: Array<CRM.Node>) {
+		private static _findScriptsInSubtree(this: CrmApp, toFind: CRM.Node, container: Array<CRM.Node>) {
 			if (toFind.type === 'script') {
 				container.push(toFind);
 			} else if (toFind.children) {
 				for (let i = 0; i < toFind.children.length; i++) {
-					this.findScriptsInSubtree(toFind.children[i], container);
+					this._findScriptsInSubtree(toFind.children[i], container);
 				}
 			}
 		};
 
-		private static runDialogsForImportedScripts(this: CrmApp, nodesToAdd: Array<CRM.Node>, dialogs: Array<CRM.ScriptNode>) {
+		private static _runDialogsForImportedScripts(this: CrmApp, nodesToAdd: Array<CRM.Node>, dialogs: Array<CRM.ScriptNode>) {
 			if (dialogs[0]) {
 				const script = dialogs.splice(0, 1)[0];
 				window.scriptEdit.openPermissionsDialog(script, () => {
-					this.runDialogsForImportedScripts(nodesToAdd, dialogs);
+					this._runDialogsForImportedScripts(nodesToAdd, dialogs);
 				});
 			} else {
-				this.addImportedNodes(nodesToAdd);
+				this._addImportedNodes(nodesToAdd);
 			}
 		};
 
-		private static addImportedNodes(this: CrmApp, nodesToAdd: Array<CRM.Node>): boolean {
+		private static _addImportedNodes(this: CrmApp, nodesToAdd: Array<CRM.Node>): boolean {
 			if (!nodesToAdd[0]) {
 				return false;
 			}
@@ -559,19 +559,19 @@ namespace CRMAppElement {
 
 			this.crm.add(toAdd);
 			const scripts: Array<CRM.ScriptNode> = [];
-			this.findScriptsInSubtree(toAdd, scripts);
-			this.runDialogsForImportedScripts(nodesToAdd, scripts);
+			this._findScriptsInSubtree(toAdd, scripts);
+			this._runDialogsForImportedScripts(nodesToAdd, scripts);
 			return true;
 		};
 
-		private static reverseString(this: CrmApp, string: string): string {
+		private static _reverseString(this: CrmApp, string: string): string {
 			return string.split('').reverse().join('');
 		};
 
 		/**
 		 * Shows the user a dialog and asks them to allow/deny those permissions
 		 */
-		private static requestPermissions(this: CrmApp, toRequest: Array<CRM.Permission>,
+		private static _requestPermissions(this: CrmApp, toRequest: Array<CRM.Permission>,
 			force: boolean = false) {
 			let i;
 			let index;
@@ -769,10 +769,10 @@ namespace CRMAppElement {
 			}
 		};
 
-		private static async transferCRMFromOld(this: CrmApp, openInNewTab: boolean, storageSource: {
+		private static async _transferCRMFromOld(this: CrmApp, openInNewTab: boolean, storageSource: {
 			getItem(index: string | number): any;
 		} = localStorage, method: SCRIPT_CONVERSION_TYPE = SCRIPT_CONVERSION_TYPE.BOTH): Promise<CRM.Tree> {
-			return await this.transferFromOld.transferCRMFromOld(openInNewTab, storageSource, method);
+			return await this._transferFromOld.transferCRMFromOld(openInNewTab, storageSource, method);
 		};
 
 		static initCodeOptions(this: CrmApp, node: CRM.ScriptNode | CRM.StylesheetNode) {
@@ -813,15 +813,15 @@ namespace CRMAppElement {
 		 * Generates an ID for a node
 		 */
 		static generateItemId(this: CrmApp) {
-			this.latestId = this.latestId || 0;
-			this.latestId++;
+			this._latestId = this._latestId || 0;
+			this._latestId++;
 
 			if (this.settings) {
-				this.settings.latestId = this.latestId;
+				this.settings.latestId = this._latestId;
 				window.app.upload();
 			}
 
-			return this.latestId;
+			return this._latestId;
 		};
 
 		static toggleShrinkTitleRibbon(this: CrmApp) {
@@ -878,7 +878,7 @@ namespace CRMAppElement {
 		 * Uploads the settings to chrome.storage
 		 */
 		static upload(this: CrmApp, force: boolean = false) {
-			this.uploading.upload(force);
+			this._uploading.upload(force);
 		}
 
 		static updateEditorZoom(this: CrmApp) {
@@ -931,10 +931,10 @@ namespace CRMAppElement {
 
 			//On a demo or test page right now, use background page to init settings
 			window.Storages.loadStorages(() => {
-				this.setup.setupStorages.apply(this.setup);
+				this._setup.setupStorages.apply(this._setup);
 
 				//Reset checkboxes
-				this.setup.initCheckboxes.apply(this, [window.app.storageLocal]);
+				this._setup.initCheckboxes.apply(this, [window.app.storageLocal]);
 				
 				//Reset default links and searchengines
 				Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('default-link')).forEach(function (link: DefaultLink) {
@@ -972,7 +972,7 @@ namespace CRMAppElement {
 				//Running a test
 				chrome.runtime.onMessage.addListener((message) => {
 					if (message.type === 'idUpdate') {
-						this.latestId = message.latestId;
+						this._latestId = message.latestId;
 					}
 				});
 			}
@@ -994,14 +994,14 @@ namespace CRMAppElement {
 				}
 			});
 
-			this.setup.setupLoadingBar().then(() => {
-				this.setup.setupStorages.apply(this.setup);
+			this._setup.setupLoadingBar().then(() => {
+				this._setup.setupStorages.apply(this._setup);
 			});
 
 			this.show = false;
 		};
 
-		private static TernFile = class TernFile {
+		private static _TernFile = class TernFile {
 			parent: any;
 			scope: any;
 			text: string;
@@ -1014,8 +1014,8 @@ namespace CRMAppElement {
 		/**
 		 * Functions related to transferring from version 1.0
 		 */
-		private static transferFromOld = class CRMAppTransferFromOld {
-			private static backupLocalStorage() {
+		private static _transferFromOld = class CRMAppTransferFromOld {
+			private static _backupLocalStorage() {
 				if (typeof localStorage === 'undefined' ||
 					(typeof window.indexedDB === 'undefined' && typeof (window as any).webkitIndexedDB === 'undefined')) {
 					return;
@@ -1036,7 +1036,7 @@ namespace CRMAppElement {
 				}
 			}
 
-			private static parseOldCRMNode(string: string, openInNewTab: boolean,
+			private static _parseOldCRMNode(string: string, openInNewTab: boolean,
 				method: SCRIPT_CONVERSION_TYPE): CRM.Node {
 				let node: CRM.Node = {} as any;
 				const oldNodeSplit = string.split('%123');
@@ -1114,7 +1114,7 @@ namespace CRMAppElement {
 				return node;
 			};
 
-			private static assignParents(parent: CRM.Tree, nodes: Array<CRM.Node>,
+			private static _assignParents(parent: CRM.Tree, nodes: Array<CRM.Node>,
 				index: {
 					index: number;
 				}, amount: number) {
@@ -1124,7 +1124,7 @@ namespace CRMAppElement {
 						const childrenAmount = ~~currentNode.children;
 						currentNode.children = [];
 						index.index++;
-						this.assignParents(currentNode.children, nodes, index, childrenAmount);
+						this._assignParents(currentNode.children, nodes, index, childrenAmount);
 						index.index--;
 					}
 					parent.push(currentNode);
@@ -1167,7 +1167,7 @@ namespace CRMAppElement {
 				const fileContent = await this._loadFile(path);
 				eval(fileContent);
 			}
-			private static loadTernFiles(): Promise<void> {
+			private static _loadTernFiles(): Promise<void> {
 				return new Promise((resolve, reject) => {
 					const files: Array<string> = [
 						'/js/libraries/tern/walk.js',
@@ -1194,20 +1194,20 @@ namespace CRMAppElement {
 			static async transferCRMFromOld(openInNewTab: boolean, storageSource: {
 				getItem(index: string | number): any;
 			}, method: SCRIPT_CONVERSION_TYPE): Promise<CRM.Tree> {
-				this.backupLocalStorage();
-				await this.loadTernFiles();
+				this._backupLocalStorage();
+				await this._loadTernFiles();
 
 				let i;
 				const amount = parseInt(storageSource.getItem('numberofrows'), 10) + 1;
 
 				const nodes = [];
 				for (i = 1; i < amount; i++) {
-					nodes.push(this.parseOldCRMNode(storageSource.getItem(i), openInNewTab, method));
+					nodes.push(this._parseOldCRMNode(storageSource.getItem(i), openInNewTab, method));
 				}
 
 				//Structure nodes with children etc
 				const crm: CRM.Tree = [];
-				this.assignParents(crm, nodes, {
+				this._assignParents(crm, nodes, {
 					index: 0
 				}, nodes.length);
 				return crm;
@@ -1221,14 +1221,14 @@ namespace CRMAppElement {
 		/**
 		 * Functions related to setting up the page on launch
 		 */
-		private static setup = class CRMAppSetup {
-			private static async restoreUnsavedInstances(editingObj: {
+		private static _setup = class CRMAppSetup {
+			private static async _restoreUnsavedInstances(editingObj: {
 				id: number;
 				mode: string;
 				val: string;
 				crmType: number;
 			}) {
-				const crmItem = this.parent().nodesById[editingObj.id] as CRM.ScriptNode | CRM.StylesheetNode;
+				const crmItem = this.parent()._nodesById[editingObj.id] as CRM.ScriptNode | CRM.StylesheetNode;
 				const code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
 					crmItem.value.script : crmItem.value.backgroundScript) :
 					(crmItem.value.stylesheet));
@@ -1299,7 +1299,7 @@ namespace CRMAppElement {
 					};
 				};
 
-				const path = this.parent().nodesById[editingObj.id].path;
+				const path = this.parent()._nodesById[editingObj.id].path;
 				const highlightItem = () => { 
 					document.body.style.pointerEvents = 'none';
 					const columnConts = this.parent().editCRM.$.CRMEditColumnsContainer.children;
@@ -1394,7 +1394,7 @@ namespace CRMAppElement {
 				}, 1000);
 			};
 
-			private static bindListeners() {
+			private static _bindListeners() {
 				const urlInput = window.doc.addLibraryUrlInput;
 				const manualInput = window.doc.addLibraryManualInput;
 				window.doc.addLibraryUrlOption.addEventListener('change', function () {
@@ -1418,7 +1418,7 @@ namespace CRMAppElement {
 				}) => {
 					function callback(items: CRM.SettingsStorage) {
 						parent.settings = items;
-						parent.settingsCopy = JSON.parse(JSON.stringify(items));
+						parent._settingsCopy = JSON.parse(JSON.stringify(items));
 						window.app.editCRM.$.rootCRMItem.updateName(items.rootName);
 						for (let i = 0; i < parent.onSettingsReadyCallbacks.length; i++) {
 							parent.onSettingsReadyCallbacks[i].callback.apply(
@@ -1426,13 +1426,13 @@ namespace CRMAppElement {
 								parent.onSettingsReadyCallbacks[i].params);
 						}
 						parent.updateEditorZoom();
-						parent.setup.orderNodesById(items.crm);
+						parent._setup.orderNodesById(items.crm);
 						parent.pageDemo.create();
-						parent.setup.buildNodePaths(items.crm, []);
+						parent._setup.buildNodePaths(items.crm, []);
 						if (parent.settings.latestId) {
-							parent.latestId = items.latestId;
+							parent._latestId = items.latestId;
 						} else {
-							parent.latestId = 0;
+							parent._latestId = 0;
 						}
 
 						if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
@@ -1446,20 +1446,20 @@ namespace CRMAppElement {
 						setting.init(storageLocal);
 					});
 
-					parent.setup.bindListeners();
+					parent._setup._bindListeners();
 					delete storageLocal.nodeStorage;
 					if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
-						parent.requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
+						parent._requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
 					}
 					if (storageLocal.editing) {
 						const editing = storageLocal.editing;
 						setTimeout(function () {
 							//Check out if the code is actually different
-							const node = parent.nodesById[editing.id] as CRM.ScriptNode | CRM.StylesheetNode;
+							const node = parent._nodesById[editing.id] as CRM.ScriptNode | CRM.StylesheetNode;
 							const nodeCurrentCode = (node.type === 'script' ? node.value.script :
 								node.value.stylesheet);
 							if (nodeCurrentCode.trim() !== editing.val.trim()) {
-								parent.setup.restoreUnsavedInstances(editing);
+								parent._setup._restoreUnsavedInstances(editing);
 							} else {
 								chrome.storage.local.set({
 									editing: null
@@ -1469,13 +1469,13 @@ namespace CRMAppElement {
 					}
 					if (storageLocal.selectedCrmType !== undefined) {
 						parent.crmType = storageLocal.selectedCrmType;
-						parent.setup.switchToIcons(storageLocal.selectedCrmType);
+						parent._setup.switchToIcons(storageLocal.selectedCrmType);
 					} else {
 						chrome.storage.local.set({
 							selectedCrmType: 0
 						});
 						parent.crmType = 0;
-						parent.setup.switchToIcons(0);
+						parent._setup.switchToIcons(0);
 					}
 					if (storageLocal.jsLintGlobals) {
 						parent.jsLintGlobals = storageLocal.jsLintGlobals;
@@ -1556,7 +1556,7 @@ namespace CRMAppElement {
 					}
 
 					parent.storageLocal = storageLocal;
-					parent.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
+					parent._storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 					if (storageLocal.useStorageSync) {
 						//Parse the data before sending it to the callback
 						chrome.storage.sync.get(function (storageSync: {
@@ -1673,7 +1673,7 @@ namespace CRMAppElement {
 			static orderNodesById(tree: CRM.Tree) {
 				for (let i = 0; i < tree.length; i++) {
 					const node = tree[i];
-					this.parent().nodesById[node.id] = node;
+					this.parent()._nodesById[node.id] = node;
 					node.children && this.orderNodesById(node.children);
 				}
 			};
@@ -1709,8 +1709,8 @@ namespace CRMAppElement {
 		/**
 		 * Functions related to uploading the data to the backgroundpage
 		 */
-		private static uploading = class CRMAppUploading {
-			private static areValuesDifferent(val1: Array<any> | Object, val2: Array<any> | Object): boolean {
+		private static _uploading = class CRMAppUploading {
+			private static _areValuesDifferent(val1: Array<any> | Object, val2: Array<any> | Object): boolean {
 				//Array or object
 				const obj1ValIsArray = Array.isArray(val1);
 				let obj2ValIsArray = Array.isArray(val2);
@@ -1731,7 +1731,7 @@ namespace CRMAppElement {
 								return true;
 							} else {
 								//Both are arrays, compare them
-								if (!this.parent().util.compareArray(val1 as Array<any>, val2 as Array<any>)) {
+								if (!this._parent().util.compareArray(val1 as Array<any>, val2 as Array<any>)) {
 									//Changes have been found, also say the container arrays have changed
 									return true;
 								}
@@ -1743,7 +1743,7 @@ namespace CRMAppElement {
 								return true;
 							} else {
 								//2 is also not an array, they are both objects
-								if (!this.parent().util.compareObj(val1, val2)) {
+								if (!this._parent().util.compareObj(val1, val2)) {
 									//Changes have been found, also say the container arrays have changed
 									return true;
 								}
@@ -1757,7 +1757,7 @@ namespace CRMAppElement {
 				return false;
 			};
 
-			private static getObjDifferences<T, S>(obj1: {
+			private static _getObjDifferences<T, S>(obj1: {
 				[key: string]: T
 				[key: number]: T
 			}, obj2: {
@@ -1770,7 +1770,7 @@ namespace CRMAppElement {
 			}>): boolean {
 				for (let key in obj1) {
 					if (obj1.hasOwnProperty(key)) {
-						if (this.areValuesDifferent(obj1[key], obj2[key])) {
+						if (this._areValuesDifferent(obj1[key], obj2[key])) {
 							changes.push({
 								oldValue: obj2[key],
 								newValue: obj1[key],
@@ -1790,18 +1790,18 @@ namespace CRMAppElement {
 					newValue: any;
 					key: any;
 				}> = [];
-				const storageLocal = this.parent().storageLocal;
-				const storageLocalCopy = force ? {} : this.parent().storageLocalCopy;
+				const storageLocal = this._parent().storageLocal;
+				const storageLocalCopy = force ? {} : this._parent()._storageLocalCopy;
 
 				const settingsChanges: Array<{
 					oldValue: any;
 					newValue: any;
 					key: any;
 				}> = [];
-				const settings = this.parent().settings;
-				const settingsCopy = force ? {} : this.parent().settingsCopy;
-				const hasLocalChanged = this.getObjDifferences(storageLocal, storageLocalCopy, localChanges);
-				const haveSettingsChanged = this.getObjDifferences(settings, settingsCopy, settingsChanges);
+				const settings = this._parent().settings;
+				const settingsCopy = force ? {} : this._parent()._settingsCopy;
+				const hasLocalChanged = this._getObjDifferences(storageLocal, storageLocalCopy, localChanges);
+				const haveSettingsChanged = this._getObjDifferences(settings, settingsCopy, settingsChanges);
 
 				if (hasLocalChanged || haveSettingsChanged) {
 					//Changes occured
@@ -1815,10 +1815,10 @@ namespace CRMAppElement {
 					});
 				}
 
-				this.parent().pageDemo.create();
+				this._parent().pageDemo.create();
 			};
 
-			private static parent() {
+			private static _parent() {
 				return window.app;
 			}
 		}
@@ -1945,7 +1945,7 @@ namespace CRMAppElement {
 				}
 				static replaceCalls(lines: Array<string>): string {
 					//Analyze the file
-					const file = new window.app.TernFile('[doc]');
+					const file = new window.app._TernFile('[doc]');
 					file.text = lines.join('\n');
 					const srv = new window.CodeMirror.TernServer({
 						defs: []
@@ -1988,13 +1988,13 @@ namespace CRMAppElement {
 				}
 			}
 			static chromeCallsReplace = class ChromeCallsReplace {
-				private static isProperty(toCheck: string, prop: string): boolean {
+				private static _isProperty(toCheck: string, prop: string): boolean {
 					if (toCheck === prop) {
 						return true;
 					}
 					return toCheck.replace(/['|"|`]/g, '') === prop;
 				}
-				private static getCallLines(lineSeperators: Array<{
+				private static _getCallLines(lineSeperators: Array<{
 					start: number;
 					end: number;
 				}>, start: number, end: number): {
@@ -2036,7 +2036,7 @@ namespace CRMAppElement {
 
 					return line;
 				}
-				private static getFunctionCallExpressions(data: ChromePersistentData): Tern.Expression {
+				private static _getFunctionCallExpressions(data: ChromePersistentData): Tern.Expression {
 					//Keep looking through the parent expressions untill a CallExpression or MemberExpression is found
 					let index = data.parentExpressions.length - 1;
 					let expr = data.parentExpressions[index];
@@ -2045,7 +2045,7 @@ namespace CRMAppElement {
 					}
 					return data.parentExpressions[index];
 				}
-				private static getChromeAPI(expr: Tern.Expression, data: ChromePersistentData): {
+				private static _getChromeAPI(expr: Tern.Expression, data: ChromePersistentData): {
 					call: string;
 					args: string;
 				} {
@@ -2067,14 +2067,14 @@ namespace CRMAppElement {
 						args: args
 					};
 				}
-				private static getLineIndexFromTotalIndex(lines: Array<string>, line: number, index:
+				private static _getLineIndexFromTotalIndex(lines: Array<string>, line: number, index:
 					number): number {
 					for (let i = 0; i < line; i++) {
 						index -= lines[i].length + 1;
 					}
 					return index;
 				}
-				private static replaceChromeFunction(data: ChromePersistentData, expr: Tern.Expression, callLine:
+				private static _replaceChromeFunction(data: ChromePersistentData, expr: Tern.Expression, callLine:
 					{
 						from: {
 							line: number;
@@ -2091,12 +2091,12 @@ namespace CRMAppElement {
 
 					//Get chrome API
 					let i;
-					var chromeAPI = this.getChromeAPI(expr, data);
+					var chromeAPI = this._getChromeAPI(expr, data);
 					var firstLine = data.persistent.lines[callLine.from.line];
-					var lineExprStart = this.getLineIndexFromTotalIndex(data.persistent.lines,
+					var lineExprStart = this._getLineIndexFromTotalIndex(data.persistent.lines,
 						callLine.from.line, ((data.returnExpr && data.returnExpr.start) ||
 							expr.callee.start));
-					var lineExprEnd = this.getLineIndexFromTotalIndex(data.persistent.lines,
+					var lineExprEnd = this._getLineIndexFromTotalIndex(data.persistent.lines,
 						callLine.from.line, expr.callee.end);
 
 					var newLine = firstLine.slice(0, lineExprStart) +
@@ -2161,14 +2161,14 @@ namespace CRMAppElement {
 							if (data.parentExpressions[i].type === 'BlockStatement' ||
 								(data.parentExpressions[i].type === 'FunctionExpression' &&
 									(data.parentExpressions[i].body as Tern.BlockStatement).type === 'BlockStatement')) {
-								scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line, data.parentExpressions[i].end);
+								scopeLength = this._getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line, data.parentExpressions[i].end);
 								idx = 0;
 
 								//Get the lowest possible scopeLength as to stay on the last line of the scope
 								while (scopeLength > 0) {
-									scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (++idx), data.parentExpressions[i].end);
+									scopeLength = this._getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (++idx), data.parentExpressions[i].end);
 								}
-								scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (idx - 1), data.parentExpressions[i].end);
+								scopeLength = this._getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (idx - 1), data.parentExpressions[i].end);
 							}
 						}
 						if (idx === null) {
@@ -2211,15 +2211,15 @@ namespace CRMAppElement {
 					lines[callLine.from.line] = newLine;
 					return;
 				}
-				private static callsChromeFunction(callee: Tern.FunctionCallExpression, data: ChromePersistentData, onError:
+				private static _callsChromeFunction(callee: Tern.FunctionCallExpression, data: ChromePersistentData, onError:
 					TransferOnError): boolean {
 					data.parentExpressions.push(callee);
 
 					//Check if the function has any arguments and check those first
 					if (callee.arguments && callee.arguments.length > 0) {
 						for (let i = 0; i < callee.arguments.length; i++) {
-							if (this.findChromeExpression(callee.arguments[i], this
-								.removeObjLink(data), onError)) {
+							if (this._findChromeExpression(callee.arguments[i], this
+								._removeObjLink(data), onError)) {
 								return true;
 							}
 						}
@@ -2227,7 +2227,7 @@ namespace CRMAppElement {
 
 					if (callee.type !== 'MemberExpression') {
 						//This is a call upon something (like a call in crmAPI.chrome), check the previous expression first
-						return this.findChromeExpression(callee, this.removeObjLink(data),
+						return this._findChromeExpression(callee, this._removeObjLink(data),
 							onError);
 					}
 
@@ -2238,33 +2238,33 @@ namespace CRMAppElement {
 					}
 					if (callee.object && callee.object.name) {
 						//First object
-						const isWindowCall = (this.isProperty(callee.object.name, 'window') &&
-							this.isProperty(callee.property.name || (callee.property as any).raw, 'chrome'));
-						if (isWindowCall || this.isProperty(callee.object.name, 'chrome')) {
+						const isWindowCall = (this._isProperty(callee.object.name, 'window') &&
+							this._isProperty(callee.property.name || (callee.property as any).raw, 'chrome'));
+						if (isWindowCall || this._isProperty(callee.object.name, 'chrome')) {
 							data.expression = callee;
-							const expr = this.getFunctionCallExpressions(data);
-							const callLines = this.getCallLines(data
+							const expr = this._getFunctionCallExpressions(data);
+							const callLines = this._getCallLines(data
 								.persistent
 								.lineSeperators, expr.start, expr.end);
 							if (data.isReturn && !data.isValidReturn) {
-								callLines.from.index = this.getLineIndexFromTotalIndex(data.persistent
+								callLines.from.index = this._getLineIndexFromTotalIndex(data.persistent
 									.lines, callLines.from.line, callLines.from.index);
-								callLines.to.index = this.getLineIndexFromTotalIndex(data.persistent
+								callLines.to.index = this._getLineIndexFromTotalIndex(data.persistent
 									.lines, callLines.to.line, callLines.to.index);
 								onError(callLines, data.persistent.passes);
 								return false;
 							}
 							if (!data.persistent.diagnostic) {
-								this.replaceChromeFunction(data, expr, callLines);
+								this._replaceChromeFunction(data, expr, callLines);
 							}
 							return true;
 						}
 					} else if (callee.object) {
-						return this.callsChromeFunction(callee.object as any, data, onError);
+						return this._callsChromeFunction(callee.object as any, data, onError);
 					}
 					return false;
 				}
-				private static removeObjLink(data: ChromePersistentData): ChromePersistentData {
+				private static _removeObjLink(data: ChromePersistentData): ChromePersistentData {
 					const parentExpressions = data.parentExpressions || [];
 					const newObj: ChromePersistentData = {} as any;
 					for (let key in data) {
@@ -2283,7 +2283,7 @@ namespace CRMAppElement {
 					newObj.parentExpressions = newParentExpressions;
 					return newObj;
 				}
-				private static findChromeExpression(expression: Tern.Expression, data: ChromePersistentData,
+				private static _findChromeExpression(expression: Tern.Expression, data: ChromePersistentData,
 					onError: TransferOnError): boolean {
 					data.parentExpressions = data.parentExpressions || [];
 					data.parentExpressions.push(expression);
@@ -2295,14 +2295,14 @@ namespace CRMAppElement {
 								//Check if it's an actual chrome assignment
 								var declaration = expression.declarations[i];
 								if (declaration.init) {
-									var decData = this.removeObjLink(data);
+									var decData = this._removeObjLink(data);
 
 									var returnName = declaration.id.name;
 									decData.isReturn = true;
 									decData.returnExpr = expression;
 									decData.returnName = returnName;
 
-									if (this.findChromeExpression(declaration.init, decData, onError)) {
+									if (this._findChromeExpression(declaration.init, decData, onError)) {
 										return true;
 									}
 								}
@@ -2317,7 +2317,7 @@ namespace CRMAppElement {
 										//It's not a direct call to chrome, just handle this later after the function has been checked
 										argsTocheck.push(expression.arguments[i]);
 									} else {
-										if (this.findChromeExpression(expression.arguments[i], this.removeObjLink(data), onError)) {
+										if (this._findChromeExpression(expression.arguments[i], this._removeObjLink(data), onError)) {
 											return true;
 										}
 									}
@@ -2325,12 +2325,12 @@ namespace CRMAppElement {
 							}
 							data.functionCall = [];
 							if (expression.callee) {
-								if (this.callsChromeFunction(expression.callee, data, onError)) {
+								if (this._callsChromeFunction(expression.callee, data, onError)) {
 									return true;
 								}
 							}
 							for (let i = 0; i < argsTocheck.length; i++) {
-								if (this.findChromeExpression(argsTocheck[i], this.removeObjLink(data), onError)) {
+								if (this._findChromeExpression(argsTocheck[i], this._removeObjLink(data), onError)) {
 									return true;
 								}
 							}
@@ -2340,19 +2340,19 @@ namespace CRMAppElement {
 							data.returnExpr = expression;
 							data.returnName = expression.left.name;
 
-							return this.findChromeExpression(expression.right, data, onError);
+							return this._findChromeExpression(expression.right, data, onError);
 						case 'FunctionExpression':
 						case 'FunctionDeclaration':
 							data.isReturn = false;
 							for (let i = 0; i < expression.body.body.length; i++) {
-								if (this.findChromeExpression(expression.body.body[i], this
-									.removeObjLink(data), onError)) {
+								if (this._findChromeExpression(expression.body.body[i], this
+									._removeObjLink(data), onError)) {
 									return true;
 								}
 							}
 							break;
 						case 'ExpressionStatement':
-							return this.findChromeExpression(expression.expression, data, onError);
+							return this._findChromeExpression(expression.expression, data, onError);
 						case 'SequenceExpression':
 							data.isReturn = false;
 							var lastExpression = expression.expressions.length - 1;
@@ -2360,8 +2360,8 @@ namespace CRMAppElement {
 								if (i === lastExpression) {
 									data.isReturn = true;
 								}
-								if (this.findChromeExpression(expression.expressions[i], this
-									.removeObjLink(data), onError)) {
+								if (this._findChromeExpression(expression.expressions[i], this
+									._removeObjLink(data), onError)) {
 									return true;
 								}
 							}
@@ -2370,24 +2370,24 @@ namespace CRMAppElement {
 						case 'ConditionalExpression':
 							data.isValidReturn = false;
 							data.isReturn = true;
-							if (this.findChromeExpression(expression.consequent, this
-								.removeObjLink(data), onError)) {
+							if (this._findChromeExpression(expression.consequent, this
+								._removeObjLink(data), onError)) {
 								return true;
 							}
-							if (this.findChromeExpression(expression.alternate, this
-								.removeObjLink(data), onError)) {
+							if (this._findChromeExpression(expression.alternate, this
+								._removeObjLink(data), onError)) {
 								return true;
 							}
 							break;
 						case 'IfStatement':
 							data.isReturn = false;
-							if (this.findChromeExpression(expression.consequent, this
-								.removeObjLink(data), onError)) {
+							if (this._findChromeExpression(expression.consequent, this
+								._removeObjLink(data), onError)) {
 								return true;
 							}
 							if (expression.alternate &&
-								this.findChromeExpression(expression.alternate, this
-									.removeObjLink(data),
+								this._findChromeExpression(expression.alternate, this
+									._removeObjLink(data),
 									onError)) {
 								return true;
 							}
@@ -2396,12 +2396,12 @@ namespace CRMAppElement {
 						case 'BinaryExpression':
 							data.isReturn = true;
 							data.isValidReturn = false;
-							if (this.findChromeExpression(expression.left, this.removeObjLink(data),
+							if (this._findChromeExpression(expression.left, this._removeObjLink(data),
 								onError)) {
 								return true;
 							}
-							if (this.findChromeExpression(expression.right, this
-								.removeObjLink(data),
+							if (this._findChromeExpression(expression.right, this
+								._removeObjLink(data),
 								onError)) {
 								return true;
 							}
@@ -2409,8 +2409,8 @@ namespace CRMAppElement {
 						case 'BlockStatement':
 							data.isReturn = false;
 							for (let i = 0; i < expression.body.length; i++) {
-								if (this.findChromeExpression(expression.body[i], this
-									.removeObjLink(data), onError)) {
+								if (this._findChromeExpression(expression.body[i], this
+									._removeObjLink(data), onError)) {
 									return true;
 								}
 							}
@@ -2419,13 +2419,13 @@ namespace CRMAppElement {
 							data.isReturn = true;
 							data.returnExpr = expression;
 							data.isValidReturn = false;
-							return this.findChromeExpression(expression.argument, data, onError);
+							return this._findChromeExpression(expression.argument, data, onError);
 						case 'ObjectExpressions':
 							data.isReturn = true;
 							data.isValidReturn = false;
 							for (let i = 0; i < expression.properties.length; i++) {
-								if (this.findChromeExpression(expression.properties[i].value, this
-									.removeObjLink(data), onError)) {
+								if (this._findChromeExpression(expression.properties[i].value, this
+									._removeObjLink(data), onError)) {
 									return true;
 								}
 							}
@@ -2433,7 +2433,7 @@ namespace CRMAppElement {
 					}
 					return false;
 				}
-				private static generateOnError(container: Array<Array<TransferOnErrorError>>): (
+				private static _generateOnError(container: Array<Array<TransferOnErrorError>>): (
 					position: TransferOnErrorError, passes: number
 				) => void {
 					return (position: TransferOnErrorError, passes: number) => {
@@ -2444,10 +2444,10 @@ namespace CRMAppElement {
 						}
 					};
 				}
-				private static replaceChromeCalls(lines: Array<string>, passes: number,
+				private static _replaceChromeCalls(lines: Array<string>, passes: number,
 					onError: TransferOnError): string {
 					//Analyze the file
-					var file = new window.app.TernFile('[doc]');
+					var file = new window.app._TernFile('[doc]');
 					file.text = lines.join('\n');
 					var srv = new window.CodeMirror.TernServer({
 						defs: [window.ecma5, window.ecma6, window.browserDefs]
@@ -2494,7 +2494,7 @@ namespace CRMAppElement {
 						persistentData.diagnostic = true;
 						for (let i = 0; i < scriptExpressions.length; i++) {
 							expression = scriptExpressions[i];
-							this.findChromeExpression(expression, {
+							this._findChromeExpression(expression, {
 								persistent: persistentData
 							} as ChromePersistentData, onError);
 						}
@@ -2503,10 +2503,10 @@ namespace CRMAppElement {
 
 					for (let i = 0; i < scriptExpressions.length; i++) {
 						expression = scriptExpressions[i];
-						if (this.findChromeExpression(expression, {
+						if (this._findChromeExpression(expression, {
 							persistent: persistentData
 						} as ChromePersistentData, onError)) {
-							script = this.replaceChromeCalls(persistentData.lines.join('\n')
+							script = this._replaceChromeCalls(persistentData.lines.join('\n')
 								.split('\n'), passes + 1, onError);
 							break;
 						}
@@ -2514,7 +2514,7 @@ namespace CRMAppElement {
 
 					return script;
 				}
-				private static removePositionDuplicates(arr: Array<TransferOnErrorError>):
+				private static _removePositionDuplicates(arr: Array<TransferOnErrorError>):
 					Array<TransferOnErrorError> {
 					var jsonArr: Array<string> = [];
 					arr.forEach((item, index) => {
@@ -2543,8 +2543,8 @@ namespace CRMAppElement {
 
 					const errors: Array<Array<TransferOnErrorError>> = [];
 					try {
-						script = this.replaceChromeCalls(script.split('\n'), 0,
-							this.generateOnError(errors));
+						script = this._replaceChromeCalls(script.split('\n'), 0,
+							this._generateOnError(errors));
 					} catch (e) {
 						onError(null, null, true);
 						return script;
@@ -2553,8 +2553,8 @@ namespace CRMAppElement {
 					const firstPassErrors = errors[0];
 					const finalPassErrors = errors[errors.length - 1];
 					if (finalPassErrors) {
-						onError(this.removePositionDuplicates(firstPassErrors),
-							this.removePositionDuplicates(finalPassErrors));
+						onError(this._removePositionDuplicates(firstPassErrors),
+							this._removePositionDuplicates(finalPassErrors));
 					}
 
 					return script;
@@ -2692,7 +2692,7 @@ namespace CRMAppElement {
 			};
 
 			static showManagePermissions() {
-				this.parent().requestPermissions([], true);
+				this.parent()._requestPermissions([], true);
 			};
 
 			static iconSwitch(e: Polymer.ClickEvent, type: {
@@ -2878,7 +2878,7 @@ namespace CRMAppElement {
 								node.id = this.parent().generateItemId();
 							});
 						} else {
-							this.parent().addImportedNodes(data.crm);
+							this.parent()._addImportedNodes(data.crm);
 						}
 						this.parent().editCRM.build({
 							superquick: true
@@ -2901,7 +2901,7 @@ namespace CRMAppElement {
 								}
 							}
 
-							const crm = await this.parent().transferCRMFromOld(settingsArr[4], new LocalStorageWrapper());
+							const crm = await this.parent()._transferCRMFromOld(settingsArr[4], new LocalStorageWrapper());
 							this.parent().settings.crm = crm;
 							this.parent().editCRM.build({
 								superquick: true
@@ -2974,7 +2974,7 @@ namespace CRMAppElement {
 				this.parent().$.scriptUpdatesToast.hide();
 			};
 
-			private static copyFromElement(target: HTMLTextAreaElement, button: HTMLPaperIconButtonElement) {
+			private static _copyFromElement(target: HTMLTextAreaElement, button: HTMLPaperIconButtonElement) {
 				const snipRange = document.createRange();
 				snipRange.selectNode(target);
 				const selection = window.getSelection();
@@ -2997,12 +2997,12 @@ namespace CRMAppElement {
 			}
 
 			static copyExportDialogToClipboard() {
-				this.copyFromElement(this.parent().$.exportJSONData,
+				this._copyFromElement(this.parent().$.exportJSONData,
 					this.parent().$.dialogCopyButton);
 			};
 
 			static copyExportToClipboard() {
-				this.copyFromElement(this.parent().$.exportSettingsOutput,
+				this._copyFromElement(this.parent().$.exportSettingsOutput,
 					this.parent().$.exportCopyButton);
 			}
 
@@ -3127,7 +3127,7 @@ namespace CRMAppElement {
 					window.doc.addedPermissionsTabContainer
 						.querySelectorAll('.nodeAddedPermissionsCont'));
 				panels.forEach((panel: HTMLElement) => { 
-					const node = this.parent().nodesById[(panel.getAttribute('data-id') as any) as number] as CRM.ScriptNode;
+					const node = this.parent()._nodesById[(panel.getAttribute('data-id') as any) as number] as CRM.ScriptNode;
 					const permissions = Array.prototype.slice.apply(panel.querySelectorAll('paper-checkbox'))
 						.map(function (checkbox: HTMLPaperCheckboxElement) {
 							if (checkbox.checked) {
@@ -3714,9 +3714,9 @@ namespace CRMAppElement {
 		 * Functions related to the on-page example of your current CRM
 		 */
 		static pageDemo = class CRMAppPageDemo {
-			private static usedStylesheetIds: Array<number> = [];
+			private static _usedStylesheetIds: Array<number> = [];
 
-			private static handlers = class CRMAppPageDemoHandlers {
+			private static _handlers = class CRMAppPageDemoHandlers {
 				/**
 				 * Makes an onclick handler for links
 				 */
@@ -3766,23 +3766,23 @@ namespace CRMAppElement {
 				 */
 				static edit(node: CRM.Node): () => void {
 					return () => {
-						this.parent().parent().editCRM.getCRMElementFromPath(node.path, true).openEditPage();
+						this._parent()._parent().editCRM.getCRMElementFromPath(node.path, true).openEditPage();
 					};
 				};
 
-				private static parent(): typeof CRMAppPageDemo {
+				private static _parent(): typeof CRMAppPageDemo {
 					return window.app.pageDemo;
 				}
 			};
 
-			private static node = class CRMAppPageDemoNode {
+			private static _node = class CRMAppPageDemoNode {
 				/**
 				 * Adds a link to the CRM
 				 */
 				static link(toAdd: CRM.LinkNode): JQContextMenuObj {
 					return {
 						name: toAdd.name,
-						callback: this.parent().handlers.link(toAdd.value)
+						callback: this._parent()._handlers.link(toAdd.value)
 					};
 				};
 
@@ -3792,7 +3792,7 @@ namespace CRMAppElement {
 				static script(toAdd: CRM.ScriptNode): JQContextMenuObj {
 					return {
 						name: toAdd.name,
-						callback: this.parent().handlers.script(toAdd.value.script)
+						callback: this._parent()._handlers.script(toAdd.value.script)
 					};
 				};
 
@@ -3806,9 +3806,9 @@ namespace CRMAppElement {
 					if (toAdd.value.toggle) {
 						item.type = 'checkbox';
 						item.selected = toAdd.value.defaultOn;
-						item.callback = this.parent().handlers.stylesheet.toggle(toAdd.value.stylesheet, toAdd.value.defaultOn);
+						item.callback = this._parent()._handlers.stylesheet.toggle(toAdd.value.stylesheet, toAdd.value.defaultOn);
 					} else {
-						item.callback = this.parent().handlers.stylesheet.normal(toAdd.value.stylesheet);
+						item.callback = this._parent()._handlers.stylesheet.normal(toAdd.value.stylesheet);
 					}
 					return item;
 				};
@@ -3819,7 +3819,7 @@ namespace CRMAppElement {
 				static editable(toAdd: CRM.Node): JQContextMenuObj {
 					return {
 						name: toAdd.name,
-						callback: this.parent().handlers.edit(toAdd)
+						callback: this._parent()._handlers.edit(toAdd)
 					};
 				};
 
@@ -3843,13 +3843,13 @@ namespace CRMAppElement {
 					const childItems: {
 						[key: number]: JQContextMenuItem
 					} = {};
-					if (this.parent().parent().storageLocal.editCRMInRM) {
-						item.callback = this.parent().handlers.edit(toAdd);
+					if (this._parent()._parent().storageLocal.editCRMInRM) {
+						item.callback = this._parent()._handlers.edit(toAdd);
 					}
 					toAdd.children.forEach((node) => {
-						if (this.parent().isNodeVisible(node, crmType)) {
+						if (this._parent()._isNodeVisible(node, crmType)) {
 
-							if (this.parent().parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
+							if (this._parent()._parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
 								childItems[index.num++] = this.editable(node);
 							} else {
 								switch (node.type) {
@@ -3876,7 +3876,7 @@ namespace CRMAppElement {
 					return item;
 				};
 
-				private static parent(): typeof CRMAppPageDemo {
+				private static _parent(): typeof CRMAppPageDemo {
 					return window.app.pageDemo;
 				}
 			};
@@ -3884,14 +3884,14 @@ namespace CRMAppElement {
 			/**
 			 * Returns whether the node is visible or not (1 if it's visible)
 			 */
-			private static isNodeVisible(node: CRM.Node, showContentType: number): number {
+			private static _isNodeVisible(node: CRM.Node, showContentType: number): number {
 				let i;
 				let length;
 				if (node.children && node.children.length > 0) {
 					length = node.children.length;
 					let visible = 0;
 					for (i = 0; i < length; i++) {
-						visible += this.isNodeVisible(node.children[i], showContentType);
+						visible += this._isNodeVisible(node.children[i], showContentType);
 					}
 					if (!visible) {
 						return 0;
@@ -3911,7 +3911,7 @@ namespace CRMAppElement {
 			 *
 			 * @param {Number} crmType - The type of the content the menu will be shown on
 			 */
-			private static buildForCrmType(crmType: number): {
+			private static _buildForCrmType(crmType: number): {
 				[key: number]: JQContextMenuItem
 			} {
 				const index = {
@@ -3922,25 +3922,25 @@ namespace CRMAppElement {
 				} = {};
 				const crm = window.app.settings.crm;
 				crm.forEach((node: CRM.Node) => {
-					if (this.isNodeVisible(node, crmType)) {
-						if (this.parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
-							childItems[index.num++] = this.node.editable(node);
+					if (this._isNodeVisible(node, crmType)) {
+						if (this._parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
+							childItems[index.num++] = this._node.editable(node);
 						} else {
 							switch (node.type) {
 								case 'link':
-									childItems[index.num++] = this.node.link(node);
+									childItems[index.num++] = this._node.link(node);
 									break;
 								case 'script':
-									childItems[index.num++] = this.node.script(node);
+									childItems[index.num++] = this._node.script(node);
 									break;
 								case 'stylesheet':
-									childItems[index.num++] = this.node.stylesheet(node);
+									childItems[index.num++] = this._node.stylesheet(node);
 									break;
 								case 'divider':
-									childItems[index.num++] = this.node.divider();
+									childItems[index.num++] = this._node.divider();
 									break;
 								case 'menu':
-									childItems[index.num++] = this.node.menu(node, crmType, index);
+									childItems[index.num++] = this._node.menu(node, crmType, index);
 									break;
 							}
 						}
@@ -3954,7 +3954,7 @@ namespace CRMAppElement {
 				return types[crmType];
 			};
 
-			private static getChildrenAmount(object: Object): number {
+			private static _getChildrenAmount(object: Object): number {
 				let children = 0;
 				for (let key in object) {
 					if (object.hasOwnProperty(key)) {
@@ -3964,11 +3964,11 @@ namespace CRMAppElement {
 				return children;
 			};
 
-			private static bindContextMenu(crmType: number) {
+			private static _bindContextMenu(crmType: number) {
 				let items;
 				if (crmType === 0) {
-					items = this.buildForCrmType(0);
-					if (this.getChildrenAmount(items) > 0) {
+					items = this._buildForCrmType(0);
+					if (this._getChildrenAmount(items) > 0) {
 						($ as JQueryContextMenu).contextMenu({
 							selector: '.container, #editCrm.page, .crmType.pageType',
 							items: items
@@ -3976,8 +3976,8 @@ namespace CRMAppElement {
 					}
 				} else {
 					const contentType = this.getCrmTypeFromNumber(crmType);
-					items = this.buildForCrmType(crmType);
-					if (this.getChildrenAmount(items) > 0) {
+					items = this._buildForCrmType(crmType);
+					if (this._getChildrenAmount(items) > 0) {
 						($ as JQueryContextMenu).contextMenu({
 							selector: '#editCrm.' + contentType + ', .crmType.' + contentType + 'Type',
 							items: items
@@ -3986,9 +3986,9 @@ namespace CRMAppElement {
 				}
 			};
 
-			private static removeContextMenus() {
+			private static _removeContextMenus() {
 				let el;
-				this.usedStylesheetIds.forEach(function (id) {
+				this._usedStylesheetIds.forEach(function (id) {
 					el = document.getElementById('stylesheet' + id);
 					el && el.remove();
 				});
@@ -3996,16 +3996,16 @@ namespace CRMAppElement {
 				($ as JQueryContextMenu).contextMenu('destroy');
 			};
 
-			private static loadContextMenus() {
+			private static _loadContextMenus() {
 				const __this = this;
 				let toLoad = 0;
-				this.removeContextMenus();
+				this._removeContextMenus();
 
 				function loadContextMenus(deadline: {
 					timeRemaining(): number;
 				}) {
 					while (toLoad < 6 && deadline.timeRemaining() > 0) {
-						__this.bindContextMenu(toLoad++);
+						__this._bindContextMenu(toLoad++);
 
 						window.requestIdleCallback(loadContextMenus);
 					}
@@ -4015,7 +4015,7 @@ namespace CRMAppElement {
 					window.requestIdleCallback(loadContextMenus);
 				} else {
 					while (toLoad < 6) {
-						__this.bindContextMenu(toLoad++);
+						__this._bindContextMenu(toLoad++);
 					}
 				}
 			};
@@ -4029,15 +4029,15 @@ namespace CRMAppElement {
 					return;
 				}
 
-				if (this.parent().storageLocal.CRMOnPage &&
+				if (this._parent().storageLocal.CRMOnPage &&
 					~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] > 34) {
-					this.loadContextMenus();
+					this._loadContextMenus();
 				} else {
-					this.removeContextMenus();
+					this._removeContextMenus();
 				}
 			};
 
-			private static parent(): CrmApp {
+			private static _parent(): CrmApp {
 				return window.app;
 			}
 		};
@@ -4097,7 +4097,7 @@ namespace CRMAppElement {
 			static lookupId(id: number, returnArray: false): CRM.Node;
 			static lookupId(id: number, returnArray: boolean): Array<CRM.Node> | CRM.Node {
 				if (!returnArray) {
-					return window.app.nodesById[id];
+					return window.app._nodesById[id];
 				}
 
 				let el;
@@ -4118,11 +4118,11 @@ namespace CRMAppElement {
 			 */
 			static add<T extends CRM.Node>(value: T, position: string = 'last') {
 				if (position === 'first') {
-					this.parent().settings.crm = this.parent().util.insertInto(value, this.parent().settings.crm, 0);
+					this._parent().settings.crm = this._parent().util.insertInto(value, this._parent().settings.crm, 0);
 				} else if (position === 'last' || position === undefined) {
-					this.parent().settings.crm[this.parent().settings.crm.length] = value;
+					this._parent().settings.crm[this._parent().settings.crm.length] = value;
 				} else {
-					this.parent().settings.crm = this.parent().util.insertInto(value, this.parent().settings.crm);
+					this._parent().settings.crm = this._parent().util.insertInto(value, this._parent().settings.crm);
 				}
 				window.app.upload();
 				window.app.editCRM.build({
@@ -4143,10 +4143,10 @@ namespace CRMAppElement {
 				const targetIndex = target[target.length - 1];
 
 				if (sameColumn && toMoveIndex > targetIndex) {
-					this.parent().util.insertInto(toMoveItem, newTarget, targetIndex);
+					this._parent().util.insertInto(toMoveItem, newTarget, targetIndex);
 					toMoveContainer.splice((~~toMoveIndex) + 1, 1);
 				} else {
-					this.parent().util.insertInto(toMoveItem, newTarget, targetIndex);
+					this._parent().util.insertInto(toMoveItem, newTarget, targetIndex);
 					toMoveContainer.splice(toMoveIndex, 1);
 				}
 				window.app.upload();
@@ -4156,7 +4156,7 @@ namespace CRMAppElement {
 				});
 			};
 
-			private static parent(): CrmApp {
+			private static _parent(): CrmApp {
 				return window.app;
 			}
 		};
