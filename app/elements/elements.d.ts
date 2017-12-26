@@ -168,6 +168,7 @@ interface Window {
 	logConsole: LogConsole;
 	crmEditPage: CrmEditPage;
 	installPage: InstallPage;
+	splashScreen: SplashScreen;
 	installConfirm: InstallConfirm;
 	externalEditor: UseExternalEditor;
 	errorReportingTool: ErrorReportingTool;

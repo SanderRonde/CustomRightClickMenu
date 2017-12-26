@@ -89,8 +89,9 @@ namespace SplashScreenElement {
 				toReach: 0,
 				isAnimating: false,
 				shouldAnimate: false,
-				max: 1
-			}
+				max: Infinity
+			};
+			window.splashScreen = this;
 		};
 	}
 
