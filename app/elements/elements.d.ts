@@ -38,6 +38,7 @@
 /// <reference path="./tools/paper-search-website-dialog/paper-search-website-dialog.ts" />
 /// <reference path="./tools/use-external-editor/use-external-editor.ts" />
 /// <reference path="./type-switcher/type-switcher.ts" />
+/// <reference path="./splash-screen/splash-screen.ts" />
 /// <reference path="../js/shared.ts" />
 
 
