@@ -16,21 +16,29 @@ namespace LogPageElement {
 
 		static properties = logPageProperties;
 
-		static ready(this: LogPage) {
+		private static _wait(time: number): Promise<void> {
+			return new Promise((resolve) => {
+				window.setTimeout(() => {
+					resolve(null);
+				}, time);
+			});
+		}
+
+		static async ready(this: LogPage) {
 			if (window.logConsole && window.logConsole.done) {
 				this.isLoading = false;
 			}
 			window.logPage = this;
 
-			window.setTimeout(function() {
-				window.CRMLoaded = window.CRMLoaded || {
-					listener: null,
-					register(fn) {
-						fn();
-					}
-				};
-				window.CRMLoaded.listener && window.CRMLoaded.listener();
-			}, 2500);
+			window.splashScreen.init(16);
+			await Promise.all([window.splashScreen.done, this._wait(2500)]);
+			window.CRMLoaded = window.CRMLoaded || {
+				listener: null,
+				register(fn) {
+					fn();
+				}
+			};
+			window.CRMLoaded.listener && window.CRMLoaded.listener();
 		}
 	}
 
