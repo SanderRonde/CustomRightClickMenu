@@ -164,7 +164,7 @@ interface Window {
 }
 
 (() => {
-	window.Promise = Promise;
+	window.Promise = window.Promise || Promise;
 
 	window.onExists = <T extends keyof Window>(key: T): Promise<Window[T]> => {
 		return new Promise<Window[T]>((resolve) => {
