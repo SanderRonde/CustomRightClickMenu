@@ -1610,105 +1610,34 @@ namespace CRMAppElement {
 				});
 			};
 
-			private static animateLoadingBar(settings: {
-				lastReachedProgress: number;
-				max: number;
-				toReach: number;
-				progressBar: HTMLElement;
-				isAnimating: boolean;
-				shouldAnimate: boolean;
-			}, progress: number) {
-				const scaleBefore = 'scaleX(' + settings.lastReachedProgress + ')';
-				const scaleAfter = 'scaleX(' + progress + ')';
-				if (settings.max === settings.lastReachedProgress ||
-					settings.toReach >= 1) {
-					settings.progressBar.animate([{
-						transform: scaleBefore,
-						WebkitTransform: scaleBefore
-					}, {
-						transform: scaleAfter,
-						WebkitTransform: scaleAfter
-					}], {
-						duration: 200,
-						easing: 'linear'
-					}).onfinish = function () {
-						settings.lastReachedProgress = progress;
-						settings.isAnimating = false;
-						settings.progressBar.style.transform = scaleAfter;
-						settings.progressBar.style.WebkitTransform = scaleAfter;
-					};
-					return;
-				}
-				if ((settings.progressBar.animate as any).isJqueryFill) {
-					settings.progressBar.style.transform = scaleAfter;
-					settings.progressBar.style.WebkitTransform = scaleAfter;
-				} else {
-					if (settings.isAnimating) {
-						settings.toReach = progress;
-						settings.shouldAnimate = true;
-					} else {
-						settings.isAnimating = true;
-						settings.progressBar.animate([{
-							transform: scaleBefore,
-							WebkitTransform: scaleBefore
-						}, {
-							transform: scaleAfter,
-							WebkitTransform: scaleAfter
-						}], {
-							duration: 200,
-							easing: 'linear'
-						}).onfinish = () => {
-							settings.lastReachedProgress = progress;
-							settings.isAnimating = false;
-							settings.progressBar.style.transform = scaleAfter;
-							settings.progressBar.style.WebkitTransform = scaleAfter;
-							this.animateLoadingBar(settings, settings.toReach);
-						};
-					}
-				}
-			};
-
 			static setupLoadingBar(): Promise<void> {
 				return new Promise<void>((resolve) => {
-					const importsAmount = 42;
-					const loadingBarSettings = {
-						lastReachedProgress: 0,
-						progressBar: document.getElementById('splashScreenProgressBarLoader'),
-						toReach: 0,
-						isAnimating: false,
-						shouldAnimate: false,
-						max: importsAmount
-					};
+					const importsAmount = 49;
 
 					let registeredElements = Polymer.telemetry.registrations.length;
-					let loaded: boolean = false;
 					const registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
+					const splashScreen = document.getElementsByTagName('splash-screen')[0];
+					splashScreen.init(importsAmount);
 					registrationArray.push = (element: HTMLElement) => {
 						Array.prototype.push.call(registrationArray, element);
 						registeredElements++;
 						const progress = Math.round((registeredElements / importsAmount) * 100) / 100;
-						this.animateLoadingBar(loadingBarSettings, progress);
-						if (registeredElements > importsAmount) {
-							if (loaded) {
-								return;
-							}
-							loaded = true;
+						splashScreen.setProgress(progress);
+
+						if (registeredElements >= importsAmount) {
 							//Wait until the element is actually registered to the DOM
 							window.setTimeout(() => {
 								resolve(null);
 								//All elements have been loaded, unhide them all
-								window.setTimeout(function () {
-									document.documentElement.classList.remove('elementsLoading');
-
+								window.setTimeout(() => {
 									//Clear the annoying CSS mime type messages and the /deep/ warning
 									if (!window.lastError && location.hash.indexOf('noClear') === -1) {
 										console.clear();
 									}
 
-									window.setTimeout(function () {
+									window.setTimeout(() => {
 										//Wait for the fade to pass
 										window.polymerElementsLoaded = true;
-										document.getElementById('splashScreen').style.display = 'none';
 									}, 500);
 
 									console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
@@ -1722,6 +1651,7 @@ namespace CRMAppElement {
 									}
 								}
 								window.CRMLoaded.listener && window.CRMLoaded.listener();
+								splashScreen.finish();
 							}, 25);
 						}
 					};

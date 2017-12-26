@@ -5,8 +5,9 @@
 .container {
 	font-size:150%;
 	width: 1000px;
-	padding-left: calc((100vw - 1000px) / 2);
-	padding-right: calc((100vw - 1000px) / 2);
+	padding-left: calc((100vw - 1020px) / 2);
+	padding-right: calc((100vw - 1020px) / 2);
+	margin-top: 64px;
 }
 
 .contextMenu {

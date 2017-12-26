@@ -1,0 +1,103 @@
+:host {
+	opacity: 1;
+	transition: opacity 150ms ease-out;
+}
+
+:host[invisible] {
+	opacity: 0;
+}
+
+#splashContainer {
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	opacity: 0;
+	width: 100%;
+	height: 100%;
+	color: white;
+	position: absolute;
+	overflow: hidden;
+	pointer-events: none;
+	z-index: 999999999999999;
+	background-color: #FF5722;
+}
+
+@keyframes fadeIn {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
+#splashContainer[visible] {
+	animation: fadeIn 150ms ease-in forwards;
+}
+
+#splashContainer[invisible] {
+	animation: none;
+	opacity: 0;
+}
+
+#splashVerticalCenterer {
+	display: -webkit-flex;
+	display: flex;
+	height: 100%;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+	justify-content: center;
+}
+
+#splashHorizontalCenterer {
+	display: -webkit-flex;
+	display: flex;
+	width: 100%;
+	-webkit-flex-direction: row;
+	flex-direction: row;
+	justify-content: center;
+}
+
+#splashTitle {
+	font-size: 800%;
+	font-size: calc(100vw / 20);
+}
+
+#splashLoaderCenterer {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: row;
+	flex-direction: row;
+	-webkit-justify-content: center;
+	justify-content: center;
+}
+
+#splashBarCont {
+	width: 50vw;
+	height: 4px;
+	background-color: rgb(224, 224, 224);
+	margin-top: 20px;
+	position: relative;
+}
+
+#progressBar {
+	will-change: transform;
+	-webkit-transform-origin: left center;
+	transform-origin: left center;
+	position: absolute;
+	-webkit-transform: scaleX(0);
+	transform: scaleX(0);
+	background-color: rgb(38, 153, 244);
+	width: 50vw;
+	height: 4px;
+	transition: transform 200ms linear;
+}
+
+#contentContainer {
+	background-color: white;
+	color: black;
+	pointer-events: all;
+	overflow: auto;
+	max-height: 100vh;
+}

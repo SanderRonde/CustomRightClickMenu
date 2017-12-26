@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<dom-module id="splash-screen" attributes="name">
+	<template>
+		<!-- build:css inline ../../elements/splash-screen/splash-screen.css -->
+		<link rel="stylesheet" href="../elements/splash-screen/splash-screen.css"/>
+		<!-- /build -->
+		<div id="splashContainer" invisible$="[[finished]]">
+			<div id="splashVerticalCenterer">
+				<div id="splashHorizontalCenterer">
+					<div id="splashContent">
+						<div id="splashTitle">{{name}}</div>
+						<div id="splashLoaderCenterer">
+							<div id="splashBarCont">
+								<div id="progressBar"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div hidden$="{{!finished}}" id="contentContainer">
+			<slot id="content"></slot>
+		</div>
+	</template>
+</dom-module>
+<!-- build:js inline -->
+<script src="splash-screen.js"></script>
+<!-- /build -->

@@ -505,6 +505,7 @@ type HTMLLogPageElement = LogPage;
 type HTMLMenuEditElement = NodeEditBehaviorMenuInstance;
 type HTMLScriptEditElement = CodeEditBehaviorScriptInstance;
 type HTMLStylesheetEditElement = CodeEditBehaviorStylesheetInstance;
+type HTMLSplashScreenElement = SplashScreen;
 
 interface AddedPermissionsTabContainer extends HTMLElement {
 	tab: number;
