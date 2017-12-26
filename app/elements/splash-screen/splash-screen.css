@@ -62,6 +62,7 @@
 #splashTitle {
 	font-size: 800%;
 	font-size: calc(100vw / 20);
+	text-align: center;
 }
 
 #splashLoaderCenterer {
