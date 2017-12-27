@@ -464,13 +464,26 @@ class xhr {
 		this.readyState = 0;
 		this.status = xhr.UNSENT;
 		this.responseText = '';
+		/**
+		 * @type {{method: string; filePath: string}}
+		 */
+		this._config;
 	}
 	open(method, filePath) {
 		//Strip chrome-extension://
 		filePath = filePath.split('chrome-extension://something/')[1];
 
 		this.readyState = xhr.UNSENT;
-		fs.readFile(path.join(__dirname, '..', 'build/', filePath), {
+		this._config = {
+			method: method,
+			filePath: filePath
+		}
+	}
+	onreadystatechange() { 
+		console.log('This should not be called, onreadystatechange is not overridden');
+	}
+	send() {
+		fs.readFile(path.join(__dirname, '..', 'build/', this._config.filePath), {
 			encoding: 'utf8',
 		}, (err, data) => {
 			this.readyState = xhr.DONE;
@@ -489,9 +502,6 @@ class xhr {
 		if (this.readyState === xhr.UNSENT) {
 			this.readyState = xhr.LOADING;
 		}
-	}
-	onreadystatechange() { 
-		console.log('This should not be called, onreadystatechange is not overridden');
 	}
 
 	static get UNSENT() {
