@@ -163,7 +163,7 @@ interface Window {
 	with<T>(initializer: () => Withable, fn: () => T): T;
 }
 
-(() => {
+(async () => {
 	window.Promise = window.Promise || Promise;
 
 	window.onExists = <T extends keyof Window>(key: T): Promise<Window[T]> => {
@@ -197,6 +197,7 @@ interface Window {
 	}
 
 	if (typeof Event !== 'undefined') {
+		await window.onExists('Polymer');
 		const event = new Event('ObjectifyReady');
 		window.dispatchEvent(event);
 	}

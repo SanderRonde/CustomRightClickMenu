@@ -162,6 +162,7 @@ interface Window {
 	Storages: {
 		loadStorages(callback: () => void): void;
 	}
+	Polymer: Polymer.Polymer;
 
 	app: CrmApp;
 	logPage: LogPage;
