@@ -1757,10 +1757,6 @@ describe('Conversion', () => {
 			}), 'Converting does not throw an error');
 		}
 		describe('localStorage', function() {
-			it('should be able to convert a oneline no-localStorage-calls script', function (done) {
-				this.timeout(10000000);
-				testScript('console.log("hi");', SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE, done);
-			});
 			it('should be able to convert a multiline script with indentation with no localStorage-calls', (done) => {
 				testScript(`
 console.log('hi')
