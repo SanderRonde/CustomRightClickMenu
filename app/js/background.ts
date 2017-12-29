@@ -1354,7 +1354,7 @@ if (typeof module === 'undefined') {
 			}
 			const fileContent = await this._loadFile(path);
 			eval(fileContent);
-			this._requiredFiles.push
+			this._requiredFiles.push(path);
 		}
 		static getScriptNodeScript(script: CRM.ScriptNode|CRM.SafeScriptNode, type: 'background'|'script' = 'script'): string {
 			if (script.value.ts && script.value.ts.enabled) {
