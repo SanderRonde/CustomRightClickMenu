@@ -9223,9 +9223,8 @@ if (typeof module === 'undefined') {
 						case 'script':
 							let [scriptLaunchMode, scriptData] = nodeData.split('%124');
 							let triggers;
-							const launchModeString = scriptLaunchMode + '';
-							if (launchModeString + '' !== '0' && launchModeString + '' !== '2') {
-								triggers = launchModeString.split('1,')[1].split(',');
+							if (scriptLaunchMode !== '0' && scriptLaunchMode !== '2') {
+								triggers = scriptLaunchMode.split('1,')[1].split(',');
 								triggers = triggers.map(function (item) {
 									return {
 										not: false,
