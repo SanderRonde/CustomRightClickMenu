@@ -1934,11 +1934,11 @@ window.crmAPI.chrome('runtime.getURL')('something').return(function(x) {x = x + 
 			});
 		});
 		describe('both', function() {
-			it('should be able to convert a oneline normal script', () => {
+			it('should be able to convert a oneline normal script', (done) => {
 				var scr = 'console.log("hi");';
-				testScript(scr, scr, SCRIPT_CONVERSION_TYPE.BOTH);
+				testScript(scr, scr, SCRIPT_CONVERSION_TYPE.BOTH, done);
 			});
-			it('should be able to convert a multiline script with indentation with no chrome-calls', () => {
+			it('should be able to convert a multiline script with indentation with no chrome-calls', (done) => {
 				testScript(`
 /*execute locally*/
 console.log('hi')
@@ -1956,9 +1956,9 @@ if (true) {
 } else {
 	x = 5
 }
-console.log(x);`, SCRIPT_CONVERSION_TYPE.BOTH);
+console.log(x);`, SCRIPT_CONVERSION_TYPE.BOTH, done);
 			});
-			it('should be able to convert a single-line script with a callback chrome-call', () => {
+			it('should be able to convert a single-line script with a callback chrome-call', (done) => {
 				testScript(`
 /*execute locally*/
 chrome.runtime.getPlatformInfo(function(platformInfo) {
@@ -1966,9 +1966,9 @@ chrome.runtime.getPlatformInfo(function(platformInfo) {
 });`, `
 window.crmAPI.chrome('runtime.getPlatformInfo')(function(platformInfo) {
 	console.log(platformInfo, localStorageProxy.getItem('x'));
-}).send();`, SCRIPT_CONVERSION_TYPE.BOTH);
+}).send();`, SCRIPT_CONVERSION_TYPE.BOTH, done);
 			});
-			it('should be able to convert nested chrome-calls', () => {
+			it('should be able to convert nested chrome-calls', (done) => {
 				testScript(`
 /*execute locally*/
 chrome.runtime.getPlatformInfo(function(platformInfo) {
@@ -1994,18 +1994,18 @@ window.crmAPI.chrome('runtime.getPlatformInfo')(function(platformInfo) {
 			console.log(bgPage);
 		}).send();
 	}).send();
-}).send();`, SCRIPT_CONVERSION_TYPE.BOTH);
+}).send();`, SCRIPT_CONVERSION_TYPE.BOTH, done);
 			});
-			it('should be able to convert chrome functions returning to a variable', () => {
+			it('should be able to convert chrome functions returning to a variable', (done) => {
 				testScript(`
 /*execute locally*/
 var url = chrome.runtime.getURL();
 localStorage.setItem('a', url);`, `
 window.crmAPI.chrome('runtime.getURL').return(function(url) {
 	localStorageProxy.setItem('a', url);
-}).send();`, SCRIPT_CONVERSION_TYPE.BOTH);
+}).send();`, SCRIPT_CONVERSION_TYPE.BOTH, done);
 			});
-			it('should be able to convert multiple chrome functions returning to variables', () => {
+			it('should be able to convert multiple chrome functions returning to variables', (done) => {
 				testScript(`
 /*execute locally*/
 var url = chrome.runtime.getURL();
@@ -2018,9 +2018,9 @@ window.crmAPI.chrome('runtime.getURL').return(function(url) {
 			localStorageProxy.setItem('a', url);
 		}).send();
 	}).send();
-}).send();`, SCRIPT_CONVERSION_TYPE.BOTH);
+}).send();`, SCRIPT_CONVERSION_TYPE.BOTH, done);
 			});
-			it('should be able to convert mixed chrome function calls', () => {
+			it('should be able to convert mixed chrome function calls', (done) => {
 				testScript(`
 /*execute locally*/
 var url = chrome.runtime.getURL();
@@ -2042,9 +2042,9 @@ window.crmAPI.chrome('runtime.getURL').return(function(url) {
 			}).send();
 		}).send();
 	}).send();
-}).send();`, SCRIPT_CONVERSION_TYPE.BOTH);
+}).send();`, SCRIPT_CONVERSION_TYPE.BOTH, done);
 			});
-			it('should be able to convert chrome calls in if statements', () => {
+			it('should be able to convert chrome calls in if statements', (done) => {
 				testScript(`
 /*execute locally*/
 if (true) {
@@ -2062,14 +2062,14 @@ if (true) {
 	window.crmAPI.chrome('runtime.getURL')('somethingelse').return(function(url2) {
 		console.log(localStorageProxy.getItem(url2));
 	}).send();
-}`, SCRIPT_CONVERSION_TYPE.BOTH);
+}`, SCRIPT_CONVERSION_TYPE.BOTH, done);
 			});
-			it("should be able to convert chrome calls that aren't formatted nicely", () => {
+			it("should be able to convert chrome calls that aren't formatted nicely", (done) => {
 				testScript(`
 /*execute locally*/
 var x = chrome.runtime.getURL('something');x = x + localStorage.getItem('foo');chrome.runtime.getBackgroundPage(function(bgPage){console.log(x + bgPage);});`, `
 window.crmAPI.chrome('runtime.getURL')('something').return(function(x) {x = x + localStorageProxy.getItem('foo');window.crmAPI.chrome('runtime.getBackgroundPage')(function(bgPage){console.log(x + bgPage);}).send();
-}).send();`, SCRIPT_CONVERSION_TYPE.BOTH);
+}).send();`, SCRIPT_CONVERSION_TYPE.BOTH, done);
 			});
 		});
 	});
