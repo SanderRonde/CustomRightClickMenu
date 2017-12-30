@@ -579,6 +579,10 @@ window.chrome = {
 				val: 'arg',
 				type: 'string'
 			}]);
+
+			if (arg === 'js/libraries/crmapi.d.ts') {
+				return `/build/${arg}`;
+			}
 			return 'chrome-extension://' + extensionId + '/' + arg;
 		},
 		id: extensionId,
