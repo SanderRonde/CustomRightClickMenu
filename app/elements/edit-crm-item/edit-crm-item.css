@@ -178,4 +178,5 @@ edit-crm-item.pulse .item {
 	border: none;
 	background-color: transparent;
 	outline: none;
+	margin-top: 5px;
 }
