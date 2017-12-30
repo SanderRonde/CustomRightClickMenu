@@ -713,11 +713,11 @@ body.editingScript .cssTool {
 }
 
 .crmTypeShadowMagicElement {
-	background: url('/images/shadowImg.png');
+	background: url('../../images/shadowImg.png');
 }
 
 .crmTypeShadowMagicElementRight {
-	background: url('/images/shadowImgRight.png');
+	background: url('../../images/shadowImgRight.png');
 }
 
 .crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight {
