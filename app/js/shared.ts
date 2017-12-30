@@ -166,6 +166,10 @@ interface Window {
 (async () => {
 	window.Promise = window.Promise || Promise;
 
+	if (window.onExists) {
+		return;
+	}
+
 	window.onExists = <T extends keyof Window>(key: T): Promise<Window[T]> => {
 		return new Promise<Window[T]>((resolve) => {
 			if (key in window) {
@@ -181,7 +185,7 @@ interface Window {
 		});
 	}
 
-	window.objectify = <T>(fn: T): T => {
+	const objectify = <T>(fn: T): T => {
 		const obj: Partial<T> = {};
 		Object.getOwnPropertyNames(fn).forEach((key: keyof T) => {
 			obj[key] = fn[key];
@@ -198,6 +202,7 @@ interface Window {
 
 	if (typeof Event !== 'undefined') {
 		await window.onExists('Polymer');
+		window.objectify = objectify;
 		const event = new Event('ObjectifyReady');
 		window.dispatchEvent(event);
 	}
