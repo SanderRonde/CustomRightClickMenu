@@ -3526,7 +3526,7 @@ declare namespace CRM {
 type ElementMaps = HTMLElementTagNameMap & ElementTagNameMap;
 type crmAPIQuerySelector = <T extends keyof ElementMaps>(selector: T, context?: HTMLElement|Element|Document) => Array<ElementMaps[T]>;
 
-type CRMAPI = typeof CRM.CRMAPI.Instance;
+type CRMAPI = CRM.CRMAPI.Instance;
 
 declare var crmAPI: CRMAPI;
 
