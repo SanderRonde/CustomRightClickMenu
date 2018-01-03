@@ -63,27 +63,27 @@ namespace CrmEditPageElement {
 		/**
 		 * The link item
 		 */
-		private static _linkItem: CRM.LinkNode = {} as any;
+		static linkItem: CRM.LinkNode = {} as any;
 
 		/**
 		 * The script item
 		 */
-		private static _scriptItem: CRM.ScriptNode = {} as any;
+		static scriptItem: CRM.ScriptNode = {} as any;
 
 		/**
 		 * The divider item
 		 */
-		private static _dividerItem: CRM.DividerNode = {} as any;
+		static dividerItem: CRM.DividerNode = {} as any;
 
 		/**
 		 * The menu item
 		 */
-		private static _menuItem: CRM.MenuNode = {} as any;
+		static menuItem: CRM.MenuNode = {} as any;
 
 		/**
 		 * The stylesheet item
 		 */
-		private static _stylesheetItem: CRM.StylesheetNode = {} as any;
+		static stylesheetItem: CRM.StylesheetNode = {} as any;
 
 		/**
 		 * Whether the page is opened
@@ -146,7 +146,7 @@ namespace CrmEditPageElement {
 
 		private static _unassignItems(this: CrmEditPage) {
 			this.isLink = this.isScript = this.isStylesheet = this.isMenu = this.isDivider = false;
-			this._linkItem = this._scriptItem = this._stylesheetItem = this._menuItem = this._dividerItem = {} as any;
+			this.linkItem = this.scriptItem = this.stylesheetItem = this.menuItem = this.dividerItem = {} as any;
 		};
 
 		private static _animateIn(this: CrmEditPage) {
@@ -310,23 +310,23 @@ namespace CrmEditPageElement {
 				isStylesheet: false
 			};
 			this.hideUpdateMessage = false;
-			this._scriptItem = this._linkItem = this._dividerItem = this._menuItem = this._stylesheetItem = {} as any;
+			this.scriptItem = this.linkItem = this.dividerItem = this.menuItem = this.stylesheetItem = {} as any;
 			const node = this.item;
 			if ((valueStorer.isScript = node.type === 'script')) {
-				this._scriptItem = node as CRM.ScriptNode;
+				this.scriptItem = node as CRM.ScriptNode;
 				valueStorer.isLink = valueStorer.isMenu = valueStorer.isDivider = valueStorer.isStylesheet = false;
 			} else if ((valueStorer.isLink = node.type === 'link')) {
-				this._linkItem = node as CRM.LinkNode;
+				this.linkItem = node as CRM.LinkNode;
 				valueStorer.isMenu = valueStorer.isDivider = valueStorer.isStylesheet = false;
 			} else if ((valueStorer.isStylesheet = node.type === 'stylesheet')) {
-				this._stylesheetItem = node as CRM.StylesheetNode;
+				this.stylesheetItem = node as CRM.StylesheetNode;
 				valueStorer.isMenu = valueStorer.isDivider = false;
 			} else if ((valueStorer.isMenu = node.type === 'menu')) {
-				this._menuItem = node as CRM.MenuNode;
+				this.menuItem = node as CRM.MenuNode;
 				valueStorer.isDivider = false;
 			} else {
 				valueStorer.isDivider = true;
-				this._dividerItem = node as CRM.DividerNode;
+				this.dividerItem = node as CRM.DividerNode;
 
 			}
 			setTimeout(() => {
