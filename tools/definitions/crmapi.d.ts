@@ -3531,6 +3531,6 @@ type CRMAPI = typeof CRM.CRMAPI.Instance;
 declare var crmAPI: CRMAPI;
 
 interface Window extends CRM.CRMAPI.GM_Fns {
-	crmAPI: typeof CRMAPI
+	crmAPI: CRMAPI
 	$?: crmAPIQuerySelector
 }
