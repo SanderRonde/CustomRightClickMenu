@@ -2404,7 +2404,7 @@ declare namespace CRM {
 		 *
 		 * @class
 		 */
-		export class CrmAPIInstance {
+		export class Instance {
 			constructor(node: CRM.SafeNode, id: number, tabData: TabData, 
 				clickData: ClickData, secretKey: Array<number>,
 				nodeStorage: NodeStorage, contextData: ContextData,
@@ -2635,7 +2635,7 @@ declare namespace CRM {
 			/**
 			* General CRM API functions
 			*/
-			general: CrmAPIInstance;
+			general: Instance;
 	
 			/**
 			 * Gets the current text selection
@@ -2700,7 +2700,7 @@ declare namespace CRM {
 				 * Gets the node with ID nodeId
 				 *
 				 * @permission crmGet
-				 * @param {CrmAPIInstance~crmCallback} callback - A function that is called when done
+				 * @param {Instance~crmCallback} callback - A function that is called when done
 				 */
 				getNode(nodeId: number, callback: (node: CRM.SafeNode) => void): void,
 	
@@ -2723,7 +2723,7 @@ declare namespace CRM {
 				 * @param {string} [query.name] - The name of the item
 				 * @param {string} [query.type] - The type of the item (link, script, stylesheet, divider or menu)
 				 * @param {number} [query.inSubTree] - The subtree in which this item is located (the number given is the id of the root item)
-				 * @param {CrmAPIInstance~crmCallback} callback - A callback with the resulting nodes in an array
+				 * @param {Instance~crmCallback} callback - A callback with the resulting nodes in an array
 				 */
 				queryCrm(query: CRMQuery, callback: (results: Array<CRM.SafeNode>) => void): void,
 	
@@ -2732,7 +2732,7 @@ declare namespace CRM {
 				 *
 				 * @permission crmGet
 				 * @param {number} nodeId - The node of which to get the parent
-				 * @param {CrmAPIInstance~crmCallback} callback - A callback with the parent of the given node as an argument
+				 * @param {Instance~crmCallback} callback - A callback with the parent of the given node as an argument
 				 */
 				getParentNode(nodeId: number, callback: (node: CRM.SafeNode) => void): void,
 	
@@ -2818,7 +2818,7 @@ declare namespace CRM {
 				 *  @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
 				 * @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
 				 *  @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
-				 *  @param {CrmAPIInstance~crmCallback} [callback] - A callback given the new node as an argument
+				 *  @param {Instance~crmCallback} [callback] - A callback given the new node as an argument
 				 */
 				createNode(options: Partial<CRM.SafeNode> & {
 					position?: Relation;
@@ -2844,7 +2844,7 @@ declare namespace CRM {
 				 *		lastSibling: last of the subtree that given node is in
 				 *		before: before given node
 				 *		after: after the given node
-				 * @param {CrmAPIInstance~crmCallback} [callback] - A callback given the new node as an argument
+				 * @param {Instance~crmCallback} [callback] - A callback given the new node as an argument
 				 */
 				copyNode(nodeId: number, options: {
 					/**
@@ -2872,7 +2872,7 @@ declare namespace CRM {
 				 *		lastSibling: last of the subtree that given node is in
 				 *		before: before given node
 				 *		after: after the given node
-				 * @param {CrmAPIInstance~crmCallback} [callback] - A function that gets called with the new node as an argument
+				 * @param {Instance~crmCallback} [callback] - A function that gets called with the new node as an argument
 				 */
 				moveNode(nodeId: number, position: Relation, callback?: (node: CRM.SafeNode) => void): void,
 	
@@ -2896,7 +2896,7 @@ declare namespace CRM {
 				 * @param {Object} options - An object containing the settings for what to edit
 				 * @param {string} [options.name] - Changes the name to given string
 				 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
-				 * @param {CrmAPIInstance~crmCallback} [callback] - A function to run when done, contains the new node as an argument
+				 * @param {Instance~crmCallback} [callback] - A function to run when done, contains the new node as an argument
 				 */
 				editNode(nodeId: number, options: { 
 					/**
@@ -2914,7 +2914,7 @@ declare namespace CRM {
 				 *
 				 * @permission crmGet
 				 * @param {number} nodeId - The node of which to get the triggers
-				 * @param {CrmAPIInstance~crmCallback} callback - A function to run when done, with the triggers as an argument
+				 * @param {Instance~crmCallback} callback - A function to run when done, with the triggers as an argument
 				 */
 				getTriggers(nodeId: number, callback: (triggers: Array<CRM.Trigger>) => void): void,
 	
@@ -2931,7 +2931,7 @@ declare namespace CRM {
 				 * 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
 				 * 		https://developer.chrome.com/extensions/match_patterns
 				 * @param {boolean} triggers.not - If true does NOT show the node on that URL
-				 * @param {CrmAPIInstance~crmCallback} [callback] - A function to run when done, with the node as an argument
+				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
 				 */
 				setTriggers(nodeId: number, triggers: Array<CRM.Trigger>, callback?: (node: CRM.SafeNode) => void): void,
 	
@@ -2941,7 +2941,7 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @permission crmWrite
 				 * @param {number} nodeId - The node of which to get the content types
-				 * @param {CrmAPIInstance~crmCallback} [callback] - A function to run when done, with the content types array as an argument
+				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the content types array as an argument
 				 */
 				getContentTypes(nodeId: number, callback?: (contentTypes: CRM.ContentTypes) => void): void,
 	
@@ -2954,7 +2954,7 @@ declare namespace CRM {
 				 * @param {number} index - The index of the array to set, 0-5, ordered this way:
 				 *		page, link, selection, image, video, audio
 				 * @param {boolean} value - The new value at index `index`
-				 * @param {CrmAPIInstance~crmCallback} [callback] - A function to run when done, with the new array as an argument
+				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the new array as an argument
 				 */
 				setContentType(nodeId: number, index: CRM.ContentTypes, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): void,
 	
@@ -2968,7 +2968,7 @@ declare namespace CRM {
 				 *		on that content type. Requires at least one type to be active, otherwise all are activated.
 				 *		The options are:
 				 *		page, link, selection, image, video, audio
-				 * @param {CrmAPIInstance~crmCallback} [callback] - A function to run when done, with the node as an argument
+				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
 				 */
 				setContentTypes(nodeId: number, contentTypes: CRM.ContentTypes, callback?: (node: CRM.SafeNode) => void): void,
 	
@@ -2978,7 +2978,7 @@ declare namespace CRM {
 				 *
 				 * @permission crmGet
 				 * @param {number} nodeId - The node of which to get the triggers
-				 * @param {CrmAPIInstance~crmCallback} callback - A function to run when done, with the triggers' usage as an argument
+				 * @param {Instance~crmCallback} callback - A function to run when done, with the triggers' usage as an argument
 				 */
 				getTriggerUsage(nodeId: number, callback: (usage: boolean) => void): void,
 	
@@ -2989,7 +2989,7 @@ declare namespace CRM {
 				 * @permission crmWrite
 				 * @param {number} nodeId - The node of which to get the triggers
 				 * @param {boolean} useTriggers - Whether the triggers should be used or not
-				 * @param {CrmAPIInstance~crmCallback} [callback] - A function to run when done, with the node as an argument
+				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
 				 */
 				setTriggerUsage(nodeId: number, useTriggers: boolean, callback?: (node: CRM.SafeNode) => void): void
 	
@@ -3005,7 +3005,7 @@ declare namespace CRM {
 				 *		2 = run on specified pages
 				 *		3 = only show on specified pages
 				 * 		4 = disabled
-				 * @param {CrmAPIInstance~crmCallback} [callback] - A function that is ran when done with the new node as an argument
+				 * @param {Instance~crmCallback} [callback] - A function that is ran when done with the new node as an argument
 				 */
 				setLaunchMode(nodeId: number, launchMode: CRMLaunchModes, callback?: (node: CRM.SafeNode) => void): void,
 	
@@ -3029,7 +3029,7 @@ declare namespace CRM {
 					 * @permission crmWrite
 					 * @param {number} nodeId - The node of which to change the stylesheet
 					 * @param {string} stylesheet - The code to change to
-					 * @param {CrmAPIInstance~crmCallback} [callback] - A function with the node as an argument
+					 * @param {Instance~crmCallback} [callback] - A function with the node as an argument
 					 */
 					setStylesheet(nodeId: number, stylesheet: string, callback?: (node: CRM.SafeNode) => void): void
 	
@@ -3135,7 +3135,7 @@ declare namespace CRM {
 					 * @permission crmWrite
 					 * @param {number} nodeId - The node of which to change the script
 					 * @param {string} script - The code to change to
-					 * @param {CrmAPIInstance~crmCallback} [callback] - A function with the node as an argument
+					 * @param {Instance~crmCallback} [callback] - A function with the node as an argument
 					 */
 					setScript(nodeId: number, script: string, callback?: (node: CRM.SafeNode) => void): void,
 	
@@ -3155,7 +3155,7 @@ declare namespace CRM {
 					 * @permission crmWrite
 					 * @param {number} nodeId - The node of which to change the script
 					 * @param {string} script - The code to change to
-					 * @param {CrmAPIInstance~crmCallback} [callback] - A function with the node as an argument
+					 * @param {Instance~crmCallback} [callback] - A function with the node as an argument
 					 */
 					setBackgroundScript(nodeId: number, script: string, callback?: (node: CRM.SafeNode) => void): void,
 	
@@ -3263,7 +3263,7 @@ declare namespace CRM {
 					 *
 					 * @permission crmGet
 					 * @param {number} nodeId - The id of the node of which to get the children
-					 * @param {CrmAPIInstance~crmCallback} callback - A callback with the node as an argument
+					 * @param {Instance~crmCallback} callback - A callback with the node as an argument
 					 */
 					getChildren(nodeId: number, callback: (nodes: Array<CRM.SafeNode>) => void): void,
 	
@@ -3275,7 +3275,7 @@ declare namespace CRM {
 					 * @permission crmWrite
 					 * @param {number} nodeId - The id of the node of which to set the children
 					 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
-					 * @param {CrmAPIInstance~crmCallback} [callback] - A callback with the node as an argument
+					 * @param {Instance~crmCallback} [callback] - A callback with the node as an argument
 					 */
 					setChildren(nodeId: number, childrenIds: Array<number>, callback?: (node: CRM.SafeNode) => void): void,
 	
@@ -3287,7 +3287,7 @@ declare namespace CRM {
 					 * @permission crmWrite
 					 * @param {number} nodeId - The id of the node of which to push the children
 					 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
-					 * @param {CrmAPIInstance~crmCallback} [callback] - A callback with the node as an argument
+					 * @param {Instance~crmCallback} [callback] - A callback with the node as an argument
 					 */
 					push(nodeId: number, childrenIds: Array<number>, callback?: (node: CRM.SafeNode) => void): void,
 	
@@ -3526,9 +3526,11 @@ declare namespace CRM {
 type ElementMaps = HTMLElementTagNameMap & ElementTagNameMap;
 type crmAPIQuerySelector = <T extends keyof ElementMaps>(selector: T, context?: HTMLElement|Element|Document) => Array<ElementMaps[T]>;
 
-declare var crmAPI: typeof CRM.CRMAPI.CrmAPIInstance;
+type CRMAPI = typeof CRM.CRMAPI.Instance;
+
+declare var crmAPI: CRMAPI;
 
 interface Window extends CRM.CRMAPI.GM_Fns {
-	crmAPI: typeof CRM.CRMAPI.CrmAPIInstance
+	crmAPI: typeof CRMAPI
 	$?: crmAPIQuerySelector
 }
