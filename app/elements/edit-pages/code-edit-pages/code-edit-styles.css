@@ -457,3 +457,7 @@ input {
 .paper-material {
 	display: inline;
 }
+
+#editor {
+	min-height: 360px;
+}
