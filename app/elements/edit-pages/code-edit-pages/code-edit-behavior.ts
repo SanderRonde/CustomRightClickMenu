@@ -401,7 +401,7 @@ namespace CodeEditBehaviorNamespace {
 						window.doc.fullscreenEditor.style.display = 'none';					
 					}
 				});
-			}, 500);
+			}, 700);
 		};
 
 		/**
