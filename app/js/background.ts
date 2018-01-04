@@ -7007,7 +7007,7 @@ if (typeof module === 'undefined') {
 
 									const usesUnsafeWindow = (await Util.getScriptNodeScript(node)).indexOf('unsafeWindow') > -1;
 									const scripts = this._getScriptsToRun(code, args[1][4], node, usesUnsafeWindow);
-									Script._executeScripts(node.id, tab.id, scripts, usesUnsafeWindow);
+									CRM.Script._executeScripts(node.id, tab.id, scripts, usesUnsafeWindow);
 								});
 						}
 					};
