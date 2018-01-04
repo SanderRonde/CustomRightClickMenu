@@ -102,6 +102,14 @@ namespace ScriptEditElement {
 			this.$.dropdownMenu.enable();
 		};
 
+		private static _saveEditorContents(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background'|'options'|'libraries') {
+			if (this.editorMode === 'background') {
+				this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
+			} else if (this.editorMode === 'main') {
+				this.newSettings.value.script = this.editorManager.editor.getValue();
+			}
+		}
+
 		private static _changeTab(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background') {
 			if (mode !== this.editorMode) {
 				const isTs = this.item.value.ts && this.item.value.ts.enabled;
@@ -225,6 +233,7 @@ namespace ScriptEditElement {
 
 		static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<CRM.ScriptNode>) {
 			resultStorage.value.metaTags = this._getMetaTagValues() || {};
+			this._saveEditorContents(this.editorMode);
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
 			this.editorManager.destroy();

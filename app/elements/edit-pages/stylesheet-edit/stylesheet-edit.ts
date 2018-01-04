@@ -51,6 +51,7 @@ namespace StylesheetEditElement {
 		};
 
 		static saveChanges(this: NodeEditBehaviorStylesheetInstance) {
+			this.newSettings.value.stylesheet = this.editorManager.editor.getValue();
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
 			this.active = false;
