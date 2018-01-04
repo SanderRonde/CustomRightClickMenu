@@ -1355,6 +1355,7 @@ if (typeof module === 'undefined') {
 			if (this._requiredFiles.indexOf(path) > -1) {
 				return;
 			}
+			window.log('Fetching library file', path);
 			const fileContent = await this._loadFile(path);
 			eval(fileContent);
 			this._requiredFiles.push(path);
@@ -5309,10 +5310,7 @@ if (typeof module === 'undefined') {
 		};
 
 		static updateResourceValues() {
-			for (let i = 0;
-				i < globalObject.globals.storages.resourceKeys.length;
-				i++
-			) {
+			for (let i = 0; i < globalObject.globals.storages.resourceKeys.length; i++) {
 				setTimeout(this._generateUpdateCallback(globalObject.globals.storages.resourceKeys[i]), (i * 1000));
 			}
 		}
@@ -5536,6 +5534,7 @@ if (typeof module === 'undefined') {
 			scriptId: number;
 		}) {
 			return () => {
+				window.log('Attempting resource update');
 				this._compareResource(resourceKey);
 			};
 		}
@@ -6486,7 +6485,6 @@ if (typeof module === 'undefined') {
 								}
 							}
 						}
-					}
 				}
 			};
 			static readonly MetaTags = class MetaTags {
