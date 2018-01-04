@@ -1373,6 +1373,19 @@ if (typeof module === 'undefined') {
 			}
 			return this.getScriptNodeJS(script, type);
 		}
+		static async canRunOnUrl(url: string): Promise<boolean> {
+			if (!url || url.indexOf('chrome://') !== -1) {
+				return false;
+			}
+			return new Promise<boolean>((resolve) => {
+				chrome.extension.isAllowedFileSchemeAccess((allowed) => {
+					if (allowed) {
+						resolve(true);
+					}
+					resolve(url.indexOf('file://') !== -1);
+				});
+			});
+		}
 
 		private static _requiredFiles: Array<string> = [];
 		private static _loadFile(path: string): Promise<string> {
@@ -1973,10 +1986,9 @@ if (typeof module === 'undefined') {
 			}
 
 			function onTabUpdated(id: number, details: chrome.tabs.Tab) {
-				if (!details.url || details.url.indexOf('chrome://') === -1 ||
-					details.url.indexOf('file://') === -1) {
-						return;
-					}
+				if (!Util.canRunOnUrl(details.url)) {
+					return;
+				}
 				
 				globalObject.globals.toExecuteNodes.documentStart.forEach((node) => {
 					CRM.Script.Running.executeNode(node, details);
@@ -2150,13 +2162,12 @@ if (typeof module === 'undefined') {
 						await window.Promise.all(tabs.map((tab) => {
 							return Promise.race([
 								new window.Promise<void>((resolveInner) => {
-									if (tab.url.indexOf('chrome://') === -1 &&
-										tab.url.indexOf('file://') === -1) {
+									if (Util.canRunOnUrl(tab.url)) {
 										chrome.tabs.executeScript(tab.id, {
 											file: 'js/contentscript.js'
 										}, () => {
 											if (chrome.runtime.lastError) {
-												window.log('Failed to restore tab with id', tab.id);
+												window.log('Failed to restore tab with id');
 												resolveInner(null);
 											}
 											window.log('Restored tab with id', tab.id);
@@ -2169,6 +2180,8 @@ if (typeof module === 'undefined') {
 								}),
 								new window.Promise<void>((resolveInner) => {
 									window.setTimeout(() => {
+										window.log('Skipping restoration of tab with id', tab.id,
+											'Tab is frozen, most likely due to user debugging');
 										resolveInner(null);
 									}, 2500);
 								})

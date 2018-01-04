@@ -668,6 +668,12 @@ window.chrome = {
 			}
 		}
 	},
+	extension: {
+		isAllowedFileSchemeAccess: function(callback) {
+			checkOnlyCallback(callback, false);
+			callback(true);
+		}
+	},
 	tabs: {
 		get: function(id, callback) {
 			typeCheck({
