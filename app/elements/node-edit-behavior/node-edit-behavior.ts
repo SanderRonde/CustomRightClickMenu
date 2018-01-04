@@ -398,6 +398,11 @@ namespace NodeEditBehaviorNamespace {
 			if (newStates.showInsteadOfExecute !== oldStates.showInsteadOfExecute) {
 				((this.$ as any)['showOrExecutetxt'] as HTMLSpanElement).innerText = (newStates.showInsteadOfExecute ? 'Show' : 'Execute');
 			}
+			this.async(() => {
+				if (this.editorManager) {
+					this.editorManager.editor.layout();
+				}
+			}, 500);
 		};
 
 		static initDropdown(this: CodeEditBehavior) {
