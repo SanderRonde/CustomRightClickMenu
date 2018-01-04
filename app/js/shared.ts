@@ -1,3 +1,5 @@
+/// <reference path="promiseType.ts" />
+
 interface PromiseConstructor<T = {}> {
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => Promise<T>): Promise<T>;
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void): Promise<T>;
