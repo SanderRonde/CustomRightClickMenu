@@ -335,7 +335,7 @@ namespace CodeEditBehaviorNamespace {
 						marginLeft: '-200px'
 					}, {
 						duration: 500,
-						easing: ($ as CodeEditBehaviorNamespace.JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
+						easing: 'linear',
 						step: (now: number) => {
 							window.doc.fullscreenEditorEditor.style.width = `calc(100vw - 200px - ${now}px)`;
 							window.doc.fullscreenEditorEditor.style.marginLeft = `calc(${now}px + 200px)`;
@@ -352,7 +352,7 @@ namespace CodeEditBehaviorNamespace {
 					height: '0'
 				}, {
 					duration: 500,
-					easing: ($ as CodeEditBehaviorNamespace.JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
+					easing: 'linear',
 					step: (now: number) => {
 						window.doc.fullscreenEditorEditor.style.height = `calc(100vh - ${now}px)`;
 						window.doc.fullscreenEditorHorizontal.style.height = `calc(100vh - ${now}px)`;
@@ -361,7 +361,7 @@ namespace CodeEditBehaviorNamespace {
 				});
 				scriptTitle.animate(scriptTitleAnimation, {
 					duration: 500,
-					easing: 'bez'
+					easing: 'linear'
 				}).onfinish = function() {
 					scriptTitle.style.marginTop = titleRibbonSize;
 					if (scriptTitleAnimation[0]['marginLeft'] !== undefined) {
