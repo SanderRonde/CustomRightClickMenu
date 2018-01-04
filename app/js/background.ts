@@ -1119,7 +1119,7 @@ if (typeof module === 'undefined') {
 	};
 	window.logging = globalObject.globals.logging;
 
-
+	
 	class Util {
 		/**
 		 * JSONfn - javascript (both node.js and browser) plugin to stringify,
@@ -1355,8 +1355,7 @@ if (typeof module === 'undefined') {
 			if (this._requiredFiles.indexOf(path) > -1) {
 				return;
 			}
-			window.log('Fetching library file', path);
-			const fileContent = await this._loadFile(path);
+			const fileContent = await this._loadFile(path, 'Fetching library file', path);
 			eval(fileContent);
 			this._requiredFiles.push(path);
 		}
@@ -1387,11 +1386,15 @@ if (typeof module === 'undefined') {
 				});
 			});
 		}
-		static async xhr(url: string): Promise<string> {
+		static async xhr(url: string, msg?: Array<any>): Promise<string> {
 			return new Promise<string>((resolve, reject) => {
 				const xhr: XMLHttpRequest = new window.XMLHttpRequest();
 				xhr.open('GET', url);
 				xhr.onreadystatechange = () => {
+					if (xhr.readyState === window.XMLHttpRequest.LOADING) {
+						//Close to being done, send message
+						msg.length > 0 && window.log.apply(console, msg);
+					}
 					if (xhr.readyState === window.XMLHttpRequest.DONE) {
 						if (xhr.status >= 200 && xhr.status < 300) {
 							resolve(xhr.responseText);
@@ -1405,8 +1408,8 @@ if (typeof module === 'undefined') {
 		}
 
 		private static _requiredFiles: Array<string> = [];
-		private static _loadFile(path: string): Promise<string> {
-			return this.xhr(chrome.runtime.getURL(path));
+		private static _loadFile(path: string, ...msg: Array<any>): Promise<string> {
+			return this.xhr(chrome.runtime.getURL(path), msg);
 		}
 		private static _compareObj(firstObj: {
 			[key: string]: any;
@@ -2172,24 +2175,21 @@ if (typeof module === 'undefined') {
 					} else {
 						await window.Promise.all(tabs.map((tab) => {
 							return Promise.race([
-								new window.Promise<void>((resolveInner) => {
+								new window.Promise<RestoreTabStatus>((resolveInner) => {
 									if (Util.canRunOnUrl(tab.url)) {
 										chrome.tabs.executeScript(tab.id, {
 											file: 'js/contentscript.js'
 										}, () => {
 											if (chrome.runtime.lastError) {
-												window.log('Failed to restore tab with id');
-												resolveInner(null);
+												resolveInner(RestoreTabStatus.UNKNOWN_ERROR);
 											}
-											window.log('Restored tab with id', tab.id);
-											resolveInner(null);
+											resolveInner(RestoreTabStatus.SUCCESS);
 										});
 									} else {
-										window.log('Ignoring tab with id', tab.id, '(chrome or file url)');
-										resolveInner(null);
+										resolveInner(RestoreTabStatus.IGNORED);
 									}
 								}),
-								new window.Promise<void>((resolveInner) => {
+								new window.Promise<RestoreTabStatus>((resolveInner) => {
 									window.setTimeout(() => {
 										resolveInner(RestoreTabStatus.FROZEN);
 									}, 2500);
