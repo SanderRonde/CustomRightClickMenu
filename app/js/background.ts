@@ -5995,11 +5995,6 @@ if (typeof module === 'undefined') {
 						globalObject.globals.storages.settingsStorage.crm.push(node);
 					}
 				}
-				private static _getURL(url: string): HTMLAnchorElement {
-					const anchor = document.createElement('a');
-					anchor.href = url;
-					return anchor;
-				}
 				private static _updateCRMNode(node: CRM.Node, allowedPermissions: Array<CRM.Permission>, downloadURL: string,
 					oldNodeId?: number): {
 						node: any,
