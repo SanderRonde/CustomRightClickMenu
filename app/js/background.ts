@@ -1359,15 +1359,18 @@ if (typeof module === 'undefined') {
 			eval(fileContent);
 			this._requiredFiles.push(path);
 		}
+		static getScriptNodeJS(script: CRM.ScriptNode|CRM.SafeScriptNode, type: 'background'|'script' = 'script'): string {
+			return type === 'background' ?
+				script.value.backgroundScript :
+				script.value.script;
+		}
 		static getScriptNodeScript(script: CRM.ScriptNode|CRM.SafeScriptNode, type: 'background'|'script' = 'script'): string {
 			if (script.value.ts && script.value.ts.enabled) {
 				return type === 'background' ?
 					script.value.ts.backgroundScript.compiled :
 					script.value.ts.script.compiled;
 			}
-			return type === 'background' ?
-				script.value.backgroundScript :
-				script.value.script;
+			return this.getScriptNodeJS(script, type);
 		}
 
 		private static _requiredFiles: Array<string> = [];
@@ -7740,7 +7743,7 @@ if (typeof module === 'undefined') {
 			static async compileNode(node: CRM.ScriptNode) {
 				if (node.value.ts && node.value.ts.enabled) {
 					node.value.ts.script = await this._compileChangedScript(node.value.script, node.value.ts.script);
-					node.value.ts.backgroundScript = await this._compileChangedScript(Util.getScriptNodeScript(node, 'background'),
+					node.value.ts.backgroundScript = await this._compileChangedScript(Util.getScriptNodeJS(node, 'background'),
 					node.value.ts.backgroundScript);
 				}
 			}
@@ -7787,7 +7790,7 @@ if (typeof module === 'undefined') {
 				};
 				return Promise.resolve(() => {
 					const ts = window.module.exports;
-					window.ts = ts;
+					window.ts = window.ts || ts;
 					window.module = undefined;
 				});
 			}
@@ -7796,26 +7799,13 @@ if (typeof module === 'undefined') {
 					await window.withAsync(this._captureTSDef, async () => {
 						await Util.execFile('js/libraries/typescript.js');
 					});
-					const sourceFile = window.ts.createSourceFile('file.ts', script, window.ts.ScriptTarget.ES3);
-					window.ts.createProgram([sourceFile], {
+					resolve(window.ts.transpile(script, {
 						module: window.ts.ModuleKind.None,
 						target: window.ts.ScriptTarget.ES3,
 						noLib: true,
 						noResolve: true,
 						suppressOutputPathCheck: true
-					}, {
-						getSourceFile: function (fileName) { return fileName.indexOf("module") === 0 ? sourceFile : undefined; },
-						writeFile: function (_name, text) { resolve(text); },
-						getDefaultLibFileName: function () { return "lib.d.ts"; },
-						useCaseSensitiveFileNames: function () { return false; },
-						getCanonicalFileName: function (fileName) { return fileName; },
-						getCurrentDirectory: function () { return ""; },
-						getNewLine: function () { return "\r\n"; },
-						fileExists: function (fileName) { return fileName === 'file.ts'; },
-						readFile: function () { return ""; },
-						directoryExists: function () { return true; },
-						getDirectories: function () { return []; }
-					})
+					}));
 				});
 			}
 		}
