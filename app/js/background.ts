@@ -6436,64 +6436,6 @@ if (typeof module === 'undefined') {
 						path?: Array<number>;
 						oldNodeId?: number;
 					}>) {
-					if (this._getURL(downloadURL).hostname === undefined &&
-						(node.type === 'script' ||
-							node.type === 'stylesheet' ||
-							node.type === 'menu')) {
-						try {
-							Util.convertFileToDataURI(
-								`example.com/isUpdated/${downloadURL.split('/').pop()
-									.split('.user.js')[0]}/${node.nodeInfo.version}`,
-								(dataURI, dataString) => {
-									try {
-										const resultParsed = JSON.parse(dataString);
-										if (resultParsed.updated) {
-											if (!Util.compareArray(node.nodeInfo.permissions, resultParsed
-												.metaTags
-												.grant) &&
-												!(resultParsed.metaTags.grant.length === 0 &&
-													resultParsed.metaTags.grant[0] === 'none')) {
-												//New permissions were added, notify user
-												chrome.storage.local.get('addedPermissions', (data) => {
-													const addedPermissions = data['addedPermissions'] || [];
-													addedPermissions.push({
-														node: node.id,
-														permissions: resultParsed.metaTags.grant
-															.filter((newPermission: CRM.Permission) => {
-																return node.nodeInfo.permissions
-																	.indexOf(newPermission) === -1;
-															})
-													});
-													chrome.storage.local.set({
-														addedPermissions: addedPermissions
-													});
-													chrome.runtime.openOptionsPage();
-												});
-											}
-
-											updatedScripts.push(this._updateCRMNode(resultParsed.node,
-												node.nodeInfo.permissions as Array<CRM.Permission>,
-												downloadURL, node.id));
-										}
-										checking[checkingId] = false;
-										if (checking.filter((c) => { return c; }).length === 0) {
-											onDone();
-										}
-									} catch (err) {
-										window.log('Tried to update script ', node.id, ' ', node.name,
-											' but could not reach download URL');
-									}
-								}, () => {
-									checking[checkingId] = false;
-									if (checking.filter((c) => { return c; }).length === 0) {
-										onDone();
-									}
-								});
-						} catch (e) {
-							window.log('Tried to update script ', node.id, ' ', node.name,
-								' but could not reach download URL');
-						}
-					} else {
 						if (node.type === 'script' || node.type === 'stylesheet') {
 							//Do a request to get that script from its download URL
 							if (downloadURL && Util.endsWith(downloadURL, '.user.js')) {
