@@ -1440,6 +1440,13 @@ if (typeof module === 'undefined') {
 		}
 	}
 
+	const enum RestoreTabStatus {
+		SUCCESS = 0,
+		UNKNOWN_ERROR = 1,
+		IGNORED = 2,
+		FROZEN = 3
+	}
+
 	class GlobalDeclarations {
 		static initGlobalFunctions() {
 			window.getID = (name: string) => {
@@ -2184,12 +2191,26 @@ if (typeof module === 'undefined') {
 								}),
 								new window.Promise<void>((resolveInner) => {
 									window.setTimeout(() => {
-										window.log('Skipping restoration of tab with id', tab.id,
-											'Tab is frozen, most likely due to user debugging');
-										resolveInner(null);
+										resolveInner(RestoreTabStatus.FROZEN);
 									}, 2500);
 								})
-							]);
+							]).then((state) => {
+								switch (state) {
+									case RestoreTabStatus.SUCCESS:
+										window.log('Restored tab with id', tab.id);
+										break;
+									case RestoreTabStatus.UNKNOWN_ERROR:
+										window.log('Failed to restore tab with id', tab.id);
+										break;
+									case RestoreTabStatus.IGNORED:
+										window.log('Ignoring tab with id', tab.id, '(chrome or file url)');
+										break;
+									case RestoreTabStatus.FROZEN:
+										window.log('Skipping restoration of tab with id', tab.id,
+											'Tab is frozen, most likely due to user debugging');
+										break;
+								}
+							});
 						}));
 						resolve(null);
 					}
