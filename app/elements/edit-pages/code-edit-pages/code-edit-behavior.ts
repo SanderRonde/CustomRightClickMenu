@@ -398,6 +398,7 @@ namespace CodeEditBehaviorNamespace {
 						editorCont.style.width = '0';
 						editorCont.style.height = '0';
 						this.fullscreenEditorManager.destroy();
+						this.editorManager.claimScope();
 						window.doc.fullscreenEditor.style.display = 'none';					
 					}
 				});

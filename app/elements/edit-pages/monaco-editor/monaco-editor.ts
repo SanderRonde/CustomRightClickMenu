@@ -1737,6 +1737,18 @@ namespace MonacoEditorElement {
 			this._children.splice(this._children.indexOf(child), 1);
 		}
 
+		private static setNewModels(this: MonacoEditor, models: Array<monaco.editor.IModel>) {
+			const editor = this.editor;
+			if (this.isDiff(editor)) {
+				editor.setModel({
+					original: models[0],
+					modified: models[1]
+				});
+			} else {
+				editor.setModel(models[0]);
+			}
+		}
+		
 		static setTypescript(this: MonacoEditor, enabled: boolean) {
 			if (this._isTypescript === enabled) {
 				return;
@@ -1749,7 +1761,6 @@ namespace MonacoEditorElement {
 
 			const currentModelId = this.getCurrentModelId();
 			const currentModel = this.getCurrentModel();
-			const editor = this.editor;
 			const lang = enabled ? 'typescript' : 'javascript';
 			const oldModels = currentModel.models;
 			currentModel.handlers.forEach((handler) => {
@@ -1759,13 +1770,13 @@ namespace MonacoEditorElement {
 			const newModels = oldModels.map((oldModel) => {
 				return monaco.editor.createModel(oldModel.getValue(), lang);
 			});
-			if (this.isDiff(editor)) {
-				editor.setModel({
-					original: newModels[0],
-					modified: newModels[1]
-				});
+			if (MonacoEditorHookManager.hasScope(this)) {
+				this.setNewModels(newModels);
 			} else {
-				editor.setModel(newModels[0]);
+				this.setNewModels([MonacoEditorHookManager.getNullModel()]);
+				MonacoEditorHookManager.onHasScope(this, () => {
+					this.setNewModels(newModels);
+				});	
 			}
 
 			oldModels.forEach((oldModel) => oldModel.dispose());
@@ -1943,6 +1954,10 @@ namespace MonacoEditorElement {
 			return (this._stylesheet = el);
 		}
 
+		static claimScope(this: MonacoEditor) {
+			MonacoEditorHookManager.setScope(this);
+		}
+
 		static ready(this: MonacoEditor) {
 			this._showSpinner();
 			this._models = {};
@@ -1966,6 +1981,19 @@ namespace MonacoEditorElement {
 		 * The scope that the current editor is active in
 		 */
 		static currentScope: MonacoEditor = null;
+
+		/**
+		 * Listeners for a changing scope
+		 */
+		private static _scopeListeners: Array<{
+			scope: MonacoEditor;
+			listener: () => void;
+		}> = [];
+
+		/**
+		 * An empty model used as a transition model
+		 */
+		private static _nullModel: monaco.editor.IModel = null;
 
 		/**
 		 * Any registered scopes
@@ -2077,6 +2105,28 @@ namespace MonacoEditorElement {
 					this.currentScope = scope;
 				});
 			}, 500);
+			this._scopeListeners = this._scopeListeners.filter(({scope: listenerScope, listener}) => {
+				if (listenerScope === scope) {
+					listener();
+					return false;
+				}
+				return true;
+			});
+		}
+		
+		static hasScope(scope: MonacoEditor) {
+			return this.currentScope === scope;
+		}
+
+		static onHasScope(scope: MonacoEditor, listener: () => void) {
+			if (scope === this.currentScope) {
+				listener();
+				return;
+			}
+			this._scopeListeners.push({
+				scope,
+				listener
+			});
 		}
 
 		static registerScope(scope: MonacoEditor, editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor) {
@@ -2266,6 +2316,14 @@ namespace MonacoEditorElement {
 			}
 		}
 
+		private static _createNullModel() {
+			this._nullModel = monaco.editor.createModel('');
+		}
+
+		static getNullModel() {
+			return this._nullModel;
+		}
+
 		static setup() {
 			if (this._setup) {
 				return;
@@ -2277,6 +2335,7 @@ namespace MonacoEditorElement {
 				window.onExists('monaco').then(() => {
 					MonacoEditorJSONOptionsMods.enableSchema();
 					this._defineProperties();
+					this._createNullModel();
 					this._setupCRMDefs();
 					resolve(null);
 				});
