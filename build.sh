@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-http-server -p 1234 . -s &
+http-server -p 1250 . -s &
 
 npm install -g typescript@latest
 

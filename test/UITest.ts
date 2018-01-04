@@ -91,7 +91,7 @@ const btoa = require('btoa');
 const assert = chai.assert;
 
 let driver: webdriver.WebDriver;
-const PORT = 1234;
+const PORT = 1250;
 
 let capabilities: {
 	browserName: string;
