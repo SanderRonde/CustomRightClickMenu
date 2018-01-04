@@ -819,7 +819,8 @@ if (typeof module === 'undefined') {
 						.replace(/REPLACE.name/g, name)
 						.replace(/REPLACE.chromeVal/g, chromeVal)
 						.replace(/REPLACE.crmAPI/g, 'crmAPI')
-						.replace(/REPLACEWrapperName = /g, wrapperName + '=')})()`;
+						.replace(/REPLACEWrapperName = /g, wrapperName + '=')
+						.replace(/REPLACEWrapperName/g, wrapperName)})()`;
 				}
 			},
 			specialJSON: {
