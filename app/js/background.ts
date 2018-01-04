@@ -5994,56 +5994,6 @@ if (typeof module === 'undefined') {
 						globalObject.globals.storages.settingsStorage.crm.push(node);
 					}
 				}
-				private static _updateCRMNode(node: CRM.Node, allowedPermissions: Array<CRM.Permission>, downloadURL: string,
-					oldNodeId?: number): {
-						node: any,
-						path: Array<number>,
-						oldNodeId: number;
-					} | {
-						node: any;
-					} {
-					let hasOldNode = false;
-					if (oldNodeId !== undefined && oldNodeId !== null) {
-						hasOldNode = true;
-					}
-
-					const templates = globalObject.globals.constants.templates;
-					switch (node.type) {
-						case 'script':
-							node = templates.getDefaultScriptNode(node);
-							break;
-						case 'stylesheet':
-							node = templates.getDefaultStylesheetNode(node);
-							break;
-						case 'menu':
-							node = templates.getDefaultMenuNode(node);
-							break;
-						case 'divider':
-							node = templates.getDefaultDividerNode(node);
-							break;
-						case 'link':
-							node = templates.getDefaultLinkNode(node);
-							break;
-					}
-
-					(node.nodeInfo.source as CRM.NodeInfoSource).downloadURL = downloadURL;
-					node.nodeInfo.lastUpdatedAt = Date.now();
-					node.permissions = allowedPermissions
-					node.isLocal = false;
-
-					if (hasOldNode) {
-						const path = globalObject.globals.crm.crmById[oldNodeId].path;
-						return {
-							node: node,
-							path: path,
-							oldNodeId: oldNodeId
-						};
-					} else {
-						return {
-							node: node
-						};
-					}
-				}
 				private static _deduceLaunchmode(metaTags: {
 					[key: string]: any;
 				}, triggers: CRM.Triggers): number {
