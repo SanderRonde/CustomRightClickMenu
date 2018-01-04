@@ -1242,35 +1242,35 @@ if (typeof module === 'undefined') {
 		static convertFileToDataURI(url: string, callback: (dataURI: string,
 			dataString: string) => void,
 			onError?: () => void) {
-			const xhr: XMLHttpRequest = new window.XMLHttpRequest();
-			xhr.responseType = 'blob';
-			xhr.onload = () => {
-				const readerResults: [string, string] = [null, null];
+				const xhr: XMLHttpRequest = new window.XMLHttpRequest();
+				xhr.responseType = 'blob';
+				xhr.onload = () => {
+					const readerResults: [string, string] = [null, null];
 
-				const blobReader = new FileReader();
-				blobReader.onloadend = () => {
-					readerResults[0] = blobReader.result;
-					if (readerResults[1]) {
-						callback(readerResults[0], readerResults[1]);
-					}
-				};
-				blobReader.readAsDataURL(xhr.response);
+					const blobReader = new FileReader();
+					blobReader.onloadend = () => {
+						readerResults[0] = blobReader.result;
+						if (readerResults[1]) {
+							callback(readerResults[0], readerResults[1]);
+						}
+					};
+					blobReader.readAsDataURL(xhr.response);
 
-				const textReader = new FileReader();
-				textReader.onloadend = () => {
-					readerResults[1] = textReader.result;
-					if (readerResults[0]) {
-						callback(readerResults[0], readerResults[1]);
-					}
+					const textReader = new FileReader();
+					textReader.onloadend = () => {
+						readerResults[1] = textReader.result;
+						if (readerResults[0]) {
+							callback(readerResults[0], readerResults[1]);
+						}
+					};
+					textReader.readAsText(xhr.response);
 				};
-				textReader.readAsText(xhr.response);
-			};
-			if (onError) {
-				xhr.onerror = onError;
+				if (onError) {
+					xhr.onerror = onError;
+				}
+				xhr.open('GET', url);
+				xhr.send();
 			}
-			xhr.open('GET', url);
-			xhr.send();
-		}
 		static isNewer(newVersion: string, oldVersion: string): boolean {
 			const newSplit = newVersion.split('.');
 			const oldSplit = oldVersion.split('.');
@@ -1386,23 +1386,26 @@ if (typeof module === 'undefined') {
 				});
 			});
 		}
-
-		private static _requiredFiles: Array<string> = [];
-		private static _loadFile(path: string): Promise<string> {
+		static async xhr(url: string): Promise<string> {
 			return new Promise<string>((resolve, reject) => {
 				const xhr: XMLHttpRequest = new window.XMLHttpRequest();
-				xhr.open('GET', chrome.runtime.getURL(path));
+				xhr.open('GET', url);
 				xhr.onreadystatechange = () => {
 					if (xhr.readyState === window.XMLHttpRequest.DONE) {
 						if (xhr.status >= 200 && xhr.status < 300) {
 							resolve(xhr.responseText);
 						} else {
-							reject('Failed to load file');
+							reject(xhr.status);
 						}
 					}
 				}
 				xhr.send();
 			});
+		}
+
+		private static _requiredFiles: Array<string> = [];
+		private static _loadFile(path: string): Promise<string> {
+			return this.xhr(chrome.runtime.getURL(path));
 		}
 		private static _compareObj(firstObj: {
 			[key: string]: any;
@@ -3481,15 +3484,25 @@ if (typeof module === 'undefined') {
 						if (msg['url'].indexOf('.js') ===
 							msg['url'].length - 3) {
 							//Use URL
-							let done = false;
-							const xhr: XMLHttpRequest = new window.XMLHttpRequest();
-							xhr.open('GET', msg['url'], true);
-							xhr.onreadystatechange = async () => {
-								if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 300) {
-									done = true;
+							Promise.race([new Promise<string|number>((resolve) => {
+								Util.xhr(msg['url']).then((content) => {
+									resolve(content);
+								}, (status) => {
+									resolve(status);
+								})
+							}), new Promise<string|number>((resolve) => {
+								setTimeout(() => {
+									resolve(null);
+								}, 5000);	
+							})]).then(async (res) => {
+								if (res === null) {
+									__this.respondError('Request timed out');
+								} else if (typeof res === 'number') {
+									__this.respondError(`Request failed with status code ${res}`);
+								} else {
 									newLibrary = {
 										name: msg['name'],
-										code: xhr.responseText,
+										code: res,
 										url: msg['url'],
 										ts: {
 											enabled: !!msg['ts'],
@@ -3503,13 +3516,7 @@ if (typeof module === 'undefined') {
 									});
 									__this.respondSuccess(newLibrary);
 								}
-							};
-							setTimeout(() => {
-								if (!done) {
-									__this.respondError('Request timed out');
-								}
-							}, 5000);
-							xhr.send();
+							});
 						} else {
 							__this.respondError('No valid URL given');
 							return false;
