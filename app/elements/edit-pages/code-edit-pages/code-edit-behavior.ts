@@ -347,7 +347,7 @@ namespace CodeEditBehaviorNamespace {
 				}
 			}, 200);
 			setTimeout(() => {
-				window.doc.dummy.style.height = '0';
+				window.doc.dummy.style.height = '50px';
 				$(window.doc.dummy).animate({
 					height: '0'
 				}, {
