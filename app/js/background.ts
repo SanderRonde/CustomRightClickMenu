@@ -1119,7 +1119,7 @@ if (typeof module === 'undefined') {
 	};
 	window.logging = globalObject.globals.logging;
 
-	
+
 	class Util {
 		/**
 		 * JSONfn - javascript (both node.js and browser) plugin to stringify,
@@ -7743,7 +7743,7 @@ if (typeof module === 'undefined') {
 					exports: {}
 				};
 				return Promise.resolve(() => {
-					const ts = window.module.exports;
+					const ts = window.module && window.module.exports;
 					window.ts = window.ts || ts;
 					window.module = undefined;
 				});
