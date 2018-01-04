@@ -95,6 +95,11 @@ namespace CRMAppElement {
 				[key: string]: string;
 			}>;
 			animation: Animation;
+			options: {
+				duration?: number;
+				easing?: string;
+				fill?: 'forwards'|'backwards'|'both';
+			}
 		}
 
 		const usedAnimations: Array<[HTMLElement, UsedAnimation]> = [];
@@ -168,6 +173,30 @@ namespace CRMAppElement {
 			}
 		}
 
+		function areTimingsEqual(reusedOptions: {
+			duration?: number;
+			easing?: string|'bez';
+			fill?: 'forwards'|'backwards'|'both';
+		}, newOptions: {
+			duration?: number;
+			easing?: string|'bez';
+			fill?: 'forwards'|'backwards'|'both';
+		}): boolean {
+			const {
+				duration: reusedDuration,
+				easing: reusedEasing,
+				fill: reusedFill
+			} = reusedOptions;
+			const {
+				duration: newDuration,
+				easing: newEasing,
+				fill: newFill
+			} = newOptions;
+			return reusedDuration === newDuration &&
+				reusedEasing === newEasing &&
+				reusedFill === newFill;
+		}
+
 		function attemptReUse(element: HTMLElement, properties:  Array<{
 			[key: string]: any;
 		}>, options: {
@@ -177,8 +206,9 @@ namespace CRMAppElement {
 		}) {
 			for (let [animationElement, animation] of usedAnimations) {
 				if (animationElement === element) {
-					const {equal, reverse} = areConfigsEqual(animation.properties, properties);
-					if (!equal) {
+					const { equal, reverse } = areConfigsEqual(animation.properties, properties);
+					const timingsEqual = areTimingsEqual(animation.options, options);
+					if (!equal || !timingsEqual) {
 						break;
 					}
 
@@ -205,7 +235,8 @@ namespace CRMAppElement {
 			const animation = animateImpl.apply(element, [properties, options]);
 			usedAnimations.push([element, {
 				animation, element, properties,
-				state: 'completed'
+				state: 'completed',
+				options: options
 			}]);
 			return animation;
 		}
