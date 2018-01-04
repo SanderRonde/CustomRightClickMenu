@@ -9784,13 +9784,30 @@ if (typeof module === 'undefined') {
 		}
 
 		private static _changeCRMValuesIfSettingsChanged(changes: Array<StorageChange>) {
+			const updated: {
+				crm: boolean;
+				id: boolean;
+				rootName: boolean;
+			} = {
+				crm: false,
+				id: false,
+				rootName: false
+			};
 			for (let i = 0; i < changes.length; i++) {
 				if (changes[i].key === 'crm' || changes[i].key === 'showOptions') {
+					if (updated.crm) {
+						return;
+					}
+					updated.crm = true;
 					CRM.updateCRMValues();
 					Storages.checkBackgroundPagesForChange(changes);
 					CRM.buildPageCRM();
 					MessageHandling.signalNewCRM();
 				} else if (changes[i].key === 'latestId') {
+					if (updated.id) {
+						return;
+					}
+					updated.id = true;
 					const change = changes[i] as StorageSyncChange<'latestId'>;
 					globalObject.globals.latestId = change.newValue;
 					chrome.runtime.sendMessage({
@@ -9798,6 +9815,10 @@ if (typeof module === 'undefined') {
 						latestId: change.newValue
 					});
 				} else if (changes[i].key === 'rootName') {
+					if (updated.rootName) {
+						return;
+					}
+					updated.rootName = true;
 					const rootNameChange = changes[i] as StorageSyncChange<'rootName'>;
 					chrome.contextMenus.update(globalObject.globals.crmValues.rootId, {
 						title: rootNameChange.newValue
