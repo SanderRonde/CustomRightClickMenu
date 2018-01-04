@@ -204,6 +204,9 @@ interface Window {
 	ts: Typescript & typeof ts;
 	TernFile: Tern.File;
 	tern: Tern.Tern;
+	module?: {
+		exports?: any;
+	}
 
 	log: typeof console.log;
 	testLog?: typeof console.log;
@@ -7778,9 +7781,21 @@ if (typeof module === 'undefined') {
 					}
 					return compilationData;
 				}
+			private static _captureTSDef() {
+				window.module = {
+					exports: {}
+				};
+				return Promise.resolve(() => {
+					const ts = window.module.exports;
+					window.ts = ts;
+					window.module = undefined;
+				});
+			}
 			private static async _compileScript(script: string): Promise<string> {
 				return new window.Promise<string>(async (resolve) => {
-					await Util.execFile('js/libraries/typescript.js');
+					await window.withAsync(this._captureTSDef, async () => {
+						await Util.execFile('js/libraries/typescript.js');
+					});
 					const sourceFile = window.ts.createSourceFile('file.ts', script, window.ts.ScriptTarget.ES3);
 					window.ts.createProgram([sourceFile], {
 						module: window.ts.ModuleKind.None,
