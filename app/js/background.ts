@@ -10181,10 +10181,10 @@ if (typeof module === 'undefined') {
 						port.onMessage.addListener(window.createHandlerFunction(port));
 					});
 					chrome.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
-					window.log('Compiling typescript');
-					await CRM.TS.compileAllInTree();
 					window.log('Building Custom Right-Click Menu');
 					await CRM.buildPageCRM();
+					window.log('Compiling typescript');
+					await CRM.TS.compileAllInTree();
 					window.console.groupCollapsed('Restoring previous open tabs');
 					await GlobalDeclarations.restoreOpenTabs();
 					window.console.groupEnd();
