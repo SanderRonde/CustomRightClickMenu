@@ -1364,8 +1364,9 @@ if (typeof module === 'undefined') {
 				script.value.backgroundScript :
 				script.value.script;
 		}
-		static getScriptNodeScript(script: CRM.ScriptNode|CRM.SafeScriptNode, type: 'background'|'script' = 'script'): string {
+		static async getScriptNodeScript(script: CRM.ScriptNode|CRM.SafeScriptNode, type: 'background'|'script' = 'script'): Promise<string> {
 			if (script.value.ts && script.value.ts.enabled) {
+				await CRM.TS.compileNode(script);
 				return type === 'background' ?
 					script.value.ts.backgroundScript.compiled :
 					script.value.ts.script.compiled;
@@ -2824,8 +2825,9 @@ if (typeof module === 'undefined') {
 					}
 
 					if ((newNode = __this.moveNode(newNode, __this.message.data.options.position) as CRM.Node)) {
-						CRM.updateCrm([newNode.id]);
-						__this.respondSuccess(__this.getNodeFromId(newNode.id, true, true));
+						CRM.updateCrm([newNode.id]).then(() => {
+							__this.respondSuccess(__this.getNodeFromId(newNode.id, true, true));
+						});
 					} else {
 						__this.respondError('Failed to place node');
 					}
@@ -2861,8 +2863,9 @@ if (typeof module === 'undefined') {
 						}
 						if ((newNode = __this.moveNode(newNode, __this.message.data.options
 							.position))) {
-							CRM.updateCrm([newNode.id]);
-							__this.respondSuccess(__this.getNodeFromId(newNode.id, true, true));
+							CRM.updateCrm([newNode.id]).then(() => {
+								__this.respondSuccess(__this.getNodeFromId(newNode.id, true, true));
+							});
 						}
 						return true;
 					});
@@ -2884,8 +2887,9 @@ if (typeof module === 'undefined') {
 							children: parentChildren,
 							index: node.path[node.path.length - 1]
 						}) as CRM.Node)) {
-						CRM.updateCrm();
-						__this.respondSuccess(__this.getNodeFromId(node.id, true, true));
+						CRM.updateCrm().then(() => {
+							__this.respondSuccess(__this.getNodeFromId(node.id, true, true));
+						});
 					}
 				});
 			});
@@ -2900,12 +2904,14 @@ if (typeof module === 'undefined') {
 						undefined) {
 						chrome.contextMenus.remove(globalObject.globals.crmValues
 							.contextMenuIds[node.id], () => {
-								CRM.updateCrm([__this.message.data.nodeId]);
-								__this.respondSuccess(true);
+								CRM.updateCrm([__this.message.data.nodeId]).then(() => {
+									__this.respondSuccess(true);
+								});
 							});
 					} else {
-						CRM.updateCrm([__this.message.data.nodeId]);
-						__this.respondSuccess(true);
+						CRM.updateCrm([__this.message.data.nodeId]).then(() => {
+							__this.respondSuccess(true);
+						});
 					}
 				});
 			});
@@ -2963,8 +2969,9 @@ if (typeof module === 'undefined') {
 						if (optionals['options.name']) {
 							node.name = __this.message.data.options.name;
 						}
-						CRM.updateCrm([__this.message.id]);
-						__this.respondSuccess(Util.safe(node));
+						CRM.updateCrm([__this.message.id]).then(() => {
+							__this.respondSuccess(Util.safe(node));
+						});
 						return true;
 					});
 				});
@@ -2991,7 +2998,7 @@ if (typeof module === 'undefined') {
 						]
 					}
 				], () => {
-					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+					__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 						const msg = __this.message.data as CRMFunctionDataBase & {
 							triggers: Array<{
 								url: string;
@@ -3000,7 +3007,7 @@ if (typeof module === 'undefined') {
 						};
 						const triggers = msg['triggers'];
 						node['showOnSpecified'] = true;
-						CRM.updateCrm();
+						await CRM.updateCrm();
 						const matchPatterns: Array<string> = [];
 						globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
 						if ((node.type === 'script' || node.type === 'stylesheet') &&
@@ -3042,12 +3049,14 @@ if (typeof module === 'undefined') {
 								.contextMenuIds[node.id], {
 									documentUrlPatterns: matchPatterns
 								}, () => {
-									CRM.updateCrm();
-									__this.respondSuccess(Util.safe(node));
+									CRM.updateCrm().then(() => {
+										__this.respondSuccess(Util.safe(node));
+									});
 								});
 						} else {
-							CRM.updateCrm();
-							__this.respondSuccess(Util.safe(node));
+							CRM.updateCrm().then(() => {
+								__this.respondSuccess(Util.safe(node));
+							});
 						}
 					});
 				});
@@ -3078,23 +3087,25 @@ if (typeof module === 'undefined') {
 						useTriggers: boolean;
 					};
 
-					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+					__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 						if (node.type === 'menu' ||
 							node.type === 'link' ||
 							node.type === 'divider') {
 							node['showOnSpecified'] = msg['useTriggers'];
-							CRM.updateCrm();
+							await CRM.updateCrm();
 							if (globalObject.globals.crmValues.contextMenuIds[node.id]) {
 								chrome.contextMenus.update(globalObject.globals.crmValues
 									.contextMenuIds[node.id], {
 										documentUrlPatterns: ['<all_urls>']
 									}, () => {
-										CRM.updateCrm();
-										__this.respondSuccess(Util.safe(node));
+										CRM.updateCrm().then(() => {
+											__this.respondSuccess(Util.safe(node));
+										});
 									});
 							} else {
-								CRM.updateCrm();
-								__this.respondSuccess(Util.safe(node));
+								CRM.updateCrm().then(() => {
+									__this.respondSuccess(Util.safe(node));
+								});
 							}
 						} else {
 							__this.respondError('Node is not of right type, can only be menu, link or divider');
@@ -3128,15 +3139,16 @@ if (typeof module === 'undefined') {
 						value: boolean;
 					};
 
-					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+					__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 						node.onContentTypes[msg['index']] = msg['value'];
-						CRM.updateCrm();
+						await CRM.updateCrm();
 						chrome.contextMenus.update(globalObject.globals.crmValues
 							.contextMenuIds[node.id], {
 								contexts: CRM.getContexts(node.onContentTypes)
 							}, () => {
-								CRM.updateCrm();
-								__this.respondSuccess(node.onContentTypes);
+								CRM.updateCrm().then(() => {
+									__this.respondSuccess(node.onContentTypes);
+								});
 							});
 					});
 				});
@@ -3188,8 +3200,9 @@ if (typeof module === 'undefined') {
 							.contextMenuIds[node.id], {
 								contexts: CRM.getContexts(node.onContentTypes)
 							}, () => {
-								CRM.updateCrm();
-								__this.respondSuccess(Util.safe(node));
+								CRM.updateCrm().then(() => {
+									__this.respondSuccess(Util.safe(node));
+								});
 							});
 						return true;
 					});
@@ -3265,12 +3278,13 @@ if (typeof module === 'undefined') {
 								node.linkVal = [items];
 							}
 						}
-						CRM.updateCrm();
-						if (node.type === 'link') {
-							__this.respondSuccess(Util.safe(node).value);
-						} else {
-							__this.respondSuccess(Util.safe(node)['linkVal']);
-						}
+						CRM.updateCrm().then(() => {
+							if (node.type === 'link') {
+								__this.respondSuccess(Util.safe(node).value);
+							} else {
+								__this.respondSuccess(Util.safe(node)['linkVal']);
+							}
+						});
 						return true;
 					});
 				});
@@ -3333,12 +3347,13 @@ if (typeof module === 'undefined') {
 								node.linkVal.push(items);
 							}
 						}
-						CRM.updateCrm();
-						if (node.type === 'link') {
-							__this.respondSuccess(Util.safe(node).value);
-						} else {
-							__this.respondSuccess(Util.safe(node)['linkVal']);
-						}
+						CRM.updateCrm().then(() => {
+							if (node.type === 'link') {
+								__this.respondSuccess(Util.safe(node).value);
+							} else {
+								__this.respondSuccess(Util.safe(node)['linkVal']);
+							}
+						});
 						return true;
 					});
 				});
@@ -3361,17 +3376,19 @@ if (typeof module === 'undefined') {
 							amount: number;
 						};
 
-						let spliced;
+						let spliced: Array<CRM.LinkNodeLink>;
 						if (node.type === 'link') {
 							spliced = node.value.splice(msg['start'], msg['amount']);
-							CRM.updateCrm();
-							__this.respondSuccess(spliced, Util.safe(node).value);
+							CRM.updateCrm().then(() => {
+								__this.respondSuccess(spliced, Util.safe(node).value);
+							});
 						} else {
 							node.linkVal = node.linkVal || [];
 							spliced = node.linkVal.splice(msg['start'],
 								msg['amount']);
-							CRM.updateCrm();
-							__this.respondSuccess(spliced, Util.safe(node)['linkVal']);
+							CRM.updateCrm().then(() => {
+								__this.respondSuccess(spliced, Util.safe(node)['linkVal']);
+							});
 						}
 					}
 					);
@@ -3400,8 +3417,9 @@ if (typeof module === 'undefined') {
 							__this.respondError('Node is not of type script or stylesheet');
 							return false;
 						}
-						CRM.updateCrm();
-						__this.respondSuccess(Util.safe(node));
+						CRM.updateCrm().then(() => {
+							__this.respondSuccess(Util.safe(node));
+						});
 						return true;
 					});
 				});
@@ -3576,8 +3594,9 @@ if (typeof module === 'undefined') {
 								node.value.libraries.push(libraries);
 							}
 						}
-						CRM.updateCrm();
-						__this.respondSuccess(Util.safe(node).value.libraries);
+						CRM.updateCrm().then(() => {
+							__this.respondSuccess(Util.safe(node).value.libraries);
+						});
 						return true;
 					});
 				});
@@ -3600,11 +3619,12 @@ if (typeof module === 'undefined') {
 							amount: number;
 						};
 
-						let spliced;
+						let spliced: Array<CRM.Library>;
 						if (node.type === 'script') {
 							spliced = Util.safe(node).value.libraries.splice(msg['start'], msg['amount']);
-							CRM.updateCrm();
-							__this.respondSuccess(spliced, Util.safe(node).value.libraries);
+							CRM.updateCrm().then(() => {
+								__this.respondSuccess(spliced, Util.safe(node).value.libraries);
+							});
 						} else {
 							__this.respondError('Node is not of type script');
 						}
@@ -3686,8 +3706,9 @@ if (typeof module === 'undefined') {
 								node.value.backgroundLibraries.push(msg['libraries'] as CRM.Library);
 							}
 						}
-						CRM.updateCrm();
-						__this.respondSuccess(Util.safe(node).value.backgroundLibraries);
+						CRM.updateCrm().then(() => {
+							__this.respondSuccess(Util.safe(node).value.backgroundLibraries);
+						});
 						return true;
 					});
 				});
@@ -3710,20 +3731,22 @@ if (typeof module === 'undefined') {
 					};
 
 					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
-						let spliced;
+						let spliced: Array<CRM.Library>;
 						if (node.type === 'script') {
 							spliced = Util.safe(node).value.backgroundLibraries.splice(msg['start'], msg['amount']);
-							CRM.updateCrm([__this.message.data.nodeId]);
-							__this.respondSuccess(spliced, Util.safe(node).value
-								.backgroundLibraries);
+							CRM.updateCrm([__this.message.data.nodeId]).then(() => {
+								__this.respondSuccess(spliced, Util.safe(node).value
+									.backgroundLibraries);
+							});
 						} else {
 							node.scriptVal = node.scriptVal ||
 								globalObject.globals.constants.templates.getDefaultScriptValue();
 							node.scriptVal.backgroundLibraries = node.scriptVal.backgroundLibraries || [];
 							spliced = node.scriptVal.backgroundLibraries.splice(msg['start'],
 								msg['amount']);
-							CRM.updateCrm([__this.message.data.nodeId]);
-							__this.respondSuccess(spliced, node.scriptVal.backgroundLibraries);
+							CRM.updateCrm([__this.message.data.nodeId]).then(() => {
+								__this.respondSuccess(spliced, (node.scriptVal as CRM.ScriptVal).backgroundLibraries);
+							});
 						}
 						return true;
 					});
@@ -3749,8 +3772,9 @@ if (typeof module === 'undefined') {
 								globalObject.globals.constants.templates.getDefaultScriptValue();
 							node.scriptVal.script = msg['script'];
 						}
-						CRM.updateCrm();
-						__this.respondSuccess(Util.safe(node));
+						CRM.updateCrm().then(() => {
+							__this.respondSuccess(Util.safe(node));
+						});
 						return true;
 					});
 				});
@@ -3791,8 +3815,9 @@ if (typeof module === 'undefined') {
 								globalObject.globals.constants.templates.getDefaultStylesheetValue();
 							node.stylesheetVal.stylesheet = msg['stylesheet'];
 						}
-						CRM.updateCrm();
-						__this.respondSuccess(Util.safe(node));
+						CRM.updateCrm().then(() => {
+							__this.respondSuccess(Util.safe(node));
+						});
 						return true;
 					});
 				});
@@ -3833,8 +3858,9 @@ if (typeof module === 'undefined') {
 								globalObject.globals.constants.templates.getDefaultScriptValue();
 							node.scriptVal.backgroundScript = msg['script'];
 						}
-						CRM.updateCrm([__this.message.data.nodeId]);
-						__this.respondSuccess(Util.safe(node));
+						CRM.updateCrm([__this.message.data.nodeId]).then(() => {
+							__this.respondSuccess(Util.safe(node));
+						});
 						return true;
 					});
 				});
@@ -3842,9 +3868,9 @@ if (typeof module === 'undefined') {
 		}
 		static getBackgroundScriptValue(__this: CRMFunction) {
 			__this.checkPermissions(['crmGet'], () => {
-				__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
+				__this.getNodeFromId(__this.message.data.nodeId, true).run(async (node) => {
 					if (node.type === 'script') {
-						__this.respondSuccess(Util.getScriptNodeScript(node, 'background'));
+						__this.respondSuccess(await Util.getScriptNodeScript(node, 'background'));
 					} else {
 						if (node.scriptVal) {
 							__this.respondSuccess(node.scriptVal.backgroundScript);
@@ -3911,8 +3937,9 @@ if (typeof module === 'undefined') {
 
 						__this.getNodeFromId(node.id, false, true).children.splice(0, oldLength);
 
-						CRM.updateCrm();
-						__this.respondSuccess(__this.getNodeFromId(node.id, true, true));
+						CRM.updateCrm().then(() => {
+							__this.respondSuccess(__this.getNodeFromId(node.id, true, true));
+						});
 						return true;
 					});
 				});
@@ -3956,8 +3983,9 @@ if (typeof module === 'undefined') {
 								});
 						}
 
-						CRM.updateCrm();
-						__this.respondSuccess(__this.getNodeFromId(node.id, true, true));
+						CRM.updateCrm().then(() => {
+							__this.respondSuccess(__this.getNodeFromId(node.id, true, true));
+						});
 						return true;
 					});
 				});
@@ -3988,10 +4016,11 @@ if (typeof module === 'undefined') {
 						const spliced = node.children.splice(
 							msg['start'], msg['amount']);
 
-						CRM.updateCrm();
-						__this.respondSuccess(spliced.map((splicedNode) => {
-							return CRM.makeSafe(splicedNode);
-						}), __this.getNodeFromId(node.id, true, true).children);
+						CRM.updateCrm().then(() => {
+							__this.respondSuccess(spliced.map((splicedNode) => {
+								return CRM.makeSafe(splicedNode);
+							}), __this.getNodeFromId(node.id, true, true).children);
+						});
 						return true;
 					});
 				});
@@ -5691,8 +5720,8 @@ if (typeof module === 'undefined') {
 					break;
 			}
 		}
-		static signalNewCRM() {
-			const storage = CRM.converToLegacy();
+		static async signalNewCRM() {
+			const storage = await CRM.converToLegacy();
 
 			const tabData = globalObject.globals.crmValues.tabData;
 			for (let tabId in tabData) {
@@ -6617,7 +6646,7 @@ if (typeof module === 'undefined') {
 						code: code
 					};
 				}
-				private static _genCode(code: Array<string>, {
+				private static async _genCode(code: Array<string>, {
 					key,
 					node,
 					script,
@@ -6626,15 +6655,15 @@ if (typeof module === 'undefined') {
 					nodeStorage,
 					greaseMonkeyData
 				}: {
-						key: Array<number>;
-						node: CRM.ScriptNode;
-						script: string;
-						safeNode: CRM.SafeNode;
-						indentUnit: string;
-						nodeStorage: any;
-						greaseMonkeyData: GreaseMonkeyData;
-					}): string {
-					const enableBackwardsCompatibility = Util.getScriptNodeScript(node).indexOf('/*execute locally*/') > -1 &&
+					key: Array<number>;
+					node: CRM.ScriptNode;
+					script: string;
+					safeNode: CRM.SafeNode;
+					indentUnit: string;
+					nodeStorage: any;
+					greaseMonkeyData: GreaseMonkeyData;
+				}): Promise<string> {
+					const enableBackwardsCompatibility = (await Util.getScriptNodeScript(node)).indexOf('/*execute locally*/') > -1 &&
 						node.isLocal;
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
 					return [
@@ -6672,11 +6701,11 @@ if (typeof module === 'undefined') {
 					].join('\n')
 				}
 
-				static createBackgroundPage(node: CRM.ScriptNode) {
+				static async createBackgroundPage(node: CRM.ScriptNode) {
 					if (!node ||
 						node.type !== 'script' ||
-						!Util.getScriptNodeScript(node, 'background') ||
-						Util.getScriptNodeScript(node, 'background') === '') {
+						!await Util.getScriptNodeScript(node, 'background') ||
+						await Util.getScriptNodeScript(node, 'background') === '') {
 						return;
 					}
 
@@ -6709,25 +6738,25 @@ if (typeof module === 'undefined') {
 
 						globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
 
-						CRM.Script.Handler.genTabData(0, key, node.id, Util.getScriptNodeScript(node, 'background'));
+						CRM.Script.Handler.genTabData(0, key, node.id, await Util.getScriptNodeScript(node, 'background'));
 						Logging.Listeners.updateTabAndIdLists();
 
-						const metaData = CRM.Script.MetaTags.getMetaTags(Util.getScriptNodeScript(node));
+						const metaData = CRM.Script.MetaTags.getMetaTags(await Util.getScriptNodeScript(node));
 						const { excludes, includes } = CRM.Script.Handler.getInExcludes(node);
 
 						const indentUnit = '	';
 
-						const script = Util.getScriptNodeScript(node, 'background').split('\n').map((line) => {
+						const script = (await Util.getScriptNodeScript(node, 'background')).split('\n').map((line) => {
 							return indentUnit + line;
 						}).join('\n');
 
-						const greaseMonkeyData = CRM.Script.Handler.generateGreaseMonkeyData(metaData, node, includes, excludes, {
+						const greaseMonkeyData = await CRM.Script.Handler.generateGreaseMonkeyData(metaData, node, includes, excludes, {
 							incognito: false
 						});
 
 						const safeNode = CRM.makeSafe(node) as any;
 						safeNode.permissions = node.permissions;
-						const code = this._genCode(backgroundPageCode, {
+						const code = await this._genCode(backgroundPageCode, {
 							key,
 							node,
 							script,
@@ -6765,29 +6794,28 @@ if (typeof module === 'undefined') {
 								}
 							}
 							return instancesArr;
-						},
-							(worker: CRMSandboxWorker) => {
-								globalObject.globals.background.workers.push(worker);
-								globalObject.globals.background.byId[node.id] = worker;
-								if (isRestart) {
-									Logging.log(node.id, '*', `Background page [${node.id}]: `,
-										'Restarted background page...');
-								}
-							});
+						}, (worker: CRMSandboxWorker) => {
+							globalObject.globals.background.workers.push(worker);
+							globalObject.globals.background.byId[node.id] = worker;
+							if (isRestart) {
+								Logging.log(node.id, '*', `Background page [${node.id}]: `,
+									'Restarted background page...');
+							}
+						});
 					} else {
 						window.log('An error occurred while setting up the script for node ',
 							node.id, err);
 						throw err;
 					}
 				}
-				static createBackgroundPages() {
+				static async createBackgroundPages() {
 					//Iterate through every node
 					for (let nodeId in globalObject.globals.crm.crmById) {
 						if (globalObject.globals.crm.crmById.hasOwnProperty(nodeId)) {
 							const node = globalObject.globals.crm.crmById[nodeId];
 							if (node.type === 'script') {
 								window.log('Creating backgroundpage for node', node.id);
-								this.createBackgroundPage(node);
+								await this.createBackgroundPage(node);
 							}
 						}
 					}
@@ -6795,7 +6823,7 @@ if (typeof module === 'undefined') {
 
 			};
 			static readonly Handler = class Handler {
-				private static _genCode({		
+				private static async _genCode({		
 					tab,		
 					key,		
 					info,		
@@ -6808,9 +6836,9 @@ if (typeof module === 'undefined') {
 					node: CRM.ScriptNode;		
 					safeNode: CRM.SafeNode;		
 				}, [contextData, [nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]]: [EncodedContextData,		
-					[any, GreaseMonkeyData, string, string, string, number]]): string {		
+					[any, GreaseMonkeyData, string, string, string, number]]): Promise<string> {		
 	
-					const enableBackwardsCompatibility = Util.getScriptNodeScript(node).indexOf('/*execute locally*/') > -1 &&		
+					const enableBackwardsCompatibility = (await Util.getScriptNodeScript(node)).indexOf('/*execute locally*/') > -1 &&		
 						node.isLocal;		
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;		
 					return [		
@@ -6917,11 +6945,11 @@ if (typeof module === 'undefined') {
 					return scripts;		
 				}
 
-				static generateGreaseMonkeyData(metaData: {
+				static async generateGreaseMonkeyData(metaData: {
 					[key: string]: any;
 				}, node: CRM.ScriptNode, includes: Array<string>, excludes: Array<string>, tab: {
 					incognito: boolean
-				}): GreaseMonkeyData {
+				}): Promise<GreaseMonkeyData> {
 					const metaString = (CRM.Script.MetaTags.getMetaLines(node.value
 						.script) || []).join('\n');
 					const metaVal = CRM.Script._generateMetaAccessFunction(metaData);
@@ -6968,7 +6996,7 @@ if (typeof module === 'undefined') {
 								version: metaVal('version')
 							},
 							scriptMetaStr: metaString,
-							scriptSource: Util.getScriptNodeScript(node),
+							scriptSource: await Util.getScriptNodeScript(node),
 							scriptUpdateURL: metaVal('updateURL'),
 							scriptWillUpdate: true,
 							scriptHandler: 'Custom Right-Click Menu',
@@ -7036,10 +7064,10 @@ if (typeof module === 'undefined') {
 										resolve(response);
 									});
 								}
-							}), new window.Promise<[any, GreaseMonkeyData, string, string, string, number]>((resolve) => {
+							}), new window.Promise<[any, GreaseMonkeyData, string, string, string, number]>(async (resolve) => {
 								const globalNodeStorage = globalObject.globals.storages.nodeStorage;
 								const nodeStorage = globalNodeStorage[node.id];
-								this.genTabData(tab.id, key, node.id, Util.getScriptNodeScript(node))
+								this.genTabData(tab.id, key, node.id, await Util.getScriptNodeScript(node))
 
 								globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
 								const tabIndex = globalObject.globals.crmValues.tabData[tab.id].nodes[node.id].length - 1;
@@ -7047,24 +7075,24 @@ if (typeof module === 'undefined') {
 
 								const metaData: {
 									[key: string]: any;
-								} = CRM.Script.MetaTags.getMetaTags(Util.getScriptNodeScript(node));
+								} = CRM.Script.MetaTags.getMetaTags(await Util.getScriptNodeScript(node));
 								const runAt: string = metaData['run-at'] || metaData['run_at'] || 'document_end';
 								const { excludes, includes } = this.getInExcludes(node)
 
-								const greaseMonkeyData = this.generateGreaseMonkeyData(metaData, node, includes, excludes, tab)
+								const greaseMonkeyData = await this.generateGreaseMonkeyData(metaData, node, includes, excludes, tab)
 
 								const indentUnit = '	';
 
-								const script = Util.getScriptNodeScript(node).split('\n').map((line) => {
+								const script = (await Util.getScriptNodeScript(node)).split('\n').map((line) => {
 									return indentUnit + line;
 								}).join('\n');
 
 								resolve([nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]);
-							})]).then((args: [EncodedContextData,
+							})]).then(async (args: [EncodedContextData,
 								[any, GreaseMonkeyData, string, string, string, number]]) => {
 									const safeNode = CRM.makeSafe(node);
 									(safeNode as any).permissions = node.permissions;
-									const code = this._genCode({
+									const code = await this._genCode({
 										node,
 										safeNode,
 										tab,
@@ -7072,7 +7100,7 @@ if (typeof module === 'undefined') {
 										key
 									}, args);
 
-									const usesUnsafeWindow = Util.getScriptNodeScript(node).indexOf('unsafeWindow') > -1;
+									const usesUnsafeWindow = (await Util.getScriptNodeScript(node)).indexOf('unsafeWindow') > -1;
 									const scripts = this._getScriptsToRun(code, args[1][4], node, usesUnsafeWindow);
 									Script._executeScripts(node.id, tab.id, scripts, usesUnsafeWindow);
 								});
@@ -7676,7 +7704,7 @@ if (typeof module === 'undefined') {
 					enabled: false
 				};
 			}
-			private static _setLaunchModeData(node: CRM.Node,
+			private static async _setLaunchModeData(node: CRM.Node,
 				rightClickItemOptions: chrome.contextMenus.CreateProperties, idHolder: {
 					id: number;
 				}) {
@@ -7684,7 +7712,7 @@ if (typeof module === 'undefined') {
 					node.value.launchMode) || CRMLaunchModes.RUN_ON_CLICKING;
 				if (launchMode === CRMLaunchModes.ALWAYS_RUN) {
 					if (node.type === 'script') {
-						const meta = CRM.Script.MetaTags.getMetaTags(Util.getScriptNodeScript(node));
+						const meta = CRM.Script.MetaTags.getMetaTags(await Util.getScriptNodeScript(node));
 						if (meta['run-at'] === 'document_start' || meta['run_at'] === 'document_start') {
 							globalObject.globals.toExecuteNodes.documentStart.push(node);
 						} else {
@@ -7700,7 +7728,7 @@ if (typeof module === 'undefined') {
 				}
 			}
 
-			static createNode(node: CRM.Node, parentId: number) {
+			static async createNode(node: CRM.Node, parentId: number) {
 				const replaceStylesheetTabs = this._getStylesheetReplacementTabs(node);
 				const rightClickItemOptions = {
 					title: node.name,
@@ -7711,7 +7739,7 @@ if (typeof module === 'undefined') {
 				const idHolder: {
 					id: number;
 				} = { id: null };
-				this._setLaunchModeData(node, rightClickItemOptions, idHolder);
+				await this._setLaunchModeData(node, rightClickItemOptions, idHolder);
 				const id = idHolder.id;
 
 				if (replaceStylesheetTabs.length !== 0) {
@@ -7740,7 +7768,7 @@ if (typeof module === 'undefined') {
 			static async compileAllInTree() {
 				await this._compileTree(globalObject.globals.crm.crmTree);
 			}
-			static async compileNode(node: CRM.ScriptNode) {
+			static async compileNode(node: CRM.ScriptNode|CRM.SafeScriptNode) {
 				if (node.value.ts && node.value.ts.enabled) {
 					node.value.ts.script = await this._compileChangedScript(node.value.script, node.value.ts.script);
 					node.value.ts.backgroundScript = await this._compileChangedScript(Util.getScriptNodeJS(node, 'background'),
@@ -7810,7 +7838,7 @@ if (typeof module === 'undefined') {
 			}
 		}
 
-		static updateCrm(toUpdate?: Array<number>) {
+		static async updateCrm(toUpdate?: Array<number>) {
 			Storages.uploadChanges('settings', [{
 				key: 'crm',
 				newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)) as any,
@@ -7819,10 +7847,10 @@ if (typeof module === 'undefined') {
 			CRM.TS.compileAllInTree();
 			CRM.updateCRMValues();
 			CRM.buildPageCRM();
-			MessageHandling.signalNewCRM();
+			await MessageHandling.signalNewCRM();
 
 			if (toUpdate) {
-				Storages.checkBackgroundPagesForChange([], toUpdate);
+				await Storages.checkBackgroundPagesForChange([], toUpdate);
 			}
 		}
 		static updateCRMValues() {
@@ -7871,7 +7899,7 @@ if (typeof module === 'undefined') {
 			]);
 			return newNode as CRM.SafeNode;
 		}
-		static buildPageCRM() {
+		static async buildPageCRM() {
 			const length = globalObject.globals.crm.crmTree.length;
 			globalObject.globals.crmValues.stylesheetNodeStatusses = {};
 			chrome.contextMenus.removeAll();
@@ -7885,7 +7913,7 @@ if (typeof module === 'undefined') {
 				documentStart: []
 			};
 			for (let i = 0; i < length; i++) {
-				const result = this._buildPageCRMTree(globalObject.globals.crm.crmTree[i],
+				const result = await this._buildPageCRMTree(globalObject.globals.crm.crmTree[i],
 					globalObject.globals.crmValues.rootId, [i], globalObject.globals.crmValues
 						.contextMenuItemTree);
 				if (result) {
@@ -7926,10 +7954,10 @@ if (typeof module === 'undefined') {
 			}
 			return newContexts;
 		}
-		static converToLegacy(): {
+		static async converToLegacy(): Promise<{
 			[key: number]: string;
 			[key: string]: string;
-		} {
+		}> {
 			const { arr } = this._walkCRM(globalObject.globals.crm.crmTree, {
 				arr: []
 			});
@@ -7940,7 +7968,7 @@ if (typeof module === 'undefined') {
 			} = {};
 
 			for (let i = 0; i < arr.length; i++) {
-				res[i] = this._convertNodeToLegacy(arr[i]);
+				res[i] = await this._convertNodeToLegacy(arr[i]);
 			}
 
 			res.customcolors = '0';
@@ -7959,7 +7987,7 @@ if (typeof module === 'undefined') {
 			return res;
 		}
 
-		private static _convertNodeToLegacy(node: CRM.Node): string {
+		private static async _convertNodeToLegacy(node: CRM.Node): Promise<string> {
 			switch (node.type) {
 				case 'divider':
 					return [node.name, 'Divider', ''].join('%123');
@@ -7972,10 +8000,9 @@ if (typeof module === 'undefined') {
 				case 'script':
 					return [
 						node.name,
-						'Script',
-						[
+						'Script', [
 							node.value.launchMode,
-							Util.getScriptNodeScript(node)
+							await Util.getScriptNodeScript(node)
 						].join('%124')
 					].join('%123');
 				case 'stylesheet':
@@ -8030,9 +8057,9 @@ if (typeof module === 'undefined') {
 				chrome.runtime.openOptionsPage();
 			};
 		}
-		private static _buildPageCRMTree(node: CRM.Node, parentId: number,
+		private static async _buildPageCRMTree(node: CRM.Node, parentId: number,
 			path: Array<number>,
-			parentTree: Array<ContextMenuItemTreeItem>): {
+			parentTree: Array<ContextMenuItemTreeItem>): Promise<{
 				id: number;
 				path: Array<number>;
 				enabled: boolean;
@@ -8041,8 +8068,8 @@ if (typeof module === 'undefined') {
 				parentId?: number;
 				node?: CRM.Node;
 				parentTree?: Array<ContextMenuItemTreeItem>;
-			} {
-			const id = this.NodeCreation.createNode(node, parentId);
+			}> {
+			const id = await this.NodeCreation.createNode(node, parentId);
 			globalObject.globals.crmValues.contextMenuIds[node.id] = id;
 			if (id !== null) {
 				const children = [];
@@ -8051,7 +8078,7 @@ if (typeof module === 'undefined') {
 					for (let i = 0; i < node.children.length; i++) {
 						const newPath = JSON.parse(JSON.stringify(path));
 						newPath.push(visibleIndex);
-						const result: any = this._buildPageCRMTree(node.children[i], id, newPath, children);
+						const result: any = await this._buildPageCRMTree(node.children[i], id, newPath, children);
 						if (result) {
 							visibleIndex++;
 							result.index = i;
@@ -9500,13 +9527,16 @@ if (typeof module === 'undefined') {
 			}
 		};
 
-		static checkBackgroundPagesForChange(changes: Array<{
+		static async checkBackgroundPagesForChange(changes: Array<{
 			key: string;
 			newValue: any;
 			oldValue: any;
 		}>, toUpdate: Array<number> = []) {
-			toUpdate.forEach((id) => {
-				CRM.Script.Background.createBackgroundPage(globalObject.globals.crm.crmById[id] as CRM.ScriptNode);
+			await toUpdate.map((id) => {
+				return new Promise(async (resolve) => {
+					await CRM.Script.Background.createBackgroundPage(globalObject.globals.crm.crmById[id] as CRM.ScriptNode);
+					resolve(null);
+				});
 			});
 
 			//Check if any background page updates occurred
@@ -9515,12 +9545,12 @@ if (typeof module === 'undefined') {
 					const ordered: {
 						[nodeId: number]: string;
 					} = {};
-					this._orderBackgroundPagesById(changes[i].newValue, ordered);
+					await this._orderBackgroundPagesById(changes[i].newValue, ordered);
 					for (let id in ordered) {
 						if (ordered.hasOwnProperty(id)) {
 							const node = globalObject.globals.crm.crmById[id];
-							if (node.type === 'script' && (node && Util.getScriptNodeScript(node, 'background') !== ordered[id])) {
-								CRM.Script.Background.createBackgroundPage(node as CRM.ScriptNode);
+							if (node.type === 'script' && (node && await Util.getScriptNodeScript(node, 'background') !== ordered[id])) {
+								await CRM.Script.Background.createBackgroundPage(node as CRM.ScriptNode);
 							}
 						}
 					}
@@ -9783,7 +9813,7 @@ if (typeof module === 'undefined') {
 			});
 		}
 
-		private static _changeCRMValuesIfSettingsChanged(changes: Array<StorageChange>) {
+		private static async _changeCRMValuesIfSettingsChanged(changes: Array<StorageChange>) {
 			const updated: {
 				crm: boolean;
 				id: boolean;
@@ -9801,9 +9831,9 @@ if (typeof module === 'undefined') {
 					updated.crm = true;
 					CRM.updateCRMValues();
 					CRM.TS.compileAllInTree();
-					Storages.checkBackgroundPagesForChange(changes);
-					CRM.buildPageCRM();
-					MessageHandling.signalNewCRM();
+					await Storages.checkBackgroundPagesForChange(changes);
+					await CRM.buildPageCRM();
+					await MessageHandling.signalNewCRM();
 				} else if (changes[i].key === 'latestId') {
 					if (updated.id) {
 						return;
@@ -9883,15 +9913,15 @@ if (typeof module === 'undefined') {
 				}
 			}
 		}
-		private static _orderBackgroundPagesById(tree: Array<CRM.Node>, obj: {
+		private static async _orderBackgroundPagesById(tree: Array<CRM.Node>, obj: {
 			[nodeId: number]: string;
 		}) {
 			for (let i = 0; i < tree.length; i++) {
 				const child = tree[i];
 				if (child.type === 'script') {
-					obj[child.id] = Util.getScriptNodeScript(child, 'background');
+					obj[child.id] = await Util.getScriptNodeScript(child, 'background');
 				} else if (child.type === 'menu' && child.children) {
-					this._orderBackgroundPagesById(child.children, obj);
+					await this._orderBackgroundPagesById(child.children, obj);
 				}
 			}
 		}
@@ -9901,6 +9931,15 @@ if (typeof module === 'undefined') {
 				fn(node);
 				if (node.type === 'menu' && node.children) {
 					this.crmForEach(node.children, fn);
+				}
+			}
+		}
+		static async crmForEachAsync(crm: CRM.Tree, fn: (node: CRM.Node) => Promise<void>) {
+			for (let i = 0; i < crm.length; i++) {
+				const node = crm[i];
+				await fn(node);
+				if (node.type === 'menu' && node.children) {
+					await this.crmForEach(node.children, fn);
 				}
 			}
 		}
@@ -9950,14 +9989,14 @@ if (typeof module === 'undefined') {
 			}
 
 			if (this._isVersionInRange(oldVersion, newVersion, '2.0.4')) {
-				fns.afterSync.push(() => {
-					this.crmForEach(globalObject.globals.crm.crmTree, (node) => {
+				fns.afterSync.push(async () => {
+					await this.crmForEachAsync(globalObject.globals.crm.crmTree, async (node) => {
 						if (node.type === 'script') {
-							node.value.oldScript = Util.getScriptNodeScript(node);
+							node.value.oldScript = await Util.getScriptNodeScript(node);
 							node.value.script = this.SetupHandling.TransferFromOld
 								.legacyScriptReplace
 								.chromeCallsReplace
-								.replace(Util.getScriptNodeScript(node), this.SetupHandling.TransferFromOld
+								.replace(await Util.getScriptNodeScript(node), this.SetupHandling.TransferFromOld
 									.legacyScriptReplace.generateScriptUpgradeErrorHandler(node.id));
 						}
 						if (node.isLocal) {
@@ -9973,7 +10012,7 @@ if (typeof module === 'undefined') {
 							}
 						}
 					});
-					CRM.updateCrm();
+					await CRM.updateCrm();
 				});
 			}
 			if (this._isVersionInRange(oldVersion, newVersion, '2.0.11')) {
@@ -10125,12 +10164,12 @@ if (typeof module === 'undefined') {
 					window.log('Compiling typescript');
 					await CRM.TS.compileAllInTree();
 					window.log('Building Custom Right-Click Menu');
-					CRM.buildPageCRM();
+					await CRM.buildPageCRM();
 					window.console.groupCollapsed('Restoring previous open tabs');
 					await GlobalDeclarations.restoreOpenTabs();
 					window.console.groupEnd();
 					window.console.groupCollapsed('Creating backgroundpages');
-					CRM.Script.Background.createBackgroundPages();
+					await CRM.Script.Background.createBackgroundPages();
 					window.console.groupEnd();
 					window.log('Registering global handlers');
 					GlobalDeclarations.init();
