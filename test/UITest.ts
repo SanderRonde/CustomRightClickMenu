@@ -152,7 +152,7 @@ before('Driver connect', function(done: any) {
 		}
 	}
 
-	result.get(`http://localhost:${PORT}/test/UI/built/UITest.html#noClear-test`).then(() => {
+	result.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test`).then(() => {
 		driver = result;
 		let timer = setInterval(() => {
 			driver.executeScript(inlineFn(() => {
