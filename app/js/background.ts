@@ -9800,6 +9800,7 @@ if (typeof module === 'undefined') {
 					}
 					updated.crm = true;
 					CRM.updateCRMValues();
+					CRM.TS.compileAllInTree();
 					Storages.checkBackgroundPagesForChange(changes);
 					CRM.buildPageCRM();
 					MessageHandling.signalNewCRM();
