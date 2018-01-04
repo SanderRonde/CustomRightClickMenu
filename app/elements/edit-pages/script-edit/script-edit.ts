@@ -233,6 +233,7 @@ namespace ScriptEditElement {
 
 		static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<CRM.ScriptNode>) {
 			resultStorage.value.metaTags = this._getMetaTagValues() || {};
+			resultStorage.value.launchMode = this.$.dropdownMenu.selected;
 			this._saveEditorContents(this.editorMode);
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
