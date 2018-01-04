@@ -21,6 +21,7 @@ interface Window {
 	onExists<T extends keyof Window>(key: T): Promise<Window[T]>;
 	objectify<T>(fn: T): T;
 	with<T>(initializer: () => Withable, fn: () => T): T;
+	withAsync<T>(initializer: () => Promise<Withable>, fn: () => Promise<T>): Promise<T>;
 }
 
 (async () => {
@@ -49,6 +50,13 @@ interface Window {
 			obj[key] = fn[key];
 		});
 		return obj as T;
+	}
+
+	window.withAsync = async <T>(initializer: () => Promise<Withable>, fn: () => Promise<T>): Promise<T> => {
+		const toRun = await initializer();
+		const res = await fn();
+		await toRun();
+		return res;
 	}
 	
 	window.with = <T>(initializer: () => Withable, fn: () => T): T => {
