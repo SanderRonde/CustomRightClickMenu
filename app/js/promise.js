@@ -8,7 +8,7 @@
 	context[name] = context[name] || definition();
 	if (typeof module != "undefined" && module.exports) { module.exports = context[name]; }
 	else if (typeof define == "function" && define.amd) { define(function $AMD$(){ return context[name]; }); }
-})("Promise",typeof global != "undefined" ? global : this,function DEF(){
+})("Promise",typeof global != "undefined" ? global : window,function DEF(){
 	/*jshint validthis:true */
 	"use strict";
 
