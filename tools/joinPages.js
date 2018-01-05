@@ -63,45 +63,45 @@ function filterTitle(content) {
 }
 
 module.exports = function (grunt) {
-	grunt.registerMultiTask('joinPages', 'Joines the options.html and background.html pages', async function() {
+	grunt.registerMultiTask('joinPages', 'Joines the given html pages', async function() {
 		const options = this.options({});
 		const done = this.async();
-		if (!options.optionsPage) {
-			grunt.log.error('Options page location missing');
-		}
-		if (!options.backgroundPage) {
-			grunt.log.error('Background page location missing');
-		}
-		if (!options.destination) {
+		if (!options.dest) {
 			grunt.log.error('Destination missing');
 		}
 
-		const optionsPageLocation = path.join(__dirname, '../', options.optionsPage);
-		const backgroundPageLocation = path.join(__dirname, '../', options.backgroundPage);
+		const locations = options.parts.map((part) => {
+			return path.join(__dirname, '../', part);
+		});
+		const files = await locations.map((location) => {
+			return readFile(grunt, done, location);
+		});
+		const parsed = files.map((file) => {
+			return htmlParseFile(grunt, done, file);
+		});
+		const contents = parsed.map((parsedPart, index) => {
+			let headContent = filterTitle(getHeadContent(files[index], parsedPart));
+			if (index !== 0) {
+				headContent = filterTitle(headContent);
+			}
+			return {
+				head: headContent,
+				body: getBodyContent(files[index], parsedPart)
+			}
+		});
+
 		const destination = path.join(__dirname, '../', options.destination);
-
-		const optionsPageFile = await readFile(grunt, done, optionsPageLocation);
-		const backgroundPageFile = await readFile(grunt, done, backgroundPageLocation);
-
-		const optionsPageParsed = htmlParseFile(grunt, done, optionsPageFile);
-		const backgroundPageParsed = htmlParseFile(grunt, done, backgroundPageFile);
-
-		const optionsHead = filterTitle(getHeadContent(optionsPageFile, optionsPageParsed));
-		const backgroundHead = filterTitle(getHeadContent(backgroundPageFile, backgroundPageParsed));
-		const optionsBody = getBodyContent(optionsPageFile, optionsPageParsed);
-		const backgroundBody = getBodyContent(backgroundPageFile, backgroundPageParsed);
 
 		const joinedFile = `<html>
 			<head>
-				<title>Test</title>
-				<link rel="shortcut icon" href="../../test/UI/favicon.ico"/>
-				${backgroundHead}
-				${optionsHead}
+				${contents.map((content) => {
+					return content.head;
+				}).join('\n')}
 			</head>
 			<body>
-				<script src="../../test/UI/chrome-api-dummy.js"></script>
-				${backgroundBody}
-				${optionsBody}
+				${contents.map((content) => {
+					return content.body;
+				}).join('\n')}
 			</body>
 		</html>`;
 
