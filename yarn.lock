@@ -2357,6 +2357,10 @@ growl@1.9.2:
   version "1.9.2"
   resolved "https://registry.yarnpkg.com/growl/-/growl-1.9.2.tgz#0ea7743715db8d8de2c5ede1775e1b45ac85c02f"
 
+grunt-babel@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/grunt-babel/-/grunt-babel-7.0.0.tgz#13c90c01f154dec214e0eeb5d66ac7c70cedf2d3"
+
 grunt-banner@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/grunt-banner/-/grunt-banner-0.4.0.tgz#9942b4f6ee4141a65aac1a3b32d80afc89f51313"

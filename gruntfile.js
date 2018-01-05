@@ -674,10 +674,22 @@ module.exports = function(grunt) {
 					destination: 'build/html/UITest.html'
 				}
 			}
+		},
+		babel: {
+			options: {
+				presets: ['es3', 'es2015', 'minify']
+			},
+			build: {
+				files: {
+					'build/html/options.js': 'build/html/options.js',
+					'build/html/background.js': 'build/html/background.js'
+				}
+			}
 		}
 	});
 
 	grunt.loadTasks('tools');
+	grunt.loadNpmTasks('grunt-babel');
 	grunt.loadNpmTasks('grunt-banner');
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-copy');
@@ -754,7 +766,7 @@ module.exports = function(grunt) {
 
 	//Runs all of the build steps after polymerBuild is invoked
 	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 'clean:removeBuildBeforePolymer', 'crispify', 
-		'copy:es5Adapter', 'usebanner', 'clean:buildBeforePolymer', 'copy:monacoPost',
+		'copy:es5Adapter', 'babel', 'usebanner', 'clean:buildBeforePolymer', 'copy:monacoPost',
 		'string-replace:patchMonaco']);
 
 	//Builds the extension but tries to keep the code readable and unminified
