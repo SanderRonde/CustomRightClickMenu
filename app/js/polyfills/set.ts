@@ -1,7 +1,3 @@
-const argumentsName = Object.prototype.toString.call((function() {
-	return arguments;
-}));
-
 class SetIterator<T> implements Iterator<T> {
 	private _index = 0;
 	constructor(private _data: Array<T>) { }
@@ -12,12 +8,12 @@ class SetIterator<T> implements Iterator<T> {
 	}
 }
 
-class Set<T> {
+class SetPolyfill<T> {
 	private _data: Array<T> = [];
 
 	length: 0;
 	constructor(iterable?: Iterable<T>) {
-		if (!(this instanceof Set)) {
+		if (!(this instanceof SetPolyfill)) {
 			throw new TypeError('Constructor requires new');
 		}
 		if (iterable && !this._isIterable(iterable)) {
@@ -33,7 +29,7 @@ class Set<T> {
 		}
 	}
 	add(value: T) {
-		if (this._data.indexOf(value) === -1) {
+		if (!this.has(value)) {
 			this._data.push(value);
 		}
 		return this;
@@ -80,7 +76,9 @@ class Set<T> {
 	}
 	private _isIterable(value: Iterable<T>): value is Iterable<T> {
 		if (Array.isArray(value) || typeof value === 'string' || 
-			value.toString() === 'argumentsName') {
+			value.toString() === Object.prototype.toString.call((function() {
+				return arguments;
+			}))) {
 				return true;
 			}
 		return false;
@@ -88,7 +86,7 @@ class Set<T> {
 }
 
 interface Window {
-	Set: typeof Set;
+	Set: typeof SetPolyfill;
 }
 
-window.Set = Set;
+window.Set = window.Set || SetPolyfill;
