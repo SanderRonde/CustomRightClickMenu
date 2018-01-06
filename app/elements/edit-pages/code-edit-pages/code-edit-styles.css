@@ -161,6 +161,7 @@ input {
 
 #editorTypescript[active] {
 	background-color: rgb(200, 200, 200);
+	color: #2699f4;
 }
 
 	#editorFullScreen:hover, #editorSettings:hover, #editorTypescript:hover {

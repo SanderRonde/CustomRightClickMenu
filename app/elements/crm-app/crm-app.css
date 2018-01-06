@@ -1105,6 +1105,7 @@ paper-checkbox {
 
 #fullscreenEditorButtons > div {
 	padding: 0 6px;
+	padding-top: 4px;
 	cursor: pointer;
 	background-color: white;
 }
@@ -1113,8 +1114,8 @@ paper-checkbox {
 	background-color: #dbdbdb;
 }
 
-#fullscreenEditorSettings {
-	margin-top: -3px;
+#fullscreenEditorSettings svg {
+	transform: translateY(-2px);
 }
 
 .paper-material {
@@ -1207,11 +1208,11 @@ paper-checkbox {
 
 #editorTypescript {
 	font-size: 70%;
-	margin-top: 3px;
 }
 
 #editorTypescript.active {
 	background-color: rgb(200, 200, 200);
+	color: #2699f4;
 }
 
 #editorTypescript:hover {
