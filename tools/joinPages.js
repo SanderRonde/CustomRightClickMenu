@@ -73,9 +73,9 @@ module.exports = function (grunt) {
 		const locations = options.parts.map((part) => {
 			return path.join(__dirname, '../', part);
 		});
-		const files = await locations.map((location) => {
+		const files = await Promise.all(locations.map((location) => {
 			return readFile(grunt, done, location);
-		});
+		}));
 		const parsed = files.map((file) => {
 			return htmlParseFile(grunt, done, file);
 		});
@@ -90,7 +90,7 @@ module.exports = function (grunt) {
 			}
 		});
 
-		const destination = path.join(__dirname, '../', options.destination);
+		const destination = path.join(__dirname, '../', options.dest);
 
 		const joinedFile = `<html>
 			<head>
