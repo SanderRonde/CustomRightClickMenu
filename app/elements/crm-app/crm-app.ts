@@ -936,15 +936,6 @@ namespace CRMAppElement {
 				font-size: ${1.25 * ~~window.app.settings.editor.zoom}%!important;
 			}`;
 			document.head.appendChild(styleEl);
-
-			let editorManger = ((window.scriptEdit && window.scriptEdit.active) ?
-				window.scriptEdit.editorManager :
-				((window.stylesheetEdit && window.stylesheetEdit.active) ?
-					window.stylesheetEdit.editorManager :
-					null));
-			if (!editorManger) {
-				return;
-			}
 		};
 
 		static setLocal<T>(this: CrmApp, key: string, value: T) {
