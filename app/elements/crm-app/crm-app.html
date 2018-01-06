@@ -554,13 +554,10 @@
 				<paper-dialog data-element-type="ChooseFileDialog" no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 					<div id="chooseFileMainDialog">
 						<h2>Choose the file you want to keep</h2>
-						<paper-radio-group selected="local" id="chooseFileRadioGroup">
-							<paper-radio-button name="local">The file in this editor</paper-radio-button>
-							<paper-radio-button name="external">The file that is currently in the file</paper-radio-button>
-						</paper-radio-group>
-						<br />
+						<monaco-editor id="chooseFileMerger"></monaco-editor>
 						<div class="buttons">
-							<paper-button id="chooseFileChooseFirst" dialog-confirm>Confirm</paper-button>
+							<paper-button id="chooseFileChooseCRM" dialog-confirm>Choose extension code</paper-button>
+							<paper-button id="chooseFileChooseDisk" dialog-confirm>Choose code on disk</paper-button>
 							<paper-button class="closeChooseFileDialog">Cancel</paper-button>
 						</div>	
 					</div>
