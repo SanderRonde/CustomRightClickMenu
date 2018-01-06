@@ -220,8 +220,7 @@ module.exports = function(grunt) {
 					expand: true, 
 					cwd: 'buildBeforePolymer/bower_components',
 					src: [
-						'webcomponentsjs/custom-elements-es5-adapter.js',
-						'webcomponentsjs/webcomponents-loader.js'
+						'webcomponentsjs/**/*.js'
 					], 
 					dest: 'build/bower_components/'
 				}]
