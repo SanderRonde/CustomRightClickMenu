@@ -215,10 +215,13 @@ module.exports = function(grunt) {
 					{ expand: true, src: ['buildBeforePolymer/html/*'], filter: 'isFile' }
 				]
 			},
-			es5Adapter: {
+			webcomponentsLibs: {
 				files: [{ 
 					expand: true, 
-					src: ['buildBeforePolymer/bower_components/webcomponentsjs/custom-elements-es5-adapter.js'], 
+					src: [
+						'buildBeforePolymer/bower_components/webcomponentsjs/custom-elements-es5-adapter.js',
+						'buildBeforePolymer/bower_components/webcomponentsjs/webcomponents-loader.js'
+					], 
 					dest: 'build/bower_components/webcomponentsjs/custom-elements-es5-adapter.js'
 				}]
 			},
@@ -778,7 +781,7 @@ module.exports = function(grunt) {
 
 	//Runs all of the build steps after polymerBuild is invoked
 	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 'clean:removeBuildBeforePolymer', 'crispify', 
-		'copy:es5Adapter', 'babel', 'joinPages:build', 'usebanner', 'clean:buildBeforePolymer', 'copy:monacoPost',
+		'copy:webcomponentsLibs', 'babel', 'joinPages:build', 'usebanner', 'clean:buildBeforePolymer', 'copy:monacoPost',
 		'string-replace:patchMonaco']);
 
 	//Builds the extension but tries to keep the code readable and unminified
