@@ -218,11 +218,12 @@ module.exports = function(grunt) {
 			webcomponentsLibs: {
 				files: [{ 
 					expand: true, 
+					cwd: 'buildBeforePolymer/bower_components',
 					src: [
-						'buildBeforePolymer/bower_components/webcomponentsjs/custom-elements-es5-adapter.js',
-						'buildBeforePolymer/bower_components/webcomponentsjs/webcomponents-loader.js'
+						'webcomponentsjs/custom-elements-es5-adapter.js',
+						'webcomponentsjs/webcomponents-loader.js'
 					], 
-					dest: 'build/bower_components/webcomponentsjs/custom-elements-es5-adapter.js'
+					dest: 'build/bower_components/'
 				}]
 			},
 			moveUpDirectory: {
