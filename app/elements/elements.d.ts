@@ -176,6 +176,7 @@ interface Window {
 	errorReportingTool: ErrorReportingTool;
 	linkEdit: NodeEditBehaviorLinkInstance;
 	menuEdit: NodeEditBehaviorMenuInstance;
+	codeEditBehavior: CodeEditBehaviorGlobal;
 	scriptEdit: NodeEditBehaviorScriptInstance;
 	dividerEdit: NodeEditBehaviorDividerInstance;
 	stylesheetEdit: NodeEditBehaviorStylesheetInstance;

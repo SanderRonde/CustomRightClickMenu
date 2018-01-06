@@ -707,9 +707,29 @@ namespace CodeEditBehaviorNamespace {
 			});
 		}
 	}
+
+	const CEBGlobal = {
+		getActive() {
+			if (window.scriptEdit && window.scriptEdit.active) {
+				return window.scriptEdit;
+			}
+			if (window.stylesheetEdit && window.stylesheetEdit.active) {
+				return window.stylesheetEdit;
+			}
+			return null;
+		},
+		getEditor() {
+			return this.getActive() && this.getActive().editorManager;
+		}
+	};
+	window.codeEditBehavior = CEBGlobal;
+
+	export type CodeEditBehaviorGlobal = typeof CEBGlobal;
 }
 
 type CodeEditBehaviorBase = Polymer.El<'code-edit-behavior', typeof CodeEditBehaviorNamespace.CEB>;
+
+type CodeEditBehaviorGlobal = CodeEditBehaviorNamespace.CodeEditBehaviorGlobal;
 
 type CodeEditBehavior<T = CodeEditBehaviorScriptInstanceAdditions|CodeEditBehaviorStylesheetInstanceAdditions> = 
 	NodeEditBehavior<CodeEditBehaviorBase & T>;

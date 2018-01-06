@@ -2713,9 +2713,7 @@ namespace CRMAppElement {
 					disabled: boolean;
 				}).disabled) {
 					window.externalEditor.init();
-					window.externalEditor.editingCRMItem =
-						((window.scriptEdit && window.scriptEdit.active) ?
-							window.scriptEdit.item : window.stylesheetEdit.item) as any;
+					window.externalEditor.editingCRMItem = window.codeEditBehavior.getActive().item;
 					window.externalEditor.setupExternalEditing();
 				}
 			};
