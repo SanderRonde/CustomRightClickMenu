@@ -91,11 +91,6 @@ namespace UseExternalEditorElement {
 		};
 
 		/**
-		 * The choose-script show animation for the main div
-		 */
-		private static dialogMainDivAnimationShow: Animation = null;
-
-		/**
 		 * The choose-script hide animation for the main div
 		 */
 		private static dialogMainDivAnimationHide: Animation = null;
@@ -106,19 +101,9 @@ namespace UseExternalEditorElement {
 		private static dialogComparisonDivAnimationShow: Animation = null;
 
 		/**
-		 * The choose-script hide animation for the comparison div
-		 */
-		private static dialogComparisonDivAnimationHide: Animation = null;
-
-		/**
 		 * The animation for expanding the dialog
 		 */
 		private static dialogExpansionAnimation: Animation = null;
-
-		/**
-		 * The animation for contracting the dialog
-		 */
-		private static dialogContractionAniation: Animation = null;
 
 		/**
 		 * The CodeMirror editor used to merge your code
@@ -652,14 +637,14 @@ namespace UseExternalEditorElement {
 			return animation;
 		}
 
-		static async initEditor(_this: UseExternalEditor, oldScript: string, newScript: string) {
+		static async initEditor(this: UseExternalEditor, oldScript: string, newScript: string) {
 			const mode = window.stylesheetEdit && window.stylesheetEdit.active ? 
 				window.doc.chooseFileMerger.EditorMode.CSS_META : (
 					window.scriptEdit.isTsEnabled() ? 
 						window.doc.chooseFileMerger.EditorMode.TS_META :
 						window.doc.chooseFileMerger.EditorMode.JS_META
 				)
-			_this.editorManager = await window.doc.chooseFileMerger.createDiff([oldScript, newScript], mode, {
+			this.editorManager = await window.doc.chooseFileMerger.createDiff([oldScript, newScript], mode, {
 				wordWrap: 'off',
 				fontSize: (~~window.app.settings.editor.zoom / 100) * 14,
 				folding: true
@@ -674,14 +659,14 @@ namespace UseExternalEditorElement {
 			return false;
 		}
 
-		static onDialogMainDivAnimationHideEnd(__this: UseExternalEditor, dialogRect: ClientRect, dialogStyle: CSSStyleDeclaration,
+		static onDialogMainDivAnimationHideEnd(this: UseExternalEditor, dialogRect: ClientRect, dialogStyle: CSSStyleDeclaration,
 			oldScript: string, newScript: string) {
 				window.doc.chooseFileMainDialog.style.display = 'none';
 				window.doc.chooseFileMainDialog.style.marginTop = '0';
 				window.doc.chooseFileMainDialog.style.opacity = '1';
 
-				this.playIfExists(__this.dialogExpansionAnimation) ||
-					(__this.dialogExpansionAnimation = __this.doCSSAnimation(window.doc.externalEditorChooseFile, [{
+				this.playIfExists(this.dialogExpansionAnimation) ||
+					(this.dialogExpansionAnimation = this.doCSSAnimation(window.doc.externalEditorChooseFile, [{
 						width: dialogRect.width,
 						height: dialogRect.height,
 						marginTop: '24px',
@@ -701,29 +686,29 @@ namespace UseExternalEditorElement {
 						left: '0px'
 					}], 400, () => {
 						window.doc.chooseFileMerger.style.display = 'flex';
-						this.playIfExists(__this.dialogComparisonDivAnimationShow) || 
-							(__this.dialogComparisonDivAnimationShow = __this.doCSSAnimation(window.doc.chooseFileMerger, [{
+						this.playIfExists(this.dialogComparisonDivAnimationShow) || 
+							(this.dialogComparisonDivAnimationShow = this.doCSSAnimation(window.doc.chooseFileMerger, [{
 								marginTop: '70px',
 								opacity: 0
 							}, {
 								marginTop: '0px',
 								opacity: 1
 							}], 250, () => {
-								if (!__this.editorManager) {
-									setTimeout(function () {
-										__this.initEditor(__this, oldScript, newScript);
+								if (!this.editorManager) {
+									setTimeout(() => {
+										this.initEditor(oldScript, newScript);
 									}, 150);
 								}
 							}));
 					}));
 			}
 
-		static showMergeDialog(_this: UseExternalEditor, oldScript: string, newScript: string) {
+		static showMergeDialog(this: UseExternalEditor, oldScript: string, newScript: string) {
 			//Animate the comparison in
 			const dialogRect = window.doc.externalEditorChooseFile.getBoundingClientRect();
 			const dialogStyle = window.doc.externalEditorChooseFile.style;
 
-			_this.dialogStyleProperties = dialogRect;
+			this.dialogStyleProperties = dialogRect;
 
 			dialogStyle.maxWidth = '100vw';
 			dialogStyle.width = dialogRect.width + 'px';
@@ -731,8 +716,8 @@ namespace UseExternalEditorElement {
 			document.body.style.overflow = 'hidden';
 			window.doc.chooseFileMainDialog.style.position = 'absolute';
 
-			_this.playIfExists(_this.dialogMainDivAnimationHide) || 
-				(_this.dialogMainDivAnimationHide = window.doc.chooseFileMainDialog.animate([
+			this.playIfExists(this.dialogMainDivAnimationHide) || 
+				(this.dialogMainDivAnimationHide = window.doc.chooseFileMainDialog.animate([
 					{
 						marginTop: '20px',
 						opacity: 1
@@ -744,8 +729,8 @@ namespace UseExternalEditorElement {
 					duration: 240,
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				}));
-			_this.dialogMainDivAnimationHide.onfinish = function() {
-				_this.onDialogMainDivAnimationHideEnd(_this, dialogRect, dialogStyle, oldScript, newScript)
+			this.dialogMainDivAnimationHide.onfinish = () => {
+				this.onDialogMainDivAnimationHideEnd(dialogRect, dialogStyle, oldScript, newScript)
 			};
 		};
 
