@@ -20,19 +20,70 @@ interface Prom<T> extends Promise<T> {
 
 interface Window {
 	Promise: typeof Promise;
-	onExists<T extends keyof Window>(key: T): Promise<Window[T]>;
+	onExists<T extends keyof Window>(key: T): PromiseLike<Window[T]>;
 	objectify<T>(fn: T): T;
 	with<T>(initializer: () => Withable, fn: () => T): T;
 	withAsync<T>(initializer: () => Promise<Withable>, fn: () => Promise<T>): Promise<T>;
 }
 
-(async () => {
+(() => {
 	if (window.onExists) {
 		return;
 	}
 
-	window.onExists = <T extends keyof Window>(key: T): Promise<Window[T]> => {
-		return new window.Promise<Window[T]>((resolve) => {
+	class RoughPromise<T> implements PromiseLike<T> {
+		private _val: T = null;
+		private _state: 'pending'|'resolved'|'rejected' = 'pending';
+		private _done: boolean = false;
+		private _resolveListeners: Array<(value: T) => void>;
+		private _rejectListeners: Array<(value: T) => void>;
+		constructor(initializer: (resolve: (value: T) => void, reject: (err: any) => void) => void) {
+			initializer((val: T) => {
+				if (this._done) {
+					return;
+				}
+				this._done = true;
+				this._val = val;
+				this._state = 'resolved';
+				this._resolveListeners.forEach((listener) => {
+					listener(val);
+				});
+			}, (err) => {
+				if (this._done) {
+					return;
+				}
+				this._done = true;
+				this._val = err;
+				this._state = 'rejected';
+				this._rejectListeners.forEach((listener) => {
+					listener(err);
+				});
+			});
+		}
+		then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): PromiseLike<TResult1 | TResult2> {
+			if (!onfulfilled) {
+				return this as any;
+			}
+			if (this._done && this._state === 'resolved') {
+				onfulfilled(this._val);
+			} else {
+				this._resolveListeners.push(onfulfilled);
+			}
+			if (!onrejected) {
+				return this as any;
+			}
+			if (this._done && this._state === 'rejected') {
+				onrejected(this._val);
+			} else {
+				this._rejectListeners.push(onrejected);
+			}
+			return this as any;
+		}
+	}
+
+	window.onExists = <T extends keyof Window>(key: T): PromiseLike<Window[T]> => {
+		const prom = (window.Promise || RoughPromise) as any;
+		return new prom((resolve: (result: Window[T]) => void) => {
 			if (key in window) {
 				resolve(window[key]);
 				return;
@@ -69,9 +120,12 @@ interface Window {
 	}
 
 	if (typeof Event !== 'undefined') {
-		await window.onExists('Polymer');
+		window.onExists('Promise').then(() => {
+			window.onExists('Polymer').then(() => {
 		window.objectify = objectify;
 		const event = new Event('ObjectifyReady');
 		window.dispatchEvent(event);
+			});
+		});
 	}
 })();
