@@ -86,3 +86,9 @@ class Set<T> {
 		return false;
 	}
 }
+
+interface Window {
+	Set: typeof Set;
+}
+
+window.Set = Set;
