@@ -4059,8 +4059,10 @@ namespace CRMAppElement {
 					return;
 				}
 
-				if (this._parent().storageLocal.CRMOnPage &&
-					~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] > 34) {
+				if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
+					return;
+				}
+				if (this._parent().storageLocal.CRMOnPage) {
 					this._loadContextMenus();
 				} else {
 					this._removeContextMenus();
