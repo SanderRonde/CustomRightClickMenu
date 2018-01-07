@@ -415,6 +415,23 @@ module.exports = function(grunt) {
 					src: ['**/*.js'],
 					dest: 'app/elements/edit-pages/monaco-editor/'
 				}]
+			},
+			changeThis: {
+				options: {
+					replacements: [{
+						pattern: /window===this((\s)?)\?((\s)?)this/g,
+						replacement: 'true?window'
+					}, {
+						pattern: /Object.setPrototypeOf\((.*),(.*)\)/g,
+						replacement: 'typeof Object.setPrototypeOf === \'function\'?Object.setPrototypeOf($1,$2):$1.__proto__ = $2'
+					}]
+				},
+				files: [{
+					src: [
+						'buildBeforePolymer/bower_components/webcomponentsjs/webcomponents-lite.js'
+					],
+					dest: 'buildBeforePolymer/bower_components/webcomponentsjs/webcomponents-lite.js'
+				}]
 			}
 		},
 		copyImportedElements: {
@@ -776,7 +793,7 @@ module.exports = function(grunt) {
 		'copy:build', 'copy:installing', 'string-replace', 'copy:monacoPre', 
 		'copy:monacoTemp', 'processhtml:build', 
 		'processhtml:inlineElementImports', 'string-replace:removeCharacter',
-		'copy:jsFiles', 'copy:html', 
+		'copy:jsFiles', 'copy:html', 'string-replace:changeThis',
 		'copy:tsEmbedBuild', 'copy:crmapiLibBuild', 'clean:tempMonaco']);
 
 	//Runs all of the build steps after polymerBuild is invoked
