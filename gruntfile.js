@@ -211,11 +211,6 @@ module.exports = function(grunt) {
 					dest: 'buildBeforePolymer/elements/installing'
 				}]
 			},
-			html: {
-				files: [
-					{ expand: true, src: ['buildBeforePolymer/html/*'], filter: 'isFile' }
-				]
-			},
 			webcomponentsLibs: {
 				files: [{ 
 					expand: true, 
@@ -308,6 +303,14 @@ module.exports = function(grunt) {
 						'crmapi.d.ts'
 					],
 					dest: 'buildBeforePolymer/js/libraries/'
+				}]
+			},
+			prefixJs: {
+				files: [{
+					expand: true,
+					cwd: 'buildBeforePolymer/',
+					src: ['html/optionsPrefix.js'],
+					dest: 'build/'
 				}]
 			}
 		},
@@ -453,6 +456,20 @@ module.exports = function(grunt) {
 					],
 					dest: 'build/html/'
 				}]
+			},
+			noDefer: {
+				options: {
+					replacements: [{
+						pattern: /\sdefer/g,
+						replacement: ''
+					}]
+				},
+				files: [{
+					src: [
+						'build/html/options.html'
+					],
+					dest: 'build/html/'
+				}]
 			}
 		},
 		copyImportedElements: {
@@ -593,6 +610,15 @@ module.exports = function(grunt) {
 					src: '**/*.html',
 					dest: './app/bower_components/'
 				}]
+			},
+			optionsPrefix: {
+				options: {
+					cleanup: false,
+					scriptInHead: true
+				},
+				files: {
+					'buildBeforePolymer/html/optionsPrefix.html': ['buildBeforePolymer/html/optionsPrefix.html'],
+				}
 			}
 		},
 		watch: {
@@ -811,17 +837,19 @@ module.exports = function(grunt) {
 
 	//Runs all of the build steps before polymerBuild is invoked
 	grunt.registerTask('_buildPrePolymer', ['cleanBuild',
-		'copy:build', 'copy:installing', 'string-replace', 'copy:monacoPre', 
-		'copy:monacoTemp', 'processhtml:build', 
-		'processhtml:inlineElementImports', 'string-replace:removeCharacter',
-		'copy:jsFiles', 'copy:html', 'string-replace:changeThis',
-		'copy:tsEmbedBuild', 'copy:crmapiLibBuild', 'clean:tempMonaco']);
+		'copy:build', 'copy:installing', 'string-replace:manifestReplace', 
+		'copy:monacoPre', 'copy:monacoTemp', 'processhtml:build', 
+		'crisper:optionsPrefix', 'processhtml:inlineElementImports', 
+		'string-replace:removeCharacter', 'copy:jsFiles', 
+		'string-replace:changeThis', 'copy:tsEmbedBuild', 
+		'copy:crmapiLibBuild', 'clean:tempMonaco']);
 
 	//Runs all of the build steps after polymerBuild is invoked
-	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 'clean:removeBuildBeforePolymer', 'crispify', 
-		'copy:webcomponentsLibs', 'babel', 'joinPages:build', 'string-replace:fixBugs',
-		'usebanner', 'clean:buildBeforePolymer', 'copy:monacoPost',
-		'string-replace:patchMonaco']);
+	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 
+		'clean:removeBuildBeforePolymer', 'crispify', 'copy:webcomponentsLibs',
+		'babel', 'joinPages:build', 'string-replace:fixBugs', 'string-replace:noDefer',
+		'usebanner', 'copy:prefixJs', 'clean:buildBeforePolymer', 
+		'copy:monacoPost', 'string-replace:patchMonaco']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc), skips the compile step
