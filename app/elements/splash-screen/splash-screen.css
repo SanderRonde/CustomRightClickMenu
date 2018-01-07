@@ -23,6 +23,15 @@
 	background-color: #FF5722;
 }
 
+@-webkit-keyframes fadeIn {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
 @keyframes fadeIn {
 	0% {
 		opacity: 0;
@@ -33,10 +42,12 @@
 }
 
 #splashContainer[visible] {
+	-webkit-animation: fadeIn 150ms ease-in forwards;
 	animation: fadeIn 150ms ease-in forwards;
 }
 
 #splashContainer[invisible] {
+	-webkit-animation: none;
 	animation: none;
 	opacity: 0;
 }
