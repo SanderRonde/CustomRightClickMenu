@@ -24,6 +24,7 @@ module.exports = function(grunt) {
 					'buildBeforePolymer/elements/crm-app/crm-app.html': [
 						'buildBeforePolymer/elements/crm-app/crm-app.html'],
 					'buildBeforePolymer/html/options.html': ['buildBeforePolymer/html/options.html'],
+					'buildBeforePolymer/html/optionsPrefix.html': ['app/html/optionsPrefix.html'],
 					'buildBeforePolymer/elements/installing/install-confirm/install-confirm.html': [
 						'app/elements/installing/install-confirm/install-confirm.html'
 					]
@@ -720,7 +721,7 @@ module.exports = function(grunt) {
 			build: {
 				options: {
 					parts: [
-						'app/html/optionsPrefix.html',
+						'buildBeforePolymer/html/optionsPrefix.html',
 						'build/html/options.html'
 					],
 					dest: 'build/html/options.html'
