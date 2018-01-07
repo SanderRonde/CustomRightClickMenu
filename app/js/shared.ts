@@ -112,6 +112,13 @@ interface Window {
 		} catch(e) {
 			if (e.message.indexOf(`A custom element with name '${fn.is}' has already been defined.`) > -1) {
 				//Already defined, ignore
+				//Check if Polymer already knows it exists
+				if (!Polymer.telemetry.registrations.filter((el) => {
+					return el.is === fn.is;
+				})[0]) {
+					//Push it
+					Polymer.telemetry.registrations.push(fn);
+				}
 			} else {
 				throw e;
 			}

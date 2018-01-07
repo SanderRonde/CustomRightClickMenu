@@ -29,7 +29,9 @@ declare namespace Polymer {
 	export interface Polymer {
 		(proto: InitializerProperties): void;
 		telemetry: {
-			registrations: Array<HTMLElement>;
+			registrations: Array<RootElement & {
+				is: string;
+			}>;
 		}
 
 		CodeEditBehavior: CodeEditBehaviorBase;
