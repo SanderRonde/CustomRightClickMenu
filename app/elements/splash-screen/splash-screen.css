@@ -58,6 +58,7 @@
 	height: 100%;
 	-webkit-flex-direction: column;
 	flex-direction: column;
+	-webkit-justify-content: center;
 	justify-content: center;
 }
 
@@ -67,6 +68,7 @@
 	width: 100%;
 	-webkit-flex-direction: row;
 	flex-direction: row;
+	-webkit-justify-content: center;
 	justify-content: center;
 }
 
