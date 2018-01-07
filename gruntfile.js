@@ -421,16 +421,33 @@ module.exports = function(grunt) {
 					replacements: [{
 						pattern: /window===this((\s)?)\?((\s)?)this/g,
 						replacement: 'true?window'
+					}]
+				},
+				files: [{
+					expand: true,
+					cwd: 'buildBeforePolymer/bower_components/webcomponentsjs/',
+					src: [
+						'webcomponents-lite.js'
+					],
+					dest: 'buildBeforePolymer/bower_components/webcomponentsjs/'
+				}]
+			},
+			removeSetPrototypeOf: {
+				options: {
+					replacements: [{
+						pattern: /Object.setPrototypeOf\(((\w|\.)+),(\s*)((\w|\.)*)\)/g,
+						replacement: 'typeof Object[\'setPrototype\' + \'Of\'] === \'function\'?Object[\'setPrototype\' + \'Of\']($1,$4):$1.__proto__ = $4'
 					}, {
-						pattern: /Object.setPrototypeOf\((.*),(.*)\)/g,
-						replacement: 'typeof Object.setPrototypeOf === \'function\'?Object.setPrototypeOf($1,$2):$1.__proto__ = $2'
+						pattern: /typeof l\.global\.define/g,
+						replacement: 'typeof (l.global = l.global || {}).define'
 					}]
 				},
 				files: [{
 					src: [
-						'buildBeforePolymer/bower_components/webcomponentsjs/webcomponents-lite.js'
+						'build/html/options.js',
+						'build/html/background.js'
 					],
-					dest: 'buildBeforePolymer/bower_components/webcomponentsjs/webcomponents-lite.js'
+					dest: 'build/html/'
 				}]
 			}
 		},
@@ -798,7 +815,8 @@ module.exports = function(grunt) {
 
 	//Runs all of the build steps after polymerBuild is invoked
 	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 'clean:removeBuildBeforePolymer', 'crispify', 
-		'copy:webcomponentsLibs', 'babel', 'joinPages:build', 'usebanner', 'clean:buildBeforePolymer', 'copy:monacoPost',
+		'copy:webcomponentsLibs', 'babel', 'joinPages:build', 'string-replace:removeSetPrototypeOf',
+		'usebanner', 'clean:buildBeforePolymer', 'copy:monacoPost',
 		'string-replace:patchMonaco']);
 
 	//Builds the extension but tries to keep the code readable and unminified
