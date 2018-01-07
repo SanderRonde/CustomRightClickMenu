@@ -450,11 +450,13 @@ module.exports = function(grunt) {
 					}]
 				},
 				files: [{
+					expand: true,
 					src: [
 						'build/html/options.js',
-						'build/html/background.js'
+						'build/html/background.js',
+						'build/bower_components/webcomponentsjs/webcomponents-lite.js'
 					],
-					dest: 'build/html/'
+					dest: './'
 				}]
 			},
 			noDefer: {
