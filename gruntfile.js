@@ -432,7 +432,7 @@ module.exports = function(grunt) {
 					dest: 'buildBeforePolymer/bower_components/webcomponentsjs/'
 				}]
 			},
-			removeSetPrototypeOf: {
+			fixBugs: {
 				options: {
 					replacements: [{
 						pattern: /Object.setPrototypeOf\(((\w|\.)+),(\s*)((\w|\.)*)\)/g,
@@ -818,7 +818,7 @@ module.exports = function(grunt) {
 
 	//Runs all of the build steps after polymerBuild is invoked
 	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 'clean:removeBuildBeforePolymer', 'crispify', 
-		'copy:webcomponentsLibs', 'babel', 'joinPages:build', 'string-replace:removeSetPrototypeOf',
+		'copy:webcomponentsLibs', 'babel', 'joinPages:build', 'string-replace:fixBugs',
 		'usebanner', 'clean:buildBeforePolymer', 'copy:monacoPost',
 		'string-replace:patchMonaco']);
 
