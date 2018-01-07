@@ -222,10 +222,10 @@ namespace StylesheetEditElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(STE));
+		window.register(STE);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(STE));
+		window.addEventListener('RegisterReady', () => {
+			window.register(STE);
 		});
 	}
 }

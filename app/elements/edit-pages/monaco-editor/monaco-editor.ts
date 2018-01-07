@@ -2350,10 +2350,10 @@ namespace MonacoEditorElement {
 	}>;
 
 	if (window.objectify) {
-		Polymer(window.objectify(MOE));
+		window.register(MOE);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(MOE));
+		window.addEventListener('RegisterReady', () => {
+			window.register(MOE);
 		});
 	}
 }

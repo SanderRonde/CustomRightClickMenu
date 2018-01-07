@@ -682,10 +682,10 @@ namespace ScriptEditElement {
 
 	ScriptEditElement
 	if (window.objectify) {
-		Polymer(window.objectify(SCE));
+		window.register(SCE);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(SCE));
+		window.addEventListener('RegisterReady', () => {
+			window.register(SCE);
 		});
 	}
 }

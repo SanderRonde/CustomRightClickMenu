@@ -403,10 +403,10 @@ namespace InstallConfirmElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(IC));
+		window.register(IC);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(IC));
+		window.addEventListener('RegisterReady', () => {
+			window.register(IC);
 		});
 	}
 }

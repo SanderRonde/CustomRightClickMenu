@@ -4385,10 +4385,10 @@ namespace CRMAppElement {
 	}>;
 
 	if (window.objectify) {
-		Polymer(window.objectify(CA));
+		window.register(CA);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(CA));
+		window.addEventListener('RegisterReady', () => {
+			window.register(CA);
 		});
 	}
 }

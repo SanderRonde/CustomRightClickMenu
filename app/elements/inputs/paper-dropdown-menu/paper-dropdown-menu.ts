@@ -100,10 +100,10 @@ namespace PaperDropdownMenuElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(PDM));
+		window.register(PDM);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(PDM));
+		window.addEventListener('RegisterReady', () => {
+			window.register(PDM);
 		});
 	}
 }

@@ -570,10 +570,10 @@ namespace PaperLibrariesSelectorElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(PLS));
+		window.register(PLS);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(PLS));
+		window.addEventListener('RegisterReady', () => {
+			window.register(PLS);
 		});
 	}
 }

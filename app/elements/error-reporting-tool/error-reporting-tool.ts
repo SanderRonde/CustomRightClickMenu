@@ -476,10 +476,10 @@ namespace ErrorReportingToolElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(ERT));
+		window.register(ERT);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(ERT));
+		window.addEventListener('RegisterReady', () => {
+			window.register(ERT);
 		});
 	}
 }

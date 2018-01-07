@@ -90,10 +90,10 @@ namespace PaperArrayInputElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(PAI));
+		window.register(PAI);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(PAI));
+		window.addEventListener('RegisterReady', () => {
+			window.register(PAI);
 		});
 	}
 }

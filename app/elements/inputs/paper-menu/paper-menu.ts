@@ -6,10 +6,10 @@ namespace PaperMenuElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(PM));
+		window.register(PM);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(PM));
+		window.addEventListener('RegisterReady', () => {
+			window.register(PM);
 		});
 	}
 }

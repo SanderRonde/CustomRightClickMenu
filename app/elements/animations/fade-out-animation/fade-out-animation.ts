@@ -22,10 +22,10 @@ namespace FadeOutAnimationElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(FOA));
+		window.register(FOA);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(FOA));
+		window.addEventListener('RegisterReady', () => {
+			window.register(FOA);
 		});
 	}
 }

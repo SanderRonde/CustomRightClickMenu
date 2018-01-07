@@ -35,10 +35,10 @@ namespace LogPageElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(LP));
+		window.register(LP);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(LP));
+		window.addEventListener('RegisterReady', () => {
+			window.register(LP);
 		});
 	}
 }

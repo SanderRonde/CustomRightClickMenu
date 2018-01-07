@@ -44,10 +44,10 @@ namespace EchoHtmlElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(EH));
+		window.register(EH);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(EH));
+		window.addEventListener('RegisterReady', () => {
+			window.register(EH);
 		});
 	}
 }

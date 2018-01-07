@@ -111,10 +111,10 @@ namespace PaperGetPagePropertiesElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(PGPP));
+		window.register(PGPP);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(PGPP));
+		window.addEventListener('RegisterReady', () => {
+			window.register(PGPP);
 		});
 	}
 }

@@ -22,10 +22,10 @@ namespace ScaleUpAnimationElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(SUA));
+		window.register(SUA);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(SUA));
+		window.addEventListener('RegisterReady', () => {
+			window.register(SUA);
 		});
 	}
 }

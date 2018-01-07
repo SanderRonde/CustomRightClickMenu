@@ -156,10 +156,10 @@ namespace CenterElementElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(CE));
+		window.register(CE);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(CE));
+		window.addEventListener('RegisterReady', () => {
+			window.register(CE);
 		});
 	}
 }

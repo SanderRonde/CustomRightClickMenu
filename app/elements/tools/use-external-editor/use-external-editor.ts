@@ -808,11 +808,11 @@ namespace UseExternalEditorElement {
 
 	Polymer(UEE);
 
-	if (window.objectify) {
-		Polymer(window.objectify(UEE));
+	if (window.register) {
+		window.register(UEE);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(UEE));
+		window.addEventListener('RegisterReady', () => {
+			window.register(UEE);
 		});
 	}
 }

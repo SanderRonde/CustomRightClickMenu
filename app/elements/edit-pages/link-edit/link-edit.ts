@@ -61,10 +61,10 @@ namespace LinkEditElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(LE));
+		window.register(LE);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(LE));
+		window.addEventListener('RegisterReady', () => {
+			window.register(LE);
 		});
 	}
 }

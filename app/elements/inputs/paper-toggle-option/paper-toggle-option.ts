@@ -53,10 +53,10 @@ namespace PaperToggleOptionElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(PTO));
+		window.register(PTO);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(PTO));
+		window.addEventListener('RegisterReady', () => {
+			window.register(PTO);
 		});
 	}
 }

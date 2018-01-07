@@ -1142,10 +1142,10 @@ namespace EditCrmElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(EC));
+		window.register(EC);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(EC));
+		window.addEventListener('RegisterReady', () => {
+			window.register(EC);
 		});
 	}
 }

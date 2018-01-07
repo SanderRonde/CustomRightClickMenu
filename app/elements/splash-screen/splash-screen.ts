@@ -137,10 +137,10 @@ namespace SplashScreenElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(SS));
+		window.register(SS);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(SS));
+		window.addEventListener('RegisterReady', () => {
+			window.register(SS);
 		});
 	}
 }

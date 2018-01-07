@@ -610,10 +610,10 @@ namespace LogConsoleElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(LC));
+		window.register(LC);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(LC));
+		window.addEventListener('RegisterReady', () => {
+			window.register(LC);
 		});
 	}
 }

@@ -202,10 +202,10 @@ namespace InstallPageElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(IP));
+		window.register(IP);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(IP));
+		window.addEventListener('RegisterReady', () => {
+			window.register(IP);
 		});
 	}
 }

@@ -71,10 +71,10 @@ namespace DefaultLinkElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(DL));
+		window.register(DL);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(DL));
+		window.addEventListener('RegisterReady', () => {
+			window.register(DL);
 		});
 	}
 }

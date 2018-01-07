@@ -308,10 +308,10 @@ namespace TypeSwitcherElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(TS));
+		window.register(TS);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(TS));
+		window.addEventListener('RegisterReady', () => {
+			window.register(TS);
 		});
 	}
 }

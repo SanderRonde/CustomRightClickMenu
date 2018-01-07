@@ -22,6 +22,7 @@ interface Window {
 	Promise: typeof Promise;
 	onExists<T extends keyof Window>(key: T): PromiseLike<Window[T]>;
 	objectify<T>(fn: T): T;
+	register(fn: any): void;
 	with<T>(initializer: () => Withable, fn: () => T): T;
 	withAsync<T>(initializer: () => Promise<Withable>, fn: () => Promise<T>): Promise<T>;
 }
@@ -105,6 +106,18 @@ interface Window {
 		return obj as T;
 	}
 
+	const register = (fn: any) => {
+		try {
+			Polymer(objectify(fn));
+		} catch(e) {
+			if (e.message.indexOf(`A custom element with name '${fn.is}' has already been defined.`) > -1) {
+				//Already defined, ignore
+			} else {
+				throw e;
+			}
+		}
+	}
+
 	window.withAsync = async <T>(initializer: () => Promise<Withable>, fn: () => Promise<T>): Promise<T> => {
 		const toRun = await initializer();
 		const res = await fn();
@@ -122,9 +135,10 @@ interface Window {
 	if (typeof Event !== 'undefined') {
 		window.onExists('Promise').then(() => {
 			window.onExists('Polymer').then(() => {
-		window.objectify = objectify;
-		const event = new Event('ObjectifyReady');
-		window.dispatchEvent(event);
+				window.objectify = objectify;
+				window.register = register;
+				const event = new Event('RegisterReady');
+				window.dispatchEvent(event);
 			});
 		});
 	}

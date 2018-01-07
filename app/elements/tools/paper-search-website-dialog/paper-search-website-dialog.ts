@@ -383,10 +383,10 @@ namespace PaperSearchWebsiteDialog {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(PSWD));
+		window.register(PSWD);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(PSWD));
+		window.addEventListener('RegisterReady', () => {
+			window.register(PSWD);
 		});
 	}
 }

@@ -29,10 +29,10 @@ namespace MenuEditElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(ME));
+		window.register(ME);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(ME));
+		window.addEventListener('RegisterReady', () => {
+			window.register(ME);
 		});
 	}
 }

@@ -29,10 +29,10 @@ namespace DividerEditElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(DE));
+		window.register(DE);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(DE));
+		window.addEventListener('RegisterReady', () => {
+			window.register(DE);
 		});
 	}
 }

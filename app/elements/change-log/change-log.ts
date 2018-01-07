@@ -181,10 +181,10 @@ namespace ChangeLogElement {
 	};
 
 	if (window.objectify) {
-		Polymer(window.objectify(CL));
+		window.register(CL);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(CL));
+		window.addEventListener('RegisterReady', () => {
+			window.register(CL);
 		});
 	}
 }

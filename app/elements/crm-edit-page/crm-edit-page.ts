@@ -344,10 +344,10 @@ namespace CrmEditPageElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(CEP));
+		window.register(CEP);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(CEP));
+		window.addEventListener('RegisterReady', () => {
+			window.register(CEP);
 		});
 	}
 }

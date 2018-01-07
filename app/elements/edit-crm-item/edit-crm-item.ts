@@ -503,10 +503,10 @@ namespace EditCrmItemElement {
 	}
 
 	if (window.objectify) {
-		Polymer(window.objectify(ECI));
+		window.register(ECI);
 	} else {
-		window.addEventListener('ObjectifyReady', () => {
-			Polymer(window.objectify(ECI));
+		window.addEventListener('RegisterReady', () => {
+			window.register(ECI);
 		});
 	}
 }
