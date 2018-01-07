@@ -1649,7 +1649,6 @@ namespace CRMAppElement {
 
 			static setupLoadingBar(): Promise<void> {
 				return new Promise(async (resolve) => {
-					window.splashScreen.init(49);
 					window.splashScreen.done.then(() => {
 						//Wait until the element is actually registered to the DOM
 						window.setTimeout(() => {

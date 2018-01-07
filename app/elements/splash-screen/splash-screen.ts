@@ -3,12 +3,17 @@
 namespace SplashScreenElement {
 	export const splashScreenProperties: {
 		name: string;
+		max: number;
 		finished: boolean;
 	} = {
 		name: {
 			type: String,
 			value: '',
 			notify: true
+		},
+		max: {
+			type: Number,
+			value: Infinity
 		},
 		finished: {
 			type: Boolean,
@@ -124,6 +129,10 @@ namespace SplashScreenElement {
 				max: Infinity
 			};
 			window.splashScreen = this;
+
+			if (this.max) {
+				this.init(this.max);
+			}
 		};
 	}
 
