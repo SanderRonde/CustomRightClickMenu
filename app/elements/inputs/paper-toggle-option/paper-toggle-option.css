@@ -58,3 +58,7 @@
 #checkbox {
 	margin-left: 9px;
 }
+
+#checkboxLabel {
+	max-width: 950px;
+}
