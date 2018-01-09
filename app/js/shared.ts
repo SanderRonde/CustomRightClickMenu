@@ -110,18 +110,19 @@ interface Window {
 		try {
 			Polymer(objectify(fn));
 		} catch(e) {
-			if (e.message.indexOf(`A custom element with name '${fn.is}' has already been defined.`) > -1) {
-				//Already defined, ignore
-				//Check if Polymer already knows it exists
-				if (!Polymer.telemetry.registrations.filter((el) => {
-					return el.is === fn.is;
-				})[0]) {
-					//Push it
-					Polymer.telemetry.registrations.push(fn);
+			if (e.message.indexOf(`A custom element with name '${fn.is}' has already been defined.`) > -1 ||
+				e.message.indexOf(`Failed to execute 'define' on 'CustomElementRegistry': this name has already been used with this registry`) > -1) {
+					//Already defined, ignore
+					//Check if Polymer already knows it exists
+					if (!Polymer.telemetry.registrations.filter((el) => {
+						return el.is === fn.is;
+					})[0]) {
+						//Push it
+						Polymer.telemetry.registrations.push(fn);
+					}
+				} else {
+					throw e;
 				}
-			} else {
-				throw e;
-			}
 		}
 	}
 
