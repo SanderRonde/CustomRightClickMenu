@@ -4,6 +4,7 @@ window.CRMLoaded = window.CRMLoaded || {
 		window.CRMLoaded.listener = fn;
 	}
 }
+
 window.CRMLoaded.register(function() {
 	//Because of a chrome bug that causes it to freeze
 	// when handling at least this regex string
@@ -103,6 +104,73 @@ window.CRMLoaded.register(function() {
 		}
 	}
 
+	/**
+	 * @type {Array<HTMLElement>}
+	 */
+	var allRoots = null;
+
+	function getAllRoots() {
+		if (allRoots) {
+			return allRoots;
+		}
+		var docEl = document.documentElement;
+		allRoots = [docEl].concat(getRoots(docEl.children));
+		return allRoots;
+	}
+
+	function querySelectorEverything(selector) {
+		return flatten(getAllRoots().map(function(root) {
+			return root.querySelectorAll(selector);
+		}));
+	}
+
+	function traverseDom(node, fn) {
+		fn(node);
+		if (node.children) {
+			for (var i = 0; i < node.children.length; i++) {
+				traverseDom(node.children[i]);
+			}
+		}
+	}
+
+	function getRoots(children) {
+		var roots = [];
+		for (var i = 0; i < children; i++) {
+			traverseDom(children[i], function(node) {
+				if (node.shadowRoot) {
+					roots.push(node.shadowRoot);
+				}
+			});
+		}
+		return roots;
+	}
+
+	function flatten(arr) {
+		var newArr = [];
+		for (var i = 0; i < arr.length; i++) {
+			for (var j = 0; j < arr[i].length; j++) {
+				newArr.push(arr[i][j]);
+			}
+		}
+		return newArr;
+	}
+
+	function breakdownSelector(selector) {
+		var parts = selector.split(' ');
+		var current = document.querySelectorAll(parts[0]);
+		for (var i = 1; i < parts.length; i++) {
+			current = flatten(current.map(function(node) {
+				if (node.shadowRoot) {
+					return node.shadowRoot;
+				}
+				return node.shadowRoot;
+			}).map(function(node) {
+				return node.querySelectorAll(parts[i]);
+			}));
+		}
+		return current;
+	}
+
 
 	(function() {
 		var el = document.createElement('div');
@@ -120,7 +188,7 @@ window.CRMLoaded.register(function() {
 							key.slice(dashIndex + 2); 
 					}
 
-					calc.elements = document.querySelectorAll(calc.elements);
+					calc.elements = breakdownSelector(calc.elements);
 
 					if (!calc.elements) {
 						return null;
@@ -222,6 +290,7 @@ window.CRMLoaded.register(function() {
 				});
 				return stylesheetBlocks;
 			}(function(linkElements) {
+				window.lol = querySelectorEverything;
 				return Array.prototype.slice.call(linkElements).map(function(linkElement) {
 					if (linkElement.tagName === 'STYLE') {
 						return linkElement.textContent;
@@ -236,7 +305,7 @@ window.CRMLoaded.register(function() {
 						}
 					}
 				});
-			}(document.querySelectorAll('style, link[rel="stylesheet"]')))))))
+			}(querySelectorEverything('style, link[rel="stylesheet"]')))))))
 		}
 		el.remove();
 	})();
