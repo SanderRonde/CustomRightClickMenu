@@ -276,8 +276,9 @@ namespace CodeEditBehaviorNamespace {
 				}
 			}, 200);
 			setTimeout(() => {
-				window.doc.dummy.style.height = '0';
-				$(window.doc.dummy).animate({
+				const dummy = window.app.util.getDummy();
+				dummy.style.height = '0';
+				$(dummy).animate({
 					height: '50px'
 				}, {
 					duration: 500,
@@ -347,8 +348,9 @@ namespace CodeEditBehaviorNamespace {
 				}
 			}, 200);
 			setTimeout(() => {
-				window.doc.dummy.style.height = '50px';
-				$(window.doc.dummy).animate({
+				const dummy = window.app.util.getDummy();
+				dummy.style.height = '50px';
+				$(dummy).animate({
 					height: '0'
 				}, {
 					duration: 500,

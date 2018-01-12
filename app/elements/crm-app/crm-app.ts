@@ -4227,6 +4227,16 @@ namespace CRMAppElement {
 				return el;
 			}
 
+			private static _dummy: HTMLElement = null;
+			static getDummy(): HTMLElement {
+				if (this._dummy) {
+					return this._dummy;
+				}
+				this._dummy = document.createElement('div');
+				this.parent().appendChild(this._dummy);
+				return this._dummy;
+			}
+
 			static findElementWithTagname<T extends keyof ElementTagNameMaps>(path: Polymer.EventPath, tagName: T): ElementTagNameMaps[T] {
 				let index = 0;
 				let node = path[0];
