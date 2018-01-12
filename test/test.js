@@ -522,11 +522,11 @@ class xhr {
 }
 
 /**
- * @type {GlobalObject & {crmAPI: CRM.CRMAPI.CrmAPIInstance; changelogLog: {[key: string]: Array<string>;}}}
+ * @type {GlobalObject & {crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}}}
  */
 var window;
 /**
- * @type {GlobalObject & {crmAPI: CRM.CRMAPI.CrmAPIInstance; changelogLog: {[key: string]: Array<string>;}}}
+ * @type {GlobalObject & {crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}}}
  */
 // @ts-ignore
 var backgroundPageWindow = window = {
