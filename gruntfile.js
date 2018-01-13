@@ -459,6 +459,7 @@ module.exports = function(grunt) {
 					expand: true,
 					src: [
 						'build/html/options.js',
+						'build/html/options.es3.js',
 						'build/html/background.js',
 						'build/bower_components/webcomponentsjs/webcomponents-lite.js'
 					],
@@ -869,7 +870,7 @@ module.exports = function(grunt) {
 	//Runs all of the build steps after polymerBuild is invoked
 	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 
 		'clean:removeBuildBeforePolymer', 'crispify', 'copy:webcomponentsLibs',
-		'babel', 'string-replace:removeOptionsJs', 'joinPages:build', 
+		'string-replace:removeOptionsJs', 'babel', 'joinPages:build', 
 		'string-replace:fixBugs', 'string-replace:noDefer',
 		'uglify:finalMinify',
 		'usebanner', 'copy:prefixJs', 'clean:buildBeforePolymer', 
