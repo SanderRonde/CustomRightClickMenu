@@ -453,6 +453,9 @@ module.exports = function(grunt) {
 					}, {
 						pattern: /use strict/g,
 						replacement: 'use notstrict'
+					}, {
+						pattern: /\s\(\(\)\=\>\{'use notstrict';if\(!window.customElements\)(.*)\s/g,
+						replacement: `try { eval('class foo {}'); eval("(()=>{if(!window.customElements)$1") } catch (e) { }`
 					}]
 				},
 				files: [{
@@ -869,8 +872,8 @@ module.exports = function(grunt) {
 
 	//Runs all of the build steps after polymerBuild is invoked
 	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 
-		'clean:removeBuildBeforePolymer', 'crispify', 'copy:webcomponentsLibs',
-		'string-replace:removeOptionsJs', 'babel', 'joinPages:build', 
+		'clean:removeBuildBeforePolymer', 'crispify', 'copy:webcomponentsLibs', 
+		'string-replace:removeOptionsJs', 'babel', 'joinPages:build',
 		'string-replace:fixBugs', 'string-replace:noDefer',
 		'uglify:finalMinify',
 		'usebanner', 'copy:prefixJs', 'clean:buildBeforePolymer', 
