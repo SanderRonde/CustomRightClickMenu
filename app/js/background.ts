@@ -7,6 +7,69 @@
 /// <reference path="../../tools/definitions/typescript.d.ts" />
 /// <reference path="../js/shared.ts" />
 
+type UserPageMessage = {
+	id: number;
+	type: 'updateStorage';
+	data: {
+		type: 'optionsPage';
+		localChanges: Array<{
+			oldValue: any;
+			newValue: any;
+			key: string;
+		}>|false;
+		settingsChanges: Array<{
+			oldValue: any;
+			newValue: any;
+			key: string;
+		}>|false;
+	}|{
+		type: 'libraries';
+		libraries: Array<CRM.InstalledLibrary>;
+	}
+	tabIndex: number;
+	tabId: number;
+}|{
+	type: 'installUserScript';
+	data: {
+		metaTags: CRM.MetaTags;
+		script: string;
+		downloadURL: string;
+		allowedPermissions: Array<string>;
+	}
+}|{
+	type: 'executeCRMCode';	
+	data: {
+		code: string;
+		id: number;
+		tabIndex: number;
+		tab: number;
+		logListener: LogListenerObject;
+	}
+}|{
+	type: 'createLocalLogVariable';
+	data: {
+		code: {
+			index: number;
+			path: Array<string>;
+			logId: number;
+		}
+		id: number;
+		tab: number;
+		tabIndex: number;
+		logListener: LogListenerObject;
+	}
+}|{
+	type: 'resource';
+	data: {
+		type: 'remove';
+		name: string;
+		url: string;
+		scriptId: number;
+	}	
+};
+
+type RuntimeMessage = CRMAPIMessage|UserPageMessage;
+
 interface TabData {
 	id: number | 'background';
 	title: string;

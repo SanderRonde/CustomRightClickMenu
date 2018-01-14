@@ -1,6 +1,177 @@
 /// <reference path="background.ts" />
 
-type CRMAPIMessage = {};
+type CRMAPIMessage = {
+	id: number;
+	type: 'logCrmAPIValue';
+	tabId: number;
+	tabIndex: number;
+	data: {
+		type: 'evalResult';
+		value: {
+			type: 'success';
+			result: any;
+		}|{
+			type: 'error';
+			result: {
+				stack: string;
+				name: string;
+				message: string;
+			}
+		};
+		id: number;
+		tabIndex: number;
+		callbackIndex: number;
+		lineNumber: string;
+		timestamp: string;
+		tabId: number;
+	}
+}|{
+	id: number;
+	type: 'displayHints';
+	tabId: number;
+	tabIndex: number;
+	data: {
+		hints: Array<string>;
+		id: number;
+		tabIndex: number;
+		callbackIndex: number;
+		tabId: number;
+	}
+}|{
+	id: number;
+	tabIndex: number;
+	tabId: number;
+	type: 'applyLocalStorage';
+	data: {
+		tabIndex: number;
+		key: string;
+		value: any;
+	}
+}|{
+	id: number;
+	tabIndex: number;
+	type: 'respondToBackgroundMessage',
+	data: {
+		message: any,
+		id: number;
+		tabIndex: number;
+		tabId: number;
+		response: number;
+	},
+	tabId: number;
+}|{
+	id: number;
+	type: 'sendInstanceMessage';
+	data: {
+		toInstanceId: number;
+		toTabIndex: number;
+		tabIndex: number;
+		message: any;
+		id: number;
+		tabId: number;
+	}
+	tabId: number;
+	tabIndex: number;
+	onFinish: {
+		maxCalls: number;
+		fn: number;
+	}
+}|{
+	id: number;
+	type: 'changeInstanceHandlerStatus';
+	tabIndex: number;
+	data: {
+		tabIndex: number;
+		hasHandler: boolean;
+	};
+	tabId: number;
+}|{
+	id: number;
+	type: 'updateStorage';
+	data: {
+		type: 'nodeStorage';
+		nodeStorageChanges: Array<{
+			key: string;
+			oldValue: any;
+			newValue: any;
+		}>;
+		id: number;
+		tabIndex: number;
+		tabId: number;
+	};
+	tabIndex: number;
+	tabId: number;
+}|{
+	id: number;
+	type: 'crm';
+	tabIndex: number;
+	action: string;
+	crmPath: Array<number>;
+	data: Array<any>;
+	onFInish: {
+		persistent: boolean;
+		maxCalls: number;
+		fn: number;
+	};
+	tabId: number;
+}|{
+	type: 'chrome';
+	id: number;
+	tabIndex: number;
+	api: string;
+	args: Array<({
+		type: "fn";
+		isPersistent: boolean;
+		val: number;
+	}|{
+		type: "arg";
+		val: string;
+	}|{
+		type: "return";
+		val: number;
+	})>;
+	tabId: number;
+	requestType: 'GM_download'|'GM_notification'|undefined;
+}|{
+	id: number;
+	type: 'addNotificationListener';
+	data: {
+		notificationId: number;
+		onClick: number;
+		tabIndex: number;
+		onDone: number;
+		id: number;
+		tabId: number;
+	};
+	tabIndex: number;
+	tabId: number;
+}|{
+	id: number;
+	type: 'sendBackgroundpageMessage';
+	data: {
+		message: any;
+		id: number;
+		tabId: number;
+		tabIndex: number;
+		response: number;
+	},
+	tabIndex: number;
+	tabId: number;
+}|{
+	id: number;
+	type: 'logCrmAPIValue',
+	tabId: number;
+	tabIndex: number;
+	data: {
+		type: 'log',
+		data: EncodedString<Array<string>>,
+		id: number;
+		logId: number;
+		tabIndex: number;
+		lineNumber: number;
+		tabId: number;
+	}
+};
 
 (function(window: Window) {
 	const _chrome = {
@@ -1358,7 +1529,7 @@ type CRMAPIMessage = {};
 						case 'executeCRMCode':
 							this.__privates._executeCode(message);
 							break;
-						case 'getCRMMHints':
+						case 'getCRMHints':
 							this.__privates._getHints(message);
 							break;
 						case 'storageUpdate':
