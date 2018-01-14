@@ -964,10 +964,10 @@ namespace CRMAppElement {
 
 			//On a demo or test page right now, use background page to init settings
 			window.Storages.loadStorages(() => {
-				this._setup.setupStorages.apply(this._setup);
+				this._setup.setupStorages();
 
 				//Reset checkboxes
-				this._setup.initCheckboxes.apply(this, [window.app.storageLocal]);
+				this._setup.initCheckboxes(window.app.storageLocal);
 				
 				//Reset default links and searchengines
 				Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('default-link')).forEach(function (link: DefaultLink) {
