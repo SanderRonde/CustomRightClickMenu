@@ -1181,7 +1181,7 @@ describe('Options Page', function() {
 							return driver.executeScript(inlineFn((REPLACE) => {
 								return JSON.stringify({
 									match: window.app.storageLocal['REPLACE.checkboxId' as keyof CRM.StorageLocal] === REPLACE.expected,
-									checked: document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox').checked
+									checked: (window.app as any).$['REPLACE.checkboxId'].shadowRoot.querySelector('paper-checkbox').checked
 								});
 							}, {
 								checkboxId: checkboxId,
