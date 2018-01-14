@@ -331,8 +331,9 @@ const templates = {
 
 function findElementOnPage(selector: string): HTMLElement {
 	const list: Array<[string, number]> = JSON.parse(selector);
-	let el: Element = document.body;
+	let el: Element|ShadowRoot = document.body;
 	for (let i = 0; i < list.length; i++) {
+		el = el.shadowRoot || el;
 		el = el.querySelectorAll(list[i][0])[list[i][1]];
 	}
 	return el as HTMLElement;
