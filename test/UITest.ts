@@ -4,6 +4,8 @@
 /// <reference path="../app/js/background.ts" />
 /// <reference path="../app/elements/edit-crm-item/edit-crm-item.ts" />
 
+global.Promise = webdriver.promise.Promise;
+
 interface AnyObj {
 	[key: string]: any;
 	[key: number]: any;
@@ -330,7 +332,7 @@ const templates = {
 };
 
 function findElementOnPage(selector: string): HTMLElement {
-	const list: Array<[string, number]> = JSON.parse(selector);
+	const list = JSON.parse(selector as EncodedString<Array<[string, number]>>);
 	let el: Element|ShadowRoot = document.body;
 	for (let i = 0; i < list.length; i++) {
 		el = el.shadowRoot || el;
@@ -384,8 +386,8 @@ function getSyncSettings(driver: webdriver.WebDriver): webdriver.promise.Promise
 			.executeScript(inlineFn(() => {
 				return JSON.stringify(window.app.settings);
 			}))
-			.then((str: string) => {
-				resolve(JSON.parse(str) as SettingsStorage);
+			.then((str: EncodedString<SettingsStorage>) => {
+				resolve(JSON.parse(str));
 			});
 	}); 
 }
@@ -395,8 +397,8 @@ function getCRM(driver: webdriver.WebDriver): webdriver.promise.Promise<CRM.Tree
 		driver
 			.executeScript(inlineFn(() => {
 				return JSON.stringify(window.app.settings.crm);
-			})).then((str: string) => {
-				resolve(JSON.parse(str) as CRM.Tree);
+			})).then((str: EncodedString<CRM.Tree>) => {
+				resolve(JSON.parse(str));
 			});
 	});
 }
@@ -406,8 +408,8 @@ function getContextMenu(driver: webdriver.WebDriver): webdriver.promise.Promise<
 		driver
 			.executeScript(inlineFn(() => {
 				return JSON.stringify(window.chrome._currentContextMenu[0].children);
-			})).then((str: string) => {
-				resolve(JSON.parse(str) as ContextMenu);
+			})).then((str: EncodedString<ContextMenu>) => {
+				resolve(JSON.parse(str));
 			});
 	});
 }
@@ -425,15 +427,14 @@ function cancelDialog(dialog: FoundElement): webdriver.promise.Promise<void> {
 }
 
 type DialogType = 'link'|'script'|'divider'|'menu'|'stylesheet';
-function getDialog(driver: webdriver.WebDriver, type: DialogType):
+async function getDialog(driver: webdriver.WebDriver, type: DialogType):
 	webdriver.promise.Promise<FoundElement> {
-		return new webdriver.promise.Promise((resolve) => {
-			findElement(driver, webdriver.By.tagName(`${type}-edit`)).then((element) => {
-				setTimeout(() => {
-					resolve(element);
-				}, 500);
-			});
-		});
+		const el = await findElement(driver, webdriver.By.tagName('crm-app'))
+			.findElement(webdriver.By.tagName('crm-edit-page'))
+			.findElement(webdriver.By.tagName(`${type}-edit`));
+			
+		await wait(driver, 500);
+		return el;
 	}
 
 function generatePromiseChain<T>(data: Array<T>,
@@ -819,8 +820,8 @@ class FoundElement implements FoundElement {
 			}, {
 				css: css,
 				selector: JSON.stringify(selectorList.reverse())
-			}, findElementOnPage, checkIfListContainsElement)).then((indexes: string) => {
-				resolve((JSON.parse(indexes) as Array<string>).map((found, index) => {
+			}, findElementOnPage, checkIfListContainsElement)).then((indexes: EncodedString<Array<string>>) => {
+				resolve((JSON.parse(indexes)).map((found, index) => {
 					if (found === 'exists') {
 						return new FoundElement(css, index, driver, this);
 					}
@@ -877,14 +878,14 @@ class FoundElement implements FoundElement {
 			});
 		});
 	}
-	getProperty(prop: string): webdriver.promise.Promise<any> {
+	getProperty<T>(prop: string): webdriver.promise.Promise<T> {
 		const selectorList = [[this.selector, this.index]];
 		let currentElement: FoundElement = this;
 		while (currentElement.parent) {
 			currentElement = currentElement.parent;
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
-		return new webdriver.promise.Promise<any>((resolve) => {
+		return new webdriver.promise.Promise<T>((resolve) => {
 			this.driver.executeScript(inlineFn(() => {
 				const el = findElementOnPage('REPLACE.selector');
 				const val = el['REPLACE.prop' as keyof HTMLElement];
@@ -892,7 +893,7 @@ class FoundElement implements FoundElement {
 			}, {
 				selector: JSON.stringify(selectorList.reverse()),
 				prop: prop
-			}, findElementOnPage)).then((value: string) => {
+			}, findElementOnPage)).then((value: EncodedString<T>) => {
 				resolve(JSON.parse(value));
 			});
 		});
@@ -938,8 +939,8 @@ class FoundElement implements FoundElement {
 				});
 			}, {
 				selector: JSON.stringify(selectorList.reverse())
-			}, findElementOnPage)).then((bcr: string) => {
-				resolve(JSON.parse(bcr) as ClientRect);
+			}, findElementOnPage)).then((bcr: EncodedString<ClientRect>) => {
+				resolve(JSON.parse(bcr));
 			});
 		});
 	}
@@ -1002,9 +1003,9 @@ function findElements(driver: webdriver.WebDriver,
 		}));
 	}, {
 		css: selector
-	})).then((indexes: string) => {
+	})).then((indexes: EncodedString<Array<string>>) => {
 		return new webdriver.promise.Promise((resolve) => {
-			resolve((JSON.parse(indexes) as Array<string>).map((exists, index) => {
+			resolve((JSON.parse(indexes)).map((exists, index) => {
 				if (exists === 'exists') {
 					return new FoundElement(selector, index, driver);
 				}
@@ -1173,7 +1174,24 @@ describe('Options Page', function() {
 			useStorageSync: true
 		};
 		Object.getOwnPropertyNames(checkboxDefaults).forEach((checkboxId, index) => {
-			it(`${checkboxId} should be clickable`, (done) => {
+			it(`${checkboxId} should be clickable`, async (done) => {
+				await reloadPage(this, driver);
+				await findElement(driver, webdriver.By.tagName('crm-app'))
+					.findElement(webdriver.By.id(checkboxId))
+					.findElement(webdriver.By.tagName('paper-checkox'))
+					.click();
+				
+				const result = await driver.executeScript(inlineFn((REPLACE) => {
+					return JSON.stringify({
+						match: window.app.storageLocal['REPLACE.checkboxId' as keyof CRM.StorageLocal] === REPLACE.expected,
+						checked: (window.app.$ as any)['REPLACE.checkboxId'].shadowRoot.querySelector('paper-checkbox').checked
+					});
+				}, {
+					checkboxId: checkboxId,
+					expected: !checkboxDefaults[checkboxId as keyof typeof checkboxDefaults]
+				}));
+
+				done();
 				reloadPage(this, driver).then(() => {
 					findElement(driver, webdriver.By.css(`#${checkboxId} paper-checkbox`))
 						.then((element) => {
@@ -1188,11 +1206,11 @@ describe('Options Page', function() {
 								checkboxId: checkboxId,
 								expected: !checkboxDefaults[checkboxId as keyof typeof checkboxDefaults]
 							}));
-						}).then((result: string) => {
-							const resultObj: {
-								checked: boolean;
-								match: boolean;
-							} = JSON.parse(result);
+						}).then((result: EncodedString<{
+							checked: boolean;
+							match: boolean;
+						}>) => {
+							const resultObj = JSON.parse(result);
 							assert.strictEqual(resultObj.checked, !checkboxDefaults[checkboxId as keyof typeof checkboxDefaults],
 								'checkbox checked status matches expected');
 							assert.strictEqual(resultObj.match, true, 
@@ -1214,11 +1232,11 @@ describe('Options Page', function() {
 							expected: !checkboxDefaults[checkboxId as keyof typeof checkboxDefaults]
 						}));
 					})
-					.then((result: string) => {
-						const resultObj: {
-							checked: boolean;
-							match: boolean;
-						} = JSON.parse(result);
+					.then((result: EncodedString<{
+						checked: boolean;
+						match: boolean;
+					}>) => {
+						const resultObj = JSON.parse(result);
 
 						assert.strictEqual(resultObj.checked, !checkboxDefaults[checkboxId as keyof typeof checkboxDefaults],
 							'checkbox checked status has been saved');
@@ -1489,8 +1507,8 @@ describe('Options Page', function() {
 						return driver.executeScript(inlineFn(() => {
 							return JSON.stringify(window.chrome._lastCall);
 						}));
-					}).then((jsonStr: string) => {
-						const lastCall: ChromeLastCall = JSON.parse(jsonStr);
+					}).then((jsonStr: EncodedString<ChromeLastCall>) => {
+						const lastCall = JSON.parse(jsonStr);
 						assert.isDefined(lastCall, 'a call to the chrome API was made');
 						assert.strictEqual(lastCall.api, 'downloads.download',
 							'chrome downloads API was called');
@@ -3092,8 +3110,8 @@ describe('Options Page', function() {
 													window.chrome._clearExecutedScripts();
 													return str;
 												}));
-										}).then((str: string) => {
-											const activatedScripts = JSON.parse(str) as ExecutedScripts;
+										}).then((str: EncodedString<ExecutedScripts>) => {
+											const activatedScripts = JSON.parse(str);
 
 											assert.include(activatedScripts, {
 												id: tabId,
@@ -3283,8 +3301,8 @@ describe('Options Page', function() {
 												.executeScript(inlineFn(() => {
 													return JSON.stringify(window.chrome._executedScripts);
 												}));
-										}).then((str: string) => {
-											const activatedScripts = JSON.parse(str) as ExecutedScripts;
+										}).then((str: EncodedString<ExecutedScripts>) => {
+											const activatedScripts = JSON.parse(str);
 
 											assert.include(activatedScripts, {
 												id: tabId,
@@ -3987,8 +4005,8 @@ describe('On-Page CRM', function() {
 							.executeScript(inlineFn(() => {
 								return JSON.stringify(window.chrome._activeTabs);
 							}));
-					}).then((str: string) => {
-						const activeTabs = JSON.parse(str) as ActiveTabs;
+					}).then((str: EncodedString<ActiveTabs>) => {
+						const activeTabs = JSON.parse(str);
 						const expectedTabs = CRMNodes[LinkOnPageTest.DEFAULT_LINKS].value.map((link) => {
 							if (!link.newTab) {
 								return {
@@ -4054,8 +4072,8 @@ describe('On-Page CRM', function() {
 							.executeScript(inlineFn(() => {
 								return JSON.stringify(window.chrome._activeTabs);
 							}));
-					}).then((str: string) => {
-						const activeTabs = JSON.parse(str) as ActiveTabs;
+					}).then((str: EncodedString<ActiveTabs>) => {
+						const activeTabs = JSON.parse(str);
 						const expectedTabs = CRMNodes[LinkOnPageTest.PRESET_LINKS].value.map((link) => {
 							if (!link.newTab) {
 								return {
@@ -4318,8 +4336,8 @@ describe('On-Page CRM', function() {
 					return driver.executeScript(inlineFn(() => {
 						return JSON.stringify(window.chrome._executedScripts);
 					}));
-				}).then((str: string) => {
-					const activatedScripts = JSON.parse(str) as ExecutedScripts;
+				}).then((str: EncodedString<ExecutedScripts>) => {
+					const activatedScripts = JSON.parse(str);
 
 					assert.lengthOf(activatedScripts, 1, 'one script activated');
 					assert.strictEqual(activatedScripts[0].id, fakeTabId, 
@@ -4361,8 +4379,8 @@ describe('On-Page CRM', function() {
 							.executeScript(inlineFn(() => {
 								return JSON.stringify(window.chrome._executedScripts);
 							}));
-					}).then((str: string) => {
-						const activatedScripts = JSON.parse(str) as ExecutedScripts;
+					}).then((str: EncodedString<ExecutedScripts>) => {
+						const activatedScripts = JSON.parse(str);
 						assert.lengthOf(activatedScripts, 1, 'one script was activated');
 						assert.strictEqual(activatedScripts[0].id, fakeTabId,
 							'script was executed on the right tab');
@@ -4394,8 +4412,8 @@ describe('On-Page CRM', function() {
 					return driver.executeScript(inlineFn(() => {
 						return JSON.stringify(window.chrome._executedScripts);
 					}));
-				}).then((str: string) => {
-					const activatedScripts = JSON.parse(str) as ExecutedScripts;
+				}).then((str: EncodedString<ExecutedScripts>) => {
+					const activatedScripts = JSON.parse(str);
 
 					//First one is the ALWAYS_RUN script, ignore that
 					assert.lengthOf(activatedScripts, 2, 'two scripts activated');
@@ -4459,8 +4477,8 @@ describe('On-Page CRM', function() {
 						.executeScript(inlineFn(() => {
 							return JSON.stringify(window.chrome._executedScripts);
 						}));
-				}).then((str: string) => {
-					const activatedScripts = JSON.parse(str) as ExecutedScripts;
+				}).then((str: EncodedString<ExecutedScripts>) => {
+					const activatedScripts = JSON.parse(str);
 					assert.lengthOf(activatedScripts, 1, 'one script was activated');
 					assert.strictEqual(activatedScripts[0].id, fakeTabId,
 						'script was executed on the right tab');
@@ -4503,8 +4521,8 @@ describe('On-Page CRM', function() {
 								.executeScript(inlineFn(() => {
 									return JSON.stringify(window.chrome._activatedBackgroundPages);
 								}));
-						}).then((str: string) => {
-							const activatedBackgroundScripts = JSON.parse(str) as Array<number>;
+						}).then((str: EncodedString<Array<number>>) => {
+							const activatedBackgroundScripts = JSON.parse(str);
 							assert.lengthOf(activatedBackgroundScripts, 1,
 								'one backgroundscript was activated');
 							assert.strictEqual(activatedBackgroundScripts[0], 
@@ -4558,8 +4576,8 @@ describe('On-Page CRM', function() {
 							.executeScript(inlineFn(() => {
 								return JSON.stringify(window.chrome._executedScripts);
 							}));
-					}).then((str: string) => {
-						const activatedScripts = JSON.parse(str) as ExecutedScripts;
+					}).then((str: EncodedString<ExecutedScripts>) => {
+						const activatedScripts = JSON.parse(str);
 						assert.lengthOf(activatedScripts, 1, 'one script was activated');
 						assert.strictEqual(activatedScripts[0].id, fakeTabId,
 							'script was executed on the right tab');
@@ -4869,8 +4887,8 @@ describe('On-Page CRM', function() {
 							.executeScript(inlineFn(() => {
 								return JSON.stringify(window.chrome._executedScripts);
 							}));
-					}).then((str: string) => {
-						const executedScripts = JSON.parse(str) as ExecutedScripts;
+					}).then((str: EncodedString<ExecutedScripts>) => {
+						const executedScripts = JSON.parse(str);
 						assert.lengthOf(executedScripts, 1, 'one stylesheet was activated');
 						assert.strictEqual(executedScripts[0].id, fakeTabId,
 							'stylesheet was executed on the right tab');
@@ -4928,8 +4946,8 @@ describe('On-Page CRM', function() {
 					return driver.executeScript(inlineFn(() => {
 						return JSON.stringify(window.chrome._executedScripts);
 					}));
-				}).then((str: string) => {
-					const activatedScripts = JSON.parse(str) as ExecutedScripts;
+				}).then((str: EncodedString<ExecutedScripts>) => {
+					const activatedScripts = JSON.parse(str);
 
 					//First one is the default on stylesheet, ignore that
 					assert.lengthOf(activatedScripts, 2, 'two stylesheets activated');
@@ -4972,8 +4990,8 @@ describe('On-Page CRM', function() {
 							.executeScript(inlineFn(() => {
 								return JSON.stringify(window.chrome._executedScripts);
 							}));
-					}).then((str: string) => {
-						const activatedScripts = JSON.parse(str) as ExecutedScripts;
+					}).then((str: EncodedString<ExecutedScripts>) => {
+						const activatedScripts = JSON.parse(str);
 						assert.lengthOf(activatedScripts, 1, 'one stylesheet was activated');
 						assert.strictEqual(activatedScripts[0].id, fakeTabId,
 							'stylesheet was executed on the right tab');
@@ -5005,8 +5023,8 @@ describe('On-Page CRM', function() {
 					return driver.executeScript(inlineFn(() => {
 						return JSON.stringify(window.chrome._executedScripts);
 					}));
-				}).then((str: string) => {
-					const activatedScripts = JSON.parse(str) as ExecutedScripts;
+				}).then((str: EncodedString<ExecutedScripts>) => {
+					const activatedScripts = JSON.parse(str);
 
 					//First one is the ALWAYS_RUN stylesheet, second one is the default on one ignore that
 					assert.lengthOf(activatedScripts, 3, 'three stylesheets activated');
@@ -5070,8 +5088,8 @@ describe('On-Page CRM', function() {
 						.executeScript(inlineFn(() => {
 							return JSON.stringify(window.chrome._executedScripts);
 						}));
-				}).then((str: string) => {
-					const activatedScripts = JSON.parse(str) as ExecutedScripts;
+				}).then((str: EncodedString<ExecutedScripts>) => {
+					const activatedScripts = JSON.parse(str);
 					assert.lengthOf(activatedScripts, 1, 'one script was activated');
 					assert.strictEqual(activatedScripts[0].id, fakeTabId,
 						'script was executed on the right tab');
@@ -5121,8 +5139,8 @@ describe('On-Page CRM', function() {
 							.executeScript(inlineFn(() => {
 								return JSON.stringify(window.chrome._executedScripts);
 							}));
-					}).then((str: string) => {
-						const executedScripts = JSON.parse(str) as ExecutedScripts;
+					}).then((str: EncodedString<ExecutedScripts>) => {
+						const executedScripts = JSON.parse(str);
 						assert.lengthOf(executedScripts, 1, 'one script was activated');
 						assert.strictEqual(executedScripts[0].id, fakeTabId,
 							'script was executed on the right tab');

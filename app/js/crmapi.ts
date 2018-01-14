@@ -1,5 +1,7 @@
 /// <reference path="background.ts" />
 
+type CRMAPIMessage = {};
+
 (function(window: Window) {
 	const _chrome = {
 		chrome: typeof chrome === 'undefined' ? undefined : chrome
@@ -1304,7 +1306,7 @@
 					0, bracketPathArr[bracketPathArr.length - 1].length - 1
 				);
 
-				const bracketPath = JSON.stringify(bracketPathArr.map((pathValue) => {
+				const bracketPath = JSON.stringify(bracketPathArr.map((pathValue: EncodedString<number>) => {
 					return JSON.parse(pathValue);
 				}));
 

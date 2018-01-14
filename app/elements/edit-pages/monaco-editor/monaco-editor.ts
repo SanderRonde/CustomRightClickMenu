@@ -1039,7 +1039,7 @@ namespace MonacoEditorElement {
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
 
-			const value = model.getValue();
+			const value = model.getValue() as EncodedString<CRM.Options>;
 			let parsed: CRM.Options;
 			try {
 				parsed = JSON.parse(value);

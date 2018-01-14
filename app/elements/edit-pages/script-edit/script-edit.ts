@@ -582,7 +582,7 @@ namespace ScriptEditElement {
 			const editorManager = this.editorManager;
 			(editorManager.getTypeHandler() as any)[0].listen('metaChange', (oldMetaTags: MonacoEditorElement.MetaBlock, newMetaTags: MonacoEditorElement.MetaBlock) => {
 				if (this.editorMode === 'main') {
-					this.newSettings.value.metaTags = JSON.parse(JSON.stringify(newMetaTags));
+					this.newSettings.value.metaTags = JSON.parse(JSON.stringify(newMetaTags)).content;
 				}
 			});
 			this.$.mainEditorTab.classList.add('active');

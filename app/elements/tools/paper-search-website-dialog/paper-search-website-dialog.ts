@@ -215,7 +215,7 @@ namespace PaperSearchWebsiteDialog {
 		 */
 		static processSearchEngines(this: PaperSearchWebsiteDialog): Promise<string> {
 			return new Promise((resolve, reject) => {
-				const data = this.$.manualInputListChoiceInput.$$('textarea').value;
+				const data = this.$.manualInputListChoiceInput.$$('textarea').value as EncodedString<Array<string>>;
 
 				try {
 					const structuredSearchEngines = JSON.parse(data);

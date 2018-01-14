@@ -1402,9 +1402,11 @@ namespace CRMAppElement {
 							}
 							if (!visible) {
 								//Make it visible
-								const popped = JSON.parse(JSON.stringify(path.length));
+								const popped = JSON.parse(JSON.stringify(path));
 								popped.pop();
-								window.app.editCRM.build(popped);
+								window.app.editCRM.build({
+									setItems: popped
+								});
 								setTimeout(highlightItem, 700);
 							} else {
 								highlightItem();
@@ -2531,7 +2533,7 @@ namespace CRMAppElement {
 				}
 				private static _removePositionDuplicates(arr: Array<TransferOnErrorError>):
 					Array<TransferOnErrorError> {
-					var jsonArr: Array<string> = [];
+					var jsonArr: Array<EncodedString<TransferOnErrorError>> = [];
 					arr.forEach((item, index) => {
 						jsonArr[index] = JSON.stringify(item);
 					});
@@ -2860,7 +2862,11 @@ namespace CRMAppElement {
 			};
 
 			static async importData() {
-				const dataString = this.parent().$.importSettingsInput.value;
+				const dataString = this.parent().$.importSettingsInput.value as EncodedString<{
+					local?: CRM.StorageLocal;
+					storageLocal?: CRM.StorageLocal;
+					settings: CRM.SettingsStorage;
+				}>;
 				if (!this.parent().$.oldCRMImport.checked) {
 					let data: {
 						crm?: CRM.Tree;
@@ -2869,11 +2875,7 @@ namespace CRMAppElement {
 						storageLocal?: CRM.StorageLocal;
 					};
 					try {
-						data = JSON.parse(dataString) as {
-							local?: CRM.StorageLocal;
-							storageLocal?: CRM.StorageLocal;
-							settings: CRM.SettingsStorage;
-						};
+						data = JSON.parse(dataString);
 						this.parent().$.importSettingsError.style.display = 'none';
 					} catch (e) {
 						this.parent().$.importSettingsError.style.display = 'block';

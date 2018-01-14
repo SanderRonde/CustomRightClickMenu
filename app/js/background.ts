@@ -1,6 +1,7 @@
 /// <reference path="../../tools/definitions/chrome.d.ts"/>
 /// <reference path="../../tools/definitions/specialJSON.d.ts" />
 /// <reference path="../../tools/definitions/crm.d.ts" />
+/// <reference path="crmapi.ts" />
 /// <reference path="../../tools/definitions/tern.d.ts" />
 /// <reference path="../../node_modules/@types/node/index.d.ts" />
 /// <reference path="../../tools/definitions/typescript.d.ts" />
@@ -118,7 +119,7 @@ type StorageSyncChange<K extends keyof CRM.SettingsStorage = keyof CRM.SettingsS
 
 type StorageChange = StorageLocalChange|StorageSyncChange;
 
-interface CRMAPIMessage<T, TD> {
+interface CRMAPIMessageInstance<T, TD> {
 	id: number;
 	tabId: number;
 	tabIndex: number;
@@ -139,7 +140,7 @@ interface CRMAPIResponse<T> {
 	} | T;
 }
 
-interface ChromeAPIMessage extends CRMAPIMessage<'chrome', void> {
+interface ChromeAPIMessage extends CRMAPIMessageInstance<'chrome', void> {
 	api: string;
 	args: Array<{
 		type: 'fn' | 'return' | 'arg';
@@ -149,7 +150,7 @@ interface ChromeAPIMessage extends CRMAPIMessage<'chrome', void> {
 	requestType: CRM.Permission;
 }
 
-interface BackgroundAPIMessage extends CRMAPIMessage<'background', {
+interface BackgroundAPIMessage extends CRMAPIMessageInstance<'background', {
 	[key: string]: any;
 	[key: number]: any;
 }> {
@@ -863,7 +864,10 @@ if (typeof module === 'undefined') {
 					if (typeof dataParsed === 'string') {
 						let matchedData: RegExpExecArray;
 						if ((matchedData = this._specialStringRegex.exec(dataParsed))) {
-							const dataContent = matchedData[2];
+							const dataContent = matchedData[2] as EncodedString<{
+								regexp: string;
+								flags: Array<string>;
+							}>;
 							switch (matchedData[1]) {
 								case 'fn':
 									const fnRegexed = this._fnCommRegex.exec(dataContent);
@@ -1039,12 +1043,12 @@ if (typeof module === 'undefined') {
 
 					return data;
 				},
-				fromJSON(this: SpecialJSON, str: string): any {
-					const parsed: {
-						refs: Refs;
-						data: any;
-						rootType: 'normal' | 'array' | 'object';
-					} = JSON.parse(str);
+				fromJSON(this: SpecialJSON, str: EncodedString<{
+					refs: Refs;
+					data: any;
+					rootType: 'normal' | 'array' | 'object';
+				}>): any {
+					const parsed = JSON.parse(str);
 
 					parsed.refs = parsed.refs.map((ref) => {
 						return {
@@ -1640,7 +1644,7 @@ if (typeof module === 'undefined') {
 			chrome.permissions.getAll(this._permissionsChanged);
 		}
 		static setHandlerFunction() {
-			interface HandshakeMessage extends CRMAPIMessage<string, any> {
+			interface HandshakeMessage extends CRMAPIMessageInstance<string, any> {
 				key?: Array<number>;
 			}
 
@@ -2242,7 +2246,7 @@ if (typeof module === 'undefined') {
 						logCallbackIndex: message.logListener.index
 					});
 			}
-			static displayHints(message: CRMAPIMessage<'displayHints', {
+			static displayHints(message: CRMAPIMessageInstance<'displayHints', {
 				hints: Array<string>;
 				id: number;
 				callbackIndex: number;
@@ -2896,12 +2900,12 @@ if (typeof module === 'undefined') {
 						newNode.nodeInfo = __this.getNodeFromId(__this.message.id, false, true)
 							.nodeInfo;
 						delete newNode.storage;
-						delete newNode.file;
+						delete (newNode as any).file;
 						if (optionals['options.name']) {
 							newNode.name = __this.message.data.options.name;
 						}
-						if ((newNode = __this.moveNode(newNode, __this.message.data.options
-							.position))) {
+						const moved = __this.moveNode(newNode, __this.message.data.options.position);
+						if (moved) {
 							CRM.updateCrm([newNode.id]).then(() => {
 								__this.respondSuccess(__this.getNodeFromId(newNode.id, true, true));
 							});
@@ -4334,7 +4338,7 @@ if (typeof module === 'undefined') {
 
 	class APIMessaging {
 		static readonly CRMMessage = class CRMMessage {
-			static respond(message: CRMAPIMessage<'crm' | 'chrome' | 'background', any>,
+			static respond(message: CRMAPIMessageInstance<'crm' | 'chrome' | 'background', any>,
 				type: 'success' | 'error' | 'chromeError', data: any | string, stackTrace?:
 					string) {
 				const msg: CRMAPIResponse<any> = {
@@ -4376,7 +4380,7 @@ if (typeof module === 'undefined') {
 					stackTrace);
 			}
 		};
-		static createReturn(message: CRMAPIMessage<'crm' | 'chrome', any>,
+		static createReturn(message: CRMAPIMessageInstance<'crm' | 'chrome', any>,
 			callbackIndex: number) {
 			return (result: any) => {
 				this.CRMMessage.respond(message, 'success', {
@@ -4441,7 +4445,7 @@ if (typeof module === 'undefined') {
 		[key: string]: any;
 	}
 
-	interface CRMFunctionMessage extends CRMAPIMessage<'crm', CRMFunctionDataBase> {
+	interface CRMFunctionMessage extends CRMAPIMessageInstance<'crm', CRMFunctionDataBase> {
 		action: string;
 	}
 
@@ -4653,7 +4657,7 @@ if (typeof module === 'undefined') {
 			node?: number;
 			relation?: 'firstChild' | 'firstSibling' | 'lastChild' | 'lastSibling' | 'before' |
 			'after';
-		}, removeOld: any | boolean = false): boolean | CRM.Node {
+		}, removeOld: any | boolean = false): false | CRM.Node {
 			const crmFunction = this;
 
 			//Capture old CRM tree
@@ -5625,7 +5629,7 @@ if (typeof module === 'undefined') {
 						'instance no longer exists');
 				}
 			}
-			static changeStatus(message: CRMAPIMessage<string, {
+			static changeStatus(message: CRMAPIMessageInstance<string, {
 				hasHandler: boolean;
 			}>) {
 				globalObject.globals.crmValues.nodeInstances[message.id][message.tabId][message.tabIndex]
@@ -5655,7 +5659,7 @@ if (typeof module === 'undefined') {
 			}
 		};
 		static readonly NotificationListener = class NotificationListener {
-			static listen(message: CRMAPIMessage<string, {
+			static listen(message: CRMAPIMessageInstance<string, {
 				notificationId: number;
 				onClick: number;
 				tabIndex: number;
@@ -5675,7 +5679,7 @@ if (typeof module === 'undefined') {
 			}
 		};
 
-		static handleRuntimeMessage(message: CRMAPIMessage<string, any>,
+		static handleRuntimeMessage(message: CRMAPIMessageInstance<string, any>,
 			messageSender?: chrome.runtime.MessageSender,
 			respond?: (message: any) => void) {
 			switch (message.type) {
@@ -5686,7 +5690,7 @@ if (typeof module === 'undefined') {
 						message.type as 'executeCRMCode' | 'getCRMHints' | 'createLocalLogVariable');
 					break;
 				case 'displayHints':
-					Logging.LogExecution.displayHints(message as CRMAPIMessage<'displayHints', {
+					Logging.LogExecution.displayHints(message as CRMAPIMessageInstance<'displayHints', {
 						hints: Array<string>;
 						id: number;
 						callbackIndex: number;
@@ -6078,7 +6082,10 @@ if (typeof module === 'undefined') {
 						name: string;
 					}> = [];
 					if (metaTags['CRM_libraries']) {
-						(metaTags['CRM_libraries'] as Array<string>).forEach(item => {
+						(metaTags['CRM_libraries'] as Array<EncodedString<{
+							url: string;
+							name: string;
+						}>>).forEach(item => {
 							try {
 								libs.push(JSON.parse(item));
 							} catch (e) {
@@ -6241,11 +6248,9 @@ if (typeof module === 'undefined') {
 					}
 
 					//Content types
-					if (CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
-						'CRM_contentTypes')) {
+					if (CRM.Script.MetaTags.getlastMetaTagValue(metaTags,'CRM_contentTypes')) {
 						try {
-							node.onContentTypes = JSON.parse(CRM.Script.MetaTags
-								.getlastMetaTagValue(metaTags,
+							node.onContentTypes = JSON.parse(CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
 								'CRM_contentTypes'));
 						} catch (e) {
 						}
@@ -7207,10 +7212,7 @@ if (typeof module === 'undefined') {
 				}
 
 				static installStylesheet(data: {
-					code: string;
-					author: string
-				}) {
-					const stylesheetData: {
+					code: EncodedString<{
 						sections: Array<{
 							domains: Array<string>;
 							regexps: Array<string>;
@@ -7221,7 +7223,10 @@ if (typeof module === 'undefined') {
 						name: string;
 						updateUrl: string;
 						url: string;
-					} = JSON.parse(data.code);
+					}>;
+					author: string
+				}) {
+					const stylesheetData = JSON.parse(data.code);
 
 					stylesheetData.sections.forEach((section) => {
 						const sectionData = this._extractStylesheetData(section);
@@ -7768,7 +7773,7 @@ if (typeof module === 'undefined') {
 		static async updateCrm(toUpdate?: Array<number>) {
 			Storages.uploadChanges('settings', [{
 				key: 'crm',
-				newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)) as any,
+				newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)),
 				oldValue: {} as any
 			}]);
 			CRM.TS.compileAllInTree();
@@ -7801,7 +7806,7 @@ if (typeof module === 'undefined') {
 			if (!match) {
 				Storages.uploadChanges('settings', [{
 					key: 'crm',
-					newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)) as any,
+					newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)),
 					oldValue: {} as any
 				}]);
 			}
@@ -7961,7 +7966,7 @@ if (typeof module === 'undefined') {
 				props.forEach((prop) => {
 					if (prop in obj) {
 						if (typeof obj[prop as keyof CRM.Node] === 'object') {
-							target[prop as keyof CRM.SafeNode] = JSON.parse(JSON.stringify(obj[prop as keyof CRM.Node]));
+							(target as any)[prop as keyof CRM.SafeNode] = JSON.parse(JSON.stringify(obj[prop as keyof CRM.Node]));
 						} else {
 							(target as any)[prop] = obj[prop as keyof CRM.Node];
 						}
@@ -8984,7 +8989,7 @@ if (typeof module === 'undefined') {
 						}
 						private static _removePositionDuplicates(arr: Array<TransferOnErrorError>):
 							Array<TransferOnErrorError> {
-							var jsonArr: Array<string> = [];
+							var jsonArr: Array<EncodedString<TransferOnErrorError>> = [];
 							arr.forEach((item, index) => {
 								jsonArr[index] = JSON.stringify(item);
 							});
@@ -9665,8 +9670,8 @@ if (typeof module === 'undefined') {
 			chrome.storage.sync.get((chromeStorageSync: {
 				[key: string]: string
 			} & {
-					indexes: Array<string>;
-				}) => {
+				indexes: Array<string>;
+			}) => {
 				window.log('Loading local storage data');
 				chrome.storage.local.get((chromeStorageLocal: CRM.StorageLocal & {
 					settings?: CRM.SettingsStorage;
@@ -9681,10 +9686,6 @@ if (typeof module === 'undefined') {
 					} else {
 						window.log('Parsing data encoding');
 						const storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
-						delete storageLocalCopy.resources;
-						delete storageLocalCopy.nodeStorage;
-						delete storageLocalCopy.urlDataPairs;
-						delete storageLocalCopy.resourceKeys;
 						delete storageLocalCopy.globalExcludes;
 
 						let settingsStorage;
@@ -10208,7 +10209,25 @@ if (typeof module === 'undefined') {
 					postMessage: this._postMessage.bind(this)
 				});
 
-				this.worker.addEventListener('message', (e) => {
+				this.worker.addEventListener('message', (e: {
+					data: {
+						type: 'log';
+						lineNo: number;
+						data: EncodedString<Array<any>>
+					}|{
+						type: 'handshake';
+						key: Array<number>;
+						data: EncodedString<{
+							id: number;
+							key: Array<number>;
+							tabId: number;
+						}>;
+					}|{
+						type: 'crmapi';
+						key: Array<number>;
+						data: EncodedString<CRMAPIMessage>;
+					}
+				}) => {
 					const data = e.data;
 					switch (data.type) {
 						case 'handshake':
@@ -10227,7 +10246,7 @@ if (typeof module === 'undefined') {
 							break;
 						case 'log':
 							window.backgroundPageLog.apply(window,
-								[id, [data.lineNo, data.logId]].concat(JSON
+								[id, [data.lineNo, -1]].concat(JSON
 									.parse(data.data)));
 							break;
 					}
@@ -10264,8 +10283,12 @@ if (typeof module === 'undefined') {
 			};
 
 			_verifyKey(message: {
-				key: Array<string>;
-				data: string;
+				key: Array<number>;
+				data: EncodedString<{
+					id: number;
+					key: Array<number>;
+					tabId: number;
+				}>|EncodedString<CRMAPIMessage>;
 			}, callback: (data: any, port?: any) => void) {
 				if (message.key.join('') === this.secretKey.join('')) {
 					callback(JSON.parse(message.data));
