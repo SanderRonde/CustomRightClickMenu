@@ -945,10 +945,6 @@ namespace CRMAppElement {
 			chrome.storage.local.set(obj);
 			chrome.storage.local.get((storageLocal: CRM.StorageLocal) => {
 				this.storageLocal = storageLocal;
-				if (key === 'CRMonPage') {
-					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue &&
-						(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal.CRMOnPage);
-				}
 				this.upload();
 			});
 		};
@@ -1464,19 +1460,12 @@ namespace CRMAppElement {
 						}
 						parent.updateEditorZoom();
 						parent._setup.orderNodesById(items.crm);
-						parent.pageDemo.create();
 						parent._setup.buildNodePaths(items.crm, []);
 						if (parent.settings.latestId) {
 							parent._latestId = items.latestId;
 						} else {
 							parent._latestId = 0;
 						}
-
-						if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
-							(window.doc.CRMOnPage as PaperToggleOption).setCheckboxDisabledValue(true);
-						}
-						(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal
-							.CRMOnPage);
 					}
 
 					Array.prototype.slice.apply(parent.shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
@@ -1682,17 +1671,9 @@ namespace CRMAppElement {
 			};
 
 			static initCheckboxes(defaultLocalStorage: CRM.StorageLocal) {
-				if ((window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue) {
-					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue &&
-						(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(false);
-					Array.prototype.slice.apply(this.parent().shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
-						setting.init && setting.init(defaultLocalStorage);
-					});
-				} else {
-					window.setTimeout(() => {
-						this.initCheckboxes.apply(this, [defaultLocalStorage]);
-					}, 1000);
-				}
+				Array.prototype.slice.apply(this.parent().shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
+					setting.init && setting.init(defaultLocalStorage);
+				});
 			};
 
 			static buildNodePaths(tree: CRM.Tree, currentPath: Array<number>) {
@@ -1850,8 +1831,6 @@ namespace CRMAppElement {
 						}
 					});
 				}
-
-				this._parent().pageDemo.create();
 			};
 
 			private static _parent() {
@@ -3736,340 +3715,6 @@ namespace CRMAppElement {
 			};
 
 			static parent(): CrmApp {
-				return window.app;
-			}
-		};
-
-		/**
-		 * Functions related to the on-page example of your current CRM
-		 */
-		static pageDemo = class CRMAppPageDemo {
-			private static _usedStylesheetIds: Array<number> = [];
-
-			private static _handlers = class CRMAppPageDemoHandlers {
-				/**
-				 * Makes an onclick handler for links
-				 */
-				static link(data: Array<CRM.LinkNodeLink>): () => void {
-					return function () {
-						for (let i = 0; i < data.length; i++) {
-							window.open(data[i].url, '_blank');
-						}
-					};
-				};
-
-				/**
-				 * Makes an onclick handler for scripts
-				 */
-				static script(script: string): () => void {
-					return function () {
-						alert(`This would run the script ${script}`);
-					};
-				};
-
-				/**
-				 * The stylesheet handlers
-				 */
-				static stylesheet = class CRMAppPageDemoHandlersStylesheet {
-					/**
-					 * Makes an onclick handler for stylesheets
-					 */
-					static toggle(data: string, checked: boolean): () => void {
-						const state = checked;
-
-						return function () {
-							alert(`This would toggle the stylesheet ${data} ${(state ? 'on' : 'off')}`);
-						};
-					};
-					/**
-					 * Makes an onclick handler for stylesheets
-					 */
-					static normal(stylesheet: string): () => void {
-						return function () {
-							alert(`This would run the stylesheet ${stylesheet}`);
-						};
-					};
-				};
-
-				/**
-				 * Makes an onclick handler to edit the node on clicking it
-				 */
-				static edit(node: CRM.Node): () => void {
-					return () => {
-						this._parent()._parent().editCRM.getCRMElementFromPath(node.path, true).openEditPage();
-					};
-				};
-
-				private static _parent(): typeof CRMAppPageDemo {
-					return window.app.pageDemo;
-				}
-			};
-
-			private static _node = class CRMAppPageDemoNode {
-				/**
-				 * Adds a link to the CRM
-				 */
-				static link(toAdd: CRM.LinkNode): JQContextMenuObj {
-					return {
-						name: toAdd.name,
-						callback: this._parent()._handlers.link(toAdd.value)
-					};
-				};
-
-				/**
-				 * Adds a script to the CRM
-				 */
-				static script(toAdd: CRM.ScriptNode): JQContextMenuObj {
-					return {
-						name: toAdd.name,
-						callback: this._parent()._handlers.script(toAdd.value.script)
-					};
-				};
-
-				/**
-				 * Adds a stylesheet to the CRM
-				 */
-				static stylesheet(toAdd: CRM.StylesheetNode): JQContextMenuObj {
-					const item: JQContextMenuObj = {
-						name: toAdd.name
-					} as any;
-					if (toAdd.value.toggle) {
-						item.type = 'checkbox';
-						item.selected = toAdd.value.defaultOn;
-						item.callback = this._parent()._handlers.stylesheet.toggle(toAdd.value.stylesheet, toAdd.value.defaultOn);
-					} else {
-						item.callback = this._parent()._handlers.stylesheet.normal(toAdd.value.stylesheet);
-					}
-					return item;
-				};
-
-				/**
-				 * An editable node
-				 */
-				static editable(toAdd: CRM.Node): JQContextMenuObj {
-					return {
-						name: toAdd.name,
-						callback: this._parent()._handlers.edit(toAdd)
-					};
-				};
-
-				/**
-				 * Adds a divider to the CRM
-				 */
-				static divider(): string {
-					return '---------';
-				};
-
-
-				/**
-				 * Adds a menu to the CRM
-				 */
-				static menu(toAdd: CRM.MenuNode, crmType: number, index: {
-					num: number;
-				}): JQContextMenuItem {
-					const item: JQContextMenuObj = {
-						name: toAdd.name
-					} as any;
-					const childItems: {
-						[key: number]: JQContextMenuItem
-					} = {};
-					if (this._parent()._parent().storageLocal.editCRMInRM) {
-						item.callback = this._parent()._handlers.edit(toAdd);
-					}
-					toAdd.children.forEach((node) => {
-						if (this._parent()._isNodeVisible(node, crmType)) {
-
-							if (this._parent()._parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
-								childItems[index.num++] = this.editable(node);
-							} else {
-								switch (node.type) {
-									case 'link':
-										childItems[index.num++] = this.link(node);
-										break;
-									case 'script':
-										childItems[index.num++] = this.script(node);
-										break;
-									case 'stylesheet':
-										childItems[index.num++] = this.stylesheet(node);
-										break;
-									case 'divider':
-										childItems[index.num++] = this.divider();
-										break;
-									case 'menu':
-										childItems[index.num++] = this.menu(node, crmType, index);
-										break;
-								}
-							}
-						}
-					});
-					item.items = childItems;
-					return item;
-				};
-
-				private static _parent(): typeof CRMAppPageDemo {
-					return window.app.pageDemo;
-				}
-			};
-
-			/**
-			 * Returns whether the node is visible or not (1 if it's visible)
-			 */
-			private static _isNodeVisible(node: CRM.Node, showContentType: number): number {
-				let i;
-				let length;
-				if (node.children && node.children.length > 0) {
-					length = node.children.length;
-					let visible = 0;
-					for (i = 0; i < length; i++) {
-						visible += this._isNodeVisible(node.children[i], showContentType);
-					}
-					if (!visible) {
-						return 0;
-					}
-				} else {
-					for (i = 0; i < 6; i++) {
-						if (showContentType === i && !node.onContentTypes[i]) {
-							return 0;
-						}
-					}
-				}
-				return 1;
-			};
-
-			/**
-			 * Builds the context-menu for given crmType
-			 *
-			 * @param {Number} crmType - The type of the content the menu will be shown on
-			 */
-			private static _buildForCrmType(crmType: number): {
-				[key: number]: JQContextMenuItem
-			} {
-				const index = {
-					num: 0
-				};
-				const childItems: {
-					[key: number]: JQContextMenuItem
-				} = {};
-				const crm = window.app.settings.crm;
-				crm.forEach((node: CRM.Node) => {
-					if (this._isNodeVisible(node, crmType)) {
-						if (this._parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
-							childItems[index.num++] = this._node.editable(node);
-						} else {
-							switch (node.type) {
-								case 'link':
-									childItems[index.num++] = this._node.link(node);
-									break;
-								case 'script':
-									childItems[index.num++] = this._node.script(node);
-									break;
-								case 'stylesheet':
-									childItems[index.num++] = this._node.stylesheet(node);
-									break;
-								case 'divider':
-									childItems[index.num++] = this._node.divider();
-									break;
-								case 'menu':
-									childItems[index.num++] = this._node.menu(node, crmType, index);
-									break;
-							}
-						}
-					}
-				});
-				return childItems;
-			};
-
-			static getCrmTypeFromNumber(crmType: number): string {
-				const types = ['page', 'link', 'selection', 'image', 'video', 'audio'];
-				return types[crmType];
-			};
-
-			private static _getChildrenAmount(object: Object): number {
-				let children = 0;
-				for (let key in object) {
-					if (object.hasOwnProperty(key)) {
-						children++;
-					}
-				}
-				return children;
-			};
-
-			private static _bindContextMenu(crmType: number) {
-				let items;
-				if (crmType === 0) {
-					items = this._buildForCrmType(0);
-					if (this._getChildrenAmount(items) > 0) {
-						($ as JQueryContextMenu).contextMenu({
-							selector: '.container, #editCrm.page, .crmType.pageType',
-							items: items
-						} as any);
-					}
-				} else {
-					const contentType = this.getCrmTypeFromNumber(crmType);
-					items = this._buildForCrmType(crmType);
-					if (this._getChildrenAmount(items) > 0) {
-						($ as JQueryContextMenu).contextMenu({
-							selector: '#editCrm.' + contentType + ', .crmType.' + contentType + 'Type',
-							items: items
-						} as any);
-					}
-				}
-			};
-
-			private static _removeContextMenus() {
-				let el;
-				this._usedStylesheetIds.forEach(function (id) {
-					el = document.getElementById('stylesheet' + id);
-					el && el.remove();
-				});
-
-				($ as JQueryContextMenu).contextMenu('destroy');
-			};
-
-			private static _loadContextMenus() {
-				const __this = this;
-				let toLoad = 0;
-				this._removeContextMenus();
-
-				function loadContextMenus(deadline: {
-					timeRemaining(): number;
-				}) {
-					while (toLoad < 6 && deadline.timeRemaining() > 0) {
-						__this._bindContextMenu(toLoad++);
-
-						window.requestIdleCallback(loadContextMenus);
-					}
-				}
-
-				if ('requestIdleCallback' in window) {
-					window.requestIdleCallback(loadContextMenus);
-				} else {
-					while (toLoad < 6) {
-						__this._bindContextMenu(toLoad++);
-					}
-				}
-			};
-
-			/**
-			 * Creates the on-page example
-			 */
-			static create() {
-				if (!($ as JQueryContextMenu).contextMenu) {
-					window.setTimeout(this.create.bind(this), 500);
-					return;
-				}
-
-				if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
-					return;
-				}
-				if (this._parent().storageLocal.CRMOnPage) {
-					this._loadContextMenus();
-				} else {
-					this._removeContextMenus();
-				}
-			};
-
-			private static _parent(): CrmApp {
 				return window.app;
 			}
 		};

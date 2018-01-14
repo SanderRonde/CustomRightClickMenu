@@ -2097,9 +2097,7 @@ var bgPageOnMessageListener;
 // 			notFirstTime: true,
 // 			authorName: 'anonymous',
 // 			showOptions: true,
-// 			CRMOnPage: true,
 // 			recoverUnsavedData: false,
-// 			editCRMInRM: false,
 // 			libraries: [],
 // 			settingsVersionData: {
 // 				current: storageLocal.settingsVersionData.current,

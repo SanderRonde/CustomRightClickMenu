@@ -620,7 +620,6 @@ namespace EditCrmElement {
 						els[i].update && els[i].update();
 					}
 					setTimeout(() => {
-						window.app.pageDemo.create();
 						this._createSorter();
 					}, 0);
 				}, 50);
@@ -1131,9 +1130,14 @@ namespace EditCrmElement {
 			return null;
 		};
 
+		private static _getCrmTypeFromNumber(crmType: number): string {
+			const types = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+			return types[crmType];
+		};
+
 		private static _typeChanged(this: EditCrm, quick: boolean = false) {
 			for (let i = 0; i < 6; i++) {
-				window.app.editCRM.classList[(i === window.app.crmType ? 'add' : 'remove')](window.app.pageDemo.getCrmTypeFromNumber(i));
+				window.app.editCRM.classList[(i === window.app.crmType ? 'add' : 'remove')](this._getCrmTypeFromNumber(i));
 			}
 			window.runOrAddAsCallback(window.app.editCRM.build, window.app.editCRM, [{
 				quick: quick

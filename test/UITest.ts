@@ -1169,13 +1169,8 @@ describe('Options Page', function() {
 			catchErrors: true,
 			showOptions: true,
 			recoverUnsavedData: false,
-			CRMOnPage: true,
 			useStorageSync: true
 		};
-		//This is disabled for any chrome <= 34 versions
-		if (capabilities.browser_version && ~~capabilities.browser_version.split('.')[0] <= 34) {
-			delete checkboxDefaults.CRMOnPage;
-		}
 		Object.getOwnPropertyNames(checkboxDefaults).forEach((checkboxId, index) => {
 			it(`${checkboxId} should be clickable`, (done) => {
 				reloadPage(this, driver).then(() => {

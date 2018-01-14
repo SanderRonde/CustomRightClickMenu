@@ -1208,14 +1208,6 @@ declare namespace CRM {
 		 */
 		useAsUserscriptInstaller: boolean;
 		/**
-		 * Whether to show a preview of the CRM on the options page
-		 */
-		CRMOnPage: boolean;
-		/**
-		 * Whether to open the edit pages when clicked in the page preview
-		 */
-		editCRMInRM: boolean;
-		/**
 		 * Whether to hide the tools ribbon in fullscreen mode
 		 */
 		hideToolsRibbon: boolean;

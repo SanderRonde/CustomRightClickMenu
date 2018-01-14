@@ -9251,10 +9251,7 @@ if (typeof module === 'undefined') {
 						authorName: 'anonymous',
 						showOptions: true,
 						recoverUnsavedData: false,
-						CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
-							.split('.')[0] > 34,
 						catchErrors: true,
-						editCRMInRM: false,
 						useAsUserscriptInstaller: useAsUserscriptManager,
 						hideToolsRibbon: false,
 						shrinkTitleRibbon: false,
