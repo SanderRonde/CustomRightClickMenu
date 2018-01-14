@@ -804,10 +804,6 @@ namespace UseExternalEditorElement {
 		}
 	}
 
-	type UseExternalEditor = Polymer.El<'use-external-editor', typeof UEE>;
-
-	Polymer(UEE);
-
 	if (window.register) {
 		window.register(UEE);
 	} else {
