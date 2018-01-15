@@ -822,8 +822,9 @@ module.exports = function(grunt) {
 	//Prepares the extension for hot reloading, developing
 	// through the app/ directory instead and not having to build
 	grunt.registerTask('prepareForHotReload', ['crisper:components',
-		'copy:monacoTemp', 'string-replace:patchDevMonaco', 'jsbeautifier:beautifyMonaco',
-		'copy:tsEmbedDev', 'copy:crmapiLibDev']);
+		'copy:monacoTemp', 'string-replace:patchDevMonaco', 
+		'jsbeautifier:beautifyMonaco', 'copy:tsEmbedDev', 
+		'copy:crmapiLibDev']);
 
 	//Disables hot reloading, required for proper build
 	grunt.registerTask('disableHotReload', ['exec:yarn']);
@@ -872,10 +873,10 @@ module.exports = function(grunt) {
 
 	//Runs all of the build steps after polymerBuild is invoked
 	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 
-		'clean:removeBuildBeforePolymer', 'crispify', 'copy:webcomponentsLibs', 
-		'string-replace:removeOptionsJs', 'babel', 'joinPages:build',
-		'string-replace:fixBugs', 'string-replace:noDefer',
-		'uglify:finalMinify',
+		'clean:removeBuildBeforePolymer', 'crispify', 
+		'copy:webcomponentsLibs', 'string-replace:removeOptionsJs', 
+		'babel', 'joinPages:build', 'string-replace:fixBugs', 
+		'string-replace:noDefer','uglify:finalMinify',
 		'usebanner', 'copy:prefixJs', 'clean:buildBeforePolymer', 
 		'copy:monacoPost', 'string-replace:patchMonaco']);
 
@@ -883,8 +884,8 @@ module.exports = function(grunt) {
 	// (and preserves debugger statements etc), skips the compile step
 	// for if you're running a typescript compiler on watch mode
 	grunt.registerTask('buildDevNoCompile', ['_buildPrePolymer', 
-		'polymerBuild:dev', '_buildPostPolymer', 'jsbeautifier:beautifyBuilt',
-		'zip']);
+		'polymerBuild:dev', '_buildPostPolymer', 
+		'jsbeautifier:beautifyBuilt', 'zip']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
@@ -905,8 +906,10 @@ module.exports = function(grunt) {
 	grunt.registerTask('buildTest', ['build', 'joinPages:test']);
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
-	grunt.registerTask('test', ['testBuild', 'build', 'buildTest', 'compile', 'mochaTest']);
+	grunt.registerTask('test', ['testBuild', 'build', 'buildTest', 
+		'compile', 'mochaTest']);
 
 	//Crisps all HTML files for CSP compliance
-	grunt.registerTask('crispify', ['crisper:optionsPage', 'crisper:background']);
+	grunt.registerTask('crispify', ['crisper:optionsPage', 
+		'crisper:background']);
 };
