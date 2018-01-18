@@ -769,7 +769,7 @@ namespace UseExternalEditorElement {
 		/**
 		 * Makes the dialog clear itself after it closes
 		 */
-		static ready(this: UseExternalEditor) {
+		static async ready(this: UseExternalEditor) {
 			window.externalEditor = this;
 			window.onfocus = () => {
 				if (this.connection.fileConnected) {
@@ -780,6 +780,7 @@ namespace UseExternalEditorElement {
 					});
 				}
 			};
+			await window.onExists('app');
 			const chooseFileDialog = window.doc.externalEditorChooseFile as ChooseFileDialog;
 			chooseFileDialog.init = this.chooseFileDialog(chooseFileDialog)
 			window.doc.externalEditorTryAgainButton.addEventListener('click', () => {
