@@ -771,7 +771,6 @@ namespace UseExternalEditorElement {
 		 */
 		static ready(this: UseExternalEditor) {
 			window.externalEditor = this;
-			this.init();
 			window.onfocus = () => {
 				if (this.connection.fileConnected) {
 					//File is connected, ask for an update
