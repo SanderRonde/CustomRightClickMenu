@@ -419,7 +419,7 @@ type CRMAPIMessage = {
 						return obj[key];
 					},
 					set(value) {
-						privateValues[key] = value;
+						obj[key] = value;
 					}
 				});
 			} else {
