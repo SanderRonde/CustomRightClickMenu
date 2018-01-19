@@ -183,9 +183,9 @@ namespace UseExternalEditorElement {
 			} catch (e) {
 			}
 			if (window.scriptEdit && window.scriptEdit.active) {
-				window.scriptEdit.reloadEditor();
+				window.scriptEdit.editorManager.destroy();
 			} else if (window.stylesheetEdit && window.stylesheetEdit.active) {
-				window.stylesheetEdit.reloadEditor();
+				window.stylesheetEdit.editorManager.destroy();
 			}
 		};
 
