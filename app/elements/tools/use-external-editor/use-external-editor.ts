@@ -130,7 +130,6 @@ namespace UseExternalEditorElement {
 		 */
 		static async init(this: UseExternalEditor) {
 			await window.onExists('app');
-			this.establishConnection();
 			window.doc.externalEditorDialogTrigger.style.color = 'rgb(38, 153, 244)';
 			window.doc.externalEditorDialogTrigger.classList.remove('disabled');
 			window.doc.externalEditorDialogTrigger.disabled = false;
