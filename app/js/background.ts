@@ -6838,19 +6838,17 @@ if (typeof module === 'undefined') {
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;		
 					return [		
 						[		
-							`var crmAPI = new CrmAPIInstance(${		
-							[		
+							`var crmAPI = new CrmAPIInstance(${[		
 								safeNode, node.id, tab, info, key, nodeStorage,		
 								contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},		
 								enableBackwardsCompatibility, tabIndex, chrome.runtime.id		
-							]		
-								.map((param) => {		
-									if (param === void 0) {		
-										return JSON.stringify(null);		
-									}		
-									return JSON.stringify(param);		
-								}).join(', ')});` +		
-							'window.CrmAPIInstance = null;'		
+							].map((param) => {		
+								if (param === void 0) {		
+									return JSON.stringify(null);		
+								}		
+								return JSON.stringify(param);		
+							}).join(', ')});` +		
+								'window.CrmAPIInstance = null;'		
 						].join(', '),		
 						globalObject.globals.constants.templates.globalObjectWrapperCode('window', 'windowWrapper', node.isLocal ? 'chrome' : 'void 0'),		
 						`${catchErrs ? 'try {' : ''}`,		
