@@ -6641,7 +6641,7 @@ if (typeof module === 'undefined') {
 						code: code
 					};
 				}
-				private static async _genCode(code: Array<string>, {
+				private static async _genCodeBackground(code: Array<string>, {
 					key,
 					node,
 					script,
@@ -6663,7 +6663,7 @@ if (typeof module === 'undefined') {
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
 					return [
 						code.join('\n'), [
-							`var crmAPI = new CrmAPIInstance(${[
+							`var crmAPI = new (window._crmAPIRegistry.pop())(${[
 								safeNode, node.id, { id: 0 }, {}, key,
 								nodeStorage, null,
 								greaseMonkeyData, true, (node.value && node.value.options) || {},
@@ -6684,7 +6684,7 @@ if (typeof module === 'undefined') {
 						script,
 						'}',
 						`window.crmAPI = self.crmAPI = crmAPI`,
-						`main(crmAPI, selfWrapper);`,
+						`crmAPI.onReady(function() {main(crmAPI, selfWrapper)});`,
 						`${catchErrs ? [
 							`} catch (error) {`,
 							`${indentUnit}if (crmAPI.debugOnError) {`,
@@ -6751,7 +6751,7 @@ if (typeof module === 'undefined') {
 
 						const safeNode = CRM.makeSafe(node) as any;
 						safeNode.permissions = node.permissions;
-						const code = await this._genCode(backgroundPageCode, {
+						const code = await this._genCodeBackground(backgroundPageCode, {
 							key,
 							node,
 							script,
@@ -6818,7 +6818,7 @@ if (typeof module === 'undefined') {
 
 			};
 			static readonly Handler = class Handler {
-				private static async _genCode({		
+				private static async _genCodeOnPage({		
 					tab,		
 					key,		
 					info,		
@@ -6838,7 +6838,7 @@ if (typeof module === 'undefined') {
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;		
 					return [		
 						[		
-							`var crmAPI = new CrmAPIInstance(${[		
+							`var crmAPI = new (window._crmAPIRegistry.pop())(${[		
 								safeNode, node.id, tab, info, key, nodeStorage,		
 								contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},		
 								enableBackwardsCompatibility, tabIndex, chrome.runtime.id		
@@ -6847,8 +6847,7 @@ if (typeof module === 'undefined') {
 									return JSON.stringify(null);		
 								}		
 								return JSON.stringify(param);		
-							}).join(', ')});` +		
-								'window.CrmAPIInstance = null;'		
+							}).join(', ')});`		
 						].join(', '),		
 						globalObject.globals.constants.templates.globalObjectWrapperCode('window', 'windowWrapper', node.isLocal ? 'chrome' : 'void 0'),		
 						`${catchErrs ? 'try {' : ''}`,		
@@ -6857,14 +6856,14 @@ if (typeof module === 'undefined') {
 						'selectiontext, editable, waschecked, checked) {',		
 						script,		
 						'}',		
-						`main.apply(this, [crmAPI, windowWrapper, ${node.isLocal ? 'chrome' : 'void 0'}].concat(${		
+						`crmAPI.onReady(function() {main.apply(this, [crmAPI, windowWrapper, ${node.isLocal ? 'chrome' : 'void 0'}].concat(${		
 						JSON.stringify([		
 							info.menuItemId, info.parentMenuItemId, info.mediaType,		
 							info.linkUrl, info.srcUrl, info.pageUrl, info.frameUrl,		
 							(info as any).frameId, info.selectionText,		
 							info.editable, info.wasChecked, info.checked		
 						])		
-						}))`,		
+						}))})`,		
 						`${catchErrs ? [		
 							`} catch (error) {`,		
 							`${indentUnit}if (crmAPI.debugOnError) {`,		
@@ -7085,7 +7084,7 @@ if (typeof module === 'undefined') {
 								[any, GreaseMonkeyData, string, string, string, number]]) => {
 									const safeNode = CRM.makeSafe(node);
 									(safeNode as any).permissions = node.permissions;
-									const code = await this._genCode({
+									const code = await this._genCodeOnPage({
 										node,
 										safeNode,
 										tab,

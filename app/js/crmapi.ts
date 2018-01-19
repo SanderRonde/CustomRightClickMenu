@@ -1,5 +1,9 @@
 /// <reference path="background.ts" />
 
+interface Window {
+	_crmAPIRegistry: Array<any>;
+}
+
 type CRMAPIMessage = {
 	id: number;
 	type: 'logCrmAPIValue';
@@ -2343,6 +2347,30 @@ type CRMAPIMessage = {
 		 */
 		isBackground: boolean;
 
+		/**
+		 * Registers a function to be called
+		 *  when all CRM classes have been handled
+		 * 
+		 * @param {function} callback - The function to be called
+		 * 	when the CRM classes have been handled
+		 */
+		onReady(callback: () => void) {
+			if (window._crmAPIRegistry.length === 0) {
+				callback();
+			} else {
+				let called: boolean = false;
+				const previousPop = window._crmAPIRegistry.pop.bind(window._crmAPIRegistry);
+				window._crmAPIRegistry.pop = () => {
+					const retVal = previousPop();
+					if (window._crmAPIRegistry.length === 0) {
+						!called && callback && callback();
+						called = true;
+					}
+					return retVal;
+				}
+			}
+		}
+
 		@makePrivate 
 		private static _helpers = class Helpers {
 			/**
@@ -4630,5 +4658,6 @@ type CRMAPIMessage = {
 			});
 		};
 	}
-	(window as any).CrmAPIInstance = CrmAPIInstance;
+	window._crmAPIRegistry = window._crmAPIRegistry || [];
+	window._crmAPIRegistry.push(CrmAPIInstance);
 }(typeof window === 'undefined' ? self : window));
