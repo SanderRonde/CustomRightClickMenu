@@ -6930,7 +6930,7 @@ if (typeof module === 'undefined') {
 						//Let the content script determine whether to run this		
 						scripts.push({		
 							file: '/js/crmapi.js',		
-						runAt: runAt		
+							runAt: runAt			
 						});		
 					}		
 					scripts.push({		
