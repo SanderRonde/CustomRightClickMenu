@@ -149,6 +149,7 @@
 
 #itemCont #checkboxCont {
 	display:none;
+	margin-left: 4px;
 }
 
 #itemCont #dragger {
