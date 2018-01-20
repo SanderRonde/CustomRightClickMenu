@@ -175,3 +175,7 @@ paper-spinner {
 #CRMEditColumnsContainer {
 	display: flex;
 }
+
+#warning {
+	width: 412px;
+}
