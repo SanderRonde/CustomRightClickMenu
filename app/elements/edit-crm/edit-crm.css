@@ -165,6 +165,7 @@ paper-spinner {
 }
 
 #crmButtonsContainer {
+	margin-top: 10px;
 	display: -webkit-flex;
 	display: flex;
 	-webkit-justify-content: space-between;
