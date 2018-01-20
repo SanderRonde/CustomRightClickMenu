@@ -1093,7 +1093,7 @@ namespace EditCrmElement {
 		};
 
 		static selectItems(this: EditCrm) {
-			const editCrmItems = document.getElementsByTagName('edit-crm-item');
+			const editCrmItems = this.shadowRoot.querySelectorAll('edit-crm-item');
 			//Select items
 			for (let i = 0; i < editCrmItems.length; i++) {
 				editCrmItems[i].classList.add('selecting');
