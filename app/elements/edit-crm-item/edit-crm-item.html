@@ -7,7 +7,7 @@
 		<!-- build:css inline ../../elements/edit-crm-item/edit-crm-item.css -->
 		<link rel="stylesheet" href="../elements/edit-crm-item/edit-crm-item.css" />
 		<!-- /build -->
-		<div id="itemCont">
+		<div id="itemCont" shadow$="[[shadow]]">
 			<div class="item">
 				<template is="dom-if" if="{{!rootNode}}">
 					<type-switcher on-mousemove="onMouseOver" title="Click to change type" id="typeSwitcher" type="{{type}}"></type-switcher>

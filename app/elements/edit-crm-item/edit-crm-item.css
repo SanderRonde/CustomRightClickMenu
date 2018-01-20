@@ -14,15 +14,15 @@
 	background-color: black;
 }
 
-	edit-crm-item[shadow] #itemCont {
+	#itemCont[shadow] {
 		opacity: 0.5;
 	}
 
-	edit-crm-item.dragging {
+	:host(.dragging) {
 		outline: none;
 	}
 
-edit-crm-item.draggingFiller .item {
+#itemCont.draggingFiller {
 	background-color: #78d3ff;
 }
 
@@ -137,34 +137,30 @@ edit-crm-item.draggingFiller .item {
 		background-color: rgb(230,230,230);
 	}
 
-edit-crm-item.highlighted .item {
+#itemCont.highlighted .item {
 	background-color:#3E3E3E;
 	color:white;
 	fill: white;
 }
 
-edit-crm-item.highlighted .menuArrowCont {
+#itemCont.highlighted .menuArrowCont {
 	background-color: #3E3E3E;
 }
 
-edit-crm-item #checkboxCont {
+#itemCont #checkboxCont {
 	display:none;
 }
 
-edit-crm-item #dragger {
+#itemCont #dragger {
 	display:block;
 }
 
-edit-crm-item.selecting #checkboxCont {
+#itemCont.selecting #checkboxCont {
 	display:block;
 }
 
-edit-crm-item.selecting #dragger {
+#itemCont.selecting #dragger {
 	display:none;
-}
-
-edit-crm-item.pulse .item {
-	background-color: #91ff9f;
 }
 
 #rootNodeTypeColor {

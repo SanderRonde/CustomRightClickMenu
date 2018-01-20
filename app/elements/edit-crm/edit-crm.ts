@@ -615,7 +615,7 @@ namespace EditCrmElement {
 				this._currentTimeout = null;
 				setTimeout(() => {
 					this.crmLoading = false;
-					const els = document.getElementsByTagName('edit-crm-item') as NodeListOf<EditCrmItem>;
+					const els = this.getItems();
 					for (let i = 0; i < els.length; i++) {
 						els[i].update && els[i].update();
 					}
@@ -690,10 +690,10 @@ namespace EditCrmElement {
 
 		private static _getSelected(this: EditCrm): Array<number> {
 			const selected = [];
-			const editCrmItems = document.getElementsByTagName('edit-crm-item') as NodeListOf<EditCrmItem>;
+			const editCrmItems = this.getItems();
 			let i;
 			for (i = 0; i < editCrmItems.length; i++) {
-				if (editCrmItems[i].classList.contains('highlighted')) {
+				if (editCrmItems[i].$.itemCont.classList.contains('highlighted')) {
 					selected.push(editCrmItems[i].item.id);
 				}
 			}
@@ -1055,14 +1055,14 @@ namespace EditCrmElement {
 		};
 
 		static cancelSelecting(this: EditCrm) {
-			const editCrmItems = document.getElementsByTagName('edit-crm-item');
+			const editCrmItems = this.getItems();
 			//Select items
 			for (let i = 0; i < editCrmItems.length; i++) {
 				if (editCrmItems[i].rootNode) {
 					continue;
 				}
-				editCrmItems[i].classList.remove('selecting');
-				editCrmItems[i].classList.remove('highlighted');
+				editCrmItems[i].$.itemCont.classList.remove('selecting');
+				editCrmItems[i].$.itemCont.classList.remove('highlighted');
 			}
 			setTimeout(() => {
 				this.isSelecting = false;
@@ -1093,10 +1093,10 @@ namespace EditCrmElement {
 		};
 
 		static selectItems(this: EditCrm) {
-			const editCrmItems = this.shadowRoot.querySelectorAll('edit-crm-item');
+			const editCrmItems = this.getItems();
 			//Select items
 			for (let i = 0; i < editCrmItems.length; i++) {
-				editCrmItems[i].classList.add('selecting');
+				editCrmItems[i].$.itemCont.classList.add('selecting');
 			}
 			setTimeout(() => {
 				this.isSelecting = true;
@@ -1142,6 +1142,16 @@ namespace EditCrmElement {
 			window.runOrAddAsCallback(window.app.editCRM.build, window.app.editCRM, [{
 				quick: quick
 			}]);
+		}
+
+		static getItems(this: EditCrm): Array<EditCrmItem> {
+			return Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('edit-crm-item'));
+		}
+
+		static getItemsWithClass(this: EditCrm, className: string) {
+			return this.getItems().filter((item) => {
+				return item.$.itemCont.classList.contains(className);
+			});
 		}
 	}
 

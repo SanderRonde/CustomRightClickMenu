@@ -170,6 +170,7 @@ namespace EditCrmItemElement {
 
 			if (this.classList.contains('draggingFiller')) {
 				//It's a dragging copy
+				this.$.itemCont.classList.add('draggingFiller');
 				return;
 			}
 
@@ -199,7 +200,7 @@ namespace EditCrmItemElement {
 					this.$$('#typeSwitcher') && this.$$('#typeSwitcher').ready && this.$$('#typeSwitcher').ready();
 
 					if (window.app.editCRM.isSelecting) {
-						this.classList.add('selecting');
+						this.$.itemCont.classList.add('selecting');
 						if (window.app.editCRM.selectedElements.indexOf(this.item.id) > -1) {
 							this._onSelect(true, true);
 						} else {
@@ -220,15 +221,15 @@ namespace EditCrmItemElement {
 		private static _selectThisNode(this: EditCrmItem) {
 			let prevState = this.$.checkbox.checked;
 			this.$.checkbox.checked = !prevState;
-			if (document.getElementsByClassName('highlighted').length === 0) {
-				this.classList.add('firstHighlighted');
+			if (window.app.editCRM.getItemsWithClass('highlighted').length === 0) {
+				this.$.itemCont.classList.add('firstHighlighted');
 			}
 			prevState ? this._onDeselect() : this._onSelect();
 		};
 
 		static openEditPage(this: EditCrmItem) {
 			if (!this.shadow && !window.app.item && !this.rootNode) {
-				if (!this.classList.contains('selecting')) {
+				if (!this.$.itemCont.classList.contains('selecting')) {
 					const item = this.item;
 					window.app.item = item;
 					if (item.type === 'script') {
@@ -337,23 +338,23 @@ namespace EditCrmItemElement {
 
 		private static _selectFromXToThis(this: EditCrmItem) {
 			//Get the first highlighted node
-			const firstHighlightedNode = document.getElementsByClassName('firstHighlighted')[0] as EditCrmItem;
+			const firstHighlightedNode = window.app.editCRM.getItemsWithClass('firstHighlighted')[0];
 			const firstHighlightedItem = firstHighlightedNode.item;
 
 			//Deselect everything else
-			Array.prototype.slice.apply(window.app.editCRM.shadowRoot.querySelectorAll('.highlighted')).forEach((element: HTMLEditCrmElement) => {
-				element.classList.remove('highlighted');
+			window.app.editCRM.getItemsWithClass('highlighted').forEach((item) => {
+				item.$.itemCont.classList.remove('highlighted');
 			});
 
 			//Find out if the clicked on node is before, at, or after the first highlighted node
 			const relation = this._getNodesOrder(firstHighlightedItem, this.item);
 			if (relation === 'same') {
-				this.classList.add('highlighted');
+				this.$.itemCont.classList.add('highlighted');
 				this.$.checkbox.checked = true;
 				window.app.editCRM.selectedElements = [this.item.id];
 			}
 			else {
-				firstHighlightedNode.classList.add('highlighted');
+				firstHighlightedNode.$.itemCont.classList.add('highlighted');
 				firstHighlightedNode.$.checkbox.checked = true;
 				window.app.editCRM.selectedElements = [firstHighlightedNode.item.id];
 
@@ -368,7 +369,7 @@ namespace EditCrmItemElement {
 				
 				//Finally select this node
 				window.setTimeout(() => {
-					this.classList.add('highlighted');
+					this.$.itemCont.classList.add('highlighted');
 					this.$.checkbox.checked = true;
 					window.app.editCRM.selectedElements.push(this.item.id);
 				}, wait);
@@ -383,7 +384,7 @@ namespace EditCrmItemElement {
 				window.app.editCRM.selectItems();
 				this._selectThisNode();
 			}
-			else if (this.classList.contains('selecting') && e.detail.sourceEvent.shiftKey) {
+			else if (this.$.itemCont.classList.contains('selecting') && e.detail.sourceEvent.shiftKey) {
 				this._selectFromXToThis();
 			} else {
 				window.app.editCRM.cancelAdding();
@@ -459,7 +460,7 @@ namespace EditCrmItemElement {
 		};
 
 		private static _onSelect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
-			this.classList.add('highlighted');
+			this.$.itemCont.classList.add('highlighted');
 			selectCheckbox && (this.$.checkbox.checked = true);
 			if (this.item.children && !dontSelectChildren) {
 				for (let i = 0; i < this.item.children.length; i++) {
@@ -478,7 +479,7 @@ namespace EditCrmItemElement {
 		};
 
 		private static _onDeselect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
-			this.classList.remove('highlighted');
+			this.$.itemCont.classList.remove('highlighted');
 			selectCheckbox && (this.$.checkbox.checked = false);
 			if (this.item.children && !dontSelectChildren) {
 				const selectedPaths = window.app.editCRM.selectedElements;
