@@ -218,9 +218,13 @@ namespace EditCrmItemElement {
 			});
 		};
 
+		private static _getCheckbox(this: EditCrmItem): HTMLPaperCheckboxElement {
+			return this.shadowRoot.querySelector('#checkbox') as HTMLPaperCheckboxElement;
+		}
+
 		private static _selectThisNode(this: EditCrmItem) {
-			let prevState = this.$.checkbox.checked;
-			this.$.checkbox.checked = !prevState;
+			let prevState = this._getCheckbox().checked;
+			this._getCheckbox().checked = !prevState;
 			if (window.app.editCRM.getItemsWithClass('highlighted').length === 0) {
 				this.$.itemCont.classList.add('firstHighlighted');
 			}
@@ -350,7 +354,7 @@ namespace EditCrmItemElement {
 			const relation = this._getNodesOrder(firstHighlightedItem, this.item);
 			if (relation === 'same') {
 				this.$.itemCont.classList.add('highlighted');
-				this.$.checkbox.checked = true;
+				this._getCheckbox().checked = true;
 				window.app.editCRM.selectedElements = [this.item.id];
 			}
 			else {
@@ -370,7 +374,7 @@ namespace EditCrmItemElement {
 				//Finally select this node
 				window.setTimeout(() => {
 					this.$.itemCont.classList.add('highlighted');
-					this.$.checkbox.checked = true;
+					this._getCheckbox().checked = true;
 					window.app.editCRM.selectedElements.push(this.item.id);
 				}, wait);
 			}
@@ -461,7 +465,7 @@ namespace EditCrmItemElement {
 
 		private static _onSelect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
 			this.$.itemCont.classList.add('highlighted');
-			selectCheckbox && (this.$.checkbox.checked = true);
+			selectCheckbox && (this._getCheckbox().checked = true);
 			if (this.item.children && !dontSelectChildren) {
 				for (let i = 0; i < this.item.children.length; i++) {
 					setTimeout(() => {
@@ -480,7 +484,7 @@ namespace EditCrmItemElement {
 
 		private static _onDeselect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
 			this.$.itemCont.classList.remove('highlighted');
-			selectCheckbox && (this.$.checkbox.checked = false);
+			selectCheckbox && (this._getCheckbox().checked = false);
 			if (this.item.children && !dontSelectChildren) {
 				const selectedPaths = window.app.editCRM.selectedElements;
 				for (let i = 0; i < this.item.children.length; i++) {
@@ -494,7 +498,7 @@ namespace EditCrmItemElement {
 
 		static onToggle(this: EditCrmItem) {
 			setTimeout(() => {
-				if (this.$.checkbox.checked) {
+				if (this._getCheckbox().checked) {
 					this._onSelect();
 				} else {
 					this._onDeselect();
