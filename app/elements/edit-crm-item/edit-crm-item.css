@@ -57,6 +57,10 @@
 		width: 288px;
 	}
 
+#itemCont.selecting .CRMItemTitle[iscode] {
+	width: 258px;
+}
+
 .codeSettingsButton {
 	position: relative;
 	right: 0;
@@ -152,7 +156,7 @@
 	margin-left: 4px;
 }
 
-#itemCont #dragger {
+#itemCont .dragger {
 	display:block;
 }
 
@@ -160,8 +164,12 @@
 	display:block;
 }
 
-#itemCont.selecting #dragger {
-	display:none;
+#itemCont.selecting .dragger {
+	display: none;
+}
+
+#itemCont.selecting .codeSettingsButton  {
+	display: none;
 }
 
 #rootNodeTypeColor {
