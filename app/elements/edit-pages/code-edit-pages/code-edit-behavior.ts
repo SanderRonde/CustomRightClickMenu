@@ -707,6 +707,18 @@ namespace CodeEditBehaviorNamespace {
 					this.fullscreenEditorManager.editor.layout();
 				}
 			});
+			this.$.dropdownMenu.addEventListener('expansionStateChange', (({detail}: Polymer.EventType<'expansionStateChange', {
+				state: 'closing'|'closed'|'opening'|'opened';
+			}>) => {
+				const { state } = detail;
+				if (state === 'opening') {
+					this.editorManager.setDefaultHeight();
+				} else if (state === 'closed') {
+					this.editorManager.stopTempLayout();
+				} else if (state === 'opened') {
+					this.editorManager.setTempLayout();
+				}
+			}) as any);
 		}
 	}
 

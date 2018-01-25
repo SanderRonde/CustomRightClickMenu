@@ -272,10 +272,18 @@ declare namespace Polymer {
 		detail: {
 			sourceEvent: MouseEvent;
 		};
+		
 		target: PolymerElement;
 		type: string;
 		stopPropagation(): void;
 		preventDefault(): void;
+	}
+
+	type EventType<T extends string, D> = CustomEventBase & {
+		type: T;
+		detail: {
+			sourceEvent: MouseEvent
+		} & D;
 	}
 
 	type CustomEvent = PolymerDragEvent|ClickEvent|PolymerKeyDownEvent;

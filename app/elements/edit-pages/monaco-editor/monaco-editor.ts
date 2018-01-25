@@ -1436,6 +1436,14 @@ namespace MonacoEditorElement {
 			override: monaco.editor.IEditorOverrideServices;
 		} = null;
 
+		/**
+		 * Info about a temporary layout change and how to get back
+		 */
+		private static _tempLayoutInfo: {
+			previous: number;
+			current: number;
+		} = null;
+
 		private static _typeIsCss(editorType: EditorConfig) {
 			switch (editorType) {
 				case EditorMode.CSS:
@@ -1956,6 +1964,42 @@ namespace MonacoEditorElement {
 
 		static claimScope(this: MonacoEditor) {
 			MonacoEditorHookManager.setScope(this);
+		}
+
+		static setDefaultHeight(this: MonacoEditor) {
+			let previous: number = this.$.editorElement.getBoundingClientRect().height;
+			if (this._tempLayoutInfo) {
+				previous = this._tempLayoutInfo.previous;
+			}
+			this._tempLayoutInfo = {
+				previous,
+				current: previous
+			}
+		}
+
+		static setTempLayout(this: MonacoEditor) {
+			let current: number = this.$.editorElement.getBoundingClientRect().height;
+			let previous = current;
+			if (this._tempLayoutInfo) {
+				previous = this._tempLayoutInfo.previous;
+			}
+			this._tempLayoutInfo = {
+				previous,
+				current
+			}
+			this.editor && this.editor.layout();
+		}
+
+		static stopTempLayout(this: MonacoEditor) {
+			if (!this._tempLayoutInfo) {
+				return;
+			}
+			const previous = this._tempLayoutInfo.previous;
+			this.$.editorElement.style.maxHeight = `${previous}px`;
+			this.editor.layout();
+
+			this._tempLayoutInfo.current = previous;
+			this.$.editorElement.style.maxHeight = 'none';
 		}
 
 		static ready(this: MonacoEditor) {
