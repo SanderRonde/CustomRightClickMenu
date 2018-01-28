@@ -273,6 +273,7 @@ interface Window {
 	}
 
 	log: typeof console.log;
+	info: typeof console.log;
 	testLog?: typeof console.log;
 }
 
@@ -568,10 +569,19 @@ interface Extensions<T> extends CRM.Extendable<T> { }
 window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 if (typeof module === 'undefined') {
+	// Running in the browser
 	window.log = console.log.bind(console);
+	if (window.location && window.location.hash && window.location.hash.indexOf('noBackgroundInfo')) {
+		window.info = () => { };
+	} else {
+		window.info = console.log.bind(console);
+	}
 } else {
+	// Running in node
 	window.log = () => { };
+	window.info = () => { };
 	window.testLog = console.log.bind(console);
+	window.Promise = Promise;
 }
 
 ((globalObject: GlobalObject, sandboxes: {
@@ -1461,7 +1471,7 @@ if (typeof module === 'undefined') {
 				xhr.onreadystatechange = () => {
 					if (xhr.readyState === window.XMLHttpRequest.LOADING) {
 						//Close to being done, send message
-						msg.length > 0 && window.log.apply(console, msg);
+						msg.length > 0 && window.info.apply(console, msg);
 					}
 					if (xhr.readyState === window.XMLHttpRequest.DONE) {
 						if (xhr.status >= 200 && xhr.status < 300) {
@@ -2058,7 +2068,7 @@ if (typeof module === 'undefined') {
 
 			function setupResourceProxy() {
 				chrome.webRequest.onBeforeRequest.addListener((details) => {
-					window.log('Redirecting', details);
+					window.info('Redirecting', details);
 					return {
 						redirectUrl: `chrome-extension://${chrome.runtime.id}/fonts/fonts.css`
 					}
@@ -5623,7 +5633,7 @@ if (typeof module === 'undefined') {
 			scriptId: number;
 		}) {
 			return () => {
-				window.log('Attempting resource update');
+				window.info('Attempting resource update');
 				this._compareResource(resourceKey);
 			};
 		}
@@ -5917,7 +5927,7 @@ if (typeof module === 'undefined') {
 					runAt === 'document_idle') {
 						newScript.runAt = runAt;
 					} else {
-						window.log('Script widht id', id, 
+						window.log('Script with id', id, 
 						'runAt value was changed to default, ', runAt, 
 						'is not a valid value (use document_start, document_end or document_idle)');
 					}
@@ -6438,7 +6448,7 @@ if (typeof module === 'undefined') {
 						}
 					}
 
-					window.log('Looking for updated scripts...');
+					window.info('Looking for updated scripts...');
 					for (let id in globalObject.globals.crm.crmById) {
 						if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
 							const node = globalObject.globals.crm.crmById[id];
@@ -6809,7 +6819,7 @@ if (typeof module === 'undefined') {
 						if (globalObject.globals.crm.crmById.hasOwnProperty(nodeId)) {
 							const node = globalObject.globals.crm.crmById[nodeId];
 							if (node.type === 'script') {
-								window.log('Creating backgroundpage for node', node.id);
+								window.info('Creating backgroundpage for node', node.id);
 								await this.createBackgroundPage(node);
 							}
 						}
@@ -9675,7 +9685,7 @@ if (typeof module === 'undefined') {
 		}
 		static setStorages(storageLocalCopy: CRM.StorageLocal, settingsStorage: CRM.SettingsStorage,
 			chromeStorageLocal: CRM.StorageLocal, callback?: () => void) {
-			window.log('Setting global data stores');
+			window.info('Setting global data stores');
 			globalObject.globals.storages.storageLocal = storageLocalCopy;
 			globalObject.globals.storages.settingsStorage = settingsStorage;
 
@@ -9702,7 +9712,7 @@ if (typeof module === 'undefined') {
 					}
 				});
 
-			window.log('Building CRM representations');
+			window.info('Building CRM representations');
 			CRM.updateCRMValues();
 
 			if (callback) {
@@ -9726,17 +9736,17 @@ if (typeof module === 'undefined') {
 			return obj;
 		}
 		static loadStorages(callback: () => void) {
-			window.log('Loading sync storage data');
+			window.info('Loading sync storage data');
 			chrome.storage.sync.get((chromeStorageSync: {
 				[key: string]: string
 			} & {
 				indexes: Array<string>;
 			}) => {
-				window.log('Loading local storage data');
+				window.info('Loading local storage data');
 				chrome.storage.local.get((chromeStorageLocal: CRM.StorageLocal & {
 					settings?: CRM.SettingsStorage;
 				}) => {
-					window.log('Checking if this is the first run');
+					window.info('Checking if this is the first run');
 					const result = this._isFirstTime(chromeStorageLocal);
 					if (result.type === 'firstTimeCallback') {
 						result.fn.then((data) => {
@@ -9744,7 +9754,7 @@ if (typeof module === 'undefined') {
 								data.chromeStorageLocal, callback);
 						});
 					} else {
-						window.log('Parsing data encoding');
+						window.info('Parsing data encoding');
 						const storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
 						delete storageLocalCopy.globalExcludes;
 
@@ -9784,7 +9794,7 @@ if (typeof module === 'undefined') {
 							}
 						}
 
-						window.log('Checking for data updates')
+						window.info('Checking for data updates')
 						this._checkForStorageSyncUpdates(settingsStorage, chromeStorageLocal);
 
 						this.setStorages(storageLocalCopy, settingsStorage,
@@ -10138,17 +10148,17 @@ if (typeof module === 'undefined') {
 				window.console.groupEnd();
 				try {
 					globalObject.globals.latestId = globalObject.globals.storages.settingsStorage.latestId;
-					window.log('Registering permission listeners');
+					window.info('Registering permission listeners');
 					GlobalDeclarations.refreshPermissions();
-					window.log('Setting CRMAPI message handler');
+					window.info('Setting CRMAPI message handler');
 					GlobalDeclarations.setHandlerFunction();
 					chrome.runtime.onConnect.addListener((port) => {
 						port.onMessage.addListener(window.createHandlerFunction(port));
 					});
 					chrome.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
-					window.log('Building Custom Right-Click Menu');
+					window.info('Building Custom Right-Click Menu');
 					await CRM.buildPageCRM();
-					window.log('Compiling typescript');
+					window.info('Compiling typescript');
 					await CRM.TS.compileAllInTree();
 					window.console.groupCollapsed('Restoring previous open tabs');
 					await GlobalDeclarations.restoreOpenTabs();
@@ -10156,14 +10166,14 @@ if (typeof module === 'undefined') {
 					window.console.groupCollapsed('Creating backgroundpages');
 					await CRM.Script.Background.createBackgroundPages();
 					window.console.groupEnd();
-					window.log('Registering global handlers');
+					window.info('Registering global handlers');
 					GlobalDeclarations.init();
 	
 					//Checks if all values are still correct
 					window.console.group('Checking Resources');
-					window.log('Updating resources');
+					window.info('Updating resources');
 					Resources.updateResourceValues();
-					window.log('Updating scripts');
+					window.info('Updating scripts');
 					CRM.Script.Updating.updateScripts();
 					window.setInterval(() => {
 						CRM.Script.Updating.updateScripts();
@@ -10172,12 +10182,12 @@ if (typeof module === 'undefined') {
 
 					//Debugging data
 					window.console.groupCollapsed('Debugging'); 
-					window.log('For all of these arrays goes, close and re-expand them to "refresh" their contents')
-					window.log('Invalidated tabs:', globalObject.globals.storages.failedLookups);
-					window.log('Insufficient permissions:', globalObject.globals.storages.insufficientPermissions);
+					window.info('For all of these arrays goes, close and re-expand them to "refresh" their contents')
+					window.info('Invalidated tabs:', globalObject.globals.storages.failedLookups);
+					window.info('Insufficient permissions:', globalObject.globals.storages.insufficientPermissions);
 					window.console.groupEnd();
 	
-					window.log('Registering console user interface');
+					window.info('Registering console user interface');
 					GlobalDeclarations.initGlobalFunctions();
 	
 					if (location.href.indexOf('test') > -1) {
@@ -10192,7 +10202,7 @@ if (typeof module === 'undefined') {
 						window.console.groupEnd();
 					}
 	
-					window.log('Done!');
+					window.info('Done!');
 					resolve(null);
 				} catch (e) {
 					for (let i = 0; i < 10; i++) {
