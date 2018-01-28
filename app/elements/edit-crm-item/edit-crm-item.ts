@@ -177,7 +177,7 @@ namespace EditCrmItemElement {
 			document.body.addEventListener('mousemove', () => {
 				if (this._hoveringTypeSwitcher) {
 					this._hoveringTypeSwitcher = false;
-					this._typeIndicatorMouseLeave();
+					this.typeIndicatorMouseLeave();
 				}
 			});
 
@@ -440,7 +440,7 @@ namespace EditCrmItemElement {
 			this._typeIndicatorAnimation && this._typeIndicatorAnimation.reverse();
 		};
 
-		private static _typeIndicatorMouseLeave(this: EditCrmItem) {
+		static typeIndicatorMouseLeave(this: EditCrmItem) {
 			this._lastTypeSwitchMouseover = null;
 			if (!this.shadow) {
 				const typeSwitcher = this.$$('#typeSwitcher');

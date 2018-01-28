@@ -2142,10 +2142,11 @@ describe('Options Page', function() {
 				}));
 				await wait(300);
 				const typesMatch = await driver.executeScript(inlineFn(() => {
-					const crmItem = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])').item(0);
+					const crmItem = (window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0);
 					const typeSwitcher = crmItem.shadowRoot.querySelector('type-switcher');
 					(typeSwitcher.shadowRoot.querySelector('.typeSwitchChoice[type="REPLACE.type"]') as HTMLElement)
 						.click();
+					crmItem.typeIndicatorMouseLeave();
 					return window.app.settings.crm[0].type === 'REPLACE.type' as CRM.NodeType;
 				}, {
 					type: type
