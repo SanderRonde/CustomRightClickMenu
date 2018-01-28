@@ -4,30 +4,10 @@
 /// <reference path="../app/js/background.ts" />
 /// <reference path="../app/elements/edit-crm-item/edit-crm-item.ts" />
 
-global.Promise = webdriver.promise.Promise;
-
-interface AnyObj {
-	[key: string]: any;
-	[key: number]: any;
-}
-
-interface SettingsStorage extends AnyObj {
-	editor: {
-		useTabs: boolean;
-		tabSize: string;
-		theme: string;
-		zoom: string;
-		keyBindings: {
-			autocomplete: string;
-			showType: string;
-			showDocs: string;
-			goToDef: string;
-			rename: string;
-			selectName: string;
-		}
-	};
-	crm: Array<CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode>;
-}
+const PORT: number = 1250;
+const TEST_LOCAL: boolean = true;
+const TIME_MODIFIER = 1.2;
+const LOCAL_URL = 'http://localhost:9515';
 
 interface ChromeLastCall {
 	api: string;
@@ -85,15 +65,22 @@ declare const process: any;
 
 import * as chai from 'chai';
 import * as webdriver from 'selenium-webdriver';
+import { until } from 'selenium-webdriver';
 require('mocha-steps');
 const secrets = require('./UI/secrets');
 const request = require('request');
 const btoa = require('btoa');
 
+global.Promise = webdriver.promise.Promise;
 const assert = chai.assert;
 
-let driver: webdriver.WebDriver;
-const PORT = 1250;
+declare class TypedWebdriver extends webdriver.WebDriver {
+	executeScript<T>(script: StringifedFunction<T>): webdriver.promise.Promise<T>;
+	executeScript<T>(script: string, ...var_args: any[]): webdriver.promise.Promise<T>;
+	executeScript<T>(script: Function, ...var_args: any[]): webdriver.promise.Promise<T>;
+}
+
+let driver: TypedWebdriver;
 
 let capabilities: {
 	browserName: string;
@@ -137,12 +124,13 @@ switch (__filename.split('-').pop().split('.')[0]) {
 		break;
 }
 
-const timeModifier = 1.2;
-
 before('Driver connect', function(done: any) {
-	this.timeout(600000 * timeModifier);
+	const url = TEST_LOCAL ?
+		LOCAL_URL : 'http://hub-cloud.browserstack.com/wd/hub';
+
+	this.timeout(600000 * TIME_MODIFIER);
 	const result = new webdriver.Builder()
-		.usingServer('http://hub-cloud.browserstack.com/wd/hub')
+		.usingServer(url)
 		.withCapabilities(capabilities)
 		.build();
 
@@ -154,9 +142,11 @@ before('Driver connect', function(done: any) {
 		}
 	}
 
-	result.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test`).then(() => {
+	result.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`).then(() => {
 		driver = result;
+		let attempts = 0;
 		let timer = setInterval(() => {
+			attempts += 1;
 			driver.executeScript(inlineFn(() => {
 				return window.polymerElementsLoaded;
 			})).then((loaded) => {
@@ -165,6 +155,11 @@ before('Driver connect', function(done: any) {
 					callDone();
 				}
 			});
+
+			if (attempts >= ((600000 * TIME_MODIFIER) / 2500) - 1) {
+				//About to time out
+				throw new Error('Failed to get elements loaded message, page load is failing');
+			}
 		}, 2500);
 	});
 });
@@ -333,10 +328,16 @@ const templates = {
 
 function findElementOnPage(selector: string): HTMLElement {
 	const list = JSON.parse(selector as EncodedString<Array<[string, number]>>);
-	let el: Element|ShadowRoot = document.body;
+	let el: Element = document.body;
 	for (let i = 0; i < list.length; i++) {
-		el = el.shadowRoot || el;
-		el = el.querySelectorAll(list[i][0])[list[i][1]];
+		let elList = el.querySelectorAll(list[i][0]);
+		if (el.shadowRoot) {
+			const candidate = el.shadowRoot.querySelectorAll(list[i][0]);
+			if (candidate.length > elList.length) {
+				elList = candidate;
+			}
+		}
+		el = elList[list[i][1]];
 	}
 	return el as HTMLElement;
 }
@@ -355,13 +356,25 @@ function quote<T extends string>(str: T): T {
 	return `'${str}'` as T;
 }
 
+type StringifedFunction<RETVAL> = string & {
+	__fn: RETVAL;
+}
+
+function es3IfyFunction(str: string): string {
+	if (str.indexOf('=>') === -1) {
+		return str;
+	}
+	const [ args, body ] = str.split('=>').map(part => part.trim());
+	return `function ${args} ${body}`;
+}
+
 function inlineFn<T extends {
 	[key: string]: any;
-}>(fn: (REPLACE: T) => any|void, args?: T,
-	...insertedFunctions: Array<Function>): string {
+}, U>(fn: (REPLACE: T) => U|void, args?: T,
+	...insertedFunctions: Array<Function>): StringifedFunction<U> {
 		args = args || {} as T;
 		let str = `${insertedFunctions.map(inserted => inserted.toString()).join('\n')}
-			try { return (${fn.toString()})(arguments) } catch(err) { throw new Error(err.name + '-' + err.stack); }`;
+			try { return (${es3IfyFunction(fn.toString())})(arguments) } catch(err) { throw new Error(err.name + '-' + err.stack); }`;
 		Object.getOwnPropertyNames(args).forEach((key) => {
 			let arg = args[key];
 			if (typeof arg === 'object' || typeof arg === 'function') {
@@ -377,65 +390,70 @@ function inlineFn<T extends {
 						arg.replace(/\\\"/g, `\\\\\"`) : arg);
 			}
 		});
-		return str;
+		return str as StringifedFunction<U>;
 	}
 
-function getSyncSettings(driver: webdriver.WebDriver): webdriver.promise.Promise<SettingsStorage> {
-	return new webdriver.promise.Promise<SettingsStorage>((resolve) => { 
-		driver
-			.executeScript(inlineFn(() => {
-				return JSON.stringify(window.app.settings);
-			}))
-			.then((str: EncodedString<SettingsStorage>) => {
-				resolve(JSON.parse(str));
-			});
+function getSyncSettings(): webdriver.promise.Promise<CRM.SettingsStorage> {
+	return new webdriver.promise.Promise<CRM.SettingsStorage>((resolve) => { 
+		driver.executeScript(inlineFn(() => {
+			return JSON.stringify(window.app.settings);
+		})).then((str) => {
+			resolve(JSON.parse(str) as CRM.SettingsStorage);
+		});
 	}); 
 }
 
-function getCRM<T extends Array<CRM.Node> = CRM.Tree>(driver: webdriver.WebDriver): webdriver.promise.Promise<T> {
+function getCRM<T extends Array<CRM.Node> = CRM.Tree>(): webdriver.promise.Promise<T> {
 	return new webdriver.promise.Promise<T>((resolve) => { 
-		driver
-			.executeScript(inlineFn(() => {
-				return JSON.stringify(window.app.settings.crm);
-			})).then((str: EncodedString<T>) => {
-				resolve(JSON.parse(str));
-			});
+		driver.executeScript(inlineFn(() => {
+			return JSON.stringify(window.app.settings.crm);
+		})).then((str: EncodedString<T>) => {
+			resolve(JSON.parse(str));
+		});
 	});
 }
 
-function getContextMenu(driver: webdriver.WebDriver): webdriver.promise.Promise<ContextMenu> {
+function getContextMenu(): webdriver.promise.Promise<ContextMenu> {
 	return new webdriver.promise.Promise<ContextMenu>((resolve) => {
-		driver
-			.executeScript(inlineFn(() => {
-				return JSON.stringify(window.chrome._currentContextMenu[0].children);
-			})).then((str: EncodedString<ContextMenu>) => {
-				resolve(JSON.parse(str));
-			});
+		driver.executeScript(inlineFn(() => {
+			return JSON.stringify(window.chrome._currentContextMenu[0].children);
+		})).then((str) => {
+			resolve(JSON.parse(str));
+		});
 	});
 }
 
 function saveDialog(dialog: FoundElement): webdriver.promise.Promise<void> {
-	return dialog
-		.findElement(webdriver.By.id('saveButton'))
-		.click();
+	return new webdriver.promise.Promise<void>((resolve) => {
+		dialog
+			.findElement(webdriver.By.id('saveButton'))
+			.click().then(() => {
+				resolve(null);
+			})
+	});
 }
 
 function cancelDialog(dialog: FoundElement): webdriver.promise.Promise<void> {
-	return dialog
-		.findElement(webdriver.By.id('cancelButton'))
-		.click();
+	return new webdriver.promise.Promise<void>((resolve) => {
+		dialog
+			.findElement(webdriver.By.id('cancelButton'))
+			.click().then(() => {
+				resolve(null);
+			});
+	});
 }
 
 type DialogType = 'link'|'script'|'divider'|'menu'|'stylesheet';
-async function getDialog(driver: webdriver.WebDriver, type: DialogType):
-	webdriver.promise.Promise<FoundElement> {
-		const el = await findElement(driver, webdriver.By.tagName('crm-app'))
+function getDialog(type: DialogType): webdriver.promise.Promise<FoundElement> {
+	return new webdriver.promise.Promise<FoundElement>(async (resolve) => {
+		const el = await findElement(webdriver.By.tagName('crm-app'))
 			.findElement(webdriver.By.tagName('crm-edit-page'))
 			.findElement(webdriver.By.tagName(`${type}-edit`));
 			
-		await wait(driver, 500);
-		return el;
-	}
+		await wait(500);
+		resolve(el);
+	});
+}
 
 function generatePromiseChain<T>(data: Array<T>,
 	fn: (data: T) => webdriver.promise.Promise<any>,
@@ -471,17 +489,48 @@ function getRandomString(length: number): string {
 	}).join('');
 }
 
-function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, driver: webdriver.WebDriver,
-	done: (...args: Array<any>) => void): void;
-function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, driver: webdriver.WebDriver): webdriver.promise.Promise<void>; 
-function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, driver: webdriver.WebDriver,
-	done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
-		__this.timeout(30000 * timeModifier);
-		const promise = new webdriver.promise.Promise<void>((resolve) => {
+function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done: (...args: Array<any>) => void): void;
+function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext): webdriver.promise.Promise<void>; 
+function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
+	__this.timeout(30000 * TIME_MODIFIER);
+	const promise = new webdriver.promise.Promise<void>((resolve) => {
+		driver.executeScript(inlineFn(() => {
+			try {
+				window.chrome.storage.local.clear();
+				window.chrome.storage.sync.clear();
+				window.app.refreshPage();
+				return null;
+			} catch(e) {
+				return {
+					message: e.message,
+					stack: e.stack
+				};
+			}
+		})).then((e) => {
+			if (e) {
+				console.log(e);
+				throw e;
+			}
+			return wait(1500);
+		}).then(() => {
+			resolve(null);
+		});
+	});
+	if (done) {
+		promise.then(done);
+	} else {
+		return promise;
+	}
+}
+
+function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done: (...args: Array<any>) => void): void;
+function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext): webdriver.promise.Promise<void>; 
+function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
+	__this.timeout(60000 * TIME_MODIFIER);
+	const promise = new webdriver.promise.Promise<void>((resolve) => {
+		wait(500).then(() => {
 			driver.executeScript(inlineFn(() => {
 				try {
-					window.chrome.storage.local.clear();
-					window.chrome.storage.sync.clear();
 					window.app.refreshPage();
 					return null;
 				} catch(e) {
@@ -495,118 +544,70 @@ function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackCo
 					console.log(e);
 					throw e;
 				}
-				return wait(driver, 1500);
+				return wait(1000);
 			}).then(() => {
 				resolve(null);
 			});
 		});
-		if (done) {
-			promise.then(done);
-		} else {
-			return promise;
-		}
+	});
+	if (done) {
+		promise.then(done);
+	} else {
+		return promise;
 	}
+}
 
-function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, driver: webdriver.WebDriver,
-	done: (...args: Array<any>) => void): void;
-function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, driver: webdriver.WebDriver): webdriver.promise.Promise<void>; 
-function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, driver: webdriver.WebDriver,
-	done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
-		__this.timeout(60000 * timeModifier);
-		const promise = new webdriver.promise.Promise<void>((resolve) => {
-			wait(driver, 500).then(() => {
-				driver.executeScript(inlineFn(() => {
-					try {
-						window.app.refreshPage();
-						return null;
-					} catch(e) {
-						return {
-							message: e.message,
-							stack: e.stack
-						};
-					}
-				})).then((e) => {
-					if (e) {
-						console.log(e);
-						throw e;
-					}
-					return wait(driver, 1000);
-				}).then(() => {
-					resolve(null);
-				});
-			});
-		});
-		if (done) {
-			promise.then(done);
-		} else {
-			return promise;
-		}
-	}
-
-function waitForCRM(driver: webdriver.WebDriver, timeRemaining: number): webdriver.promise.Promise<void> {
+function waitForCRM(timeRemaining: number): webdriver.promise.Promise<void> {
 	return new webdriver.promise.Promise<void>((resolve, reject) => {
-		if (timeRemaining <= 0) {
-			reject(null);
-			return;
-		}
-
-		driver.executeScript(inlineFn(() => {
-			const crmItem = document.querySelectorAll('edit-crm-item:not([root-node])').item(0);
-			return !!crmItem;
-		})).then((result) => {
-			if (result) {
-				resolve(null);
-			} else {
-				setTimeout(() => {
-					waitForCRM(driver, timeRemaining - 250).then(resolve, reject);
-				}, 250);
-			}
-		})
+		driver.wait(until.elementLocated(webdriver.By.css('edit-crm-item:not([root-node])')), timeRemaining).then(() => {
+			resolve(null);
+		}, (err) => {
+			reject(err);
+		});
 	});
 }
 
-function switchToTypeAndOpen(driver: webdriver.WebDriver, type: CRM.NodeType, done: () => void) {
-	waitForCRM(driver, 4000).then(() => {
-		return driver.executeScript(inlineFn(() => {
-			const crmItem = document.querySelectorAll('edit-crm-item:not([root-node])').item(0);
-			crmItem.querySelector('type-switcher').changeType('REPLACE.type' as CRM.NodeType);	
-		}, {
-			type: type
-		}));
-	}, () => {
+async function switchToTypeAndOpen(type: CRM.NodeType) {
+	try {
+		await waitForCRM(4000);
+	} catch (e) {
 		//Timeout, element not found
 		throw new Error('edit-crm-item element could not be found');
-	}).then(() => {
-		return wait(driver, 100);
-	}).then(() => {
-		return driver.executeScript(inlineFn(() => {
-			((document.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0)).openEditPage();
-		}));
-	}).then(() => {
-		return wait(driver, 500);
-	}).then(() => {
-		done();
-	});
+	}
+	await driver.executeScript(inlineFn(() => {
+		const crmItem = window.app.editCRM
+			.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])').item(0);
+		crmItem.querySelector('type-switcher').changeType('REPLACE.type' as CRM.NodeType);	
+	}, {
+		type: type
+	}));
+	await wait(100);
+	await driver.executeScript(inlineFn(() => {
+		((window.app.editCRM.shadowRoot
+			.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0)).openEditPage();
+	}));
+	await wait(500);
 }
 
-function openDialog(driver: webdriver.WebDriver, type: CRM.NodeType) {
-	return new webdriver.promise.Promise((resolve) => {
+function openDialog(type: CRM.NodeType) {
+	return new webdriver.promise.Promise(async (resolve) => {
 		if (type === 'link') {
-			driver.executeScript(inlineFn(() => {
-				((document.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0)).openEditPage();
-			})).then(() => {
-				wait(driver, 1000).then(resolve);
-			});
+			await driver.executeScript(inlineFn(() => {
+				((window.app.editCRM.shadowRoot
+					.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0)).openEditPage();
+			}));
+			await wait(1000);
 		} else {
-			switchToTypeAndOpen(driver, type, resolve as () => void);
+			await switchToTypeAndOpen(type);
 		}
+		resolve(null);
 	});
 }
  
-function wait<T>(driver: webdriver.WebDriver, time: number, resolveParam: T): webdriver.promise.Promise<T>;
-function wait<T>(driver: webdriver.WebDriver, time: number): webdriver.promise.Promise<any>;
-function wait<T>(driver: webdriver.WebDriver, time: number, resolveParam?: T): webdriver.promise.Promise<T> {
-	return driver.wait(new webdriver.promise.Promise((resolve) => {
+function wait<T>(time: number, resolveParam: T): webdriver.promise.Promise<T>;
+function wait<T>(time: number): webdriver.promise.Promise<any>;
+function wait<T>(time: number, resolveParam?: T): webdriver.promise.Promise<T> {
+	return new webdriver.promise.Promise((resolve) => {
 		setTimeout(() => {
 			if (resolveParam) {
 				resolve(resolveParam);
@@ -614,13 +615,13 @@ function wait<T>(driver: webdriver.WebDriver, time: number, resolveParam?: T): w
 				resolve(null);
 			}
 		}, time);
-	}));
+	});
 }
 
 interface FoundElement {
 	click(): webdriver.promise.Promise<void>;
 	findElement(by: webdriver.Locator): FoundElementPromise;
-	findElements(by: webdriver.Locator): webdriver.promise.Promise<Array<FoundElement>>;
+	findElements(by: webdriver.Locator): FoundElementsPromise;
 	sendKeys(...args: Array<string|webdriver.promise.Promise<string>|InputKeys>
 			): webdriver.promise.Promise<void>;
 	getAttribute(attr: string): webdriver.promise.Promise<string>;
@@ -633,42 +634,210 @@ const enum InputKeys {
 	BACK_SPACE = 1
 }
 
-class FoundElementPromise {
-	promise: webdriver.promise.Promise<FoundElement>;
+type Resolver<T> = (onFulfilled: webdriver.promise.IFulfilledCallback<T>, 
+	onRejected: webdriver.promise.IRejectedCallback) => void;
 
+class PromiseContainer<T> implements webdriver.promise.IThenable<T> {
+	_promise: webdriver.promise.Promise<T>;
+
+	constructor(resolver?: Resolver<T>, opt_flow?: webdriver.promise.ControlFlow) {
+		this._promise = new webdriver.promise.Promise<T>(resolver, opt_flow);
+	}
+
+	cancel(opt_reason?: string) {
+		this._promise.cancel(opt_reason);
+	}
+
+	isPending() {
+		return this._promise.isPending();
+	}
+
+	then<R>(opt_callback?: (value: T) => Promise<R>, opt_errback?: (error: any) => any): webdriver.promise.Promise<R>;
+	then<R>(opt_callback?: (value: T) => R, opt_errback?: (error: any) => any): webdriver.promise.Promise<R>;
+	then<R>(opt_callback?: (value: T) => Promise<R>|R, opt_errback?: (error: any) => any): webdriver.promise.Promise<R> {
+		return this._promise.then(opt_callback, opt_errback) as any;
+	}
+
+	thenCatch<R>(errback: (error: any) => any): webdriver.promise.Promise<R> {
+		return this._promise.thenCatch(errback);
+	}
+
+	thenFinally<R>(callback: () => any): webdriver.promise.Promise<R> {
+		return this._promise.thenFinally(callback);
+	}
+}
+
+class FoundElementsPromise extends PromiseContainer<Array<FoundElement>> {
+	private _items: Array<FoundElement>;
+	private _err: any;
+	private _gotItems: Array<{
+		index: number;
+		resolve: webdriver.promise.IFulfilledCallback<FoundElement>;
+		reject: webdriver.promise.IRejectedCallback;
+	}>;
+	private _done: boolean;
+
+	constructor(resolver?: Resolver<Array<FoundElement>>, opt_flow?: webdriver.promise.ControlFlow) {
+		//Wait until this is initialized before running the resolver
+		let readyResolve: webdriver.promise.IFulfilledCallback<void> = null;
+		const ready = new webdriver.promise.Promise<void>((resolve) => {
+			readyResolve = resolve;
+		});
+		super((onFulfilled, onRejected) => {
+			ready.then(() => {
+				resolver(onFulfilled, onRejected);
+			});
+		}, opt_flow);
+
+		this._init();
+		readyResolve(null);
+	}
+
+	private _init() {
+		this.then((result) => {
+			this._onFulfill(result);
+		}, (err) => {
+			this._onReject(err);
+		});
+
+		this._gotItems = [];
+		this._done = false;
+		this._err = null;
+	}
+
+	private _onFulfill(res: Array<FoundElement>) {
+		this._done = true;
+		this._items = res;
+		this._handlePreviousRequests();
+	}
+
+	private _onReject(err: Error) {
+		this._done = true;
+		this._err = err;
+		this._handlePreviousRequests();
+	}
+
+	private _handlePreviousRequests() {
+		this._gotItems.forEach(({index, resolve, reject}) => {
+			resolve(this._handleGetRequest(index, reject));
+		});
+	}
+
+	private _handleGetRequest(index: number, reject: (err: Error) => void) {
+		if (this._err !== null) {
+			//Error was thrown
+			reject(this._err);
+			return null;
+		}
+		if (!this._items) {
+			//Item doesn't exist at that index
+			reject(new Error('Error finding elements'));
+			return null;
+		}
+		if (!this._items[index]) {
+			//Item doesn't exist at that index
+			reject(new Error('Item at index does not exist'));
+			return null;
+		}
+		return this._items[index];
+	}
+
+	public get(index: number): FoundElementPromise {
+		if (this._done) {
+			const result = this._handleGetRequest(index, (err) => {
+				throw err;
+			});
+			return new FoundElementPromise((resolve) => {
+				resolve(result);
+			});
+		}
+
+		let _resolve: webdriver.promise.IFulfilledCallback<FoundElement>;
+		let _reject: webdriver.promise.IRejectedCallback;
+		const prom = new FoundElementPromise((resolve, reject) => {
+			_resolve = resolve;
+			_reject = reject;
+		});
+
+		this._gotItems.push({
+			index,
+			resolve: _resolve,
+			reject: _reject
+		});
+
+		return prom;
+	}
+
+	public get length() {
+		return new webdriver.promise.Promise<number>((resolve) => {
+			if (this._done) {
+				resolve((this._items && this._items.length) || 0);
+			} else {
+				this.then((items) => {
+					resolve((items && items.length) || 0);
+				});
+			}
+		});
+	}
+
+	public map<T>(fn: (element: FoundElement) => T): webdriver.promise.Promise<Array<T>>;
+	public map<T>(fn: (element: FoundElement) => T, isElements?: false): webdriver.promise.Promise<Array<T>>;
+	public map<T>(fn: (element: FoundElement) => T, isElements?: true): FoundElementsPromise;
+	public map<T>(fn: (element: FoundElement) => T, isElements: boolean = false) {
+		if (isElements) {
+			return new FoundElementsPromise((resolve) => {
+				this.then((items) => {
+					resolve(items.map(fn) as Array<any>);
+				});	
+			});
+		}
+		return new webdriver.promise.Promise<Array<T>>((resolve) => {
+			this.then((items) => {
+				resolve(items.map(fn));
+			});
+		});
+	}
+
+	public forEach(fn: (element: FoundElement) => void) {
+		this.then((items) => {
+			items.forEach(fn);
+		});
+		return this;
+	}
+
+	/**
+	 * Combines promise.all and map
+	 */
+	public mapWait(fn: (element: FoundElement) => webdriver.promise.Promise<any>): webdriver.promise.Promise<void> {
+		return new webdriver.promise.Promise<void>((resolve) => {
+			this.map(fn).then((mapped) => {
+				webdriver.promise.all(mapped).then(() => {
+					resolve(null);
+				});
+			});
+		});
+	}
+}
+
+class FoundElementPromise extends PromiseContainer<FoundElement> {
 	constructor(resolver: (onFulfilled: webdriver.promise.IFulfilledCallback<FoundElement>, 
 			onRejected: webdriver.promise.IRejectedCallback)=>void,
 			opt_flow?: webdriver.promise.ControlFlow) {
-		this.promise = new webdriver.promise.Promise<FoundElement>(resolver);
-	}
-
-	then<R>(opt_callback?: (value: FoundElement) => webdriver.promise.Promise<R>,
-		opt_errback?: (error: any) => any): webdriver.promise.Promise<R>
-	then<R>(opt_callback?: (value: FoundElement) => R,
-		opt_errback?: (error: any) => any): webdriver.promise.Promise<R>;
-	then<R>(opt_callback?: (value: FoundElement) => R|webdriver.promise.Promise<R>,
-			opt_errback?: (error: any) => any): webdriver.promise.Promise<R> {
-		if (opt_callback) {
-			if (opt_errback) {
-				return (this.promise.then as any)(opt_callback, opt_errback);
-			}
-			return (this.promise.then as any)(opt_callback);
-		}
-		return this.promise.then();
+		super(resolver, opt_flow);
 	}
 
 	click() {
-		return new webdriver.promise.Promise<void>((resolve) => {
-			this.promise.then((element) => {
+		return new FoundElementPromise((resolve) => {
+			this.then((element) => {
 				element.click().then(() => {
-					resolve(undefined);
+					resolve(element);
 				});
 			});
 		});
 	}
 	findElement(by: webdriver.Locator) {
 		return new FoundElementPromise((resolve) => {
-			this.promise.then((element) => {
+			this.then((element) => {
 				element.findElement(by).then((element) => {
 					resolve(element);
 				});
@@ -676,8 +845,8 @@ class FoundElementPromise {
 		});
 	}
 	findElements(by: webdriver.Locator) {
-		return new webdriver.promise.Promise<Array<FoundElement>>((resolve) => {
-			this.promise.then((element) => {
+		return new FoundElementsPromise((resolve) => {
+			this.then((element) => {
 				element.findElements(by).then((element) => {
 					resolve(element);
 				});
@@ -686,7 +855,7 @@ class FoundElementPromise {
 	}
 	sendKeys(...args: Array<string|webdriver.promise.Promise<string>|InputKeys>) {
 		return new webdriver.promise.Promise<void>((resolve) => {
-			this.promise.then((element) => {
+			this.then((element) => {
 				element.sendKeys(...args).then(() => {
 					resolve(undefined);
 				});
@@ -750,7 +919,6 @@ class FoundElementPromise {
 
 class FoundElement implements FoundElement {
 	constructor(public selector: string, public index: number,
-		public driver: webdriver.WebDriver,
 		public parent: FoundElement = null) { }
 
 	click(): webdriver.promise.Promise<void> {
@@ -761,7 +929,7 @@ class FoundElement implements FoundElement {
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new webdriver.promise.Promise<void>((resolve) => {
-			this.driver.executeScript(inlineFn(() => {
+			driver.executeScript(inlineFn(() => {
 				findElementOnPage('REPLACE.selector').click();
 			}, {
 				selector: JSON.stringify(selectorList.reverse())
@@ -780,9 +948,10 @@ class FoundElement implements FoundElement {
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new FoundElementPromise((resolve, reject) => {
-			this.driver.executeScript(inlineFn(() => {
-				const el = (findElementOnPage('REPLACE.selector') as Element)
-					.querySelector('REPLACE.css');
+			driver.executeScript(inlineFn(() => {
+				const baseEl = findElementOnPage('REPLACE.selector') as Element;
+				const el = baseEl.querySelector('REPLACE.css') ||
+					baseEl.shadowRoot.querySelector('REPLACE.css');
 
 				if (el === null) {
 					return 'null';
@@ -791,16 +960,16 @@ class FoundElement implements FoundElement {
 			}, {
 				css: css,
 				selector: JSON.stringify(selectorList.reverse())
-			}, findElementOnPage)).then((index: string) => {
+			}, findElementOnPage)).then((index) => {
 				if (index === 'null') {
-					reject(null);
+					reject(new Error('Failed to find element'));
 				} else {
-					resolve(new FoundElement(css, 0, driver, this));
+					resolve(new FoundElement(css, 0, this));
 				}
 			});
 		});
 	}
-	findElements(by: webdriver.Locator): webdriver.promise.Promise<Array<FoundElement>> {
+	findElements(by: webdriver.Locator): FoundElementsPromise {
 		const css = locatorToCss(by);
 		const selectorList = [[this.selector, this.index]];
 		let currentElement: FoundElement = this;
@@ -808,30 +977,37 @@ class FoundElement implements FoundElement {
 			currentElement = currentElement.parent;
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
-		return new webdriver.promise.Promise((resolve) => {
-			this.driver.executeScript(inlineFn(() => {
-				const elList = findElementOnPage('REPLACE.selector').querySelectorAll('REPLACE.css');
-				return JSON.stringify(Array.prototype.slice.apply(elList).map((element: HTMLElement) => {
+		const __this = this;
+		return new FoundElementsPromise((resolve) => {
+			driver.executeScript(inlineFn(() => {
+				const baseEl = findElementOnPage('REPLACE.selector') as Element;
+				let elList = baseEl.querySelectorAll('REPLACE.css');
+				if (baseEl.shadowRoot) {
+					const candidate = baseEl.shadowRoot.querySelectorAll('REPLACE.css');
+					if (candidate.length > elList.length) {
+						elList = candidate;
+					}
+				}
+				return JSON.stringify(Array.prototype.slice.apply(elList).map(function(element: HTMLElement) {
 					if (element === null) {
 						return 'null';
 					}
 					return 'exists';
-				}));
+				}) as Array<'null'|'exists'>);
 			}, {
 				css: css,
 				selector: JSON.stringify(selectorList.reverse())
-			}, findElementOnPage, checkIfListContainsElement)).then((indexes: EncodedString<Array<string>>) => {
+			}, findElementOnPage, checkIfListContainsElement)).then((indexes) => {
 				resolve((JSON.parse(indexes)).map((found, index) => {
 					if (found === 'exists') {
-						return new FoundElement(css, index, driver, this);
+						return new FoundElement(css, index, __this);
 					}
 					return null;
 				}).filter(item => item !== null));
 			});
 		});
 	}
-	sendKeys(...args: Array<string|webdriver.promise.Promise<string>|InputKeys>
-			): webdriver.promise.Promise<void> {
+	sendKeys(...args: Array<string|webdriver.promise.Promise<string>|InputKeys>): webdriver.promise.Promise<void> {
 		return new webdriver.promise.Promise<void>((resolve) => {
 			return webdriver.promise.all(args.map((arg) => {
 				if (webdriver.promise.isPromise(arg)) {
@@ -848,7 +1024,7 @@ class FoundElement implements FoundElement {
 					selectorList.push([currentElement.selector, currentElement.index]);
 				}
 				return new webdriver.promise.Promise((sentKeysResolve) => {
-					this.driver.executeScript(inlineFn((REPLACE) => {
+					driver.executeScript(inlineFn((REPLACE) => {
 						const el = findElementOnPage('REPLACE.selector') as HTMLInputElement;
 						const keyPresses = REPLACE.keypresses as Array<string|InputKeys>;
 						let currentValue = el.value || '';
@@ -886,10 +1062,10 @@ class FoundElement implements FoundElement {
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new webdriver.promise.Promise<T>((resolve) => {
-			this.driver.executeScript(inlineFn(() => {
+			driver.executeScript(inlineFn(() => {
 				const el = findElementOnPage('REPLACE.selector');
 				const val = el['REPLACE.prop' as keyof HTMLElement];
-				return JSON.stringify(val);
+				return JSON.stringify(val as any);
 			}, {
 				selector: JSON.stringify(selectorList.reverse()),
 				prop: prop
@@ -906,7 +1082,7 @@ class FoundElement implements FoundElement {
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new webdriver.promise.Promise<string>((resolve) => {
-			this.driver.executeScript(inlineFn((REPLACE) => {
+			driver.executeScript(inlineFn((REPLACE) => {
 				const el = findElementOnPage('REPLACE.selector');
 				const attr = el.getAttribute(REPLACE.attr);
 				return attr === undefined || attr === null ?
@@ -926,8 +1102,8 @@ class FoundElement implements FoundElement {
 			currentElement = currentElement.parent;
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
-		return new webdriver.promise.Promise<ClientRect>((resolve) => {
-			this.driver.executeScript(inlineFn(() => {
+		return new webdriver.promise.Promise<ClientRect>(async (resolve) => {
+			resolve(JSON.parse(await driver.executeScript(inlineFn(() => {
 				const bcr = findElementOnPage('REPLACE.selector').getBoundingClientRect();
 				return JSON.stringify({
 					bottom: bcr.bottom,
@@ -939,9 +1115,7 @@ class FoundElement implements FoundElement {
 				});
 			}, {
 				selector: JSON.stringify(selectorList.reverse())
-			}, findElementOnPage)).then((bcr: EncodedString<ClientRect>) => {
-				resolve(JSON.parse(bcr));
-			});
+			}, findElementOnPage))));
 		});
 	}
 }
@@ -968,11 +1142,10 @@ function locatorToCss(by: webdriver.Locator): string {
 	}
 }
 
-function findElement(driver: webdriver.WebDriver,
-					by: webdriver.Locator): FoundElementPromise {
+function findElement(by: webdriver.Locator): FoundElementPromise {
 	const selector = locatorToCss(by);
-	return new FoundElementPromise((resolve, reject) => {
-		driver.executeScript(inlineFn(() => {
+	return new FoundElementPromise(async (resolve, reject) => {
+		const found = await driver.executeScript(inlineFn(() => {
 			const elContainer = document.querySelector('REPLACE.css');
 			if (elContainer === null) {
 				return 'null';
@@ -980,38 +1153,12 @@ function findElement(driver: webdriver.WebDriver,
 			return 'exists';
 		}, {
 			css: selector
-		})).then((found: string) => {
-			if (found === 'exists') {
-				resolve(new FoundElement(selector, 0, driver));
-			} else {
-				reject(null);
-			}
-		});
-	});
-}
-
-function findElements(driver: webdriver.WebDriver,
-					by: webdriver.Locator): webdriver.promise.Promise<Array<FoundElement>> {
-	const selector = locatorToCss(by);
-	return driver.executeScript(inlineFn(() => {
-		const elList = document.querySelectorAll('REPLACE.css');
-		return JSON.stringify(Array.prototype.slice.apply(elList).map((element: HTMLElement) => {
-			if (element === null) {
-				return 'null';
-			}
-			return 'exists';
 		}));
-	}, {
-		css: selector
-	})).then((indexes: EncodedString<Array<string>>) => {
-		return new webdriver.promise.Promise((resolve) => {
-			resolve((JSON.parse(indexes)).map((exists, index) => {
-				if (exists === 'exists') {
-					return new FoundElement(selector, index, driver);
-				}
-				return null;
-			}).filter(item => item !== null));
-		});
+		if (found === 'exists') {
+			resolve(new FoundElement(selector, 0));
+		} else {
+			reject(new Error('Failed to find element'));
+		}
 	});
 }
 
@@ -1060,16 +1207,12 @@ function subtractStrings(biggest: string, smallest: string): string {
 	return biggest.slice(smallest.length);
 }
 
-function getEditorValue(driver: webdriver.WebDriver, type: DialogType): webdriver.promise.Promise<string> {
-	return new webdriver.promise.Promise<string>((resolve) => {
-		driver.executeScript(inlineFn((REPLACE) => {
-			return window[(REPLACE.editor) as 'scriptEdit'|'stylesheetEdit'].editorManager.editor.getValue();
-		}, {
-			editor: quote(type === 'script' ? 'scriptEdit' : 'stylesheetEdit'),
-		})).then((value: string) => {
-			resolve(value);
-		});
-	});
+function getEditorValue(type: DialogType): webdriver.promise.Promise<string> {
+	return driver.executeScript(inlineFn((REPLACE) => {
+		return window[(REPLACE.editor) as 'scriptEdit'|'stylesheetEdit'].editorManager.editor.getValue();
+	}, {
+		editor: quote(type === 'script' ? 'scriptEdit' : 'stylesheetEdit'),
+	}));
 }
 
 interface NameCheckingCRM {
@@ -1081,8 +1224,8 @@ function getCRMNames(crm: CRM.Tree): Array<NameCheckingCRM> {
 	return crm.map((node) => {
 		return {
 			name: node.name,
-			children: (node.children && node.children.length > 0)
-				? getCRMNames(node.children) : undefined
+			children: (node.children && node.children.length > 0) ? 
+				getCRMNames(node.children) : undefined
 		};
 	});
 }
@@ -1091,8 +1234,8 @@ function getContextMenuNames(contextMenu: ContextMenu): Array<NameCheckingCRM> {
 	return contextMenu.map((item) => {
 		return {
 			name: item.currentProperties.title,
-			children: (item.children && item.children.length > 0)
-				? getContextMenuNames(item.children) : undefined
+			children: (item.children && item.children.length > 0) ? 
+				getContextMenuNames(item.children) : undefined
 		};
 	});
 }
@@ -1113,33 +1256,33 @@ function assertContextMenuEquality(contextMenu: ContextMenu, CRMNodes: CRM.Tree)
 	}
 }
 
-// function getLog(driver: webdriver.WebDriver): webdriver.promise.Promise<string> {
+// function getLog(): webdriver.promise.Promise<string> {
 // 	return new webdriver.promise.Promise<string>((resolve) => {
 // 		driver.executeScript(inlineFn(() => {
 // 			const log = JSON.stringify(window.app._log);
 // 			window.app._log = [];
 // 			return log;
-// 		})).then((str: string) => {
+// 		})).then((str) => {
 // 			console.log(str);
 // 			resolve(str);
 // 		});
 // 	});
 // }
 
-function enterEditorFullscreen(__this: Mocha.ISuiteCallbackContext, driver: webdriver.WebDriver, type: DialogType): webdriver.promise.Promise<FoundElement> {
+function enterEditorFullscreen(__this: Mocha.ISuiteCallbackContext, type: DialogType): webdriver.promise.Promise<FoundElement> {
 	return new webdriver.promise.Promise<FoundElement>((resolve) => {
-		resetSettings(__this, driver).then(() => {
-			return openDialog(driver, type);
+		resetSettings(__this).then(() => {
+			return openDialog(type);
 		}).then(() => {
-			return getDialog(driver, type);
+			return getDialog(type);
 		}).then((dialog) => {
-			return wait(driver, 500, dialog);
+			return wait(500, dialog);
 		}).then((dialog) => {
 			return dialog
 				.findElement(webdriver.By.id('editorFullScreen'))
 				.click()
 				.then(() => {
-					return wait(driver, 500);
+					return wait(500);
 				}).then(() => {
 					resolve(dialog);
 				});
@@ -1150,22 +1293,21 @@ function enterEditorFullscreen(__this: Mocha.ISuiteCallbackContext, driver: webd
 
 describe('Options Page', function() {
 	describe('Loading', function() {
-		this.timeout(60000 * timeModifier);
+		this.timeout(60000 * TIME_MODIFIER);
 		this.slow(60000);
 
 		it('should happen without errors', function(done)  {
-			driver
-				.executeScript(inlineFn(() => {
-					return window.lastError ? window.lastError : 'noError';
-				})).then((result) => {
-					assert.ifError(result !== 'noError' ? result : false,
-						'no errors should be thrown when loading');
-					done();
-				});
+			driver.executeScript(inlineFn(() => {
+				return window.lastError ? window.lastError : 'noError';
+			})).then((result) => {
+				assert.ifError(result !== 'noError' ? result : false,
+					'no errors should be thrown when loading');
+				done();
+			});
 		});
 	});
 	describe('CheckboxOptions', function() {
-		this.timeout(5000 * timeModifier);
+		this.timeout(5000 * TIME_MODIFIER);
 		this.slow(4000);
 		const checkboxDefaults = {
 			catchErrors: true,
@@ -1174,17 +1316,14 @@ describe('Options Page', function() {
 			useStorageSync: true
 		};
 		Object.getOwnPropertyNames(checkboxDefaults).forEach((checkboxId, index) => {
-			it(`${checkboxId} should be clickable`, async (done) => {
-				await reloadPage(this, driver);
-				await findElement(driver, webdriver.By.tagName('crm-app'))
+			it(`${checkboxId} should be clickable`, async () => {
+				await reloadPage(this);
+				await findElement(webdriver.By.tagName('crm-app'))
 					.findElement(webdriver.By.id(checkboxId))
-					.findElement(webdriver.By.tagName('paper-checkox'))
+					.findElement(webdriver.By.tagName('paper-checkbox'))
 					.click();
 				
-				const { checked, match } = JSON.parse(await driver.executeScript<EncodedString<{
-					checked: boolean;
-					match: boolean;
-				}>>(inlineFn((REPLACE) => {
+				const { checked, match } = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
 					return JSON.stringify({
 						match: window.app.storageLocal['REPLACE.checkboxId' as keyof CRM.StorageLocal] === REPLACE.expected,
 						checked: (window.app.$ as any)['REPLACE.checkboxId'].shadowRoot.querySelector('paper-checkbox').checked
@@ -1198,17 +1337,13 @@ describe('Options Page', function() {
 					'checkbox checked status matches expected');
 				assert.strictEqual(match, true, 
 					`checkbox ${checkboxId} value reflects settings value`);
-				done();
 			});
-			it(`${checkboxId} should be saved`, async function(done) {
-				await reloadPage(this, driver);
-				const { checked, match } = JSON.parse(await driver.executeScript<EncodedString<{
-					checked: boolean;
-					match: boolean;
-				}>>(inlineFn((REPLACE) => {
+			it(`${checkboxId} should be saved`, async function() {
+				await reloadPage(this);
+				const { checked, match } = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
 					return JSON.stringify({
 						match: window.app.storageLocal['REPLACE.checkboxId' as keyof CRM.StorageLocal] === REPLACE.expected,
-						checked: document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox').checked
+						checked: (window.app.$ as any)['REPLACE.checkboxId'].shadowRoot.querySelector('paper-checkbox').checked
 					});
 				}, {
 					checkboxId: checkboxId,
@@ -1219,165 +1354,187 @@ describe('Options Page', function() {
 					'checkbox checked status has been saved');
 				assert.strictEqual(match, true, 
 					`checkbox ${checkboxId} value has been saved`);
-				done();
 			});
 		});
 	});
 	describe('Commonly used links', function() {
-		this.timeout(15000 * timeModifier);
+		this.timeout(15000 * TIME_MODIFIER);
 		this.slow(10000);
 		let searchEngineLink = '';
 		let defaultLinkName = '';
 
 		before('Reset settings', function() {
-			return resetSettings(this, driver);
+			return resetSettings(this);
 		});
-		it('should be addable, renamable and saved', async function(done)  {
+		it('should be addable', async function()  {
 			this.retries(3);
-			await (async () => {
-				const elements = await findElement(driver, webdriver.By.tagName('crm-app'))
-					.findElements(webdriver.By.tagName('default-link'));
-				await elements[0].findElement(webdriver.By.tagName('paper-button')).click();
-				const name = await elements[0].findElement(webdriver.By.tagName('paper-input')).getProperty('value');
-				const link = await elements[0].findElement(webdriver.By.tagName('a')).getAttribute('href');
-				const crm = await getCRM<Array<CRM.LinkNode>>(driver);
+			const firstElement = await findElement(webdriver.By.tagName('crm-app'))
+				.findElements(webdriver.By.tagName('default-link')).get(0);
+			await firstElement.findElement(webdriver.By.tagName('paper-button')).click();
+			const name = await firstElement.findElement(webdriver.By.tagName('paper-input')).getProperty('value');
+			const link = await firstElement.findElement(webdriver.By.tagName('a')).getAttribute('href');
+			const crm = await getCRM<Array<CRM.LinkNode>>();
 
-				searchEngineLink = link;
-				defaultLinkName = name;
+			searchEngineLink = link;
+			defaultLinkName = name;
 
-				const element = crm[crm.length - 1];
+			const element = crm[crm.length - 1];
 
-				assert.strictEqual(name, element.name, 
-					'name is the same as expected');
-				assert.strictEqual(element.type, 'link',
-					'type of element is link');
-				assert.isArray(element.value, 'element value is array');
-				assert.lengthOf(element.value, 1, 'element has one child');
-				assert.isDefined(element.value[0], 'first element is defined');
-				assert.isObject(element.value[0], 'first element is an object');
-				assert.strictEqual(element.value[0].url, link, 
-					'value url is the same as expected');
-				assert.isTrue(element.value[0].newTab, 'newTab is true');
-			})();
-			await (async () => {
-				const renameName = 'SomeName';
-				const elements = await findElement(driver, webdriver.By.tagName('crm-app'))
-					.findElements(webdriver.By.tagName('default-link'));
-				await elements[0].findElement(webdriver.By.tagName('paper-input'))
-					.findElement(webdriver.By.tagName('input'))
-					.sendKeys(InputKeys.CLEAR_ALL, renameName);
-				await elements[0].findElement(webdriver.By.tagName('paper-button')).click();
-				const link = await elements[0].findElement(webdriver.By.tagName('a')).getAttribute('href');
-				const crm = await getCRM<Array<CRM.LinkNode>>(driver);
-				const element = crm[crm.length - 1];
+			assert.strictEqual(name, element.name, 
+				'name is the same as expected');
+			assert.strictEqual(element.type, 'link',
+				'type of element is link');
+			assert.isArray(element.value, 'element value is array');
+			assert.lengthOf(element.value, 1, 'element has one child');
+			assert.isDefined(element.value[0], 'first element is defined');
+			assert.isObject(element.value[0], 'first element is an object');
+			assert.strictEqual(element.value[0].url, link, 
+				'value url is the same as expected');
+			assert.isTrue(element.value[0].newTab, 'newTab is true');
+		});
+		it('should be renamable', async function() {
+			const renameName = 'SomeName';
+			const firstElement = await findElement(webdriver.By.tagName('crm-app'))
+				.findElements(webdriver.By.tagName('default-link')).get(0);
+			await firstElement.findElement(webdriver.By.tagName('paper-input'))
+				.findElement(webdriver.By.tagName('input'))
+				.sendKeys(InputKeys.CLEAR_ALL, renameName);
+			await firstElement.findElement(webdriver.By.tagName('paper-button')).click();
+			const link = await firstElement.findElement(webdriver.By.tagName('a')).getAttribute('href');
+			const crm = await getCRM<Array<CRM.LinkNode>>();
+			const element = crm[crm.length - 1];
 
-				assert.strictEqual(element.name, renameName,
-					'name is the same as expected');
-				assert.strictEqual(element.type, 'link',
-					'type of element is link');
-				assert.isArray(element.value, 'element value is array');
-				assert.lengthOf(element.value, 1, 'element has one child');
-				assert.isDefined(element.value[0], 'first element is defined');
-				assert.isObject(element.value[0], 'first element is an object');
-				assert.strictEqual(element.value[0].url, link, 
-					'value url is the same as expected');
-				assert.isTrue(element.value[0].newTab, 'newTab is true');
-			})();
-			await (async() => {
-				await reloadPage(this, driver);
-				const crm = await getCRM<Array<CRM.LinkNode>>(driver);
+			assert.strictEqual(element.name, renameName,
+				'name is the same as expected');
+			assert.strictEqual(element.type, 'link',
+				'type of element is link');
+			assert.isArray(element.value, 'element value is array');
+			assert.lengthOf(element.value, 1, 'element has one child');
+			assert.isDefined(element.value[0], 'first element is defined');
+			assert.isObject(element.value[0], 'first element is an object');
+			assert.strictEqual(element.value[0].url, link, 
+				'value url is the same as expected');
+			assert.isTrue(element.value[0].newTab, 'newTab is true');
+		});
+		it('should be saved', async function() {
+			await reloadPage(this);
+			const crm = await getCRM<Array<CRM.LinkNode>>();
 
-				const element = crm[crm.length - 2];
+			const element = crm[crm.length - 2];
 
-				assert.isDefined(element, 'element is defined');
-				assert.strictEqual(element.name, defaultLinkName, 
-					'name is the same as expected');
-				assert.strictEqual(element.type, 'link',
-					'type of element is link');
-				assert.isArray(element.value, 'element value is array');
-				assert.lengthOf(element.value, 1, 'element has one child');
-				assert.isDefined(element.value[0], 'first element is defined');
-				assert.isObject(element.value[0], 'first element is an object');
-				assert.strictEqual(element.value[0].url, searchEngineLink, 
-					'value url is the same as expected');
-				assert.isTrue(element.value[0].newTab, 'newTab is true');
+			assert.isDefined(element, 'element is defined');
+			assert.strictEqual(element.name, defaultLinkName, 
+				'name is the same as expected');
+			assert.strictEqual(element.type, 'link',
+				'type of element is link');
+			assert.isArray(element.value, 'element value is array');
+			assert.lengthOf(element.value, 1, 'element has one child');
+			assert.isDefined(element.value[0], 'first element is defined');
+			assert.isObject(element.value[0], 'first element is an object');
+			assert.strictEqual(element.value[0].url, searchEngineLink, 
+				'value url is the same as expected');
+			assert.isTrue(element.value[0].newTab, 'newTab is true');
 
-				const element2 = crm[crm.length - 1];
-				assert.isDefined(element2, 'element is defined');
-				assert.strictEqual(element2.name, 'SomeName', 
-					'name is the same as expected');
-				assert.strictEqual(element2.type, 'link',
-					'type of element is link');
-				assert.isArray(element2.value, 'element value is array');
-				assert.lengthOf(element2.value, 1, 'element has one child');
-				assert.isDefined(element2.value[0], 'first element is defined');
-				assert.isObject(element2.value[0], 'first element is an object');
-				assert.strictEqual(element2.value[0].url, searchEngineLink, 
-					'value url is the same as expected');
-				assert.isTrue(element2.value[0].newTab, 'newTab is true');
-			})();
-			done();
+			const element2 = crm[crm.length - 1];
+			assert.isDefined(element2, 'element is defined');
+			assert.strictEqual(element2.name, 'SomeName', 
+				'name is the same as expected');
+			assert.strictEqual(element2.type, 'link',
+				'type of element is link');
+			assert.isArray(element2.value, 'element value is array');
+			assert.lengthOf(element2.value, 1, 'element has one child');
+			assert.isDefined(element2.value[0], 'first element is defined');
+			assert.isObject(element2.value[0], 'first element is an object');
+			assert.strictEqual(element2.value[0].url, searchEngineLink, 
+				'value url is the same as expected');
+			assert.isTrue(element2.value[0].newTab, 'newTab is true');
 		});
 	});
 	describe('SearchEngines', function() {
-		this.timeout(150000 * timeModifier);
+		this.timeout(150000 * TIME_MODIFIER);
 		this.slow(10000);
 		let searchEngineLink = '';
 		let searchEngineName = '';
 
 		before('Reset settings', function() {
-			return resetSettings(this, driver);
+			return resetSettings(this);
 		});
 
-		it('should be addable, renamable and should be saved', async function(done)  {
+		it('should be addable', async function()  {
 			this.retries(3);
-			await (async () => {
-				const elements = await findElement(driver, webdriver.By.tagName('crm-app'))
-					.findElements(webdriver.By.tagName('default-link'));
-				const index = elements.length - 1;
-				await elements[index].findElement(webdriver.By.tagName('paper-button')).click();
-				const name = await elements[index].findElement(webdriver.By.tagName('paper-input')).getProperty('value');
-				const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
-				const crm = await getCRM<Array<CRM.ScriptNode>>(driver);
-				const element = crm[crm.length - 1];
+			const elements = await findElement(webdriver.By.tagName('crm-app'))
+				.findElements(webdriver.By.tagName('default-link'));
+			const index = elements.length - 1;
+			await elements[index].findElement(webdriver.By.tagName('paper-button')).click();
+			const name = await elements[index].findElement(webdriver.By.tagName('paper-input')).getProperty('value');
+			const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
+			const crm = await getCRM<Array<CRM.ScriptNode>>();
+			const element = crm[crm.length - 1];
 
-				searchEngineLink = link;
-				searchEngineName = name;
-				
-				assert.strictEqual(element.name, name, 
-					'name is the same as expected');
-				assert.strictEqual(element.type, 'script',
-					'type of element is script');
-				assert.isObject(element.value, 'element value is object');
-				assert.property(element.value, 'script', 'value has script property');
-				assert.isString(element.value.script, 'script is a string');
-				assert.strictEqual(element.value.script, '' +
-					'var query;\n' +
-					'var url = "' + link + '";\n' +
-					'if (crmAPI.getSelection()) {\n' +
-					'	query = crmAPI.getSelection();\n' +
-					'} else {\n' +
-					'	query = window.prompt(\'Please enter a search query\');\n' +
-					'}\n' +
-					'if (query) {\n' +
-					'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-					'}',
-					'script1 value matches expected');
-			})();
+			searchEngineLink = link;
+			searchEngineName = name;
+			
+			assert.strictEqual(element.name, name, 
+				'name is the same as expected');
+			assert.strictEqual(element.type, 'script',
+				'type of element is script');
+			assert.isObject(element.value, 'element value is object');
+			assert.property(element.value, 'script', 'value has script property');
+			assert.isString(element.value.script, 'script is a string');
+			assert.strictEqual(element.value.script, '' +
+				'var query;\n' +
+				'var url = "' + link + '";\n' +
+				'if (crmAPI.getSelection()) {\n' +
+				'	query = crmAPI.getSelection();\n' +
+				'} else {\n' +
+				'	query = window.prompt(\'Please enter a search query\');\n' +
+				'}\n' +
+				'if (query) {\n' +
+				'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
+				'}',
+				'script1 value matches expected');
+		});
+		it('should be renamable', async function() {
+			const renameName = 'SomeName';
+			const elements = await findElement(webdriver.By.tagName('crm-app'))
+				.findElements(webdriver.By.tagName('default-link'));
+			const index = elements.length - 1;
+			await elements[index].findElement(webdriver.By.tagName('paper-input'))
+				.findElement(webdriver.By.tagName('input'))
+				.sendKeys(InputKeys.CLEAR_ALL, renameName);
+			await elements[index].findElement(webdriver.By.tagName('paper-button')).click();
+			const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
+			const crm = await getCRM<Array<CRM.ScriptNode>>();
+			const element = crm[crm.length - 1];
+			
+			assert.strictEqual(renameName, element.name, 
+				'name is the same as expected');
+			assert.strictEqual(element.type, 'script',
+				'type of element is script');
+			assert.isObject(element.value, 'element value is object');
+			assert.property(element.value, 'script', 'value has script property');
+			assert.isString(element.value.script, 'script is a string');
+			assert.strictEqual(element.value.script, '' +
+				'var query;\n' +
+				'var url = "' + link + '";\n' +
+				'if (crmAPI.getSelection()) {\n' +
+				'	query = crmAPI.getSelection();\n' +
+				'} else {\n' +
+				'	query = window.prompt(\'Please enter a search query\');\n' +
+				'}\n' +
+				'if (query) {\n' +
+				'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
+				'}',
+				'script value matches expected');
+		});
+		it('should be saved', async function() {
+			await reloadPage(this);
+			const crm = await getCRM<Array<CRM.ScriptNode>>();
 			await (async () => {
-				const renameName = 'SomeName';
-				const elements = await findElement(driver, webdriver.By.tagName('crm-app'))
-					.findElements(webdriver.By.tagName('default-link'));
-				const index = elements.length - 1;
-				await elements[index].findElement(webdriver.By.tagName('paper-input'))
-					.findElement(webdriver.By.tagName('input'))
-					.sendKeys(InputKeys.CLEAR_ALL, renameName);
-				await elements[index].findElement(webdriver.By.tagName('paper-button')).click();
-				const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
-				const crm = await getCRM<Array<CRM.ScriptNode>>(driver);
-				const element = crm[crm.length - 1];
-				
-				assert.strictEqual(renameName, element.name, 
+				const element = crm[crm.length - 2];
+
+				assert.isDefined(element, 'element is defined');
+				assert.strictEqual(element.name, searchEngineName, 
 					'name is the same as expected');
 				assert.strictEqual(element.type, 'script',
 					'type of element is script');
@@ -1386,7 +1543,7 @@ describe('Options Page', function() {
 				assert.isString(element.value.script, 'script is a string');
 				assert.strictEqual(element.value.script, '' +
 					'var query;\n' +
-					'var url = "' + link + '";\n' +
+					'var url = "' + searchEngineLink + '";\n' +
 					'if (crmAPI.getSelection()) {\n' +
 					'	query = crmAPI.getSelection();\n' +
 					'} else {\n' +
@@ -1398,233 +1555,197 @@ describe('Options Page', function() {
 					'script value matches expected');
 			})();
 			await (async () => {
-				await reloadPage(this, driver);
-				const crm = await getCRM<Array<CRM.ScriptNode>>(driver);
-				await (async () => {
-					const element = crm[crm.length - 2];
-
-					assert.isDefined(element, 'element is defined');
-					assert.strictEqual(element.name, searchEngineName, 
-						'name is the same as expected');
-					assert.strictEqual(element.type, 'script',
-						'type of element is script');
-					assert.isObject(element.value, 'element value is object');
-					assert.property(element.value, 'script', 'value has script property');
-					assert.isString(element.value.script, 'script is a string');
-					assert.strictEqual(element.value.script, '' +
-						'var query;\n' +
-						'var url = "' + searchEngineLink + '";\n' +
-						'if (crmAPI.getSelection()) {\n' +
-						'	query = crmAPI.getSelection();\n' +
-						'} else {\n' +
-						'	query = window.prompt(\'Please enter a search query\');\n' +
-						'}\n' +
-						'if (query) {\n' +
-						'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-						'}',
-						'script value matches expected');
-				})();
-				await (async () => {
-					const element2 = crm[crm.length - 1];	
-					assert.strictEqual(element2.name, 'SomeName', 
-						'name is the same as expected');
-					assert.strictEqual(element2.type, 'script',
-						'type of element is script');
-					assert.isObject(element2.value, 'element value is object');
-					assert.property(element2.value, 'script', 'value has script property');
-					assert.isString(element2.value.script, 'script is a string');
-					assert.strictEqual(element2.value.script, '' +
-						'var query;\n' +
-						'var url = "' + searchEngineLink + '";\n' +
-						'if (crmAPI.getSelection()) {\n' +
-						'	query = crmAPI.getSelection();\n' +
-						'} else {\n' +
-						'	query = window.prompt(\'Please enter a search query\');\n' +
-						'}\n' +
-						'if (query) {\n' +
-						'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-						'}',
-						'script2 value matches expected');
-				});
-			})();			
-			done();
+				const element2 = crm[crm.length - 1];	
+				assert.strictEqual(element2.name, 'SomeName', 
+					'name is the same as expected');
+				assert.strictEqual(element2.type, 'script',
+					'type of element is script');
+				assert.isObject(element2.value, 'element value is object');
+				assert.property(element2.value, 'script', 'value has script property');
+				assert.isString(element2.value.script, 'script is a string');
+				assert.strictEqual(element2.value.script, '' +
+					'var query;\n' +
+					'var url = "' + searchEngineLink + '";\n' +
+					'if (crmAPI.getSelection()) {\n' +
+					'	query = crmAPI.getSelection();\n' +
+					'} else {\n' +
+					'	query = window.prompt(\'Please enter a search query\');\n' +
+					'}\n' +
+					'if (query) {\n' +
+					'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
+					'}',
+					'script2 value matches expected');
+			});
 		});
 	});
 	describe('URIScheme', function() {
 		before('Reset settings', function() {
-			return resetSettings(this, driver);
+			return resetSettings(this);
 		});
 		this.slow(5000);
-		this.timeout(7500 * timeModifier);
+		this.timeout(7500 * TIME_MODIFIER);
 
-		async function testURIScheme(driver: webdriver.WebDriver,
-			toExecutePath: string, schemeName: string) {
-				await findElement(driver, webdriver.By.className('URISchemeGenerator'))
-					.findElement(webdriver.By.tagName('paper-button'))
-					.click()
-					
-				const lastCall = JSON.parse(await driver.executeScript<EncodedString<ChromeLastCall>>(inlineFn(() => {
-					return JSON.stringify(window.chrome._lastCall);
-				})));
-				assert.isDefined(lastCall, 'a call to the chrome API was made');
-				assert.strictEqual(lastCall.api, 'downloads.download',
-					'chrome downloads API was called');
-				assert.isArray(lastCall.args, 'api args are present');
-				assert.lengthOf(lastCall.args, 1, 'api has only one arg');
-				assert.strictEqual(lastCall.args[0].url, 
-					'data:text/plain;charset=utf-8;base64,' + btoa([
-					'Windows Registry Editor Version 5.00',
-					'',
-					'[HKEY_CLASSES_ROOT\\' + schemeName + ']',
-					'@="URL:' + schemeName +' Protocol"',
-					'"URL Protocol"=""',
-					'',
-					'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell]',
-					'',
-					'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open]',
-					'',
-					'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open\\command]',
-					'@="\\"' + toExecutePath.replace(/\\/g, '\\\\') + '\\""'
-				].join('\n')),
-					'file content matches expected');
-				assert.strictEqual(lastCall.args[0].filename, 
-					schemeName + '.reg', 'filename matches expected');
-			}
+		async function testURIScheme(toExecutePath: string, schemeName: string) {
+			await findElement(webdriver.By.tagName('crm-app'))
+				.findElement(webdriver.By.className('URISchemeGenerator'))
+				.findElement(webdriver.By.tagName('paper-button'))
+				.click()
+				
+			const lastCall = JSON.parse(await driver.executeScript(inlineFn(() => {
+				return JSON.stringify(window.chrome._lastCall);
+			})));
+			assert.isDefined(lastCall, 'a call to the chrome API was made');
+			assert.strictEqual(lastCall.api, 'downloads.download',
+				'chrome downloads API was called');
+			assert.isArray(lastCall.args, 'api args are present');
+			assert.lengthOf(lastCall.args, 1, 'api has only one arg');
+			assert.strictEqual(lastCall.args[0].url, 
+				'data:text/plain;charset=utf-8;base64,' + btoa([
+				'Windows Registry Editor Version 5.00',
+				'',
+				'[HKEY_CLASSES_ROOT\\' + schemeName + ']',
+				'@="URL:' + schemeName +' Protocol"',
+				'"URL Protocol"=""',
+				'',
+				'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell]',
+				'',
+				'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open]',
+				'',
+				'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open\\command]',
+				'@="\\"' + toExecutePath.replace(/\\/g, '\\\\') + '\\""'
+			].join('\n')),
+				'file content matches expected');
+			assert.strictEqual(lastCall.args[0].filename, 
+				schemeName + '.reg', 'filename matches expected');
+		}
 
 		afterEach('Reset page settings', function() {
-			return resetSettings(this, driver);
+			return resetSettings(this);
 		});
 
 		const defaultToExecutePath = 'C:\\files\\my_file.exe';
 		const defaultSchemeName = 'myscheme';
-		it('should be able to download the default file', async function(done)  {
+		it('should be able to download the default file', async function()  {
 			const toExecutePath = defaultToExecutePath;
 			const schemeName = defaultSchemeName;
-			await testURIScheme(driver, toExecutePath, schemeName);
-			done();
+			await testURIScheme(toExecutePath, schemeName);
 		});
-		it('should be able to download when a different file path was entered', async function(done)  {
+		it('should be able to download when a different file path was entered', async function()  {
 			const toExecutePath = 'somefile.a.b.c';
 			const schemeName = defaultSchemeName;
-			await findElement(driver, webdriver.By.tagName('crm-app'))
+			await findElement(webdriver.By.tagName('crm-app'))
 				.findElement(webdriver.By.id('URISchemeFilePath'))
 				.findElement(webdriver.By.tagName('input'))
 				.sendKeys(InputKeys.CLEAR_ALL, toExecutePath);
-			await testURIScheme(driver, toExecutePath, schemeName);
-			done();
+			await testURIScheme(toExecutePath, schemeName);
 		});
-		it('should be able to download when a different scheme name was entered', async function(done)  {
+		it('should be able to download when a different scheme name was entered', async function()  {
 			const toExecutePath = defaultToExecutePath;
 			const schemeName = getRandomString(25);
-			await findElement(driver, webdriver.By.tagName('crm-app'))
+			await findElement(webdriver.By.tagName('crm-app'))
 				.findElement(webdriver.By.id('URISchemeSchemeName'))
 				.findElement(webdriver.By.tagName('input'))
 				.sendKeys(InputKeys.CLEAR_ALL, schemeName);
-			await findElement(driver, webdriver.By.tagName('crm-app'))
+			await findElement(webdriver.By.tagName('crm-app'))
 				.findElement(webdriver.By.id('URISchemeFilePath'))
 				.findElement(webdriver.By.tagName('input'))
 				.sendKeys(InputKeys.CLEAR_ALL, toExecutePath);
-			await testURIScheme(driver, toExecutePath, schemeName);
-			done();
+			await testURIScheme(toExecutePath, schemeName);
 		});
 		it('should be able to download when a different scheme name and a different file path are entered', 
-			async (done) => {
+			async () => {
 				const toExecutePath = 'somefile.x.y.z';
 				const schemeName = getRandomString(25);
-				await findElement(driver, webdriver.By.tagName('crm-app'))
+				await findElement(webdriver.By.tagName('crm-app'))
 					.findElement(webdriver.By.id('URISchemeFilePath'))
 					.findElement(webdriver.By.tagName('input'))
 					.sendKeys(InputKeys.CLEAR_ALL, toExecutePath);
-				await findElement(driver, webdriver.By.tagName('crm-app'))
+				await findElement(webdriver.By.tagName('crm-app'))
 					.findElement(webdriver.By.id('URISchemeSchemeName'))
 					.findElement(webdriver.By.tagName('input'))
 					.sendKeys(InputKeys.CLEAR_ALL, schemeName);
-				await testURIScheme(driver, toExecutePath, schemeName);
-				done();
+				await testURIScheme(toExecutePath, schemeName);
 			});
 	});
 
 	function testNameInput(type: CRM.NodeType) {
 		const defaultName = 'name';
 		describe('Name Input', function() {
-			this.timeout(10000 * timeModifier);
+			this.timeout(10000 * TIME_MODIFIER);
 			this.slow(10000);
 
-			it('should not change when not saved', async function(done) {
+			it('should not change when not saved', async function() {
 				before('Reset settings', function() {
-					return resetSettings(this, driver);
+					return resetSettings(this);
 				});
 
 				const name = getRandomString(25);
-				await resetSettings(this, driver);
-				await openDialog(driver, type);
-				const dialog = await getDialog(driver, type);
+				await resetSettings(this);
+				await openDialog(type);
+				const dialog = await getDialog(type);
 				await dialog.findElement(webdriver.By.id('nameInput'))
 					.sendKeys(InputKeys.CLEAR_ALL, name)
 				await cancelDialog(dialog);
 
-				const crm = await getCRM(driver);
+				const crm = await getCRM();
 				assert.strictEqual(crm[0].type, type, 
 					`type is ${type}`);
 				assert.strictEqual(crm[0].name, defaultName, 
 					'name has not been saved');
-				done();
 			});
 			const name = getRandomString(25);
-			it('should be editable when saved', async function(done)  {
+			it('should be editable when saved', async function()  {
 				before('Reset settings', function() {
-					return resetSettings(this, driver);
+					return resetSettings(this);
 				});
 
-				await resetSettings(this, driver);
-				await openDialog(driver, type);
-				const dialog = await getDialog(driver, type);
+				await resetSettings(this);
+				await openDialog(type);
+				const dialog = await getDialog(type);
 				dialog.findElement(webdriver.By.id('nameInput'))
 					.sendKeys(InputKeys.CLEAR_ALL, name);
-				await wait(driver, 300);
+				await wait(300);
 				await saveDialog(dialog);
-				await wait(driver, 300);
+				await wait(300);
 
-				const crm = await getCRM(driver);
+				const crm = await getCRM();
 				assert.strictEqual(crm[0].type, type, 
 					'type is link');
 				assert.strictEqual(crm[0].name, name, 
 					'name has been properly saved');
-				done();
 			});
-			it('should be saved when changed', async function(done) {
-				await reloadPage(this, driver)
-				const crm = await getCRM(driver);
+			it('should be saved when changed', async function() {
+				await reloadPage(this)
+				const crm = await getCRM();
 				assert.strictEqual(crm[0].type, type, 
 					`type is ${type}`);
 				assert.strictEqual(crm[0].name, name, 
 					'name has been properly saved');
-				done();
 			});
 		});
 	}
 
 	function testVisibilityTriggers(type: CRM.NodeType) {
 		describe('Triggers', function() {
-			this.timeout(15000 * timeModifier);
+			this.timeout(15000 * TIME_MODIFIER);
 			this.slow(12000);
 
-			it('should not change when not saved', async function(done)  {
-				await resetSettings(this, driver);
-				await openDialog(driver, type);
-				const dialog = await getDialog(driver, type);
+			it('should not change when not saved', async function()  {
+				await resetSettings(this);
+				await openDialog(type);
+				const dialog = await getDialog(type);
 				await dialog.findElement(webdriver.By.id('showOnSpecified')).click()
-				const button = await dialog.findElement(webdriver.By.id('addTrigger'));
-				await button.click();
-				await button.click();
+				await dialog.findElement(webdriver.By.id('addTrigger'))
+					.click()
+					.click();
 
-				await wait(driver, 500);
+				await wait(500);
 				const triggers = await dialog.findElements(webdriver.By.className('executionTrigger'))
 				await triggers[0].findElement(webdriver.By.tagName('paper-checkbox')).click();
 				await triggers[0].sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
 				await triggers[1].sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
 				await cancelDialog(dialog);
-				const crm = await getCRM(driver);
+				const crm = await getCRM();
 				assert.lengthOf(crm[0].triggers, 1, 
 					'no triggers have been added');
 				assert.isFalse(crm[0].triggers[0].not, 
@@ -1632,24 +1753,23 @@ describe('Options Page', function() {
 				assert.strictEqual(crm[0].triggers[0].url, 
 					'*://*.example.com/*',
 					'first trigger url stays the same');
-				done();
 			});
-			it('should be addable/editable when saved', async (done) => {
-				await resetSettings(this, driver);
-				await openDialog(driver, type);
-				const dialog = await getDialog(driver, type);
+			it('should be addable/editable when saved', async () => {
+				await resetSettings(this);
+				await openDialog(type);
+				const dialog = await getDialog(type);
 				await dialog.findElement(webdriver.By.id('showOnSpecified')).click();
-				const button = await dialog.findElement(webdriver.By.id('addTrigger'))
-				await button.click();
-				await button.click();
-				await wait(driver, 500);
+				await dialog.findElement(webdriver.By.id('addTrigger'))
+					.click()
+					.click();
+				await wait(500);
 				const triggers = await dialog.findElements(webdriver.By.className('executionTrigger'));
 				await triggers[0].findElement(webdriver.By.tagName('paper-checkbox')).click();
 				await triggers[1].findElement(webdriver.By.tagName('paper-input'))
 					.sendKeys(InputKeys.CLEAR_ALL, 'http://www.google.com');
 				await saveDialog(dialog);
 
-				const crm = await getCRM(driver);
+				const crm = await getCRM();
 				assert.lengthOf(crm[0].triggers, 3, 'trigger has been added');
 				assert.isTrue(crm[0].triggers[0].not, 'first trigger is NOT');
 				assert.isFalse(crm[0].triggers[1].not, 'second trigger is not NOT');
@@ -1657,12 +1777,11 @@ describe('Options Page', function() {
 					'first trigger url stays the same');
 				assert.strictEqual(crm[0].triggers[1].url, 'http://www.google.com',
 					'second trigger url changed');
-				done();
 			});
-			it('should be preserved on page reload', async function(done) {
-				await reloadPage(this, driver);
-				await wait(driver, 500);
-				const crm = await getCRM(driver);
+			it('should be preserved on page reload', async function() {
+				await reloadPage(this);
+				await wait(500);
+				const crm = await getCRM();
 
 				assert.lengthOf(crm[0].triggers, 3, 
 					'trigger has been added');
@@ -1676,30 +1795,28 @@ describe('Options Page', function() {
 				assert.strictEqual(crm[0].triggers[1].url,
 					'http://www.google.com',
 					'second trigger url changed');
-				done();
 			});
 		});
 	}
 
 	function testContentTypes(type: CRM.NodeType) {
 		describe('Content Types', function() {
-			this.timeout(30000 * timeModifier);
+			this.timeout(30000 * TIME_MODIFIER);
 			this.slow(15000);
 			const defaultContentTypes = [true, true, true, false, false, false];
 
-			it('should be editable through clicking on the checkboxes', async function(done)  {
+			it('should be editable through clicking on the checkboxes', async function()  {
 				this.retries(3);
-				await resetSettings(this, driver);
-				await openDialog(driver, 'link');
-				const dialog = await getDialog(driver, 'link');
-				const elements = await dialog.findElements(webdriver.By.className('showOnContentItemCont'));
-				await webdriver.promise.all(elements.map((element) => {
+				await resetSettings(this);
+				await openDialog('link');
+				const dialog = await getDialog('link');
+				await dialog.findElements(webdriver.By.className('showOnContentItemCont')).mapWait((element) => {
 					return element.findElement(webdriver.By.tagName('paper-checkbox')).click().then(() => {
-						return wait(driver, 25);
+						return wait(25);
 					});
-				}));
+				})
 				await saveDialog(dialog);
-				const crm = await getCRM(driver);
+				const crm = await getCRM();
 
 				assert.isFalse(crm[0].onContentTypes[0], 
 					'content types that were on were switched off');
@@ -1712,19 +1829,17 @@ describe('Options Page', function() {
 				assert.deepEqual(crm[0].onContentTypes,
 					newContentTypes,
 					'all content types were toggled');
-				done();
 			});
-			it('should be editable through clicking on the icons', async function(done)  {
+			it('should be editable through clicking on the icons', async function()  {
 				this.retries(3);
-				await resetSettings(this, driver);
-				await openDialog(driver, 'link');
-				const dialog = await getDialog(driver, 'link');
-				const elements = await dialog.findElements(webdriver.By.className('showOnContentItemCont'));
-				await webdriver.promise.all(elements.map((element) => {
+				await resetSettings(this);
+				await openDialog('link');
+				const dialog = await getDialog('link');
+				await dialog.findElements(webdriver.By.className('showOnContentItemCont')).mapWait((element) => {
 					return element.findElement(webdriver.By.className('showOnContentItemIcon')).click();
-				}));
+				});
 				await saveDialog(dialog);
-				const crm = await getCRM(driver);
+				const crm = await getCRM();
 
 				assert.isFalse(crm[0].onContentTypes[0], 
 					'content types that were on were switched off');
@@ -1736,21 +1851,18 @@ describe('Options Page', function() {
 				assert.deepEqual(crm[0].onContentTypes,
 					newContentTypes,
 					'all content types were toggled');
-				done();
 			});
-			it('should be editable through clicking on the names', async function(done)  {
+			it('should be editable through clicking on the names', async function()  {
 				this.retries(3);
-				await resetSettings(this, driver);
-				await openDialog(driver, 'link');
-				const dialog = await getDialog(driver, 'link');
-				const elements = await dialog.findElements(webdriver.By.className('showOnContentItemCont'))
-				await webdriver.promise.all(elements.map((element) => {
-					return element
-						.findElement(webdriver.By.className('showOnContentItemTxt'))
+				await resetSettings(this);
+				await openDialog('link');
+				const dialog = await getDialog('link');
+				await dialog.findElements(webdriver.By.className('showOnContentItemCont')).mapWait((element) => {
+					return element.findElement(webdriver.By.className('showOnContentItemTxt'))
 						.click();
-				}));
+				});
 				await saveDialog(dialog);
-				const crm = await getCRM(driver);
+				const crm = await getCRM();
 
 				assert.isFalse(crm[0].onContentTypes[0], 
 					'content types that were on were switched off');
@@ -1762,11 +1874,10 @@ describe('Options Page', function() {
 				assert.deepEqual(crm[0].onContentTypes,
 					newContentTypes,
 					'all content types were toggled');
-				done();
 			});
-			it('should be preserved on page reload', async function(done) {
-				await reloadPage(this, driver);
-				const crm = await getCRM(driver);
+			it('should be preserved on page reload', async function() {
+				await reloadPage(this);
+				const crm = await getCRM();
 
 				assert.isFalse(crm[0].onContentTypes[0], 
 					'content types that were on were switched off');
@@ -1778,20 +1889,17 @@ describe('Options Page', function() {
 				assert.deepEqual(crm[0].onContentTypes,
 					newContentTypes,
 					'all content types were toggled');
-				done();
 			});
-			it('should not change when not saved', async function(done)  {
-				await resetSettings(this, driver);
-				await openDialog(driver, 'link');
-				const dialog = await getDialog(driver, 'link');
-				const elements = await dialog.findElements(webdriver.By.className('showOnContentItemCont'));
-				await webdriver.promise.all(elements.map((element) => {
-					return element
-						.findElement(webdriver.By.tagName('paper-checkbox'))
+			it('should not change when not saved', async function()  {
+				await resetSettings(this);
+				await openDialog('link');
+				const dialog = await getDialog('link');
+				await dialog.findElements(webdriver.By.className('showOnContentItemCont')).mapWait((element) => {
+					return element.findElement(webdriver.By.tagName('paper-checkbox'))
 						.click();
-				}));
+				});
 				await cancelDialog(dialog);
-				const crm = await getCRM(driver);
+				const crm = await getCRM();
 
 				assert.isTrue(crm[0].onContentTypes[0], 
 					'content types that were on did not change');
@@ -1800,85 +1908,84 @@ describe('Options Page', function() {
 				assert.deepEqual(crm[0].onContentTypes,
 					defaultContentTypes,
 					'all content types were not toggled');
-				done();
 			});
 		});
 	}
 
 	function testClickTriggers(type: CRM.NodeType) {
 		describe('Click Triggers', function() {
-			this.timeout(30000 * timeModifier);
+			this.timeout(30000 * TIME_MODIFIER);
 			this.slow(25000);
 			[0, 1, 2, 3, 4].forEach((triggerOptionIndex) => {
 				describe(`Trigger option ${triggerOptionIndex}`, function() {
 					this.retries(3);
-					it(`should be possible to select trigger option number ${triggerOptionIndex}`, async function(done) {
-						await resetSettings(this, driver);
-						await openDialog(driver, type);
-						const dialog = await getDialog(driver, type);
-						await wait(driver, 500, dialog);
+					it(`should be possible to select trigger option number ${triggerOptionIndex}`, async function() {
+						await resetSettings(this);
+						await openDialog(type);
+						const dialog = await getDialog(type);
+						await wait(500, dialog);
 						await dialog.findElement(webdriver.By.id('dropdownMenu')).click();
-						await wait(driver, 500);
-						const triggerOptions = await dialog.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
-						await triggerOptions[triggerOptionIndex].click();
-						await wait(driver, 5000);
+						await wait(500);
+						await dialog.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
+							.get(triggerOptionIndex)
+							.click();
+						await wait(5000);
 						await saveDialog(dialog);
-						const crm = await getCRM<Array<CRM.StylesheetNode|CRM.ScriptNode>>(driver);
+						const crm = await getCRM<Array<CRM.StylesheetNode|CRM.ScriptNode>>();
 
 						assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex,
 							'launchmode is the same as expected');
-						done();
 					});
-					it('should be saved on page reload', async function(done) {
-						await reloadPage(this, driver);
-						const crm = await getCRM<Array<CRM.StylesheetNode|CRM.ScriptNode>>(driver);
+					it('should be saved on page reload', async function() {
+						await reloadPage(this);
+						const crm = await getCRM<Array<CRM.StylesheetNode|CRM.ScriptNode>>();
 
 						assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex,
 							'launchmode is the same as expected');
-						done();
 					});
-					it('should not be saved when cancelled', async function(done) {
-						await resetSettings(this, driver);
-						await openDialog(driver, type);
-						const dialog = await getDialog(driver, type);
-						await wait(driver, 500, dialog);
+					it('should not be saved when cancelled', async function() {
+						await resetSettings(this);
+						await openDialog(type);
+						const dialog = await getDialog(type);
+						await wait(500, dialog);
 						await dialog.findElement(webdriver.By.id('dropdownMenu')).click();
-						await wait(driver, 500);
-						const triggerOptions = await dialog.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
-						await triggerOptions[triggerOptionIndex].click();
-						await wait(driver, 1500);
+						await wait(500);
+						await dialog.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
+							.get(triggerOptionIndex)
+							.click();
+						await wait(1500);
 						await cancelDialog(dialog);
-						const crm = await getCRM<Array<CRM.StylesheetNode|CRM.ScriptNode>>(driver);
+						const crm = await getCRM<Array<CRM.StylesheetNode|CRM.ScriptNode>>();
 
 						assert.strictEqual(crm[0].value.launchMode, 0,
 							'launchmode is the same as before');
-						done();
 					});
 				});
 			});
 			[2, 3].forEach((triggerOptionIndex) => {
 				describe(`Trigger Option ${triggerOptionIndex} with URLs`, function() {
-					it('should be editable', async (done) => {
-						await resetSettings(this, driver);
-						await openDialog(driver, type);
-						const dialog = await getDialog(driver, type);
-						await wait(driver, 500);
+					it('should be editable', async () => {
+						await resetSettings(this);
+						await openDialog(type);
+						const dialog = await getDialog(type);
+						await wait(500);
 						await dialog.findElement(webdriver.By.id('dropdownMenu')).click();
-						await wait(driver, 1000);
-						const triggerOptions = await dialog.findElements(
-							webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
-						await triggerOptions[triggerOptionIndex].click();
-						await wait(driver, 1000);
-						const button = await dialog.findElement(webdriver.By.id('addTrigger'))
-						await button.click();
-						await button.click();
-						await wait(driver, 500);
+						await wait(1000);
+						await dialog.findElements(
+							webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
+							.get(triggerOptionIndex)
+							.click();
+						await wait(1000);
+						await dialog.findElement(webdriver.By.id('addTrigger'))
+							.click()
+							.click();
+						await wait(500);
 						const triggers = await dialog.findElements(webdriver.By.className('executionTrigger'));
 						await triggers[0].findElement(webdriver.By.tagName('paper-checkbox')).click()
 						await triggers[1].findElement(webdriver.By.tagName('input'))
 							.sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
 						await saveDialog(dialog);
-						const crm = await getCRM(driver);
+						const crm = await getCRM();
 
 						assert.lengthOf(crm[0].triggers, 3, 
 							'trigger has been added');
@@ -1892,10 +1999,9 @@ describe('Options Page', function() {
 						assert.strictEqual(crm[0].triggers[1].url,
 							'www.google.com',
 							'second trigger url changed');
-						done();
 					});
-					it('should be saved on page reload', async (done) => {
-						const crm = await getCRM<Array<CRM.StylesheetNode|CRM.ScriptNode>>(driver);
+					it('should be saved on page reload', async () => {
+						const crm = await getCRM<Array<CRM.StylesheetNode|CRM.ScriptNode>>();
 						assert.lengthOf(crm[0].triggers, 3, 
 							'trigger has been added');
 						assert.isTrue(crm[0].triggers[0].not, 
@@ -1908,29 +2014,29 @@ describe('Options Page', function() {
 						assert.strictEqual(crm[0].triggers[1].url,
 							'www.google.com',
 							'second trigger url changed');
-							done();
 					});
-					it('should not be saved when cancelled', async (done) => {
-						await resetSettings(this, driver);
-						await openDialog(driver, type);
-						const dialog = await getDialog(driver, type);
-						await wait(driver, 500);
+					it('should not be saved when cancelled', async () => {
+						await resetSettings(this);
+						await openDialog(type);
+						const dialog = await getDialog(type);
+						await wait(500);
 						await dialog.findElement(webdriver.By.id('dropdownMenu')).click();
-						await wait(driver, 1000);
-						const triggerOptions = await dialog.findElements(
-							webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
-						await triggerOptions[triggerOptionIndex].click();
-						await wait(driver, 1000);
-						const button = await dialog.findElement(webdriver.By.id('addTrigger'))
-						await button.click();
-						await button.click();
-						await wait(driver, 500);
+						await wait(1000);
+						await dialog.findElements(
+							webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
+							.get(triggerOptionIndex)
+							.click();
+						await wait(1000);
+						await dialog.findElement(webdriver.By.id('addTrigger'))
+							.click()
+							.click();
+						await wait(500);
 						const triggers = await dialog.findElements(webdriver.By.className('executionTrigger'));
 						await triggers[0].findElement(webdriver.By.tagName('paper-checkbox')).click()
 						await triggers[1].findElement(webdriver.By.tagName('input'))
 							.sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
 						await cancelDialog(dialog);
-						const crm = await getCRM(driver);
+						const crm = await getCRM();
 						assert.lengthOf(crm[0].triggers, 1, 
 							'no triggers have been added');
 						assert.isFalse(crm[0].triggers[0].not, 
@@ -1938,7 +2044,6 @@ describe('Options Page', function() {
 						assert.strictEqual(crm[0].triggers[0].url, 
 							'*://*.example.com/*',
 							'first trigger url stays the same');
-						done();
 					});
 				});
 			});
@@ -1948,243 +2053,145 @@ describe('Options Page', function() {
 	function testEditorSettings(type: CRM.NodeType) {
 		describe('Theme', function() {
 			this.slow(8000);
-			this.timeout(10000 * timeModifier);
-			it('is changable', async function(done) {
-				await resetSettings(this, driver);
-				await openDialog(driver, type);
-				const dialog = await getDialog(driver, type);
-				await wait(driver, 500, dialog);
+			this.timeout(10000 * TIME_MODIFIER);
+			it('is changable', async function() {
+				await resetSettings(this);
+				await openDialog(type);
+				const dialog = await getDialog(type);
+				await wait(500, dialog);
 				await dialog.findElement(webdriver.By.id('editorSettings')).click();
-				await wait(driver, 500);
+				await wait(500);
 				await dialog.findElement(webdriver.By.id('editorThemeSettingWhite')).click();
-				const settings = await getSyncSettings(driver);
+				const settings = await getSyncSettings();
 
 				assert.strictEqual(settings.editor.theme, 'white',
 					'theme has been switched to white');
-				done();	
 			});
-			it('is preserved on page reload', async function(done) {
-				await reloadPage(this, driver);
-				const settings = await getSyncSettings(driver);
+			it('is preserved on page reload', async function() {
+				await reloadPage(this);
+				const settings = await getSyncSettings();
 
 				assert.strictEqual(settings.editor.theme, 'white',
 					'theme has been switched to white');
-				done();
 			});
 		});
 		describe('Zoom', function() {
 			this.slow(30000);
-			this.timeout(40000 * timeModifier);
+			this.timeout(40000 * TIME_MODIFIER);
 
 			const newZoom = '135';
-			it('is changable', async function(done) {
-				await resetSettings(this, driver);
-				await openDialog(driver, type);
-				const dialog = await getDialog(driver, type);
-				await wait(driver, 500, dialog);
+			it('is changable', async function() {
+				await resetSettings(this);
+				await openDialog(type);
+				const dialog = await getDialog(type);
+				await wait(500, dialog);
 				await dialog.findElement(webdriver.By.id('editorSettings')).click();
-				await wait(driver, 500);
+				await wait(500);
 				await dialog.findElement(webdriver.By.id('editorThemeFontSizeInput'))
 					.findElement(webdriver.By.tagName('input'))
 					.sendKeys(InputKeys.BACK_SPACE,
 						InputKeys.BACK_SPACE,
 						InputKeys.BACK_SPACE,
 						newZoom);
-				await wait(driver, 10000, dialog);
-				const settings = await getSyncSettings(driver);
+				await wait(10000, dialog);
+				const settings = await getSyncSettings();
 
 				assert.strictEqual(settings.editor.zoom, newZoom,
 					'zoom has changed to the correct number');
-				done();
 			});
-			it('is preserved on page reload', async function(done) {
-				await reloadPage(this, driver);
-				const settings = await getSyncSettings(driver);
+			it('is preserved on page reload', async function() {
+				await reloadPage(this);
+				const settings = await getSyncSettings();
 
 				assert.strictEqual(settings.editor.zoom, newZoom,
 					'zoom has changed to the correct number');
-				done();
-			});
-		});
-		describe('UseTabs', function() {
-			this.slow(10000);
-			this.timeout(12000 * timeModifier);
-
-			it('is changable', async function(done) {
-				await resetSettings(this, driver);
-				await openDialog(driver, type);
-				const dialog = await getDialog(driver, type);
-				await wait(driver, 500, dialog);
-				await dialog.findElement(webdriver.By.id('editorSettings')).click();
-				await wait(driver, 500);
-				await dialog.findElement(webdriver.By.id('editorTabsOrSpacesCheckbox'))
-					.findElement(webdriver.By.tagName('paper-checkbox')).click();
-				const settings = await getSyncSettings(driver);
-
-				assert.isFalse(settings.editor.useTabs, 
-					'useTabs is off');
-				done();
-			});
-			it('is preserved on page reload', async function(done) {
-				await reloadPage(this, driver);
-				const settings = await getSyncSettings(driver);
-				
-				assert.isFalse(settings.editor.useTabs, 
-					'useTabs is off');
-				done();
-			});
-		});
-		describe('Tab Size', async function() {
-			this.slow(15000);
-			this.timeout(20000 * timeModifier);
-			this.retries(3);
-			const newTabSize = '8';
-			it('is changable and preserved on page reload', function(done) {
-				resetSettings(this, driver).then(() => {
-					return openDialog(driver, type);
-				}).then(() => {
-					return getDialog(driver, type);
-				}).then((dialog) => {
-					return wait(driver, 500, dialog);
-				}).then((dialog) => {
-					return dialog
-						.findElement(webdriver.By.id('editorSettings'))
-						.click()
-						.then(() => {
-							return wait(driver, 500);
-						})
-						.then(() => {
-							return dialog
-								.findElement(webdriver.By.id('editorTabSizeInput'))
-								.findElement(webdriver.By.tagName('input'))
-								.sendKeys(InputKeys.BACK_SPACE,
-									InputKeys.BACK_SPACE, newTabSize)
-								.then(() => {
-									return driver.executeScript(inlineFn(() => {
-										// (window.app.item.type === 'stylesheet' ?
-										// 	window.stylesheetEdit : 
-										// 	window.scriptEdit)._updateTabSizeEl();
-									}));
-								});
-						});
-				}).then(() => {
-					return getSyncSettings(driver);
-				}).then((settings) => {
-					assert.strictEqual(~~settings.editor.tabSize, ~~newTabSize,
-						'tab size has changed to the correct number');
-					
-					reloadPage(this, driver).then(() => {
-						return getSyncSettings(driver);
-					}).then((settings) => {
-						assert.strictEqual(~~settings.editor.tabSize, ~~newTabSize,
-							'tab size has changed to the correct number');
-						done();
-					});
-				});
 			});
 		});
 	}
 
 	describe('CRM Editing', function() {
 		before('Reset settings', function() {
-			return resetSettings(this, driver);
+			return resetSettings(this);
 		});
-		this.timeout(60000 * timeModifier);
+		this.timeout(60000 * TIME_MODIFIER);
 
 		describe('Type Switching', function() {
 
-			function testTypeSwitch(driver: webdriver.WebDriver, type: string, done: () => void) {
-				driver.executeScript(inlineFn(() => {
-					const crmItem = (document.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0);
+			async function testTypeSwitch(type: string) {
+				await driver.executeScript(inlineFn(() => {
+					const crmItem = (window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0);
 					crmItem.typeIndicatorMouseOver();
-				})).then(() => {
-					return wait(driver, 300);
-				}).then(() => {
-					return driver.executeScript(inlineFn(() => {
-						const crmItem = document.querySelectorAll('edit-crm-item:not([root-node])').item(0);
-						const typeSwitcher = crmItem.querySelector('type-switcher');
-						typeSwitcher.openTypeSwitchContainer();
-					}));;
-				}).then(() => {
-					return wait(driver, 300);
-				}).then(() => {
-					return driver.executeScript(inlineFn(() => {
-						const crmItem = document.querySelectorAll('edit-crm-item:not([root-node])').item(0);
-						const typeSwitcher = crmItem.querySelector('type-switcher');
-						(typeSwitcher.querySelector('.typeSwitchChoice[type="REPLACE.type"]') as HTMLElement)
-							.click();
-						return window.app.settings.crm[0].type === 'REPLACE.type' as CRM.NodeType;
-					}, {
-						type: type
-					}));
-				}).then((typesMatch: boolean) => {
-					assert.isTrue(typesMatch, 'new type matches expected');
-					done();
-				});
+				}));
+				await wait(300);
+				await driver.executeScript(inlineFn(() => {
+					const crmItem = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])').item(0);
+					const typeSwitcher = crmItem.shadowRoot.querySelector('type-switcher');
+					typeSwitcher.openTypeSwitchContainer();
+				}));
+				await wait(300);
+				const typesMatch = await driver.executeScript(inlineFn(() => {
+					const crmItem = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])').item(0);
+					const typeSwitcher = crmItem.shadowRoot.querySelector('type-switcher');
+					(typeSwitcher.shadowRoot.querySelector('.typeSwitchChoice[type="REPLACE.type"]') as HTMLElement)
+						.click();
+					return window.app.settings.crm[0].type === 'REPLACE.type' as CRM.NodeType;
+				}, {
+					type: type
+				}));
+
+				assert.isTrue(typesMatch, 'new type matches expected');
 			}
-			this.timeout(10000 * timeModifier);
+			this.timeout(10000 * TIME_MODIFIER);
 			this.slow(5000);
 			
-			it('should be able to switch to a script', function(done)  {
-				resetSettings(this, driver).then(() => {
-					testTypeSwitch(driver, 'script', done);
-				});
+			it('should be able to switch to a script', async function()  {
+				await resetSettings(this);
+				await testTypeSwitch('script');
 			});
-			it('should be preserved', function(done) {
-				reloadPage(this, driver).then(() => {
-					return getCRM(driver);
-				}).then((crm) => {
-					assert.strictEqual(crm[0].type, 'script', 'type has stayed the same');
-					done();
-				});
+			it('should be preserved', async function() {
+				await reloadPage(this);
+				const crm = await getCRM();
+				
+				assert.strictEqual(crm[0].type, 'script', 'type has stayed the same');
 			});
-			it('should be able to switch to a menu', function(done)  {
-				resetSettings(this, driver).then(() => {
-					testTypeSwitch(driver, 'menu', done);
-				});
+			it('should be able to switch to a menu', async function()  {
+				await resetSettings(this);
+				await testTypeSwitch('menu');
 			});
-			it('should be preserved', function(done) {
-				reloadPage(this, driver).then(() => {
-					return getCRM(driver);
-				}).then((crm) => {
-					assert.strictEqual(crm[0].type, 'menu', 'type has stayed the same');
-					done();
-				});
+			it('should be preserved', async function() {
+				await reloadPage(this);
+				const crm = await getCRM();
+				
+				assert.strictEqual(crm[0].type, 'menu', 'type has stayed the same');
 			});
-			it('should be able to switch to a divider', function(done)  {
-				resetSettings(this, driver).then(() => {
-					testTypeSwitch(driver, 'divider', done);
-				});
+			it('should be able to switch to a divider', async function()  {
+				await resetSettings(this);
+				await testTypeSwitch('divider');
 			});
-			it('should be preserved', function(done) {
-				reloadPage(this, driver).then(() => {
-					return getCRM(driver);
-				}).then((crm) => {
-					assert.strictEqual(crm[0].type, 'divider', 'type has stayed the same');
-					done();
-				});
+			it('should be preserved', async function() {
+				await reloadPage(this);
+				const crm = await getCRM();
+				
+				assert.strictEqual(crm[0].type, 'divider', 'type has stayed the same');
 			});
-			it('should be able to switch to a stylesheet', function(done)  {
-				resetSettings(this, driver).then(() => {
-					testTypeSwitch(driver, 'stylesheet', done);
-				});
+			it('should be able to switch to a stylesheet', async function()  {
+				await resetSettings(this);
+				await testTypeSwitch('stylesheet');
 			});
-			it('should be preserved', function(done) {
-				reloadPage(this, driver).then(() => {
-					return getCRM(driver);
-				}).then((crm) => {
-					assert.strictEqual(crm[0].type, 'stylesheet', 'type has stayed the same');
-					done();
-				});
+			it('should be preserved', async function() {
+				await reloadPage(this);
+				const crm = await getCRM();
+				
+				assert.strictEqual(crm[0].type, 'stylesheet', 'type has stayed the same');
 			});
 		});
 		describe('Link Dialog', function() {
 			const type: CRM.NodeType = 'link';
 
-			this.timeout(30000 * timeModifier);
+			this.timeout(30000 * TIME_MODIFIER);
 
 			before('Reset settings', function() {
-				return resetSettings(this, driver);
+				return resetSettings(this);
 			});
 
 			testNameInput(type);
@@ -2193,253 +2200,163 @@ describe('Options Page', function() {
 
 			describe('Links', function() {
 				this.slow(20000);
-				this.timeout(25000 * timeModifier);
+				this.timeout(25000 * TIME_MODIFIER);
 
 				after('Reset settings', function() {
-					return resetSettings(this, driver);
+					return resetSettings(this);
 				});
 
-				it('open in new tab property should be editable', function(done)  {
-					resetSettings(this, driver).then(() => {
-						return openDialog(driver, 'link');
-					}).then(() => {
-						return getDialog(driver, 'link');
-					}).then((dialog) => {
-						dialog
-							.findElement(webdriver.By.className('linkChangeCont'))
+				it('open in new tab property should be editable', async function()  {
+					await resetSettings(this);
+					await openDialog('link');
+					const dialog = await getDialog('link');
+					await dialog.findElement(webdriver.By.className('linkChangeCont'))
+						.findElement(webdriver.By.tagName('paper-checkbox'))
+						.click();
+					await saveDialog(dialog);
+					const crm = await getCRM<Array<CRM.LinkNode>>();
+
+					assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
+					assert.isFalse(crm[0].value[0].newTab, 'newTab has been switched off');
+				});
+				it('url property should be editable', async function()  {
+					const newUrl = 'www.google.com';
+					await resetSettings(this);
+					await openDialog('link');
+					const dialog = await getDialog('link');
+					await dialog.findElement(webdriver.By.className('linkChangeCont'))
+						.findElement(webdriver.By.tagName('paper-input'))
+						.sendKeys(InputKeys.CLEAR_ALL, newUrl);
+					await saveDialog(dialog);
+					const crm = await getCRM<Array<CRM.LinkNode>>();
+
+					assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
+					assert.strictEqual(crm[0].value[0].url, newUrl,
+						'url has been changed');
+				});
+				it('should be addable', async function()  {
+					const defaultLink = {
+						newTab: true,
+						url: 'https://www.example.com'
+					};
+					await resetSettings(this);
+					await openDialog('link');
+					const dialog = await getDialog('link');
+					await dialog
+						.findElement(webdriver.By.id('changeLink'))
+						.findElement(webdriver.By.tagName('paper-button'))
+						.click()
+						.click()
+						.click()
+					await saveDialog(dialog);
+					const crm = await getCRM<Array<CRM.LinkNode>>();
+
+					assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
+					assert.deepEqual(crm[0].value,
+						Array.apply(null, Array(4)).map(() => defaultLink),
+						'new links match default link value');
+				});
+				it('should be editable when newly added', async function()  {
+					const newUrl = 'www.google.com';
+					const newValue = {
+						newTab: true,
+						url: newUrl
+					};
+					await resetSettings(this);
+					await openDialog('link');
+					const dialog = await getDialog('link');
+					await dialog
+						.findElement(webdriver.By.id('changeLink'))
+						.findElement(webdriver.By.tagName('paper-button'))
+						.click()
+						.click()
+						.click()
+					await wait(500);
+					await forEachPromise(await dialog.findElements(webdriver.By.className('linkChangeCont')), (element) => {
+						return new webdriver.promise.Promise(async (resolve) => {
+							await wait(250);
+							await element
+								.findElement(webdriver.By.tagName('paper-checkbox'))
+								.click();
+							await element
+								.findElement(webdriver.By.tagName('paper-input'))
+								.sendKeys(InputKeys.CLEAR_ALL, newUrl);
+							resolve(null);
+						});
+					});
+					await wait(500);
+					await saveDialog(dialog);
+					const crm = await getCRM<Array<CRM.LinkNode>>();
+
+					assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
+
+					//Only one newTab can be false at a time
+					const newLinks = Array.apply(null, Array(4))
+						.map(() => JSON.parse(JSON.stringify(newValue)));
+					newLinks[3].newTab = false;
+
+					assert.deepEqual(crm[0].value, newLinks,
+						'new links match changed link value');
+				});
+				it('should be preserved on page reload', async function() {
+					const newUrl = 'www.google.com';
+					const newValue = {
+						newTab: true,
+						url: newUrl
+					};
+
+					await reloadPage(this);
+					const crm = await getCRM<Array<CRM.LinkNode>>();
+
+					assert.lengthOf(crm[0].value as Array<CRM.LinkNodeLink>, 4, 'node has 4 links now');
+
+					//Only one newTab can be false at a time
+					const newLinks = Array.apply(null, Array(4))
+						.map(() => JSON.parse(JSON.stringify(newValue)));
+					newLinks[3].newTab = false;
+
+					assert.deepEqual(crm[0].value, newLinks,
+						'new links match changed link value');
+				});
+				it('should not change when not saved', async function()  {
+					const newUrl = 'www.google.com';
+					const defaultLink = {
+						newTab: true,
+						url: 'https://www.example.com'
+					};
+					await resetSettings(this);
+					await openDialog('link');
+					const dialog = await getDialog('link');
+					await dialog
+						.findElement(webdriver.By.id('changeLink'))
+						.findElement(webdriver.By.tagName('paper-button'))
+						.click()
+						.click()
+						.click()
+					await forEachPromise(await dialog.findElements(webdriver.By.className('linkChangeCont')), (element) => {
+						return element
 							.findElement(webdriver.By.tagName('paper-checkbox'))
 							.click()
 							.then(() => {
-								return saveDialog(dialog);
-							})
-							.then(() => {
-								return getCRM(driver);
-							})
-							.then((crm: Array<CRM.LinkNode>) => {
-								assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
-								assert.isFalse(crm[0].value[0].newTab, 'newTab has been switched off');
-								done();
+								return element
+									.sendKeys(InputKeys.CLEAR_ALL, newUrl);
 							});
 					});
-				});
-				it('url property should be editable', function(done)  {
-					const newUrl = 'www.google.com';
-					resetSettings(this, driver).then(() => {
-						return openDialog(driver, 'link');
-					}).then(() => {
-						return getDialog(driver, 'link');
-					}).then((dialog) => {
-						dialog
-							.findElement(webdriver.By.className('linkChangeCont'))
-							.findElement(webdriver.By.tagName('paper-input'))
-							.sendKeys(InputKeys.CLEAR_ALL, newUrl)
-							.then(() => {
-								return saveDialog(dialog);
-							})
-							.then(() => {
-								return getCRM(driver);
-							})
-							.then((crm: Array<CRM.LinkNode>) => {
-								assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
-								assert.strictEqual(crm[0].value[0].url, newUrl,
-									'url has been changed');
-								done();
-							});
-					});
-				});
-				it('should be addable', function(done)  {
-					const defaultLink = {
-						newTab: true,
-						url: 'https://www.example.com'
-					};
-					resetSettings(this, driver).then(() => {
-						return openDialog(driver, 'link');
-					}).then(() => {
-						return getDialog(driver, 'link');
-					}).then((dialog) => {
-						dialog
-							.findElement(webdriver.By.id('changeLink'))
-							.findElement(webdriver.By.tagName('paper-button'))
-							.then((button) => {
-								return button
-									.click()
-									.then(() => {
-										return button.click();
-									})
-									.then(() => {
-										return button.click();
-									});
-							})
-							.then(() => {
-								return saveDialog(dialog);
-							})
-							.then(() => {
-								return getCRM(driver);
-							})
-							.then((crm: Array<CRM.LinkNode>) => {
-								assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
-								assert.deepEqual(crm[0].value,
-									Array.apply(null, Array(4)).map(() => defaultLink),
-									'new links match default link value');
-								done();
-							});
-					});
-				});
-				it('should be editable when newly added', function(done)  {
-					const newUrl = 'www.google.com';
-					const newValue = {
-						newTab: true,
-						url: newUrl
-					};
-					resetSettings(this, driver).then(() => {
-						return openDialog(driver, 'link');
-					}).then(() => {
-						return getDialog(driver, 'link');
-					}).then((dialog) => {
-						dialog
-							.findElement(webdriver.By.id('changeLink'))
-							.findElement(webdriver.By.tagName('paper-button'))
-							.then((button) => {
-								return button
-									.click()
-									.then(() => {
-										return button.click();
-									})
-									.then(() => {
-										return button.click();
-									});
-							})
-							.then(() => {
-								return wait(driver, 500);
-							})
-							.then(() => {
-								return dialog
-									.findElements(webdriver.By.className('linkChangeCont'));
-							})
-							.then((elements) => {
-								return forEachPromise(elements, (element) => {
-									return new webdriver.promise.Promise((resolve) => {
-										setTimeout(() => {
-											element
-												.findElement(webdriver.By.tagName('paper-checkbox'))
-												.click()
-												.then(() => {
-													return element
-														.findElement(webdriver.By.tagName('paper-input'))
-														.sendKeys(InputKeys.CLEAR_ALL, newUrl);
-												}).then(() => {
-													resolve(null);
-												});
-										}, 250);
-									});
-								});
-							})
-							.then(() => {
-								return wait(driver, 500);
-							})
-							.then(() => {
-								return saveDialog(dialog);
-							})
-							.then(() => {
-								return getCRM(driver);
-							})
-							.then((crm: Array<CRM.LinkNode>) => {
-								assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
+					await cancelDialog(dialog);
+					const crm = await getCRM<Array<CRM.LinkNode>>();
 
-								//Only one newTab can be false at a time
-								const newLinks = Array.apply(null, Array(4))
-									.map(() => JSON.parse(JSON.stringify(newValue)));
-								newLinks[3].newTab = false;
-
-								assert.deepEqual(crm[0].value, newLinks,
-									'new links match changed link value');
-								done();
-							});
-					});
-				});
-				it('should be preserved on page reload', function(done) {
-					const newUrl = 'www.google.com';
-					const newValue = {
-						newTab: true,
-						url: newUrl
-					};
-
-					reloadPage(this, driver).then(() => {
-						return getCRM(driver);
-					}).then((crm) => {
-						assert.lengthOf(crm[0].value as Array<CRM.LinkNodeLink>, 4, 'node has 4 links now');
-
-						//Only one newTab can be false at a time
-						const newLinks = Array.apply(null, Array(4))
-							.map(() => JSON.parse(JSON.stringify(newValue)));
-						newLinks[3].newTab = false;
-
-						assert.deepEqual(crm[0].value, newLinks,
-							'new links match changed link value');
-						done();
-					});
-				});
-				it('should not change when not saved', function(done)  {
-					const newUrl = 'www.google.com';
-					const defaultLink = {
-						newTab: true,
-						url: 'https://www.example.com'
-					};
-					resetSettings(this, driver).then(() => {
-						return openDialog(driver, 'link');
-					}).then(() => {
-						return getDialog(driver, 'link');
-					}).then((dialog) => {
-						dialog
-							.findElement(webdriver.By.id('changeLink'))
-							.findElement(webdriver.By.tagName('paper-button'))
-							.then((button) => {
-								return button
-									.click()
-									.then(() => {
-										return button.click();
-									})
-									.then(() => {
-										return button.click();
-									});
-							})
-							.then(() => {
-								return dialog
-									.findElements(webdriver.By.className('linkChangeCont'));
-							})
-							.then((elements) => {
-								return forEachPromise(elements, (element) => {
-									return element
-										.findElement(webdriver.By.tagName('paper-checkbox'))
-										.click()
-										.then(() => {
-											return element
-												.sendKeys(InputKeys.CLEAR_ALL, newUrl);
-										});
-								});
-							})
-							.then(() => {
-								return cancelDialog(dialog);
-							})
-							.then(() => {
-								return getCRM(driver);
-							})
-							.then((crm: Array<CRM.LinkNode>) => {
-								assert.lengthOf(crm[0].value, 1, 'node still has 1 link');
-								assert.deepEqual(crm[0].value, [defaultLink],
-									'link value has stayed the same');
-								done();
-							});
-					});
+					assert.lengthOf(crm[0].value, 1, 'node still has 1 link');
+					assert.deepEqual(crm[0].value, [defaultLink],
+						'link value has stayed the same');
 				});
 			});
 		});
 		describe('Divider Dialog', function() {
 			const type: CRM.NodeType = 'divider';
 
-			this.timeout(60000 * timeModifier);
+			this.timeout(60000 * TIME_MODIFIER);
 			before('Reset settings', function() {
-				return resetSettings(this, driver);
+				return resetSettings(this);
 			});
 
 			testNameInput(type);
@@ -2449,9 +2366,9 @@ describe('Options Page', function() {
 		describe('Menu Dialog', function() {
 			const type: CRM.NodeType = 'menu';
 
-			this.timeout(60000 * timeModifier);
+			this.timeout(60000 * TIME_MODIFIER);
 			before('Reset settings', function() {
-				return resetSettings(this, driver);
+				return resetSettings(this);
 			});
 
 			testNameInput(type);
@@ -2462,7 +2379,7 @@ describe('Options Page', function() {
 			const type: CRM.NodeType = 'stylesheet';
 
 			before('Reset settings', function() {
-				return resetSettings(this, driver);
+				return resetSettings(this);
 			});
 
 			testNameInput(type);
@@ -2470,178 +2387,101 @@ describe('Options Page', function() {
 			testClickTriggers(type);
 
 			describe('Toggling', function() {
-				this.timeout(15000 * timeModifier);
+				this.timeout(15000 * TIME_MODIFIER);
 				this.slow(7500);
-				it('should be possible to toggle on', (done) => {
-					resetSettings(this, driver).then(() => {
-						return openDialog(driver, type);
-					}).then(() => {
-						return getDialog(driver, type);
-					}).then((dialog) => {
-						dialog
-							.findElement(webdriver.By.id('isTogglableButton'))
-							.click()
-							.then(() => {
-								return saveDialog(dialog);
-							}).then(() => {
-								return getCRM(driver);
-							}).then((crm: Array<CRM.StylesheetNode>) => {
-								assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
-								done();
-							});
-					});
+				it('should be possible to toggle on', async () => {
+					await resetSettings(this);
+					await openDialog(type);
+					const dialog = await getDialog(type);
+					await dialog.findElement(webdriver.By.id('isTogglableButton'))
+						.click();
+					await saveDialog(dialog);
+					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+
+					assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
 				});
-				it('should be saved on page reload', function(done) {
-					reloadPage(this, driver).then(() => {
-						return getCRM(driver);
-					}).then((crm: Array<CRM.StylesheetNode>) => {
-						assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
-						done();
-					});
+				it('should be saved on page reload', async function() {
+					await reloadPage(this);
+					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+
+					assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
 				});
-				it('should be possible to toggle on-off', (done) => {
-					resetSettings(this, driver).then(() => {
-						return openDialog(driver, type);
-					}).then(() => {
-						return getDialog(driver, type);
-					}).then((dialog) => {
-						dialog
-							.findElement(webdriver.By.id('isTogglableButton'))
-							.then((slider) => {
-								return slider
-									.click()
-									.then(() => {
-										return slider
-											.click();
-									});
-							}).then(() => {
-								return saveDialog(dialog);
-							}).then(() => {
-								return getCRM(driver);
-							}).then((crm: Array<CRM.StylesheetNode>) => {
-								assert.isFalse(crm[0].value.toggle, 'toggle option is set to off');
-								done();
-							});
-					});
+				it('should be possible to toggle on-off', async () => {
+					await resetSettings(this);
+					await openDialog(type);
+					const dialog = await getDialog(type);
+					await dialog.findElement(webdriver.By.id('isTogglableButton'))
+						.click()
+						.click()
+					await saveDialog(dialog);
+					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+
+					assert.isFalse(crm[0].value.toggle, 'toggle option is set to off');
 				});
-				it('should not be saved on cancel', (done) => {
-					resetSettings(this, driver).then(() => {
-						return openDialog(driver, type);
-					}).then(() => {
-						return getDialog(driver, type);
-					}).then((dialog) => {
-						dialog
-							.findElement(webdriver.By.id('isTogglableButton'))
-							.click()
-							.then(() => {
-								return cancelDialog(dialog);
-							}).then(() => {
-								return getCRM(driver);
-							}).then((crm: Array<CRM.StylesheetNode>) => {
-								assert.isNotTrue(crm[0].value.toggle, 'toggle option is unchanged');
-								done();
-							});
-					});
+				it('should not be saved on cancel', async () => {
+					await resetSettings(this);
+					await openDialog(type);
+					const dialog = await getDialog(type);
+					await dialog.findElement(webdriver.By.id('isTogglableButton'))
+						.click();
+					await cancelDialog(dialog);
+					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+
+					assert.isNotTrue(crm[0].value.toggle, 'toggle option is unchanged');
 				});
 			});
 			describe('Default State', function() {
 				this.slow(7500);
-				this.timeout(10000 * timeModifier);
-				it('should be togglable to true', (done) => {
-					resetSettings(this, driver).then(() => {
-						return openDialog(driver, type);
-					}).then(() => {
-						return getDialog(driver, type);
-					}).then((dialog) => {
-						dialog
-							.findElement(webdriver.By.id('isTogglableButton'))
-							.then((slider) => {
-								return slider
-									.click();
-							}).then(() => {
-								return dialog
-									.findElement(webdriver.By.id('isDefaultOnButton'));
-							}).then((slider) => {
-								return slider
-									.click();
-							}).then(() => {
-								return saveDialog(dialog);
-							}).then(() => {
-								return getCRM(driver);
-							}).then((crm: Array<CRM.StylesheetNode>) => {
-								assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
-								assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
-								done();
-							});
-					});
+				this.timeout(10000 * TIME_MODIFIER);
+				it('should be togglable to true', async () => {
+					await resetSettings(this);
+					await openDialog(type);
+					const dialog = await getDialog(type);
+					await dialog.findElement(webdriver.By.id('isTogglableButton'))
+						.click();
+					await dialog.findElement(webdriver.By.id('isDefaultOnButton'))
+						.click();
+					await saveDialog(dialog);
+					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+
+					assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
+					assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
 				});
-				it('should be saved on page reset', function(done) {
-					reloadPage(this, driver).then(() => {
-						return getCRM(driver);
-					}).then((crm: Array<CRM.StylesheetNode>) => {
-						assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
-						assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
-						done();
-					});
+				it('should be saved on page reset', async function() {
+					await reloadPage(this);
+					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+
+					assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
+					assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to false');
 				});
-				it('should be togglable to false', (done) => {
-					resetSettings(this, driver).then(() => {
-						return openDialog(driver, type);
-					}).then(() => {
-						return getDialog(driver, type);
-					}).then((dialog) => {
-						dialog
-							.findElement(webdriver.By.id('isTogglableButton'))
-							.then((slider) => {
-								return slider
-									.click();
-							}).then(() => {
-								return dialog
-									.findElement(webdriver.By.id('isDefaultOnButton'));
-							}).then((slider) => {
-								return slider
-									.click()
-									.then(() => {
-										return slider.click();
-									});
-							}).then(() => {
-								return saveDialog(dialog);
-							}).then(() => {
-								return getCRM(driver);
-							}).then((crm: Array<CRM.StylesheetNode>) => {
-								assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
-								assert.isFalse(crm[0].value.defaultOn, 'defaultOn is set to true');
-								done();
-							});
-					});
+				it('should be togglable to false', async () => {
+					await resetSettings(this);
+					await openDialog(type);
+					const dialog = await getDialog(type);
+					await dialog.findElement(webdriver.By.id('isTogglableButton'))
+						.click();
+					await dialog.findElement(webdriver.By.id('isDefaultOnButton'))
+						.click()
+						.click();
+					await saveDialog(dialog);
+					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+
+					assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
+					assert.isFalse(crm[0].value.defaultOn, 'defaultOn is set to false');
 				});
-				it('should not be saved when cancelled', (done) => {
-					resetSettings(this, driver).then(() => {
-						return openDialog(driver, type);
-					}).then(() => {
-						return getDialog(driver, type);
-					}).then((dialog) => {
-						dialog
-							.findElement(webdriver.By.id('isTogglableButton'))
-							.then((slider) => {
-								return slider
-									.click();
-							}).then(() => {
-								return dialog
-									.findElement(webdriver.By.id('isDefaultOnButton'));
-							}).then((slider) => {
-								return slider
-									.click();
-							}).then(() => {
-								return cancelDialog(dialog);
-							}).then(() => {
-								return getCRM(driver);
-							}).then((crm: Array<CRM.StylesheetNode>) => {
-								assert.isNotTrue(crm[0].value.toggle, 'toggle option is set to false');
-								assert.isNotTrue(crm[0].value.defaultOn, 'defaultOn is set to false');
-								done();
-							});
-					});
+				it('should not be saved when cancelled', async () => {
+					await resetSettings(this);
+					await openDialog(type);
+					const dialog = await getDialog(type);
+					await dialog.findElement(webdriver.By.id('isTogglableButton'))
+						.click();
+					await dialog.findElement(webdriver.By.id('isDefaultOnButton'))
+						.click();
+					await cancelDialog(dialog);
+					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+
+					assert.isNotTrue(crm[0].value.toggle, 'toggle option is set to false');
+					assert.isNotTrue(crm[0].value.defaultOn, 'defaultOn is set to false');
 				});
 			});
 			describe('Editor', function() {
@@ -2654,7 +2494,7 @@ describe('Options Page', function() {
 			const type: CRM.NodeType = 'script';
 
 			before('Reset settings', function() {
-				return resetSettings(this, driver);
+				return resetSettings(this);
 			});
 
 			testNameInput(type);
@@ -2667,414 +2507,317 @@ describe('Options Page', function() {
 				});
 				describe('Fullscreen Tools', function() {
 					this.slow(70000);
-					this.timeout(100000 * timeModifier);
+					this.timeout(100000 * TIME_MODIFIER);
 					describe('Libraries', function() {
-						afterEach('Close dialog', (done) => {
-							driver.executeScript(inlineFn(() => {
+						afterEach('Close dialog', async () => {
+							await driver.executeScript(inlineFn(() => {
 								window.doc.addLibraryDialog.close();
-							})).then(() => {
-								done();
-							});
+							}));
 						});
 
-						it('should be possible to add your own library through a URL', (done) => {
+						it('should be possible to add your own library through a URL', async () => {
 							const tabId = getRandomId();
 							const libName = getRandomString(25);
 							const libUrl = 'https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js';
 
-							enterEditorFullscreen(this, driver, type).then((dialog) => {
-								return findElement(driver, webdriver.By.id('paperLibrariesSelector'))
-									.findElement(webdriver.By.id('dropdownSelectedCont'))
-									.click()
-									.then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.className('addLibrary'))
-											.click()
-											.then(() => {
-												return wait(driver, 1000);
-											});
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryUrlInput'))
-											.findElement(webdriver.By.tagName('input'))
-											.sendKeys(InputKeys.CLEAR_ALL, libUrl);
-									}).then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryButton'))
-											.click();
-									}).then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return webdriver.promise.all([
-											findElement(driver, webdriver.By.id('addedLibraryName'))
-												.getProperty('invalid'),
-											findElement(driver, webdriver.By.id('addLibraryProcessContainer'))
-												.getSize()
-										]).then(([isInvalid, libSizes]: [boolean, ClientRect]) => {
-											assert.isTrue(isInvalid, 'Name should be marked as invalid');
-											assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes)).filter((key: keyof typeof libSizes) => {
-												return libSizes[key] !== 0;
-											}).length !== 0, 'Current dialog should be visible');
+							const dialog = await enterEditorFullscreen(this, type);
+							const crmApp = await findElement(webdriver.By.tagName('crm-app'));
+							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+								.findElement(webdriver.By.id('dropdownSelectedCont'))
+								.click();
+							await wait(1000);
+							await crmApp.findElement(webdriver.By.id('addLibrary'))
+								.click();
+							await wait(1000);
+							await crmApp.findElement(webdriver.By.id('addLibraryUrlInput'))
+								.findElement(webdriver.By.tagName('input'))
+								.sendKeys(InputKeys.CLEAR_ALL, libUrl);
+							await wait(1000);
+							await crmApp.findElement(webdriver.By.id('addLibraryButton'))
+								.click();
+							await wait(1000);
+							const [isInvalid, libSizes] = await webdriver.promise.all([
+								crmApp.findElement(webdriver.By.id('addedLibraryName'))
+									.getProperty('invalid'),
+									crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
+									.getSize()
+							]) as [boolean, ClientRect];
 
-											return findElement(driver, webdriver.By.id('addedLibraryName'))
-												.findElement(webdriver.By.tagName('input'))
-												.sendKeys(InputKeys.CLEAR_ALL, libName);
-										});
-									}).then(() => {
-										return wait(driver, 3000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryButton'))
-											.click();
-									}).then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryConfirmAddition'))
-											.click();
-									}).then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return driver.executeScript(inlineFn(() => {
-											(document.querySelector('#editorFullScreen') as HTMLElement).click();
-										}));
-									}).then(() => {
-										return wait(driver, 2000);
-									}).then(() => {
-										return saveDialog(dialog);
-									}).then(() => {
-										return wait(driver, 2000);
-									}).then(() => {
-										return getCRM(driver);
-									}).then((crm: [CRM.ScriptNode]) => {
-										assert.include(crm[0].value.libraries, {
-											name: libName,
-											url: libUrl
-										}, 'Library was added');
+							assert.isTrue(isInvalid, 'Name should be marked as invalid');
+							assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes)).filter((key: keyof typeof libSizes) => {
+								return libSizes[key] !== 0;
+							}).length !== 0, 'Current dialog should be visible');
 
-										return wait(driver, 200);
-									});
-							}).then(() => {
-								//Get the code that is stored at given test URL
-								return new webdriver.promise.Promise<string>((resolve) => {
-									request(libUrl, (err: Error|void, res: XMLHttpRequest & {
-										statusCode: number;
-									}, body: string) => {
-										assert.ifError(err, 'Should not fail the GET request');
+							await crmApp.findElement(webdriver.By.id('addedLibraryName'))
+								.findElement(webdriver.By.tagName('input'))
+								.sendKeys(InputKeys.CLEAR_ALL, libName);
+							await wait(3000);
+							await crmApp.findElement(webdriver.By.id('addLibraryButton'))
+								.click();
+							await wait(1000);
+							await crmApp.findElement(webdriver.By.id('addLibraryConfirmAddition'))
+								.click();
+							await wait(1000);
+							await driver.executeScript(inlineFn(() => {
+								((window.app.$ as any).fullscreenEditorToggle as HTMLElement).click();
+							}));
+							await wait(2000);
+							await saveDialog(dialog);
+							await wait(2000);
+							const crm = await getCRM<[CRM.ScriptNode]>();
 
-										if (res.statusCode === 200) {
-											resolve(body);
-										} else {
-											assert.ifError(new Error('err'), 'Should get 200 statuscode when doing GET request');
-										}
-									}).end();
-								});
-							}).then((jqCode) => {
-								getContextMenu(driver).then((contextMenu) => {
-									driver
-										.executeScript(inlineFn((REPLACE) => {
-											window.chrome._clearExecutedScripts();
-											return window.chrome._currentContextMenu[0]
-												.children[0]
-												.currentProperties.onclick(
-													REPLACE.page, REPLACE.tab
-												);
-										}, {
-											page: {
-												menuItemId: contextMenu[0].id,
-												editable: false,
-												pageUrl: 'www.google.com'
-											},
-											tab: {
-												id: tabId,
-												index: 1,
-												windowId: getRandomId(),
-												highlighted: false,
-												active: true,
-												pinned: false,
-												selected: false,
-												url: 'http://www.google.com',
-												title: 'Google',
-												incognito: false
-											}
-										})).then(() => {
-											return driver
-												.executeScript(inlineFn(() => {
-													const str = JSON.stringify(window.chrome._executedScripts);
-													window.chrome._clearExecutedScripts();
-													return str;
-												}));
-										}).then((str: EncodedString<ExecutedScripts>) => {
-											const activatedScripts = JSON.parse(str);
+							assert.include(crm[0].value.libraries, {
+								name: libName,
+								url: libUrl
+							}, 'Library was added');
 
-											assert.include(activatedScripts, {
-												id: tabId,
-												code: jqCode
-											}, 'library was properly executed');;
-											done();
-										});
-								});
+							await wait(200);
+							//Get the code that is stored at given test URL
+							const jqCode = await new webdriver.promise.Promise<string>((resolve) => {
+								request(libUrl, (err: Error|void, res: XMLHttpRequest & {
+									statusCode: number;
+								}, body: string) => {
+									assert.ifError(err, 'Should not fail the GET request');
+
+									if (res.statusCode === 200) {
+										resolve(body);
+									} else {
+										assert.ifError(new Error('err'), 'Should get 200 statuscode when doing GET request');
+									}
+								}).end();
 							});
+							const contextMenu = await getContextMenu();
+							await driver.executeScript(inlineFn((REPLACE) => {
+								window.chrome._clearExecutedScripts();
+								return window.chrome._currentContextMenu[0]
+									.children[0]
+									.currentProperties.onclick(
+										REPLACE.page, REPLACE.tab
+									);
+							}, {
+								page: {
+									menuItemId: contextMenu[0].id,
+									editable: false,
+									pageUrl: 'www.google.com'
+								},
+								tab: {
+									id: tabId,
+									index: 1,
+									windowId: getRandomId(),
+									highlighted: false,
+									active: true,
+									pinned: false,
+									selected: false,
+									url: 'http://www.google.com',
+									title: 'Google',
+									incognito: false
+								}
+							}));
+							const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
+								const str = JSON.stringify(window.chrome._executedScripts);
+								window.chrome._clearExecutedScripts();
+								return str;
+							})));
+
+							assert.include(activatedScripts, {
+								id: tabId,
+								code: jqCode
+							}, 'library was properly executed');
 						});
-						it('should not add a library through url when not saved', (done) => {
+						it('should not add a library through url when not saved', async () => {
 							const libName = getRandomString(25);
 							const libUrl = 'https://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.js';
 
-							enterEditorFullscreen(this, driver, type).then((dialog) => {
-								return findElement(driver, webdriver.By.id('paperLibrariesSelector'))
-									.findElement(webdriver.By.id('dropdownSelectedCont'))
-									.click()
-									.then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.className('addLibrary'))
-											.click()
-											.then(() => {
-												return wait(driver, 1000);
-											});
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryUrlInput'))
-											.findElement(webdriver.By.tagName('input'))
-											.sendKeys(InputKeys.CLEAR_ALL, libUrl);
-									}).then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryButton'))
-											.click();
-									}).then(() => {
-										return wait(driver, 5000);
-									}).then(() => {
-										return webdriver.promise.all([
-											findElement(driver, webdriver.By.id('addedLibraryName'))
-												.getProperty('invalid'),
-											findElement(driver, webdriver.By.id('addLibraryProcessContainer'))
-												.getSize()
-										]).then(([isInvalid, libSizes]: [boolean, ClientRect]) => {
-											assert.isTrue(isInvalid, 'Name should be marked as invalid');
-											assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes)).filter((key: keyof typeof libSizes) => {
-												return libSizes[key] !== 0;
-											}).length !== 0, 'Current dialog should be visible');
+							const dialog = await enterEditorFullscreen(this, type);
+							const crmApp = await findElement(webdriver.By.tagName('crm-app'));
+							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+								.findElement(webdriver.By.id('dropdownSelectedCont'))
+								.click();
+							await wait(1000);
+							await crmApp.findElement(webdriver.By.className('addLibrary'))
+								.click()
+							await wait(1000);
+							await crmApp.findElement(webdriver.By.id('addLibraryUrlInput'))
+								.findElement(webdriver.By.tagName('input'))
+								.sendKeys(InputKeys.CLEAR_ALL, libUrl);
+							await wait(1000);
+							await crmApp.findElement(webdriver.By.id('addLibraryButton'))
+								.click();
+							await wait(5000);
+							const [isInvalid, libSizes] = await webdriver.promise.all([
+								crmApp.findElement(webdriver.By.id('addedLibraryName'))
+									.getProperty('invalid'),
+								crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
+									.getSize()
+							]) as [boolean, ClientRect];
 
-											return findElement(driver, webdriver.By.id('addedLibraryName'))
-												.findElement(webdriver.By.tagName('input'))
-												.sendKeys(InputKeys.CLEAR_ALL, libName);
-										});
-									}).then(() => {
-										return wait(driver, 5000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryButton'))
-											.click();
-									}).then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryConfirmAddition'))
-											.click();
-									}).then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return driver.executeScript(inlineFn(() => {
-											(document.querySelector('#editorFullScreen') as HTMLElement).click();
-										}));
-									}).then(() => {
-										return wait(driver, 2000);
-									}).then(() => {
-										return cancelDialog(dialog);
-									}).then(() => {
-										return wait(driver, 2000);
-									}).then(() => {
-										return getCRM(driver);
-									}).then((crm: [CRM.ScriptNode]) => {
-										assert.notInclude(crm[0].value.libraries, {
-											name: libName,
-											url: libUrl
-										}, 'Library was added');
+							assert.isTrue(isInvalid, 'Name should be marked as invalid');
+							assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes)).filter((key: keyof typeof libSizes) => {
+								return libSizes[key] !== 0;
+							}).length !== 0, 'Current dialog should be visible');
 
-										done();
-									});
-							});
+							await crmApp.findElement(webdriver.By.id('addedLibraryName'))
+								.findElement(webdriver.By.tagName('input'))
+								.sendKeys(InputKeys.CLEAR_ALL, libName);
+							await wait(5000);
+							await crmApp.findElement(webdriver.By.id('addLibraryButton'))
+								.click();
+							await wait(1000);
+							await crmApp.findElement(webdriver.By.id('addLibraryConfirmAddition'))
+								.click();
+							await wait(1000);
+							await driver.executeScript(inlineFn(() => {
+								(window.app.$ as any).editorFullScreen.click();
+							}));
+							await wait(2000);
+							await cancelDialog(dialog);
+							await wait(2000);
+							const crm = await getCRM<[CRM.ScriptNode]>();
+
+							assert.notInclude(crm[0].value.libraries, {
+								name: libName,
+								url: libUrl
+							}, 'Library was added');
 						});
-						it('should be possible to add your own library through code', (done) => {
+						it('should be possible to add your own library through code', async () => {
 							const libName = getRandomString(25);
 							const testCode = getRandomString(100);
 							const tabId = getRandomId();
 
-							enterEditorFullscreen(this, driver, type).then((dialog) => {
-								return findElement(driver, webdriver.By.id('paperLibrariesSelector'))
-									.findElement(webdriver.By.id('dropdownSelectedCont'))
-									.click()
-									.then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.className('addLibrary'))
-											.click()
-											.then(() => {
-												return wait(driver, 1000);
-											});
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryManualOption'))
-											.click();
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryManualInput'))
-											.findElement(webdriver.By.tagName('textarea'))
-											.sendKeys(InputKeys.CLEAR_ALL, testCode);
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryButton'))
-											.click();
-									}).then(() => {
-										return webdriver.promise.all([
-											findElement(driver, webdriver.By.id('addedLibraryName'))
-												.getProperty('invalid'),
-											findElement(driver, webdriver.By.id('addLibraryProcessContainer'))
-												.getSize()
-										]).then(([isInvalid, libSizes]: [boolean, ClientRect]) => {
-											assert.isTrue(isInvalid, 'Name should be marked as invalid');
-											assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes)).filter((key: keyof typeof libSizes) => {
-												return libSizes[key] !== 0;
-											}).length !== 0, 'Current dialog should be visible');
+							const dialog = await enterEditorFullscreen(this, type);
+							const crmApp = await findElement(webdriver.By.tagName('crm-app'));
+							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+								.findElement(webdriver.By.id('dropdownSelectedCont'))
+								.click();
+							await wait(1000);
+							await crmApp.findElement(webdriver.By.className('addLibrary'))
+								.click();
+									await wait(1000);
+							await crmApp.findElement(webdriver.By.id('addLibraryManualOption'))
+								.click();
+							await crmApp.findElement(webdriver.By.id('addLibraryManualInput'))
+								.findElement(webdriver.By.tagName('textarea'))
+								.sendKeys(InputKeys.CLEAR_ALL, testCode);
+							await crmApp.findElement(webdriver.By.id('addLibraryButton'))
+								.click();
+							const [isInvalid, libSizes] = await webdriver.promise.all([
+								crmApp.findElement(webdriver.By.id('addedLibraryName'))
+									.getProperty('invalid'),
+								crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
+									.getSize()
+							]) as [boolean, ClientRect];
+							
+							assert.isTrue(isInvalid, 'Name should be marked as invalid');
+							assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes)).filter((key: keyof typeof libSizes) => {
+								return libSizes[key] !== 0;
+							}).length !== 0, 'Current dialog should be visible');
 
-											return findElement(driver, webdriver.By.id('addedLibraryName'))
-												.findElement(webdriver.By.tagName('input'))
-												.sendKeys(InputKeys.CLEAR_ALL, libName);
-										});
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryButton'))
-											.click();
-									}).then(() => {
-										return wait(driver, 15000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryConfirmAddition'))
-											.click();
-									}).then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('editorFullScreen'))
-											.click();
-									}).then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return saveDialog(dialog);
-									}).then(() => {
-										return getCRM(driver);
-									}).then((crm: [CRM.ScriptNode]) => {
-										assert.include(crm[0].value.libraries, {
-											name: libName,
-											url: null
-										}, 'Library was added');
+							await crmApp.findElement(webdriver.By.id('addedLibraryName'))
+								.findElement(webdriver.By.tagName('input'))
+								.sendKeys(InputKeys.CLEAR_ALL, libName);
+							await crmApp.findElement(webdriver.By.id('addLibraryButton'))
+								.click();
+							await wait(15000);
+							await crmApp.findElement(webdriver.By.id('addLibraryConfirmAddition'))
+								.click();
+							await wait(1000);
+							await crmApp.findElement(webdriver.By.id('editorFullScreen'))
+								.click();
+							await wait(1000);
+							await saveDialog(dialog);
+							const crm = await getCRM<[CRM.ScriptNode]>();
 
-									});
-							}).then(() => {
-								getContextMenu(driver).then((contextMenu) => {
-									driver
-										.executeScript(inlineFn((REPLACE) => {
-											window.chrome._clearExecutedScripts();
-											return window.chrome._currentContextMenu[0]
-												.children[0]
-												.currentProperties.onclick(
-													REPLACE.page, REPLACE.tab
-												);
-										}, {
-											page: {
-												menuItemId: contextMenu[0].id,
-												editable: false,
-												pageUrl: 'www.google.com'
-											},
-											tab: {
-												id: tabId,
-												index: 1,
-												windowId: getRandomId(),
-												highlighted: false,
-												active: true,
-												pinned: false,
-												selected: false,
-												url: 'http://www.google.com',
-												title: 'Google',
-												incognito: false
-											}
-										})).then(() => {
-											return driver
-												.executeScript(inlineFn(() => {
-													return JSON.stringify(window.chrome._executedScripts);
-												}));
-										}).then((str: EncodedString<ExecutedScripts>) => {
-											const activatedScripts = JSON.parse(str);
+							assert.include(crm[0].value.libraries, {
+								name: libName,
+								url: null
+							}, 'Library was added');
 
-											assert.include(activatedScripts, {
-												id: tabId,
-												code: testCode
-											}, 'library was properly executed');
-											done();
-										});
-								});
-							});
+							const contextMenu = await getContextMenu();
+							await driver.executeScript(inlineFn((REPLACE) => {
+								window.chrome._clearExecutedScripts();
+								return window.chrome._currentContextMenu[0]
+									.children[0]
+									.currentProperties.onclick(
+										REPLACE.page, REPLACE.tab
+									);
+							}, {
+								page: {
+									menuItemId: contextMenu[0].id,
+									editable: false,
+									pageUrl: 'www.google.com'
+								},
+								tab: {
+									id: tabId,
+									index: 1,
+									windowId: getRandomId(),
+									highlighted: false,
+									active: true,
+									pinned: false,
+									selected: false,
+									url: 'http://www.google.com',
+									title: 'Google',
+									incognito: false
+								}
+							}));
+							const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
+								return JSON.stringify(window.chrome._executedScripts);
+							})));
+
+							assert.include(activatedScripts, {
+								id: tabId,
+								code: testCode
+							}, 'library was properly executed');
 						});
-						it('should not add canceled library that was added through code', (done) => {
+						it('should not add canceled library that was added through code', async () => {
 							const libName = getRandomString(25);
 							const testCode = getRandomString(100);
 
-							enterEditorFullscreen(this, driver, type).then((dialog) => {
-								findElement(driver, webdriver.By.id('paperLibrariesSelector'))
-									.findElement(webdriver.By.id('dropdownSelectedCont'))
-									.click()
-									.then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.className('addLibrary'))
-											.click()
-											.then(() => {
-												return wait(driver, 1000);
-											});
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryManualOption'))
-											.click();
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryManualInput'))
-											.findElement(webdriver.By.tagName('textarea'))
-											.sendKeys(InputKeys.CLEAR_ALL, testCode);
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryButton'))
-											.click();
-									}).then(() => {
-										return webdriver.promise.all([
-											findElement(driver, webdriver.By.id('addedLibraryName'))
-												.getProperty('invalid'),
-											findElement(driver, webdriver.By.id('addLibraryProcessContainer'))
-												.getSize()
-										]).then(([isInvalid, libSizes]: [boolean, ClientRect]) => {
-											assert.isTrue(isInvalid, 'Name should be marked as invalid');
-											assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes)).filter((key: keyof typeof libSizes) => {
-												return libSizes[key] !== 0;
-											}).length !== 0, 'Current dialog should be visible');
+							const crmApp = await findElement(webdriver.By.tagName('crm-app'));
+							const dialog = await enterEditorFullscreen(this, type);
+							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+								.findElement(webdriver.By.id('dropdownSelectedCont'))
+								.click();
+							await wait(1000);
+							await crmApp.findElement(webdriver.By.className('addLibrary'))
+								.click();
+							await wait(1000);
+							await crmApp.findElement(webdriver.By.id('addLibraryManualOption'))
+								.click();
+							await crmApp.findElement(webdriver.By.id('addLibraryManualInput'))
+								.findElement(webdriver.By.tagName('textarea'))
+								.sendKeys(InputKeys.CLEAR_ALL, testCode);
+							await crmApp.findElement(webdriver.By.id('addLibraryButton'))
+								.click();
+							const [isInvalid, libSizes] = await webdriver.promise.all([
+								crmApp.findElement(webdriver.By.id('addedLibraryName'))
+									.getProperty('invalid'),
+									crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
+									.getSize()
+							]) as [boolean, ClientRect];
 
-											return findElement(driver, webdriver.By.id('addedLibraryName'))
-												.findElement(webdriver.By.tagName('input'))
-												.sendKeys(InputKeys.CLEAR_ALL, libName);
-										});
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryButton'))
-											.click();
-									}).then(() => {
-										return wait(driver, 15000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('addLibraryConfirmAddition'))
-											.click();
-									}).then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return findElement(driver, webdriver.By.id('editorFullScreen'))
-											.click();
-									}).then(() => {
-										return wait(driver, 1000);
-									}).then(() => {
-										return cancelDialog(dialog);
-									}).then(() => {
-										return getCRM(driver);
-									}).then((crm: [CRM.ScriptNode]) => {
-										assert.notInclude(crm[0].value.libraries, {
-											name: libName,
-											url: testCode
-										}, 'Library was not added');
-										done();
-									});
-							});
+							assert.isTrue(isInvalid, 'Name should be marked as invalid');
+							assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes)).filter((key: keyof typeof libSizes) => {
+								return libSizes[key] !== 0;
+							}).length !== 0, 'Current dialog should be visible');
+
+							await crmApp.findElement(webdriver.By.id('addedLibraryName'))
+								.findElement(webdriver.By.tagName('input'))
+								.sendKeys(InputKeys.CLEAR_ALL, libName);
+							await crmApp.findElement(webdriver.By.id('addLibraryButton'))
+								.click();
+							await wait(15000);
+							await crmApp.findElement(webdriver.By.id('addLibraryConfirmAddition'))
+								.click();
+							await wait(1000);
+							await crmApp.findElement(webdriver.By.id('editorFullScreen'))
+								.click();
+							await wait(1000);
+							await cancelDialog(dialog);
+							const crm = await getCRM<[CRM.ScriptNode]>();
+							assert.notInclude(crm[0].value.libraries, {
+								name: libName,
+								url: testCode
+							}, 'Library was not added');
 						});
 					});
 					describe('GetPageProperties', function() {
@@ -3090,237 +2833,166 @@ describe('Options Page', function() {
 							paperGetPropertyTitle: 'document.title;\n'
 						};
 						Object.getOwnPropertyNames(pagePropertyPairs).forEach((prop: keyof typeof pagePropertyPairs) => {
-							it(`should be able to insert the ${prop} property`, (done) => {
-								enterEditorFullscreen(this, driver, type).then((dialog) => {
-									getEditorValue(driver, type).then((prevCode) => {
-										findElement(driver, webdriver.By.id('paperGetPageProperties'))
-											.click().then(() => {
-												return wait(driver, 500);
-											}).then(() => {
-												findElement(driver, webdriver.By.id(prop))
-													.click()
-													.then(() => {
-														return wait(driver, 500);
-													}).then(() => {
-														return getEditorValue(driver, type);
-													}).then((newCode) => {
-														assert.strictEqual(subtractStrings(newCode, prevCode),
-															pagePropertyPairs[prop], 
-															'Added text should match expected');
-													}).then(() => {
-														return findElement(driver, webdriver.By.id('editorFullScreen'))
-															.click();
-													}).then(() => {
-														return wait(driver, 500);
-													}).then(() => {
-														return cancelDialog(dialog);
-													}).then(() => {
-														done();
-													});
-											});
-									});
-								});
+							it(`should be able to insert the ${prop} property`, async () => {
+								const dialog = await enterEditorFullscreen(this, type);
+								const crmApp = await findElement(webdriver.By.tagName('crm-app'));
+								const prevCode = await getEditorValue(type);
+								crmApp.findElement(webdriver.By.id('paperGetPageProperties'))
+									.click();
+								await wait(500);
+								crmApp.findElement(webdriver.By.id(prop))
+									.click();
+								await wait(500);
+								const newCode = await getEditorValue(type);
+								
+								assert.strictEqual(subtractStrings(newCode, prevCode),
+									pagePropertyPairs[prop], 
+									'Added text should match expected');
+								await crmApp.findElement(webdriver.By.id('editorFullScreen'))
+									.click();
+								await wait(500);
+								await cancelDialog(dialog);
 							});
 						});
 					});
 					describe('Search Website', function() {
-						afterEach('Close dialog', (done) => {
-							driver.executeScript(inlineFn(() => {
+						afterEach('Close dialog', async () => {
+							await driver.executeScript(inlineFn(() => {
 								window.doc.paperSearchWebsiteDialog.opened() &&
 								window.doc.paperSearchWebsiteDialog.hide();
-							})).then(() => {
-								done();
-							});
+							}));
 						});
 
 						describe('Default SearchEngines', function(){
-							it('should correctly add a search engine script (new tab)', (done) => {
-								enterEditorFullscreen(this, driver, type).then((dialog) => {
-									getEditorValue(driver, type).then((prevCode) => {
-										findElement(driver, webdriver.By.id('paperSearchWebsitesToolTrigger'))
-										.click()
-										.then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											return findElement(driver, webdriver.By.id('paperSearchWebsiteDialog'))
-											.findElement(webdriver.By.id('initialWindow'))
-											.findElement(webdriver.By.className('buttons'))
-											.findElement(webdriver.By.css('paper-button:nth-child(2)'))
-											.click();
-										}).then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											return findElement(driver, webdriver.By.id('chooseDefaultSearchWindow'))
-												.findElement(webdriver.By.className('buttons'))
-												.findElements(webdriver.By.tagName('paper-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
-										}).then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											return findElement(driver, webdriver.By.id('confirmationWindow'))
-												.findElement(webdriver.By.className('buttons'))
-												.findElements(webdriver.By.tagName('paper-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
-										}).then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											return findElement(driver, webdriver.By.id('howToOpenWindow'))
-												.findElement(webdriver.By.className('buttons'))
-												.findElements(webdriver.By.tagName('paper-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
-			
-										}).then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											return getEditorValue(driver, type);
-										}).then((newCode) => {
-											assert.strictEqual(
-												subtractStrings(newCode, prevCode),
-												[
-													'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
-													'var url = \'https://www.google.com/search?q=%s\';',
-													'var toOpen = url.replace(/%s/g,search);',
-													'window.open(toOpen, \'_blank\');'
-												].join('\n'), 'Added code matches expected');
-												done();
-										});
-									});
-								});
+							it('should correctly add a search engine script (new tab)', async () => {
+								await enterEditorFullscreen(this, type);
+								const crmApp = await findElement(webdriver.By.tagName('crm-app'));
+								const prevCode = await getEditorValue(type);
+								crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'))
+									.findElement(webdriver.By.id('initialWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElement(webdriver.By.css('paper-button:nth-child(2)'))
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('chooseDefaultSearchWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElements(webdriver.By.tagName('paper-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('confirmationWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElements(webdriver.By.tagName('paper-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('howToOpenWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElements(webdriver.By.tagName('paper-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								const newCode = await getEditorValue(type);
+								
+								assert.strictEqual(subtractStrings(newCode, prevCode), [
+									'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+									'var url = \'https://www.google.com/search?q=%s\';',
+									'var toOpen = url.replace(/%s/g,search);',
+									'window.open(toOpen, \'_blank\');'
+								].join('\n'), 'Added code matches expected');
 							});
-							it('should correctly add a search engine script (current tab)', (done) => {
-								enterEditorFullscreen(this, driver, type).then((dialog) => {
-									getEditorValue(driver, type).then((prevCode) => {
-										findElement(driver, webdriver.By.id('paperSearchWebsitesToolTrigger'))
-										.click()
-										.then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											return findElement(driver, webdriver.By.id('paperSearchWebsiteDialog'))
-											.findElement(webdriver.By.id('initialWindow'))
-											.findElement(webdriver.By.className('buttons'))
-											.findElement(webdriver.By.css('paper-button:nth-child(2)'))
-											.click();
-										}).then(() => {
-											return findElement(driver, webdriver.By.id('chooseDefaultSearchWindow'))
-												.findElement(webdriver.By.className('buttons'))
-												.findElements(webdriver.By.tagName('paper-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
-										}).then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											return findElement(driver, webdriver.By.id('confirmationWindow'))
-												.findElement(webdriver.By.className('buttons'))
-												.findElements(webdriver.By.tagName('paper-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
-										}).then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											return findElement(driver, webdriver.By.id('howToOpenLink'))
-												.findElements(webdriver.By.tagName('paper-radio-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
-										}).then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											return findElement(driver, webdriver.By.id('howToOpenWindow'))
-												.findElement(webdriver.By.className('buttons'))
-												.findElements(webdriver.By.tagName('paper-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
-										}).then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											return getEditorValue(driver, type);
-										}).then((newCode) => {
-											assert.strictEqual(
-												subtractStrings(newCode, prevCode),
-												[
-													'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
-													'var url = \'https://www.google.com/search?q=%s\';',
-													'var toOpen = url.replace(/%s/g,search);',
-													'location.href = toOpen;'
-												].join('\n'), 'Added code matches expected');
-												done();
-										});
-									});
-								});
+							it('should correctly add a search engine script (current tab)', async () => {
+								await enterEditorFullscreen(this, type);
+								const crmApp = findElement(webdriver.By.tagName('crm-app'));
+								const prevCode = await getEditorValue(type);
+								await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'))
+									.findElement(webdriver.By.id('initialWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElement(webdriver.By.css('paper-button:nth-child(2)'))
+									.click();
+								await crmApp.findElement(webdriver.By.id('chooseDefaultSearchWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElements(webdriver.By.tagName('paper-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('confirmationWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElements(webdriver.By.tagName('paper-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('howToOpenLink'))
+									.findElements(webdriver.By.tagName('paper-radio-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('howToOpenWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElements(webdriver.By.tagName('paper-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								const newCode = await getEditorValue(type);
+								assert.strictEqual(subtractStrings(newCode, prevCode), [
+									'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+									'var url = \'https://www.google.com/search?q=%s\';',
+									'var toOpen = url.replace(/%s/g,search);',
+									'location.href = toOpen;'
+								].join('\n'), 'Added code matches expected');
 							});
 						});
 						describe('Custom Input', function() {
-							it('should be able to add one from a search URL', (done) => {
+							it('should be able to add one from a search URL', async () => {
 								const exampleSearchURL = 
 									`http://www.${getRandomString(10)}/?${getRandomString(10)}=customRightClickMenu}`;
 
-								enterEditorFullscreen(this, driver, type).then((dialog) => {
-									getEditorValue(driver, type).then((prevCode) => {
-										findElement(driver, webdriver.By.id('paperSearchWebsitesToolTrigger'))
-										.click()
-										.then(() => {
-											return findElement(driver, webdriver.By.id('initialWindowChoicesCont'))
-												.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
-												.click();
-										}).then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											return findElement(driver, webdriver.By.id('manuallyInputSearchWebsiteWindow'))
-												.findElement(webdriver.By.id('manualInputURLInput'))
-												.findElement(webdriver.By.tagName('input'))
-												.sendKeys(InputKeys.CLEAR_ALL, exampleSearchURL);
-										}).then(() => {
-											return findElement(driver, webdriver.By.id('manuallyInputSearchWebsiteWindow'))
-												.findElement(webdriver.By.className('buttons'))
-												.findElements(webdriver.By.tagName('paper-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
-										}).then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											return findElement(driver, webdriver.By.id('confirmationWindow'))
-												.findElement(webdriver.By.className('buttons'))
-												.findElements(webdriver.By.tagName('paper-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
-										}).then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											return findElement(driver, webdriver.By.id('howToOpenWindow'))
-												.findElement(webdriver.By.className('buttons'))
-												.findElements(webdriver.By.tagName('paper-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
-										}).then(() => {
-											return wait(driver, 500);
-										}).then(() => {
-											getEditorValue(driver, type).then((newCode) => {
-												assert.strictEqual(subtractStrings(newCode, prevCode),
-													[
-														'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
-														`var url = '${exampleSearchURL.replace('customRightClickMenu', '%s')}';`,
-														'var toOpen = url.replace(/%s/g,search);',
-														'location.href = toOpen;'
-													].join('\n'), 'Script should match expected value');
-												done();
-											});
-										});
-									});
-								});
+								await enterEditorFullscreen(this, type);
+								const crmApp = findElement(webdriver.By.tagName('crm-app'));
+								const prevCode = await getEditorValue(type);
+								await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
+										.click();
+								await crmApp.findElement(webdriver.By.id('initialWindowChoicesCont'))
+									.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+									.findElement(webdriver.By.id('manualInputURLInput'))
+									.findElement(webdriver.By.tagName('input'))
+									.sendKeys(InputKeys.CLEAR_ALL, exampleSearchURL);
+								await crmApp.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElements(webdriver.By.tagName('paper-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('confirmationWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElements(webdriver.By.tagName('paper-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('howToOpenWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElements(webdriver.By.tagName('paper-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								const newCode = await getEditorValue(type);
+								assert.strictEqual(subtractStrings(newCode, prevCode), [
+									'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+									`var url = '${exampleSearchURL.replace('customRightClickMenu', '%s')}';`,
+									'var toOpen = url.replace(/%s/g,search);',
+									'location.href = toOpen;'
+								].join('\n'), 'Script should match expected value');
 							});
-							it('should be able to add one from your visited websites', (done) => {
+							it('should be able to add one from your visited websites', async () => {
 								const exampleVisitedWebsites: Array<{
 									name: string;
 									url: string;
@@ -3331,86 +3003,61 @@ describe('Options Page', function() {
 									searchUrl: `${getRandomString(20)}%s${getRandomString(10)}`
 								}];
 
-								enterEditorFullscreen(this, driver, type).then((dialog) => {
-									getEditorValue(driver, type).then((oldValue) => {
-										findElement(driver, webdriver.By.id('paperSearchWebsitesToolTrigger'))
-											.click()
-											.then(() => {
-												return wait(driver, 500);
-											}).then(() => {
-												return findElement(driver, webdriver.By.id('initialWindowChoicesCont'))
-													.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
-													.click();
-											}).then(() => {
-												return wait(driver, 500);
-											}).then(() => {
-												return findElement(driver, webdriver.By.id('manulInputSavedChoice'))
-													.click();
-											}).then(() => {
-												return wait(driver, 500);
-											}).then(() => {
-												return driver.executeScript(inlineFn(() => {
-													document.querySelector('#manualInputListChoiceInput')
-														.querySelector('textarea').value = 'REPLACE.websites';
-												}, {
-													websites: JSON.stringify(exampleVisitedWebsites)
-												}));
-											}).then(() => {
-												return wait(driver, 500);
-											}).then(() => {
-												return findElement(driver, webdriver.By.id('manuallyInputSearchWebsiteWindow'))
-													.findElement(webdriver.By.className('buttons'))
-													.findElements(webdriver.By.tagName('paper-button'))
-													.then((elements) => {
-														elements[1].click();
-													});
-											}).then(() => {
-												return wait(driver, 500);
-											}).then(() => {
-												return findElement(driver, webdriver.By.id('processedListWindow'))
-													.findElement(webdriver.By.className('searchOptionCheckbox'))
-													.click();
-											}).then(() => {
-												return findElement(driver, webdriver.By.id('processedListWindow'))
-													.findElement(webdriver.By.className('buttons'))
-													.findElements(webdriver.By.tagName('paper-button'))
-													.then((elements) => {
-														elements[1].click();
-													});
-											}).then(() => {
-												return wait(driver, 500);
-											}).then(() => {
-												return findElement(driver, webdriver.By.id('confirmationWindow'))
-													.findElement(webdriver.By.className('buttons'))
-													.findElements(webdriver.By.tagName('paper-button'))
-													.then((elements) => {
-														elements[1].click();
-													});
-											}).then(() => {
-												return wait(driver, 500);
-											}).then(() => {
-												return findElement(driver, webdriver.By.id('howToOpenWindow'))
-													.findElement(webdriver.By.className('buttons'))
-													.findElements(webdriver.By.tagName('paper-button'))
-													.then((elements) => {
-														elements[1].click();
-													});
-											}).then(() => {
-												return wait(driver, 500);
-											}).then(() => {
-												return getEditorValue(driver, type);
-											}).then((newValue) => {
-												assert.strictEqual(subtractStrings(newValue, oldValue),
-													[
-														'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
-														`var url = '${exampleVisitedWebsites[0].searchUrl}';`,
-														'var toOpen = url.replace(/%s/g,search);',
-														'location.href = toOpen;'
-													].join('\n'), 'Added script should match expected');
-												done();
-											});
-									});
-								});
+								await enterEditorFullscreen(this, type);
+								const crmApp = findElement(webdriver.By.tagName('crm-app'));
+								const oldValue = await getEditorValue(type);
+								await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('initialWindowChoicesCont'))
+									.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('manulInputSavedChoice'))
+									.click();
+								await wait(500);
+								await driver.executeScript(inlineFn(() => {
+	                        		(window.app.$ as any).paperSearchWebsiteDialog
+										.shadowRoot.querySelector('#manualInputListChoiceInput')
+										.querySelector('textarea').value = 'REPLACE.websites';
+								}, {
+									websites: JSON.stringify(exampleVisitedWebsites)
+								}));
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElements(webdriver.By.tagName('paper-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('processedListWindow'))
+									.findElement(webdriver.By.className('searchOptionCheckbox'))
+									.click();
+								await crmApp.findElement(webdriver.By.id('processedListWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElements(webdriver.By.tagName('paper-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('confirmationWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElements(webdriver.By.tagName('paper-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								await crmApp.findElement(webdriver.By.id('howToOpenWindow'))
+									.findElement(webdriver.By.className('buttons'))
+									.findElements(webdriver.By.tagName('paper-button'))
+									.get(1)
+									.click();
+								await wait(500);
+								const newValue = await getEditorValue(type);
+								assert.strictEqual(subtractStrings(newValue, oldValue), [
+									'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+									`var url = '${exampleVisitedWebsites[0].searchUrl}';`,
+									'var toOpen = url.replace(/%s/g,search);',
+									'location.href = toOpen;'
+								].join('\n'), 'Added script should match expected');
 							});
 						});
 					});
@@ -3419,29 +3066,26 @@ describe('Options Page', function() {
 		});
 	});
 	describe('Errors', function() {
-		this.timeout(60000 * timeModifier);
+		this.timeout(60000 * TIME_MODIFIER);
 		this.slow(100);
 
-		it('should not have been thrown', (done) => {
-			driver
-				.executeScript(inlineFn(() => {
-					return window.lastError ? {
-						message: window.lastError.message,
-						stack: window.lastError.stack
-					 } : 'noError';
-				})).then((result: 'noError'|{
-					message: string;
-					stack: string;
-				}) => {
-					if (result !== 'noError' && 
-						result.message.indexOf('Object [object global] has no method') !== -1) {
-						console.log(result);
-						assert.ifError(result, 'no errors should be thrown during testing');
-					} else {
-						assert.ifError(false, 'no errors should be thrown during testing');
-					}
-					done();
-				});
+		it('should not have been thrown', async () => {
+			const result = await driver.executeScript(inlineFn(() => {
+				return window.lastError ? {
+					message: window.lastError.message,
+					stack: window.lastError.stack
+					} : 'noError';
+			})) as 'noError'|{
+				message: string;
+				stack: string;
+			};
+			if (result !== 'noError' && 
+				result.message.indexOf('Object [object global] has no method') !== -1) {
+				console.log(result);
+				assert.ifError(result, 'no errors should be thrown during testing');
+			} else {
+				assert.ifError(false, 'no errors should be thrown during testing');
+			}
 		});
 	});
 });
@@ -3450,7 +3094,7 @@ describe('Options Page', function() {
 describe('On-Page CRM', function() {
 	describe('Redraws on new CRM', function() {
 		this.slow(250);
-		this.timeout(1500 * timeModifier);
+		this.timeout(1500 * TIME_MODIFIER);
 
 		const CRM1 = [
 			templates.getDefaultLinkNode({
@@ -3484,52 +3128,41 @@ describe('On-Page CRM', function() {
 
 		it('should not throw when setting up the CRM', function(done) {
 			this.slow(4000);
-			this.timeout(5000 * timeModifier);
-			assert.doesNotThrow(() => {
-				resetSettings(this, driver).then(() => {
-					driver
-						.executeScript(inlineFn((REPLACE) => {
-							window.app.settings.crm = REPLACE.crm;
-							window.app.upload();
-						}, {
-							crm: CRM1
-						})).then(() => {
-							done();
-						});
-				});
+			this.timeout(5000 * TIME_MODIFIER);
+			assert.doesNotThrow(async () => {
+				await resetSettings(this);
+				await driver.executeScript(inlineFn((REPLACE) => {
+					window.app.settings.crm = REPLACE.crm;
+					window.app.upload();
+				}, {
+					crm: CRM1
+				}));
 			}, 'setting up the CRM does not throw');
 		});
-		it('should be using the first CRM', function(done) {
-			this.timeout(60000 * timeModifier);
-			getContextMenu(driver).then((contextMenu) => {
-				assertContextMenuEquality(contextMenu, CRM1);
-				done();
-			});
+		it('should be using the first CRM', async function() {
+			this.timeout(60000 * TIME_MODIFIER);
+			const contextMenu = await getContextMenu();
+			assertContextMenuEquality(contextMenu, CRM1);
 		});
 		it('should be able to switch to a new CRM', function(done) {
-			assert.doesNotThrow(() => {
-				driver
-					.executeScript(inlineFn((REPLACE) => {
-						window.app.settings.crm = REPLACE.crm;
-						window.app.upload();
-						return true;
-					}, {
-						crm: CRM2
-					})).then(() => {
-						done();
-					});
+			assert.doesNotThrow(async () => {
+				await driver.executeScript(inlineFn((REPLACE) => {
+					window.app.settings.crm = REPLACE.crm;
+					window.app.upload();
+					return true;
+				}, {
+					crm: CRM2
+				}));
 			}, 'settings CRM does not throw');
 		});
-		it('should be using the new CRM', function(done) {
-			getContextMenu(driver).then((contextMenu) => {
-				assertContextMenuEquality(contextMenu, CRM2);
-				done();
-			});
+		it('should be using the new CRM', async function() {
+			const contextMenu = await getContextMenu();
+			assertContextMenuEquality(contextMenu, CRM2);
 		});
 	});
 	describe('Links', function() {
 		this.slow(150);
-		this.timeout(1500 * timeModifier);
+		this.timeout(1500 * TIME_MODIFIER);
 		const CRMNodes = [
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
@@ -3608,191 +3241,167 @@ describe('On-Page CRM', function() {
 
 		it('should not throw when setting up the CRM', function(done) {
 			this.slow(4000);
-			this.timeout(5000 * timeModifier);
-			assert.doesNotThrow(() => {
-				resetSettings(this, driver).then(() => {
-					driver
-						.executeScript(inlineFn((REPLACE) => {
-							window.app.settings.crm = REPLACE.crm;
-							window.app.upload();
-							return true;
-						}, {
-							crm: CRMNodes
-						})).then(() => {
-							done();
-						});
-				});
+			this.timeout(5000 * TIME_MODIFIER);
+			assert.doesNotThrow(async () => {
+				await resetSettings(this);
+				await driver.executeScript(inlineFn((REPLACE) => {
+					window.app.settings.crm = REPLACE.crm;
+					window.app.upload();
+					return true;
+				}, {
+					crm: CRMNodes
+				}));
 			}, 'setting up the CRM does not throw');
 		});
-		it('should match the given names and types', (done) => {
-			getContextMenu(driver).then((contextMenu) => {
-				for (let i = 0; i < CRMNodes.length; i++) {
-					assert.isDefined(contextMenu[i], `node ${i} is defined`);
-					assert.strictEqual(contextMenu[i].currentProperties.title, 
-						CRMNodes[i].name, `names for ${i} match`);
-					assert.strictEqual(contextMenu[i].currentProperties.type,
-						'normal', `type for ${i} is normal`);
-				}				
-				done();
-			});
+		it('should match the given names and types', async () => {
+			const contextMenu = await getContextMenu();
+			for (let i = 0; i < CRMNodes.length; i++) {
+				assert.isDefined(contextMenu[i], `node ${i} is defined`);
+				assert.strictEqual(contextMenu[i].currentProperties.title, 
+					CRMNodes[i].name, `names for ${i} match`);
+				assert.strictEqual(contextMenu[i].currentProperties.type,
+					'normal', `type for ${i} is normal`);
+			}				
 		});
-		it('should match the given triggers', (done) => {
-			getContextMenu(driver).then((contextMenu) => {
-				assert.lengthOf(
-					contextMenu[LinkOnPageTest.NO_TRIGGERS].createProperties.documentUrlPatterns,
-					0, 'triggers are turned off');
-				assert.deepEqual(contextMenu[LinkOnPageTest.TRIGGERS].createProperties.documentUrlPatterns,
-					CRMNodes[LinkOnPageTest.TRIGGERS].triggers.map((trigger) => {
-						return prepareTrigger(trigger.url);
-					}), 'triggers are turned on');
-				done();
-			});
+		it('should match the given triggers', async () => {
+			const contextMenu = await getContextMenu();
+			assert.lengthOf(
+				contextMenu[LinkOnPageTest.NO_TRIGGERS].createProperties.documentUrlPatterns,
+				0, 'triggers are turned off');
+			assert.deepEqual(contextMenu[LinkOnPageTest.TRIGGERS].createProperties.documentUrlPatterns,
+				CRMNodes[LinkOnPageTest.TRIGGERS].triggers.map((trigger) => {
+					return prepareTrigger(trigger.url);
+				}), 'triggers are turned on');
 		});
-		it('should match the given content types', (done) => {
-			getContextMenu(driver).then((contextMenu) => {
-				for (let i = 0; i < CRMNodes.length; i++) {
-					assert.includeMembers(contextMenu[i].currentProperties.contexts,
-						CRMNodes[i].onContentTypes.map((enabled, index) => {
-							if (enabled) {
-								return getTypeName(index);
-							} else {
-								return null;
-							}
-						}).filter(item => item !== null), `content types for ${i} match`);
+		it('should match the given content types', async () => {
+			const contextMenu = await getContextMenu();
+			for (let i = 0; i < CRMNodes.length; i++) {
+				assert.includeMembers(contextMenu[i].currentProperties.contexts,
+					CRMNodes[i].onContentTypes.map((enabled, index) => {
+						if (enabled) {
+							return getTypeName(index);
+						} else {
+							return null;
+						}
+					}).filter(item => item !== null), `content types for ${i} match`);
+			}
+		});
+		it('should open the correct links when clicked for the default link', async function() {
+			this.timeout(2000 * TIME_MODIFIER);
+			const tabId = ~~(Math.random() * 100);
+			const windowId = ~~(Math.random() * 100);
+			const contextMenu = await getContextMenu();
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._currentContextMenu[0].children[LinkOnPageTest.DEFAULT_LINKS]
+					.currentProperties.onclick(
+						REPLACE.page, REPLACE.tab
+					);
+				return true;
+			}, {
+				page: {
+					menuItemId: contextMenu[LinkOnPageTest.DEFAULT_LINKS].id,
+					editable: false,
+					pageUrl: 'www.google.com'
+				},
+				tab: {
+					id: tabId,
+					index: 1,
+					windowId: windowId,
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
 				}
-				done();
-			});
+			}));
+			const activeTabs = JSON.parse(await driver.executeScript(inlineFn(() => {
+				return JSON.stringify(window.chrome._activeTabs);
+			})));
+			const expectedTabs = CRMNodes[LinkOnPageTest.DEFAULT_LINKS].value.map((link) => {
+				if (!link.newTab) {
+					return {
+						id:	tabId,
+						data: {
+							url: sanitizeUrl(link.url)
+						},
+						type: 'update'
+					};
+				} else {
+					return {
+						type: 'create',
+						data: {
+							windowId: windowId,
+							url: sanitizeUrl(link.url),
+							openerTabId: tabId
+						}
+					};
+				}
+			}) as ActiveTabs;
+
+			assert.sameDeepMembers(activeTabs, expectedTabs,
+				'opened tabs match expected');
 		});
-		it('should open the correct links when clicked for the default link', function(done) {
-			this.timeout(2000 * timeModifier);
+		it('should open the correct links when clicked for multiple links', async () => {
+			this.timeout(2000 * TIME_MODIFIER);
 			const tabId = ~~(Math.random() * 100);
 			const windowId = ~~(Math.random() * 100);
-			getContextMenu(driver).then((contextMenu) => {
-				driver
-					.executeScript(inlineFn((REPLACE) => {
-						window.chrome._currentContextMenu[0].children[LinkOnPageTest.DEFAULT_LINKS]
-							.currentProperties.onclick(
-								REPLACE.page, REPLACE.tab
-							);
-						return true;
-					}, {
-						page: {
-							menuItemId: contextMenu[LinkOnPageTest.DEFAULT_LINKS].id,
-							editable: false,
-							pageUrl: 'www.google.com'
+			const contextMenu = await getContextMenu();
+			await driver.executeScript(inlineFn((REPLACE) => {
+				//Clear it without removing object-array-magic-address-linking
+				while (window.chrome._activeTabs.length > 0) {
+					window.chrome._activeTabs.pop();
+				}
+				return window.chrome._currentContextMenu[0].children[LinkOnPageTest.PRESET_LINKS]
+					.currentProperties.onclick(
+						REPLACE.page, REPLACE.tab
+					);
+			}, {
+				page: {
+					menuItemId: contextMenu[LinkOnPageTest.PRESET_LINKS].id,
+					editable: false,
+					pageUrl: 'www.google.com'
+				},
+				tab: {
+					id: tabId,
+					index: 1,
+					windowId: windowId,
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
+			const activeTabs = JSON.parse(await driver.executeScript(inlineFn(() => {
+				return JSON.stringify(window.chrome._activeTabs);
+			})));
+			const expectedTabs = CRMNodes[LinkOnPageTest.PRESET_LINKS].value.map((link) => {
+				if (!link.newTab) {
+					return {
+						id:	tabId,
+						data: {
+							url: sanitizeUrl(link.url)
 						},
-						tab: {
-							id: tabId,
-							index: 1,
+						type: 'update'
+					};
+				} else {
+					return {
+						type: 'create',
+						data: {
 							windowId: windowId,
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false
+							url: sanitizeUrl(link.url),
+							openerTabId: tabId
 						}
-					})).then(() => {
-						return driver
-							.executeScript(inlineFn(() => {
-								return JSON.stringify(window.chrome._activeTabs);
-							}));
-					}).then((str: EncodedString<ActiveTabs>) => {
-						const activeTabs = JSON.parse(str);
-						const expectedTabs = CRMNodes[LinkOnPageTest.DEFAULT_LINKS].value.map((link) => {
-							if (!link.newTab) {
-								return {
-									id:	tabId,
-									data: {
-										url: sanitizeUrl(link.url)
-									},
-									type: 'update'
-								};
-							} else {
-								return {
-									type: 'create',
-									data: {
-										windowId: windowId,
-										url: sanitizeUrl(link.url),
-										openerTabId: tabId
-									}
-								};
-							}
-						}) as ActiveTabs;
+					};
+				}
+			}) as ActiveTabs;
 
-						assert.sameDeepMembers(activeTabs, expectedTabs,
-							'opened tabs match expected');
-						done();
-					});
-			});
-		});
-		it('should open the correct links when clicked for multiple links', (done) => {
-			this.timeout(2000 * timeModifier);
-			const tabId = ~~(Math.random() * 100);
-			const windowId = ~~(Math.random() * 100);
-			getContextMenu(driver).then((contextMenu) => {
-				driver
-					.executeScript(inlineFn((REPLACE) => {
-						//Clear it without removing object-array-magic-address-linking
-						while (window.chrome._activeTabs.length > 0) {
-							window.chrome._activeTabs.pop();
-						}
-						return window.chrome._currentContextMenu[0].children[LinkOnPageTest.PRESET_LINKS]
-							.currentProperties.onclick(
-								REPLACE.page, REPLACE.tab
-							);
-					}, {
-						page: {
-							menuItemId: contextMenu[LinkOnPageTest.PRESET_LINKS].id,
-							editable: false,
-							pageUrl: 'www.google.com'
-						},
-						tab: {
-							id: tabId,
-							index: 1,
-							windowId: windowId,
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false
-						}
-					})).then((result) => {
-						return driver
-							.executeScript(inlineFn(() => {
-								return JSON.stringify(window.chrome._activeTabs);
-							}));
-					}).then((str: EncodedString<ActiveTabs>) => {
-						const activeTabs = JSON.parse(str);
-						const expectedTabs = CRMNodes[LinkOnPageTest.PRESET_LINKS].value.map((link) => {
-							if (!link.newTab) {
-								return {
-									id:	tabId,
-									data: {
-										url: sanitizeUrl(link.url)
-									},
-									type: 'update'
-								};
-							} else {
-								return {
-									type: 'create',
-									data: {
-										windowId: windowId,
-										url: sanitizeUrl(link.url),
-										openerTabId: tabId
-									}
-								};
-							}
-						}) as ActiveTabs;
-
-						assert.sameDeepMembers(activeTabs, expectedTabs,
-							'opened tabs match expected');
-						done();
-					});
-				});
+			assert.sameDeepMembers(activeTabs, expectedTabs,
+				'opened tabs match expected');
 		});
 	});
 	describe('Menu & Divider', function() {
@@ -3873,41 +3482,30 @@ describe('On-Page CRM', function() {
 		];
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.timeout(5000 * timeModifier);
+			this.timeout(5000 * TIME_MODIFIER);
 			this.slow(4000);
-			assert.doesNotThrow(() => {
-				resetSettings(this, driver).then(() => {
-					driver
-						.executeScript(inlineFn((REPLACE) => {
-							window.app.settings.crm = REPLACE.crm;
-							window.app.upload();
-							return true;
-						}, {
-							crm: CRMNodes
-						})).then(() => {
-							done();
-						});
-				});
+			assert.doesNotThrow(async () => {
+				await resetSettings(this);
+				await driver.executeScript(inlineFn((REPLACE) => {
+					window.app.settings.crm = REPLACE.crm;
+					window.app.upload();
+					return true;
+				}, {
+					crm: CRMNodes
+				}));
+				done();
 			}, 'setting up the CRM does not throw');
 		});
-		it('should have the correct structure', function(done) {
+		it('should have the correct structure', async function() {
 			this.slow(400);
-			this.timeout(1400 * timeModifier);
-			getContextMenu(driver).then((contextMenu) => {
-				driver
-					.executeScript(inlineFn(() => {
-						return window.logs;
-					}))
-					.then((logs) => {
-						assertContextMenuEquality(contextMenu, CRMNodes);
-						done();
-					});
-			});
+			this.timeout(1400 * TIME_MODIFIER);
+			const contextMenu = await getContextMenu();
+			assertContextMenuEquality(contextMenu, CRMNodes);
 		});
 	});
 	describe('Scripts', function() {
 		this.slow(900);
-		this.timeout(2000 * timeModifier);
+		this.timeout(2000 * TIME_MODIFIER);
 
 		const CRMNodes = [
 			templates.getDefaultScriptNode({
@@ -3988,261 +3586,177 @@ describe('On-Page CRM', function() {
 		}
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.timeout(5000 * timeModifier);
+			this.timeout(5000 * TIME_MODIFIER);
 			this.slow(4000);
-			assert.doesNotThrow(() => {
-				resetSettings(this, driver).then(() => {
-					driver
-						.executeScript(inlineFn((REPLACE) => {
-							window.app.settings.crm = REPLACE.crm;
-							window.app.upload();
-							return true;
-						}, {
-							crm: CRMNodes
-						})).then(() => {
-							done();
-						});
-				});
+			assert.doesNotThrow(async () => {
+				await resetSettings(this);
+				await driver.executeScript(inlineFn((REPLACE) => {
+					window.app.settings.crm = REPLACE.crm;
+					window.app.upload();
+					return true;
+				}, {
+					crm: CRMNodes
+				}));
+				done();
 			}, 'setting up the CRM does not throw');
 		});
-		it('should always run when launchMode is set to ALWAYS_RUN', (done) => {
+		it('should always run when launchMode is set to ALWAYS_RUN', async () => {
 			const fakeTabId = getRandomId();
-			driver
-				.executeScript(inlineFn((REPLACE) => {
-					window.chrome._clearExecutedScripts();
-					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
-						id: REPLACE.fakeTabId,
-						url: 'http://www.notexample.com'
-					};
-					window.chrome.runtime.sendMessage({
-						type: 'newTabCreated'
-					}, {
-						tab: {
-							id: REPLACE.fakeTabId
-						}
-					} as any, () => { });
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._clearExecutedScripts();
+				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+					id: REPLACE.fakeTabId,
+					url: 'http://www.notexample.com'
+				};
+				window.chrome.runtime.sendMessage({
+					type: 'newTabCreated'
 				}, {
-					fakeTabId: fakeTabId
-				})).then(() => {
-					return wait(driver, 50);
-				}).then(() => {
-					return driver.executeScript(inlineFn(() => {
-						return JSON.stringify(window.chrome._executedScripts);
-					}));
-				}).then((str: EncodedString<ExecutedScripts>) => {
-					const activatedScripts = JSON.parse(str);
+					tab: {
+						id: REPLACE.fakeTabId
+					}
+				} as any, function() { });
+			}, {
+				fakeTabId: fakeTabId
+			}));
+			await wait(50);
+			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
+				return JSON.stringify(window.chrome._executedScripts);
+			})));
 
-					assert.lengthOf(activatedScripts, 1, 'one script activated');
-					assert.strictEqual(activatedScripts[0].id, fakeTabId, 
-						'script was executed on right tab');
-					done();
-				});
+			assert.lengthOf(activatedScripts, 1, 'one script activated');
+			assert.strictEqual(activatedScripts[0].id, fakeTabId, 
+				'script was executed on right tab');
 		});
-		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', (done) => {
+		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', async () => {
 			const fakeTabId = getRandomId();
-			getContextMenu(driver).then((contextMenu) => {
-				driver
-					.executeScript(inlineFn((REPLACE) => {
-						window.chrome._clearExecutedScripts();
-						return window.chrome._currentContextMenu[0]
-							.children[ScriptOnPageTests.RUN_ON_CLICKING]
-							.currentProperties.onclick(
-								REPLACE.page, REPLACE.tab
-							);
-					}, {
-						page: {
-							menuItemId: contextMenu[0].id,
-							editable: false,
-							pageUrl: 'www.google.com'
-						},
-						tab: {
-							id: fakeTabId,
-							index: 1,
-							windowId: getRandomId(),
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false
-						}
-					})).then(() => {
-						return driver
-							.executeScript(inlineFn(() => {
-								return JSON.stringify(window.chrome._executedScripts);
-							}));
-					}).then((str: EncodedString<ExecutedScripts>) => {
-						const activatedScripts = JSON.parse(str);
-						assert.lengthOf(activatedScripts, 1, 'one script was activated');
-						assert.strictEqual(activatedScripts[0].id, fakeTabId,
-							'script was executed on the right tab');
-						done();
-					});
-			});
+			const contextMenu = await getContextMenu();
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._clearExecutedScripts();
+				return window.chrome._currentContextMenu[0]
+					.children[ScriptOnPageTests.RUN_ON_CLICKING]
+					.currentProperties.onclick(
+						REPLACE.page, REPLACE.tab
+					);
+			}, {
+				page: {
+					menuItemId: contextMenu[0].id,
+					editable: false,
+					pageUrl: 'www.google.com'
+				},
+				tab: {
+					id: fakeTabId,
+					index: 1,
+					windowId: getRandomId(),
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
+			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
+				return JSON.stringify(window.chrome._executedScripts);
+			})));
+
+			assert.lengthOf(activatedScripts, 1, 'one script was activated');
+			assert.strictEqual(activatedScripts[0].id, fakeTabId,
+				'script was executed on the right tab');
 		});
-		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', (done) => {
+		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', async () => {
 			const fakeTabId = getRandomId();
-			driver
-				.executeScript(inlineFn((REPLACE) => {
-					window.chrome._clearExecutedScripts();
-					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
-						id: REPLACE.fakeTabId,
-						url: 'http://www.example.com'
-					};
-					window.chrome.runtime.sendMessage({
-						type: 'newTabCreated'
-					}, {
-						tab: {
-							id: REPLACE.fakeTabId
-						}
-					} as any, () => { });
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._clearExecutedScripts();
+				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+					id: REPLACE.fakeTabId,
+					url: 'http://www.example.com'
+				};
+				window.chrome.runtime.sendMessage({
+					type: 'newTabCreated'
 				}, {
-					fakeTabId: fakeTabId
-				})).then(() => {
-					return wait(driver, 50);
-				}).then(() => {
-					return driver.executeScript(inlineFn(() => {
-						return JSON.stringify(window.chrome._executedScripts);
-					}));
-				}).then((str: EncodedString<ExecutedScripts>) => {
-					const activatedScripts = JSON.parse(str);
+					tab: {
+						id: REPLACE.fakeTabId
+					}
+				} as any, function () { });
+			}, {
+				fakeTabId: fakeTabId
+			}));
+			await wait(50);
+			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
+				return JSON.stringify(window.chrome._executedScripts);
+			})));
 
-					//First one is the ALWAYS_RUN script, ignore that
-					assert.lengthOf(activatedScripts, 2, 'two scripts activated');
-					assert.strictEqual(activatedScripts[1].id, fakeTabId, 
-						'new script was executed on right tab');
-					done();
-				});
+			//First one is the ALWAYS_RUN script, ignore that
+			assert.lengthOf(activatedScripts, 2, 'two scripts activated');
+			assert.strictEqual(activatedScripts[1].id, fakeTabId, 
+				'new script was executed on right tab');
 		});
-		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', (done) => {
+		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', async () => {
 			const fakeTabId = getRandomId();
-			driver
-				.executeScript(inlineFn((REPLACE) => {
-					window.chrome._clearExecutedScripts();
-					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
-						id: REPLACE.fakeTabId,
-						url: 'http://www.example2.com'
-					};
-					window.chrome.runtime.sendMessage({
-						type: 'newTabCreated'
-					}, {
-						tab: {
-							id: REPLACE.fakeTabId
-						}
-					} as any, () => { });
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._clearExecutedScripts();
+				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+					id: REPLACE.fakeTabId,
+					url: 'http://www.example2.com'
+				};
+				window.chrome.runtime.sendMessage({
+					type: 'newTabCreated'
 				}, {
-					fakeTabId: fakeTabId
-				})).then(() => {
-					return getContextMenu(driver);
-				}).then((contextMenu) => {
-					assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
+					tab: {
+						id: REPLACE.fakeTabId
+					}
+				} as any, function () { });
+			}, {
+				fakeTabId: fakeTabId
+			}));
+			const contextMenu = await getContextMenu();
 
-					return driver
-						.executeScript(inlineFn((REPLACE) => {
-							window.chrome._clearExecutedScripts();
-							return window.chrome._currentContextMenu[0]
-								.children[1]
-								.currentProperties.onclick(
-								REPLACE.page, REPLACE.tab
-							);
-						}, {
-							page: {
-								menuItemId: contextMenu[0].id,
-								editable: false,
-								pageUrl: 'www.google.com'
-							},
-							tab: {
-								id: fakeTabId,
-								index: 1,
-								windowId: getRandomId(),
-								highlighted: false,
-								active: true,
-								pinned: false,
-								selected: false,
-								url: 'http://www.google.com',
-								title: 'Google',
-								incognito: false
-							}
-						}));
-				}).then(() => {
-					return driver
-						.executeScript(inlineFn(() => {
-							return JSON.stringify(window.chrome._executedScripts);
-						}));
-				}).then((str: EncodedString<ExecutedScripts>) => {
-					const activatedScripts = JSON.parse(str);
-					assert.lengthOf(activatedScripts, 1, 'one script was activated');
-					assert.strictEqual(activatedScripts[0].id, fakeTabId,
-						'script was executed on the right tab');
-					done();
-				});
+			assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
+
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._clearExecutedScripts();
+				return window.chrome._currentContextMenu[0]
+					.children[1]
+					.currentProperties.onclick(
+					REPLACE.page, REPLACE.tab
+				);
+			}, {
+				page: {
+					menuItemId: contextMenu[0].id,
+					editable: false,
+					pageUrl: 'www.google.com'
+				},
+				tab: {
+					id: fakeTabId,
+					index: 1,
+					windowId: getRandomId(),
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
+			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
+				return JSON.stringify(window.chrome._executedScripts);
+			})));
+
+			assert.lengthOf(activatedScripts, 1, 'one script was activated');
+			assert.strictEqual(activatedScripts[0].id, fakeTabId,
+				'script was executed on the right tab');
 		});
 		it('should run the backgroundscript when one is specified', function(done) {
 			const fakeTabId = getRandomId();
-			getContextMenu(driver).then((contextMenu) => {
+			getContextMenu().then((contextMenu) => {
 				assert.isAbove(contextMenu.length, 1, 'contextmenu contains at least 1 items');
 
-				assert.doesNotThrow(() => {
-					driver
-						.executeScript(inlineFn((REPLACE) => {
-							return window.chrome._currentContextMenu[0]
-								.children[2]
-								.currentProperties.onclick(
-									REPLACE.page, REPLACE.tab
-								);
-						}, {
-							page: {
-								menuItemId: contextMenu[0].id,
-								editable: false,
-								pageUrl: 'www.google.com'
-							},
-							tab: {
-								id: fakeTabId,
-								index: 1,
-								windowId: getRandomId(),
-								highlighted: false,
-								active: true,
-								pinned: false,
-								selected: false,
-								url: 'http://www.google.com',
-								title: 'Google',
-								incognito: false
-							}
-						})).then(() => {
-							return driver
-								.executeScript(inlineFn(() => {
-									return JSON.stringify(window.chrome._activatedBackgroundPages);
-								}));
-						}).then((str: EncodedString<Array<number>>) => {
-							const activatedBackgroundScripts = JSON.parse(str);
-							assert.lengthOf(activatedBackgroundScripts, 1,
-								'one backgroundscript was activated');
-							assert.strictEqual(activatedBackgroundScripts[0], 
-								CRMNodes[ScriptOnPageTests.BACKGROUNDSCRIPT].id,
-								'correct backgroundscript was executed');
-							done();
-						});
-				}, 'clicking the node does not throw');
-			});
-		});
-		it('should not show the disabled node', (done) => {
-			getContextMenu(driver).then((contextMenu) => {
-				assert.notInclude(contextMenu.map((item) => {
-					return item.id;
-				}), CRMNodes[ScriptOnPageTests.DISABLED].id,
-					'disabled node is not in the right-click menu');
-				done();
-			});
-		});
-		it('should run the correct code when clicked', (done) => {
-			const fakeTabId = getRandomId();
-			getContextMenu(driver).then((contextMenu) => {
-				driver
-					.executeScript(inlineFn((REPLACE) => {
-						window.chrome._clearExecutedScripts();
+				assert.doesNotThrow(async () => {
+					await driver.executeScript(inlineFn((REPLACE) => {
 						return window.chrome._currentContextMenu[0]
-							.children[ScriptOnPageTests.RUN_ON_CLICKING]
+							.children[2]
 							.currentProperties.onclick(
 								REPLACE.page, REPLACE.tab
 							);
@@ -4264,27 +3778,71 @@ describe('On-Page CRM', function() {
 							title: 'Google',
 							incognito: false
 						}
-					})).then(() => {
-						return driver
-							.executeScript(inlineFn(() => {
-								return JSON.stringify(window.chrome._executedScripts);
-							}));
-					}).then((str: EncodedString<ExecutedScripts>) => {
-						const activatedScripts = JSON.parse(str);
-						assert.lengthOf(activatedScripts, 1, 'one script was activated');
-						assert.strictEqual(activatedScripts[0].id, fakeTabId,
-							'script was executed on the right tab');
-						assert.include(activatedScripts[0].code,
-							CRMNodes[ScriptOnPageTests.RUN_ON_CLICKING].value.script,
-							'executed code is the same as set code');
-						done();
-					});
+					}));
+					const activatedBackgroundScripts = JSON.parse(await driver
+						.executeScript(inlineFn(() => {
+							return JSON.stringify(window.chrome._activatedBackgroundPages);
+						})));
+					assert.lengthOf(activatedBackgroundScripts, 1,
+						'one backgroundscript was activated');
+					assert.strictEqual(activatedBackgroundScripts[0], 
+						CRMNodes[ScriptOnPageTests.BACKGROUNDSCRIPT].id,
+						'correct backgroundscript was executed');
+					done();
+				}, 'clicking the node does not throw');
 			});
+		});
+		it('should not show the disabled node', async () => {
+			const contextMenu = await getContextMenu();
+			assert.notInclude(contextMenu.map((item) => {
+				return item.id;
+			}), CRMNodes[ScriptOnPageTests.DISABLED].id,
+				'disabled node is not in the right-click menu');
+		});
+		it('should run the correct code when clicked', async () => {
+			const fakeTabId = getRandomId();
+			const contextMenu = await getContextMenu();
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._clearExecutedScripts();
+				return window.chrome._currentContextMenu[0]
+					.children[ScriptOnPageTests.RUN_ON_CLICKING]
+					.currentProperties.onclick(
+						REPLACE.page, REPLACE.tab
+					);
+			}, {
+				page: {
+					menuItemId: contextMenu[0].id,
+					editable: false,
+					pageUrl: 'www.google.com'
+				},
+				tab: {
+					id: fakeTabId,
+					index: 1,
+					windowId: getRandomId(),
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
+			const activatedScripts = JSON.parse(await driver
+				.executeScript(inlineFn(() => {
+					return JSON.stringify(window.chrome._executedScripts);
+				})));
+			assert.lengthOf(activatedScripts, 1, 'one script was activated');
+			assert.strictEqual(activatedScripts[0].id, fakeTabId,
+				'script was executed on the right tab');
+			assert.include(activatedScripts[0].code,
+				CRMNodes[ScriptOnPageTests.RUN_ON_CLICKING].value.script,
+				'executed code is the same as set code');
 		});
 	});
 	describe('Stylesheets', function() {
 		this.slow(900);
-		this.timeout(2000 * timeModifier);
+		this.timeout(2000 * TIME_MODIFIER);
 
 		const CRMNodes = [
 			templates.getDefaultStylesheetNode({
@@ -4545,50 +4103,44 @@ describe('On-Page CRM', function() {
 			OPTIONS_BLOCKS = 12
 		}
 
-		function runStylesheet(index: StylesheetOnPageTests, expectedReg: RegExp, done: () => void) {
+		async function runStylesheet(index: StylesheetOnPageTests, expectedReg: RegExp, done: () => void) {
 			const fakeTabId = getRandomId();
-			getContextMenu(driver).then((contextMenu) => {
-				driver
-					.executeScript(inlineFn((REPLACE) => {
-						window.chrome._clearExecutedScripts();
-						return window.chrome._currentContextMenu[0]
-							.children[REPLACE.index - 3]
-							.currentProperties.onclick(
-								REPLACE.page, REPLACE.tab
-							);
-					}, {
-						index: index,
-						page: {
-							menuItemId: contextMenu[0].id,
-							editable: false,
-							pageUrl: 'www.google.com'
-						},
-						tab: {
-							id: fakeTabId,
-							index: 1,
-							windowId: getRandomId(),
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false
-						}
-					})).then((e) => {
-						return driver
-							.executeScript(inlineFn(() => {
-								return JSON.stringify(window.chrome._executedScripts);
-							}));
-					}).then((str: EncodedString<ExecutedScripts>) => {
-						const executedScripts = JSON.parse(str);
-						assert.lengthOf(executedScripts, 1, 'one stylesheet was activated');
-						assert.strictEqual(executedScripts[0].id, fakeTabId,
-							'stylesheet was executed on the right tab');
-						assert.isTrue(!!expectedReg.exec(executedScripts[0].code), 'executed code is the same as expected code');
-						done();
-					});
-			});
+			const contextMenu = await getContextMenu();
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._clearExecutedScripts();
+				return window.chrome._currentContextMenu[0]
+					.children[REPLACE.index - 3]
+					.currentProperties.onclick(
+						REPLACE.page, REPLACE.tab
+					);
+			}, {
+				index: index,
+				page: {
+					menuItemId: contextMenu[0].id,
+					editable: false,
+					pageUrl: 'www.google.com'
+				},
+				tab: {
+					id: fakeTabId,
+					index: 1,
+					windowId: getRandomId(),
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}))
+			const executedScripts = JSON.parse(await driver
+				.executeScript(inlineFn(() => {
+					return JSON.stringify(window.chrome._executedScripts);
+				})));
+			assert.lengthOf(executedScripts, 1, 'one stylesheet was activated');
+			assert.strictEqual(executedScripts[0].id, fakeTabId,
+				'stylesheet was executed on the right tab');
+			assert.isTrue(!!expectedReg.exec(executedScripts[0].code), 'executed code is the same as expected code');
 		}
 
 		function genContainsRegex(...contains: Array<string>): RegExp {
@@ -4597,271 +4149,232 @@ describe('On-Page CRM', function() {
 		}
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.timeout(5000 * timeModifier);
+			this.timeout(5000 * TIME_MODIFIER);
 			this.slow(4000);
-			assert.doesNotThrow(() => {
-				resetSettings(this, driver).then(() => {
-					driver
-						.executeScript(inlineFn((REPLACE) => {
-							window.app.settings.crm = REPLACE.crm;
-							window.app.upload();
-							return true;
-						}, {
-							crm: CRMNodes
-						})).then(() => {
-							done();
-						});
-				});
+			assert.doesNotThrow(async () => {
+				await resetSettings(this);
+				await driver.executeScript(inlineFn((REPLACE) => {
+					window.app.settings.crm = REPLACE.crm;
+					window.app.upload();
+					return true;
+				}, {
+					crm: CRMNodes
+				}));
+				done();
 			}, 'setting up the CRM does not throw');
 		});
-		it('should always run when launchMode is set to ALWAYS_RUN', (done) => {
+		it('should always run when launchMode is set to ALWAYS_RUN', async () => {
 			const fakeTabId = getRandomId();
-			driver
-				.executeScript(inlineFn((REPLACE) => {
-					window.chrome._clearExecutedScripts();
-					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
-						id: REPLACE.fakeTabId,
-						url: 'http://www.notexample.com'
-					};
-					
-					window.chrome.runtime.sendMessage({
-						type: 'newTabCreated'
-					}, {
-						tab: {
-							id: REPLACE.fakeTabId
-						}
-					} as any, () => { });
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._clearExecutedScripts();
+				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+					id: REPLACE.fakeTabId,
+					url: 'http://www.notexample.com'
+				};
+				
+				window.chrome.runtime.sendMessage({
+					type: 'newTabCreated'
 				}, {
-					fakeTabId: fakeTabId
-				})).then(() => {
-					return wait(driver, 50);
-				}).then(() => {
-					return driver.executeScript(inlineFn(() => {
-						return JSON.stringify(window.chrome._executedScripts);
-					}));
-				}).then((str: EncodedString<ExecutedScripts>) => {
-					const activatedScripts = JSON.parse(str);
+					tab: {
+						id: REPLACE.fakeTabId
+					}
+				} as any, function () { });
+			}, {
+				fakeTabId: fakeTabId
+			}));
+			await wait(50);
+			const activatedScripts = JSON.parse(await driver
+				.executeScript(inlineFn(() => {
+					return JSON.stringify(window.chrome._executedScripts);
+				})));
 
-					//First one is the default on stylesheet, ignore that
-					assert.lengthOf(activatedScripts, 2, 'two stylesheets activated');
-					assert.strictEqual(activatedScripts[1].id, fakeTabId, 
-						'stylesheet was executed on right tab');
-					done();
-				});
+			//First one is the default on stylesheet, ignore that
+			assert.lengthOf(activatedScripts, 2, 'two stylesheets activated');
+			assert.strictEqual(activatedScripts[1].id, fakeTabId, 
+				'stylesheet was executed on right tab');
 		});
-		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', (done) => {
+		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', async () => {
 			const fakeTabId = getRandomId();
-			getContextMenu(driver).then((contextMenu) => {
-				driver
-					.executeScript(inlineFn((REPLACE) => {
-						window.chrome._clearExecutedScripts();
-						return window.chrome._currentContextMenu[0]
-							.children[2]
-							.currentProperties.onclick(
-								REPLACE.page, REPLACE.tab
-							);
-					}, {
-						page: {
-							menuItemId: contextMenu[0].id,
-							editable: false,
-							pageUrl: 'www.google.com'
-						},
-						tab: {
-							id: fakeTabId,
-							index: 1,
-							windowId: getRandomId(),
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false
-						}
-					})).then(() => {
-						return driver
-							.executeScript(inlineFn(() => {
-								return JSON.stringify(window.chrome._executedScripts);
-							}));
-					}).then((str: EncodedString<ExecutedScripts>) => {
-						const activatedScripts = JSON.parse(str);
-						assert.lengthOf(activatedScripts, 1, 'one stylesheet was activated');
-						assert.strictEqual(activatedScripts[0].id, fakeTabId,
-							'stylesheet was executed on the right tab');
-						done();
-					});
-			});
+			const contextMenu = await getContextMenu();
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._clearExecutedScripts();
+				return window.chrome._currentContextMenu[0]
+					.children[2]
+					.currentProperties.onclick(
+						REPLACE.page, REPLACE.tab
+					);
+			}, {
+				page: {
+					menuItemId: contextMenu[0].id,
+					editable: false,
+					pageUrl: 'www.google.com'
+				},
+				tab: {
+					id: fakeTabId,
+					index: 1,
+					windowId: getRandomId(),
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
+			const activatedScripts = JSON.parse(await driver
+				.executeScript(inlineFn(() => {
+					return JSON.stringify(window.chrome._executedScripts);
+				})));
+
+			assert.lengthOf(activatedScripts, 1, 'one stylesheet was activated');
+			assert.strictEqual(activatedScripts[0].id, fakeTabId,
+				'stylesheet was executed on the right tab');
 		});
-		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', (done) => {
+		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', async () => {
 			const fakeTabId = getRandomId();
-			driver
-				.executeScript(inlineFn((REPLACE) => {
-					window.chrome._clearExecutedScripts();
-					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
-						id: REPLACE.fakeTabId,
-						url: 'http://www.example.com'
-					};
-					window.chrome.runtime.sendMessage({
-						type: 'newTabCreated'
-					}, {
-						tab: {
-							id: REPLACE.fakeTabId
-						}
-					} as any, () => { });
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._clearExecutedScripts();
+				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+					id: REPLACE.fakeTabId,
+					url: 'http://www.example.com'
+				};
+				window.chrome.runtime.sendMessage({
+					type: 'newTabCreated'
 				}, {
-					fakeTabId: fakeTabId
-				})).then(() => {
-					return wait(driver, 50);
-				}).then(() => {
-					return driver.executeScript(inlineFn(() => {
-						return JSON.stringify(window.chrome._executedScripts);
-					}));
-				}).then((str: EncodedString<ExecutedScripts>) => {
-					const activatedScripts = JSON.parse(str);
+					tab: {
+						id: REPLACE.fakeTabId
+					}
+				} as any, function () { });
+			}, {
+				fakeTabId: fakeTabId
+			}));
+			await wait(50);
+			const activatedScripts = JSON.parse(await driver
+				.executeScript(inlineFn(() => {
+					return JSON.stringify(window.chrome._executedScripts);
+				})));
 
-					//First one is the ALWAYS_RUN stylesheet, second one is the default on one ignore that
-					assert.lengthOf(activatedScripts, 3, 'three stylesheets activated');
-					assert.strictEqual(activatedScripts[2].id, fakeTabId, 
-						'new stylesheet was executed on right tab');
-					done();
-				});
+			//First one is the ALWAYS_RUN stylesheet, second one is the default on one ignore that
+			assert.lengthOf(activatedScripts, 3, 'three stylesheets activated');
+			assert.strictEqual(activatedScripts[2].id, fakeTabId, 
+				'new stylesheet was executed on right tab');
 		});
-		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', function(done) {
+		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', async function() {
 			const fakeTabId = getRandomId();
-			driver
-				.executeScript(inlineFn((REPLACE) => {
-					window.chrome._clearExecutedScripts();
-					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
-						id: REPLACE.fakeTabId,
-						url: 'http://www.example2.com'
-					};
-					window.chrome.runtime.sendMessage({
-						type: 'newTabCreated'
-					}, {
-						tab: {
-							id: REPLACE.fakeTabId
-						}
-					} as any, () => { });
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._clearExecutedScripts();
+				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+					id: REPLACE.fakeTabId,
+					url: 'http://www.example2.com'
+				};
+				window.chrome.runtime.sendMessage({
+					type: 'newTabCreated'
 				}, {
-					fakeTabId: fakeTabId
-				})).then(() => {
-					return getContextMenu(driver);
-				}).then((contextMenu) => {
-					assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
+					tab: {
+						id: REPLACE.fakeTabId
+					}
+				} as any, function () { });
+			}, {
+				fakeTabId: fakeTabId
+			}));
+			const contextMenu = await getContextMenu();
+			assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
 
-					return driver
-						.executeScript(inlineFn((REPLACE) => {
-							window.chrome._clearExecutedScripts();
-							return window.chrome._currentContextMenu[0]
-								.children[3]
-								.currentProperties.onclick(
-								REPLACE.page, REPLACE.tab
-							);
-						}, {
-							page: {
-								menuItemId: contextMenu[0].id,
-								editable: false,
-								pageUrl: 'www.google.com'
-							},
-							tab: {
-								id: fakeTabId,
-								index: 1,
-								windowId: getRandomId(),
-								highlighted: false,
-								active: true,
-								pinned: false,
-								selected: false,
-								url: 'http://www.google.com',
-								title: 'Google',
-								incognito: false
-							}
-						}));
-				}).then(() => {
-					return driver
-						.executeScript(inlineFn(() => {
-							return JSON.stringify(window.chrome._executedScripts);
-						}));
-				}).then((str: EncodedString<ExecutedScripts>) => {
-					const activatedScripts = JSON.parse(str);
-					assert.lengthOf(activatedScripts, 1, 'one script was activated');
-					assert.strictEqual(activatedScripts[0].id, fakeTabId,
-						'script was executed on the right tab');
-					done();
-				});
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._clearExecutedScripts();
+				return window.chrome._currentContextMenu[0]
+					.children[3]
+					.currentProperties.onclick(
+					REPLACE.page, REPLACE.tab
+				);
+			}, {
+				page: {
+					menuItemId: contextMenu[0].id,
+					editable: false,
+					pageUrl: 'www.google.com'
+				},
+				tab: {
+					id: fakeTabId,
+					index: 1,
+					windowId: getRandomId(),
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
+			const activatedScripts = JSON.parse(await driver
+				.executeScript(inlineFn(() => {
+					return JSON.stringify(window.chrome._executedScripts);
+				})));
+			assert.lengthOf(activatedScripts, 1, 'one script was activated');
+			assert.strictEqual(activatedScripts[0].id, fakeTabId,
+				'script was executed on the right tab');
 		});
-		it('should not show the disabled node', (done) => {
-			getContextMenu(driver).then((contextMenu) => {
-				assert.notInclude(contextMenu.map((item) => {
-					return item.id;
-				}), CRMNodes[StylesheetOnPageTests.DISABLED].id,
-					'disabled node is not in the right-click menu');
-				done();
-			});
+		it('should not show the disabled node', async () => {
+			const contextMenu = await getContextMenu();
+			assert.notInclude(contextMenu.map((item) => {
+				return item.id;
+			}), CRMNodes[StylesheetOnPageTests.DISABLED].id,
+				'disabled node is not in the right-click menu');
 		});
-		it('should run the correct code when clicked', function(done) {
+		it('should run the correct code when clicked', async function() {
 			const fakeTabId = getRandomId();
-			getContextMenu(driver).then((contextMenu) => {
-				driver
-					.executeScript(inlineFn((REPLACE) => {
-						window.chrome._clearExecutedScripts();
-						return window.chrome._currentContextMenu[0]
-							.children[2]
-							.currentProperties.onclick(
-								REPLACE.page, REPLACE.tab
-							);
-					}, {
-						page: {
-							menuItemId: contextMenu[0].id,
-							editable: false,
-							pageUrl: 'www.google.com'
-						},
-						tab: {
-							id: fakeTabId,
-							index: 1,
-							windowId: getRandomId(),
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false
-						}
-					})).then(() => {
-						return driver
-							.executeScript(inlineFn(() => {
-								return JSON.stringify(window.chrome._executedScripts);
-							}));
-					}).then((str: EncodedString<ExecutedScripts>) => {
-						const executedScripts = JSON.parse(str);
-						assert.lengthOf(executedScripts, 1, 'one script was activated');
-						assert.strictEqual(executedScripts[0].id, fakeTabId,
-							'script was executed on the right tab');
-						assert.include(executedScripts[0].code,
-							CRMNodes[StylesheetOnPageTests.RUN_ON_CLICKING].value.stylesheet.replace(/(\t|\s|\n)/g, ''),
-							'executed code is the same as set code');
-						done();
-					});
-			});
+			const contextMenu = await getContextMenu();
+			await driver.executeScript(inlineFn((REPLACE) => {
+				window.chrome._clearExecutedScripts();
+				return window.chrome._currentContextMenu[0]
+					.children[2]
+					.currentProperties.onclick(
+						REPLACE.page, REPLACE.tab
+					);
+			}, {
+				page: {
+					menuItemId: contextMenu[0].id,
+					editable: false,
+					pageUrl: 'www.google.com'
+				},
+				tab: {
+					id: fakeTabId,
+					index: 1,
+					windowId: getRandomId(),
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
+			const executedScripts = JSON.parse(await driver
+				.executeScript(inlineFn(() => {
+					return JSON.stringify(window.chrome._executedScripts);
+				})));
+			assert.lengthOf(executedScripts, 1, 'one script was activated');
+			assert.strictEqual(executedScripts[0].id, fakeTabId,
+				'script was executed on the right tab');
+			assert.include(executedScripts[0].code,
+				CRMNodes[StylesheetOnPageTests.RUN_ON_CLICKING].value.stylesheet.replace(/(\t|\s|\n)/g, ''),
+				'executed code is the same as set code');
 		});
-		it('should actually be applied to the page', function(done) {
-			driver
-				.executeScript(inlineFn((args) => {
-					const dummyEl = document.createElement('div');
-					dummyEl.id = 'stylesheetTestDummy';
+		it('should actually be applied to the page', async function() {
+			await driver.executeScript(inlineFn((args) => {
+				const dummyEl = document.createElement('div');
+				dummyEl.id = 'stylesheetTestDummy';
 
-					window.dummyContainer.appendChild(dummyEl);
-				})).then(() => {
-					return wait(driver, 100);
-				}).then(() => {
-					return findElement(driver, webdriver.By.id('stylesheetTestDummy'));
-				}).then((dummy) => {
-					return dummy.getSize();
-				}).then((dimensions) => {
-					assert.strictEqual(dimensions.width, 50, 'dummy element is 50px wide');
-					assert.strictEqual(dimensions.height, 50, 'dummy element is 50px high');
-					done();
-				});
+				window.dummyContainer.appendChild(dummyEl);
+			}));
+			await wait(100);
+			const dummy = await findElement(webdriver.By.id('stylesheetTestDummy'));
+			const dimensions = await dummy.getSize();
+
+			assert.strictEqual(dimensions.width, 50, 'dummy element is 50px wide');
+			assert.strictEqual(dimensions.height, 50, 'dummy element is 50px high');
 		});
 		it('should work with an if-then statement with no variables', function(done) {
 			runStylesheet(StylesheetOnPageTests.IF_NO_VARS, genContainsRegex('b', 'd', 'f'), done);
@@ -4873,7 +4386,7 @@ describe('On-Page CRM', function() {
 			runStylesheet(StylesheetOnPageTests.IF_ELSE, genContainsRegex('a', 'd'), done);
 		});
 		it('should work with multiple nested if statements', function(done) {
-			this.timeout(5000 * timeModifier);
+			this.timeout(5000 * TIME_MODIFIER);
 			runStylesheet(StylesheetOnPageTests.IF_NESTED, genContainsRegex('c', 'd', 'e'), done);
 		});
 		it('should work with multiple nested if-else statements', function(done) {
@@ -4887,172 +4400,148 @@ describe('On-Page CRM', function() {
 			let dummy1: FoundElement;
 			let dummy2: FoundElement;
 
-			before('Setting up dummy elements', function(done) {
-				driver
-					.executeScript(inlineFn(() => {
-						const dummy1 = document.createElement('div');
-						dummy1.id = 'stylesheetTestDummy1';
-						
-						const dummy2 = document.createElement('div');
-						dummy2.id = 'stylesheetTestDummy2';
+			before('Setting up dummy elements', async function() {
+				await driver.executeScript(inlineFn(() => {
+					const dummy1 = document.createElement('div');
+					dummy1.id = 'stylesheetTestDummy1';
+					
+					const dummy2 = document.createElement('div');
+					dummy2.id = 'stylesheetTestDummy2';
 
-						window.dummyContainer.appendChild(dummy1);
-						window.dummyContainer.appendChild(dummy2); 
-					})).then(() => {
-						return wait(driver, 50);
-					}).then(() => {
-						return FoundElementPromise.all([
-							findElement(driver, webdriver.By.id('stylesheetTestDummy1')),
-							findElement(driver, webdriver.By.id('stylesheetTestDummy2'))
-						]);
-					}).then((results) => {
-						wait(driver, 150).then(() => {
-							dummy1 = results[0];
-							dummy2 = results[1];
-							done();
-						});
-					});
+					window.dummyContainer.appendChild(dummy1);
+					window.dummyContainer.appendChild(dummy2); 
+				}));
+				await wait(50);
+				const results = await FoundElementPromise.all([
+					findElement(webdriver.By.id('stylesheetTestDummy1')),
+					findElement(webdriver.By.id('stylesheetTestDummy2'))
+				]);
+				await wait(150);
+				dummy1 = results[0];
+				dummy2 = results[1];
 			});
 			describe('Default off', function() {
 				const tabId = getRandomId();
 				this.slow(600);
-				this.timeout(1600 * timeModifier);
-				it('should be off by default', (done) => {
-					wait(driver, 150).then(() => {
-						dummy1.getSize().then((dimensions) => {
-							assert.notStrictEqual(dimensions.width, 50,
-								'dummy element is not 50px wide');
-							done();
-						});
-					});
+				this.timeout(1600 * TIME_MODIFIER);
+				it('should be off by default', async () => {
+					await wait(150);
+					const dimensions = await dummy1.getSize();
+					assert.notStrictEqual(dimensions.width, 50,
+						'dummy element is not 50px wide');
 				});
-				it('should be on when clicked', (done) => {
-					getContextMenu(driver).then((contextMenu) => {
-						driver.executeScript(inlineFn((REPLACE) => {
-							return window.chrome._currentContextMenu[0]
-								.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
-								.currentProperties.onclick(
-									REPLACE.page, REPLACE.tab
-								);
-						}, {
-							page: {
-								menuItemId: contextMenu[0].id,
-								editable: false,
-								pageUrl: 'www.google.com',
-								wasChecked: false
-							},
-							tab: {
-								id: tabId,
-								index: 1,
-								windowId: getRandomId(),
-								highlighted: false,
-								active: true,
-								pinned: false,
-								selected: false,
-								url: 'http://www.google.com',
-								title: 'Google',
-								incognito: false
-							}
-						}));
-					}).then(() => {
-						return wait(driver, 100);
-					}).then(() => {
-						return dummy1.getSize();
-					}).then((dimensions) => {
-						assert.strictEqual(dimensions.width, 50,
-							'dummy element is 50px wide');
-						done();
-					});
+				it('should be on when clicked', async () => {
+					const contextMenu = await getContextMenu();
+					await driver.executeScript(inlineFn((REPLACE) => {
+						return window.chrome._currentContextMenu[0]
+							.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
+							.currentProperties.onclick(
+								REPLACE.page, REPLACE.tab
+							);
+					}, {
+						page: {
+							menuItemId: contextMenu[0].id,
+							editable: false,
+							pageUrl: 'www.google.com',
+							wasChecked: false
+						},
+						tab: {
+							id: tabId,
+							index: 1,
+							windowId: getRandomId(),
+							highlighted: false,
+							active: true,
+							pinned: false,
+							selected: false,
+							url: 'http://www.google.com',
+							title: 'Google',
+							incognito: false
+						}
+					}));
+					await wait(100);
+					const dimensions = await dummy1.getSize();
+					assert.strictEqual(dimensions.width, 50,
+						'dummy element is 50px wide');
 				});
-				it('should be off when clicked again', (done) => {
-					getContextMenu(driver).then((contextMenu) => {
-						driver.executeScript(inlineFn((REPLACE) => {
-							return window.chrome._currentContextMenu[0]
-								.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
-								.currentProperties.onclick(
-									REPLACE.page, REPLACE.tab
-								);
-						}, {
-							page: {
-								menuItemId: contextMenu[0].id,
-								editable: false,
-								pageUrl: 'www.google.com',
-								wasChecked: true
-							},
-							tab: {
-								id: tabId,
-								index: 1,
-								windowId: getRandomId(),
-								highlighted: false,
-								active: true,
-								pinned: false,
-								selected: false,
-								url: 'http://www.google.com',
-								title: 'Google',
-								incognito: false
-							}
-						}));
-					}).then(() => {
-						return wait(driver, 100);
-					}).then(() => {
-						return dummy1.getSize();
-					}).then((dimensions) => {
-						assert.notStrictEqual(dimensions.width, 50,
-							'dummy element is not 50px wide');
-						done();
-					});
+				it('should be off when clicked again', async () => {
+					const contextMenu = await getContextMenu();
+					await driver.executeScript(inlineFn((REPLACE) => {
+						return window.chrome._currentContextMenu[0]
+							.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
+							.currentProperties.onclick(
+								REPLACE.page, REPLACE.tab
+							);
+					}, {
+						page: {
+							menuItemId: contextMenu[0].id,
+							editable: false,
+							pageUrl: 'www.google.com',
+							wasChecked: true
+						},
+						tab: {
+							id: tabId,
+							index: 1,
+							windowId: getRandomId(),
+							highlighted: false,
+							active: true,
+							pinned: false,
+							selected: false,
+							url: 'http://www.google.com',
+							title: 'Google',
+							incognito: false
+						}
+					}));
+					await wait(100);
+					const dimensions = await dummy1.getSize();
+					assert.notStrictEqual(dimensions.width, 50,
+						'dummy element is not 50px wide');
 				});
 			});
 			describe('Default on', function() {
 				this.slow(300);
-				this.timeout(1500 * timeModifier);
-				it('should be on by default', (done) => {
-					dummy2.getSize().then((dimensions) => {
-						assert.strictEqual(dimensions.width, 50,
-							'dummy element is 50px wide');
-						done();
-					});
+				this.timeout(1500 * TIME_MODIFIER);
+				it('should be on by default', async () => {
+					const dimensions = await dummy2.getSize();
+					assert.strictEqual(dimensions.width, 50,
+						'dummy element is 50px wide');
 				});
 			});
 		});
 	});
 	describe('Errors', function() {
-		this.timeout(60000 * timeModifier);
+		this.timeout(60000 * TIME_MODIFIER);
 		this.slow(100);
 
-		it('should not have been thrown', (done) => {
-			driver
-				.executeScript(inlineFn(() => {
-					return window.lastError ? {
-						message: window.lastError.message,
-						stack: window.lastError.stack
-					 } : 'noError';
-				})).then((result: 'noError'|{
-					message: string;
-					stack: string;
-				}) => {
-					if (result !== 'noError' && 
-						result.message.indexOf('Object [object global] has no method') !== -1) {
-						console.log(result);
-						assert.ifError(result, 'no errors should be thrown during testing');
-					} else {
-						assert.ifError(false, 'no errors should be thrown during testing');
-					}
-					done();
-				});
+		it('should not have been thrown', async () => {
+			const result = await driver.executeScript(inlineFn(() => {
+				return window.lastError ? {
+					message: window.lastError.message,
+					stack: window.lastError.stack
+					} : 'noError';
+			})) as 'noError'|{
+				message: string;
+				stack: string;
+			};
+			if (result !== 'noError' && 
+				result.message.indexOf('Object [object global] has no method') !== -1) {
+				console.log(result);
+				assert.ifError(result, 'no errors should be thrown during testing');
+			} else {
+				assert.ifError(false, 'no errors should be thrown during testing');
+			}
 		});
 	});
 });
 
 after('quit driver', function() {
-	this.timeout(21000);
+	this.timeout(210000);
 	return new webdriver.promise.Promise<void>((resolve) => {
 		//Resolve after 20 seconds regardless of quitting result
 		setTimeout(() => {
 			console.log('Resolving automatically');
 			resolve(null);
 		}, 15000);
-
+		
 		driver.quit().then(() => {
 			resolve(null);
 		});
