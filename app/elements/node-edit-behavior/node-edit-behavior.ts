@@ -67,24 +67,10 @@ namespace NodeEditBehaviorNamespace {
 		static properties = nodeEditBehaviorProperties;
 
 		static getContentTypeLaunchers(this: NodeEditBehaviorInstance, resultStorage: Partial<CRM.Node>) {
-			const arr: [
-				keyof typeof nodeEditBehaviorProperties,
-				keyof typeof nodeEditBehaviorProperties,
-				keyof typeof nodeEditBehaviorProperties,
-				keyof typeof nodeEditBehaviorProperties,
-				keyof typeof nodeEditBehaviorProperties,
-				keyof typeof nodeEditBehaviorProperties
-			] = [
-				'pageContentSelected',
-				'linkContentSelected',
-				'selectionContentSelected',
-				'imageContentSelected',
-				'videoContentSelected',
-				'audioContentSelected'
-			];
-			resultStorage.onContentTypes = arr.map((key) => {
-				return this[key] as boolean;
-			}) as CRM.ContentTypes;
+			const containers = this.$.showOnContentIconsContainer.children;
+			resultStorage.onContentTypes = Array.prototype.slice.apply(containers).map((item: Element) => {
+				return item.querySelector('paper-checkbox').checked;
+			});
 		};
 
 		static getTriggers(this: NodeEditBehaviorInstance, resultStorage: Partial<CRM.Node>) {
