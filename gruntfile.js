@@ -887,13 +887,18 @@ module.exports = function(grunt) {
 		'polymerBuild:dev', '_buildPostPolymer', 
 		'jsbeautifier:beautifyBuilt', 'zip']);
 
+	//Builds the extension without compiling typescript
+	// This can be ahdny if you're running a typescript compiler
+	// already or don't care about compilation errors
+	grunt.registerTask('buildNoCompile', ['_buildPrePolymer',
+		'polymerBuild:prod', '_buildPostPolymer', 'zip']);
+
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
 	grunt.registerTask('buildDev', ['compile', 'buildDevNoCompile']);
 
 	//Builds the extension and places the zip and all other files in build/
-	grunt.registerTask('build', ['compile', '_buildPrePolymer',
-		'polymerBuild:prod', '_buildPostPolymer', 'zip']);
+	grunt.registerTask('build', ['compile', 'buildNoCompile']);
 
 	//Builds the extension and places only the zip in build/
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
@@ -904,6 +909,12 @@ module.exports = function(grunt) {
 
 	//Builds the test page
 	grunt.registerTask('buildTest', ['build', 'joinPages:test']);
+
+	//Buids the test page without compiling the test files
+	// Can be handy if you're already running a typescript compiler
+	// or have made some changes the typescript compiler doesn't like
+	grunt.registerTask('buildTestNoTestCompile', ['updateTsIdMaps', 
+		'ts:app', 'buildNoCompile', 'joinPages:test'])
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
 	grunt.registerTask('test', ['testBuild', 'build', 'buildTest', 
