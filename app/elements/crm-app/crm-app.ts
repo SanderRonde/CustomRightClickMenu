@@ -2834,7 +2834,7 @@ namespace CRMAppElement {
 					return;
 				}
 
-				const value = input.value;
+				const value = input.$$('input').value;
 				this.parent().globalExcludes[excludeIndex] = value;
 				this.parent().set('globalExcludes', this.parent().globalExcludes);
 				chrome.storage.local.set({

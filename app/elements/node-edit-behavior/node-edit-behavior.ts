@@ -134,7 +134,7 @@ namespace NodeEditBehaviorNamespace {
 			window.crmEditPage.animateOut();
 
 			const itemInEditPage = window.app.editCRM.getCRMElementFromPath(this.item.path, false);
-			newSettings.name = this.$.nameInput.value;
+			newSettings.name = this.$.nameInput.$$('input').value;
 			itemInEditPage.itemName = newSettings.name;
 
 			if (!newSettings.onContentTypes[window.app.crmType]) {
@@ -168,7 +168,7 @@ namespace NodeEditBehaviorNamespace {
 			e.keyCode === 13 && this.save();
 
 			window.setTimeout(() => {
-				const value = this.$.nameInput.value;
+				const value = this.$.nameInput.$$('input').value;
 				if (this.item.type === 'script') {
 					window.app.$.ribbonScriptName.innerText = value;
 				} else if (this.item.type === 'stylesheet') {
@@ -440,7 +440,7 @@ namespace NodeEditBehaviorNamespace {
 			setTimeout(() => {
 				this.$.nameInput.focus();
 
-				const value = this.$.nameInput.value;
+				const value = this.$.nameInput.$$('input').value;
 				if (this.item.type === 'script') {
 					window.app.$.ribbonScriptName.innerText = value;
 				} else if (this.item.type === 'stylesheet') {

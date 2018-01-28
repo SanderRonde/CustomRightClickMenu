@@ -28,18 +28,18 @@ namespace DefaultLinkElement {
 
 		static onClick(this: DefaultLink) {
 			const link = this.href;
-			const name = this.$.input.value;
+			const name = this.$.input.$$('input').value;
 			const script =
 				`var query;
-	var url = "${link}";
-	if (crmAPI.getSelection()) {
-		query = crmAPI.getSelection();
-	} else {
-		query = window.prompt(\'Please enter a search query\');
-	}
-	if (query) {
-		window.open(url.replace(/%s/g,query), \'_blank\');
-	}`;
+var url = "${link}";
+if (crmAPI.getSelection()) {
+	query = crmAPI.getSelection();
+} else {
+	query = window.prompt(\'Please enter a search query\');
+}
+if (query) {
+	window.open(url.replace(/%s/g,query), \'_blank\');
+}`;
 
 			let newItem;
 			if (this.searchEngine) {

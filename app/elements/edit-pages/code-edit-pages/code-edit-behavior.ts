@@ -132,13 +132,13 @@ namespace CodeEditBehaviorNamespace {
 		}
 
 		static fontSizeChange(this: CodeEditBehaviorInstance) {
-			window.app.settings.editor.zoom = this.$.editorThemeFontSizeInput.value + '';
+			window.app.settings.editor.zoom = this.$.editorThemeFontSizeInput.$$('input').value + '';
 			window.app.upload();
 		}
 
 		static jsLintGlobalsChange(this: CodeEditBehaviorInstance) {
 			this.async(() => {
-				const globals = this.$.editorJSLintGlobalsInput.value.split(',').map(global => global.trim());
+				const globals = this.$.editorJSLintGlobalsInput.$$('inptu').value.split(',').map(global => global.trim());
 				chrome.storage.local.set({
 					jsLintGlobals: globals
 				});
@@ -627,7 +627,7 @@ namespace CodeEditBehaviorNamespace {
 				};
 	
 				Array.prototype.slice.apply(scriptContainer.$.keyBindingsTemplate.querySelectorAll('paper-input')).forEach((input: HTMLPaperInputElement) => {
-					input.setAttribute('data-prev-value', input.value);
+					input.setAttribute('data-prev-value', input.$$('input').value);
 				});
 			}
 
@@ -642,7 +642,7 @@ namespace CodeEditBehaviorNamespace {
 				container.$.editorThemeSettingDark.classList.remove('currentTheme');
 			}
 
-			container.$.editorThemeFontSizeInput.value = window.app.settings.editor.zoom || '100';
+			container.$.editorThemeFontSizeInput.$$('input').value = window.app.settings.editor.zoom || '100';
 		};
 
 		static _showFullscreenOptions(this: CodeEditBehaviorInstance) {
