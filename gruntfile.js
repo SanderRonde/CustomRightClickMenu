@@ -782,6 +782,7 @@ module.exports = function(grunt) {
 		},
 		babel: {
 			options: {
+				compact: false,
 				presets: ['es3', 'es2015']
 			},
 			build: {
