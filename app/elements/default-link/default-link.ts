@@ -42,7 +42,7 @@ namespace DefaultLinkElement {
 	}`;
 
 			let newItem;
-			if (this.searchEngine !== undefined) {
+			if (this.searchEngine) {
 				newItem = window.app.templates.getDefaultScriptNode({
 					id: window.app.generateItemId(),
 					name: name,
