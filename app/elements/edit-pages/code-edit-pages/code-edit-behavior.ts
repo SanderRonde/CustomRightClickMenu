@@ -138,7 +138,7 @@ namespace CodeEditBehaviorNamespace {
 
 		static jsLintGlobalsChange(this: CodeEditBehaviorInstance) {
 			this.async(() => {
-				const globals = this.$.editorJSLintGlobalsInput.$$('inptu').value.split(',').map(global => global.trim());
+				const globals = this.$.editorJSLintGlobalsInput.$$('input').value.split(',').map(global => global.trim());
 				chrome.storage.local.set({
 					jsLintGlobals: globals
 				});
