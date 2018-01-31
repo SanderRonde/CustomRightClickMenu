@@ -281,7 +281,7 @@ namespace TypeSwitcherElement {
 
 			if (prevType === 'menu') {
 				//Turn children into "shadow items"
-				const column = this.parentElement.parentElement.parentElement.parentElement as HTMLElement & {
+				const column = (this.parentElement.parentElement.parentNode as ShadowRoot).host.parentElement as HTMLElement & {
 					index: number;
 				};
 				let columnCont = column.parentElement.parentElement;
