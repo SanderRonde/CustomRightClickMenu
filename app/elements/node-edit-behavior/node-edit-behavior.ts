@@ -86,10 +86,6 @@ namespace NodeEditBehaviorNamespace {
 		};
 
 		static cancel(this: NodeEditBehaviorInstance) {
-			Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('CodeMirror-Tern-tooltip')).forEach((toolTip: HTMLElement) => {
-				toolTip.remove();
-			});
-
 			if ((<NodeEditBehaviorScriptInstance|NodeEditBehaviorStylesheetInstance>this).cancelChanges) {
 				//This made the compiler angry
 				((<NodeEditBehaviorScriptInstance|NodeEditBehaviorStylesheetInstance>this).cancelChanges as any)();
@@ -110,10 +106,6 @@ namespace NodeEditBehaviorNamespace {
 				//Also made the compiler angry
 				((<NodeEditBehaviorScriptInstance|NodeEditBehaviorStylesheetInstance>this).saveChanges as any)(newSettings);
 			}
-
-			Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('CodeMirror-Tern-tooltip')).forEach((toolTip: HTMLElement) => {
-				toolTip.remove();
-			});
 
 			this.getContentTypeLaunchers(newSettings);
 			this.getTriggers(newSettings);
