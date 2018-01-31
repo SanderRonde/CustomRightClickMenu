@@ -1822,7 +1822,7 @@ describe('Options Page', function() {
 					return element.findElement(webdriver.By.tagName('paper-checkbox')).click().then(() => {
 						return wait(25);
 					});
-				})
+				});
 				await saveDialog(dialog);
 				const crm = await getCRM();
 
