@@ -587,8 +587,8 @@ async function switchToTypeAndOpen(type: CRM.NodeType) {
 	}
 	await driver.executeScript(inlineFn(() => {
 		const crmItem = window.app.editCRM
-			.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])').item(0);
-		crmItem.querySelector('type-switcher').changeType('REPLACE.type' as CRM.NodeType);	
+			.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])').item(0) as EditCrmItem;
+		crmItem.$$('type-switcher').changeType('REPLACE.type' as CRM.NodeType);	
 	}, {
 		type: type
 	}));
@@ -2121,7 +2121,6 @@ describe('Options Page', function() {
 		this.timeout(60000 * TIME_MODIFIER);
 
 		describe('Type Switching', function() {
-
 			async function testTypeSwitch(type: string) {
 				await driver.executeScript(inlineFn(() => {
 					const crmItem = (window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0);
