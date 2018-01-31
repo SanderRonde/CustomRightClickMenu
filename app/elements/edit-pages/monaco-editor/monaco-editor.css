@@ -25,6 +25,10 @@
 	flex-grow: 100;
 }
 
+#spacer {
+	height: 360px;
+}
+
 #editorElement {
 	display: flex;
 	flex-grow: 100;
