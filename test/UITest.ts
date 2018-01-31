@@ -1378,7 +1378,6 @@ describe('Options Page', function() {
 			return resetSettings(this);
 		});
 		it('should be addable', async function()  {
-			this.retries(3);
 			const firstElement = await findElement(webdriver.By.tagName('crm-app'))
 				.findElements(webdriver.By.tagName('default-link')).get(0);
 			await firstElement.findElement(webdriver.By.tagName('paper-button')).click();
@@ -1472,7 +1471,6 @@ describe('Options Page', function() {
 		});
 
 		it('should be addable', async function()  {
-			this.retries(3);
 			const elements = await findElement(webdriver.By.tagName('crm-app'))
 				.findElements(webdriver.By.tagName('default-link'));
 			const index = elements.length - 1;
@@ -1817,7 +1815,6 @@ describe('Options Page', function() {
 			const defaultContentTypes = [true, true, true, false, false, false];
 
 			it('should be editable through clicking on the checkboxes', async function()  {
-				this.retries(3);
 				await resetSettings(this);
 				await openDialog('link');
 				const dialog = await getDialog('link');
@@ -1842,7 +1839,6 @@ describe('Options Page', function() {
 					'all content types were toggled');
 			});
 			it('should be editable through clicking on the icons', async function()  {
-				this.retries(3);
 				await resetSettings(this);
 				await openDialog('link');
 				const dialog = await getDialog('link');
@@ -1864,7 +1860,6 @@ describe('Options Page', function() {
 					'all content types were toggled');
 			});
 			it('should be editable through clicking on the names', async function()  {
-				this.retries(3);
 				await resetSettings(this);
 				await openDialog('link');
 				const dialog = await getDialog('link');
@@ -1929,7 +1924,6 @@ describe('Options Page', function() {
 			this.slow(25000);
 			[0, 1, 2, 3, 4].forEach((triggerOptionIndex) => {
 				describe(`Trigger option ${triggerOptionIndex}`, function() {
-					this.retries(3);
 					it(`should be possible to select trigger option number ${triggerOptionIndex}`, async function() {
 						await resetSettings(this);
 						await openDialog(type);
