@@ -65,7 +65,6 @@ declare const process: any;
 
 import * as chai from 'chai';
 import * as webdriver from 'selenium-webdriver';
-import { until } from 'selenium-webdriver';
 require('mocha-steps');
 const secrets = require('./UI/secrets');
 const request = require('request');
