@@ -1937,7 +1937,7 @@ namespace MonacoEditorElement {
 		}
 
 		static _showSpinner(this: MonacoEditor) {
-			this.$.placeholder.style.display = 'block';
+			this.$.placeholder.style.display = 'flex';
 			this.$.spinner && (this.$.spinner.active = true);
 			this.$.placeholder.classList.remove('hidden')
 		}
