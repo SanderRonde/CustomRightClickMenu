@@ -80,7 +80,7 @@ module.exports = function (grunt) {
 			return htmlParseFile(grunt, done, file);
 		});
 		const contents = parsed.map((parsedPart, index) => {
-			let headContent = filterTitle(getHeadContent(files[index], parsedPart));
+			let headContent = getHeadContent(files[index], parsedPart);
 			if (index !== 0) {
 				headContent = filterTitle(headContent);
 			}
