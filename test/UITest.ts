@@ -9,6 +9,12 @@ const TEST_LOCAL: boolean = true;
 const TIME_MODIFIER = 1.2;
 const LOCAL_URL = 'http://localhost:9515';
 
+const SKIP_OPTIONS = false;
+const SKIP_OPTIONS_PAGE = false;
+const SKIP_CRM_DIALOGS = false;
+const SKIP_CRM = false;
+const SKIP_TYPES_EXCEPT = false;
+
 interface ChromeLastCall {
 	api: string;
 	args: Array<any>;
@@ -1303,6 +1309,9 @@ function enterEditorFullscreen(__this: Mocha.ISuiteCallbackContext, type: Dialog
 
 
 describe('Options Page', function() {
+	if (SKIP_OPTIONS) {
+		return;
+	}
 	describe('Loading', function() {
 		this.timeout(60000 * TIME_MODIFIER);
 		this.slow(60000);
@@ -1318,6 +1327,9 @@ describe('Options Page', function() {
 		});
 	});
 	describe('CheckboxOptions', function() {
+		if (SKIP_OPTIONS_PAGE) {
+			return;
+		}
 		this.timeout(5000 * TIME_MODIFIER);
 		this.slow(4000);
 		const checkboxDefaults = {
@@ -1369,6 +1381,9 @@ describe('Options Page', function() {
 		});
 	});
 	describe('Commonly used links', function() {
+		if (SKIP_OPTIONS_PAGE) {
+			return;
+		}
 		this.timeout(15000 * TIME_MODIFIER);
 		this.slow(10000);
 		let searchEngineLink = '';
@@ -1461,6 +1476,9 @@ describe('Options Page', function() {
 		});
 	});
 	describe('SearchEngines', function() {
+		if (SKIP_OPTIONS_PAGE) {
+			return;
+		}
 		this.timeout(150000 * TIME_MODIFIER);
 		this.slow(10000);
 		let searchEngineLink = '';
@@ -1588,6 +1606,9 @@ describe('Options Page', function() {
 		});
 	});
 	describe('URIScheme', function() {
+		if (SKIP_OPTIONS_PAGE) {
+			return;
+		}
 		before('Reset settings', function() {
 			return resetSettings(this);
 		});
@@ -1831,9 +1852,10 @@ describe('Options Page', function() {
 				assert.isTrue(crm[0].onContentTypes[4],
 					'content types that were off were switched on');
 				let newContentTypes = defaultContentTypes.map(contentType => !contentType);
-				//CRM prevents you from turning off all content types and 4 is the one that stays on
+				//CRM prevents you from turning off all content types and 2 is the one that stays on
 				newContentTypes[2] = true;
 				newContentTypes = crm[0].onContentTypes;
+				console.log(crm[0].onContentTypes, newContentTypes);
 				assert.deepEqual(crm[0].onContentTypes,
 					newContentTypes,
 					'all content types were toggled');
@@ -2115,12 +2137,18 @@ describe('Options Page', function() {
 	}
 
 	describe('CRM Editing', function() {
+		if (SKIP_CRM_DIALOGS) {
+			return;
+		}
 		before('Reset settings', function() {
 			return resetSettings(this);
 		});
 		this.timeout(60000 * TIME_MODIFIER);
 
 		describe('Type Switching', function() {
+			if (SKIP_TYPES_EXCEPT) {
+				return;
+			}
 			async function testTypeSwitch(type: string) {
 				await driver.executeScript(inlineFn(() => {
 					const crmItem = (window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0);
@@ -2192,6 +2220,9 @@ describe('Options Page', function() {
 		});
 		describe('Link Dialog', function() {
 			const type: CRM.NodeType = 'link';
+			if (SKIP_TYPES_EXCEPT && SKIP_TYPES_EXCEPT !== type) {
+				return;
+			}
 
 			this.timeout(30000 * TIME_MODIFIER);
 
@@ -2358,6 +2389,9 @@ describe('Options Page', function() {
 		});
 		describe('Divider Dialog', function() {
 			const type: CRM.NodeType = 'divider';
+			if (SKIP_TYPES_EXCEPT && SKIP_TYPES_EXCEPT !== type) {
+				return;
+			}
 
 			this.timeout(60000 * TIME_MODIFIER);
 			before('Reset settings', function() {
@@ -2370,6 +2404,9 @@ describe('Options Page', function() {
 		});
 		describe('Menu Dialog', function() {
 			const type: CRM.NodeType = 'menu';
+			if (SKIP_TYPES_EXCEPT && SKIP_TYPES_EXCEPT !== type) {
+				return;
+			}
 
 			this.timeout(60000 * TIME_MODIFIER);
 			before('Reset settings', function() {
@@ -2382,6 +2419,9 @@ describe('Options Page', function() {
 		});
 		describe('Stylesheet Dialog', function() {
 			const type: CRM.NodeType = 'stylesheet';
+			if (SKIP_TYPES_EXCEPT && SKIP_TYPES_EXCEPT !== type) {
+				return;
+			}
 
 			before('Reset settings', function() {
 				return resetSettings(this);
@@ -2497,6 +2537,9 @@ describe('Options Page', function() {
 		});
 		describe('Script Dialog', function() {
 			const type: CRM.NodeType = 'script';
+			if (SKIP_TYPES_EXCEPT && SKIP_TYPES_EXCEPT !== type) {
+				return;
+			}
 
 			before('Reset settings', function() {
 				return resetSettings(this);
@@ -3097,6 +3140,9 @@ describe('Options Page', function() {
 
 
 describe('On-Page CRM', function() {
+	if (SKIP_CRM) {
+		return;
+	}
 	describe('Redraws on new CRM', function() {
 		this.slow(250);
 		this.timeout(1500 * TIME_MODIFIER);
