@@ -13,7 +13,7 @@ const SKIP_OPTIONS = false;
 const SKIP_OPTIONS_PAGE = false;
 const SKIP_CRM_DIALOGS = false;
 const SKIP_CRM = false;
-const SKIP_TYPES_EXCEPT: CRM.NodeType|false = false;
+const SKIP_TYPES_EXCEPT = false as CRM.NodeType|false;
 
 interface ChromeLastCall {
 	api: string;
