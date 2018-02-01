@@ -169,30 +169,19 @@ namespace NodeEditBehaviorNamespace {
 		static checkToggledIconAmount(this: NodeEditBehaviorInstance, e: {
 			path: Array<HTMLElement>;
 		}) {
-			let i;
-			let toggledAmount = 0;
-			const arr = [
-				'pageContentSelected', 'linkContentSelected', 'selectionContentSelected',
-				'imageContentSelected', 'videoContentSelected', 'audioContentSelected'
-			];
-			for (i = 0; i < 6; i++) {
-				if (this[arr[i] as keyof NodeEditBehaviorProperties]) {
-					if (toggledAmount === 1) {
-						return true;
-					}
-					toggledAmount++;
+			this.async(() => {
+				const selectedCheckboxes: {
+					onContentTypes: CRM.ContentTypes;
+				} = {
+					onContentTypes: [false, false, false, false, false, false]
+				};
+				this.getContentTypeLaunchers(selectedCheckboxes);
+				if (selectedCheckboxes.onContentTypes.filter(item => item).length === 0) {
+					const element = window.app.util.findElementWithTagname(e.path, 'paper-checkbox');
+					element.checked = true;
+					window.doc.contentTypeToast.show();
 				}
-			}
-			if (!toggledAmount) {
-				const element = window.app.util.findElementWithTagname(e.path, 'paper-checkbox');
-				element.checked = true;
-				this[
-					element.parentElement.classList[1].split('Type')[0] + 'ContentSelected' as
-						keyof NodeEditBehaviorProperties
-				] = true;
-				window.doc.contentTypeToast.show();
-			}
-			return false;
+			}, 10);
 		};
 
 		static toggleIcon(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
