@@ -147,6 +147,11 @@ before('Driver connect', function(done: any) {
 		}
 	}
 
+	if (SKIP_OPTIONS || SKIP_OPTIONS_PAGE ||
+		SKIP_CRM_DIALOGS || SKIP_CRM ||
+		SKIP_TYPES_EXCEPT) {
+			console.warn('Skipping is enabled, make sure this isn\'t in a production build')
+		}
 	result.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`).then(() => {
 		driver = result;
 		let attempts = 0;
