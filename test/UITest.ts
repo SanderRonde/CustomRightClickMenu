@@ -1855,7 +1855,6 @@ describe('Options Page', function() {
 				//CRM prevents you from turning off all content types and 2 is the one that stays on
 				newContentTypes[2] = true;
 				newContentTypes = crm[0].onContentTypes;
-				console.log(crm[0].onContentTypes, newContentTypes);
 				assert.deepEqual(crm[0].onContentTypes,
 					newContentTypes,
 					'all content types were toggled');
@@ -1865,7 +1864,9 @@ describe('Options Page', function() {
 				await openDialog('link');
 				const dialog = await getDialog('link');
 				await dialog.findElements(webdriver.By.className('showOnContentItemCont')).mapWait((element) => {
-					return element.findElement(webdriver.By.className('showOnContentItemIcon')).click();
+					return element.findElement(webdriver.By.className('showOnContentItemIcon')).click().then(() => {
+						return wait(25);
+					});
 				});
 				await saveDialog(dialog);
 				const crm = await getCRM();
@@ -1886,8 +1887,9 @@ describe('Options Page', function() {
 				await openDialog('link');
 				const dialog = await getDialog('link');
 				await dialog.findElements(webdriver.By.className('showOnContentItemCont')).mapWait((element) => {
-					return element.findElement(webdriver.By.className('showOnContentItemTxt'))
-						.click();
+					return element.findElement(webdriver.By.className('showOnContentItemIcon')).click().then(() => {
+						return wait(25);
+					});
 				});
 				await saveDialog(dialog);
 				const crm = await getCRM();
@@ -1923,8 +1925,9 @@ describe('Options Page', function() {
 				await openDialog('link');
 				const dialog = await getDialog('link');
 				await dialog.findElements(webdriver.By.className('showOnContentItemCont')).mapWait((element) => {
-					return element.findElement(webdriver.By.tagName('paper-checkbox'))
-						.click();
+					return element.findElement(webdriver.By.className('showOnContentItemIcon')).click().then(() => {
+						return wait(25);
+					});
 				});
 				await cancelDialog(dialog);
 				const crm = await getCRM();
