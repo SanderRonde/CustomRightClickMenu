@@ -331,8 +331,6 @@ namespace NodeEditBehaviorNamespace {
 				showInsteadOfExecute: (prevState === 3)
 			};
 
-			const triggersElement = this.$.executionTriggersContainer;
-
 			if (oldStates.showTriggers !== newStates.showTriggers) {
 				await this.animateTriggers(newStates.showTriggers);
 			}
