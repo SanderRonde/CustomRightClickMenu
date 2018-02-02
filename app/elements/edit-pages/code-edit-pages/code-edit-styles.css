@@ -469,3 +469,7 @@ input {
 	justify-content: center;
 	margin-right: 10px;
 }
+
+#triggerOverflowContainer {
+	overflow: hidden;
+}
