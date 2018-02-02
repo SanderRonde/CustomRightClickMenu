@@ -64,7 +64,7 @@
 									</div>
 									<span class="menuOptionName">Always execute</span>
 								</paper-item>
-								<paper-item id="execyteOnSpecified" class="stylesheetLaunchOption">
+								<paper-item id="executeOnSpecified" class="stylesheetLaunchOption">
 									<div class="menuSelectedCheckmark">
 										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
 									</div>
@@ -114,7 +114,9 @@
 							<br/>
 							<template is="dom-repeat" items="[[newSettings.triggers]]" as="trigger">
 								<div class="executionTrigger">
-									<paper-checkbox class="executionTriggerNot" checked="{{trigger.not}}" color="red">NOT</paper-checkbox>
+									<div class="executionTriggerCheckboxCenterer">
+										<paper-checkbox class="executionTriggerNot" checked="{{trigger.not}}" color="red">NOT</paper-checkbox>
+									</div>
 									<paper-input pattern="{{_getPattern(newSettings.value.launchMode)}}" auto-validate="true"
 										label="{{_getLabel(newSettings.value.launchMode)}}" error-message="This is not a valid URL pattern!"
 										class="triggerInput" value="{{trigger.url}}"></paper-input>
