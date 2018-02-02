@@ -249,84 +249,77 @@ namespace NodeEditBehaviorNamespace {
 			}
 		};
 
-		static animateTriggers(this: CodeEditBehavior, newStates: {
-			showContentTypeChooser: boolean;
-			showTriggers: boolean;
-			showInsteadOfExecute: boolean;
-		}, triggersElement: HTMLElement, callback?: () => void) {
-			triggersElement.style.height = 'auto';
-			if (newStates.showTriggers) {
-				triggersElement.style.display = 'block';
-				triggersElement.style.marginLeft = '-110%';
-				triggersElement.style.height = '0';
-				$(triggersElement).animate({
-					height: triggersElement.scrollHeight
-				}, 300, function (this: HTMLElement) {
-					$(this).animate({
-						marginLeft: 0
-					}, 200, function(this: HTMLElement) {
-						this.style.height = 'auto';
-						callback && callback();
+		static animateTriggers(this: CodeEditBehavior, show: boolean): Promise<void> {
+			return new Promise<void>((resolve) => {
+				const element = this.$.executionTriggersContainer
+				element.style.height = 'auto';
+				if (show) {
+					element.style.display = 'block';
+					element.style.marginLeft = '-110%';
+					element.style.height = '0';
+					$(element).animate({
+						height: element.scrollHeight
+					}, 300, function (this: HTMLElement) {
+						$(this).animate({
+							marginLeft: 0
+						}, 200, function(this: HTMLElement) {
+							this.style.height = 'auto';
+							resolve(null);
+						});
 					});
-				});
-			} else {
-				triggersElement.style.marginLeft = '0';
-				triggersElement.style.height = triggersElement.scrollHeight + '';
-				$(triggersElement).animate({
-					marginLeft: '-110%'
-				}, 200, function (this: HTMLElement) {
-					$(this).animate({
-						height: 0
-					}, 300, function () {
-						triggersElement.style.display = 'none';
-						callback && callback();
+				} else {
+					element.style.marginLeft = '0';
+					element.style.height = element.scrollHeight + '';
+					$(element).animate({
+						marginLeft: '-110%'
+					}, 200, function (this: HTMLElement) {
+						$(this).animate({
+							height: 0
+						}, 300, function () {
+							element.style.display = 'none';
+							resolve(null);
+						});
 					});
-				});
-			}
-			this.showTriggers = newStates.showTriggers;
+				}
+				this.showTriggers = show;
+			});
 		}
 
-		static animateContentTypeChooser(this: CodeEditBehavior<{}>, newStates: {
-			showContentTypeChooser: boolean;
-			showTriggers: boolean;
-			showInsteadOfExecute: boolean;
-		}, contentTypeChooserElement: HTMLElement, callback?: () => void) {
-			contentTypeChooserElement.style.height = 'auto';
-			if (newStates.showContentTypeChooser) {
-				contentTypeChooserElement.style.height = '0';
-				contentTypeChooserElement.style.display = 'block';
-				contentTypeChooserElement.style.marginLeft = '-110%';
-				$(contentTypeChooserElement).animate({
-					height: contentTypeChooserElement.scrollHeight
-				}, 300, function (this: HTMLElement) {
-					$(this).animate({
+		static animateContentTypeChooser(this: CodeEditBehavior<{}>, show: boolean) {
+			const element = this.$.showOnContentContainer;
+			if (show) {
+				element.style.height = '0';
+				element.style.display = 'block';
+				element.style.marginLeft = '-110%';
+				$(element).animate({
+					height: element.scrollHeight
+				}, 300, () => {
+					$(element).animate({
 						marginLeft: 0
-					}, 200, function (this: HTMLElement) {
-						this.style.height = 'auto';
-						callback && callback();
+					}, 200, () => {
+						element.style.height = 'auto';
 					});
 				});
 			} else {
-				contentTypeChooserElement.style.marginLeft = '0';
-				contentTypeChooserElement.style.height = contentTypeChooserElement.scrollHeight + '';
-				$(contentTypeChooserElement).animate({
+				element.style.marginLeft = '0';
+				element.style.height = element.scrollHeight + '';
+				$(element).animate({
 					marginLeft: '-110%'
-				}, 200, function (this: HTMLElement) {
-					$(this).animate({
+				}, 200, () => {
+					$(element).animate({
 						height: 0
-					}, 300, function () {
-						contentTypeChooserElement.style.display = 'none';
-						callback && callback();
+					}, 300, () => {
+						element.style.display = 'none';
 					});
 				});
 			}
-			this.showContentTypeChooser = newStates.showContentTypeChooser;
+			this.showContentTypeChooser = show;
 		}
 
 		/**
 		 * Is triggered when the option in the dropdown menu changes animates in what's needed
 		 */
-		static selectorStateChange(this: CodeEditBehavior, prevState: number, state: number) {
+		static async selectorStateChange(this: CodeEditBehavior, prevState: number, state: number) {
 			const newStates = {
 				showContentTypeChooser: (state === 0 || state === 3),
 				showTriggers: (state > 1 && state !== 4),
@@ -340,26 +333,11 @@ namespace NodeEditBehaviorNamespace {
 
 			const triggersElement = this.$.executionTriggersContainer;
 
-			if (oldStates.showTriggers && !newStates.showTriggers) {
-				if (oldStates.showContentTypeChooser !== newStates.showContentTypeChooser) {
-					this.animateTriggers(newStates, triggersElement, () => {
-						this.animateContentTypeChooser(newStates, triggersElement)
-					});
-				} else {
-					this.animateTriggers(newStates, triggersElement);
-				}
+			if (oldStates.showTriggers !== newStates.showTriggers) {
+				await this.animateTriggers(newStates.showTriggers);
 			}
-			else if (!oldStates.showTriggers && newStates.showTriggers) {
-				if (oldStates.showContentTypeChooser !== newStates.showContentTypeChooser) {
-					this.animateContentTypeChooser(newStates, triggersElement, () => {
-						this.animateTriggers(newStates, triggersElement);
-					});
-				} else {
-					this.animateTriggers(newStates, triggersElement);
-				}
-			}
-			else if (oldStates.showContentTypeChooser !== newStates.showContentTypeChooser) {
-				this.animateContentTypeChooser(newStates, triggersElement);
+			if (oldStates.showContentTypeChooser !== newStates.showContentTypeChooser) {
+				this.animateContentTypeChooser(newStates.showContentTypeChooser);
 			}
 
 			if (newStates.showInsteadOfExecute !== oldStates.showInsteadOfExecute) {
