@@ -5,7 +5,9 @@
 /// <reference path="../app/elements/edit-crm-item/edit-crm-item.ts" />
 
 const PORT: number = 1250;
-const TEST_LOCAL: boolean = true;
+//Set to false to test remotely even when running it locally
+const TEST_LOCAL_DEFAULT = true;
+const TEST_LOCAL: boolean = process.argv.indexOf('--remote') ? false : TEST_LOCAL_DEFAULT;
 const TIME_MODIFIER = 1.2;
 const LOCAL_URL = 'http://localhost:9515';
 
@@ -98,36 +100,28 @@ let capabilities: {
 	'browserstack.local': boolean;
 	'browserstack.debug': boolean;
 	'browserstack.localIdentifier'?: any;	
+} = process.argv.indexOf('--new-chrome') > -1 ? {
+	'browserName' : 'Chrome',
+	'os' : 'Windows',
+	'os_version' : '10',
+	'resolution' : '1920x1080',
+	'browserstack.user' : secrets.user,
+	'browserstack.key' : secrets.key,
+	'browserstack.local': true,
+	'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+	'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+} : {
+	'browserName' : 'Chrome',
+	'browser_version': '26.0',
+	'os' : 'Windows',
+	'os_version' : '8',
+	'resolution' : '1920x1080',
+	'browserstack.user' : secrets.user,
+	'browserstack.key' : secrets.key,
+	'browserstack.local': true,
+	'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+	'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 };
-switch (__filename.split('-').pop().split('.')[0]) {
-	case '1':
-		capabilities = {
-			'browserName' : 'Chrome',
-			'os' : 'Windows',
-			'os_version' : '10',
-			'resolution' : '1920x1080',
-			'browserstack.user' : secrets.user,
-			'browserstack.key' : secrets.key,
-			'browserstack.local': true,
-			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-		};
-		break;
-	default: 
-		capabilities = {
-			'browserName' : 'Chrome',
-			'browser_version': '26.0',
-			'os' : 'Windows',
-			'os_version' : '8',
-			'resolution' : '1920x1080',
-			'browserstack.user' : secrets.user,
-			'browserstack.key' : secrets.key,
-			'browserstack.local': true,
-			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-		};
-		break;
-}
 
 before('Driver connect', function(done: any) {
 	const url = TEST_LOCAL ?

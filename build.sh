@@ -27,13 +27,11 @@ mocha test/test.js
 echo -en "travis_fold:end:unit_tests\\r"
 
 echo "UI Tests for old browser" && echo -en "travis_fold:start:ui_tests.1\\r"
-mocha test/UITest.js
+mocha test/UITest.js --remote
 echo -en "travis_fold:end:ui_tests.1\\r"
 
 echo "UI Tests for new browser" && echo -en "travis_fold:start:ui_tests.2\\r"
-cp test/UITest.js test/UITest-1.js
-mocha test/UITest-1.js
-rm test/UITest-1.js
+mocha test/UITest.js --remote --new-chrome
 echo -en "travis_fold:end:ui_tests.2\\r"
 
 if [ "$TRAVIS_BRANCH" = "master" ]; then
