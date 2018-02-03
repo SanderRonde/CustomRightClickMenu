@@ -7,7 +7,7 @@
 const PORT: number = 1250;
 //Set to false to test remotely even when running it locally
 const TEST_LOCAL_DEFAULT = true;
-const TEST_LOCAL: boolean = process.argv.indexOf('--remote') ? false : TEST_LOCAL_DEFAULT;
+const TEST_LOCAL: boolean = process.argv.indexOf('--remote') > -1 ? false : TEST_LOCAL_DEFAULT;
 const TIME_MODIFIER = 1.2;
 const LOCAL_URL = 'http://localhost:9515';
 
