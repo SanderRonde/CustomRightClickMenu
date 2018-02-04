@@ -3331,6 +3331,7 @@ describe('On-Page CRM', function() {
 				}, {
 					crm: CRMNodes
 				}));
+				done();
 			}, 'setting up the CRM does not throw');
 		});
 		it('should match the given names and types', async () => {
