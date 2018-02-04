@@ -978,7 +978,7 @@ class FoundElement implements FoundElement {
 				selector: JSON.stringify(selectorList.reverse())
 			}, findElementOnPage)).then((index) => {
 				if (index === 'null') {
-					reject(new Error('Failed to find element'));
+					reject(new Error(`Failed to find element with selector ${css}`));
 				} else {
 					resolve(new FoundElement(css, 0, this));
 				}
@@ -1173,7 +1173,7 @@ function findElement(by: webdriver.Locator): FoundElementPromise {
 		if (found === 'exists') {
 			resolve(new FoundElement(selector, 0));
 		} else {
-			reject(new Error('Failed to find element'));
+			reject(new Error(`Failed to find element with selector ${selector}`));
 		}
 	});
 }
@@ -1267,8 +1267,7 @@ function assertContextMenuEquality(contextMenu: ContextMenu, CRMNodes: CRM.Tree)
 		}, {
 			children: undefined,
 			name: 'Options'
-		}]),
-			'structures match');
+		}]), 'structures match');
 	}
 }
 
