@@ -80,6 +80,9 @@
 	right: 0;
 	width: 20px;
 	height: 50px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 }
 
 	.menuArrowCont:hover {
