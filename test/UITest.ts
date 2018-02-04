@@ -2035,7 +2035,8 @@ describe('Options Page', function() {
 						await wait(500);
 						const triggers = await dialog.findElements(webdriver.By.className('executionTrigger'));
 						await triggers[0].findElement(webdriver.By.tagName('paper-checkbox')).click()
-						await triggers[1].findElement(webdriver.By.tagName('input'))
+						await triggers[1].findElement(webdriver.By.tagName('paper-input'))
+							.findElement(webdriver.By.tagName('input'))
 							.sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
 						await saveDialog(dialog);
 						const crm = await getCRM();
