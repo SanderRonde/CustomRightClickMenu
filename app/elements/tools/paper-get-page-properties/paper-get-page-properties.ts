@@ -64,6 +64,9 @@ namespace PaperGetPagePropertiesElement {
 				case 'Title':
 					this.sendData('document.title;\n');
 					break;
+				case 'Clicked':
+					this.sendData('crmAPI.contextData.target;\n');
+					break;
 			}
 		};
 
@@ -112,6 +115,9 @@ namespace PaperGetPagePropertiesElement {
 				}, {
 					name: 'Title',
 					id: 'paperGetPropertyTitle'
+				}, {
+					name: 'Clicked Element',
+					id: 'paperGetClickedElement'
 				}
 			];
 		};
