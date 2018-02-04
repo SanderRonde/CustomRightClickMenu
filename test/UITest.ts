@@ -2575,7 +2575,7 @@ describe('Options Page', function() {
 								.findElement(webdriver.By.id('dropdownSelectedCont'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.id('addLibrary'))
+							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
 								.click();
 							await wait(1000);
 							await crmApp.findElement(webdriver.By.id('addLibraryUrlInput'))
@@ -2683,7 +2683,7 @@ describe('Options Page', function() {
 								.findElement(webdriver.By.id('dropdownSelectedCont'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.className('addLibrary'))
+							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
 								.click()
 							await wait(1000);
 							await crmApp.findElement(webdriver.By.id('addLibraryUrlInput'))
@@ -2739,7 +2739,7 @@ describe('Options Page', function() {
 								.findElement(webdriver.By.id('dropdownSelectedCont'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.className('addLibrary'))
+							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
 								.click();
 									await wait(1000);
 							await crmApp.findElement(webdriver.By.id('addLibraryManualOption'))
@@ -2827,7 +2827,7 @@ describe('Options Page', function() {
 								.findElement(webdriver.By.id('dropdownSelectedCont'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.className('addLibrary'))
+							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
 								.click();
 							await wait(1000);
 							await crmApp.findElement(webdriver.By.id('addLibraryManualOption'))
@@ -3189,6 +3189,7 @@ describe('On-Page CRM', function() {
 				}, {
 					crm: CRM1
 				}));
+				done();
 			}, 'setting up the CRM does not throw');
 		});
 		it('should be using the first CRM', async function() {
@@ -3205,6 +3206,7 @@ describe('On-Page CRM', function() {
 				}, {
 					crm: CRM2
 				}));
+				done();
 			}, 'settings CRM does not throw');
 		});
 		it('should be using the new CRM', async function() {
@@ -4193,6 +4195,7 @@ describe('On-Page CRM', function() {
 			assert.strictEqual(executedScripts[0].id, fakeTabId,
 				'stylesheet was executed on the right tab');
 			assert.isTrue(!!expectedReg.exec(executedScripts[0].code), 'executed code is the same as expected code');
+			done();
 		}
 
 		function genContainsRegex(...contains: Array<string>): RegExp {
