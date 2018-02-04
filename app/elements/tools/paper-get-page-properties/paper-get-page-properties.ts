@@ -66,6 +66,14 @@ namespace PaperGetPagePropertiesElement {
 					break;
 			}
 		};
+
+		private static _menuClick(this: PaperGetPageProperties, e: Polymer.ClickEvent) {
+			//Find out if the dropdown menu has already been clicked
+			if (e.path.indexOf(this.$.dropdown) > -1) {
+				return;
+			}
+			this.$.dropdown._toggleDropdown();
+		}
 		
 		static init(this: PaperGetPageProperties, listener: (data: string) => void) {
 			this.listener = listener;
@@ -73,6 +81,9 @@ namespace PaperGetPagePropertiesElement {
 
 		static ready(this: PaperGetPageProperties) {
 			this.selected = [];
+			this.addEventListener('click', (e) => {
+				this._menuClick(e as any);
+			});
 			this.options = [
 				{
 					name: 'Selection',
