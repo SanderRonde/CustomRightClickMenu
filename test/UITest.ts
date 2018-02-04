@@ -833,6 +833,16 @@ class FoundElementsPromise extends PromiseContainer<Array<FoundElement>> {
 			});
 		});
 	}
+
+	public waitFor(awaitable: webdriver.promise.Promise<any>) {
+		return new FoundElementsPromise(async (resolve) => {
+			const [ elements ] = await webdriver.promise.all([
+				this._promise,
+				awaitable
+			]) as [ Array<FoundElement>, any ];
+			resolve(elements);
+		});
+}
 }
 
 class FoundElementPromise extends PromiseContainer<FoundElement> {
@@ -903,6 +913,15 @@ class FoundElementPromise extends PromiseContainer<FoundElement> {
 					resolve(size);
 				});
 			});
+		});
+	}
+	waitFor(awaitable: webdriver.promise.Promise<any>) {
+		return new FoundElementPromise(async (resolve) => {
+			const [ element ] = await webdriver.promise.all([
+				this._promise,
+				awaitable
+			]) as [ FoundElement, any ];
+			resolve(element);
 		});
 	}
 
@@ -1134,6 +1153,12 @@ class FoundElement implements FoundElement {
 			}, findElementOnPage))));
 		});
 	}
+	waitFor(awaitable: webdriver.promise.Promise<any>): webdriver.promise.Promise<this> {
+		return new webdriver.promise.Promise<this>(async (resolve) => {
+			await awaitable;
+			resolve(this);
+		});
+}
 }
 
 function locatorToCss(by: webdriver.Locator): string {
