@@ -987,9 +987,66 @@ namespace CRMAppElement {
 			});
 		};
 
+		private static _codeStr(code: string): {
+			content: string;
+			isCode: true;
+		} {
+			return {
+				content: code,
+				isCode: true
+			}
+		}
+
+		private static _logCode(...args: Array<{
+			content: string;
+			isCode: true;
+		}|string>) {
+			const logArgs: Array<string> = [];
+			for (const arg of args) {
+				if (typeof arg === 'string') {
+					logArgs.push(arg);
+				} else {
+					const { content } = arg;
+					logArgs.push(`%c${content}`);
+					logArgs.push('color: grey;font-weight: bold;');
+				}
+			}
+			console.log.apply(console, logArgs);
+		}
+
+		private static _setupConsoleInterface(this: CrmApp) {
+			window.consoleInfo = () => {
+				this._logCode('Edit local (not synchronized with your google account) settings as follows:');
+				this._logCode('	', this._codeStr('window.app.storageLocal.<setting> = <value>;'));
+				this._logCode('	For example: ', this._codeStr('window.app.storageLocal.hideToolsRibbon = false;'));
+				this._logCode('	To get the type formatting of local settings call ', this._codeStr('window.getLocalFormat();'));
+				this._logCode('	To read the current settings just call ', this._codeStr('window.app.storageLocal;'));
+				this._logCode('');
+				this._logCode('Edit synchronized settings as follows:');
+				this._logCode('	', this._codeStr('window.app.settings.<setting> = <value>'));
+				this._logCode('	For example: ', this._codeStr('window.app.settings.rootName = "ROOT";'));
+				this._logCode('	Or: ', this._codeStr('window.app.settings.editor.theme = "white";'));
+				this._logCode('	To get the type formatting of local settings call ', this._codeStr('window.getSyncFormat();'));
+				this._logCode('	To read the current settings just call ', this._codeStr('window.app.settings;'));
+				this._logCode('');
+				this._logCode('Edit the CRM as follows:');
+				this._logCode('	', this._codeStr('window.app.settings.crm[<index>].<property> = <value>'));
+				this._logCode('	For example: ', this._codeStr('window.app.settings.crm[0].name = "MyName";'));
+				this._logCode('	To find the index either call ', this._codeStr('window.app.settings.crm;'), ' or ', this._codeStr('window.getIndexByName("<name>");'));
+				this._logCode('	To get the type formatting of a CRM node call ', this._codeStr('window.getCRMFormat();'));
+				this._logCode('');
+				this._logCode('To force upload any changes you made call ', this._codeStr('window.upload();'));
+				this._logCode('To look at the changes you made call ', this._codeStr('window.getChanges();'));
+				this._logCode('To check the format of your changes call ', this._codeStr('window.checkFormat();'));
+				this._logCode('To upload changes you made if the format is correct call ', this._codeStr('window.uploadIfCorrect();'));
+			}
+
+		}
+
 		static ready(this: CrmApp) {
 			window.app = this;
 			window.doc = window.app.$;
+			this._setupConsoleInterface();
 
 			chrome.runtime.onInstalled.addListener((details) => {
 				if (details.reason === 'update') {
@@ -1657,6 +1714,8 @@ namespace CRMAppElement {
 
 								console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
 									'font-size:120%;font-weight:bold;');
+								console.log('To get information about how to edit settings from the console' + 
+									'call the window.consoleInfo() function');
 							}, 200);
 
 							window.CRMLoaded = window.CRMLoaded || {

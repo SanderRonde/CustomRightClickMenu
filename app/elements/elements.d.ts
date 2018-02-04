@@ -180,6 +180,15 @@ interface Window {
 	scriptEdit: NodeEditBehaviorScriptInstance;
 	dividerEdit: NodeEditBehaviorDividerInstance;
 	stylesheetEdit: NodeEditBehaviorStylesheetInstance;
+
+	consoleInfo(): void;
+	getLocalFormat(): void;
+	getSyncFormat(): void;
+	getCRMFormat(): void;
+	upload(): void;
+	getChanges(): void;
+	checkFormat(): void;
+	uploadIfCorrect(): void;
 }
 
 type EditPage = NodeEditBehaviorScriptInstance|
