@@ -2913,9 +2913,9 @@ describe('Options Page', function() {
 								const crmApp = await findElement(webdriver.By.tagName('crm-app'));
 								const prevCode = await getEditorValue(type);
 								crmApp.findElement(webdriver.By.id('paperGetPageProperties'))
-									.click();
-								await wait(500);
-								crmApp.findElement(webdriver.By.id(prop))
+									.click()
+									.waitFor(wait(500))
+									.findElement(webdriver.By.id(prop))
 									.click();
 								await wait(500);
 								const newCode = await getEditorValue(type);
