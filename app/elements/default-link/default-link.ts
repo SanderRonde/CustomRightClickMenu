@@ -38,7 +38,7 @@ if (crmAPI.getSelection()) {
 	query = window.prompt(\'Please enter a search query\');
 }
 if (query) {
-	window.open(url.replace(/%s/g,query), \'_blank\');
+	window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');
 }`;
 
 			let newItem;
