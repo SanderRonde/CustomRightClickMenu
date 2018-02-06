@@ -497,8 +497,8 @@ function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackCo
 function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext): webdriver.promise.Promise<void>; 
 function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
 	__this.timeout(30000 * TIME_MODIFIER);
-	const promise = new webdriver.promise.Promise<void>((resolve) => {
-		driver.executeScript(inlineFn(() => {
+	const promise = new webdriver.promise.Promise<void>(async (resolve) => {
+		const result = await driver.executeScript(inlineFn(() => {
 			try {
 				window.chrome.storage.local.clear();
 				window.chrome.storage.sync.clear();
@@ -510,15 +510,14 @@ function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackCo
 					stack: e.stack
 				};
 			}
-		})).then((e) => {
-			if (e) {
-				console.log(e);
-				throw e;
-			}
-			return wait(1500);
-		}).then(() => {
-			resolve(null);
-		});
+		}));
+		if (result) {
+			console.log(result);
+			throw result;
+		}
+		await waitForCRM(5000);
+		await wait(1500);
+		resolve(null);
 	});
 	if (done) {
 		promise.then(done);
@@ -2922,6 +2921,8 @@ describe('Options Page', function() {
 								await wait(500);
 								const newCode = await getEditorValue(type);
 								
+								console.log(JSON.stringify(subtractStrings(newCode, prevCode)));
+								console.log(JSON.stringify(pagePropertyPairs[prop]));
 								assert.strictEqual(subtractStrings(newCode, prevCode),
 									pagePropertyPairs[prop], 
 									'Added text should match expected');
