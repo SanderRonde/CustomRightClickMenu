@@ -2924,7 +2924,7 @@ describe('Options Page', function() {
 								assert.strictEqual(subtractStrings(newCode, prevCode),
 									pagePropertyPairs[prop], 
 									'Added text should match expected');
-								await crmApp.findElement(webdriver.By.id('editorFullScreen'))
+								await crmApp.findElement(webdriver.By.id('fullscreenEditorToggle'))
 									.click();
 								await wait(500);
 								await cancelDialog(dialog);
