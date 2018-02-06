@@ -1883,6 +1883,7 @@ describe('Options Page', function() {
 					'all content types were toggled');
 			});
 			it('should be editable through clicking on the icons', async function()  {
+				this.retries(3);
 				await resetSettings(this);
 				await openDialog('link');
 				const dialog = await getDialog('link');
