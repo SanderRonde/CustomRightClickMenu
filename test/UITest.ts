@@ -1911,7 +1911,7 @@ describe('Options Page', function() {
 				await openDialog('link');
 				const dialog = await getDialog('link');
 				await dialog.findElements(webdriver.By.className('showOnContentItemCont')).mapWait((element) => {
-					return element.findElement(webdriver.By.className('showOnContentItemIcon')).click().then(() => {
+					return element.findElement(webdriver.By.className('showOnContentItemTxt')).click().then(() => {
 						return wait(25);
 					});
 				});
