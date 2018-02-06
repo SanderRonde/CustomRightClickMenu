@@ -221,10 +221,12 @@ namespace CodeEditBehaviorNamespace {
 		 * Fills the editor-tools-ribbon on the left of the editor with elements
 		 */
 		static initToolsRibbon(this: CodeEditBehaviorInstance) {
-			(window.app.$.paperLibrariesSelector as PaperLibrariesSelector).init();
-			(window.app.$.paperGetPageProperties as PaperGetPageProperties).init((snippet: string) => {
-				this.insertSnippet(this, snippet);
-			});
+			if (this.item.type === 'script') {
+				(window.app.$.paperLibrariesSelector as PaperLibrariesSelector).init();
+				(window.app.$.paperGetPageProperties as PaperGetPageProperties).init((snippet: string) => {
+					this.insertSnippet(this, snippet);
+				});
+			}
 		};
 
 		/**
