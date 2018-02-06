@@ -79,7 +79,7 @@ namespace NodeEditBehaviorNamespace {
 			for (let i = 0; i < inputs.length; i++) {
 				triggers[i] = {
 					url: inputs[i].value,
-					not: (inputs[i].parentElement.children[0] as HTMLPaperCheckboxElement).checked
+					not: (inputs[i].parentElement.querySelector('.executionTriggerNot') as HTMLPaperCheckboxElement).checked
 				};
 			}
 			resultStorage.triggers = triggers;
