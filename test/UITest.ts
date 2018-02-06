@@ -2774,10 +2774,11 @@ describe('Options Page', function() {
 							await wait(1000);
 							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
 								.click();
-									await wait(1000);
+							await wait(1000);
 							await crmApp.findElement(webdriver.By.id('addLibraryManualOption'))
 								.click();
 							await crmApp.findElement(webdriver.By.id('addLibraryManualInput'))
+								.findElement(webdriver.By.tagName('iron-autogrow-textarea'))
 								.findElement(webdriver.By.tagName('textarea'))
 								.sendKeys(InputKeys.CLEAR_ALL, testCode);
 							await crmApp.findElement(webdriver.By.id('addLibraryButton'))
@@ -2866,6 +2867,7 @@ describe('Options Page', function() {
 							await crmApp.findElement(webdriver.By.id('addLibraryManualOption'))
 								.click();
 							await crmApp.findElement(webdriver.By.id('addLibraryManualInput'))
+								.findElement(webdriver.By.tagName('iron-autogrow-textarea'))
 								.findElement(webdriver.By.tagName('textarea'))
 								.sendKeys(InputKeys.CLEAR_ALL, testCode);
 							await crmApp.findElement(webdriver.By.id('addLibraryButton'))
@@ -2873,7 +2875,7 @@ describe('Options Page', function() {
 							const [isInvalid, libSizes] = await webdriver.promise.all([
 								crmApp.findElement(webdriver.By.id('addedLibraryName'))
 									.getProperty('invalid'),
-									crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
+								crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
 									.getSize()
 							]) as [boolean, ClientRect];
 
