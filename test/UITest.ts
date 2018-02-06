@@ -2917,6 +2917,7 @@ describe('Options Page', function() {
 						};
 						Object.getOwnPropertyNames(pagePropertyPairs).forEach((prop: keyof typeof pagePropertyPairs) => {
 							it(`should be able to insert the ${prop} property`, async () => {
+								this.retries(3);
 								const dialog = await enterEditorFullscreen(this, type);
 								const crmApp = await findElement(webdriver.By.tagName('crm-app'));
 								const prevCode = await getEditorValue(type);
