@@ -2954,25 +2954,26 @@ describe('Options Page', function() {
 								crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'))
+								const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
+								await searchDialog
 									.findElement(webdriver.By.id('initialWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElement(webdriver.By.css('paper-button:nth-child(2)'))
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('chooseDefaultSearchWindow'))
+								await searchDialog.findElement(webdriver.By.id('chooseDefaultSearchWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('confirmationWindow'))
+								await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('howToOpenWindow'))
+								await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
@@ -2994,29 +2995,30 @@ describe('Options Page', function() {
 								await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'))
+								const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
+								await searchDialog
 									.findElement(webdriver.By.id('initialWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElement(webdriver.By.css('paper-button:nth-child(2)'))
 									.click();
-								await crmApp.findElement(webdriver.By.id('chooseDefaultSearchWindow'))
+								await searchDialog.findElement(webdriver.By.id('chooseDefaultSearchWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('confirmationWindow'))
+								await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('howToOpenLink'))
+								await searchDialog.findElement(webdriver.By.id('howToOpenLink'))
 									.findElements(webdriver.By.tagName('paper-radio-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('howToOpenWindow'))
+								await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
@@ -3045,23 +3047,24 @@ describe('Options Page', function() {
 									.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+								const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
+								await searchDialog.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
 									.findElement(webdriver.By.id('manualInputURLInput'))
 									.findElement(webdriver.By.tagName('input'))
 									.sendKeys(InputKeys.CLEAR_ALL, exampleSearchURL);
-								await crmApp.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+								await searchDialog.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('confirmationWindow'))
+								await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('howToOpenWindow'))
+								await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
@@ -3096,7 +3099,8 @@ describe('Options Page', function() {
 									.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('manulInputSavedChoice'))
+								const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
+								await searchDialog.findElement(webdriver.By.id('manulInputSavedChoice'))
 									.click();
 								await wait(500);
 								await driver.executeScript(inlineFn(() => {
@@ -3107,28 +3111,28 @@ describe('Options Page', function() {
 									websites: JSON.stringify(exampleVisitedWebsites)
 								}));
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+								await searchDialog.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('processedListWindow'))
+								await searchDialog.findElement(webdriver.By.id('processedListWindow'))
 									.findElement(webdriver.By.className('searchOptionCheckbox'))
 									.click();
-								await crmApp.findElement(webdriver.By.id('processedListWindow'))
+								await searchDialog.findElement(webdriver.By.id('processedListWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('confirmationWindow'))
+								await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('howToOpenWindow'))
+								await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
