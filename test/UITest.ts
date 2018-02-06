@@ -1858,6 +1858,7 @@ describe('Options Page', function() {
 			const defaultContentTypes = [true, true, true, false, false, false];
 
 			it('should be editable through clicking on the checkboxes', async function()  {
+				this.retries(3);
 				await resetSettings(this);
 				await openDialog('link');
 				const dialog = await getDialog('link');
@@ -1905,6 +1906,7 @@ describe('Options Page', function() {
 					'all content types were toggled');
 			});
 			it('should be editable through clicking on the names', async function()  {
+				this.retries(3);
 				await resetSettings(this);
 				await openDialog('link');
 				const dialog = await getDialog('link');
