@@ -132,8 +132,10 @@ namespace CodeEditBehaviorNamespace {
 		}
 
 		static fontSizeChange(this: CodeEditBehaviorInstance) {
-			window.app.settings.editor.zoom = this.$.editorThemeFontSizeInput.$$('input').value + '';
-			window.app.upload();
+			this.async(() => {
+				window.app.settings.editor.zoom = this.$.editorThemeFontSizeInput.$$('input').value + '';
+				window.app.upload();
+			}, 0);
 		}
 
 		static jsLintGlobalsChange(this: CodeEditBehaviorInstance) {
