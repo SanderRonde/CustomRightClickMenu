@@ -10052,8 +10052,37 @@ if (typeof module === 'undefined') {
 							}
 						}
 					});
+					const searchEngineScript = `var query;
+var url = "LINK";
+if (crmAPI.getSelection()) {
+	query = crmAPI.getSelection();
+} else {
+	query = window.prompt(\'Please enter a search query\');
+}
+if (query) {
+	window.open(url.replace(/%s/g,query), \'_blank\');
+}`.split('\n');
+					this.crmForEach(globalObject.globals.crm.crmTree, (node) => {
+						if (node.type === 'script') {
+							const script = node.value.script.split('\n');
+							if (script.length !== searchEngineScript.length ||
+								script[0] !== searchEngineScript[0]) {
+									return;
+								}
+							for (let i = 2; i < script.length; i++) {
+								if (script[i] !== searchEngineScript[i] && i !== 8) {
+									return;
+								}
+							}
+							if (searchEngineScript[1].indexOf('var url = "') === -1) {
+								return;
+							}
+							script[8] = `window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');`;
+							node.value.script = script.join('\n');
+						}
+					});
 					CRM.updateCrm();
-				})
+				});
 			}
 
 			chrome.storage.local.set({
