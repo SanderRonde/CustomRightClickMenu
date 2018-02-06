@@ -2116,6 +2116,10 @@ describe('Options Page', function() {
 				await openDialog(type);
 				const dialog = await getDialog(type);
 				await wait(500, dialog);
+
+				const initialSettings = await getSyncSettings();
+				assert.strictEqual(initialSettings.editor.theme, 'dark',
+					'initial theme is set to dark mode');
 				await dialog.findElement(webdriver.By.id('editorSettings')).click();
 				await wait(500);
 				await dialog.findElement(webdriver.By.id('editorThemeSettingWhite')).click();
