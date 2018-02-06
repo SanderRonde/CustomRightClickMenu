@@ -2921,8 +2921,6 @@ describe('Options Page', function() {
 								await wait(500);
 								const newCode = await getEditorValue(type);
 								
-								console.log(JSON.stringify(subtractStrings(newCode, prevCode)));
-								console.log(JSON.stringify(pagePropertyPairs[prop]));
 								assert.strictEqual(subtractStrings(newCode, prevCode),
 									pagePropertyPairs[prop], 
 									'Added text should match expected');
