@@ -3807,11 +3807,15 @@ namespace CRMAppElement {
 			}
 
 			static fontSizeChange() {
-				this._getDialog().fontSizeChange();
+				window.app.async(() => {
+					this._getDialog().fontSizeChange();
+				}, 0);
 			}
 
 			static jsLintGlobalsChange() {
-				this._getDialog().jsLintGlobalsChange();
+				window.app.async(() => {
+					this._getDialog().jsLintGlobalsChange();
+				}, 0);
 			}
 
 			static onKeyBindingKeyDown(e: Polymer.PolymerKeyDownEvent) {
