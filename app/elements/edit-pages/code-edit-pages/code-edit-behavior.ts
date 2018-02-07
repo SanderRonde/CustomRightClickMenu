@@ -146,6 +146,9 @@ namespace CodeEditBehaviorNamespace {
 			}
 			window.useOptionsCompletions = false;
 			this.hideCodeOptions();
+			if (this.optionsShown) {
+				this.hideOptions();
+			}
 			Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.editorTab')).forEach(
 				function(tab: HTMLElement) {
 					tab.classList.remove('active');
