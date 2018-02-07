@@ -1539,7 +1539,7 @@ describe('Options Page', function() {
 				'	query = window.prompt(\'Please enter a search query\');\n' +
 				'}\n' +
 				'if (query) {\n' +
-				'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
+				'	window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');\n' +
 				'}',
 				'script1 value matches expected');
 		});
@@ -1572,7 +1572,7 @@ describe('Options Page', function() {
 				'	query = window.prompt(\'Please enter a search query\');\n' +
 				'}\n' +
 				'if (query) {\n' +
-				'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
+				'	window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');\n' +
 				'}',
 				'script value matches expected');
 		});
@@ -1599,7 +1599,7 @@ describe('Options Page', function() {
 					'	query = window.prompt(\'Please enter a search query\');\n' +
 					'}\n' +
 					'if (query) {\n' +
-					'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
+					'	window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');\n' +
 					'}',
 					'script value matches expected');
 			})();
@@ -1621,7 +1621,7 @@ describe('Options Page', function() {
 					'	query = window.prompt(\'Please enter a search query\');\n' +
 					'}\n' +
 					'if (query) {\n' +
-					'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
+					'	window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');\n' +
 					'}',
 					'script2 value matches expected');
 			});
