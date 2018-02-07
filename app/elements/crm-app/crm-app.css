@@ -1114,6 +1114,10 @@ paper-checkbox {
 	background-color: #dbdbdb;
 }
 
+#fullscreenEditorSettings {
+	margin-top: 5px;
+}
+
 #fullscreenEditorSettings svg {
 	transform: translateY(-2px);
 }
