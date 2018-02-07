@@ -3046,7 +3046,8 @@ describe('Options Page', function() {
 								const prevCode = await getEditorValue(type);
 								await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
 										.click();
-								await crmApp.findElement(webdriver.By.id('initialWindowChoicesCont'))
+								const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
+								await searchDialog.findElement(webdriver.By.id('initialWindowChoicesCont'))
 									.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
 									.click();
 								await wait(500);
@@ -3098,7 +3099,8 @@ describe('Options Page', function() {
 								await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('initialWindowChoicesCont'))
+								const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
+								await searchDialog.findElement(webdriver.By.id('initialWindowChoicesCont'))
 									.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
 									.click();
 								await wait(500);
