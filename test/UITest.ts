@@ -2915,7 +2915,7 @@ describe('Options Page', function() {
 							paperGetPropertyHeight: 'window.innerHeight;\r\n',
 							paperGetPropertyPixels: 'window.scrollY;\r\n',
 							paperGetPropertyTitle: 'document.title;\r\n',
-							paperGetClickedElement: 'crmAPI.contextData.target;\r\n'
+							paperGetPropertyClicked: 'crmAPI.contextData.target;\r\n'
 						};
 						Object.getOwnPropertyNames(pagePropertyPairs).forEach((prop: keyof typeof pagePropertyPairs) => {
 							it(`should be able to insert the ${prop} property`, async () => {
