@@ -154,8 +154,8 @@ namespace StylesheetEditElement {
 			this.$.exportMenu.$.dropdownSelected.innerText = 'EXPORT AS';
 			this.initDropdown();
 			this.selectorStateChange(0, this.newSettings.value.launchMode);
-			document.body.classList.remove('editingScript');
-			document.body.classList.add('editingStylesheet');
+			window.app.$.editorToolsRibbonContainer.classList.remove('editingScript');
+			window.app.$.editorToolsRibbonContainer.classList.add('editingStylesheet');
 			window.stylesheetEdit = this;
 			window.externalEditor.init();
 			if (window.app.storageLocal.recoverUnsavedData) {

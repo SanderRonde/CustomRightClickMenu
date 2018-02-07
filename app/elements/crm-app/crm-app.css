@@ -513,15 +513,11 @@ paper-toast {
 		flex-grow: 100;
 	}
 
-body.editingStylesheet .CodeMirror-hint {
-	padding-left: 0;
-}
-
-body.editingStylesheet .jsTool {
+#editorToolsRibbonContainer.editingStylesheet .jsTool {
 	display: none!important;
 }
 
-body.editingScript .cssTool {
+#editorToolsRibbonContainer.editingScript .cssTool {
 	display: none!important;
 }
 
