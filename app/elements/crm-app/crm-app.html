@@ -53,15 +53,15 @@
 							<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool jsTool" usedlibraries="[[scriptItem.value.libraries]]"></paper-libraries-selector>
 							<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool jsTool"></paper-get-page-properties>
 							<div on-tap="domListener" data-on-tap="launchSearchWebsiteTool" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
-							<div on-tap="domListener" data-on-tap="runLint" class="ribbonTool cssTool" id="runCssLintButton">
-								<span hidden$="{{!_currentItemIsCss(item)}}">
+							<div on-tap="domListener" data-on-tap="runLint" class="ribbonTool" id="runCssLintButton">
+								<span class="cssTool">
 									Run CSSLint
 								</span>
-								<span hidden$="{{_currentItemIsCss(item)}}">
+								<span class="jsTool">
 									Run JSLint
 								</span>
 							</div>
-							<div hidden$="{{!_currentItemIsCss(item)}}" on-tap="domListener" data-on-tap="showCssTips" class="ribbonTool cssTool" id="showCssTipsButton">
+							<div on-tap="domListener" data-on-tap="showCssTips" class="ribbonTool cssTool" id="showCssTipsButton">
 								Info
 							</div>
 						</div>
