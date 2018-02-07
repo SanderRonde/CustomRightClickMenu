@@ -302,7 +302,9 @@ namespace PaperLibrariesSelectorElement {
 			//Add new library dialog
 			window.doc.addedLibraryName.$$('input').value = '';
 			window.doc.addLibraryUrlInput.$$('input').value = '';
-			window.doc.addLibraryManualInput.$$('textarea').value = '';
+			(window.doc.addLibraryManualInput
+				.$$('iron-autogrow-textarea') as Polymer.RootElement)
+				.$$('textarea').value = '';
 			window.doc.addLibraryIsTS.checked = false;
 
 			this._showElements('addLibraryProcessContainer');
@@ -340,7 +342,9 @@ namespace PaperLibrariesSelectorElement {
 							});
 						} else {
 							this.addLibraryFile(name, window.doc.addLibraryIsTS.checked,
-									window.doc.addLibraryManualInput.$$('textarea').value);
+								(window.doc.addLibraryManualInput
+									.$$('iron-autogrow-textarea') as Polymer.RootElement)
+									.$$('textarea').value);
 						}
 					} else {
 						if (taken) {
