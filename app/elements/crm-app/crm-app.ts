@@ -3814,7 +3814,7 @@ namespace CRMAppElement {
 
 			static jsLintGlobalsChange() {
 				window.app.async(() => {
-					this._getDialog().jsLintGlobalsChange();
+					window.scriptEdit.jsLintGlobalsChange();
 				}, 0);
 			}
 

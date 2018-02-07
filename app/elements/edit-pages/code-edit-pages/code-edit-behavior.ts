@@ -138,16 +138,6 @@ namespace CodeEditBehaviorNamespace {
 			}, 0);
 		}
 
-		static jsLintGlobalsChange(this: CodeEditBehaviorInstance) {
-			this.async(() => {
-				const globals = this.$.editorJSLintGlobalsInput.$$('input').value.split(',').map(global => global.trim());
-				chrome.storage.local.set({
-					jsLintGlobals: globals
-				});
-				window.app.jsLintGlobals = globals;
-			}, 0);
-		}
-
 		static finishEditing(this: CodeEditBehaviorInstance) {
 			if (window.app.storageLocal.recoverUnsavedData) {
 				chrome.storage.local.set({
