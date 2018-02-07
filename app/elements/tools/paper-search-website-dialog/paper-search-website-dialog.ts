@@ -188,13 +188,13 @@ namespace PaperSearchWebsiteDialog {
 		 */
 		static insertCode(this: PaperSearchWebsiteDialog) {
 			const code = 
-	`var search = crmAPI.getSelection() || prompt('Please enter a search query');
-	var url = '${this.chosenUrl}';
-	var toOpen = url.replace(/%s/g,search);
-	${this.$.howToOpenLink.selected === 'currentTab' ? 
-		`location.href = toOpen;` :
-		`window.open(toOpen, '_blank');`
-	}`;
+`var search = crmAPI.getSelection() || prompt('Please enter a search query');
+var url = '${this.chosenUrl}';
+var toOpen = url.replace(/%s/g,search);
+${this.$.howToOpenLink.selected === 'currentTab' ? 
+	`location.href = toOpen;` :
+	`window.open(toOpen, '_blank');`
+}`;
 			window.scriptEdit.insertSnippet(window.scriptEdit, code, true);
 			setTimeout(() => {
 				this.hide();
