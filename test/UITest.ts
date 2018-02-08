@@ -2621,7 +2621,7 @@ describe('Options Page', function() {
 							const [isInvalid, libSizes] = await webdriver.promise.all([
 								crmApp.findElement(webdriver.By.id('addedLibraryName'))
 									.getProperty('invalid'),
-									crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
+								crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
 									.getSize()
 							]) as [boolean, ClientRect];
 
@@ -3051,7 +3051,6 @@ describe('Options Page', function() {
 									.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
 									.click();
 								await wait(500);
-								const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
 								await searchDialog.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
 									.findElement(webdriver.By.id('manualInputURLInput'))
 									.findElement(webdriver.By.tagName('input'))
@@ -3104,7 +3103,6 @@ describe('Options Page', function() {
 									.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
 									.click();
 								await wait(500);
-								const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
 								await searchDialog.findElement(webdriver.By.id('manulInputSavedChoice'))
 									.click();
 								await wait(500);
