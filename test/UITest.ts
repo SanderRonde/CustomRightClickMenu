@@ -3033,7 +3033,7 @@ describe('Options Page', function() {
 									'var url = \'https://www.google.com/search?q=%s\';',
 									'var toOpen = url.replace(/%s/g,search);',
 									'location.href = toOpen;'
-								].join('\n'), 'Added code matches expected');
+								].join('\r\n'), 'Added code matches expected');
 							});
 						});
 						describe('Custom Input', function() {
@@ -3080,7 +3080,7 @@ describe('Options Page', function() {
 									`var url = '${exampleSearchURL.replace('customRightClickMenu', '%s')}';`,
 									'var toOpen = url.replace(/%s/g,search);',
 									'location.href = toOpen;'
-								].join('\n'), 'Script should match expected value');
+								].join('\r\n'), 'Script should match expected value');
 							});
 							it('should be able to add one from your visited websites', async () => {
 								const exampleVisitedWebsites: Array<{
@@ -3150,7 +3150,7 @@ describe('Options Page', function() {
 									`var url = '${exampleVisitedWebsites[0].searchUrl}';`,
 									'var toOpen = url.replace(/%s/g,search);',
 									'location.href = toOpen;'
-								].join('\n'), 'Added script should match expected');
+								].join('\r\n'), 'Added script should match expected');
 							});
 						});
 					});
