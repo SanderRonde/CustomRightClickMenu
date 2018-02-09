@@ -135,7 +135,7 @@ namespace CodeEditBehaviorNamespace {
 			this.async(() => {
 				window.app.settings.editor.zoom = this.$.editorThemeFontSizeInput.$$('input').value + '';
 				window.app.upload();
-			}, 0);
+			}, 50);
 		}
 
 		static finishEditing(this: CodeEditBehaviorInstance) {
