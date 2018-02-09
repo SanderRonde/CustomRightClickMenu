@@ -427,7 +427,6 @@ interface GlobalObject extends Partial<Window> {
 			failedLookups: Array<number>;
 		};
 		background: {
-			workers: Array<CRMSandboxWorker>;
 			byId: {
 				[nodeId: number]: CRMSandboxWorker;
 			};
@@ -607,7 +606,6 @@ if (typeof module === 'undefined') {
 			resources: null
 		},
 		background: {
-			workers: [],
 			byId: {}
 		},
 		crm: {
@@ -6800,7 +6798,6 @@ if (typeof module === 'undefined') {
 							}
 							return instancesArr;
 						}, (worker: CRMSandboxWorker) => {
-							globalObject.globals.background.workers.push(worker);
 							globalObject.globals.background.byId[node.id] = worker;
 							if (isRestart) {
 								Logging.log(node.id, '*', `Background page [${node.id}]: `,
