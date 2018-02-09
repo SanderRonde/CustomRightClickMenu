@@ -2989,7 +2989,7 @@ describe('Options Page', function() {
 									'var url = \'https://www.google.com/search?q=%s\';',
 									'var toOpen = url.replace(/%s/g,search);',
 									'window.open(toOpen, \'_blank\');'
-								].join('\n'), 'Added code matches expected');
+								].join('\r\n'), 'Added code matches expected');
 							});
 							it('should correctly add a search engine script (current tab)', async () => {
 								await enterEditorFullscreen(this, type);
