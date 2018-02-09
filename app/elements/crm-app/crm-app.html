@@ -522,8 +522,8 @@
 						</template>
 					</div>
 					<div class="buttons">
-						<paper-button dialog-confirm on-tap="domListener" data-on-tap="confirmCodeSettings">Save</paper-button>
 						<paper-button dialog-dismiss>Cancel</paper-button>
+						<paper-button dialog-confirm on-tap="domListener" data-on-tap="confirmCodeSettings">Save</paper-button>
 					</div>
 				</paper-dialog>
 				<paper-dialog id="restoreChangesDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
@@ -544,8 +544,8 @@
 					</div>
 					<monaco-editor id="restoreChangesEditor"></monaco-editor>
 					<div class="buttons">
-						<paper-button id="keepChangesButton" dialog-confirm>Keep Old</paper-button>
 						<paper-button id="discardButton" dialog-dismiss>Discard</paper-button>
+						<paper-button id="keepChangesButton" dialog-confirm>Keep Old</paper-button>
 					</div>
 				</paper-dialog>
 				<paper-dialog data-element-type="ChooseFileDialog" no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
@@ -553,9 +553,9 @@
 						<h2>Choose the file you want to keep</h2>
 						<monaco-editor id="chooseFileMerger"></monaco-editor>
 						<div class="buttons">
+							<paper-button class="closeChooseFileDialog">Cancel</paper-button>
 							<paper-button id="chooseFileChooseCRM" dialog-confirm>Choose extension code</paper-button>
 							<paper-button id="chooseFileChooseDisk" dialog-confirm>Choose code on disk</paper-button>
-							<paper-button class="closeChooseFileDialog">Cancel</paper-button>
 						</div>	
 					</div>
 				</paper-dialog>
@@ -577,16 +577,16 @@
 						<br><br>
 						<paper-checkbox id="addLibraryIsTS">Library language is <a rel="noopener" href="https://www.typescriptlang.org/" target="_blank">typescript</a> (if true, allows for better completions)</paper-checkbox>
 						<div class="buttons">
-							<paper-button id="addLibraryButton">Add</paper-button>
 							<paper-button dialog-dismiss>Cancel</paper-button>
+							<paper-button id="addLibraryButton">Add</paper-button>
 						</div>
 					</div>
 					<div id="addLibraryConfirmationContainer">
 						<h2>Does this look okay to you?</h2>
 						<paper-textarea id="addLibraryConfirmationInput"></paper-textarea>
 						<div class="buttons">
-							<paper-button id="addLibraryConfirmAddition">Yes</paper-button>
 							<paper-button id="addLibraryDenyConfirmation">No</paper-button>
+							<paper-button id="addLibraryConfirmAddition">Yes</paper-button>
 						</div>
 					</div>
 					<div id="addLibraryDialogSucces">
@@ -738,8 +738,8 @@
 								</div>
 							</div>
 							<div class="buttons">
-								<paper-button id="requestPermissionsAcceptAll">Accept All Required</paper-button>
 								<paper-button dialog-dismiss>close</paper-button>
+								<paper-button id="requestPermissionsAcceptAll">Accept All Required</paper-button>
 							</div>
 						</div>
 					</paper-dialog>
