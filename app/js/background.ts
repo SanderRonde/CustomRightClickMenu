@@ -10262,79 +10262,50 @@ if (typeof module === 'undefined') {
 			sandboxChrome?: any;
 		} = {} as any;
 
+		interface SandboxWorkerMessage {
+			data: {
+				type: 'log';
+				lineNo: number;
+				data: EncodedString<Array<any>>
+			}|{
+				type: 'handshake';
+				key: Array<number>;
+				data: EncodedString<{
+					id: number;
+					key: Array<number>;
+					tabId: number;
+				}>;
+			}|{
+				type: 'crmapi';
+				key: Array<number>;
+				data: EncodedString<CRMAPIMessage>;
+			}
+		}
+
 		class SandboxWorker {
-			worker: Worker;
+			worker: Worker = new Worker('/js/sandbox.js');
 			_callbacks: Array<Function> = [];
 			_verified: boolean = false;
+			_handler = window.createHandlerFunction({
+				postMessage: this._postMessage.bind(this)
+			});
 
 			constructor(public id: number, public script: string, libraries: Array<string>,
-				public secretKey: Array<number>, getInstances: () => Array<{
+				public secretKey: Array<number>, private _getInstances: () => Array<{
 					id: string;
 					tabIndex: number;
 				}>) {
+					this.worker.addEventListener('message', (e: SandboxWorkerMessage) => {
+						this._onMessage(e);
+					}, false);
 
-				this.worker = new Worker('/js/sandbox.js');
-
-				const handler = window.createHandlerFunction({
-					postMessage: this._postMessage.bind(this)
-				});
-
-				this.worker.addEventListener('message', (e: {
-					data: {
-						type: 'log';
-						lineNo: number;
-						data: EncodedString<Array<any>>
-					}|{
-						type: 'handshake';
-						key: Array<number>;
-						data: EncodedString<{
-							id: number;
-							key: Array<number>;
-							tabId: number;
-						}>;
-					}|{
-						type: 'crmapi';
-						key: Array<number>;
-						data: EncodedString<CRMAPIMessage>;
-					}
-				}) => {
-					const data = e.data;
-					switch (data.type) {
-						case 'handshake':
-						case 'crmapi':
-							if (!this._verified) {
-								window.backgroundPageLog(id, null,
-									'Ininitialized background page');
-
-								this.worker.postMessage({
-									type: 'verify',
-									instances: getInstances()
-								});
-								this._verified = true;
-							}
-							this._verifyKey(data, handler);
-							break;
-						case 'log':
-							window.backgroundPageLog.apply(window,
-								[id, [data.lineNo, -1]].concat(JSON
-									.parse(data.data)));
-							break;
-					}
-					if (this._callbacks) {
-						this._callbacks.forEach(callback => {
-							callback(data);
-						});
-						this._callbacks = [];
-					}
-				}, false);
-
-				this.worker.postMessage({
-					type: 'init',
-					id: id,
-					script: script,
-					libraries: libraries
-				});
-			}
+					this.worker.postMessage({
+						type: 'init',
+						id: id,
+						script: script,
+						libraries: libraries
+					});
+				}
 
 			post(message: any) {
 				this.worker.postMessage(message);
@@ -10343,6 +10314,37 @@ if (typeof module === 'undefined') {
 			listen(callback: Function) {
 				this._callbacks.push(callback);
 			};
+
+			private _onMessage(e: SandboxWorkerMessage) {	
+				const data = e.data;
+				switch (data.type) {
+					case 'handshake':
+					case 'crmapi':
+						if (!this._verified) {
+							window.backgroundPageLog(this.id, null,
+								'Ininitialized background page');
+
+							this.worker.postMessage({
+								type: 'verify',
+								instances: this._getInstances()
+							});
+							this._verified = true;
+						}
+						this._verifyKey(data, this._handler);
+						break;
+					case 'log':
+						window.backgroundPageLog.apply(window,
+							[this.id, [data.lineNo, -1]].concat(JSON
+								.parse(data.data)));
+						break;
+				}
+				if (this._callbacks) {
+					this._callbacks.forEach(callback => {
+						callback(data);
+					});
+					this._callbacks = [];
+				}
+			}
 
 			private _postMessage(message: any) {
 				this.worker.postMessage({
