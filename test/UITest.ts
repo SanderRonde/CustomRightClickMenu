@@ -984,6 +984,9 @@ class FoundElement implements FoundElement {
 		return new FoundElementPromise((resolve, reject) => {
 			driver.executeScript(inlineFn(() => {
 				const baseEl = findElementOnPage('REPLACE.selector') as Element;
+				if (!baseEl) {
+					return 'null';
+				}
 				const el = baseEl.querySelector('REPLACE.css') ||
 					baseEl.shadowRoot.querySelector('REPLACE.css');
 
@@ -1015,6 +1018,9 @@ class FoundElement implements FoundElement {
 		return new FoundElementsPromise((resolve) => {
 			driver.executeScript(inlineFn(() => {
 				const baseEl = findElementOnPage('REPLACE.selector') as Element;
+				if (!baseEl) {
+					return JSON.stringify([] as Array<'null'|'exists'>);
+				}
 				let elList = baseEl.querySelectorAll('REPLACE.css');
 				if (baseEl.shadowRoot) {
 					const candidate = baseEl.shadowRoot.querySelectorAll('REPLACE.css');
