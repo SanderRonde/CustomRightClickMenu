@@ -6068,7 +6068,7 @@ if (typeof module === 'undefined') {
 					}
 
 					if (globalObject.globals.background.byId[id]) {
-						globalObject.globals.background.byId[id].worker.terminate();
+						globalObject.globals.background.byId[id].terminate();
 						delete globalObject.globals.background.byId[id];
 					}
 
@@ -6718,7 +6718,7 @@ if (typeof module === 'undefined') {
 
 						Logging.backgroundPageLog(node.id, null,
 							'Restarting background page...');
-						globalObject.globals.background.byId[node.id].worker.terminate();
+						globalObject.globals.background.byId[node.id].terminate();
 						Logging.backgroundPageLog(node.id, null,
 							'Terminated background page...');
 					}
@@ -6798,6 +6798,9 @@ if (typeof module === 'undefined') {
 							}
 							return instancesArr;
 						}, (worker: CRMSandboxWorker) => {
+							if (globalObject.globals.background.byId[node.id]) {
+								globalObject.globals.background.byId[node.id].terminate();
+							}
 							globalObject.globals.background.byId[node.id] = worker;
 							if (isRestart) {
 								Logging.log(node.id, '*', `Background page [${node.id}]: `,
@@ -10311,6 +10314,10 @@ if (typeof module === 'undefined') {
 			listen(callback: Function) {
 				this._callbacks.push(callback);
 			};
+
+			terminate() {
+				this.worker.terminate();
+			}
 
 			private _onMessage(e: SandboxWorkerMessage) {	
 				const data = e.data;
