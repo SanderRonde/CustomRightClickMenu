@@ -1147,7 +1147,8 @@ window.Worker = function(url) {
 				val: 'callback',
 				type: 'function'
 			}]);
-		}
+		},
+		terminate: function() { }
 	};
 };
 
