@@ -877,8 +877,8 @@ module.exports = function(grunt) {
 		'clean:removeBuildBeforePolymer', 'crispify', 
 		'copy:webcomponentsLibs', 'string-replace:removeOptionsJs', 
 		'babel', 'joinPages:build', 'string-replace:fixBugs', 
-		'string-replace:noDefer','uglify:finalMinify',
-		'usebanner', 'copy:prefixJs', 'clean:buildBeforePolymer', 
+		'string-replace:noDefer','usebanner','copy:prefixJs', 
+		'uglify:finalMinify','clean:buildBeforePolymer', 
 		'copy:monacoPost', 'string-replace:patchMonaco']);
 
 	//Builds the extension but tries to keep the code readable and unminified
