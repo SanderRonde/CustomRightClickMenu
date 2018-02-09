@@ -2316,7 +2316,7 @@ namespace MonacoEditorElement {
 						resolve(null);
 					}, (err) => {
 						alert('Failed to load lint library');
-						reject(null);
+						reject('Failed to load lint library');
 					});
 				});
 			}
