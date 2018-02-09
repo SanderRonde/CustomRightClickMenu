@@ -6769,7 +6769,7 @@ if (typeof module === 'undefined') {
 							indentUnit,
 							nodeStorage,
 							greaseMonkeyData
-						})
+						});
 
 						sandboxes.sandbox(node.id, code, libraries, key, () => {
 							const instancesArr: Array<{
