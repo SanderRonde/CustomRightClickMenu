@@ -78,7 +78,7 @@ namespace NodeEditBehaviorNamespace {
 			const triggers = [];
 			for (let i = 0; i < containers.length; i++) {
 				triggers[i] = {
-					url: containers[i].querySelector('input').value,
+					url: containers[i].querySelector('paper-input').$$('input').value,
 					not: (containers[i].querySelector('.executionTriggerNot') as HTMLPaperCheckboxElement).checked
 				};
 			}
