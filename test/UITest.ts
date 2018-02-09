@@ -563,7 +563,7 @@ function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackConte
 function waitForCRM(timeRemaining: number): webdriver.promise.Promise<void> {
 	return new webdriver.promise.Promise<void>((resolve, reject) => {
 		if (timeRemaining <= 0) {
-			reject(null);
+			reject(new Error('Ran out of time waiting for CRM'));
 			return;
 		}
 

@@ -2301,7 +2301,7 @@ namespace MonacoEditorElement {
 								this._loadedFiles[name] = xhr.responseText;
 								resolve(xhr.responseText);
 							} else {
-								reject(null);
+								reject(new Error('Failed XHR'));
 							}
 						}
 					}
@@ -2316,7 +2316,7 @@ namespace MonacoEditorElement {
 						resolve(null);
 					}, (err) => {
 						alert('Failed to load lint library');
-						reject('Failed to load lint library');
+						reject(new Error('Failed to load lint library'));
 					});
 				});
 			}

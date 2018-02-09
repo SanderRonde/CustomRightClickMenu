@@ -229,10 +229,10 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 					}
 					else {
 						//Show error
-						reject('data was invalid');
+						reject(new Error('data was invalid'));
 					}
 				} catch(e) {
-					reject('data was invalid');
+					reject(new Error('data was invalid'));
 				}
 			});
 		};
