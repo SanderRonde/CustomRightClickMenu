@@ -2154,6 +2154,9 @@ describe('Options Page', function() {
 						InputKeys.BACK_SPACE,
 						InputKeys.BACK_SPACE,
 						newZoom);
+				await driver.executeScript(inlineFn(() => {
+					window.app.util.getDialog().fontSizeChange();
+				}));
 				await wait(10000, dialog);
 				const settings = await getSyncSettings();
 
