@@ -51,7 +51,9 @@ namespace StylesheetEditElement {
 		};
 
 		static saveChanges(this: NodeEditBehaviorStylesheetInstance) {
-			this.newSettings.value.stylesheet = this.editorManager.editor.getValue();
+			this.newSettings.value.stylesheet = (this.editorManager && 
+				this.editorManager.editor && 
+				this.editorManager.editor.getValue()) || this.item.value.stylesheet;
 			this.newSettings.value.launchMode = this.$.dropdownMenu.selected;
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
@@ -152,8 +154,8 @@ namespace StylesheetEditElement {
 			this.$.exportMenu.$.dropdownSelected.innerText = 'EXPORT AS';
 			this.initDropdown();
 			this.selectorStateChange(0, this.newSettings.value.launchMode);
-			document.body.classList.remove('editingScript');
-			document.body.classList.add('editingStylesheet');
+			window.app.$.editorToolsRibbonContainer.classList.remove('editingScript');
+			window.app.$.editorToolsRibbonContainer.classList.add('editingStylesheet');
 			window.stylesheetEdit = this;
 			window.externalEditor.init();
 			if (window.app.storageLocal.recoverUnsavedData) {

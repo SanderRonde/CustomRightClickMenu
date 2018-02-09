@@ -117,7 +117,7 @@ namespace PaperGetPagePropertiesElement {
 					id: 'paperGetPropertyTitle'
 				}, {
 					name: 'Clicked Element',
-					id: 'paperGetClickedElement'
+					id: 'paperGetPropertyClicked'
 				}
 			];
 		};

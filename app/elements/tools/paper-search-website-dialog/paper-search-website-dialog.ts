@@ -188,13 +188,13 @@ namespace PaperSearchWebsiteDialog {
 		 */
 		static insertCode(this: PaperSearchWebsiteDialog) {
 			const code = 
-	`var search = crmAPI.getSelection() || prompt('Please enter a search query');
-	var url = '${this.chosenUrl}';
-	var toOpen = url.replace(/%s/g,search);
-	${this.$.howToOpenLink.selected === 'currentTab' ? 
-		`location.href = toOpen;` :
-		`window.open(toOpen, '_blank');`
-	}`;
+`var search = crmAPI.getSelection() || prompt('Please enter a search query');
+var url = '${this.chosenUrl}';
+var toOpen = url.replace(/%s/g,search);
+${this.$.howToOpenLink.selected === 'currentTab' ? 
+	`location.href = toOpen;` :
+	`window.open(toOpen, '_blank');`
+}`;
 			window.scriptEdit.insertSnippet(window.scriptEdit, code, true);
 			setTimeout(() => {
 				this.hide();
@@ -215,7 +215,9 @@ namespace PaperSearchWebsiteDialog {
 		 */
 		static processSearchEngines(this: PaperSearchWebsiteDialog): Promise<string> {
 			return new Promise((resolve, reject) => {
-				const data = this.$.manualInputListChoiceInput.$$('textarea').value as EncodedString<Array<string>>;
+				const data = (this.$.manualInputListChoiceInput
+					.$$('iron-autogrow-textarea') as Polymer.RootElement)
+					.$$('textarea').value as EncodedString<Array<string>>;
 
 				try {
 					const structuredSearchEngines = JSON.parse(data);
@@ -227,10 +229,10 @@ namespace PaperSearchWebsiteDialog {
 					}
 					else {
 						//Show error
-						reject('data was invalid');
+						reject(new Error('data was invalid'));
 					}
 				} catch(e) {
-					reject('data was invalid');
+					reject(new Error('data was invalid'));
 				}
 			});
 		};

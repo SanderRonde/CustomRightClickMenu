@@ -74,12 +74,12 @@ namespace NodeEditBehaviorNamespace {
 		};
 
 		static getTriggers(this: NodeEditBehaviorInstance, resultStorage: Partial<CRM.Node>) {
-			const inputs = this.shadowRoot.querySelectorAll('.executionTrigger paper-input') as NodeListOf<HTMLPaperInputElement>;
+			const containers = this.shadowRoot.querySelectorAll('.executionTrigger');
 			const triggers = [];
-			for (let i = 0; i < inputs.length; i++) {
+			for (let i = 0; i < containers.length; i++) {
 				triggers[i] = {
-					url: inputs[i].value,
-					not: (inputs[i].parentElement.children[0] as HTMLPaperCheckboxElement).checked
+					url: containers[i].querySelector('paper-input').$$('input').value,
+					not: (containers[i].querySelector('.executionTriggerNot') as HTMLPaperCheckboxElement).checked
 				};
 			}
 			resultStorage.triggers = triggers;

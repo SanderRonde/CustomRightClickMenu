@@ -132,18 +132,10 @@ namespace CodeEditBehaviorNamespace {
 		}
 
 		static fontSizeChange(this: CodeEditBehaviorInstance) {
-			window.app.settings.editor.zoom = this.$.editorThemeFontSizeInput.$$('input').value + '';
-			window.app.upload();
-		}
-
-		static jsLintGlobalsChange(this: CodeEditBehaviorInstance) {
 			this.async(() => {
-				const globals = this.$.editorJSLintGlobalsInput.$$('input').value.split(',').map(global => global.trim());
-				chrome.storage.local.set({
-					jsLintGlobals: globals
-				});
-				window.app.jsLintGlobals = globals;
-			}, 0);
+				window.app.settings.editor.zoom = this.$.editorThemeFontSizeInput.$$('input').value + '';
+				window.app.upload();
+			}, 50);
 		}
 
 		static finishEditing(this: CodeEditBehaviorInstance) {
@@ -154,6 +146,9 @@ namespace CodeEditBehaviorNamespace {
 			}
 			window.useOptionsCompletions = false;
 			this.hideCodeOptions();
+			if (this.optionsShown) {
+				this.hideOptions();
+			}
 			Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.editorTab')).forEach(
 				function(tab: HTMLElement) {
 					tab.classList.remove('active');
@@ -221,10 +216,12 @@ namespace CodeEditBehaviorNamespace {
 		 * Fills the editor-tools-ribbon on the left of the editor with elements
 		 */
 		static initToolsRibbon(this: CodeEditBehaviorInstance) {
-			(window.app.$.paperLibrariesSelector as PaperLibrariesSelector).init();
-			(window.app.$.paperGetPageProperties as PaperGetPageProperties).init((snippet: string) => {
-				this.insertSnippet(this, snippet);
-			});
+			if (this.item.type === 'script') {
+				(window.app.$.paperLibrariesSelector as PaperLibrariesSelector).init();
+				(window.app.$.paperGetPageProperties as PaperGetPageProperties).init((snippet: string) => {
+					this.insertSnippet(this, snippet);
+				});
+			}
 		};
 
 		/**

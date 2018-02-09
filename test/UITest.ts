@@ -498,8 +498,8 @@ function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackCo
 function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext): webdriver.promise.Promise<void>; 
 function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
 	__this.timeout(30000 * TIME_MODIFIER);
-	const promise = new webdriver.promise.Promise<void>((resolve) => {
-		driver.executeScript(inlineFn(() => {
+	const promise = new webdriver.promise.Promise<void>(async (resolve) => {
+		const result = await driver.executeScript(inlineFn(() => {
 			try {
 				window.chrome.storage.local.clear();
 				window.chrome.storage.sync.clear();
@@ -511,15 +511,14 @@ function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackCo
 					stack: e.stack
 				};
 			}
-		})).then((e) => {
-			if (e) {
-				console.log(e);
-				throw e;
-			}
-			return wait(1500);
-		}).then(() => {
-			resolve(null);
-		});
+		}));
+		if (result) {
+			console.log(result);
+			throw result;
+		}
+		await waitForCRM(5000);
+		await wait(1500);
+		resolve(null);
 	});
 	if (done) {
 		promise.then(done);
@@ -565,7 +564,7 @@ function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackConte
 function waitForCRM(timeRemaining: number): webdriver.promise.Promise<void> {
 	return new webdriver.promise.Promise<void>((resolve, reject) => {
 		if (timeRemaining <= 0) {
-			reject(null);
+			reject(new Error('Ran out of time waiting for CRM'));
 			return;
 		}
 
@@ -986,6 +985,9 @@ class FoundElement implements FoundElement {
 		return new FoundElementPromise((resolve, reject) => {
 			driver.executeScript(inlineFn(() => {
 				const baseEl = findElementOnPage('REPLACE.selector') as Element;
+				if (!baseEl) {
+					return 'null';
+				}
 				const el = baseEl.querySelector('REPLACE.css') ||
 					baseEl.shadowRoot.querySelector('REPLACE.css');
 
@@ -1017,6 +1019,9 @@ class FoundElement implements FoundElement {
 		return new FoundElementsPromise((resolve) => {
 			driver.executeScript(inlineFn(() => {
 				const baseEl = findElementOnPage('REPLACE.selector') as Element;
+				if (!baseEl) {
+					return JSON.stringify([] as Array<'null'|'exists'>);
+				}
 				let elList = baseEl.querySelectorAll('REPLACE.css');
 				if (baseEl.shadowRoot) {
 					const candidate = baseEl.shadowRoot.querySelectorAll('REPLACE.css');
@@ -1541,7 +1546,7 @@ describe('Options Page', function() {
 				'	query = window.prompt(\'Please enter a search query\');\n' +
 				'}\n' +
 				'if (query) {\n' +
-				'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
+				'	window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');\n' +
 				'}',
 				'script1 value matches expected');
 		});
@@ -1574,7 +1579,7 @@ describe('Options Page', function() {
 				'	query = window.prompt(\'Please enter a search query\');\n' +
 				'}\n' +
 				'if (query) {\n' +
-				'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
+				'	window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');\n' +
 				'}',
 				'script value matches expected');
 		});
@@ -1601,7 +1606,7 @@ describe('Options Page', function() {
 					'	query = window.prompt(\'Please enter a search query\');\n' +
 					'}\n' +
 					'if (query) {\n' +
-					'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
+					'	window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');\n' +
 					'}',
 					'script value matches expected');
 			})();
@@ -1623,7 +1628,7 @@ describe('Options Page', function() {
 					'	query = window.prompt(\'Please enter a search query\');\n' +
 					'}\n' +
 					'if (query) {\n' +
-					'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
+					'	window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');\n' +
 					'}',
 					'script2 value matches expected');
 			});
@@ -1860,6 +1865,7 @@ describe('Options Page', function() {
 			const defaultContentTypes = [true, true, true, false, false, false];
 
 			it('should be editable through clicking on the checkboxes', async function()  {
+				this.retries(3);
 				await resetSettings(this);
 				await openDialog('link');
 				const dialog = await getDialog('link');
@@ -1884,6 +1890,7 @@ describe('Options Page', function() {
 					'all content types were toggled');
 			});
 			it('should be editable through clicking on the icons', async function()  {
+				this.retries(3);
 				await resetSettings(this);
 				await openDialog('link');
 				const dialog = await getDialog('link');
@@ -1907,11 +1914,12 @@ describe('Options Page', function() {
 					'all content types were toggled');
 			});
 			it('should be editable through clicking on the names', async function()  {
+				this.retries(3);
 				await resetSettings(this);
 				await openDialog('link');
 				const dialog = await getDialog('link');
 				await dialog.findElements(webdriver.By.className('showOnContentItemCont')).mapWait((element) => {
-					return element.findElement(webdriver.By.className('showOnContentItemIcon')).click().then(() => {
+					return element.findElement(webdriver.By.className('showOnContentItemTxt')).click().then(() => {
 						return wait(25);
 					});
 				});
@@ -2115,6 +2123,10 @@ describe('Options Page', function() {
 				await openDialog(type);
 				const dialog = await getDialog(type);
 				await wait(500, dialog);
+
+				const initialSettings = await getSyncSettings();
+				assert.strictEqual(initialSettings.editor.theme, 'dark',
+					'initial theme is set to dark mode');
 				await dialog.findElement(webdriver.By.id('editorSettings')).click();
 				await wait(500);
 				await dialog.findElement(webdriver.By.id('editorThemeSettingWhite')).click();
@@ -2149,6 +2161,9 @@ describe('Options Page', function() {
 						InputKeys.BACK_SPACE,
 						InputKeys.BACK_SPACE,
 						newZoom);
+				await driver.executeScript(inlineFn(() => {
+					window.app.util.getDialog().fontSizeChange();
+				}));
 				await wait(10000, dialog);
 				const settings = await getSyncSettings();
 
@@ -2603,8 +2618,13 @@ describe('Options Page', function() {
 								.findElement(webdriver.By.id('dropdownSelectedCont'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
-								.click();
+							for (const item of (await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+								.findElements(webdriver.By.tagName('paper-item')))) {
+									if ((await item.getAttribute('class')).indexOf('addLibrary') > -1) {
+										item.click();
+										break;
+									}
+								}
 							await wait(1000);
 							await crmApp.findElement(webdriver.By.id('addLibraryUrlInput'))
 								.findElement(webdriver.By.tagName('input'))
@@ -2616,7 +2636,7 @@ describe('Options Page', function() {
 							const [isInvalid, libSizes] = await webdriver.promise.all([
 								crmApp.findElement(webdriver.By.id('addedLibraryName'))
 									.getProperty('invalid'),
-									crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
+								crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
 									.getSize()
 							]) as [boolean, ClientRect];
 
@@ -2711,8 +2731,13 @@ describe('Options Page', function() {
 								.findElement(webdriver.By.id('dropdownSelectedCont'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
-								.click()
+							for (const item of (await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+								.findElements(webdriver.By.tagName('paper-item')))) {
+									if ((await item.getAttribute('class')).indexOf('addLibrary') > -1) {
+										item.click();
+										break;
+									}
+								}
 							await wait(1000);
 							await crmApp.findElement(webdriver.By.id('addLibraryUrlInput'))
 								.findElement(webdriver.By.tagName('input'))
@@ -2767,12 +2792,18 @@ describe('Options Page', function() {
 								.findElement(webdriver.By.id('dropdownSelectedCont'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
-								.click();
-									await wait(1000);
+							for (const item of (await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+								.findElements(webdriver.By.tagName('paper-item')))) {
+									if ((await item.getAttribute('class')).indexOf('addLibrary') > -1) {
+										item.click();
+										break;
+									}
+								}
+							await wait(1000);
 							await crmApp.findElement(webdriver.By.id('addLibraryManualOption'))
 								.click();
 							await crmApp.findElement(webdriver.By.id('addLibraryManualInput'))
+								.findElement(webdriver.By.tagName('iron-autogrow-textarea'))
 								.findElement(webdriver.By.tagName('textarea'))
 								.sendKeys(InputKeys.CLEAR_ALL, testCode);
 							await crmApp.findElement(webdriver.By.id('addLibraryButton'))
@@ -2855,12 +2886,18 @@ describe('Options Page', function() {
 								.findElement(webdriver.By.id('dropdownSelectedCont'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
-								.click();
+							for (const item of (await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+								.findElements(webdriver.By.tagName('paper-item')))) {
+									if ((await item.getAttribute('class')).indexOf('addLibrary') > -1) {
+										item.click();
+										break;
+									}
+								}
 							await wait(1000);
 							await crmApp.findElement(webdriver.By.id('addLibraryManualOption'))
 								.click();
 							await crmApp.findElement(webdriver.By.id('addLibraryManualInput'))
+								.findElement(webdriver.By.tagName('iron-autogrow-textarea'))
 								.findElement(webdriver.By.tagName('textarea'))
 								.sendKeys(InputKeys.CLEAR_ALL, testCode);
 							await crmApp.findElement(webdriver.By.id('addLibraryButton'))
@@ -2868,7 +2905,7 @@ describe('Options Page', function() {
 							const [isInvalid, libSizes] = await webdriver.promise.all([
 								crmApp.findElement(webdriver.By.id('addedLibraryName'))
 									.getProperty('invalid'),
-									crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
+								crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
 									.getSize()
 							]) as [boolean, ClientRect];
 
@@ -2899,19 +2936,20 @@ describe('Options Page', function() {
 					});
 					describe('GetPageProperties', function() {
 						const pagePropertyPairs = {
-							paperGetPropertySelection: 'crmAPI.getSelection();\n',
-							paperGetPropertyUrl: 'window.location.href;\n',
-							paperGetPropertyHost: 'window.location.host;\n',
-							paperGetPropertyPath: 'window.location.path;\n',
-							paperGetPropertyProtocol: 'window.location.protocol;\n',
-							paperGetPropertyWidth: 'window.innerWidth;\n',
-							paperGetPropertyHeight: 'window.innerHeight;\n',
-							paperGetPropertyPixels: 'window.scrollY;\n',
-							paperGetPropertyTitle: 'document.title;\n',
-							paperGetClickedElement: 'crmAPI.contextData.target;\n'
+							paperGetPropertySelection: 'crmAPI.getSelection();\r\n',
+							paperGetPropertyUrl: 'window.location.href;\r\n',
+							paperGetPropertyHost: 'window.location.host;\r\n',
+							paperGetPropertyPath: 'window.location.path;\r\n',
+							paperGetPropertyProtocol: 'window.location.protocol;\r\n',
+							paperGetPropertyWidth: 'window.innerWidth;\r\n',
+							paperGetPropertyHeight: 'window.innerHeight;\r\n',
+							paperGetPropertyPixels: 'window.scrollY;\r\n',
+							paperGetPropertyTitle: 'document.title;\r\n',
+							paperGetPropertyClicked: 'crmAPI.contextData.target;\r\n'
 						};
 						Object.getOwnPropertyNames(pagePropertyPairs).forEach((prop: keyof typeof pagePropertyPairs) => {
 							it(`should be able to insert the ${prop} property`, async () => {
+								this.retries(5);
 								const dialog = await enterEditorFullscreen(this, type);
 								const crmApp = await findElement(webdriver.By.tagName('crm-app'));
 								const prevCode = await getEditorValue(type);
@@ -2926,7 +2964,7 @@ describe('Options Page', function() {
 								assert.strictEqual(subtractStrings(newCode, prevCode),
 									pagePropertyPairs[prop], 
 									'Added text should match expected');
-								await crmApp.findElement(webdriver.By.id('editorFullScreen'))
+								await crmApp.findElement(webdriver.By.id('fullscreenEditorToggle'))
 									.click();
 								await wait(500);
 								await cancelDialog(dialog);
@@ -2949,25 +2987,26 @@ describe('Options Page', function() {
 								crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'))
+								const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
+								await searchDialog
 									.findElement(webdriver.By.id('initialWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElement(webdriver.By.css('paper-button:nth-child(2)'))
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('chooseDefaultSearchWindow'))
+								await searchDialog.findElement(webdriver.By.id('chooseDefaultSearchWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('confirmationWindow'))
+								await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('howToOpenWindow'))
+								await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
@@ -2980,7 +3019,7 @@ describe('Options Page', function() {
 									'var url = \'https://www.google.com/search?q=%s\';',
 									'var toOpen = url.replace(/%s/g,search);',
 									'window.open(toOpen, \'_blank\');'
-								].join('\n'), 'Added code matches expected');
+								].join('\r\n'), 'Added code matches expected');
 							});
 							it('should correctly add a search engine script (current tab)', async () => {
 								await enterEditorFullscreen(this, type);
@@ -2989,29 +3028,30 @@ describe('Options Page', function() {
 								await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'))
+								const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
+								await searchDialog
 									.findElement(webdriver.By.id('initialWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElement(webdriver.By.css('paper-button:nth-child(2)'))
 									.click();
-								await crmApp.findElement(webdriver.By.id('chooseDefaultSearchWindow'))
+								await searchDialog.findElement(webdriver.By.id('chooseDefaultSearchWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('confirmationWindow'))
+								await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('howToOpenLink'))
+								await searchDialog.findElement(webdriver.By.id('howToOpenLink'))
 									.findElements(webdriver.By.tagName('paper-radio-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('howToOpenWindow'))
+								await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
@@ -3023,7 +3063,7 @@ describe('Options Page', function() {
 									'var url = \'https://www.google.com/search?q=%s\';',
 									'var toOpen = url.replace(/%s/g,search);',
 									'location.href = toOpen;'
-								].join('\n'), 'Added code matches expected');
+								].join('\r\n'), 'Added code matches expected');
 							});
 						});
 						describe('Custom Input', function() {
@@ -3036,27 +3076,28 @@ describe('Options Page', function() {
 								const prevCode = await getEditorValue(type);
 								await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
 										.click();
-								await crmApp.findElement(webdriver.By.id('initialWindowChoicesCont'))
+								const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
+								await searchDialog.findElement(webdriver.By.id('initialWindowChoicesCont'))
 									.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+								await searchDialog.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
 									.findElement(webdriver.By.id('manualInputURLInput'))
 									.findElement(webdriver.By.tagName('input'))
 									.sendKeys(InputKeys.CLEAR_ALL, exampleSearchURL);
-								await crmApp.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+								await searchDialog.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('confirmationWindow'))
+								await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('howToOpenWindow'))
+								await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
@@ -3068,7 +3109,7 @@ describe('Options Page', function() {
 									`var url = '${exampleSearchURL.replace('customRightClickMenu', '%s')}';`,
 									'var toOpen = url.replace(/%s/g,search);',
 									'location.href = toOpen;'
-								].join('\n'), 'Script should match expected value');
+								].join('\r\n'), 'Script should match expected value');
 							});
 							it('should be able to add one from your visited websites', async () => {
 								const exampleVisitedWebsites: Array<{
@@ -3087,43 +3128,45 @@ describe('Options Page', function() {
 								await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('initialWindowChoicesCont'))
+								const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
+								await searchDialog.findElement(webdriver.By.id('initialWindowChoicesCont'))
 									.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('manulInputSavedChoice'))
+								await searchDialog.findElement(webdriver.By.id('manulInputSavedChoice'))
 									.click();
 								await wait(500);
 								await driver.executeScript(inlineFn(() => {
 	                        		(window.app.$ as any).paperSearchWebsiteDialog
 										.shadowRoot.querySelector('#manualInputListChoiceInput')
-										.querySelector('textarea').value = 'REPLACE.websites';
+										.shadowRoot.querySelector('iron-autogrow-textarea')
+										.shadowRoot.querySelector('textarea').value = 'REPLACE.websites';
 								}, {
 									websites: JSON.stringify(exampleVisitedWebsites)
 								}));
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+								await searchDialog.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('processedListWindow'))
+								await searchDialog.findElement(webdriver.By.id('processedListWindow'))
 									.findElement(webdriver.By.className('searchOptionCheckbox'))
 									.click();
-								await crmApp.findElement(webdriver.By.id('processedListWindow'))
+								await searchDialog.findElement(webdriver.By.id('processedListWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('confirmationWindow'))
+								await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
 									.click();
 								await wait(500);
-								await crmApp.findElement(webdriver.By.id('howToOpenWindow'))
+								await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
 									.findElement(webdriver.By.className('buttons'))
 									.findElements(webdriver.By.tagName('paper-button'))
 									.get(1)
@@ -3135,7 +3178,7 @@ describe('Options Page', function() {
 									`var url = '${exampleVisitedWebsites[0].searchUrl}';`,
 									'var toOpen = url.replace(/%s/g,search);',
 									'location.href = toOpen;'
-								].join('\n'), 'Added script should match expected');
+								].join('\r\n'), 'Added script should match expected');
 							});
 						});
 					});

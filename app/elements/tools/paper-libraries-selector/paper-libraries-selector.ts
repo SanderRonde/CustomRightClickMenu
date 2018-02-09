@@ -302,7 +302,9 @@ namespace PaperLibrariesSelectorElement {
 			//Add new library dialog
 			window.doc.addedLibraryName.$$('input').value = '';
 			window.doc.addLibraryUrlInput.$$('input').value = '';
-			window.doc.addLibraryManualInput.$$('textarea').value = '';
+			(window.doc.addLibraryManualInput
+				.$$('iron-autogrow-textarea') as Polymer.RootElement)
+				.$$('textarea').value = '';
 			window.doc.addLibraryIsTS.checked = false;
 
 			this._showElements('addLibraryProcessContainer');
@@ -340,7 +342,9 @@ namespace PaperLibrariesSelectorElement {
 							});
 						} else {
 							this.addLibraryFile(name, window.doc.addLibraryIsTS.checked,
-									window.doc.addLibraryManualInput.$$('textarea').value);
+								(window.doc.addLibraryManualInput
+									.$$('iron-autogrow-textarea') as Polymer.RootElement)
+									.$$('textarea').value);
 						}
 					} else {
 						if (taken) {
@@ -393,12 +397,11 @@ namespace PaperLibrariesSelectorElement {
 		}
 
 		static _click(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
-			if (e.target.tagName.toLowerCase() === 'path' ||
-				e.target.tagName.toLowerCase() === 'svg' ||
-				e.target.classList.contains('removeLibrary')) {
-					return;
-				}
-			if (e.target.classList.contains('addLibrary')) {
+			const container = window.app.util.findElementWithTagname(e.path, 'paper-item');
+			if (container.classList.contains('removeLibrary')) {
+				return;
+			}
+			if (container.classList.contains('addLibrary')) {
 				this._addNewLibrary();
 			} else if (this.mode === 'main') {
 				this._handleCheckmarkClick(e);

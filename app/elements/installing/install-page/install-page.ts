@@ -115,7 +115,7 @@ namespace InstallPageElement {
 						if (xhr.status >= 200 && xhr.status < 300) {
 							resolve(xhr.responseText);
 						} else {
-							reject(xhr.status);
+							reject(new Error('Failed XHR'));
 						}
 					}
 				}

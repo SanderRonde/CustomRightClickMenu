@@ -23,6 +23,27 @@ namespace CRMAppElement {
 		bez(curve: Array<number>): string;
 	}
 
+	type TypeCheckTypes = 'string' | 'function' | 'number' | 'object' | 'array' | 'boolean';
+
+	interface TypeCheckConfig {
+		val: string;
+		type: TypeCheckTypes | Array<TypeCheckTypes>;
+		optional?: boolean;
+		forChildren?: Array<{
+			val: string;
+			type: TypeCheckTypes | Array<TypeCheckTypes>;
+			optional?: boolean;
+		}>;
+		dependency?: string;
+		min?: number;
+		max?: number;
+	}
+
+	type TypeCheckErrors = Array<{
+		err: string;
+		storageType?: 'local'|'sync';
+	}>;
+
 	window.runOrAddAsCallback = function (toRun: Function, thisElement: HTMLElement, params: Array<any>): void {
 		if (window.app.settings) {
 			toRun.apply(thisElement, params);
@@ -1014,6 +1035,366 @@ namespace CRMAppElement {
 			console.log.apply(console, logArgs);
 		}
 
+		private static _getDotValue<T extends {
+			[key: string]: T | U
+		}, U>(this: CrmApp, source: T, index: string): U {
+			const indexes = index.split('.');
+			let currentValue: T | U = source;
+			for (let i = 0; i < indexes.length; i++) {
+				if (indexes[i] in (currentValue as any)) {
+					currentValue = (currentValue as T)[indexes[i]];
+				} else {
+					return undefined;
+				}
+			}
+			return currentValue as U;
+		}
+
+		private static dependencyMet(this: CrmApp, data: TypeCheckConfig, optionals: {
+			[key: string]: any;
+			[key: number]: any;
+		}): boolean {
+			if (data.dependency && !optionals[data.dependency]) {
+				optionals[data.val] = false;
+				return false;
+			}
+			return true;
+		}
+
+		private static _isDefined(this: CrmApp, data: TypeCheckConfig, value: any, optionals: {
+			[key: string]: any;
+			[key: number]: any;
+		}, errors: TypeCheckErrors): boolean | 'continue' {
+			//Check if it's defined
+			if (value === undefined || value === null) {
+				if (data.optional) {
+					optionals[data.val] = false;
+					return 'continue';
+				} else {
+					errors.push({
+						err: `Value for ${data.val} is not set`
+					});
+					return false;
+				}
+			}
+			return true;
+		}
+
+		private static _typesMatch(this: CrmApp, data: TypeCheckConfig, value: any, errors: TypeCheckErrors): string {
+			const types = Array.isArray(data.type) ? data.type : [data.type];
+			for (let i = 0; i < types.length; i++) {
+				const type = types[i];
+				if (type === 'array') {
+					if (typeof value === 'object' && Array.isArray(value)) {
+						return type;
+					}
+				}
+				if (typeof value === type) {
+					return type;
+				}
+			}
+			errors.push({
+				err: `Value for ${data.val} is not of type ${types.join(' or ')}`
+			});
+			return null;
+		}
+
+		private static _checkNumberConstraints(this: CrmApp, data: TypeCheckConfig, value: number,
+			errors: TypeCheckErrors): boolean {
+				if (data.min !== undefined) {
+					if (data.min > value) {
+						errors.push({
+							err: `Value for ${data.val} is smaller than ${data.min}`
+						});
+						return false;
+					}
+				}
+				if (data.max !== undefined) {
+					if (data.max < value) {
+						errors.push({
+							err: `Value for ${data.val} is bigger than ${data.max}`
+						});
+						return false;
+					}
+				}
+				return true;
+			}
+
+			private static _checkArrayChildType(this: CrmApp, data: TypeCheckConfig, value: any, forChild: {
+			val: string;
+			type: TypeCheckTypes | Array<TypeCheckTypes>;
+			optional?: boolean;
+		}, errors: TypeCheckErrors): boolean {
+			const types = Array.isArray(forChild.type) ? forChild.type : [forChild.type]
+			for (let i = 0; i < types.length; i++) {
+				const type = types[i];
+				if (type === 'array') {
+					if (Array.isArray(value)) {
+						return true;
+					}
+				} else if (typeof value === type) {
+					return true;
+				}
+			}
+			errors.push({
+				err: `For not all values in the array ${data.val} is the property ${
+					forChild.val} of type ${types.join(' or ')}`
+			});
+			return false;
+		}
+
+		private static _checkArrayChildrenConstraints<T extends {
+			[key: string]: any;
+		}>(this: CrmApp, data: TypeCheckConfig, value: Array<T>, errors: TypeCheckErrors): boolean {
+			for (let i = 0; i < value.length; i++) {
+				for (let j = 0; j < data.forChildren.length; j++) {
+					const forChild = data.forChildren[j];
+					const childValue = value[i][forChild.val];
+
+					//Check if it's defined
+					if (childValue === undefined || childValue === null) {
+						if (!forChild.optional) {
+							errors.push({
+								err: `For not all values in the array ${data.val} is the property ${forChild.val} defined`
+							});
+							return false;
+						}
+					} else if (!this._checkArrayChildType(data, childValue, forChild, errors)) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+
+		private static _checkConstraints(this: CrmApp, data: TypeCheckConfig, value: any, optionals: {
+			[key: string]: any;
+			[key: number]: any;
+		}, errors: TypeCheckErrors): boolean {
+			if (typeof value === 'number') {
+				return this._checkNumberConstraints(data, value, errors);
+			}
+			if (Array.isArray(value) && data.forChildren) {
+				return this._checkArrayChildrenConstraints(data, value, errors);
+			}
+			return true;
+		}
+
+		private static typeCheck(this: CrmApp, data: any, toCheck: Array<TypeCheckConfig>, errors: TypeCheckErrors) {
+			const optionals: {
+				[key: string]: any;
+				[key: number]: any;
+			} = {};
+			for (let i = 0; i < toCheck.length; i++) {
+				const data = toCheck[i];
+
+				//Skip if dependency not met
+				if (!this.dependencyMet(data, optionals)) {
+					continue;
+				}
+
+				const value = this._getDotValue(data as any, data.val);
+				//Check if it's defined
+				const isDefined = this._isDefined(data, value, optionals, errors);
+				if (isDefined === true) {
+					const matchedType = this._typesMatch(data, value, errors);
+					if (matchedType) {
+						optionals[data.val] = true;
+						this._checkConstraints(data, value, optionals, errors);
+						continue;
+					}
+				} else if (isDefined === 'continue') {
+					continue;
+				}
+				return false;
+			}
+			return true;
+		};
+
+		private static _checkLocalFormat(this: CrmApp) {
+			const storage = window.app.storageLocal;
+			const errors: TypeCheckErrors = [];
+			this.typeCheck(storage, [{
+				val: 'libraries',
+				type: 'array',
+				forChildren: [{
+					val: 'code',
+					type: 'string'
+				}, {
+					val: 'name',
+					type: 'string',
+					optional: true
+				}, {
+					val: 'url',
+					type: 'string',
+					optional: true
+				}, {
+					val: 'ts',
+					type: 'object'
+				}]
+			}, {
+				val: 'requestPermissions',
+				type: 'array'
+			}, {
+				val: 'editing',
+				type: 'object'
+			}, {
+				val: 'selectedCrmType',
+				type: 'number',
+			}, {
+				val: 'jsLintGlobals',
+				type: 'array'
+			}, {
+				val: 'globalExcludes',
+				type: 'array'
+			}, {
+				val: 'notFirstTime',
+				type: 'boolean'
+			}, {
+				val: 'lastUpdatedAt',
+				type: 'string'
+			}, {
+				val: 'authorName',
+				type: 'string'
+			}, {
+				val: 'recoverUnsavedData',
+				type: 'boolean'
+			}, {
+				val: 'useAsUserscriptInstaller',
+				type: 'boolean'
+			}, {
+				val: 'hideToolsRibbon',
+				type: 'boolean'
+			}, {
+				val: 'shrinkTitleRibbon',
+				type: 'boolean'
+			}, {
+				val: 'showOptions',
+				type: 'boolean'
+			}, {
+				val: 'catchErrors',
+				type: 'boolean'
+			}, {
+				val: 'useStorageSync',
+				type: 'boolean'
+			}, {
+				val: 'settingsVersionData',
+				type: 'object'
+			}, {
+				val: 'addedPermissions',
+				type: 'array',
+				forChildren: [{
+					val: 'node',
+					type: 'number'
+				}, {
+					val: 'permissions',
+					type: 'array'
+				}]
+			}, {
+				val: 'updatedScripts',
+				type: 'array',
+				forChildren: [{
+					val: 'name',
+					type: 'string'
+				}, {
+					val: 'oldVersion',
+					type: 'string'
+				}, {
+					val: 'newVersion',
+					type: 'string'
+				}]
+			}, {
+				val: 'isTransfer',
+				type: 'boolean'
+			}, {
+				val: 'upgradeErrors',
+				type: 'object',
+				optional: true
+			}], errors);
+			return errors;
+		}
+
+		private static _checkSyncFormat(this: CrmApp) {
+			const storage = window.app.settings;
+			const errors: TypeCheckErrors = [];
+			this.typeCheck(storage, [{
+				val: 'errors',
+				type: 'object'
+			}, {
+				val: 'settingsLastUpdatedAt',
+				type: 'number',
+			}, {
+				val: 'crm',
+				type: 'array',
+				forChildren: [{
+					val: 'type',
+					type: 'string'
+				}, {
+					val: 'index',
+					type: 'number',
+					optional: true
+				}, {
+					val: 'isLocal',
+					type: 'boolean'
+				}, {
+					val: 'permissions',
+					type: 'array'
+				}, {
+					val: 'id',
+					type: 'number'
+				}, {
+					val: 'path',
+					type: 'array'
+				}, {
+					val: 'name',
+					type: 'string'
+				}, {
+					val: 'nodeInfo',
+					type: 'object'
+				}, {
+					val: 'triggers',
+					type: 'array'
+				}, {
+					val: 'onContentTypes',
+					type: 'array'
+				}, {
+					val: 'showOnSpecified',
+					type: 'boolean'
+				}]
+			}, {
+				val: 'latestId',
+				type: 'number'
+			}, {
+				val: 'rootName',
+				type: 'string'
+			}], errors);
+			return errors;
+		}
+
+		private static _checkFormat(this: CrmApp) {
+			let errors: Array<{
+				err: string;
+				storageType: 'local'|'sync';
+			}> = [];
+
+			errors = this._checkLocalFormat().map((err) => {
+				err.storageType = 'local';
+				return err;
+			}) as Array<{
+				err: string;
+				storageType: 'local'|'sync';
+			}>;
+			errors = errors.concat(this._checkSyncFormat().map((err) => {
+				err.storageType = 'sync';
+				return err;
+			}) as Array<{
+				err: string;
+				storageType: 'local'|'sync';
+			}>);
+
+			return errors;
+		}
+
 		private static _setupConsoleInterface(this: CrmApp) {
 			window.consoleInfo = () => {
 				this._logCode('Edit local (not synchronized with your google account) settings as follows:');
@@ -1036,11 +1417,70 @@ namespace CRMAppElement {
 				this._logCode('	To get the type formatting of a CRM node call ', this._codeStr('window.getCRMFormat();'));
 				this._logCode('');
 				this._logCode('To force upload any changes you made call ', this._codeStr('window.upload();'));
-				this._logCode('To look at the changes you made call ', this._codeStr('window.getChanges();'));
+				this._logCode('To look at the changes that were made call ', this._codeStr('window.getChanges();'));
 				this._logCode('To check the format of your changes call ', this._codeStr('window.checkFormat();'));
 				this._logCode('To upload changes you made if the format is correct call ', this._codeStr('window.uploadIfCorrect();'));
+			};
+			window.getLocalFormat = () => {
+				this._logCode('Format can be found here https://github.com/SanderRonde/CustomRightClickMenu/blob/polymer-2/tools/definitions/crm.d.ts#L1148');
+			};
+			window.getSyncFormat = () => {
+				this._logCode('Format can be found here https://github.com/SanderRonde/CustomRightClickMenu/blob/polymer-2/tools/definitions/crm.d.ts#L1091');
+			};
+			window.getCRMFormat = () => {
+				this._logCode('Format can be found here https://github.com/SanderRonde/CustomRightClickMenu/blob/polymer-2/tools/definitions/crm.d.ts#L1103');
+			};
+			window.upload = window.app.upload;
+			window.getChanges = () => {
+				this._logCode('Here are the changes that have been made. Keep in mind that this includes unuploaded changes the extension made.');
+				this._logCode('');
+				const {
+					hasLocalChanged, 
+					haveSettingsChanged, 
+					localChanges,
+					settingsChanges
+				} = this._uploading.getChanges(false);
+				if (!hasLocalChanged) {
+					this._logCode('No changes to local storage were made');
+				} else {
+					this._logCode('The following changes to local storage were made');
+					for (const change of localChanges) {
+						this._logCode('Key ', this._codeStr(change.key), ' had value ', 
+							this._codeStr(change.oldValue), ' and was changed to ', 
+							this._codeStr(change.newValue));
+					}
+				}
+				this._logCode('');
+				if (!haveSettingsChanged) {
+					this._logCode('No changes to synced storage were made');
+				} else {
+					this._logCode('The following changes to synced storage were made');
+					for (const change of settingsChanges) {
+						this._logCode('Key ', this._codeStr(change.key), ' had value ', 
+							this._codeStr(change.oldValue), ' and was changed to ', 
+							this._codeStr(change.newValue));
+					}
+				}
 			}
-
+			window.checkFormat = () => {
+				const errors = this._checkFormat();
+				if (errors.length === 0) {
+					this._logCode('Format is correct!');
+				} else {
+					for (const err of errors) {
+						this._logCode('Storage type: ', err.storageType,
+							this._codeStr(err.err));
+					}
+				}
+			}
+			window.uploadIfCorrect = () => {
+				if (this._checkFormat().length === 0) {
+					window.app.upload();
+					this._logCode('Successfully uploaded');
+				} else {
+					this._logCode('Did not upload because errors were found.');
+				}
+			}
 		}
 
 		static ready(this: CrmApp) {
@@ -1247,7 +1687,7 @@ namespace CRMAppElement {
 							if (xhr.status === 200) {
 								resolve(xhr.responseText);
 							} else {
-								reject(null);
+								reject(new Error('Failed XHR'));
 							}
 						}
 					}
@@ -1860,9 +2300,7 @@ namespace CRMAppElement {
 				return changes.length > 0;
 			};
 
-			static upload(force: boolean) {
-				//Send changes to background-page, background-page uploads everything
-				//Compare storageLocal objects
+			static getChanges(force: boolean) {
 				const localChanges: Array<{
 					oldValue: any;
 					newValue: any;
@@ -1880,6 +2318,23 @@ namespace CRMAppElement {
 				const settingsCopy = force ? {} : this._parent()._settingsCopy;
 				const hasLocalChanged = this._getObjDifferences(storageLocal, storageLocalCopy, localChanges);
 				const haveSettingsChanged = this._getObjDifferences(settings, settingsCopy, settingsChanges);
+				return {
+					hasLocalChanged,
+					haveSettingsChanged,
+					localChanges, 
+					settingsChanges
+				}
+			}
+
+			static upload(force: boolean) {
+				//Send changes to background-page, background-page uploads everything
+				//Compare storageLocal objects
+				const {
+					hasLocalChanged, 
+					haveSettingsChanged, 
+					localChanges,
+					settingsChanges
+				} = this.getChanges(force);
 
 				if (hasLocalChanged || haveSettingsChanged) {
 					//Changes occured
@@ -2758,7 +3213,7 @@ namespace CRMAppElement {
 			};
 
 			static runLint() {
-				this._getDialog().getEditorInstance().runLinter();
+				window.app.util.getDialog().getEditorInstance().runLinter();
 			};
 
 			static showCssTips() {
@@ -3330,33 +3785,32 @@ namespace CRMAppElement {
 			};
 
 			static exitFullscreen() {
-				this._getDialog().exitFullScreen();
-			}
-
-			private static _getDialog(): CodeEditBehaviorInstance {
-				return this.parent().item.type === 'script' ?
-					window.scriptEdit : window.stylesheetEdit;
+				window.app.util.getDialog().exitFullScreen();
 			}
 
 			static toggleFullscreenOptions() {
-				const dialog = this._getDialog();
+				const dialog = window.app.util.getDialog();
 				dialog.toggleOptions();
 			}
 
 			static setThemeWhite() {
-				this._getDialog().setThemeWhite();
+				window.app.util.getDialog().setThemeWhite();
 			}
 
 			static setThemeDark() {
-				this._getDialog().setThemeDark();
+				window.app.util.getDialog().setThemeDark();
 			}
 
 			static fontSizeChange() {
-				this._getDialog().fontSizeChange();
+				window.app.async(() => {
+					window.app.util.getDialog().fontSizeChange();
+				}, 0);
 			}
 
 			static jsLintGlobalsChange() {
-				this._getDialog().jsLintGlobalsChange();
+				window.app.async(() => {
+					window.scriptEdit.jsLintGlobalsChange();
+				}, 0);
 			}
 
 			static onKeyBindingKeyDown(e: Polymer.PolymerKeyDownEvent) {
@@ -4090,6 +4544,11 @@ namespace CRMAppElement {
 
 			static getQuerySlot() {
 				return Polymer.PaperDropdownBehavior.querySlot;
+			}
+
+			static getDialog(): CodeEditBehaviorInstance {
+				return this.parent().item.type === 'script' ?
+					window.scriptEdit : window.stylesheetEdit;
 			}
 
 			static parent(): CrmApp {

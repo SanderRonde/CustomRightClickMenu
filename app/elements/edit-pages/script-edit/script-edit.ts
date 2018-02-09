@@ -57,6 +57,16 @@ namespace ScriptEditElement {
 			}
 		}
 
+		static jsLintGlobalsChange(this: NodeEditBehaviorScriptInstance) {
+			this.async(() => {
+				const globals = this.$.editorJSLintGlobalsInput.$$('input').value.split(',').map(global => global.trim());
+				chrome.storage.local.set({
+					jsLintGlobals: globals
+				});
+				window.app.jsLintGlobals = globals;
+			}, 0);
+		}
+
 		static toggleTypescript(this: NodeEditBehaviorScriptInstance) {
 			const shouldBeEnabled = !(this.$.editorTypescript.getAttribute('active') !== null);
 			this._toggleTypescriptButton();
@@ -639,8 +649,8 @@ namespace ScriptEditElement {
 			this.$.exportMenu.$.dropdownSelected.innerText = 'EXPORT AS';
 			this.initDropdown();
 			this.selectorStateChange(0, this.newSettings.value.launchMode);
-			document.body.classList.remove('editingStylesheet');
-			document.body.classList.add('editingScript');
+			window.app.$.editorToolsRibbonContainer.classList.remove('editingStylesheet');
+			window.app.$.editorToolsRibbonContainer.classList.add('editingScript');
 			window.scriptEdit = this;
 			window.externalEditor.init();
 			if (window.app.storageLocal.recoverUnsavedData) {
