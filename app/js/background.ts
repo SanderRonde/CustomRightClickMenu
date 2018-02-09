@@ -10344,7 +10344,7 @@ if (typeof module === 'undefined') {
 				this._callbacks.push(callback);
 			};
 
-			_postMessage(message: any) {
+			private _postMessage(message: any) {
 				this.worker.postMessage({
 					type: 'message',
 					message: JSON.stringify(message),
@@ -10352,7 +10352,7 @@ if (typeof module === 'undefined') {
 				});
 			};
 
-			_verifyKey(message: {
+			private _verifyKey(message: {
 				key: Array<number>;
 				data: EncodedString<{
 					id: number;
