@@ -2611,8 +2611,13 @@ describe('Options Page', function() {
 								.findElement(webdriver.By.id('dropdownSelectedCont'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
-								.click();
+							for (const item of (await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+								.findElements(webdriver.By.tagName('paper-item')))) {
+									if ((await item.getAttribute('class')).indexOf('addLibrary') > -1) {
+										item.click();
+										break;
+									}
+								}
 							await wait(1000);
 							await crmApp.findElement(webdriver.By.id('addLibraryUrlInput'))
 								.findElement(webdriver.By.tagName('input'))
@@ -2719,8 +2724,13 @@ describe('Options Page', function() {
 								.findElement(webdriver.By.id('dropdownSelectedCont'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
-								.click()
+							for (const item of (await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+								.findElements(webdriver.By.tagName('paper-item')))) {
+									if ((await item.getAttribute('class')).indexOf('addLibrary') > -1) {
+										item.click();
+										break;
+									}
+								}
 							await wait(1000);
 							await crmApp.findElement(webdriver.By.id('addLibraryUrlInput'))
 								.findElement(webdriver.By.tagName('input'))
@@ -2775,8 +2785,13 @@ describe('Options Page', function() {
 								.findElement(webdriver.By.id('dropdownSelectedCont'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
-								.click();
+							for (const item of (await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+								.findElements(webdriver.By.tagName('paper-item')))) {
+									if ((await item.getAttribute('class')).indexOf('addLibrary') > -1) {
+										item.click();
+										break;
+									}
+								}
 							await wait(1000);
 							await crmApp.findElement(webdriver.By.id('addLibraryManualOption'))
 								.click();
@@ -2864,8 +2879,13 @@ describe('Options Page', function() {
 								.findElement(webdriver.By.id('dropdownSelectedCont'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
-								.click();
+							for (const item of (await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+								.findElements(webdriver.By.tagName('paper-item')))) {
+									if ((await item.getAttribute('class')).indexOf('addLibrary') > -1) {
+										item.click();
+										break;
+									}
+								}
 							await wait(1000);
 							await crmApp.findElement(webdriver.By.id('addLibraryManualOption'))
 								.click();
