@@ -11,7 +11,7 @@ const TEST_LOCAL: boolean = process.argv.indexOf('--remote') > -1 ? false : TEST
 const TIME_MODIFIER = 1.2;
 const LOCAL_URL = 'http://localhost:9515';
 
-const SKIP_OPTIONS = false;
+const SKIP_OPTIONS = true;
 const SKIP_OPTIONS_PAGE = false;
 const SKIP_CRM_DIALOGS = false;
 const SKIP_CRM = false;
@@ -53,6 +53,7 @@ interface AppChrome extends Chrome {
 	_clearExecutedScripts: () => void;
 	_fakeTabs: Array<{
 		id: number;
+		title: string;
 		url: string;
 	}>;
 }
@@ -3689,6 +3690,7 @@ describe('On-Page CRM', function() {
 				window.chrome._clearExecutedScripts();
 				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 					id: REPLACE.fakeTabId,
+					title: 'notexample',
 					url: 'http://www.notexample.com'
 				};
 				window.chrome.runtime.sendMessage({
@@ -3753,6 +3755,7 @@ describe('On-Page CRM', function() {
 				window.chrome._clearExecutedScripts();
 				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 					id: REPLACE.fakeTabId,
+					title: 'example',
 					url: 'http://www.example.com'
 				};
 				window.chrome.runtime.sendMessage({
@@ -3781,6 +3784,7 @@ describe('On-Page CRM', function() {
 				window.chrome._clearExecutedScripts();
 				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 					id: REPLACE.fakeTabId,
+					title: 'example',
 					url: 'http://www.example2.com'
 				};
 				window.chrome.runtime.sendMessage({
@@ -4253,6 +4257,7 @@ describe('On-Page CRM', function() {
 				window.chrome._clearExecutedScripts();
 				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 					id: REPLACE.fakeTabId,
+					title: 'example',
 					url: 'http://www.notexample.com'
 				};
 				
@@ -4321,6 +4326,7 @@ describe('On-Page CRM', function() {
 				window.chrome._clearExecutedScripts();
 				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 					id: REPLACE.fakeTabId,
+					title: 'example',
 					url: 'http://www.example.com'
 				};
 				window.chrome.runtime.sendMessage({
@@ -4350,6 +4356,7 @@ describe('On-Page CRM', function() {
 				window.chrome._clearExecutedScripts();
 				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 					id: REPLACE.fakeTabId,
+					title: 'example',
 					url: 'http://www.example2.com'
 				};
 				window.chrome.runtime.sendMessage({
