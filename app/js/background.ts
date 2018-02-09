@@ -10102,7 +10102,7 @@ if (typeof module === 'undefined') {
 						fn: this.SetupHandling.handleTransfer()
 					}
 				} else {
-					window.log('Initializing for first run');
+					window.info('Initializing for first run');
 					return {
 						type: 'firstTimeCallback',
 						fn: this.SetupHandling.handleFirstRun()
