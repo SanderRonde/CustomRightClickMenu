@@ -3213,7 +3213,7 @@ namespace CRMAppElement {
 			};
 
 			static runLint() {
-				this._getDialog().getEditorInstance().runLinter();
+				window.app.util.getDialog().getEditorInstance().runLinter();
 			};
 
 			static showCssTips() {
@@ -3785,30 +3785,25 @@ namespace CRMAppElement {
 			};
 
 			static exitFullscreen() {
-				this._getDialog().exitFullScreen();
-			}
-
-			private static _getDialog(): CodeEditBehaviorInstance {
-				return this.parent().item.type === 'script' ?
-					window.scriptEdit : window.stylesheetEdit;
+				window.app.util.getDialog().exitFullScreen();
 			}
 
 			static toggleFullscreenOptions() {
-				const dialog = this._getDialog();
+				const dialog = window.app.util.getDialog();
 				dialog.toggleOptions();
 			}
 
 			static setThemeWhite() {
-				this._getDialog().setThemeWhite();
+				window.app.util.getDialog().setThemeWhite();
 			}
 
 			static setThemeDark() {
-				this._getDialog().setThemeDark();
+				window.app.util.getDialog().setThemeDark();
 			}
 
 			static fontSizeChange() {
 				window.app.async(() => {
-					this._getDialog().fontSizeChange();
+					window.app.util.getDialog().fontSizeChange();
 				}, 0);
 			}
 
@@ -4549,6 +4544,11 @@ namespace CRMAppElement {
 
 			static getQuerySlot() {
 				return Polymer.PaperDropdownBehavior.querySlot;
+			}
+
+			static getDialog(): CodeEditBehaviorInstance {
+				return this.parent().item.type === 'script' ?
+					window.scriptEdit : window.stylesheetEdit;
 			}
 
 			static parent(): CrmApp {
