@@ -3110,7 +3110,7 @@ describe('Options Page', function() {
 	                        		(window.app.$ as any).paperSearchWebsiteDialog
 										.shadowRoot.querySelector('#manualInputListChoiceInput')
 										.shadowRoot.querySelector('iron-autogrow-textarea')
-										.querySelector('textarea').value = 'REPLACE.websites';
+										.shadowRoot.querySelector('textarea').value = 'REPLACE.websites';
 								}, {
 									websites: JSON.stringify(exampleVisitedWebsites)
 								}));
