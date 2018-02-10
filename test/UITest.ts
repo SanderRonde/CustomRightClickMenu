@@ -11,7 +11,7 @@ const TEST_LOCAL: boolean = process.argv.indexOf('--remote') > -1 ? false : TEST
 const TIME_MODIFIER = 1.2;
 const LOCAL_URL = 'http://localhost:9515';
 
-const SKIP_OPTIONS = true;
+const SKIP_OPTIONS = false;
 const SKIP_OPTIONS_PAGE = false;
 const SKIP_CRM_DIALOGS = false;
 const SKIP_CRM = false;
