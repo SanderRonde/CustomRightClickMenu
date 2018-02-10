@@ -3890,9 +3890,6 @@ describe('On-Page CRM', function() {
 					assert.strictEqual(activatedBackgroundScripts[0], 
 						CRMNodes[ScriptOnPageTests.BACKGROUNDSCRIPT].id,
 						'correct backgroundscript was executed');
-					done();
-				}, 'clicking the node does not throw');
-			});
 		});
 		it('should not show the disabled node', async () => {
 			const contextMenu = await getContextMenu();
