@@ -3880,37 +3880,7 @@ describe('On-Page CRM', function() {
 			assert.strictEqual(activatedScripts[0].id, fakeTabId,
 				'script was executed on the right tab');
 		});
-		it('should run the backgroundscript when one is specified', function(done) {
-			const fakeTabId = getRandomId();
-			getContextMenu().then((contextMenu) => {
-				assert.isAbove(contextMenu.length, 1, 'contextmenu contains at least 1 items');
-
-				assert.doesNotThrow(async () => {
-					await driver.executeScript(inlineFn((REPLACE) => {
-						return window.chrome._currentContextMenu[0]
-							.children[2]
-							.currentProperties.onclick(
-								REPLACE.page, REPLACE.tab
-							);
-					}, {
-						page: {
-							menuItemId: contextMenu[0].id,
-							editable: false,
-							pageUrl: 'www.google.com'
-						},
-						tab: {
-							id: fakeTabId,
-							index: 1,
-							windowId: getRandomId(),
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false
-						}
-					}));
+		it('should have activated the backgroundscript', async function() {
 					const activatedBackgroundScripts = JSON.parse(await driver
 						.executeScript(inlineFn(() => {
 							return JSON.stringify(window.chrome._activatedBackgroundPages);
