@@ -686,7 +686,11 @@ window.chrome = {
 				val: 'callback',
 				type: 'function'
 			}]);
+			if (!fakeTabs[id]) {
+				chrome.runtime.lastError = new Error('No tab with id ' + id);
+			}
 			callback(fakeTabs[id]);
+			chrome.runtime.lastError = undefined;
 		},
 		getCurrent: function(callback) {
 			checkOnlyCallback(callback, false);
