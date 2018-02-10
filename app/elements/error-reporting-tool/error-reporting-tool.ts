@@ -37,10 +37,6 @@ namespace ErrorReportingToolElement {
 		}
 	} as any;
 
-	interface ThennableLike {
-		then: (cb: () => void|ThennableLike) => void
-	}
-
 	export class ERT {
 		static is: any = 'error-reporting-tool';
 
