@@ -336,6 +336,9 @@ function findElementOnPage(selector: string): HTMLElement {
 	const list = JSON.parse(selector as EncodedString<Array<[string, number]>>);
 	let el: Element = document.body;
 	for (let i = 0; i < list.length; i++) {
+		if (!el) {
+			return null;
+		}
 		let elList = el.querySelectorAll(list[i][0]);
 		if (el.shadowRoot) {
 			const candidate = el.shadowRoot.querySelectorAll(list[i][0]);
