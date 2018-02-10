@@ -2549,7 +2549,7 @@ type CRMAPIMessage = {
 									//Filler
 									refData.refs.push(null);
 									refData.paths[index] = path;
-									const newData = this._toJSON(copyTarget[key], element, path.concat(key), refData);
+									const newData = this._toJSON(copyTarget[key as keyof typeof copyTarget], element, path.concat(key), refData);
 									refData.refs[index] = newData.data;
 									refData.originalValues[index] = element;
 								}
@@ -2823,7 +2823,7 @@ type CRMAPIMessage = {
 							if (Array.isArray(additions[key])) {
 								mainObject[key] = this.mergeArrays(mainObject[key], additions[key]);
 							} else {
-								mainObject[key] = this.mergeObjects(mainObject[key], additions[key]);
+								mainObject[key] = this.mergeObjects(mainObject[key], additions[key] as any);
 							}
 						} else {
 							mainObject[key] = additions[key]
