@@ -7851,9 +7851,9 @@ if (typeof module === 'undefined') {
 			CRM.buildPageCRM();
 			await MessageHandling.signalNewCRM();
 
-			if (toUpdate) {
-				await Storages.checkBackgroundPagesForChange([], toUpdate);
-			}
+			toUpdate && await Storages.checkBackgroundPagesForChange({
+				toUpdate
+			});
 		}
 		static updateCRMValues() {
 			const crmBefore = JSON.stringify(globalObject.globals.storages.settingsStorage.crm);
@@ -9526,35 +9526,108 @@ if (typeof module === 'undefined') {
 			}
 		};
 
-		static async checkBackgroundPagesForChange(changes: Array<{
-			key: string;
-			newValue: any;
-			oldValue: any;
-		}>, toUpdate: Array<number> = []) {
-			await toUpdate.map((id) => {
+		static async checkBackgroundPagesForChange({ change, toUpdate }: {
+			change?: {
+				key: string;
+				newValue: any;
+				oldValue: any;
+			};
+			toUpdate?: Array<number>
+		}) {
+			await toUpdate && toUpdate.map((id) => {
 				return new Promise(async (resolve) => {
 					await CRM.Script.Background.createBackgroundPage(globalObject.globals.crm.crmById[id] as CRM.ScriptNode);
 					resolve(null);
 				});
 			});
 
+			if (!change) {
+				return;
+			}
 			//Check if any background page updates occurred
-			for (let i = 0; i < changes.length; i++) {
-				if (changes[i].key === 'crm') {
-					const ordered: {
-						[nodeId: number]: string;
-					} = {};
-					await this._orderBackgroundPagesById(changes[i].newValue, ordered);
-					for (let id in ordered) {
-						if (ordered.hasOwnProperty(id)) {
-							const node = globalObject.globals.crm.crmById[id];
-							if (node.type === 'script' && (node && await Util.getScriptNodeScript(node, 'background') !== ordered[id])) {
-								await CRM.Script.Background.createBackgroundPage(node as CRM.ScriptNode);
-							}
-						}
+			const { same, additions, removals } = this._diffCRM(change.oldValue, change.newValue);
+			for (const node of same) {
+				const currentValue = globalObject.globals.crm.crmById[node.id];
+				if (node.type === 'script' && (currentValue && currentValue.type === 'script' &&
+					await Util.getScriptNodeScript(currentValue, 'background') !== 
+					await Util.getScriptNodeScript(node, 'background'))) {
+						await CRM.Script.Background.createBackgroundPage(node);
+					}
+			}
+			for (const node of additions) {
+				if (node.type === 'script' && node.value.backgroundScript && 
+					node.value.backgroundScript.length > 0) {
+						await CRM.Script.Background.createBackgroundPage(node);
+					}
+			}
+			for (const node of removals) {
+				if (node.type === 'script' && node.value.backgroundScript && 
+					node.value.backgroundScript.length > 0) {
+						globalObject.globals.background.byId[node.id] && 
+							globalObject.globals.background.byId[node.id].terminate();
+						delete globalObject.globals.background.byId[node.id];
+					}
+			}
+		}
+		private static _diffCRM(previous: CRM.Tree, current: CRM.Tree): {
+			additions: CRM.Tree;
+			removals: CRM.Tree;
+			same: CRM.Tree;
+		} {
+			if (!previous) {
+				const all: Array<CRM.Node> = [];
+				this.crmForEach(current, (node) => {
+					all.push(node);
+				});
+				return {
+					additions: all,
+					removals: [],
+					same: []
+				}
+			}
+			const previousIds: Array<number> = [];
+			this.crmForEach(previous, (node) => {
+				previousIds.push(node.id);
+			});
+			const currentIds: Array<number> = [];
+			this.crmForEach(current, (node) => {
+				currentIds.push(node.id);
+			});
+			
+			const additions = [];
+			const removals = [];
+			const same = [];
+			for (const previousId of previousIds) {
+				if (currentIds.indexOf(previousId) === -1) {
+					removals.push(this._findNodeWithId(previous, previousId));
+				}
+			}
+			for (const currentId of currentIds) {
+				if (previousIds.indexOf(currentId) === -1) {
+					additions.push(this._findNodeWithId(current, currentId));
+				} else {
+					same.push(this._findNodeWithId(current, currentId));
+				}
+			}
+			return {
+				additions,
+				removals,
+				same
+			}
+		}
+		private static _findNodeWithId(tree: CRM.Tree, id: number): CRM.Node {
+			for (const node of tree) {
+				if (node.id === id) {
+					return node;
+				}
+				if (node.type === 'menu' && node.children) {
+					const result = this._findNodeWithId(node.children, id);
+					if (result) {
+						return result;
 					}
 				}
 			}
+			return null;
 		}
 		private static _uploadSync(changes: StorageChange[]) {
             const settingsJson = JSON.stringify(globalObject.globals.storages.settingsStorage);
@@ -9824,9 +9897,12 @@ if (typeof module === 'undefined') {
 						return;
 					}
 					updated.crm = true;
+
 					CRM.updateCRMValues();
 					CRM.TS.compileAllInTree();
-					await Storages.checkBackgroundPagesForChange(changes);
+					await Storages.checkBackgroundPagesForChange({
+						change: changes[i]
+					});
 					await CRM.buildPageCRM();
 					await MessageHandling.signalNewCRM();
 				} else if (changes[i].key === 'latestId') {
@@ -9905,18 +9981,6 @@ if (typeof module === 'undefined') {
 							});
 						}
 					}
-				}
-			}
-		}
-		private static async _orderBackgroundPagesById(tree: Array<CRM.Node>, obj: {
-			[nodeId: number]: string;
-		}) {
-			for (let i = 0; i < tree.length; i++) {
-				const child = tree[i];
-				if (child.type === 'script') {
-					obj[child.id] = await Util.getScriptNodeScript(child, 'background');
-				} else if (child.type === 'menu' && child.children) {
-					await this._orderBackgroundPagesById(child.children, obj);
 				}
 			}
 		}
