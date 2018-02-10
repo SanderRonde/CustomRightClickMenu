@@ -64,6 +64,7 @@ interface AppWindow extends Window {
 	chrome: AppChrome;
 	dummyContainer: HTMLDivElement;
 	polymerElementsLoaded: boolean;
+	globals: GlobalObject['globals'];
 
 	_log: Array<any>;
 }
@@ -3718,6 +3719,7 @@ describe('On-Page CRM', function() {
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
 				await driver.executeScript(inlineFn((REPLACE) => {
+					window.globals.crmValues.tabData = {};
 					window.app.settings.crm = REPLACE.crm;
 					window.app.upload();
 					return true;
@@ -4285,6 +4287,7 @@ describe('On-Page CRM', function() {
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
 				await driver.executeScript(inlineFn((REPLACE) => {
+					window.globals.crmValues.tabData = {};
 					window.app.settings.crm = REPLACE.crm;
 					window.app.upload();
 					return true;
