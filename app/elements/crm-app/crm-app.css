@@ -1111,11 +1111,11 @@ paper-checkbox {
 }
 
 #fullscreenEditorToggle {
-	margin-top: -3px;
+	margin-top: 0;
 }
 
 #fullscreenEditorSettings {
-	margin-top: -4px;
+	margin-top: 5px;
 }
 
 #fullscreenEditorSettings svg {
