@@ -259,6 +259,12 @@ namespace PaperLibrariesSelectorElement {
 			}
 		}
 
+		private static _showElementsFlex<T extends keyof typeof window.doc>(...els: Array<T>) {
+			for (let i = 0; i < els.length; i++) {
+				(window.doc[els[i]] as any).style.display = 'flex';
+			}
+		}
+
 		private static _setLibraries(this: PaperLibrariesSelector, libraries: Array<CRM.InstalledLibrary>) {
 			chrome.storage.local.set({
 				libraries: libraries
@@ -314,7 +320,7 @@ namespace PaperLibrariesSelectorElement {
 					setTimeout(() => {
 						window.doc.addLibraryDialog.toggle();
 						this._hideElements('addLibraryDialogSucces');
-						this._showElements('addLibraryLoadingDialog');
+						this._showElementsFlex('addLibraryLoadingDialog');
 					}, 2500);
 				}
 			});
