@@ -181,7 +181,7 @@ namespace PaperLibrariesSelectorElement {
 			this.libraries = libraries;
 		};
 
-		private static _resetAfterAddDesision() {
+		private static _resetAfterAddDecision() {
 			window.doc.addLibraryConfirmAddition.removeEventListener('click');
 			window.doc.addLibraryDenyConfirmation.removeEventListener('click');
 			window.doc.addLibraryUrlInput.removeAttribute('invalid');
@@ -196,12 +196,12 @@ namespace PaperLibrariesSelectorElement {
 					window.doc.addLibraryConfirmAddition.addEventListener('click', () => {
 						window.doc.addLibraryConfirmationInput.value = '';
 						this.addLibraryFile(name, isTypescript, code, url);
-						this._resetAfterAddDesision();
+						this._resetAfterAddDecision();
 					});
 					window.doc.addLibraryDenyConfirmation.addEventListener('click', () => {
 						window.doc.addLibraryConfirmationContainer.style.display = 'none';
 						window.doc.addLibraryProcessContainer.style.display = 'block';
-						this._resetAfterAddDesision();
+						this._resetAfterAddDecision();
 						window.doc.addLibraryConfirmationInput.value = '';
 					});
 					window.doc.addLibraryLoadingDialog.style.display = 'none';
