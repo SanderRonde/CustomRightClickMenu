@@ -272,52 +272,57 @@ namespace PaperLibrariesSelectorElement {
 			});
 		}
 
-		static addLibraryFile(this: PaperLibrariesSelector, name: string, isTypescript: boolean, code: string, url: string = null) {
+		static async addLibraryFile(this: PaperLibrariesSelector, name: string, isTypescript: boolean, code: string, url: string = null) {
 			window.doc.addLibraryConfirmationContainer.style.display = 'none';
 			window.doc.addLibraryLoadingDialog.style.display = 'flex';
 
-			setTimeout(() => {
-				this._addLibraryToState(name, isTypescript, code, url);
-				this._setLibraries(this.installedLibraries);
-				this.splice('libraries', this.libraries.length - 1, 0, {
-					name: name,
-					classes: 'library iron-selected',
-					selected: 'true',
-					isLibrary: 'true'
+			if (url) {
+				await new Promise((resolve) => {
+					window.setTimeout(() => {
+						resolve(null);
+					}, 250);
 				});
+			}
+			this._addLibraryToState(name, isTypescript, code, url);
+			this._setLibraries(this.installedLibraries);
+			this.splice('libraries', this.libraries.length - 1, 0, {
+				name: name,
+				classes: 'library iron-selected',
+				selected: 'true',
+				isLibrary: 'true'
+			});
 
-				const dropdownContainer = $(this.$.slotContent);
-				dropdownContainer.animate({
-					height: dropdownContainer[0].scrollHeight
-				}, {
-					duration: 250,
-					easing: 'swing'
-				});
+			const dropdownContainer = $(this.$.slotContent);
+			dropdownContainer.animate({
+				height: dropdownContainer[0].scrollHeight
+			}, {
+				duration: 250,
+				easing: 'swing'
+			});
 
-				this._hideElements('addLibraryLoadingDialog', 'addLibraryConfirmationContainer',
-					'addLibraryProcessContainer', 'addLibraryDialogSuccesCheckmark')
-				this._showElements('addLibraryDialogSucces');
-				$(window.doc.addLibraryDialogSucces).animate({
-					backgroundColor: 'rgb(38,153,244)'
-				}, {
-					duration: 300,
-					easing: 'easeOutCubic',
-					complete: () => {
-						this._showElements('addLibraryDialogSuccesCheckmark');
-						window.doc.addLibraryDialogSuccesCheckmark.classList.add('animateIn');
-						setTimeout(() => {
-							window.doc.addLibraryDialog.toggle();
-							this._hideElements('addLibraryDialogSucces');
-							this._showElements('addLibraryLoadingDialog');
-						}, 2500);
-					}
-				});
+			this._hideElements('addLibraryLoadingDialog', 'addLibraryConfirmationContainer',
+				'addLibraryProcessContainer', 'addLibraryDialogSuccesCheckmark')
+			this._showElements('addLibraryDialogSucces');
+			$(window.doc.addLibraryDialogSucces).animate({
+				backgroundColor: 'rgb(38,153,244)'
+			}, {
+				duration: 300,
+				easing: 'easeOutCubic',
+				complete: () => {
+					this._showElements('addLibraryDialogSuccesCheckmark');
+					window.doc.addLibraryDialogSuccesCheckmark.classList.add('animateIn');
+					setTimeout(() => {
+						window.doc.addLibraryDialog.toggle();
+						this._hideElements('addLibraryDialogSucces');
+						this._showElements('addLibraryLoadingDialog');
+					}, 2500);
+				}
+			});
 
-				const contentEl = this.$.slotContent;
-				contentEl.style.height = (~~contentEl.style.height.split('px')[0] + 48) + 'px';
+			const contentEl = this.$.slotContent;
+			contentEl.style.height = (~~contentEl.style.height.split('px')[0] + 48) + 'px';
 
-				this.init(true);
-			}, 250);
+			this.init(true);
 		};
 
 		private static _addNewLibrary(this: PaperLibrariesSelector) {
