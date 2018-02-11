@@ -165,8 +165,8 @@ app-header {
 }
 
 #addLibraryConfirmationInput {
+	height: 500px;
 	max-width: 300px;
-	max-height: 250px;
 }
 
 paper-dialog {
