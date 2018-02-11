@@ -147,6 +147,7 @@ namespace PaperSearchWebsiteDialog {
 			this.hideAllWindows(window);
 			if (window === 'successWindow') {
 				this.$.successWindow.setAttribute('style', 'display:block;');
+				this.$.successWindow.querySelector('.checkmark').classList.add('animateIn');
 				$(this.$.successWindow).animate({
 					backgroundColor: 'rgb(38,153,244)'
 				}, {
@@ -205,6 +206,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 			setTimeout(() => {
 				this.hide();
 				setTimeout(() => {
+					this.$.successWindow.querySelector('.checkmark').classList.remove('animateIn');
 					this.switchToWindow('initialWindow');
 				}, 500);
 			}, 2500);

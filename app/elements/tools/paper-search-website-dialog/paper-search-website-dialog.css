@@ -153,3 +153,12 @@
 	padding: 8px 8px 8px 24px;
 	margin: 0;
 }
+
+.successText {
+	text-align: center;
+	width: 300px;
+	position: absolute;
+	margin-top: 267px;
+	color:white;
+	font-size:250%;
+}
