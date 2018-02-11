@@ -230,7 +230,7 @@ iron-overlay-backdrop {
 	background-color:white;
 }
 
-#addLibraryDialog .checkmark, #paperSearchWebsiteDialog .checkmark {
+#addLibraryDialog .checkmark {
 	-webkit-transform: rotate(45deg);
 	-moz-transform: rotate(45deg);
 	-ms-transform: rotate(45deg);

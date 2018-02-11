@@ -102,3 +102,41 @@
 #manualInputListChoiceInput iron-autogrow-textarea {
 	max-height: 200px;
 }
+
+#paperSearchWebsiteDialog .checkmark {
+	-webkit-transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-ms-transform: rotate(45deg);
+	-o-transform: rotate(45deg);
+	transform: rotate(45deg);
+	position: absolute;
+	top: -1px;
+	left: 4px;
+	width: 5px;
+	height: 10px;
+	border: none rgb(0, 200, 10);
+	border-right: 20px solid;
+	border-bottom: 20px solid;
+	margin-left: 42px;
+	margin-top: 16px;
+	color: white;
+}
+
+#paperSearchWebsiteDialog .checkmark.animateIn {
+	animation: expand-checkmark 140ms ease-out forwards;
+}
+
+@keyframes expand-checkmark {
+	0% {
+		top: 180px;
+		left: 120px;
+		width: 0;
+		height: 0;
+	}
+	100% {
+		top: -20px;
+		left: 80px;
+		width: 100px;
+		height: 200px;
+	}
+}
