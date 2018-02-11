@@ -32,7 +32,7 @@
 			</div>
 		</template>
 		<paper-menu noroot$="[[noroot]]" id="dropdown" selected-values="{{selected}}" multi role="menu">
-			<div slot="content">
+			<div id="slotContent" slot="content">
 				<template is="dom-repeat" items="{{libraries}}" as="library">
 					<paper-item data-lib="[[library]]" data-url$="[[library.url]]" on-tap="_click" tabindex="-1" addlibrary$="[[!library.isLibrary]]" aria-selected$="[[library.selected]]" class$="[[library.classes]]">
 						<template is="dom-if" if="[[library.isLibrary]]">

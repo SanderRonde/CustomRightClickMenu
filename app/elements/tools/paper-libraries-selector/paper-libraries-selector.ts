@@ -72,6 +72,12 @@ namespace PaperLibrariesSelectorElement {
 			library: LibrarySelectorLibrary;
 		} = null;
 
+		private static _eventListeners: Array<{
+			target: HTMLElement;
+			event: string;
+			listener: Function;
+		}> = [];
+
 		static ready(this: PaperLibrariesSelector) {
 			chrome.storage.local.get('libraries', (keys: CRM.StorageLocal) => {
 				if (keys.libraries) {
@@ -145,11 +151,15 @@ namespace PaperLibrariesSelectorElement {
 			this.selected = selected;
 		}
 		
-		static init(this: PaperLibrariesSelector) {
-			if (!this.noroot && this._expanded) {
+		static async init(this: PaperLibrariesSelector, cancelOpen: boolean = false) {
+			if (!this.noroot && this._expanded && !cancelOpen) {
 				this.close();
 			}
 			if (this.noroot) {
+				this.open();
+			}
+			if (cancelOpen) {
+				await this.close();
 				this.open();
 			}
 			const {
@@ -181,10 +191,11 @@ namespace PaperLibrariesSelectorElement {
 			this.libraries = libraries;
 		};
 
-		private static _resetAfterAddDecision() {
-			window.doc.addLibraryConfirmAddition.removeEventListener('click');
-			window.doc.addLibraryDenyConfirmation.removeEventListener('click');
-			window.doc.addLibraryUrlInput.removeAttribute('invalid');
+		private static _resetAfterAddDecision(this: PaperLibrariesSelector) {
+			for (const { event, listener, target } of this._eventListeners) {
+				target.removeEventListener(event, listener as any);
+			}
+			window.doc.addLibraryUrlInput.invalid = false;
 		}
 
 		static confirmLibraryFile(this: PaperLibrariesSelector, name: string, isTypescript: boolean,
@@ -193,16 +204,27 @@ namespace PaperLibrariesSelectorElement {
 				window.doc.addLibraryLoadingDialog.style.display = 'flex';
 				setTimeout(() => {
 					window.doc.addLibraryConfirmationInput.value = code;
-					window.doc.addLibraryConfirmAddition.addEventListener('click', () => {
+					const confirmAdditionListener = () => {
 						window.doc.addLibraryConfirmationInput.value = '';
 						this.addLibraryFile(name, isTypescript, code, url);
 						this._resetAfterAddDecision();
-					});
-					window.doc.addLibraryDenyConfirmation.addEventListener('click', () => {
+					};
+					const denyAdditionListener = () => {
 						window.doc.addLibraryConfirmationContainer.style.display = 'none';
 						window.doc.addLibraryProcessContainer.style.display = 'block';
 						this._resetAfterAddDecision();
 						window.doc.addLibraryConfirmationInput.value = '';
+					};
+					window.doc.addLibraryConfirmAddition.addEventListener('click', confirmAdditionListener);
+					window.doc.addLibraryDenyConfirmation.addEventListener('click', denyAdditionListener);
+					this._eventListeners.push({
+						target: window.doc.addLibraryConfirmAddition,
+						event: 'click',
+						listener: confirmAdditionListener
+					}, {
+						target: window.doc.addLibraryDenyConfirmation,
+						event: 'click',
+						listener: denyAdditionListener
 					});
 					window.doc.addLibraryLoadingDialog.style.display = 'none';
 					window.doc.addLibraryConfirmationContainer.style.display = 'block';
@@ -264,7 +286,7 @@ namespace PaperLibrariesSelectorElement {
 					isLibrary: 'true'
 				});
 
-				const dropdownContainer = $(this.shadowRoot.querySelectorAll('.content'));
+				const dropdownContainer = $(this.$.slotContent);
 				dropdownContainer.animate({
 					height: dropdownContainer[0].scrollHeight
 				}, {
@@ -291,10 +313,10 @@ namespace PaperLibrariesSelectorElement {
 					}
 				});
 
-				const contentEl = this.$$('paper-menu').$$('.content') as HTMLElement;
+				const contentEl = this.$.slotContent;
 				contentEl.style.height = (~~contentEl.style.height.split('px')[0] + 48) + 'px';
 
-				this.init();
+				this.init(true);
 			}, 250);
 		};
 

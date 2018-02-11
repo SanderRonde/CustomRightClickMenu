@@ -353,37 +353,42 @@ namespace PaperDropdownBehaviorNamespace {
 		 * Close the dropdown menu
 		 */
 		static close(this: PaperDropdownInstance) {
-			if (this._expanded) {
-				this._expanded = false;
-				const animation: {
-					[key: string]: any;
-				} = {
-					height: 0
-				};
-				if (this.overflowing) {
-					animation['marginBottom'] = -15;
-				}
-
-				this.fire('expansionStateChange', {
-					state: 'closing'
-				});
-
-				$(this._getMenuContent()).stop().animate(animation, {
-					easing: 'swing',
-					duration: 300,
-					complete: () => {
-						this._getMenuContent().style.display = 'none';
-						if (!this.raised) {
-							window.requestAnimationFrame((time) => {
-								this._animateBoxShadowOut(time, this);
-							});
-							this.fire('expansionStateChange', {
-								state: 'closed'
-							});
-						}
+			return new Promise<void>((resolve) => {
+				if (this._expanded) {
+					this._expanded = false;
+					const animation: {
+						[key: string]: any;
+					} = {
+						height: 0
+					};
+					if (this.overflowing) {
+						animation['marginBottom'] = -15;
 					}
-				});
-			}
+
+					this.fire('expansionStateChange', {
+						state: 'closing'
+					});
+
+					$(this._getMenuContent()).stop().animate(animation, {
+						easing: 'swing',
+						duration: 300,
+						complete: () => {
+							this._getMenuContent().style.display = 'none';
+							if (!this.raised) {
+								window.requestAnimationFrame((time) => {
+									this._animateBoxShadowOut(time, this);
+								});
+								this.fire('expansionStateChange', {
+									state: 'closed'
+								});
+								resolve(null);
+							}
+						}
+					});
+				} else {
+					resolve(null);
+				}
+			});
 		};
 
 		/**
