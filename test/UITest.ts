@@ -2660,7 +2660,7 @@ describe('Options Page', function() {
 								.click();
 							await wait(1000);
 							await driver.executeScript(inlineFn(() => {
-								((window.app.$ as any).fullscreenEditorToggle as HTMLElement).click();
+								window.app.$.fullscreenEditorToggle.click();
 							}));
 							await wait(2000);
 							await saveDialog(dialog);
@@ -2773,7 +2773,7 @@ describe('Options Page', function() {
 								.click();
 							await wait(1000);
 							await driver.executeScript(inlineFn(() => {
-								(window.app.$ as any).editorFullScreen.click();
+								window.app.$.fullscreenEditorToggle.click();
 							}));
 							await wait(2000);
 							await cancelDialog(dialog);
@@ -3141,7 +3141,7 @@ describe('Options Page', function() {
 									.click();
 								await wait(500);
 								await driver.executeScript(inlineFn(() => {
-	                        		(window.app.$ as any).paperSearchWebsiteDialog
+	                        		window.app.$.paperSearchWebsiteDialog
 										.shadowRoot.querySelector('#manualInputListChoiceInput')
 										.shadowRoot.querySelector('iron-autogrow-textarea')
 										.shadowRoot.querySelector('textarea').value = 'REPLACE.websites';
