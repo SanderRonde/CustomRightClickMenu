@@ -2952,7 +2952,7 @@ describe('Options Page', function() {
 							paperGetPropertyClicked: 'crmAPI.contextData.target;\r\n'
 						};
 						Object.getOwnPropertyNames(pagePropertyPairs).forEach((prop: keyof typeof pagePropertyPairs) => {
-							it(`should be able to insert the ${prop} property`, async () => {
+							it(`should be able to insert the ${prop} property`, async function() {
 								this.retries(5);
 								const dialog = await enterEditorFullscreen(this, type);
 								const crmApp = await findElement(webdriver.By.tagName('crm-app'));
