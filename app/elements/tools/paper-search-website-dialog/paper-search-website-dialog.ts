@@ -147,6 +147,12 @@ namespace PaperSearchWebsiteDialog {
 			this.hideAllWindows(window);
 			if (window === 'successWindow') {
 				this.$.successWindow.setAttribute('style', 'display:block;');
+				$(this.$.successWindow).animate({
+					backgroundColor: 'rgb(38,153,244)'
+				}, {
+					duration: 300,
+					easing: 'easeOutCubic'
+				});
 				this.insertCode();
 			} else {
 				this.$[window].style.display = 'block';
@@ -198,7 +204,9 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 			window.scriptEdit.insertSnippet(window.scriptEdit, code, true);
 			setTimeout(() => {
 				this.hide();
-				this.switchToWindow('initialWindow');
+				setTimeout(() => {
+					this.switchToWindow('initialWindow');
+				}, 500);
 			}, 2500);
 		};
 
