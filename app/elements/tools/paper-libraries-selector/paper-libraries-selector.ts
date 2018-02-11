@@ -325,7 +325,7 @@ namespace PaperLibrariesSelectorElement {
 						}
 					}
 					if (name !== '' && !taken) {
-						this.removeAttribute('invalid');
+						window.doc.addedLibraryName.invalid = true;
 						if (window.doc.addLibraryRadios.selected === 'url') {
 							const libraryInput = window.doc.addLibraryUrlInput;
 							let url = libraryInput.$$('input').value;
