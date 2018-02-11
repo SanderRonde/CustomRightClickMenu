@@ -2833,7 +2833,7 @@ describe('Options Page', function() {
 							await crmApp.findElement(webdriver.By.id('addLibraryConfirmAddition'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.id('editorFullScreen'))
+							await crmApp.findElement(webdriver.By.id('fullscreenEditorToggle'))
 								.click();
 							await wait(1000);
 							await saveDialog(dialog);
@@ -2927,7 +2927,7 @@ describe('Options Page', function() {
 							await crmApp.findElement(webdriver.By.id('addLibraryConfirmAddition'))
 								.click();
 							await wait(1000);
-							await crmApp.findElement(webdriver.By.id('editorFullScreen'))
+							await crmApp.findElement(webdriver.By.id('fullscreenEditorToggle'))
 								.click();
 							await wait(1000);
 							await cancelDialog(dialog);
