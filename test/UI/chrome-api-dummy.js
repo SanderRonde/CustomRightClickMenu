@@ -1134,7 +1134,7 @@ const originalWorker = window.Worker;
 window.Worker = function(url) {
 	if (url.indexOf('/js/sandbox.js') === -1) {
 		//Not a call by the extension but by monaco
-		return originalWorker(url);
+		return new originalWorker(url);
 	}
 	return {
 		postMessage: function(data) {
