@@ -1110,8 +1110,12 @@ paper-checkbox {
 	background-color: #dbdbdb;
 }
 
+#fullscreenEditorToggle {
+	margin-top: -3px;
+}
+
 #fullscreenEditorSettings {
-	margin-top: 5px;
+	margin-top: -4px;
 }
 
 #fullscreenEditorSettings svg {
