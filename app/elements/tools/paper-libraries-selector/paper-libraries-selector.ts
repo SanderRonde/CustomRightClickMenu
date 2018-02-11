@@ -336,47 +336,51 @@ namespace PaperLibrariesSelectorElement {
 			window.doc.addedLibraryName.invalid = false;
 
 			window.doc.addLibraryDialog.open();
-			$(window.doc.addLibraryDialog)
-				.find('#addLibraryButton')
-				.on('click', () => {
-					const name = window.doc.addedLibraryName.$$('input').value;
-					let taken = false;
-					for (let i = 0; i < this.installedLibraries.length; i++) {
-						if (this.installedLibraries[i].name === name) {
-							taken = true;
-						}
+			const addLibraryHandler = () => {
+				const name = window.doc.addedLibraryName.$$('input').value;
+				let taken = false;
+				for (let i = 0; i < this.installedLibraries.length; i++) {
+					if (this.installedLibraries[i].name === name) {
+						taken = true;
 					}
-					if (name !== '' && !taken) {
-						window.doc.addedLibraryName.invalid = false;
-						if (window.doc.addLibraryRadios.selected === 'url') {
-							const libraryInput = window.doc.addLibraryUrlInput;
-							let url = libraryInput.$$('input').value;
-							if (url[0] === '/' && url[1] === '/') {
-								url = 'http:' + url;
-							}
-							$.ajax({
-								url: url,
-								dataType: 'html'
-							}).done((data) => {
-								this.confirmLibraryFile(name, window.doc.addLibraryIsTS.checked, data, url);
-							}).fail(function() {
-								libraryInput.setAttribute('invalid', 'true');
-							});
-						} else {
-							this.addLibraryFile(name, window.doc.addLibraryIsTS.checked,
-								(window.doc.addLibraryManualInput
-									.$$('iron-autogrow-textarea') as Polymer.RootElement)
-									.$$('textarea').value);
+				}
+				if (name !== '' && !taken) {
+					window.doc.addedLibraryName.invalid = false;
+					if (window.doc.addLibraryRadios.selected === 'url') {
+						const libraryInput = window.doc.addLibraryUrlInput;
+						let url = libraryInput.$$('input').value;
+						if (url[0] === '/' && url[1] === '/') {
+							url = 'http:' + url;
 						}
+						$.ajax({
+							url: url,
+							dataType: 'html'
+						}).done((data) => {
+							this.confirmLibraryFile(name, window.doc.addLibraryIsTS.checked, data, url);
+						}).fail(function() {
+							libraryInput.setAttribute('invalid', 'true');
+						});
 					} else {
-						if (taken) {
-							window.doc.addedLibraryName.errorMessage = 'That name is already taken';
-						} else {
-							window.doc.addedLibraryName.errorMessage = 'Please enter a name';
-						}
-						window.doc.addedLibraryName.invalid = true;
+						this.addLibraryFile(name, window.doc.addLibraryIsTS.checked,
+							(window.doc.addLibraryManualInput
+								.$$('iron-autogrow-textarea') as Polymer.RootElement)
+								.$$('textarea').value);
 					}
-				});
+				} else {
+					if (taken) {
+						window.doc.addedLibraryName.errorMessage = 'That name is already taken';
+					} else {
+						window.doc.addedLibraryName.errorMessage = 'Please enter a name';
+					}
+					window.doc.addedLibraryName.invalid = true;
+				}
+			};
+			window.app.$.addLibraryButton.addEventListener('click', addLibraryHandler);
+			this._eventListeners.push({
+				target: window.app.$.addLibraryButton,
+				listener: addLibraryHandler,
+				event: 'click'
+			});
 		}
 
 		private static _handleCheckmarkClick(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
