@@ -229,7 +229,6 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 
 				try {
 					const structuredSearchEngines = JSON.parse(data);
-					this.$$('.SEImportError').remove();
 					if (structuredSearchEngines.length !== 0) {
 						this.disableManualButton = true;
 						this.searchList = structuredSearchEngines;
