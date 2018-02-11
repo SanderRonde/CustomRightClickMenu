@@ -140,3 +140,16 @@
 		height: 200px;
 	}
 }
+
+.buttons {
+	color: rgb(38, 153, 244);
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: row;
+	flex-direction: row;
+	-webkit-justify-content: flex-end;
+	justify-content: flex-end;
+	position: relative;
+	padding: 8px 8px 8px 24px;
+	margin: 0;
+}
