@@ -93,6 +93,166 @@ interface QueryInfo {
  * Definitions for the CRM extension
  */
 declare namespace CRM {	
+
+	namespace ScriptOptionsSchema {
+		/**
+		 * An option type
+		 */
+		type OptionsValue = OptionCheckbox|OptionString|OptionChoice|
+			OptionArray|OptionNumber;
+
+		/**
+		 * The options object of a script or stylesheet
+		 */
+		type Options = {
+			/**
+			 * The name of the option as a key and its descriptor
+			 *  as a value
+			 */
+			[key: string]: OptionsValue;
+		}
+
+		/**
+		 * An option allowing the input of a number
+		 */
+		interface OptionNumber {
+			/**
+			 * The type of the option
+			 */
+			type: 'number';
+			/**
+			 * The minimum value of the number
+			 */
+			minimum?: number;
+			/**
+			 * The maximum value of the number
+			 */
+			maximum?: number;
+			/**
+			 * The description of this option
+			 */
+			descr?: string;
+			/**
+			 * The value of this option
+			 */
+			value: null|number;
+		}
+
+		/**
+		 * An option allowing the input of a string
+		 */
+		interface OptionString {
+			/**
+			 * The type of the option
+			 */
+			type: 'string';
+			/**
+			 * The maximum length of the string
+			 */
+			maxLength?: number;
+			/**
+			 * A regex string the value has to match
+			 */
+			format?: string;
+			/**
+			 * The description of this option
+			 */
+			descr?: string;
+			/**
+			 * The value of this option
+			 */
+			value: null|string;
+		}
+
+		/**
+		 * An option allowing the choice between a number of values
+		 */
+		interface OptionChoice {
+			/**
+			 * The type of the option
+			 */
+			type: 'choice';
+			/**
+			 * The description of this option
+			 */
+			descr?: string;
+			/**
+			 * The index of the currently selected value
+			 */
+			selected: number;
+			/**
+			 * The values of which to choose
+			 */
+			values: Array<string|number>;
+		}
+
+		/**
+		 * An option allowing you to choose between true and false
+		 */
+		interface OptionCheckbox {
+			/**
+			 * The type of the option
+			 */
+			type: 'boolean';
+			/**
+			 * The description of this option
+			 */
+			descr?: string;
+			/**
+			 * The value of this option
+			 */
+			value: null|boolean;
+		}
+
+		/**
+		 * The base of an option for inputting arrays
+		 */
+		interface OptionArrayBase {
+			/**
+			 * The type of the option
+			 */
+			type: 'array';
+			/**
+			 * The maximum number of values
+			 */
+			maxItems?: number;
+			/**
+			 * The description of this option
+			 */
+			descr?: string;
+		}
+		/**
+		 * An option for inputing arrays of strings
+		 */
+		interface OptionArrayString extends OptionArrayBase {
+			/**
+			 * The type of items the array is made of
+			 */
+			items: 'string';
+			/**
+			 * The array's value
+			 */
+			value: null|Array<string>;
+		}
+		/**
+		 * An option for inputting arrays of numbers
+		 */
+		interface OptionArrayNumber extends OptionArrayBase {
+			/**
+			 * The type of items the array is made of
+			 */
+			items: 'number';
+			/**
+			 * The array's value
+			 */
+			value: null|Array<number>;
+		}
+		/**
+		 * An option for inputting arrays of numbers or strings
+		 */
+		type OptionArray = OptionArrayString|OptionArrayNumber;
+	}
+
 	/**
 	 * Permissions related to the CRM API
 	 */
