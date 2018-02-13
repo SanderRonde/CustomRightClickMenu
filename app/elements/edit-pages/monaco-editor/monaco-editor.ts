@@ -1053,14 +1053,11 @@ namespace MonacoEditorElement {
 		}
 
 		private _addSchemaKey(options: string): string {
-			const str1 = `	//Create a key and press Ctrl+Space for format hints in the option object`;
-			const str2 = `	//Go to this link to check out the format http://sanderronde.github.io/CustomRightClickMenu/documentation/modules/crm.scriptoptionsschema.html#options`;
-			const str3 = `	//Keep this line to enable format hints on pressing Ctrl+Space`;
-			const str4 = `	"$schema": "crm-settings.json"`;
+			const str1 = `	"$schema": "crm-settings.json"`;
 
 			if (options.split('\n').join('').trim().length === 0) {
 				//No content
-				return `{\n${str1}\n${str2}\n${str3}\n${str4}\n}`;
+				return `{\n${str1}\n}`;
 			}
 			const lines = options.split('\n');
 			for (const i in lines) {
@@ -1070,9 +1067,9 @@ namespace MonacoEditorElement {
 					if (line.trim().length > 1) {
 						//More text on this line
 						lines[i] = '{';
-						lines.splice(~~i + 1, 0, str1, str2, str3, str4, line.trim().slice(1));
+						lines.splice(~~i + 1, 0, str1, line.trim().slice(1));
 					} else {
-						lines.splice(~~i + 1, 0,  str1, str2, str3, str4);
+						lines.splice(~~i + 1, 0, str1);
 					}
 				}
 			}
@@ -1260,7 +1257,7 @@ namespace MonacoEditorElement {
 				}
 			};
 			monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
-				allowComments: true,
+				allowComments: false,
 				schemas: [{
 					uri: 'crm-settings.json',
 					schema: schema
