@@ -843,7 +843,6 @@ namespace CRMAppElement {
 		};
 
 		static initCodeOptions(this: CrmApp, node: CRM.ScriptNode | CRM.StylesheetNode) {
-			debugger;
 			this.$.codeSettingsDialog.item = node;
 			this.$.codeSettingsNodeName.innerText = node.name;
 
