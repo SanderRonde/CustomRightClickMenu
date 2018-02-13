@@ -117,6 +117,12 @@ namespace ScriptEditElement {
 				this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
 			} else if (this.editorMode === 'main') {
 				this.newSettings.value.script = this.editorManager.editor.getValue();
+			} else if (this.editorMode === 'options') {
+				try {
+					this.newSettings.value.options = JSON.parse(this.editorManager.editor.getValue());
+				} catch(e) {
+					this.newSettings.value.options = this.editorManager.editor.getValue();
+				}
 			}
 		}
 
