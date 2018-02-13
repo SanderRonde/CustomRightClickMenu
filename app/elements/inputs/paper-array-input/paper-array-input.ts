@@ -73,7 +73,7 @@ namespace PaperArrayInputElement {
 			const newVal = JSON.parse(JSON.stringify(this.values));
 			newVal.push('');
 			this.values = newVal;
-			this.notifyPath('values', this.values;)
+			this.notifyPath('values', this.values);
 		}
 
 		static clearLine(this: PaperArrayInput, e: Polymer.ClickEvent) {
