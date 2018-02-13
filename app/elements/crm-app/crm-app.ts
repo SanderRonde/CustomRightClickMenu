@@ -868,9 +868,10 @@ namespace CRMAppElement {
 				Array.prototype.slice.apply(this.$.codeSettingsDialog.querySelectorAll('paper-dropdown-menu'))
 					.forEach((el: HTMLPaperDropdownMenuElement) => {
 						el.init();
+						el.updateSelectedContent();
 					});
 				this.$.codeSettingsDialog.open();
-			}, 100);
+			}, 250);
 		}
 
 		static async versionUpdateChanged(this: CrmApp) {

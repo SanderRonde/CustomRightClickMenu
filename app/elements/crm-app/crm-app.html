@@ -465,6 +465,7 @@
 						<template is="dom-repeat" id="codeSettingsRepeat" as="codeSetting">
 							<div class="codeSettingSetting" data-key$="[[codeSetting.key]]" data-type$="[[codeSetting.value.type]]">
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'number')}}">
+									<span class="optionMetaDescr">Number input</span>
 									<paper-input type="number" placeholder="[[_getString(codeSetting.value.descr)]]"
 										value="{{codeSetting.value.value}}" min="[[codeSetting.value.minimum]]"
 										max="[[codeSetting.value.maximum]]"
@@ -472,6 +473,8 @@
 										title="[[_getString(codeSetting.value.descr)]]"></paper-input>
 								</template>
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'boolean')}}">
+									<span class="optionMetaDescr">True/False value</span>
+									<br><div class="optionPading"></div>
 									<paper-checkbox checked="{{codeSetting.value.value}}">
 										<span>
 											<b>[[codeSetting.key]]</b>
@@ -482,6 +485,7 @@
 									</paper-checkbox>
 								</template>
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'string')}}">
+									<span class="optionMetaDescr">Text input</span>
 									<paper-input type="text" placeholder="[[_getString(codeSetting.value.descr)]]"
 										value="{{codeSetting.value.value}}"
 										maxlength="[[codeSetting.value.maxLength]]"
@@ -495,12 +499,13 @@
 										subtext="[[codeSetting.value.descr]]"
 										title="[[codeSetting.key]]"
 										type="[[codeSetting.value.items]]"></paper-array-input>
+									<br>
 								</template>
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'choice')}}">
 									<paper-dropdown-menu title="[[_getString(codeSetting.value.descr)]]" 
 											label="[[codeSetting.key]]" indent="true" 
-											fancylabel raised subtext="[[codeSetting.key]]"
-											selected="{{codeSetting.value.selected}}">
+											fancylabel subtext="[[codeSetting.value.descr]]"
+											selected="{{codeSetting.value.selected}}" dropdownraised>
 										<paper-menu slot="menu" selected="{{codeSetting.value.selected}}">
 											<div slot="content">
 												<template id="tabRepeat" is="dom-repeat" items="[[codeSetting.value.values]]" as="codeSettingOption">

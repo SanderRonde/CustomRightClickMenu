@@ -10,6 +10,7 @@ namespace PaperArrayInputElement {
 	} = {
 		values: {
 			type: Array,
+			value: [],
 			notify: true
 		},
 		max: {
@@ -47,10 +48,10 @@ namespace PaperArrayInputElement {
 		}
 
 		static saveSettings(this: PaperArrayInput) {
-			this.set('values', Array.prototype.slice.apply(this.querySelectorAll('.arrayInputLine'))
+			this.values = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.arrayInputLine'))
 				.map((element: HTMLElement) => {
 					return element.querySelector('paper-input').value;
-				}));
+				});
 		}
 
 		static addLine(this: PaperArrayInput) {
@@ -67,9 +68,12 @@ namespace PaperArrayInputElement {
 				return;
 			}
 			if (!this.values) {
-				this.set('values', []);
+				this.values = [];
 			}
-			this.push('values', '');
+			const newVal = JSON.parse(JSON.stringify(this.values));
+			newVal.push('');
+			this.values = newVal;
+			this.notifyPath('values', this.values;)
 		}
 
 		static clearLine(this: PaperArrayInput, e: Polymer.ClickEvent) {

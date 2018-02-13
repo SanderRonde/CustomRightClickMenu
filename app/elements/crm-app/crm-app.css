@@ -1016,10 +1016,6 @@ paper-toggle-option #checkboxLabel {
 	width: 29px;
 }
 
-#codeSettingsDialog {
-	overflow-y: scroll;
-}
-
 .chromeCallsDeprecated {
 	color: #E91E63!important;
 	text-decoration: underline;
@@ -1225,4 +1221,20 @@ paper-checkbox {
 
 app-header {
 	right: 0!important;
+}
+
+.optionMetaDescr {
+	font-weight: bold;
+	font-size: 150%;
+}
+
+.optionPading {
+	margin-top: 8px;
+}
+
+#codeSettingsOptions {
+	max-height: 60vh;
+	overflow-y: scroll;
+	padding-top: 10px;
+	padding-bottom: 10px;
 }

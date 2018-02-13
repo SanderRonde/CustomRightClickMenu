@@ -9,6 +9,7 @@ namespace PaperDropdownMenuElement {
 		fallback: string;
 		updater: number;
 		inline: boolean;
+		dropdownraised: boolean;
 	} = {
 		/**
 		 * The currently selected item
@@ -41,6 +42,11 @@ namespace PaperDropdownMenuElement {
 			notify: true
 		},
 		inline: {
+			type: Boolean,
+			value: false,
+			notify: true
+		},
+		dropdownraised: {
 			type: Boolean,
 			value: false,
 			notify: true

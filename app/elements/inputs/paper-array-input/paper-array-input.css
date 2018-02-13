@@ -50,3 +50,7 @@
 	justify-content: flex-end;
 	flex-direction: column;
 }
+
+.arrayInputLine paper-input {
+	width: 288px;
+}
