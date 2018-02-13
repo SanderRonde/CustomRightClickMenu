@@ -6674,7 +6674,7 @@ if (typeof module === 'undefined') {
 							`var crmAPI = new (window._crmAPIRegistry.pop())(${[
 								safeNode, node.id, { id: 0 }, {}, key,
 								nodeStorage, null,
-								greaseMonkeyData, true, (node.value && node.value.options) || {},
+								greaseMonkeyData, true, CRM._fixOptionsErrors((node.value && node.value.options) || {}),
 								enableBackwardsCompatibility, 0, chrome.runtime.id
 							]
 								.map((param) => {
@@ -7544,7 +7544,7 @@ if (typeof module === 'undefined') {
 							} else {
 								if (this._variableRegex.exec(splitComments[i].line)) {
 									lines.push(this._replaceVariableInstances(
-										splitComments[i].line, options
+										splitComments[i].line, CRM._fixOptionsErrors(options)
 									));
 								} else {
 									//Regular comment, just add it
@@ -7989,6 +7989,28 @@ if (typeof module === 'undefined') {
 			return res;
 		}
 
+		private static _fixOptionsErrors(options: string): string;
+		private static _fixOptionsErrors(options: CRM.Options): CRM.Options;
+		private static _fixOptionsErrors(options: CRM.Options|string): CRM.Options|string;
+		private static _fixOptionsErrors(options: CRM.Options|string): CRM.Options|string {
+			if (typeof options === 'string') {
+				return options;
+			}
+			for (const key in options) {
+				const value = options[key];
+				if (value.type === 'choice') {
+					//If nothing is selected, select the first item
+					const choice = value as CRM.OptionChoice;
+					if (typeof choice.selected !== 'number' ||
+						choice.selected > choice.values.length ||
+						choice.selected < 0) {
+							choice.selected = 0;
+						}
+				}
+				options[key] = value;
+			}
+			return options;
+		}
 		private static async _convertNodeToLegacy(node: CRM.Node): Promise<string> {
 			switch (node.type) {
 				case 'divider':

@@ -512,7 +512,7 @@ namespace CRMAppElement {
 			return option.type === type;
 		}
 
-		private static _generateCodeOptionsArray<T extends CRM.Options | string>(this: CrmApp, settings: T): Array<{
+		private static _generateCodeOptionsArray<T extends CRM.Options>(this: CrmApp, settings: T|string): Array<{
 			key: keyof T;
 			value: T[keyof T]
 		}> {
@@ -527,7 +527,21 @@ namespace CRMAppElement {
 					key: key,
 					value: JSON.parse(JSON.stringify(settings[key]))
 				};
-			}).filter(item => item !== null);
+			}).filter(item => item !== null).map(({ key, value }) => {
+				if (value.type === 'choice') {
+					//If nothing is selected, select the first item
+					const choice = value as CRM.OptionChoice;
+					if (typeof choice.selected !== 'number' ||
+						choice.selected > choice.values.length ||
+						choice.selected < 0) {
+							choice.selected = 0;
+						}
+				}
+				return {
+					key,
+					value
+				}
+			});
 		}
 
 		static _isOnlyGlobalExclude(this: CrmApp): boolean {
