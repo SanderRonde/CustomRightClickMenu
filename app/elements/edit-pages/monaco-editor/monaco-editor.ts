@@ -1040,14 +1040,8 @@ namespace MonacoEditorElement {
 			super(editor, model);
 
 			const value = model.getValue() as EncodedString<CRM.Options>;
-			let parsed: CRM.Options;
-			try {
-				parsed = JSON.parse(value);
-				if (!('$schema' in parsed)) {
-					model.setValue(this._addSchemaKey(parsed));
-				}
-			} catch {
-				//Ignore
+			if (!this._findSchema(value)) {
+				model.setValue(this._addSchemaKey(value));
 			}
 
 			MonacoEditorJSONOptionsMods.enableSchema();
@@ -1058,20 +1052,69 @@ namespace MonacoEditorElement {
 			});
 		}
 
-		private _addSchemaKey(parsed: CRM.Options): string {
-			let str = '{\n\t"$schema": "crm-settings.json",\n';
-			//Ensure order stays the same
-			for (let key in parsed) {
-				str += `\t"${key}": ${JSON.stringify(parsed[key])},\n`
+		private _addSchemaKey(options: string): string {
+			const str1 = `	//Create a key and press Ctrl+Space for format hints in the option object`;
+			const str2 = `	//Go to this link to check out the format http://sanderronde.github.io/CustomRightClickMenu/documentation/modules/crm.scriptoptionsschema.html#options`;
+			const str3 = `	//Keep this line to enable format hints on pressing Ctrl+Space`;
+			const str4 = `	"$schema": "crm-settings.json"`;
+
+			if (options.split('\n').join('').trim().length === 0) {
+				//No content
+				return `{\n${str1}\n${str2}\n${str3}\n${str4}\n}`;
 			}
-			str = str.slice(0, -1);
-			str += '}';
-			return str;
+			const lines = options.split('\n');
+			for (const i in lines) {
+				const line = lines[i];
+				if (line.trim().indexOf('{') === 0) {
+					//First line
+					if (line.trim().length > 1) {
+						//More text on this line
+						lines[i] = '{';
+						lines.splice(~~i + 1, 0, str1, str2, str3, str4, line.trim().slice(1));
+					} else {
+						lines.splice(~~i + 1, 0,  str1, str2, str3, str4);
+					}
+				}
+			}
+			return lines.join('\n');
+		}
+
+		private _findSchema(str: string) {
+			//Remove any comments
+			str = str.replace(/\/\*.*?\*\//g, '');
+			const lines = str.split('\n');
+			for (const i in lines) {
+				if (lines[i].indexOf('//') > -1) {
+					let inStr = false;
+					for (let index = 0; index < lines[i].length; index++) {
+						const char = lines[i][index]
+						if (char === '\\') {
+							continue;
+						} else if (char === '"') {
+							inStr = !inStr;
+						} else if (!inStr && char === '/' && lines[i][index + 1] === '/') {
+							//Ignore the rest of this line
+							lines[i] = lines[i].slice(0, index);
+						}
+					}
+				}
+			}
+
+			try {
+				const parsed = JSON.parse(str);
+				if ('$schema' in parsed) {
+					return true;
+				} else {
+					return false;
+				}
+			} catch {
+				return true;
+			}
 		}
 
 		static disableSchema() {
 			monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
-				allowComments: false
+				allowComments: true
 			});
 		}
 
@@ -1217,7 +1260,7 @@ namespace MonacoEditorElement {
 				}
 			};
 			monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
-				allowComments: false,
+				allowComments: true,
 				schemas: [{
 					uri: 'crm-settings.json',
 					schema: schema
@@ -1474,6 +1517,7 @@ namespace MonacoEditorElement {
 		private static _typeIsJSON(editorType: EditorConfig) {
 			switch (editorType) {
 				case EditorMode.JSON:
+				case EditorMode.JSON_OPTIONS:
 					return true;
 			}
 			return false;
