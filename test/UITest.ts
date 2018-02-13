@@ -606,7 +606,7 @@ async function switchToTypeAndOpen(type: CRM.NodeType) {
 		((window.app.editCRM.shadowRoot
 			.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0)).openEditPage();
 	}));
-	await wait(500);
+	await wait(1000);
 }
 
 function openDialog(type: CRM.NodeType) {
