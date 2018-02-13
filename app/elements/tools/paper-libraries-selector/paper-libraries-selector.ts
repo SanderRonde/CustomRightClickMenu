@@ -394,13 +394,13 @@ namespace PaperLibrariesSelectorElement {
 			});
 		}
 
-		private static _handleCheckmarkClick(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
+		private static _handleCheckmarkClick(this: PaperLibrariesSelector, container: HTMLElement & {
+			dataLib: LibrarySelectorLibrary;
+		}) {
 			//Checking or un-checking something
-			const lib = (e.target as HTMLElement & {
-				dataLib: LibrarySelectorLibrary;
-			}).dataLib;
+			const lib = container.dataLib;
 			const changeType: 'addMetaTags' | 'removeMetaTags' =
-				(e.target.classList.contains('iron-selected') ? 'removeMetaTags' : 'addMetaTags');
+				(container.classList.contains('iron-selected') ? 'removeMetaTags' : 'addMetaTags');
 			const libsArr = this.mode === 'main' ?
 				window.scriptEdit.newSettings.value.libraries :
 				window.scriptEdit.newSettings.value.backgroundLibraries;
@@ -409,16 +409,22 @@ namespace PaperLibrariesSelectorElement {
 					name: lib.name || null,
 					url: lib.url
 				});
+				container.classList.add('iron-selected');
+				container.setAttribute('aria-selected', 'true');
+				container.querySelector('.menuSelectedCheckmark').style.opacity = '1';
 			} else {
 				let index = -1;
 				for (let i = 0; i < libsArr.length; i++) {
 					if (libsArr[i].url === lib.url && 
 						libsArr[i].name === lib.name) {
-						index = i;
-						break;
-					}
+							index = i;
+							break;
+						}
 				}
 				libsArr.splice(index, 1);
+				container.classList.remove('iron-selected');
+				container.removeAttribute('aria-selected');
+				container.querySelector('.menuSelectedCheckmark').style.opacity = '0';
 			}
 			const mainModel = window.scriptEdit.editorManager.getModel('default');
 			const backgroundModel = window.scriptEdit.editorManager.getModel('background');
@@ -441,7 +447,7 @@ namespace PaperLibrariesSelectorElement {
 			if (container.classList.contains('addLibrary')) {
 				this._addNewLibrary();
 			} else if (this.mode === 'main') {
-				this._handleCheckmarkClick(e);
+				this._handleCheckmarkClick(container as any);
 			}
 		};
 
