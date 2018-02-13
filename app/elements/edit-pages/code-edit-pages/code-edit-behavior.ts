@@ -688,7 +688,7 @@ namespace CodeEditBehaviorNamespace {
 
 			const value = typeof this.item.value.options === 'string' ?
 				this.item.value.options : JSON.stringify(this.item.value.options, null, '\t');
-			this.editorManager.switchToModel('options', value, this.editorManager.EditorMode.JSON);
+			this.editorManager.switchToModel('options', value, this.editorManager.EditorMode.JSON_OPTIONS);
 		}
 
 		static hideCodeOptions(this: CodeEditBehaviorInstance) {
