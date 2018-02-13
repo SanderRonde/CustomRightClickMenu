@@ -236,8 +236,11 @@ namespace ScriptEditElement {
 		 * Gets the values of the metatag block
 		 */
 		private static _getMetaTagValues(this: NodeEditBehaviorScriptInstance) {
-			const typeHandler = this.editorManager.getTypeHandler()[0] as MonacoEditorElement.MonacoEditorScriptMetaMods;
-			return typeHandler.getMetaBlock() && typeHandler.getMetaBlock().content;
+			const typeHandler = this.editorManager.getModel('default').handlers[0] as MonacoEditorElement.MonacoEditorScriptMetaMods;
+			return typeHandler && 
+				typeHandler.getMetaBlock && 
+				typeHandler.getMetaBlock() && 
+				typeHandler.getMetaBlock().content;
 		};
 
 
