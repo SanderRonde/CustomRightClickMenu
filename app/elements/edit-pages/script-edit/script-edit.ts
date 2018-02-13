@@ -84,7 +84,7 @@ namespace ScriptEditElement {
 		}
 
 		static openDocs(this: NodeEditBehaviorScriptInstance) {
-			const docsUrl = 'http://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.crmapiinstance.html';
+			const docsUrl = 'http://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html';
 			window.open(docsUrl, '_blank');
 		}
 
