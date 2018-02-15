@@ -299,9 +299,8 @@ namespace EditCrmElement {
 			[nodeId: number]: boolean;
 		}): number {
 			let i;
-			const length = lastMenu - 1;
 			let visibleIndent = lastMenu;
-			for (i = 0; i < length; i++) {
+			for (i = 0; i < lastMenu; i++) {
 				if (hiddenNodes[data[i].id]) {
 					visibleIndent--;
 				}
