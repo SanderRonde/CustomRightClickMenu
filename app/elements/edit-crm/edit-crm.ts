@@ -299,7 +299,7 @@ namespace EditCrmElement {
 			[nodeId: number]: boolean;
 		}): number {
 			let i;
-			const length = data.length - 1;
+			const length = lastMenu - 1;
 			let visibleIndent = lastMenu;
 			for (i = 0; i < length; i++) {
 				if (hiddenNodes[data[i].id]) {
