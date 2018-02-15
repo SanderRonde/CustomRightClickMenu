@@ -298,9 +298,8 @@ namespace EditCrmElement {
 		private static _getIndent(this: EditCrm, data: Array<CRM.Node>, lastMenu: number, hiddenNodes: {
 			[nodeId: number]: boolean;
 		}): number {
-			let i;
 			let visibleIndent = lastMenu;
-			for (i = 0; i < lastMenu; i++) {
+			for (let i = 0; i < lastMenu; i++) {
 				if (hiddenNodes[data[i].id]) {
 					visibleIndent--;
 				}
