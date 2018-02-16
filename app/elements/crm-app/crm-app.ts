@@ -496,8 +496,12 @@ namespace CRMAppElement {
 			return (this.item && this.item.type === 'stylesheet');
 		}
 
+		private static _isDemo() {
+			return location.href.indexOf('demo') > -1;
+		}
+
 		static _getPageTitle(): string {
-			return location.href.indexOf('demo') > -1 ?
+			return this._isDemo() ?
 				'Demo, actual right-click menu does NOT work in demo' :
 				'Custom Right-Click Menu';
 		}
@@ -1992,9 +1996,16 @@ namespace CRMAppElement {
 						} else {
 							parent._latestId = 0;
 						}
-						(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal
+						window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal
 							.CRMOnPage);
-						storageLocal.CRMOnPage && parent.pageDemo.create();
+						if (parent._isDemo()) {
+							window.doc.CRMOnPage.toggled = true;
+							window.app.setLocal('CRMOnPage', true);
+							window.doc.CRMOnPage.setCheckboxDisabledValue(true);
+							parent.pageDemo.create()
+						} else {
+							storageLocal.CRMOnPage && parent.pageDemo.create();
+						}
 					}
 
 					Array.prototype.slice.apply(parent.shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
