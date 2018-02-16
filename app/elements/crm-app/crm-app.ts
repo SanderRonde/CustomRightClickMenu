@@ -977,10 +977,17 @@ namespace CRMAppElement {
 			const obj = {
 				[key]: value
 			};
+
 			chrome.storage.local.set(obj);
 			chrome.storage.local.get((storageLocal: CRM.StorageLocal) => {
 				this.storageLocal = storageLocal;
 				this.upload();
+
+				if (key === 'CRMOnPage' || key === 'editCRMInRM') {
+					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue &&
+					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal.CRMOnPage);
+					this.pageDemo.create();
+				}
 			});
 		};
 
@@ -1272,6 +1279,12 @@ namespace CRMAppElement {
 				type: 'string'
 			}, {
 				val: 'recoverUnsavedData',
+				type: 'boolean'
+			}, {
+				val: 'CRMOnPage',
+				type: 'boolean'
+			}, {
+				val: 'editCRMInRM',
 				type: 'boolean'
 			}, {
 				val: 'useAsUserscriptInstaller',
@@ -1979,6 +1992,9 @@ namespace CRMAppElement {
 						} else {
 							parent._latestId = 0;
 						}
+						(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal
+							.CRMOnPage);
+						storageLocal.CRMOnPage && parent.pageDemo.create();
 					}
 
 					Array.prototype.slice.apply(parent.shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
@@ -2361,6 +2377,8 @@ namespace CRMAppElement {
 						}
 					});
 				}
+
+				this._parent().pageDemo.create();
 			};
 
 			private static _parent() {
@@ -4371,35 +4389,61 @@ namespace CRMAppElement {
 		 * Various util functions
 		 */
 		static util = class CRMAppUtil {
-			static createElement(tagName: keyof ElementTagNameMaps, options: {
+			static createElement<K extends keyof ElementTagNameMaps, T extends ElementTagNameMaps[K]>(tagName: K, options: {
 				id?: string;
 				classes?: Array<string>;
 				props?: {
-					[key: string]: string;
+					[key: string]: string|number;
 				}
-			}, children: Array<Polymer.PolymerElement | string> = []): Polymer.PolymerElement {
-				const el = document.createElement(tagName);
-				if (options.id) {
-					el.id = options.id;
+				onclick?: (el: T, event: Event) => void;
+				onhover?: (el: T, event: Event) => void;
+				onblur?: (el: T, event: Event) => void;
+				ref?: (el: T) => void;
+			}, children: Array<any | string> = []): T {
+				const el = document.createElement(tagName) as T;
+				options.id && (el.id = options.id);
+				options.classes && el.classList.add.apply(el.classList, options.classes);
+				for (const key in options.props || {}) {
+					el.setAttribute(key, options.props[key] + '');
 				}
-				if (options.classes) {
-					el.classList.add.apply(el.classList, options.classes);
-				}
-				if (options.props) {
-					for (let key in options.props) {
-						el.setAttribute(key, options.props[key]);
-					}
-				}
-				for (let i = 0; i < children.length; i++) {
-					const child = children[i];
+				options.onclick && el.addEventListener('click', (e) => {
+					options.onclick(el, e);
+				});
+				options.onhover && el.addEventListener('mouseenter', (e) => {
+					options.onhover(el, e);
+				});
+				options.onblur && el.addEventListener('mouseleave', (e) => {
+					options.onblur(el, e);
+				});
+				options.ref && options.ref(el);
+				for (const child of children) {
 					if (typeof child === 'string') {
-						el.innerText = child;
+						(el as HTMLSpanElement).innerText = child;
 					} else {
 						el.appendChild(child);
 					}
 				}
 				return el;
 			}
+
+			static createSVG<K extends keyof SVGElementTagNameMap, T extends SVGElementTagNameMap[K]>(tag: K, options: {
+				id?: string;
+				classes?: Array<string>;
+				props?: {
+					[key: string]: string;
+				}
+			}, children: Array<any> = []): T {
+				const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+				options.id && (el.id = options.id);
+				options.classes && el.classList.add.apply(el.classList, options.classes);
+				for (const key in options.props || {}) {
+					el.setAttributeNS(null, key, options.props[key] + '');
+				}
+				for (const child of children) {
+					el.appendChild(child);
+				}
+				return el as T;
+			}	
 
 			private static _dummy: HTMLElement = null;
 			static getDummy(): HTMLElement {
@@ -4417,7 +4461,7 @@ namespace CRMAppElement {
 				while (!('tagName' in node) || (node as Polymer.PolymerElement).tagName.toLowerCase() !== tagName) {
 					node = path[++index];
 
-					if (index > path.length) {
+					if (index >= path.length) {
 						return null;
 					}
 				}
@@ -4430,7 +4474,20 @@ namespace CRMAppElement {
 				while (!('classList' in node) || !(node as Polymer.PolymerElement).classList.contains(className)) {
 					node = path[++index];
 
-					if (index > path.length) {
+					if (index >= path.length) {
+						return null;
+					}
+				}
+				return node as Polymer.PolymerElement;
+			}
+
+			static findElementWithId(path: Polymer.EventPath, id: string): Polymer.PolymerElement {
+				let index = 0;
+				let node = path[0];
+				while (!('id' in node) || (node as Polymer.PolymerElement).id !== id) {
+					node = path[++index];
+
+					if (index >= path.length) {
 						return null;
 					}
 				}
@@ -4563,6 +4620,301 @@ namespace CRMAppElement {
 			static getDialog(): CodeEditBehaviorInstance {
 				return this.parent().item.type === 'script' ?
 					window.scriptEdit : window.stylesheetEdit;
+			}
+
+			static parent(): CrmApp {
+				return window.app;
+			}
+		}
+
+		static pageDemo = class CRMAppPageDemo {
+			private static _active: boolean = false;
+
+			private static _root: HTMLElement = null;
+
+			private static _setContentTypeClasses(el: HTMLElement, node: CRM.Node) {
+				const contentTypes = node.onContentTypes;
+				for (let i = 0; i < contentTypes.length; i++) {
+					contentTypes[i] && el.classList.add(`contentType${i}`);
+				}
+			}
+
+			private static _editNodeFromClick(node: CRM.Node) {
+				if (window.app.item) {
+					window.app.$.messageToast.text = 'Please close the current dialog first';
+					window.app.$.messageToast.show();
+				} else {
+					const elements = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item');
+					for (const element of elements) {
+						if (element.item && element.item.id && element.item.id === node.id) {
+							element.openEditPage();
+							break;
+						}
+					}
+				}
+			}
+
+			private static _genDividerNode(node: CRM.DividerNode) {
+				return this.parent().util.createElement('div', {
+					classes: ['contextMenuDivider'],
+					props: {
+						title: node.name
+					},
+					onclick: () => {
+						if (window.app.storageLocal.editCRMInRM) {
+							this._editNodeFromClick(node);
+						}
+					}
+				});
+			}
+
+			private static _genLinkNode(node: CRM.LinkNode) {
+				return this.parent().util.createElement('div', {
+					classes: ['contextMenuLink'],
+					onclick: () => {
+						if (window.app.storageLocal.editCRMInRM) {
+							this._editNodeFromClick(node);
+						} else {
+							node.value.forEach((link) => {
+								window.open(link.url, '_blank');
+							});
+						}
+					},
+					props: {
+						title: `Link node ${node.name}`
+					}
+				}, [
+					this.parent().util.createElement('div', {
+						classes: ['contextMenuLinkText']
+					}, [node.name])
+				]);
+			}
+
+			private static _genScriptNode(node: CRM.ScriptNode) {
+				return this.parent().util.createElement('div', {
+					classes: ['contextMenuScript'],
+					onclick: () => {
+						if (window.app.storageLocal.editCRMInRM) {
+							this._editNodeFromClick(node);
+						} else {
+							window.app.$.messageToast.text = 'This would execute a script';
+							window.app.$.messageToast.show();
+						}
+					},
+					props: {
+						title: `Script node ${node.name}`
+					}
+				}, [
+					this.parent().util.createElement('div', {
+						classes: ['contextMenuScriptText']
+					}, [node.name])
+				]);
+			}
+
+			private static _genStylesheetNode(node: CRM.StylesheetNode) {
+				return this.parent().util.createElement('div', {
+					classes: ['contextMenuStylesheet'],
+					onclick: () => {
+						if (window.app.storageLocal.editCRMInRM) {
+							this._editNodeFromClick(node);
+						} else {
+							window.app.$.messageToast.text = 'This would execute a stylesheet';
+							window.app.$.messageToast.show();
+						}
+					},
+					props: {
+						title: `Stylesheet node ${node.name}`
+					}
+				}, [
+					this.parent().util.createElement('div', {
+						classes: ['contextMenuStylesheetText']
+					}, [node.name])
+				]);
+			}
+
+			private static _genMenuNode(node: CRM.MenuNode) {
+				let timer: number = null;
+				let thisEl: HTMLElement = null;
+				let container: HTMLElement = null;
+				let childrenContainer: HTMLElement = null;
+				return this.parent().util.createElement('div', {
+					classes: ['contextMenuMenu'],
+					ref(el) {
+						thisEl = el;
+					},
+					onclick: () => {
+						if (window.app.storageLocal.editCRMInRM) {
+							this._editNodeFromClick(node);
+						} else {
+							window.app.$.messageToast.text = 'This would execute a stylesheet';
+							thisEl.parentElement.classList.add('forcedVisible');
+							
+							timer && window.clearTimeout(timer);
+							timer = window.setTimeout(() => {
+								thisEl.parentElement.classList.remove('forcedVisible');
+								childrenContainer.classList.add('hidden');
+								container.classList.remove('hover');
+								timer = null;
+							}, 3000);
+						}
+					},
+					onhover(_el, e) {
+						if (!thisEl.parentElement.classList.contains('forcedVisible')) {
+							childrenContainer.classList.remove('hidden');
+							container.classList.add('hover');
+							e.stopPropagation();
+						}
+					},
+					onblur(_el, e) {
+						if (!thisEl.parentElement.classList.contains('forcedVisible')) {
+							childrenContainer.classList.add('hidden');
+							container.classList.remove('hover');
+							e.stopPropagation();
+						}
+					},
+					props: {
+						title: `Menu node ${node.name}`
+					}
+				}, [
+					this.parent().util.createElement('div', {
+						classes: ['contextMenuMenuContainer'],
+						ref(_container) {
+							container = _container;
+						}
+					}, [
+						this.parent().util.createElement('div', {
+							classes: ['contextMenuMenuText']
+						}, [node.name]),
+						this.parent().util.createElement('div', {
+							classes: ['contextMenuMenuArrow']
+						}, [
+							this.parent().util.createSVG('svg', {
+								classes: ['contextMenuMenuArrowImage'],
+								props: {
+									width: '48',
+									height: '48',
+									viewBox: '0 0 48 48'
+								}
+							}, [
+								this.parent().util.createSVG('path', {
+									props: {
+										d: 'M16 10v28l22-14z'
+									}
+								})
+							])
+						])
+					]),
+					this.parent().util.createElement('div', {
+						classes: ['contextMenuMenuSubmenu', 
+							'contextMenuMenuChildren', 'hidden'],
+						ref(el) {
+							childrenContainer = el;
+						}
+					}, (node.children || []).map(childNode => this._genNode(childNode)))
+				]);
+			}
+
+			private static _genNodeElement(node: CRM.Node) {
+				switch (node.type) {
+					case 'divider':
+						return this._genDividerNode(node);
+					case 'link':
+						return this._genLinkNode(node);
+					case 'script':
+						return this._genScriptNode(node);
+					case 'stylesheet':
+						return this._genStylesheetNode(node);
+					case 'menu':
+						return this._genMenuNode(node);
+				}
+			}
+
+			private static _genNode(node: CRM.Node): HTMLElement {
+				const el = this._genNodeElement(node);
+				el.classList.add('contextMenuNode');
+				if (window.app.storageLocal.editCRMInRM) {
+					el.classList.add('clickable');
+				}
+				this._setContentTypeClasses(el, node);
+				return el;
+			}
+
+			private static _genMenu(): HTMLElement {
+				const root = document.createElement('div');
+				root.classList.add('contextMenuRoot', 
+					'contextMenuMenuSubmenu', 'rootHidden');
+				const crm = window.app.settings.crm;
+				for (const node of crm) {
+					root.appendChild(this._genNode(node));
+				}
+				return root;
+			}
+
+			private static _setAllContentTypeClasses(el: HTMLElement, op: 'add'|'remove') {
+				const arr: [undefined, undefined, undefined, undefined, undefined, undefined] = [
+					undefined, undefined, undefined, undefined, undefined, undefined
+				];
+				el.classList[op](...arr.map((_item: any, i: number) => `hidden${i}`));
+				el.classList[op]('rootHidden');
+			}
+
+			private static _setMenuPosition(menu: HTMLElement, e: Polymer.ClickEvent) {
+				menu.style.left = `${e.clientX}px`;
+
+				menu.classList.remove('rootHidden');
+				const bcr = menu.getBoundingClientRect();
+				menu.classList.add('rootHidden');
+
+				if (window.innerHeight > bcr.height + e.clientY) {
+					menu.style.top = `${e.clientY}px`;
+				} else {
+					menu.style.top = `${e.clientY - bcr.height}px`;
+				}
+			}
+
+			private static _showMenu(menu: HTMLElement, e: Polymer.ClickEvent) {
+				this._setMenuPosition(menu, e);
+				if (window.app.util.findElementWithId(e.path, 'mainCont')) {
+					//Get the current content type
+					menu.classList.remove(`hidden${window.app.crmType}`);
+					menu.classList.remove('rootHidden');
+				} else {
+					this._setAllContentTypeClasses(menu, 'remove');
+				}
+			}
+
+			private static _setListeners(menu: HTMLElement) {
+				window.addEventListener('contextmenu', (e: MouseEvent) => {
+					e.preventDefault();
+					this._showMenu(menu, e as any);
+				});
+				window.addEventListener('click', () => {
+					this._setAllContentTypeClasses(menu, 'add');
+				});
+				window.addEventListener('scroll', () => {
+					this._setAllContentTypeClasses(menu, 'add');
+				});
+			}
+
+			private static _enable() {
+				this._root = this._genMenu();
+				this._setListeners(this._root);
+				this._setAllContentTypeClasses(this._root, 'add');
+				document.body.appendChild(this._root);
+			}
+
+			private static _disable() {
+				this._root.remove();
+				this._active = false;
+			}
+
+			static create() {
+				if (this._active) {
+					this._disable();
+				}
+
+				this._active = true;
+				this._enable();
 			}
 
 			static parent(): CrmApp {

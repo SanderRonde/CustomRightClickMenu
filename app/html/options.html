@@ -45,6 +45,97 @@
 			}
 			/*#endregion*/
 
+			/*#region Contextmenu Demo*/
+			.contextMenuRoot {
+				z-index: 9999999999999999;
+				position: fixed;
+			}			
+
+			.contextMenuRoot.rootHidden {
+				display: none;
+			}
+
+			.contextMenuMenuSubmenu {
+				box-shadow: 1px 3px 1px 0 rgba(0, 0, 0, 0.14), 
+					0 1px 8px 0 rgba(0, 0, 0, 0.12), 
+					0 3px 3px -2px rgba(0, 0, 0, 0.4);
+				border: 1px solid #BABABA;
+				background-color: white;
+				padding-top: 2px;
+				padding-bottom: 2px;
+			}
+
+			.contextMenuMenuSubmenu.hidden {
+				display: none;
+			}
+
+			.contextMenuMenuChildren {
+				position: absolute;
+				margin-left: calc(100% - 3px);
+				margin-top: -27px;
+			}
+
+			.contextMenuLink, .contextMenuScript, 
+			.contextMenuStylesheet, .contextMenuMenuContainer {
+				padding-top: 7px;
+				padding-left: 36px;
+				padding-right: 25px;
+				padding-bottom: 3px;
+				text-overflow: ellipsis;
+				background-color: white;
+			}
+
+			.contextMenuNode {
+				cursor: default;
+			}
+
+			.contextMenuLink:hover, .contextMenuScript:hover, 
+			.contextMenuStylesheet:hover, .contextMenuMenuContainer:hover,
+			.contextMenuMenuContainer.hover {
+				background-color: #EBEBEB;
+			}
+
+			.contextMenuDivider {
+				margin-top: 5px;
+				border-top: 1px solid #E9E9E9;
+				margin-bottom: 5px;
+			}
+
+			.hidden0 .contextMenuNode.hidden0,
+			.hidden1 .contextMenuNode.hidden1,
+			.hidden2 .contextMenuNode.hidden2,
+			.hidden3 .contextMenuNode.hidden3,
+			.hidden4 .contextMenuNode.hidden4,
+			.hidden5 .contextMenuNode.hidden5 {
+				display: none;
+			}
+
+			.contextMenuMenuContainer {
+				display: flex;
+				justify-content: space-between;
+			}
+
+			.contextMenuMenuArrow {
+				background-size: cover;
+				width: 0px;
+				height: 7px;
+				fill: #5A5A5A;
+				stroke: #5A5A5A;
+				stroke-width: 5px;
+			}
+
+			.contextMenuMenuArrowImage {
+				height: 10px;
+				width: 15px;
+				margin-top: 3px;
+				margin-left: 4px;
+			}
+
+			.contextMenuRoot.clickable, .contextMenuRoot.clickable .contextMenuNode {
+				cursor: pointer;
+			}
+			/*#endregion*/
+
 			#splashScreen {
 				top: 0;
 				bottom: 0;

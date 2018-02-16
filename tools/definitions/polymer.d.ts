@@ -290,6 +290,8 @@ declare namespace Polymer {
 
 	export interface ClickEvent extends CustomEventBase {
 		type: 'tap';
+		clientX: number;
+		clientY: number;
 	}
 
 	export interface PolymerKeyDownEvent extends CustomEventBase {

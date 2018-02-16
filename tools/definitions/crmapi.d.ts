@@ -1460,6 +1460,14 @@ declare namespace CRM {
 		 */
 		recoverUnsavedData: boolean;
 		/**
+		 * Use your custom right-click menu on this page as a preview instead of chrome's regular one.
+		 */
+		CRMOnPage: boolean;
+		/**
+		 * Edit the custom right-click Menu by clicking on the respective elements when right-clicking on this page
+		 */
+		editCRMInRM: boolean;
+		/**
 		 * Whether to hide the tools ribbon in fullscreen mode
 		 */
 		hideToolsRibbon: boolean;

@@ -9348,6 +9348,8 @@ if (typeof module === 'undefined') {
 						authorName: 'anonymous',
 						showOptions: true,
 						recoverUnsavedData: false,
+						CRMOnPage: false,
+						editCRMInRM: true,
 						catchErrors: true,
 						useAsUserscriptInstaller: useAsUserscriptManager,
 						hideToolsRibbon: false,
