@@ -1,12 +1,3 @@
-:host {
-	opacity: 1;
-	transition: opacity 150ms ease-out;
-}
-
-:host[invisible] {
-	opacity: 0;
-}
-
 #splashContainer {
 	top: 0;
 	left: 0;
