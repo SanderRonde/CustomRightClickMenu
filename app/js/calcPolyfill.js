@@ -128,14 +128,14 @@ window.CRMLoaded.register(function() {
 		fn(node);
 		if (node.children) {
 			for (var i = 0; i < node.children.length; i++) {
-				traverseDom(node.children[i]);
+				traverseDom(node.children[i], fn);
 			}
 		}
 	}
 
 	function getRoots(children) {
 		var roots = [];
-		for (var i = 0; i < children; i++) {
+		for (var i = 0; i < children.length; i++) {
 			traverseDom(children[i], function(node) {
 				if (node.shadowRoot) {
 					roots.push(node.shadowRoot);
@@ -157,7 +157,7 @@ window.CRMLoaded.register(function() {
 
 	function breakdownSelector(selector) {
 		var parts = selector.split(' ');
-		var current = document.querySelectorAll(parts[0]);
+		var current = querySelectorEverything(parts[0]);
 		for (var i = 1; i < parts.length; i++) {
 			current = flatten(current.map(function(node) {
 				if (node.shadowRoot) {
@@ -290,7 +290,6 @@ window.CRMLoaded.register(function() {
 				});
 				return stylesheetBlocks;
 			}(function(linkElements) {
-				window.lol = querySelectorEverything;
 				return Array.prototype.slice.call(linkElements).map(function(linkElement) {
 					if (linkElement.tagName === 'STYLE') {
 						return linkElement.textContent;
