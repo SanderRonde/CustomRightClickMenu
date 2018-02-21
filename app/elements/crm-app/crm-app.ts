@@ -3275,7 +3275,7 @@ namespace CRMAppElement {
 				let selectedType = this.parent().crmType;
 				if (typeof type === 'number') {
 					for (i = 0; i < 6; i++) {
-						crmEl = this.parent().shadowRoot.querySelectorAll('.crmType').item(i) as HTMLElement;
+						crmEl = this.parent().shadowRoot.querySelectorAll('.crmType')[i] as HTMLElement;
 						if (i === type) {
 							crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 							crmEl.style.backgroundColor = 'rgb(243,243,243)';
@@ -3303,7 +3303,7 @@ namespace CRMAppElement {
 					const element = this.parent().util.findElementWithClassName(e.path, 'crmType');
 					const crmTypes = this.parent().shadowRoot.querySelectorAll('.crmType');
 					for (i = 0; i < 6; i++) {
-						crmEl = crmTypes.item(i) as HTMLElement;
+						crmEl = crmTypes[i] as HTMLElement;
 						if (crmEl === element) {
 							crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 							crmEl.style.backgroundColor = 'rgb(243,243,243)';

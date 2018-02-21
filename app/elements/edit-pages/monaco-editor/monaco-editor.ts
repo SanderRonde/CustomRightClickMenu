@@ -918,9 +918,9 @@ namespace MonacoEditorElement {
 				const underlinables = this._editor.getDomNode().querySelectorAll('.userScriptColorUnderline');
 				Array.prototype.slice.apply(underlinables).forEach((underlineable: HTMLElement) => {
 					for (let i = 0; i < underlineable.classList.length; i++) {
-						if (underlineable.classList.item(i).indexOf('color') === 0) {
-							let color = underlineable.classList.item(i).slice(5);
-							let className = underlineable.classList.item(i);
+						if (underlineable.classList[i].indexOf('color') === 0) {
+							let color = underlineable.classList[i].slice(5);
+							let className = underlineable.classList[i];
 							newRules.push([`.${className}::before`, `background-color: ${color}`])
 							newRulesString += `${className}${color}`;
 						}
