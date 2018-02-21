@@ -573,7 +573,7 @@ function waitForCRM(timeRemaining: number): webdriver.promise.Promise<void> {
 		}
 
 		driver.executeScript(inlineFn(() => {
-			const crmItem = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])').item(0);
+			const crmItem = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])')[0];
 			return !!crmItem;
 		})).then((result) => {
 			if (result) {
@@ -596,7 +596,7 @@ async function switchToTypeAndOpen(type: CRM.NodeType) {
 	}
 	await driver.executeScript(inlineFn(() => {
 		const crmItem = window.app.editCRM
-			.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])').item(0) as EditCrmItem;
+			.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])')[0] as EditCrmItem;
 		crmItem.$$('type-switcher').changeType('REPLACE.type' as CRM.NodeType);	
 	}, {
 		type: type
@@ -604,7 +604,7 @@ async function switchToTypeAndOpen(type: CRM.NodeType) {
 	await wait(100);
 	await driver.executeScript(inlineFn(() => {
 		((window.app.editCRM.shadowRoot
-			.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0)).openEditPage();
+			.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>)[0]).openEditPage();
 	}));
 	await wait(1000);
 }
@@ -614,7 +614,7 @@ function openDialog(type: CRM.NodeType) {
 		if (type === 'link') {
 			await driver.executeScript(inlineFn(() => {
 				((window.app.editCRM.shadowRoot
-					.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0)).openEditPage();
+					.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>)[0]).openEditPage();
 			}));
 			await wait(1000);
 		} else {
@@ -2199,18 +2199,18 @@ describe('Options Page', function() {
 			}
 			async function testTypeSwitch(type: string) {
 				await driver.executeScript(inlineFn(() => {
-					const crmItem = (window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0);
+					const crmItem = (window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>)[0];
 					crmItem.typeIndicatorMouseOver();
 				}));
 				await wait(300);
 				await driver.executeScript(inlineFn(() => {
-					const crmItem = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])').item(0);
+					const crmItem = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])')[0];
 					const typeSwitcher = crmItem.shadowRoot.querySelector('type-switcher');
 					typeSwitcher.openTypeSwitchContainer();
 				}));
 				await wait(300);
 				const typesMatch = await driver.executeScript(inlineFn(() => {
-					const crmItem = (window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0);
+					const crmItem = (window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>)[0];
 					const typeSwitcher = crmItem.shadowRoot.querySelector('type-switcher');
 					(typeSwitcher.shadowRoot.querySelector('.typeSwitchChoice[type="REPLACE.type"]') as HTMLElement)
 						.click();
