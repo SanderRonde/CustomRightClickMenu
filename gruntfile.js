@@ -911,7 +911,7 @@ module.exports = function(grunt) {
 	//Builds the test page
 	grunt.registerTask('buildTest', ['build', 'joinPages:test']);
 
-	//Buids the test page without compiling the test files
+	//Builds the test page without compiling the test files
 	// Can be handy if you're already running a typescript compiler
 	// or have made some changes the typescript compiler doesn't like
 	grunt.registerTask('buildTestNoTestCompile', ['updateTsIdMaps', 
