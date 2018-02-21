@@ -168,6 +168,8 @@ namespace NodeEditBehaviorNamespace {
 
 		static checkToggledIconAmount(this: NodeEditBehaviorInstance, e: {
 			path: Array<HTMLElement>;
+		}|{
+			Aa: Array<HTMLElement>;
 		}) {
 			this.async(() => {
 				const selectedCheckboxes: {
@@ -177,7 +179,7 @@ namespace NodeEditBehaviorNamespace {
 				};
 				this.getContentTypeLaunchers(selectedCheckboxes);
 				if (selectedCheckboxes.onContentTypes.filter(item => item).length === 0) {
-					const element = window.app.util.findElementWithTagname(e.path, 'paper-checkbox');
+					const element = window.app.util.findElementWithTagname(e, 'paper-checkbox');
 					element.checked = true;
 					window.doc.contentTypeToast.show();
 				}
@@ -188,7 +190,8 @@ namespace NodeEditBehaviorNamespace {
 			if (this.editorMode && this.editorMode === 'background') {
 				return;
 			}
-			const element = window.app.util.findElementWithClassName(e.path, 'showOnContentItemCont');
+			console.log(e);
+			const element = window.app.util.findElementWithClassName(e, 'showOnContentItemCont');
 			const checkbox = $(element).find('paper-checkbox')[0] as HTMLPaperCheckboxElement;
 			checkbox.checked = !checkbox.checked;
 			if (!checkbox.checked) {

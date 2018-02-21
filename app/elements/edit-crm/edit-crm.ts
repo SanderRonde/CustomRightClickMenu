@@ -642,7 +642,7 @@ namespace EditCrmElement {
 		};
 
 		static addToPosition(this: EditCrm, e: Polymer.ClickEvent) {
-			const node = window.app.util.findElementWithClassName(e.path, 'addingItemPlaceholder');
+			const node = window.app.util.findElementWithClassName(e, 'addingItemPlaceholder');
 
 			this._addItem(JSON.parse(node.getAttribute('data-path')));
 			this.isAdding = false;

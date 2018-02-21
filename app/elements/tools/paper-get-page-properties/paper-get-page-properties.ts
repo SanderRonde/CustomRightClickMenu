@@ -72,7 +72,7 @@ namespace PaperGetPagePropertiesElement {
 
 		private static _menuClick(this: PaperGetPageProperties, e: Polymer.ClickEvent) {
 			//Find out if the dropdown menu has already been clicked
-			if (e.path.indexOf(this.$.dropdown) > -1) {
+			if (window.app.util.getPath(e).indexOf(this.$.dropdown) > -1) {
 				return;
 			}
 			this.$.dropdown._toggleDropdown();

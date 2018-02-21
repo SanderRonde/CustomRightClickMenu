@@ -267,8 +267,7 @@ declare namespace Polymer {
 		getRootNode(): ShadowRoot;
 	} & ElementBase;
 
-	interface CustomEventBase {
-		path: EventPath;
+	type CustomEventNoPath = {
 		detail: {
 			sourceEvent: MouseEvent;
 		};
@@ -279,6 +278,12 @@ declare namespace Polymer {
 		preventDefault(): void;
 	}
 
+	type CustomEventBase = (CustomEventNoPath & {
+		Aa: EventPath;
+	})|(CustomEventNoPath & {
+		path: EventPath;
+	});
+
 	type EventType<T extends string, D> = CustomEventBase & {
 		type: T;
 		detail: {
@@ -288,20 +293,20 @@ declare namespace Polymer {
 
 	type CustomEvent = PolymerDragEvent|ClickEvent|PolymerKeyDownEvent;
 
-	export interface ClickEvent extends CustomEventBase {
+	export type ClickEvent = CustomEventBase & {
 		type: 'tap';
 		clientX: number;
 		clientY: number;
 	}
 
-	export interface PolymerKeyDownEvent extends CustomEventBase {
+	export type PolymerKeyDownEvent = CustomEventBase & {
 		type: 'keydown';
 		srcElement: PolymerElement;
 		key: string;
 		code: string;
 	}
 
-	export interface PolymerDragEvent extends CustomEventBase {
+	export type PolymerDragEvent = CustomEventBase & {
 		detail: {
 			state: 'start'|'end'|'track';
 			sourceEvent: MouseEvent;

@@ -176,7 +176,7 @@ namespace TypeSwitcherElement {
 			if (typeof e === 'string') {
 				type = e;
 			} else {
-				const path = e.path as Array<Polymer.PolymerElement>;
+				const path = window.app.util.getPath(e) as Array<Polymer.PolymerElement>;
 				if (path[0].tagName === 'SPAN') {
 					type = path[0].innerHTML as CRM.NodeType;
 				} else {

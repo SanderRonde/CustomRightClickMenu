@@ -89,7 +89,7 @@ namespace ScriptEditElement {
 		}
 
 		static onKeyBindingKeyDown(this: NodeEditBehaviorScriptInstance, e: Polymer.PolymerKeyDownEvent) {
-			const input = window.app.util.findElementWithTagname(e.path, 'paper-input');
+			const input = window.app.util.findElementWithTagname(e, 'paper-input');
 			const index = ~~input.getAttribute('data-index');
 			this._createKeyBindingListener(input, this.keyBindings[index]);
 		}
@@ -172,7 +172,7 @@ namespace ScriptEditElement {
 		}
 
 		static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
-			const element = window.app.util.findElementWithClassName(e.path, 'editorTab');
+			const element = window.app.util.findElementWithClassName(e, 'editorTab');
 
 			const isMain = element.classList.contains('mainEditorTab');
 			const isBackground = element.classList.contains('backgroundEditorTab');
@@ -351,8 +351,8 @@ namespace ScriptEditElement {
 				nodeItem = this.item;
 				settingsStorage = this.newSettings;
 			} else {
-				nodeItem = item;
-				settingsStorage = item;
+				nodeItem = item as CRM.ScriptNode;
+				settingsStorage = item as CRM.ScriptNode;
 			}
 			//Prepare all permissions
 			chrome.permissions.getAll(({permissions}) => {

@@ -39,7 +39,8 @@ namespace LinkEditElement {
 
 		static checkboxStateChange(this: NodeEditBehaviorLinkInstance, e: Polymer.ClickEvent) {
 			//Get this checkbox
-			const checkbox = window.app.util.findElementWithTagname(e.path, 'paper-checkbox');
+			console.log(e);
+			const checkbox = window.app.util.findElementWithTagname(e, 'paper-checkbox');
 			$(this.$.linksContainer).find('paper-checkbox').each(function (this: HTMLPaperCheckboxElement) {
 				if (this !== checkbox) {
 					this.removeAttribute('checked');
@@ -55,7 +56,7 @@ namespace LinkEditElement {
 		};
 
 		static toggleCheckbox(e: Polymer.ClickEvent) {
-			$(window.app.util.findElementWithClassName(e.path, 'linkChangeCont'))
+			$(window.app.util.findElementWithClassName(e, 'linkChangeCont'))
 				.children('paper-checkbox').click();
 		}
 	}

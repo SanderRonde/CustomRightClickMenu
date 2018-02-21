@@ -461,11 +461,13 @@ namespace CRMAppElement {
 
 			let fnName: keyof typeof listeners;
 			let pathIndex = 0;
-			let currentElement = event.path[pathIndex];
-			while (!('getAttribute' in currentElement) || !(fnName = (currentElement as Polymer.PolymerElement).getAttribute(propKey) as keyof typeof listeners) && pathIndex < event.path.length) {
-				pathIndex++;
-				currentElement = event.path[pathIndex];
-			}
+			let currentElement = window.app.util.getPath(event)[pathIndex];
+			while (!('getAttribute' in currentElement) || 
+				!(fnName = (currentElement as Polymer.PolymerElement).getAttribute(propKey) as keyof typeof listeners) &&
+				pathIndex < window.app.util.getPath(event).length) {
+					pathIndex++;
+					currentElement = window.app.util.getPath(event)[pathIndex];
+				}
 
 			if (fnName) {
 				if (fnName !== 'prototype' && fnName !== 'parent' && listeners[fnName]) {
@@ -3300,7 +3302,7 @@ namespace CRMAppElement {
 						}
 					}
 				} else {
-					const element = this.parent().util.findElementWithClassName(e.path, 'crmType');
+					const element = this.parent().util.findElementWithClassName(e, 'crmType');
 					const crmTypes = this.parent().shadowRoot.querySelectorAll('.crmType');
 					for (i = 0; i < 6; i++) {
 						crmEl = crmTypes[i] as HTMLElement;
@@ -3377,7 +3379,7 @@ namespace CRMAppElement {
 			};
 
 			static globalExcludeChange(e: Polymer.ClickEvent) {
-				const input = this.parent().util.findElementWithTagname(e.path, 'paper-input');
+				const input = this.parent().util.findElementWithTagname(e, 'paper-input');
 
 				let excludeIndex = null;
 				const allExcludes = document.getElementsByClassName('globalExcludeContainer');
@@ -3401,7 +3403,7 @@ namespace CRMAppElement {
 
 
 			static removeGlobalExclude(e: Polymer.ClickEvent) {
-				const node = this.parent().util.findElementWithTagname(e.path, 'paper-icon-button');
+				const node = this.parent().util.findElementWithTagname(e, 'paper-icon-button');
 
 				let excludeIndex = null;
 				const allExcludes = document.getElementsByClassName('globalExcludeContainer');
@@ -4456,6 +4458,19 @@ namespace CRMAppElement {
 				return el as T;
 			}	
 
+			static getPath(e: {
+				path: Array<HTMLElement>;
+			}|{
+				Aa: Array<HTMLElement>;
+			}|Polymer.CustomEvent) {
+				if ('path' in e) {
+					return e.path;
+				} else if ('Aa' in e) {
+					return e.Aa;
+				}
+				return [];
+			}
+
 			private static _dummy: HTMLElement = null;
 			static getDummy(): HTMLElement {
 				if (this._dummy) {
@@ -4466,8 +4481,13 @@ namespace CRMAppElement {
 				return this._dummy;
 			}
 
-			static findElementWithTagname<T extends keyof ElementTagNameMaps>(path: Polymer.EventPath, tagName: T): ElementTagNameMaps[T] {
+			static findElementWithTagname<T extends keyof ElementTagNameMaps>(event: {
+				path: Array<HTMLElement>;
+			}|{
+				Aa: Array<HTMLElement>;
+			}|Polymer.CustomEvent, tagName: T): ElementTagNameMaps[T] {
 				let index = 0;
+				const path = this.getPath(event);
 				let node = path[0];
 				while (!('tagName' in node) || (node as Polymer.PolymerElement).tagName.toLowerCase() !== tagName) {
 					node = path[++index];
@@ -4479,8 +4499,13 @@ namespace CRMAppElement {
 				return node as ElementTagNameMaps[T]
 			}
 
-			static findElementWithClassName(path: Polymer.EventPath, className: string): Polymer.PolymerElement {
+			static findElementWithClassName(event: {
+				path: Array<HTMLElement>;
+			}|{
+				Aa: Array<HTMLElement>;
+			}|Polymer.CustomEvent, className: string): Polymer.PolymerElement {
 				let index = 0;
+				const path = this.getPath(event);
 				let node = path[0];
 				while (!('classList' in node) || !(node as Polymer.PolymerElement).classList.contains(className)) {
 					node = path[++index];
@@ -4492,8 +4517,13 @@ namespace CRMAppElement {
 				return node as Polymer.PolymerElement;
 			}
 
-			static findElementWithId(path: Polymer.EventPath, id: string): Polymer.PolymerElement {
+			static findElementWithId(event: {
+				path: Array<HTMLElement>;
+			}|{
+				Aa: Array<HTMLElement>;
+			}|Polymer.CustomEvent, id: string): Polymer.PolymerElement {
 				let index = 0;
+				const path = this.getPath(event);
 				let node = path[0];
 				while (!('id' in node) || (node as Polymer.PolymerElement).id !== id) {
 					node = path[++index];
@@ -4885,7 +4915,7 @@ namespace CRMAppElement {
 
 			private static _showMenu(menu: HTMLElement, e: Polymer.ClickEvent) {
 				this._setMenuPosition(menu, e);
-				if (window.app.util.findElementWithId(e.path, 'mainCont')) {
+				if (window.app.util.findElementWithId(e, 'mainCont')) {
 					//Get the current content type
 					menu.classList.remove(`hidden${window.app.crmType}`);
 					menu.classList.remove('rootHidden');

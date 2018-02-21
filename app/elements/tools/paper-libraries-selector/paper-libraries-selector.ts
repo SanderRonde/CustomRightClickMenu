@@ -440,7 +440,7 @@ namespace PaperLibrariesSelectorElement {
 		}
 
 		static _click(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
-			const container = window.app.util.findElementWithTagname(e.path, 'paper-item');
+			const container = window.app.util.findElementWithTagname(e, 'paper-item');
 			if (container.classList.contains('removeLibrary')) {
 				return;
 			}
