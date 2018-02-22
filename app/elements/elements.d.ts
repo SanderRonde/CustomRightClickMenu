@@ -129,14 +129,18 @@ interface Window {
 		}
 	}
 	monaco: typeof monaco;
-	require: {
-		(paths: Array<string>, callback: () => void): void;
-		config(config: {
-			paths: {
-				[key: string]: string;
-			}
-		}): void;
-	}
+	AMDLoader: {
+		global: {
+			require: {
+				(paths: Array<string>, callback: () => void): void;
+				config(config: {
+					paths: {
+						[key: string]: string;
+					}
+				}): void;
+			};
+		};
+	};
 	monacoCommands: MonacoCommands;
 	MonacoEditorHookManager: typeof MonacoEditorElement.MonacoEditorHookManager;
 	crmAPIDefs?: any;
