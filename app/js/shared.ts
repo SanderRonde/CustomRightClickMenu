@@ -36,8 +36,8 @@ interface Window {
 		private _val: T = null;
 		private _state: 'pending'|'resolved'|'rejected' = 'pending';
 		private _done: boolean = false;
-		private _resolveListeners: Array<(value: T) => void>;
-		private _rejectListeners: Array<(value: T) => void>;
+		private _resolveListeners: Array<(value: T) => void> = [];
+		private _rejectListeners: Array<(value: T) => void> = [];
 		constructor(initializer: (resolve: (value: T) => void, reject: (err: any) => void) => void) {
 			initializer((val: T) => {
 				if (this._done) {
