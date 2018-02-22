@@ -2336,11 +2336,13 @@ namespace MonacoEditorElement {
 				return location.protocol === 'chrome-extension:';
 			}
 
+			private static readonly BASE = '../';
+
 			static loadFile(name: string): Promise<string> {
 				return new window.Promise((resolve, reject) => {
 					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
 					const url = this._isChromeEnv() ?
-						chrome.runtime.getURL(name) : name;
+						chrome.runtime.getURL(name) : `${this.BASE}${name}`;
 					xhr.open('GET', url);
 					xhr.onreadystatechange = () => {
 						if (xhr.readyState === XMLHttpRequest.DONE) {
