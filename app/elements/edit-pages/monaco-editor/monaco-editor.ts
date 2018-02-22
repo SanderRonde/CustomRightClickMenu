@@ -2327,19 +2327,25 @@ namespace MonacoEditorElement {
 			}
 		}
 
-		static Libraries = class MonacoEditorLibraries {
-			private static _loadedFiles: {
+		static Fetching = class MonacoEditorFetches {
+			private static _fetchedFiles: {
 				[lib: string]: string;
 			} = {};
 
-			private static _loadFile(name: string): Promise<string> {
+			private static _isChromeEnv() {
+				return location.protocol === 'chrome-extension:';
+			}
+
+			static loadFile(name: string): Promise<string> {
 				return new window.Promise((resolve, reject) => {
 					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
-					xhr.open('GET', chrome.runtime.getURL(name));
+					const url = this._isChromeEnv() ?
+						chrome.runtime.getURL(name) : name;
+					xhr.open('GET', url);
 					xhr.onreadystatechange = () => {
 						if (xhr.readyState === XMLHttpRequest.DONE) {
 							if (xhr.status === 200) {
-								this._loadedFiles[name] = xhr.responseText;
+								this._fetchedFiles[name] = xhr.responseText;
 								resolve(xhr.responseText);
 							} else {
 								reject(new Error('Failed XHR'));
@@ -2350,9 +2356,19 @@ namespace MonacoEditorElement {
 				});
 			}
 
+			static isLoaded(name: string): boolean {
+				return name in this._fetchedFiles;
+			}
+
+			static getLoadedFile(name: string): string {
+				return this._fetchedFiles[name];
+			}
+		}
+
+		static Libraries = class MonacoEditorLibraries {
 			private static _execFile(name: string): Promise<void> {
 				return new window.Promise((resolve, reject) => {
-					this._loadFile(name).then((content) => {
+					this._parent().Fetching.loadFile(name).then((content) => {
 						eval(content);
 						resolve(null);
 					}, (err) => {
@@ -2363,17 +2379,21 @@ namespace MonacoEditorElement {
 			}
 
 			static async readFile(path: string): Promise<string> {
-				if (path in this._loadedFiles) {
-					return this._loadedFiles[path];
+				if (this._parent().Fetching.isLoaded(path)) {
+					return this._parent().Fetching.getLoadedFile(path);
 				}
-				return await this._loadFile(path);
+				return await this._parent().Fetching.loadFile(path);
 			}
 
 			static async runFile(path: string): Promise<void> {
-				if (path in this._loadedFiles) {
+				if (this._parent().Fetching.isLoaded(path)) {
 					return;
 				}
 				return this._execFile(path);
+			}
+
+			private static _parent() {
+				return window.MonacoEditorHookManager;
 			}
 		}
 
