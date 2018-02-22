@@ -2219,7 +2219,7 @@ namespace MonacoEditorElement {
 		}
 
 		private static _setupRequire() {
-			new window.Promise<void>(async (resolve) => {
+			return new window.Promise<void>(async (resolve) => {
 				await window.onExists('require');
 				window.require.config({
 					paths: {
