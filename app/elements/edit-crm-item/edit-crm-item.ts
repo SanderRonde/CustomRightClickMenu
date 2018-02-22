@@ -445,9 +445,9 @@ namespace EditCrmItemElement {
 				this._typeIndicatorAnimation.reverse();
 			} else {
 				this._animationEl.animate([{
-					marginLeft: '-293px'
-				}, {
 					marginLeft: 0
+				}, {
+					marginLeft: '-293px'
 				}], {
 					duration: 300,
 					fill: 'both',
