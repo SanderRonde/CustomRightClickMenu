@@ -437,7 +437,19 @@ namespace EditCrmItemElement {
 		};
 
 		private static _animateOut(this: EditCrmItem) {
-			this._typeIndicatorAnimation && this._typeIndicatorAnimation.reverse();
+			if (this._typeIndicatorAnimation && this._typeIndicatorAnimation.reverse) {
+				this._typeIndicatorAnimation.reverse();
+			} else {
+				this._animationEl.animate([{
+					marginLeft: '-293px'
+				}, {
+					marginLeft: 0
+				}], {
+					duration: 300,
+					fill: 'both',
+					easing: 'bez'
+				})
+			}
 		};
 
 		static typeIndicatorMouseLeave(this: EditCrmItem) {

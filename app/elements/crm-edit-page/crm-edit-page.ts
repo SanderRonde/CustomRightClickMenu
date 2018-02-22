@@ -180,17 +180,31 @@ namespace CrmEditPageElement {
 		};
 		
 		static animateOut(this: CrmEditPage) {
-			this._overlayAnimation.reverse();
+			if (this._overlayAnimation && this._overlayAnimation.reverse) {
+				this._overlayAnimation.reverse();
+			} else {
+				this._backdropEl.animate([
+					{
+						opacity: 0.3
+					}, {
+						opacity: 0
+					}
+				], {
+					duration: 300,
+					fill: 'both',
+					easing: 'bez'
+				});
+			}
 			const animation = this.$.overlayCont.animate([{
-				transform: 'scale(0)'
-			}, {
 				transform: 'scale(1)'
+			}, {
+				transform: 'scale(0)'
 			}], {
 				easing: 'bez',
 				duration: 300,
 				fill: 'forwards'
 			});
-			animation.reverse();
+			animation.play();
 			animation.onfinish = () => {
 				this._onAnimationDone();
 			}

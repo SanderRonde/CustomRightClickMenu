@@ -237,6 +237,9 @@ namespace CRMAppElement {
 						if (animation.state === 'initial') {
 							animation.animation.play();
 						} else {
+							if (!animation.animation.reverse) {
+								break;
+							}
 							animation.animation.reverse();
 						}
 						return animation.animation;
@@ -711,7 +714,7 @@ namespace CRMAppElement {
 					function handler(this: CrmApp) {
 						let el: HTMLElement & {
 							animation?: {
-								reverse(): void;
+								reverse?(): void;
 							}
 						}, svg;
 						overlay.style.maxHeight = 'initial!important';
@@ -721,7 +724,7 @@ namespace CRMAppElement {
 							el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
 							svg = $(this).find('.requestPermissionsSvg')[0];
 							svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
-							if (el.animation) {
+							if (el.animation && el.animation.reverse) {
 								el.animation.reverse();
 							} else {
 								el.animation = el.animate([

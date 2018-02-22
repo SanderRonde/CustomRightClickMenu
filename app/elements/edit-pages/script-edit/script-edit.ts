@@ -278,7 +278,7 @@ namespace ScriptEditElement {
 						};
 						svg = $(showBotEl).find('.requestPermissionsSvg')[0];
 						svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
-						if (el.animation) {
+						if (el.animation && el.animation.reverse) {
 							el.animation.reverse();
 						} else {
 							el.animation = el.animate([
