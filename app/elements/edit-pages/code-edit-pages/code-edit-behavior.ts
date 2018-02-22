@@ -139,11 +139,9 @@ namespace CodeEditBehaviorNamespace {
 		}
 
 		static finishEditing(this: CodeEditBehaviorInstance) {
-			if (window.app.storageLocal.recoverUnsavedData) {
-				chrome.storage.local.set({
-					editing: null
-				});
-			}
+			chrome.storage.local.set({
+				editing: null
+			});
 			window.useOptionsCompletions = false;
 			this.hideCodeOptions();
 			if (this.optionsShown) {
