@@ -20,7 +20,7 @@ interface Prom<T> extends Promise<T> {
 
 interface Window {
 	Promise: typeof Promise;
-	onExists<T extends keyof Window>(key: T): PromiseLike<Window[T]>;
+	onExists<T extends keyof C, C = Window>(key: T, container?: C): PromiseLike<C[T]>;
 	objectify<T>(fn: T): T;
 	register(fn: any): void;
 	with<T>(initializer: () => Withable, fn: () => T): T;
@@ -82,17 +82,20 @@ interface Window {
 		}
 	}
 
-	window.onExists = <T extends keyof Window>(key: T): PromiseLike<Window[T]> => {
+	window.onExists = <T extends keyof C, C = Window>(key: T, container?: C): PromiseLike<C[T]> => {
+		if (!container) {
+			container = window as any;
+		}
 		const prom = (window.Promise || RoughPromise) as any;
-		return new prom((resolve: (result: Window[T]) => void) => {
-			if (key in window) {
-				resolve(window[key]);
+		return new prom((resolve: (result: C[T]) => void) => {
+			if (key in container) {
+				resolve(container[key]);
 				return;
 			}
 			const interval = window.setInterval(() => {
-				if (key in window) {
+				if (key in container) {
 					window.clearInterval(interval);
-					resolve(window[key]);
+					resolve(container[key]);
 				}
 			}, 50);
 		});
