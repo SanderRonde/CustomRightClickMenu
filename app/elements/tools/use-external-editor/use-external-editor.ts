@@ -653,7 +653,7 @@ namespace UseExternalEditorElement {
 		}
 
 		private static playIfExists(animation: Animation|void): boolean {
-			if (animation) {
+			if (animation && animation.play) {
 				animation.play();
 				return true;
 			}

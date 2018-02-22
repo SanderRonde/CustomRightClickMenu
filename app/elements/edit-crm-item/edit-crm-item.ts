@@ -419,18 +419,22 @@ namespace EditCrmItemElement {
 					if (this._lastTypeSwitchMouseover === time) {
 						this._lastTypeSwitchMouseover = null;
 						this._animationEl = this._animationEl || (this.$$('type-switcher') as TypeSwitcher).$$('.TSContainer');
-						(this._typeIndicatorAnimation && this._typeIndicatorAnimation.play()) || (this._typeIndicatorAnimation = this._animationEl.animate([
-								{
-									marginLeft: '-293px'
-								}, {
-									marginLeft: 0
+						if (this._typeIndicatorAnimation && this._typeIndicatorAnimation.play) {
+							this._typeIndicatorAnimation.play();
+						} else {
+								(this._typeIndicatorAnimation = this._animationEl.animate([
+									{
+										marginLeft: '-293px'
+									}, {
+										marginLeft: 0
+									}
+								], {
+									duration: 300,
+									fill: 'both',
+									easing: 'bez'
 								}
-							], {
-								duration: 300,
-								fill: 'both',
-								easing: 'bez'
-							}
-						));
+							));
+						}
 					}
 				}, 25);
 			}

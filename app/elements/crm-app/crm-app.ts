@@ -235,6 +235,9 @@ namespace CRMAppElement {
 
 					if (reverse === (animation.state === 'completed')) {
 						if (animation.state === 'initial') {
+							if (!animation.animation) {
+								break;
+							}
 							animation.animation.play();
 						} else {
 							if (!animation.animation.reverse) {

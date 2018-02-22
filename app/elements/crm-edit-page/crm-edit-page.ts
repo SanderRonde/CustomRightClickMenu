@@ -151,17 +151,21 @@ namespace CrmEditPageElement {
 
 		private static _animateIn(this: CrmEditPage) {
 			this._backdropEl.style.display = 'block';
-			(this._overlayAnimation && this._overlayAnimation.play()) || (this._overlayAnimation = this._backdropEl.animate([
-				{
-					opacity: 0
-				}, {
-					opacity: 0.3
-				}
-			], {
-				duration: 300,
-				fill: 'both',
-				easing: 'bez'
-			}));
+			if (this._overlayAnimation && this._overlayAnimation.play) {
+				this._overlayAnimation.play()
+			} else {
+				this._overlayAnimation = this._backdropEl.animate([
+					{
+						opacity: 0
+					}, {
+						opacity: 0.3
+					}
+				], {
+					duration: 300,
+					fill: 'both',
+					easing: 'bez'
+				});
+			}
 				
 			document.body.style.overflow = 'hidden';
 			document.body.style.marginRight = '17px';
@@ -204,7 +208,6 @@ namespace CrmEditPageElement {
 				duration: 300,
 				fill: 'forwards'
 			});
-			animation.play();
 			animation.onfinish = () => {
 				this._onAnimationDone();
 			}
