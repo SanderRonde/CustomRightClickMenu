@@ -21,6 +21,31 @@ interface Prom<T> extends Promise<T> {
 interface Window {
 	Promise: typeof Promise;
 	onExists<T extends keyof C, C = Window>(key: T, container?: C): PromiseLike<C[T]>;
+	onExistsChain<C, T1 extends keyof C, T2 extends keyof C[T1], 
+		T3 extends keyof C[T1][T2], T4 extends keyof C[T1][T2][T3], 
+		T5 extends keyof C[T1][T2][T3][T4]>(container: C,
+			key1: T1): PromiseLike<C[T1]>;
+	onExistsChain<C, T1 extends keyof C, T2 extends keyof C[T1], 
+		T3 extends keyof C[T1][T2], T4 extends keyof C[T1][T2][T3], 
+		T5 extends keyof C[T1][T2][T3][T4]>(container: C,
+			key1: T1, key2: T2): PromiseLike<C[T1][T2]>;
+	onExistsChain<C, T1 extends keyof C, T2 extends keyof C[T1], 
+		T3 extends keyof C[T1][T2], T4 extends keyof C[T1][T2][T3], 
+		T5 extends keyof C[T1][T2][T3][T4]>(container: C,
+			key1: T1, key2: T2, key3: T3): PromiseLike<C[T1][T2][T3]>;
+	onExistsChain<C, T1 extends keyof C, T2 extends keyof C[T1], 
+		T3 extends keyof C[T1][T2], T4 extends keyof C[T1][T2][T3], 
+		T5 extends keyof C[T1][T2][T3][T4]>(container: C,
+			key1: T1, key2: T2, key3: T3, key4: T4): PromiseLike<C[T1][T2][T3][T4]>;
+	onExistsChain<C, T1 extends keyof C, T2 extends keyof C[T1], 
+		T3 extends keyof C[T1][T2], T4 extends keyof C[T1][T2][T3], 
+		T5 extends keyof C[T1][T2][T3][T4]>(container: C,
+			key1: T1, key2: T2, key3: T3, key4: T4, key5: T5): PromiseLike<C[T1][T2][T3][T4][T5]>;
+	onExistsChain<C, T1 extends keyof C, T2 extends keyof C[T1], 
+		T3 extends keyof C[T1][T2], T4 extends keyof C[T1][T2][T3], 
+		T5 extends keyof C[T1][T2][T3][T4]>(container: C,
+			key1: T1, key2?: T2, key3?: T3, key4?: T4, key5?: T5): PromiseLike<C[T1][T2][T3][T4][T5]>|
+				PromiseLike<C[T1][T2][T3][T4]>|PromiseLike<C[T1][T2][T3]>|PromiseLike<C[T1][T2]>|PromiseLike<C[T1]>;
 	objectify<T>(fn: T): T;
 	register(fn: any): void;
 	with<T>(initializer: () => Withable, fn: () => T): T;
@@ -80,6 +105,20 @@ interface Window {
 			}
 			return this as any;
 		}
+
+		static chain<T>(initializers: Array<() => RoughPromise<any>>) {
+			return new RoughPromise<T>((resolve) => {
+				initializers[0]().then((result) => {
+					if (initializers[1]) {
+						RoughPromise.chain<T>(initializers.slice(1)).then((result) => {
+							resolve(result);
+						});
+					} else {
+						resolve(result);
+					}
+				});
+			});
+		}
 	}
 
 	window.onExists = <T extends keyof C, C = Window>(key: T, container?: C): PromiseLike<C[T]> => {
@@ -100,6 +139,30 @@ interface Window {
 			}, 50);
 		});
 	}
+
+	window.onExistsChain = <C, T1 extends keyof C, T2 extends keyof C[T1], 
+		T3 extends keyof C[T1][T2], T4 extends keyof C[T1][T2][T3], 
+		T5 extends keyof C[T1][T2][T3][T4]>(container: C,
+			key1: T1, key2?: T2, key3?: T3, key4?: T4, key5?: T5): PromiseLike<C[T1][T2][T3][T4][T5]>|
+				PromiseLike<C[T1][T2][T3][T4]>|PromiseLike<C[T1][T2][T3]>|PromiseLike<C[T1][T2]>|PromiseLike<C[T1]> => {
+					const prom = (window.Promise || RoughPromise) as any;
+					return new prom((resolve: (result: C[T1][T2][T3][T4]) => void) => {
+						let state: any = window;
+						const keys = [key1, key2, key3, key4];
+						RoughPromise.chain(keys.filter(key => !!key).map((key) => {
+							return () => {
+								return new prom((resolveInner: (result: any) => void) => {
+									window.onExists(key as keyof typeof state, state).then((result) => {
+										state = result;
+										resolveInner(result);
+									});
+								});
+							}
+						})).then((finalResult) => {
+							resolve(finalResult as any);
+						});
+					});
+				}
 
 	const objectify = <T>(fn: T): T => {
 		const obj: Partial<T> = {};
