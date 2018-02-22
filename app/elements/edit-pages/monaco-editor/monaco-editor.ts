@@ -2220,13 +2220,13 @@ namespace MonacoEditorElement {
 
 		private static _setupRequire() {
 			return new window.Promise<void>(async (resolve) => {
-				await window.onExists('require');
-				window.require.config({
+				const require = await window.onExistsChain(window, 'AMDLoader', 'global', 'require');
+				require.config({
 					paths: {
 						'vs': '../elements/edit-pages/monaco-editor/src/min/vs'
 					}
 				});
-				window.require(['vs/editor/editor.main'], () => {
+				require(['vs/editor/editor.main'], () => {
 					resolve(null);
 				});
 			});
