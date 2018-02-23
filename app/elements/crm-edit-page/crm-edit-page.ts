@@ -173,9 +173,11 @@ namespace CrmEditPageElement {
 			this._opened = true;
 			this.$.overlayCont.style.display = 'block';
 			this.$.overlayCont.animate([{
-				transform: 'scale(0)'
+				transform: 'scale(0)',
+				WebkitTransform: 'scale(0)'
 			}, {
-				transform: 'scale(1)'
+				transform: 'scale(1)',
+				WebkitTransform: 'scale(1)'
 			}], {
 				easing: 'bez',
 				duration: 300,
@@ -200,9 +202,11 @@ namespace CrmEditPageElement {
 				});
 			}
 			const animation = this.$.overlayCont.animate([{
-				transform: 'scale(1)'
+				transform: 'scale(1)',
+				WebkitTransform: 'scale(1)'
 			}, {
-				transform: 'scale(0)'
+				transform: 'scale(0)',
+				WebkitTransform: 'scale(0)'
 			}], {
 				easing: 'bez',
 				duration: 300,

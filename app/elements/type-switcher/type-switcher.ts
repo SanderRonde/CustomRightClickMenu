@@ -93,7 +93,7 @@ namespace TypeSwitcherElement {
 					const choicesContainer = this.shadowRoot.querySelector('#typeSwitchChoicesContainer');
 					const arrow = this.shadowRoot.querySelector('#typeSwitchArrow');
 					choicesContainer.style.display = 'none';
-					arrow.style.transform = 'rotate(180deg)';
+					window.app.util.setTransform(arrow, 'rotate(180deg)');
 					callback && callback();
 				}
 			});
@@ -107,7 +107,7 @@ namespace TypeSwitcherElement {
 			const choicesContainer = this.shadowRoot.querySelector('#typeSwitchChoicesContainer');
 			const arrow = this.shadowRoot.querySelector('#typeSwitchArrow');
 			choicesContainer.style.display = 'block';
-			arrow.style.transform = 'rotate(90deg)';
+			window.app.util.setTransform(arrow, 'rotate(180deg)');
 			$(this.parentNode.parentNode).stop().animate({
 				height: 250
 			}, {

@@ -201,7 +201,7 @@ namespace PaperLibrariesSelectorElement {
 		static confirmLibraryFile(this: PaperLibrariesSelector, name: string, isTypescript: boolean,
 			code: string, url: string) {
 				window.doc.addLibraryProcessContainer.style.display = 'none';
-				window.doc.addLibraryLoadingDialog.style.display = 'flex';
+				window.app.util.setDisplayFlex(window.doc.addLibraryLoadingDialog);
 				setTimeout(() => {
 					window.doc.addLibraryConfirmationInput.value = code;
 					const confirmAdditionListener = () => {
@@ -261,7 +261,7 @@ namespace PaperLibrariesSelectorElement {
 
 		private static _showElementsFlex<T extends keyof typeof window.doc>(...els: Array<T>) {
 			for (let i = 0; i < els.length; i++) {
-				(window.doc[els[i]] as any).style.display = 'flex';
+				window.app.util.setDisplayFlex(window.doc[els[i]] as any);
 			}
 		}
 
@@ -280,7 +280,7 @@ namespace PaperLibrariesSelectorElement {
 
 		static async addLibraryFile(this: PaperLibrariesSelector, name: string, isTypescript: boolean, code: string, url: string = null) {
 			window.doc.addLibraryConfirmationContainer.style.display = 'none';
-			window.doc.addLibraryLoadingDialog.style.display = 'flex';
+			window.app.util.setDisplayFlex(window.doc.addLibraryLoadingDialog);
 
 			if (url) {
 				await new Promise((resolve) => {
@@ -498,7 +498,7 @@ namespace PaperLibrariesSelectorElement {
 			const container = document.createElement('div');
 			container.style.backgroundColor = 'white';
 			container.style.padding = '10px';
-			container.style.display = 'flex';
+			window.app.util.setDisplayFlex(container);
 			const cancelButton = document.createElement('paper-button');
 			cancelButton.innerText = 'Cancel';
 			const saveButton = document.createElement('paper-button');

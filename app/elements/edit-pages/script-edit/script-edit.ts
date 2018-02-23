@@ -277,7 +277,13 @@ namespace ScriptEditElement {
 							animation: Animation;
 						};
 						svg = $(showBotEl).find('.requestPermissionsSvg')[0];
-						svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
+						if ((svg as any).__rotated) {
+							window.app.util.setTransform(svg, 'rotate(90deg)');
+							(svg as any).rotated = false;
+						} else {
+							window.app.util.setTransform(svg, 'rotate(270deg)');
+							(svg as any).rotated = true;
+						}
 						if (el.animation && el.animation.reverse) {
 							el.animation.reverse();
 						} else {

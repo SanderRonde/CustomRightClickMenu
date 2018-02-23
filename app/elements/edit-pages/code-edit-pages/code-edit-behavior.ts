@@ -236,7 +236,7 @@ namespace CodeEditBehaviorNamespace {
 			} else {
 				titleRibbonSize = '-51px';
 			}
-			scriptTitle.style.display = 'flex';
+			window.app.util.setDisplayFlex(scriptTitle);
 			scriptTitle.style.marginTop = titleRibbonSize;
 			const scriptTitleAnimation: [{
 				[key: string]: string | number;
@@ -253,7 +253,7 @@ namespace CodeEditBehaviorNamespace {
 
 			this.initToolsRibbon();
 			setTimeout(() => {
-				window.doc.editorToolsRibbonContainer.style.display = 'flex';
+				window.app.util.setDisplayFlex(window.doc.editorToolsRibbonContainer);
 				if (!window.app.storageLocal.hideToolsRibbon) {
 					$(window.doc.editorToolsRibbonContainer).animate({
 						marginLeft: '0'
@@ -309,7 +309,7 @@ namespace CodeEditBehaviorNamespace {
 			} else {
 				titleRibbonSize = '-51px';
 			}
-			scriptTitle.style.display = 'flex';
+			window.app.util.setDisplayFlex(scriptTitle);
 			scriptTitle.style.marginTop = '0';
 			const scriptTitleAnimation: [{
 				[key: string]: string | number;
@@ -325,7 +325,7 @@ namespace CodeEditBehaviorNamespace {
 			scriptTitle.style.marginLeft = '-200px';
 
 			setTimeout(() => {
-				window.doc.editorToolsRibbonContainer.style.display = 'flex';
+				window.app.util.setDisplayFlex(window.doc.editorToolsRibbonContainer);
 				if (!window.app.storageLocal.hideToolsRibbon) {
 					$(window.doc.editorToolsRibbonContainer).animate({
 						marginLeft: '-200px'
@@ -456,21 +456,22 @@ namespace CodeEditBehaviorNamespace {
 				}
 				if (window.app.storageLocal.shrinkTitleRibbon !== undefined) {
 					if (window.app.storageLocal.shrinkTitleRibbon) {
-						window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
+						window.app.util.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(90deg)');
 					} else {
-						window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
+						window.app.util.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(270deg)');
 					}
 				} else {
 					chrome.storage.local.set({
 						shrinkTitleRibbon: false
 					});
 					window.app.storageLocal.shrinkTitleRibbon = false;
-					window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
+					window.app.util.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(270deg)');
 				}
 
 
 				document.documentElement.style.overflow = 'hidden';
 
+				editorCont.style.display = '-wekbit-flex';
 				editorCont.style.display = 'flex';
 
 				this.fullscreenEditorManager.editor.layout();
@@ -549,9 +550,11 @@ namespace CodeEditBehaviorNamespace {
 
 		static _hideFullscreenOptions(this: CodeEditBehaviorInstance) {
 			window.app.$.fullscreenSettingsContainer.animate([{
-				transform: 'translateX(0)'
+				transform: 'translateX(0)',
+				WebkitTransform: 'translateX(0)'
 			}, {
-				transform: 'translateX(500px)'
+				transform: 'translateX(500px)',
+				WebkitTransform: 'translateX(500px)'
 			}], {
 				duration: 500,
 				easing: 'ease-in',
@@ -643,9 +646,11 @@ namespace CodeEditBehaviorNamespace {
 		static _showFullscreenOptions(this: CodeEditBehaviorInstance) {
 			window.app.$.fullscreenEditorToggle.style.display = 'none';		
 			window.app.$.fullscreenSettingsContainer.animate([{
-				transform: 'translateX(500px)'
+				transform: 'translateX(500px)',
+				WebkitTransform: 'translateX(500px)'
 			}, {
-				transform: 'translateX(0)'
+				transform: 'translateX(0)',
+				WebkitTransform: 'translateX(0)'
 			}], {
 				duration: 500,
 				easing: 'ease-in',
