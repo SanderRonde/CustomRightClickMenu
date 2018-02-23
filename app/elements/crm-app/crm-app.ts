@@ -1061,17 +1061,23 @@ namespace CRMAppElement {
 			content: string;
 			isCode: true;
 		}|string>) {
+			let currentWord: string = '';
 			const logArgs: Array<string> = [];
+			const styleArgs: Array<string> = [];
 			for (const arg of args) {
 				if (typeof arg === 'string') {
-					logArgs.push(arg);
+					currentWord += arg;
 				} else {
 					const { content } = arg;
-					logArgs.push(`%c${content}`);
-					logArgs.push('color: grey;font-weight: bold;');
+					logArgs.push(`${currentWord}%c${content}`);
+					styleArgs.push('color: grey;font-weight: bold;');
+					currentWord = '';
 				}
 			}
-			console.log.apply(console, logArgs);
+			if (currentWord.length > 0) {
+				logArgs.push(currentWord);
+			}
+			console.log.apply(console, logArgs.concat(styleArgs));
 		}
 
 		private static _getDotValue<T extends {
