@@ -75,11 +75,6 @@ namespace EditCrmItemElement {
 		static index: number;
 
 		/**
-		 * The element to be animated
-		 */
-		private static _animationEl: HTMLElement = null;
-
-		/**
 		 * The showing animation of the type indicator
 		 */
 		private static _typeIndicatorAnimation: Animation = null;
@@ -418,23 +413,9 @@ namespace EditCrmItemElement {
 				this.async(() => {
 					if (this._lastTypeSwitchMouseover === time) {
 						this._lastTypeSwitchMouseover = null;
-						this._animationEl = this._animationEl || (this.$$('type-switcher') as TypeSwitcher).$$('.TSContainer');
-						if (this._typeIndicatorAnimation && this._typeIndicatorAnimation.play) {
-							this._typeIndicatorAnimation.play();
-						} else {
-								(this._typeIndicatorAnimation = this._animationEl.animate([
-									{
-										marginLeft: '-293px'
-									}, {
-										marginLeft: 0
-									}
-								], {
-									duration: 300,
-									fill: 'both',
-									easing: 'bez'
-								}
-							));
-						}
+						$(this.$$('type-switcher').$$('.TSContainer')).stop().animate({
+							marginLeft: 0
+						}, 300);
 					}
 				}, 25);
 			}
@@ -444,15 +425,9 @@ namespace EditCrmItemElement {
 			if (this._typeIndicatorAnimation && this._typeIndicatorAnimation.reverse) {
 				this._typeIndicatorAnimation.reverse();
 			} else {
-				this._animationEl.animate([{
-					marginLeft: 0
-				}, {
+				$(this.$$('type-switcher').$$('.TSContainer')).stop().animate({
 					marginLeft: '-293px'
-				}], {
-					duration: 300,
-					fill: 'both',
-					easing: 'bez'
-				})
+				}, 300);
 			}
 		};
 
