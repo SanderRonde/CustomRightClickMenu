@@ -162,6 +162,7 @@ interface Window {
 		logLines: any;
 	};
 	runOrAddAsCallback(toRun: Function, thisElement: HTMLElement, params: Array<any>): void;
+	addCalcFn(element: HTMLElement, prop: string, calcValue: string, disable?: boolean): void;
 	useOptionsCompletions: boolean;
 	Storages: {
 		loadStorages(callback: () => void): void;

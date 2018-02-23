@@ -261,8 +261,8 @@ namespace CodeEditBehaviorNamespace {
 						duration: 500,
 						easing: ($ as CodeEditBehaviorNamespace.JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 						step: (now: number) => {
-							window.doc.fullscreenEditorEditor.style.width = `calc(100vw - 200px - ${now}px)`;
-							window.doc.fullscreenEditorEditor.style.marginLeft = `calc(${now}px + 200px)`;
+							window.addCalcFn(window.doc.fullscreenEditorEditor, 'width', `100vw - 200px - ${now}px`);
+							window.doc.fullscreenEditorEditor.style.marginLeft = `${now + 200}px`;
 							this.fullscreenEditorManager.editor.layout();
 						}
 					});
@@ -279,8 +279,8 @@ namespace CodeEditBehaviorNamespace {
 					duration: 500,
 					easing: ($ as CodeEditBehaviorNamespace.JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 					step: (now: number) => {
-						window.doc.fullscreenEditorEditor.style.height = `calc(100vh - ${now}px)`;
-						window.doc.fullscreenEditorHorizontal.style.height = `calc(100vh - ${now}px)`;
+						window.addCalcFn(window.doc.fullscreenEditorEditor, 'height', `100vw - ${now}px`);
+						window.addCalcFn(window.doc.fullscreenEditorHorizontal, 'height', `100vh - ${now}px`);
 						this.fullscreenEditorManager.editor.layout();
 					}
 				});
@@ -333,8 +333,8 @@ namespace CodeEditBehaviorNamespace {
 						duration: 500,
 						easing: 'linear',
 						step: (now: number) => {
-							window.doc.fullscreenEditorEditor.style.width = `calc(100vw - 200px - ${now}px)`;
-							window.doc.fullscreenEditorEditor.style.marginLeft = `calc(${now}px + 200px)`;
+							window.addCalcFn(window.doc.fullscreenEditorEditor, 'width', `100vw - 200px - ${now}px`);
+							window.doc.fullscreenEditorEditor.style.marginLeft = `${now + 200}px`;
 							this.fullscreenEditorManager.editor.layout();
 						}
 					});
@@ -351,8 +351,8 @@ namespace CodeEditBehaviorNamespace {
 					duration: 500,
 					easing: 'linear',
 					step: (now: number) => {
-						window.doc.fullscreenEditorEditor.style.height = `calc(100vh - ${now}px)`;
-						window.doc.fullscreenEditorHorizontal.style.height = `calc(100vh - ${now}px)`;
+						window.addCalcFn(window.doc.fullscreenEditorEditor, 'height', `100vw - ${now}px`);
+						window.addCalcFn(window.doc.fullscreenEditorHorizontal, 'height', `100vh - ${now}px`);
 						this.fullscreenEditorManager.editor.layout();
 					}
 				});
@@ -392,6 +392,8 @@ namespace CodeEditBehaviorNamespace {
 					complete: () => {
 						editorCont.style.marginLeft = '0';
 						editorCont.style.marginTop = '0';
+						window.addCalcFn(editorCont, 'width', '', true);
+						window.addCalcFn(editorCont, 'height', '', true);
 						editorCont.style.width = '0';
 						editorCont.style.height = '0';
 						this.fullscreenEditorManager.destroy();
@@ -419,6 +421,8 @@ namespace CodeEditBehaviorNamespace {
 				const editorContStyle = editorCont.style;
 				editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left + 'px';
 				editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top + 'px';
+				window.addCalcFn(editorCont, 'height', '', true);
+				window.addCalcFn(editorCont, 'width', '', true);
 				editorContStyle.height = this.preFullscreenEditorDimensions.height = rect.height + 'px';
 				editorContStyle.width = this.preFullscreenEditorDimensions.width = rect.width + 'px';
 				editorContStyle.position = 'absolute';
@@ -492,6 +496,7 @@ namespace CodeEditBehaviorNamespace {
 						this.fullscreenEditorManager.editor.layout();
 						this.style.width = '100vw';
 						this.style.height = '100vh';
+						window.addCalcFn(window.app.$.fullscreenEditorHorizontal, 'height', '', true);
 						window.app.$.fullscreenEditorHorizontal.style.height = '100vh';
 						this.popInRibbons();
 						resolve(null);

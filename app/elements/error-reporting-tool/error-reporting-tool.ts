@@ -200,7 +200,7 @@ namespace ErrorReportingToolElement {
 			rightDivTranslate: string, [topHeight, botHeight]: [number, number]) {
 				const [ leftDiv, rightDiv ] = this._getDivs('x');
 				leftDiv.style.width = left;
-				rightDiv.style.width = `calc(100vw - ${marginLeftPx})`;
+				window.addCalcFn(rightDiv, 'width', `100vw - ${marginLeftPx}`);
 
 				leftDiv.style.height = rightDiv.style.height = this._px(window.innerHeight - topHeight - (window.innerHeight - botHeight));
 				this._translateX(rightDiv, rightDivTranslate);

@@ -171,14 +171,60 @@ window.CRMLoaded.register(function() {
 		return current;
 	}
 
+	var calcSupported;
+
+	var toUpdate = [];
+
+	window.addCalcFn = function(element, prop, calcValue, disable) {
+		if (calcSupported && !disable) {
+			element.style[prop] = 'calc(' + calcValue + ')';
+			return;
+		}
+
+
+		//Check if it already has an object defined on it
+		for (var i = 0; i < toUpdate.length; i++) {
+			if (toUpdate[i].elements.indexOf(element) > -1 &&
+				toUpdate[i].prop === prop) {
+					toUpdate = toUpdate.splice(i, 1);
+					break;
+				}
+		}
+
+		if (disable) {
+			return;
+		}
+
+		var calcObject = {
+			elements: [element],
+			calculation: calcValue,
+			key: prop
+		};
+
+		toUpdate.push(calcObject);
+		updateCalcs();
+	};
+
+	function updateCalcs() {
+		toUpdate.forEach(function(calcToUpdate) {
+			var result = calculate(calcToUpdate.calculation
+				.replace('vw', ' * ' + window.innerWidth / 100)
+				.replace('vh', ' * ' + window.innerHeight / 100)
+				.replace('em', ' * 16')
+				.replace('px', ''));
+			calcToUpdate.elements.forEach(function(element) {
+				element.style[calcToUpdate.key] = result + 'px';
+			});
+		})
+	}
 
 	(function() {
 		var el = document.createElement('div');
 		el.style.cssText = 'width: calc(100vw - 100px)';
-		if (!el.style.length) {
-			(function(calcs) {
-				var toUpdate = [];
 
+		calcSupported = !!el.style.length;
+		if (!calcSupported) {
+			(function(calcs) {
 				calcs.forEach(function(calc) {
 					var key = calc.key;
 					var dashIndex;
@@ -216,16 +262,7 @@ window.CRMLoaded.register(function() {
 				});
 
 				window.onresize = function() {
-					toUpdate.forEach(function(calcToUpdate) {
-						var result = calculate(calcToUpdate.calculation
-							.replace('vw', ' * ' + window.innerWidth / 100)
-							.replace('vh', ' * ' + window.innerHeight / 100)
-							.replace('em', ' * 16')
-							.replace('px', ''));
-						calcToUpdate.elements.forEach(function(element) {
-							element.style[calcToUpdate.key] = result + 'px';
-						});
-					})
+					updateCalcs();
 				}
 			}(function(stylesheetBlocks) {
 				var calculations= [];

@@ -937,7 +937,7 @@ namespace CRMAppElement {
 				$settingsCont.animate({
 					height: viewportHeight - 50
 				}, 250, function () {
-					$settingsCont[0].style.height = 'calc(100vh - 66px)';
+					window.addCalcFn($settingsCont[0], 'height', '100vh - 66px');
 				});
 				window.app.util.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(270deg)');
 
@@ -953,7 +953,7 @@ namespace CRMAppElement {
 				$settingsCont.animate({
 					height: viewportHeight - 18
 				}, 250, function () {
-					$settingsCont[0].style.height = 'calc(100vh - 29px)';
+					window.addCalcFn($settingsCont[0], 'height', '100vh - -29px');
 				});
 				window.app.util.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(90deg)');
 
