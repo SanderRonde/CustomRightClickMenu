@@ -165,12 +165,12 @@ namespace ErrorReportingToolElement {
 
 		private static _translateX(this: ErrorReportingTool, el: ErrorReportingToolSquare, x: string) {
 			el.xPos = x;
-			window.app.util.setTransform(el, `translate(${x},${el.yPos || '0px'})`);
+			window.setTransform(el, `translate(${x},${el.yPos || '0px'})`);
 		};
 
 		private static _translateY(this: ErrorReportingTool, el: ErrorReportingToolSquare, y: string) {
 			el.yPos = y;
-			window.app.util.setTransform(el, `translate(${el.xPos || '0px'}, ${y})`);
+			window.setTransform(el, `translate(${el.xPos || '0px'}, ${y})`);
 		};
 
 		private static _unLink<T extends {

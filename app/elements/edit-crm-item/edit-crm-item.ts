@@ -439,7 +439,7 @@ namespace EditCrmItemElement {
 					typeSwitcher.closeTypeSwitchContainer(true, () => {
 						typeSwitcher.toggledOpen = false;
 						typeSwitcher.$.typeSwitchChoicesContainer.style.display = 'none';
-						window.app.util.setTransform(typeSwitcher.$.typeSwitchArrow, 'rotate(180deg)');
+						window.setTransform(typeSwitcher.$.typeSwitchArrow, 'rotate(180deg)');
 						this._animateOut();
 					});
 				} else {

@@ -727,10 +727,10 @@ namespace CRMAppElement {
 							el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
 							svg = $(this).find('.requestPermissionsSvg')[0];
 							if ((svg as any).__rotated) {
-								window.app.util.setTransform(svg, 'rotate(90deg)');
+								window.setTransform(svg, 'rotate(90deg)');
 								(svg as any).rotated = false;
 							} else {
-								window.app.util.setTransform(svg, 'rotate(270deg)');
+								window.setTransform(svg, 'rotate(270deg)');
 								(svg as any).rotated = true;
 							}
 							if (el.animation && el.animation.reverse) {
@@ -939,7 +939,7 @@ namespace CRMAppElement {
 				}, 250, function () {
 					window.addCalcFn($settingsCont[0], 'height', '100vh - 66px');
 				});
-				window.app.util.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(270deg)');
+				window.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(270deg)');
 
 				window.doc.showHideToolsRibbonButton.classList.add('hidden');
 			} else {
@@ -955,7 +955,7 @@ namespace CRMAppElement {
 				}, 250, function () {
 					window.addCalcFn($settingsCont[0], 'height', '100vh - -29px');
 				});
-				window.app.util.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(90deg)');
+				window.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(90deg)');
 
 				window.doc.showHideToolsRibbonButton.classList.remove('hidden');
 			}
@@ -4468,39 +4468,6 @@ namespace CRMAppElement {
 					el.appendChild(child);
 				}
 				return el as T;
-			}
-
-			private static _propertyPersists<T extends keyof CSSStyleDeclaration>(property: T, value: string) {
-				const dummyEl = document.createElement('div');
-			
-				dummyEl.style[property] = value;
-			
-				return dummyEl.style[property] === value;
-			}
-
-			private static _supportsFlexUnprefixed: boolean = null;
-			private static _supportsTransformUnprefixed: boolean = 
-				'transform' in window.getComputedStyle(document.documentElement, '');
-
-			static setDisplayFlex(el: HTMLElement|SVGElement) {
-				if (this._supportsFlexUnprefixed === null) {
-					this._supportsFlexUnprefixed = 
-						this._propertyPersists('display', 'flex');
-				}
-
-				if (this._supportsFlexUnprefixed) {
-					el.style.display = 'flex';
-				} else {
-					el.style.display = '-webkit-flex';
-				}
-			}
-
-			static setTransform(el: HTMLElement|SVGElement, value: string) {
-				if (this._supportsTransformUnprefixed) {
-					el.style.transform = value;
-				} else {
-					el.style.WebkitTransform = value;
-				}
 			}
 
 			static getPath(e: {

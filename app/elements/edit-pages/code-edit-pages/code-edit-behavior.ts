@@ -236,7 +236,7 @@ namespace CodeEditBehaviorNamespace {
 			} else {
 				titleRibbonSize = '-51px';
 			}
-			window.app.util.setDisplayFlex(scriptTitle);
+			window.setDisplayFlex(scriptTitle);
 			scriptTitle.style.marginTop = titleRibbonSize;
 			const scriptTitleAnimation: [{
 				[key: string]: string | number;
@@ -253,7 +253,7 @@ namespace CodeEditBehaviorNamespace {
 
 			this.initToolsRibbon();
 			setTimeout(() => {
-				window.app.util.setDisplayFlex(window.doc.editorToolsRibbonContainer);
+				window.setDisplayFlex(window.doc.editorToolsRibbonContainer);
 				if (!window.app.storageLocal.hideToolsRibbon) {
 					$(window.doc.editorToolsRibbonContainer).animate({
 						marginLeft: '0'
@@ -309,7 +309,7 @@ namespace CodeEditBehaviorNamespace {
 			} else {
 				titleRibbonSize = '-51px';
 			}
-			window.app.util.setDisplayFlex(scriptTitle);
+			window.setDisplayFlex(scriptTitle);
 			scriptTitle.style.marginTop = '0';
 			const scriptTitleAnimation: [{
 				[key: string]: string | number;
@@ -325,7 +325,7 @@ namespace CodeEditBehaviorNamespace {
 			scriptTitle.style.marginLeft = '-200px';
 
 			setTimeout(() => {
-				window.app.util.setDisplayFlex(window.doc.editorToolsRibbonContainer);
+				window.setDisplayFlex(window.doc.editorToolsRibbonContainer);
 				if (!window.app.storageLocal.hideToolsRibbon) {
 					$(window.doc.editorToolsRibbonContainer).animate({
 						marginLeft: '-200px'
@@ -460,16 +460,16 @@ namespace CodeEditBehaviorNamespace {
 				}
 				if (window.app.storageLocal.shrinkTitleRibbon !== undefined) {
 					if (window.app.storageLocal.shrinkTitleRibbon) {
-						window.app.util.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(90deg)');
+						window.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(90deg)');
 					} else {
-						window.app.util.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(270deg)');
+						window.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(270deg)');
 					}
 				} else {
 					chrome.storage.local.set({
 						shrinkTitleRibbon: false
 					});
 					window.app.storageLocal.shrinkTitleRibbon = false;
-					window.app.util.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(270deg)');
+					window.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(270deg)');
 				}
 
 

@@ -435,7 +435,7 @@ namespace EditCrmElement {
 			} else {
 				column.offset += offset;
 			}
-			window.app.util.setTransform(column, `translateY(${column.offset}px)`);
+			window.setTransform(column, `translateY(${column.offset}px)`);
 		}
 
 		private static _moveFollowingColumns(startColumn: CRMColumnElement, offset: number) {

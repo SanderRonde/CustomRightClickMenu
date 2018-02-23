@@ -686,7 +686,7 @@ namespace UseExternalEditorElement {
 						top: '0px',
 						left: '0px'
 					}], 400, () => {
-						window.app.util.setDisplayFlex(window.doc.chooseFileMerger);
+						window.setDisplayFlex(window.doc.chooseFileMerger);
 						this.playIfExists(this.dialogComparisonDivAnimationShow) || 
 							(this.dialogComparisonDivAnimationShow = this.doCSSAnimation(window.doc.chooseFileMerger, [{
 								marginTop: '70px',

@@ -300,7 +300,7 @@ namespace PaperDropdownBehaviorNamespace {
 				__this._startTime = null;
 				__this.getMenu().style.boxShadow = 'rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0';
 				if (__this._paperDropdownEl.$.dropdownArrow) {
-					window.app.util.setTransform(__this._paperDropdownEl.$.dropdownArrow, 'rotate(90deg)');
+					window.setTransform(__this._paperDropdownEl.$.dropdownArrow, 'rotate(90deg)');
 				}
 			}
 		};
@@ -340,7 +340,7 @@ namespace PaperDropdownBehaviorNamespace {
 						duration: 300,
 						complete: () => {
 							if (this.$.dropdownArrow) {
-								window.app.util.setTransform(this.$.dropdownArrow, 'rotate(270deg)');
+								window.setTransform(this.$.dropdownArrow, 'rotate(270deg)');
 							}
 							this.fire('expansionStateChange', {
 								state: 'opened'

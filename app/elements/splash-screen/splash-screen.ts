@@ -48,11 +48,11 @@ namespace SplashScreenElement {
 
 		private static _animateTo(this: SplashScreen, progress: number, scaleAfter: string) {
 			return new Promise((resolve) => {
-				window.app.util.setTransform(this.$.progressBar, scaleAfter);
+				window.setTransform(this.$.progressBar, scaleAfter);
 				this.async(() => {
 					this._settings.lastReachedProgress = progress;
 					this._settings.isAnimating = false;
-					window.app.util.setTransform(this.$.progressBar, scaleAfter);
+					window.setTransform(this.$.progressBar, scaleAfter);
 					resolve(null);
 				}, 200);
 			});

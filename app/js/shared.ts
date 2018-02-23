@@ -50,6 +50,8 @@ interface Window {
 	register(fn: any): void;
 	with<T>(initializer: () => Withable, fn: () => T): T;
 	withAsync<T>(initializer: () => Promise<Withable>, fn: () => Promise<T>): Promise<T>;
+	setDisplayFlex(el: HTMLElement|SVGElement): void;
+	setTransform(el: HTMLElement|SVGElement, value: string): void;
 }
 
 (() => {
@@ -188,6 +190,39 @@ interface Window {
 		const res = fn();
 		toRun();
 		return res;
+	}
+	
+	function _propertyPersists<T extends keyof CSSStyleDeclaration>(property: T, value: string) {
+		const dummyEl = document.createElement('div');
+	
+		dummyEl.style[property] = value;
+	
+		return dummyEl.style[property] === value;
+	}
+
+	let _supportsFlexUnprefixed: boolean = null;
+	let _supportsTransformUnprefixed: boolean = 
+		'transform' in window.getComputedStyle(document.documentElement, '');
+
+	window.setDisplayFlex = (el: HTMLElement|SVGElement) => {
+		if (_supportsFlexUnprefixed === null) {
+			_supportsFlexUnprefixed = 
+				_propertyPersists('display', 'flex');
+		}
+
+		if (_supportsFlexUnprefixed) {
+			el.style.display = 'flex';
+		} else {
+			el.style.display = '-webkit-flex';
+		}
+	}
+
+	window.setTransform = (el: HTMLElement|SVGElement, value: string) => {
+		if (_supportsTransformUnprefixed) {
+			el.style.transform = value;
+		} else {
+			el.style.WebkitTransform = value;
+		}
 	}
 
 	if (typeof Event !== 'undefined') {

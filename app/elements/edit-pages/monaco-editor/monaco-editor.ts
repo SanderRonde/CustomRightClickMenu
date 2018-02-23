@@ -1978,7 +1978,7 @@ namespace MonacoEditorElement {
 		}
 
 		static _showSpinner(this: MonacoEditor) {
-			window.app.util.setDisplayFlex(this.$.placeholder);
+			window.setDisplayFlex(this.$.placeholder);
 			this.$.spinner && (this.$.spinner.active = true);
 			this.$.placeholder.classList.remove('hidden')
 		}
