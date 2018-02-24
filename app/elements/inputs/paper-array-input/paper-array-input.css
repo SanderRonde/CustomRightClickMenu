@@ -36,6 +36,7 @@
 	color: #ff3614;
 	font-weight: bold;
 	opacity: 0;
+	-webkit-transition: opacity 250ms ease-in-out;
 	transition: opacity 250ms ease-in-out;
 } 
 

@@ -96,7 +96,8 @@
 	background-color: rgb(38, 153, 244);
 	width: 50vw;
 	height: 4px;
-	transition: transform 200ms linear;
+	-webkit-transition: transform 200ms linear, -webkit-transform 200ms linear;
+	transition: transform 200ms linear, -webkit-transform 200ms linear
 }
 
 #contentContainer {

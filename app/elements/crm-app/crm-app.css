@@ -789,6 +789,7 @@ textarea {
 	border-bottom: 2px solid rgb(60,60,60);
 	padding-bottom: 2px;
 	resize: none;
+	-webkit-transition: border-color 150ms ease-in-out;
 	transition: border-color 150ms ease-in-out;
 }
 
@@ -873,8 +874,8 @@ edit-crm-item:focus .CRMItemTitle[isroot] {
 #versionUpdateTabSlider {
 	display: -webkit-flex;
 	display: flex;
-	-webkit-transition: transform 500ms ease-in-out;
-	transition: transform 500ms ease-in-out;
+	-webkit-transition: transform 500ms ease-in-out, -webkit-transform 500ms ease-in-out;
+	transition: transform 500ms ease-in-out, -webkit-transform 500ms ease-in-out;
 }
 
 .versionUpdateTab {
@@ -985,6 +986,7 @@ edit-crm-item:focus .CRMItemTitle[isroot] {
 
 #addedPermissionsTabContainer {
 	width: 10000px;
+	-webkit-transition: margin-left 400ms ease-in-out;
 	transition: margin-left 400ms ease-in-out;
 }
 
@@ -1182,7 +1184,8 @@ paper-checkbox {
 	transform: translateX(500px);
 	position: absolute;
 	z-index: 500;
-	transition: transform 300ms ease-in;
+	-webkit-transition: transform 300ms ease-in, -webkit-transform 300ms ease-in;
+	transition: transform 300ms ease-in, -webkit-transform 300ms ease-in;
 	width: 500px;
 	height: 100vh;
 }

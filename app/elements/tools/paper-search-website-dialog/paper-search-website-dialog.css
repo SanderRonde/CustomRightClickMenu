@@ -72,6 +72,7 @@
 	width: 300px;
 	height: 350px;
 	background-color: white;
+	-webkit-transition: background-color 0.3s ease;
 	transition: background-color 0.3s ease;
 	margin: 0;
 }

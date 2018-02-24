@@ -253,6 +253,7 @@ paper-item:hover {
 	position: absolute;
 	margin-left: 10px;
 	opacity: 0;
+	-webkit-transition: opacity 150ms ease-in;
 	transition: opacity 150ms ease-in;
 	pointer-events: none;
 	user-select: none;
@@ -291,7 +292,8 @@ paper-item:hover {
 
 .objectElementExpandArrow {
 	cursor: pointer;
-	transition: transform 150ms linear;
+	-webkit-transition: transform 150ms linear, -webkit-transform 150ms linear;
+	transition: transform 150ms linear, -webkit-transform 150ms linear;
 	fill: white;
 	user-select: none;
 }

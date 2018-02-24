@@ -9,6 +9,7 @@
 
 #placeholder {
 	opacity: 1;
+	-webkit-transition: opacity 500ms ease-in-out;
 	transition: opacity 500ms ease-in-out;
 	position: absolute;
 	z-index: 100;

@@ -18,6 +18,7 @@
 	z-index:50;
 	cursor: crosshair;
 	opacity: 0;
+	-webkit-transition: opacity ease-in-out 0.3s;
 	transition: opacity ease-in-out 0.3s;
 }
 
@@ -179,6 +180,7 @@
 	height:66px;
 	background-color:#4CAF50;
 	opacity: 0;
+	-webkit-transition: opacity 350ms ease-in-out;
 	transition: opacity 350ms ease-in-out;
 }
 
@@ -188,6 +190,7 @@
 
 #bugButton {
 	opacity: 1;
+	-webkit-transition: opacity 350ms ease-in-out;
 	transition: opacity 350ms ease-in-out;
 	border-radius:50%;
 }
