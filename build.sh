@@ -26,13 +26,17 @@ echo "Unit tests" && echo -en "travis_fold:start:unit_tests\\r"
 mocha test/test.js
 echo -en "travis_fold:end:unit_tests\\r"
 
-echo "UI Tests for old browser" && echo -en "travis_fold:start:ui_tests.1\\r"
-mocha test/UITest.js --remote
+echo "UI Tests for new browser" && echo -en "travis_fold:start:ui_tests.1\\r"
+mocha test/UITest.js --remote --latest-chrome
 echo -en "travis_fold:end:ui_tests.1\\r"
 
-echo "UI Tests for new browser" && echo -en "travis_fold:start:ui_tests.2\\r"
-mocha test/UITest.js --remote --new-chrome
+echo "UI Tests for chrome 30" && echo -en "travis_fold:start:ui_tests.2\\r"
+mocha test/UITest.js --remote --chrome-30
 echo -en "travis_fold:end:ui_tests.2\\r"
+
+echo "UI Tests for chrome 26" && echo -en "travis_fold:start:ui_tests.3\\r"
+mocha test/UITest.js --remote --chrome-26
+echo -en "travis_fold:end:ui_tests.3\\r"
 
 if [ "$TRAVIS_BRANCH" = "master" ]; then
   echo "Changing branches"

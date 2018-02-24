@@ -90,8 +90,7 @@ declare class TypedWebdriver extends webdriver.WebDriver {
 }
 
 let driver: TypedWebdriver;
-
-let capabilities: {
+interface BrowserstackCapabilities {
 	browserName: string;
 	browser_version?: string;
 	os: string;
@@ -102,28 +101,53 @@ let capabilities: {
 	'browserstack.local': boolean;
 	'browserstack.debug': boolean;
 	'browserstack.localIdentifier'?: any;	
-} = process.argv.indexOf('--new-chrome') > -1 ? {
-	'browserName' : 'Chrome',
-	'os' : 'Windows',
-	'os_version' : '10',
-	'resolution' : '1920x1080',
-	'browserstack.user' : secrets.user,
-	'browserstack.key' : secrets.key,
-	'browserstack.local': true,
-	'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-	'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-} : {
-	'browserName' : 'Chrome',
-	'browser_version': '26.0',
-	'os' : 'Windows',
-	'os_version' : '8',
-	'resolution' : '1920x1080',
-	'browserstack.user' : secrets.user,
-	'browserstack.key' : secrets.key,
-	'browserstack.local': true,
-	'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-	'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-};
+}
+
+function arrContains<T>(arr: ArrayLike<T>, fn: (item: T) => boolean): T {
+	for (const item of Array.prototype.slice.apply(arr)) {
+		if (fn(item)) {
+			return item;
+		}
+	}
+	return null;
+}
+
+function getCapabilities(): BrowserstackCapabilities {
+	if (process.argv.indexOf('--latest-chrome')) {
+		return {
+			'browserName' : 'Chrome',
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
+			'browserstack.local': true,
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
+	}
+	if (arrContains<string>(process.argv, str => str.indexOf('--chrome-') > -1)) {
+		const chromeStr = arrContains<string>(process.argv, str => str.indexOf('--chrome-') > -1);
+		const chromeVersion = chromeStr.split('--chrome-')[1];
+		return {
+			'browserName' : 'Chrome',
+			'browser_version': `${chromeVersion}.0`,
+			'os' : 'Windows',
+			'os_version' : '8',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
+			'browserstack.local': true,
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
+	}
+	console.error('Please specify a chrome version to test using either --latest-chrome or --chrome-{version}');
+	process.exit(1);
+	return {} as any;
+}
+
+const capabilities = getCapabilities();
 
 before('Driver connect', function(done: any) {
 	const url = TEST_LOCAL ?
