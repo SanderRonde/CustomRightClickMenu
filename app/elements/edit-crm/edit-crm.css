@@ -12,10 +12,12 @@
 @keyframes animateLeft {
 	0% {
 		opacity: 0;
+		-webkit-transform: translateX(90px);
 		transform: translateX(90px);
 	}
 	100% {
 		opacity: 1;
+		-webkit-transform: translateX(0);
 		transform: translateX(0);
 	}
 }
@@ -24,7 +26,7 @@
 	width: 300px;
 	/*I am not going to question how this works but it does*/
 	display:table;
-	animation: animateLeft 250ms ease-in, transform 50ms ease-in-out;;
+	animation: animateLeft 250ms ease-in, transform 50ms ease-in-out, -webkit-transform 50ms ease-in-out;
 }
 
 #editCrmShadingCont {

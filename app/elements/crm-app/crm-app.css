@@ -232,9 +232,6 @@ iron-overlay-backdrop {
 
 #addLibraryDialog .checkmark {
 	-webkit-transform: rotate(45deg);
-	-moz-transform: rotate(45deg);
-	-ms-transform: rotate(45deg);
-	-o-transform: rotate(45deg);
 	transform: rotate(45deg);
 	position: absolute;
 	top: -1px;
@@ -602,6 +599,7 @@ paper-toast {
 }
 
 .requestPermissionsSvg {
+	-webkit-transform: rotate(90deg);
 	transform: rotate(90deg);
 }
 
@@ -875,6 +873,7 @@ edit-crm-item:focus .CRMItemTitle[isroot] {
 #versionUpdateTabSlider {
 	display: -webkit-flex;
 	display: flex;
+	-webkit-transition: transform 500ms ease-in-out;
 	transition: transform 500ms ease-in-out;
 }
 
@@ -892,22 +891,27 @@ edit-crm-item:focus .CRMItemTitle[isroot] {
 	}
 
 #versionUpdateTabContainer[tab="0"] #versionUpdateTabSlider {
+	-webkit-transform: translateX(0);
 	transform: translateX(0);
 }
 
 #versionUpdateTabContainer[tab="1"] #versionUpdateTabSlider {
+	-webkit-transform: translateX(-713.5px);
 	transform: translateX(-713.5px);
 }
 
 #versionUpdateTabContainer[tab="2"] #versionUpdateTabSlider {
+	-webkit-transform: translateX(-1427px);
 	transform: translateX(-1427px);
 }
 
 #versionUpdateTabContainer[tab="3"] #versionUpdateTabSlider {
+	-webkit-transform: translateX(-2140.5px);
 	transform: translateX(-2140.5px);
 }
 
 #versionUpdateTabContainer[tab="4"] #versionUpdateTabSlider {
+	-webkit-transform: translateX(-2854px);
 	transform: translateX(-2854px);
 }
 
@@ -1115,6 +1119,7 @@ paper-checkbox {
 }
 
 #fullscreenEditorSettings svg {
+	-webkit-transform: translateY(-2px);
 	transform: translateY(-2px);
 }
 
@@ -1173,6 +1178,7 @@ paper-checkbox {
 
 #fullscreenSettingsContainer {
 	right: 0;
+	-webkit-transform: translateX(500px);
 	transform: translateX(500px);
 	position: absolute;
 	z-index: 500;

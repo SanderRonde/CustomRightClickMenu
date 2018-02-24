@@ -172,6 +172,7 @@ paper-item:hover {
 
 .dropdownFilter .menuSelectedCheckmark {
 	display: inline;
+	-webkit-transform: translateY(2px);
 	transform: translateY(2px);
 }
 
@@ -296,6 +297,7 @@ paper-item:hover {
 }
 
 .objectElementExpandArrow.toggled {
+	-webkit-transform: rotate(90deg);
 	transform: rotate(90deg);
 }
 

@@ -6,6 +6,7 @@
 }
 
 #iconContent {
+	-webkit-transform: translate(calc(100vw - 110px), calc(100vh - 100px));
 	transform: translate(calc(100vw - 110px), calc(100vh - 100px));
 }
 
@@ -75,6 +76,7 @@
 		-webkit-user-drag: none;
 		position: absolute;
 		pointer-events: none;
+		will-change: -webkit-transform;
 		will-change: transform;
 		will-change: width;
 		will-change: height;
@@ -91,6 +93,7 @@
 #highlightButtons {
 	position: absolute;
 	font-size: 180%;
+	-webkit-transform: translate(calc((100vw - 250px) / 2), 85vh);
 	transform: translate(calc((100vw - 250px) / 2), 85vh);
 	z-index:100;
 	opacity: 1;

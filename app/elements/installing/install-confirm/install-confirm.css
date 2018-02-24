@@ -78,10 +78,12 @@ html {
 
 .infoPermissionArrow svg {
 	margin-bottom: -4px;
+	-webkit-transform: rotate(90deg);
 	transform: rotate(90deg);
 }
 
 	.infoPermissionArrow svg.shown {
+		-webkit-transform: rotate(-90deg);
 		transform: rotate(-90deg);
 	}
 
