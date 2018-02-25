@@ -1633,6 +1633,16 @@ namespace MonacoEditorElement {
 			return mainObject as T & Y;
 		};
 
+		static async setMonacoEditorScopes<T>(this: MonacoEditor, getEditor: () => T): Promise<T> {
+				await MonacoEditorHookManager.monacoReady;
+				MonacoEditorHookManager.setScope(this);
+				const result = getEditor();
+				MonacoEditorHookManager.registerScope(this, this.editor);
+				MonacoEditorHookManager.StyleHack.copyThemeScope(this);
+				this._hideSpinner();
+				return result;
+			}
+
 		static async create(this: MonacoEditor, editorType: EditorConfig, options?: monaco.editor.IEditorConstructionOptions, 
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 				const language = this._getLanguage(editorType);
@@ -1644,21 +1654,18 @@ namespace MonacoEditorElement {
 
 				this._isTypescript = this._typeIsTS(editorType);
 				this.options = options;
-				await MonacoEditorHookManager.monacoReady;
-				MonacoEditorHookManager.setScope(this);
-				const model = monaco.editor.createModel(options.value, language);
-				this.editor = window.monaco.editor.create(this.$.editorElement, this._mergeObjects({
-					model: model
-				}, options), override);
-				MonacoEditorHookManager.registerScope(this, this.editor);
-				MonacoEditorHookManager.StyleHack.copyThemeScope(this);
-				this._hideSpinner();
-
+				const model= await this.setMonacoEditorScopes(() => {
+					const model = monaco.editor.createModel(options.value, language);
+					this.editor = window.monaco.editor.create(this.$.editorElement, this._mergeObjects({
+						model: model
+					}, options), override);
+					return model
+				});
 
 				this.editor.updateOptions(this._getSettings(editorType));
 				const typeHandler = this._getTypeHandler(editorType, this.editor, model);
 				this._models['default'] = {
-					models: [this.editor.getModel()],
+					models: [this.editor.getModel() as monaco.editor.IModel],
 					handlers: [typeHandler],
 					state: null,
 					editorType
@@ -1680,13 +1687,11 @@ namespace MonacoEditorElement {
 				}
 
 				this._isTypescript = this._typeIsTS(editorType);
+
 				this.options = options;
-				await MonacoEditorHookManager.monacoReady;
-				MonacoEditorHookManager.setScope(this);
-				this.editor = window.monaco.editor.createDiffEditor(this.$.editorElement, options, override);
-				MonacoEditorHookManager.registerScope(this, this.editor);
-				MonacoEditorHookManager.StyleHack.copyThemeScope(this);
-				this._hideSpinner();
+				this.setMonacoEditorScopes(() => {
+					this.editor = window.monaco.editor.createDiffEditor(this.$.editorElement, options, override)
+				});
 
 				const originalModel = monaco.editor.createModel(oldValue, language);
 				const modifiedModel = monaco.editor.createModel(newValue, language);
