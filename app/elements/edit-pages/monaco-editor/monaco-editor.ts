@@ -1633,6 +1633,8 @@ namespace MonacoEditorElement {
 			return mainObject as T & Y;
 		};
 
+
+
 		static async setMonacoEditorScopes<T>(this: MonacoEditor, getEditor: () => T): Promise<T> {
 				await MonacoEditorHookManager.monacoReady;
 				MonacoEditorHookManager.setScope(this);
@@ -1654,7 +1656,7 @@ namespace MonacoEditorElement {
 
 				this._isTypescript = this._typeIsTS(editorType);
 				this.options = options;
-				const model= await this.setMonacoEditorScopes(() => {
+				const model = await this.setMonacoEditorScopes(() => {
 					const model = monaco.editor.createModel(options.value, language);
 					this.editor = window.monaco.editor.create(this.$.editorElement, this._mergeObjects({
 						model: model
