@@ -3,7 +3,7 @@ set -e
 
 http-server -p 1234 . -s &
 
-npm install -g typescript@latest
+npm install -g typescript@2.6.2
 
 echo "Typescript Compiling App" && echo -en "travis_fold:start:ts_app\\r"
 tsc
