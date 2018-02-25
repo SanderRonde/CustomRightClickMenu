@@ -9,13 +9,12 @@ namespace FadeOutAnimationElement {
 		];
 
 		static configure(this: NeonAnimationBehaviorScaleDownAnimation, { node }: Polymer.NeonAnimationConfig) {
-			return node.animate([{
-				transform: 'scale(1)',
-				WebkitTransform: 'scale(1)'
+			return window.animateTransform(node, {
+				propName: 'scale',
+				postfix: '',
+				from: 1,
+				to: 0
 			}, {
-				transform: 'scale(0)',
-				WebkitTransform: 'scale(0)'
-			}], {
 				duration: 500,
 				easing: 'bez',
 				fill: 'both'

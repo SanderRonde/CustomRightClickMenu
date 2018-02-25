@@ -52,6 +52,16 @@ interface Window {
 	withAsync<T>(initializer: () => Promise<Withable>, fn: () => Promise<T>): Promise<T>;
 	setDisplayFlex(el: HTMLElement|SVGElement): void;
 	setTransform(el: HTMLElement|SVGElement, value: string): void;
+	animateTransform(el: HTMLElement, properties: {
+		propName: string;
+		postfix?: string;
+		from: number;
+		to: number;	
+	}, options: {
+		duration?: number;
+		easing?: string;
+		fill?: 'forwards'|'backwards'|'both';
+	}): Animation;
 }
 
 (() => {
@@ -222,6 +232,73 @@ interface Window {
 			el.style.transform = value;
 		} else {
 			el.style.WebkitTransform = value;
+		}
+	}
+
+	function createAnimation(el: HTMLElement, from: string, to: string, doAnimation: (from: string, to: string, done: () => void) => void): Animation {
+		const retVal: Animation = {
+			effect: {
+				target: el
+			},
+			onfinish: null,
+			play() {
+				doAnimation(from, to, () => {
+					this.onfinish && this.onfinish();
+				});
+			},
+			reverse() {
+				doAnimation(to, from, () => {
+					this.onfinish && this.onfinish();
+				});
+			}
+		}
+		doAnimation(from, to, () => {
+			retVal.onfinish && retVal.onfinish();
+		});
+		return retVal;
+	}
+
+	window.animateTransform = (el: HTMLElement, properties: {
+		propName: string;
+		postfix?: string;
+		from: number;
+		to: number;	
+	}, options: {
+		duration?: number;
+		easing?: string;
+		fill?: 'forwards'|'backwards'|'both';
+	}) => {
+		const { from, propName, to, postfix } = properties;
+		if (_supportsTransformUnprefixed) {
+			return el.animate([{
+				transform: `${propName}(${from}px)`
+			}, {
+				transform: `${propName}(${to}px)`
+			}], options);
+		} else {
+			const diff = to - from;
+			const diffPercentage = diff / 100;
+
+			el.style.WebkitTransform = `${propName}(${from}${postfix})`;
+
+			const dummy = document.createElement('div');
+
+			return createAnimation(el, '0px', '100px', (fromDummy, toDummy, done) => {
+				dummy.style.height = fromDummy;
+				$(dummy).animate({
+					height: toDummy
+				}, {
+					duration: options.duration || 500,
+					step(now: number) {
+						const progress = from + (diffPercentage * now);
+						el.style.WebkitTransform = `${propName}(${progress}${postfix})`;
+					},
+					complete() {
+						el.style.WebkitTransform = `${propName}(${toDummy}${postfix})`;
+						done();
+					}
+				});
+			});
 		}
 	}
 

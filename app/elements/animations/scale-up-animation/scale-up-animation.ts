@@ -9,13 +9,12 @@ namespace ScaleUpAnimationElement {
 		];
 
 		static configure(this: NeonAnimationBehaviorScaleUpAnimation, { node }: Polymer.NeonAnimationConfig) {
-			return node.animate([{
-				transform: 'scale(0)',
-				WebkitTransform: 'scale(0)'
+			return window.animateTransform(node, {
+				propName: 'scale',
+				postfix: '',
+				from: 0,
+				to: 1
 			}, {
-				transform: 'scale(1)',
-				WebkitTransform: 'scale(1)'
-			}], {
 				duration: 500,
 				easing: 'bez',
 				fill: 'both'

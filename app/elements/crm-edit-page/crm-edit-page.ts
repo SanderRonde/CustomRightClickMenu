@@ -172,16 +172,15 @@ namespace CrmEditPageElement {
 			window.app.show = true;
 			this._opened = true;
 			this.$.overlayCont.style.display = 'block';
-			this.$.overlayCont.animate([{
-				transform: 'scale(0)',
-				WebkitTransform: 'scale(0)'
+			return window.animateTransform(this.$.overlayCont, {
+				propName: 'scale',
+				postfix: '',
+				from: 0,
+				to: 1
 			}, {
-				transform: 'scale(1)',
-				WebkitTransform: 'scale(1)'
-			}], {
-				easing: 'bez',
 				duration: 300,
-				fill: 'forwards'
+				easing: 'bez',
+				fill: 'both'
 			});
 		};
 		
@@ -201,16 +200,16 @@ namespace CrmEditPageElement {
 					easing: 'bez'
 				});
 			}
-			const animation = this.$.overlayCont.animate([{
-				transform: 'scale(1)',
-				WebkitTransform: 'scale(1)'
+			
+			const animation = window.animateTransform(this.$.overlayCont, {
+				propName: 'scale',
+				postfix: '',
+				from: 1,
+				to: 0
 			}, {
-				transform: 'scale(0)',
-				WebkitTransform: 'scale(0)'
-			}], {
-				easing: 'bez',
 				duration: 300,
-				fill: 'forwards'
+				easing: 'bez',
+				fill: 'both'
 			});
 			animation.onfinish = () => {
 				this._onAnimationDone();
