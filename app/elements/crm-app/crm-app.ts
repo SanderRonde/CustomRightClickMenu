@@ -4420,6 +4420,10 @@ namespace CRMAppElement {
 		 * Various util functions
 		 */
 		static util = class CRMAppUtil {
+			static getChromeVersion() {
+				return parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
+			}
+
 			static createElement<K extends keyof ElementTagNameMaps, T extends ElementTagNameMaps[K]>(tagName: K, options: {
 				id?: string;
 				classes?: Array<string>;
