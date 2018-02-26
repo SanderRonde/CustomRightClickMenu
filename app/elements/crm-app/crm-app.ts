@@ -4701,6 +4701,11 @@ namespace CRMAppElement {
 
 			private static _root: HTMLElement = null;
 
+			private static _listeners: Array<{
+				event: string;
+				handler: EventListener;
+			}> = [];
+
 			private static _setContentTypeClasses(el: HTMLElement, node: CRM.Node) {
 				const contentTypes = node.onContentTypes;
 				for (let i = 0; i < contentTypes.length; i++) {
@@ -4952,16 +4957,29 @@ namespace CRMAppElement {
 				}
 			}
 
+			private static _listen(event: string, handler: EventListener) {
+				window.addEventListener(event, handler);
+				this._listeners.push({
+					event, handler
+				});
+			}
+
 			private static _setListeners(menu: HTMLElement) {
-				window.addEventListener('contextmenu', (e: MouseEvent) => {
+				this._listen('contextmenu', (e: MouseEvent) => {
 					e.preventDefault();
 					this._showMenu(menu, e as any);
 				});
-				window.addEventListener('click', () => {
+				this._listen('click', () => {
 					this._setAllContentTypeClasses(menu, 'add');
 				});
-				window.addEventListener('scroll', () => {
+				this._listen('scroll', () => {
 					this._setAllContentTypeClasses(menu, 'add');
+				});
+			}
+
+			private static _unsetListeners() {
+				this._listeners.forEach(({ event, handler }) => {
+					window.removeEventListener(event, handler);
 				});
 			}
 
@@ -4974,12 +4992,17 @@ namespace CRMAppElement {
 
 			private static _disable() {
 				this._root.remove();
+				this._unsetListeners();
 				this._active = false;
 			}
 
 			static create() {
 				if (this._active) {
 					this._disable();
+				}
+
+				if (!window.app.storageLocal.CRMOnPage) {
+					return;
 				}
 
 				this._active = true;
