@@ -159,13 +159,24 @@ namespace CodeEditBehaviorNamespace {
 		 * Inserts given snippet of code into the editor
 		 */
 		static insertSnippet(__this: CodeEditBehaviorInstance, snippet: string, noReplace: boolean = false) {
-			const commands = __this.editorManager.editor.getSelections().map((selection) => {
-				const content = noReplace ? snippet : snippet.replace(/%s/g, selection.toString());
-				return window.monacoCommands.createReplaceCommand(selection.cloneRange(), content);
-			});
-			const editor = __this.editorManager.editor;
-			if (!__this.editorManager.isDiff(editor)) {
-				editor.executeCommands('snippet', commands);
+			const editor = __this.editorManager.getEditorAsMonaco();
+			if (__this.editorManager.isTextarea(editor)) {
+				const { from, to, content } = editor.getSelected();
+				const replacement = noReplace ? snippet : snippet.replace(/%s/g, content);
+				const oldValue = editor.getValue();
+				const newValue = oldValue.slice(0, from.totalChar) + 
+					replacement + oldValue.slice(to.totalChar);
+				if (!__this.editorManager.isDiff(editor)) {
+					editor.setValue(newValue);
+				}
+			} else {
+				const commands = editor.getSelections().map((selection) => {
+					const content = noReplace ? snippet : snippet.replace(/%s/g, selection.toString());
+					return window.monacoCommands.createReplaceCommand(selection.cloneRange(), content);
+				});
+				if (!__this.editorManager.isDiff(editor)) {
+					editor.executeCommands('snippet', commands);
+				}
 			}
 		};
 

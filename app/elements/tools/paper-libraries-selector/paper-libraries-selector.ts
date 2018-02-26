@@ -517,7 +517,7 @@ namespace PaperLibrariesSelectorElement {
 
 			const editor = window.scriptEdit.fullscreenEditorManager.editor;
 			if (!window.scriptEdit.fullscreenEditorManager.isDiff(editor)) {
-				editor.addOverlayWidget({
+				(editor as monaco.editor.IStandaloneCodeEditor).addOverlayWidget({
 					getId() {
 						return 'library.exit.buttons'
 					},
@@ -557,6 +557,12 @@ namespace PaperLibrariesSelectorElement {
 		}
 
 		static _edit(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
+			const manager = window.codeEditBehavior.getEditor();
+			if (manager.isTextarea(manager.getEditorAsMonaco())) {
+				window.app.util.showUpdateChromeMessage();
+				return;
+			}
+
 			type LibraryElement = HTMLElement & {
 				dataLib: LibrarySelectorLibrary
 			}

@@ -35,27 +35,8 @@ namespace MonacoEditorElement {
 		grant: 'Whitelists given `GM_*` functions',
 		noframes: 'Makes the script run on the main page but not in iframes'
 	};
-	
-	abstract class MonacoTypeHandler {
-		/**
-		 * The editor that is currently being used
-		 */
-		protected _editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor;
-		
-		/**
-		 * The model that is currently being used in the editor
-		 */
-		protected _model: monaco.editor.IModel;
 
-		public abstract destroy(): void;
-
-		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
-			this._editor = editor;
-			this._model = model;
-		}
-	}
-
-	abstract class MonacoEventEmitter<PubL extends string, PriL extends string> extends MonacoTypeHandler {
+	abstract class EventEmitter<PubL extends string, PriL extends string> {
 		private _privateListenerMap: {
 			[key in PriL]: Array<(...params: Array<any>) => any>;
 		} = {} as any;
@@ -119,8 +100,32 @@ namespace MonacoEditorElement {
 			});
 		}
 	}
+	
+	abstract class MonacoTypeHandler<PubL extends string = '_', PriL extends string = '_'> extends EventEmitter<PubL, PriL> {
+		/**
+		 * The editor that is currently being used
+		 */
+		protected _editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor;
+		
+		/**
+		 * The model that is currently being used in the editor
+		 */
+		protected _model: monaco.editor.IModel;
 
-	abstract class MonacoEditorEventHandler<PubL extends string = '_', PriL extends string = '_'> extends MonacoEventEmitter<PubL, PriL|'onLoad'|'onModelContentChange'> {
+		public abstract destroy(): void;
+
+		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
+			super();
+			this._editor = editor;
+			this._model = model;
+		}
+
+		protected _isTextarea() {
+			return '__textarea' in this._editor;
+		}
+	}
+
+	abstract class MonacoEditorEventHandler<PubL extends string = '_', PriL extends string = '_'> extends MonacoTypeHandler<PubL, PriL|'onLoad'|'onModelContentChange'> {
 		/**
 		 * Any listeners that need to be disposed of eventually
 		 */
@@ -140,6 +145,10 @@ namespace MonacoEditorElement {
 
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
+
+			if (this._isTextarea()) {
+				return;
+			}
 
 			this._onCreate(model);
 
@@ -162,6 +171,9 @@ namespace MonacoEditorElement {
 		}
 
 		protected _isDiff(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor): editor is monaco.editor.IDiffEditor {
+			if ('__textarea' in editor) {
+				return  '__diff' in editor;
+			}
 			return !('onDidChangeModel' in this._editor);
 		}
 
@@ -267,6 +279,10 @@ namespace MonacoEditorElement {
 
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
+
+			if (this._isTextarea()) {
+				return;
+			}
 
 			this._attachListeners();
 		}
@@ -649,6 +665,10 @@ namespace MonacoEditorElement {
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
 
+			if (this._isTextarea()) {
+				return;
+			}
+
 			MonacoEditorHookManager.Completion.register('javascript',
 				MonacoEditorMetaBlockMods._metaTagProvider);
 			MonacoEditorHookManager.Completion.register('javascript',
@@ -689,6 +709,10 @@ namespace MonacoEditorElement {
 
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
+
+			if (this._isTextarea()) {
+				return;
+			}
 
 			MonacoEditorHookManager.Completion.register('css',
 				MonacoEditorMetaBlockMods._metaTagProvider);
@@ -1039,6 +1063,10 @@ namespace MonacoEditorElement {
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
 
+			if (this._isTextarea()) {
+				return;
+			}
+
 			const value = model.getValue() as EncodedString<CRM.Options>;
 			if (!this._findSchema(value)) {
 				model.setValue(this._addSchemaKey(value));
@@ -1300,6 +1328,10 @@ namespace MonacoEditorElement {
 				super(editor, model);
 				this._node = node;
 				this._isBackground = isBackground;
+				
+				if (this._isTextarea()) {
+					return;
+				}
 
 				this._enable();
 				if (!this._isDiff(this._editor)) {
@@ -1376,6 +1408,443 @@ namespace MonacoEditorElement {
 		}
 	}
 
+	interface MonacoBaseEditor {
+		updateOptions(options: monaco.editor.IEditorOptions): void;
+		getValue(options?: {
+			preserveBOM: boolean;
+			lineEnding: string
+		}): string;
+		saveViewState(): monaco.editor.IEditorViewState|MonacoModel|{
+			original: MonacoModel;
+			modified: MonacoModel;
+		};
+		restoreViewState(state: monaco.editor.ICodeEditorViewState|
+			monaco.editor.IDiffEditorViewState|MonacoModel|{
+				original: MonacoModel;
+				modified: MonacoModel;
+			}): void;
+		focus(): void;
+		layout(): void;
+		dispose(): void;
+		getDomNode(): HTMLElement
+		getSelected?(): {
+			from: {
+				line: number;
+				char: number;
+				totalChar: number;
+			};
+			to: {
+				line: number;
+				char: number;
+				totalChar: number;
+			}
+			content: string
+		};
+		__textarea?: boolean;
+	}
+
+	interface MonacoStandardEditor extends MonacoBaseEditor {
+		getModel(): MonacoModel;
+		setModel(model: MonacoModel): void;
+		setValue(value: string): void;
+	}
+
+	interface MonacoDiffEditor extends MonacoBaseEditor {
+		getModel(): {
+			original: MonacoModel;
+			modified: MonacoModel;
+		}
+		setModel(model: {
+			original: MonacoModel;
+			modified: MonacoModel;
+		}): void;
+		__diff?: boolean;
+	}
+
+	interface MonacoModel {
+		getValue(eol?: monaco.editor.EndOfLinePreference, preserveBOM?: boolean): string;
+		dispose(): void;
+		setValue(value: string): void;
+	}
+
+	abstract class TextareaEditorBase implements MonacoBaseEditor {
+		protected _textareaElements: Array<HTMLTextAreaElement>;
+		protected abstract _getValue(): string;
+		protected _models: Array<TextareaModel> = [];
+		protected _model: TextareaModel|{
+			original: TextareaModel;
+			modified: TextareaModel;
+		};
+		protected _baseElements: {
+			container?: HTMLElement;
+		};
+		__textarea = true;
+		
+		protected abstract _addModelListeners(model: TextareaModel): void;
+
+		protected abstract _swapToModel(model: TextareaModel|{
+			original: TextareaModel;
+			modified: TextareaModel;
+		}): void;
+
+		constructor(container: HTMLElement, private _options: {
+			model?: TextareaModel|{
+				original: TextareaModel;
+				modified: TextareaModel;
+			};
+			theme?: 'vs-dark'|'vs';
+		}) {
+			const { model } = _options;
+			if (model) {
+				this._model = model;
+				if ('original' in model) {
+					this._models = [model.original, model.modified];
+				} else {
+					this._models = [model];
+				}
+			}
+			
+			this._genBaseElements(container);
+			if (model) {
+				if ('original' in model) {
+					this._addModelListenersBase(model.original);
+					this._addModelListenersBase(model.modified);
+				} else {
+					this._addModelListenersBase(model);
+				}
+			}
+		}
+
+		private _genBaseElements(container: HTMLElement) {
+			const textareaContainer = document.createElement('div');
+			textareaContainer.classList.add('monacoTextareaContainer');
+			container.appendChild(textareaContainer);
+			this._baseElements = {
+				container: textareaContainer
+			};
+		}
+
+		private _totalCharIndexToPosition(content: string, total: number): {
+			line: number;
+			char: number;
+		} {
+			const lines = content.split('\n');
+			for (const i in lines) {
+				const line = lines[i];
+				if (total - line.length <= 0) {
+					return {
+						line: ~~i,
+						char: total - line.length
+					}
+				}
+			}
+			return {
+				line: lines.length - 1,
+				char: lines[lines.length - 1].length
+			}
+		}
+
+		private _addModelListenersBase(model: TextareaModel) {
+			this._models.push(model);
+			this._addModelListeners(model);
+		}
+
+		protected _assertModelAdded(model: TextareaModel) {
+			if (this._models.indexOf(model) === -1) {
+				this._models.push(model);
+				this._addModelListeners(model);
+			}
+		}
+
+		protected _genTextarea(): HTMLTextAreaElement {
+			const textarea = document.createElement('textarea');
+			textarea.classList.add('monacoEditorTextarea');
+			textarea.setAttribute('spellcheck', 'false');
+			textarea.setAttribute('autocomplete', 'off');
+			textarea.setAttribute('autocorrect', 'off');
+			textarea.setAttribute('autocapitalize', 'off');
+
+			if (this._options.theme === 'vs-dark') {
+				textarea.classList.add('dark-theme');
+			}
+			return textarea;
+		}
+
+		updateOptions(options: monaco.editor.IEditorOptions) {}
+
+		getValue(options?: {
+            preserveBOM: boolean;
+            lineEnding: string;
+        }) {
+			return this._getValue();
+		}
+
+		saveViewState() {
+			if ('original' in this._model) {
+				return this._model.modified;
+			}
+			return this._model;
+		}
+
+		restoreViewState(model: TextareaModel|{
+			original: TextareaModel;
+			modified: TextareaModel;
+		}) {
+			this._swapToModel(model);
+		}
+
+		focus() {
+			this._textareaElements[0].focus();
+		}
+
+		layout() {}
+
+		dispose() {
+			this._textareaElements && this._textareaElements.forEach(el => el.remove());
+			this._textareaElements = [];
+			this._models.map(model => model.dispose());
+			this._models = [];
+			this._baseElements.container.remove();
+			this._baseElements = {};
+		}
+
+		getDomNode() {
+			return this._baseElements.container;
+		}
+
+		getSelected(): {
+			from: {
+				line: number;
+				char: number;
+				totalChar: number;
+			};
+			to: {
+				line: number;
+				char: number;
+				totalChar: number;
+			}
+			content: string
+		} {
+			for (const textarea of this._textareaElements) {
+				const start = textarea.selectionStart;
+				const finish = textarea.selectionEnd;
+				const selection = textarea.value.substring(start, finish);
+				if (selection.length > 0) {
+					return {
+						from: {
+							...this._totalCharIndexToPosition(textarea.value, start),
+							totalChar: start
+						},
+						to: {
+							...this._totalCharIndexToPosition(textarea.value, finish),
+							totalChar: finish
+						},
+						content: selection
+					};
+				}
+			}
+			return null;
+		}
+	}
+
+	class TextareaStandardEditor extends TextareaEditorBase implements MonacoStandardEditor {
+		protected _model: TextareaModel;
+		private _textarea: HTMLTextAreaElement;
+
+		constructor(container: HTMLElement, options: {
+			model?: TextareaModel;
+			theme?: 'vs-dark'|'vs';
+		}) {
+			super(container, options);
+			this._genElements(container);
+			this._textarea.addEventListener('keydown', () => {
+				window.setTimeout(() => {
+					this._model.setValue(this._textarea.value, this._textarea);
+				}, 0);
+			});
+			if (options.model) {
+				this._textarea.value = options.model.getValue();
+			}
+		}
+
+		private _genElements(container: HTMLElement) {
+			this._textarea = this._genTextarea();
+			this._textareaElements = [this._textarea];
+			this._baseElements.container.appendChild(this._textarea);
+		}
+
+		private _isActiveModel(model: TextareaModel) {
+			return this._model === model;
+		}
+
+		protected _addModelListeners(model: TextareaModel) {
+			model.listen('change', ({ newValue, src }: {
+				oldValue: string;
+				newValue: string;
+				src: HTMLTextAreaElement;
+			}) => {
+				if (this._isActiveModel(model)) {
+					if (src !== this._textarea) {
+						this._textarea.value = newValue;
+					}
+				}
+			});
+		}
+		
+		protected _getValue() {
+			return this._model.getValue();
+		}
+
+		protected _swapToModel(model: TextareaModel) {
+			this.setModel(model);
+		}
+
+		getModel(): TextareaModel {
+			return this._model;
+		};
+
+		setModel(model: TextareaModel): void {
+			this._assertModelAdded(model);
+
+			this._model = model;
+			this._textarea.value = model.getValue();
+		};
+
+		setValue(value: string) {
+			this._model.setValue(value);
+		}
+	}
+
+	class TextareaDiffEditor extends TextareaEditorBase implements MonacoDiffEditor {
+		protected _model: {
+			original: TextareaModel;
+			modified: TextareaModel;
+		};
+		private _textareas: {
+			original: HTMLTextAreaElement;
+			modified: HTMLTextAreaElement;
+		}
+		__diff = true;
+
+		constructor(container: HTMLElement, options: {
+			model?: {
+				original: TextareaModel;
+				modified: TextareaModel;
+			}
+			theme?: 'vs-dark'|'vs';
+		}) {
+			super(container, options);
+			this._genElements();
+			if (options.model) {
+				this._textareas.original.value = options.model.original.getValue();
+				this._textareas.modified.value = options.model.modified.getValue();
+			}
+		}
+
+		private _genElements() {
+			const originalTextarea = this._genTextarea();
+			const modifiedTextarea = this._genTextarea();
+			originalTextarea.classList.add('monacoOriginalTextarea');
+			modifiedTextarea.classList.add('monacoModifiedTextarea');
+			this._textareas = {
+				original: originalTextarea,
+				modified: modifiedTextarea
+			};
+			this._textareaElements = [originalTextarea, modifiedTextarea];
+			
+			this._baseElements.container.classList.add('diffContainer');
+			this._baseElements.container.appendChild(originalTextarea);
+			this._baseElements.container.appendChild(modifiedTextarea);
+		}
+
+		private _setTextareaValues(model: {
+			original: TextareaModel;
+			modified: TextareaModel;
+		}) {
+			this._textareas.original.value = model.original.getValue();
+			this._textareas.modified.value = model.modified.getValue();
+		}
+
+		private _isActiveOriginalModel(model: TextareaModel) {
+			return this._model.original === model;
+		}
+
+		private _isActiveModifiedModel(model: TextareaModel) {
+			return this._model.modified === model;
+		}
+
+		protected _addModelListeners(model: TextareaModel) {
+			model.listen('change', ({ newValue, src }: {
+				oldValue: string;
+				newValue: string;
+				src: HTMLTextAreaElement;
+			}) => {
+				if (this._isActiveOriginalModel(model)) {
+					if (src !== this._textareas.original) {
+						this._textareas.original.value = newValue;
+					}
+				} else if (this._isActiveModifiedModel(model)) {
+					if (src !== this._textareas.modified) {
+						this._textareas.modified.value = newValue;
+					}
+				}
+			});
+		}
+
+		protected _getValue() {
+			return this._model.modified.getValue();
+		}
+
+		protected _swapToModel(model: {
+			original: TextareaModel;
+			modified: TextareaModel;
+		}) {
+			this.setModel(model);
+		}
+
+		getModel() {
+			return this._model;
+		}
+		
+		setModel(model: {
+			original: TextareaModel;
+			modified: TextareaModel;
+		}) {
+			this._assertModelAdded(model.original);
+			this._assertModelAdded(model.modified);
+
+			this._model = model;
+			this._setTextareaValues(model);
+		}
+	}
+
+	class TextareaModel extends EventEmitter<'change', 'none'> implements MonacoModel {
+		private _value: string;
+
+		constructor(value: string) {
+			super();
+			this.setValue(value);
+		}
+
+		getValue(): string {
+			return this._value;
+		}
+
+		setValue(value: string, src?: HTMLTextAreaElement) {
+			const oldValue = this._value;
+			this._value = value;
+			if (this._value !== oldValue) {
+				this._firePublic('change', [{
+					oldValue,
+					newValue: this._value,
+					src
+				}]);
+			}
+		}
+
+		dispose() {}
+	}
+
 	const monacoEditorProperties: {
 		noSpinner: boolean;
 	} = {
@@ -1425,7 +1894,7 @@ namespace MonacoEditorElement {
 		/**
 		 * The editor associated with this element
 		 */
-		static editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor;
+		static editor: MonacoStandardEditor|MonacoDiffEditor;
 
 		/**
 		 * The stylesheet used by the CSS editor
@@ -1447,7 +1916,7 @@ namespace MonacoEditorElement {
 		 */
 		private static _models: {
 			[id: string]: {
-				models: Array<monaco.editor.IModel>;
+				models: Array<MonacoModel>;
 				handlers: Array<MonacoTypeHandler>;
 				state: monaco.editor.ICodeEditorViewState|monaco.editor.IDiffEditorViewState;
 				editorType: EditorConfig;
@@ -1636,14 +2105,22 @@ namespace MonacoEditorElement {
 
 
 		static async setMonacoEditorScopes<T>(this: MonacoEditor, getEditor: () => T): Promise<T> {
+			if (this._supportsMonaco()) {
 				await MonacoEditorHookManager.monacoReady;
 				MonacoEditorHookManager.setScope(this);
-				const result = getEditor();
+			}
+			const result = getEditor();
+			if (this._supportsMonaco()) {
 				MonacoEditorHookManager.registerScope(this, this.editor);
 				MonacoEditorHookManager.StyleHack.copyThemeScope(this);
-				this._hideSpinner();
-				return result;
 			}
+			this._hideSpinner();
+			return result;
+		}
+		
+		private static _supportsMonaco() {
+			return window.app.util.getChromeVersion() > 30;
+		}
 
 		static async create(this: MonacoEditor, editorType: EditorConfig, options?: monaco.editor.IEditorConstructionOptions, 
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
@@ -1657,17 +2134,25 @@ namespace MonacoEditorElement {
 				this._isTypescript = this._typeIsTS(editorType);
 				this.options = options;
 				const model = await this.setMonacoEditorScopes(() => {
-					const model = monaco.editor.createModel(options.value, language);
-					this.editor = window.monaco.editor.create(this.$.editorElement, this._mergeObjects({
-						model: model
-					}, options), override);
-					return model
+					if (this._supportsMonaco()) {
+						const model = monaco.editor.createModel(options.value, language);
+						this.editor = window.monaco.editor.create(this.$.editorElement, this._mergeObjects({
+							model: model
+						}, options), override) as MonacoStandardEditor;
+						return model
+					} else {
+						const model = new TextareaModel(options.value);
+						this.editor = new TextareaStandardEditor(this.$.editorElement, {
+							model
+						});
+						return model;
+					}
 				});
 
 				this.editor.updateOptions(this._getSettings(editorType));
-				const typeHandler = this._getTypeHandler(editorType, this.editor, model);
+				const typeHandler = this._getTypeHandler(editorType, this.editor as any, model as any);
 				this._models['default'] = {
-					models: [this.editor.getModel() as monaco.editor.IModel],
+					models: [this.editor.getModel() as MonacoModel],
 					handlers: [typeHandler],
 					state: null,
 					editorType
@@ -1692,14 +2177,26 @@ namespace MonacoEditorElement {
 
 				this.options = options;
 				this.setMonacoEditorScopes(() => {
-					this.editor = window.monaco.editor.createDiffEditor(this.$.editorElement, options, override)
+					if (this._supportsMonaco()) {
+						this.editor = monaco.editor.createDiffEditor(this.$.editorElement, options, override) as MonacoDiffEditor;
+					} else {
+						this.editor = new TextareaDiffEditor(this.$.editorElement, {});
+					}
 				});
 
-				const originalModel = monaco.editor.createModel(oldValue, language);
-				const modifiedModel = monaco.editor.createModel(newValue, language);
+				let originalModel: MonacoModel;
+				let modifiedModel: MonacoModel;
+
+				if (this._supportsMonaco()) {
+					originalModel = monaco.editor.createModel(oldValue, language);
+					modifiedModel = monaco.editor.createModel(newValue, language);
+				} else {
+					originalModel = new TextareaModel(oldValue);
+					modifiedModel = new TextareaModel(newValue);
+				}
 
 				this.editor.updateOptions(this._getSettings(editorType));
-				this.editor.setModel({
+				(this.editor as MonacoDiffEditor).setModel({
 					original: originalModel,
 					modified: modifiedModel
 				});
@@ -1708,8 +2205,8 @@ namespace MonacoEditorElement {
 					MonacoTypeHandler,
 					MonacoTypeHandler
 				] = [
-					this._getTypeHandler(editorType, this.editor, originalModel),
-					this._getTypeHandler(editorType, this.editor, modifiedModel)
+					this._getTypeHandler(editorType, this.editor as any, originalModel as any),
+					this._getTypeHandler(editorType, this.editor as any, modifiedModel as any)
 				];
 
 				this._models['default'] = {
@@ -1736,19 +2233,24 @@ namespace MonacoEditorElement {
 				from,
 				modelId: from.getCurrentModelId()
 			}
+
 			this._isTypescript = this._typeIsTS(editorType);
-			this.editor = window.monaco.editor.create(this.$.editorElement, this._mergeObjects({
-				model: editor.getModel()
-			}, this.options));
-			MonacoEditorHookManager.StyleHack.copyThemeScope(this);
-			MonacoEditorHookManager.setScope(this);
-			MonacoEditorHookManager.registerScope(this, this.editor);
-			this._hideSpinner();
+			this.setMonacoEditorScopes(() => {
+				if (this._supportsMonaco()) {
+					this.editor = window.monaco.editor.create(this.$.editorElement, this._mergeObjects({
+						model: editor.getModel()
+					}, this.options)) as MonacoStandardEditor;
+				} else {
+					this.editor = new TextareaStandardEditor(this.$.editorElement, {
+						model: editor.getModel() as TextareaModel
+					});
+				}
+			});
 
 			this.editor.updateOptions(this._getSettings(editorType));
-			let typeHandler = this._getTypeHandler(editorType, this.editor, this.editor.getModel());
+			let typeHandler = this._getTypeHandler(editorType, this.editor as any, this.editor.getModel() as any);
 			this._models['default'] = {
-				models: [this.editor.getModel()],
+				models: [this.editor.getModel() as MonacoModel],
 				handlers: [typeHandler],
 				state: null,
 				editorType
@@ -1758,8 +2260,19 @@ namespace MonacoEditorElement {
 			return this;
 		}
 
-		static isDiff(this: MonacoEditor, editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor): editor is monaco.editor.IDiffEditor {
+		static isDiff(this: MonacoEditor, editor: MonacoStandardEditor|MonacoDiffEditor): editor is MonacoDiffEditor;
+		static isDiff(this: MonacoEditor, editor: TextareaStandardEditor|TextareaDiffEditor): editor is TextareaDiffEditor;
+		static isDiff(this: MonacoEditor, editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor): editor is monaco.editor.IDiffEditor;
+		static isDiff(this: MonacoEditor, editor: MonacoStandardEditor|MonacoDiffEditor|TextareaStandardEditor|TextareaDiffEditor|monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor): editor is MonacoDiffEditor|TextareaDiffEditor {
 			return this._createInfo.method === 'diff';
+		}
+
+		static isTextarea(this: MonacoEditor, editor: TextareaStandardEditor|TextareaDiffEditor|monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor): editor is TextareaStandardEditor|TextareaDiffEditor {
+			return '__textarea' in this.editor;
+		}
+
+		static getEditorAsMonaco(this: MonacoEditor): TextareaStandardEditor|TextareaDiffEditor|monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor {
+			return this.editor as any;
 		}
 
 		static setValue(this: MonacoEditor, value: string) {
@@ -1793,7 +2306,7 @@ namespace MonacoEditorElement {
 			this._children.splice(this._children.indexOf(child), 1);
 		}
 
-		private static setNewModels(this: MonacoEditor, models: Array<monaco.editor.IModel>) {
+		private static setNewModels(this: MonacoEditor, models: Array<MonacoModel>) {
 			const editor = this.editor;
 			if (this.isDiff(editor)) {
 				editor.setModel({
@@ -1838,7 +2351,7 @@ namespace MonacoEditorElement {
 			oldModels.forEach((oldModel) => oldModel.dispose());
 
 			currentModel.handlers = newModels.map((newModel) => {
-				return this._getTypeHandler(currentModel.editorType, this.editor, newModel);
+				return this._getTypeHandler(currentModel.editorType, this.editor as any, newModel);
 			});
 			currentModel.models = newModels;	
 
@@ -1866,7 +2379,7 @@ namespace MonacoEditorElement {
 			}
 
 			const model = monaco.editor.createModel(value, this._getLanguage(editorType));
-			let handler = this._getTypeHandler(editorType, this.editor, model);
+			let handler = this._getTypeHandler(editorType, this.editor as any, model);
 
 			this._models[identifier] = {
 				models: [model],
@@ -1881,7 +2394,7 @@ namespace MonacoEditorElement {
 		}
 		
 		static getModel(this: MonacoEditor, identifier: string): {
-			models: Array<monaco.editor.IModel>;
+			models: Array<MonacoModel>;
 			handlers: Array<MonacoTypeHandler>;
 			state: monaco.editor.ICodeEditorViewState|monaco.editor.IDiffEditorViewState;
 			editorType: EditorConfig;
@@ -1900,11 +2413,11 @@ namespace MonacoEditorElement {
 			const currentState = this.editor.saveViewState();
 			const currentModel = this.getCurrentModelId();
 			if (currentModel in this._models) {
-				this._models[currentModel].state = currentState;
+				this._models[currentModel].state = currentState as any;
 			}
 
 			const newModel = this._models[identifier];
-			this.editor.setModel(newModel.models[0]);
+			(this.editor.setModel as any)(newModel.models[0] as MonacoModel);
 			(this.editor.restoreViewState as any)(newModel.state as any);
 			this.editor.focus();
 		}
@@ -1957,7 +2470,10 @@ namespace MonacoEditorElement {
 		}
 
 		private static _showLintResults(this: MonacoEditor, name: string, messages: Array<LinterWarning>) {
-			monaco.editor.setModelMarkers(this.getCurrentModel().models[0], name, messages.map(message => ({
+			if ('__textarea' in this.editor) {
+				return;
+			}
+			monaco.editor.setModelMarkers(this.getCurrentModel().models[0] as monaco.editor.IModel, name, messages.map(message => ({
 				startLineNumber: message.line,
 				endLineNumber: message.line,
 				startColumn: message.col,
@@ -2085,12 +2601,12 @@ namespace MonacoEditorElement {
 		/**
 		 * An empty model used as a transition model
 		 */
-		private static _nullModel: monaco.editor.IModel = null;
+		private static _nullModel: MonacoModel = null;
 
 		/**
 		 * Any registered scopes
 		 */
-		private static _scopes: Array<[MonacoEditor, monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor]> = [];
+		private static _scopes: Array<[MonacoEditor, MonacoStandardEditor|MonacoDiffEditor]> = [];
 
 		static Caret = class MonacoEditorCaret {
 			/**
@@ -2221,7 +2737,7 @@ namespace MonacoEditorElement {
 			});
 		}
 
-		static registerScope(scope: MonacoEditor, editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor) {
+		static registerScope(scope: MonacoEditor, editor: MonacoStandardEditor|MonacoDiffEditor) {
 			this._scopes.push([scope, editor])
 		}
 

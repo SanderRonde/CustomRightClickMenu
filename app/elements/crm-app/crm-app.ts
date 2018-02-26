@@ -4424,6 +4424,12 @@ namespace CRMAppElement {
 				return parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
 			}
 
+			static showUpdateChromeMessage() {
+				const toast = window.app.$.messageToast;
+				toast.text = 'Please update your chrome (at least chrome 30) to use this feature';
+				toast.show();
+			}
+
 			static createElement<K extends keyof ElementTagNameMaps, T extends ElementTagNameMaps[K]>(tagName: K, options: {
 				id?: string;
 				classes?: Array<string>;

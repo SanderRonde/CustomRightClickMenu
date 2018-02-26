@@ -407,7 +407,7 @@ namespace UseExternalEditorElement {
 
 			private static appendWrapper(toolsCont: HTMLElement) {
 				const editorManager = window.codeEditBehavior.getEditor();
-				const editor = editorManager.editor;
+				const editor = editorManager.editor as monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor;
 				if (editorManager.isDiff(editor)) {
 					return null;
 				}
@@ -466,6 +466,13 @@ namespace UseExternalEditorElement {
 		static setupExternalEditing(this: UseExternalEditor) {
 			//Send a message to the app to create the item with its current script and name
 			const _this = this;
+
+			const manager = window.codeEditBehavior.getEditor();
+			if (manager.isTextarea(manager.getEditorAsMonaco())) {
+				window.app.util.showUpdateChromeMessage();
+				return;
+			}
+
 			if (this.connection.connected) {
 				const item = this.editingCRMItem;
 				const tempListener = function (msg: SetupExistingFileMessage | SetupNewFileMessage) {
