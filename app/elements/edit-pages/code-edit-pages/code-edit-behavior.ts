@@ -159,7 +159,7 @@ namespace CodeEditBehaviorNamespace {
 		 * Inserts given snippet of code into the editor
 		 */
 		static insertSnippet(__this: CodeEditBehaviorInstance, snippet: string, noReplace: boolean = false) {
-			const editor = __this.editorManager.getEditorAsMonaco();
+			const editor = __this.getEditorInstance().getEditorAsMonaco();
 			if (__this.editorManager.isTextarea(editor)) {
 				const { from, to, content } = editor.getSelected();
 				const replacement = noReplace ? snippet : snippet.replace(/%s/g, content);
