@@ -1247,3 +1247,8 @@ app-header {
 	padding-top: 10px;
 	padding-bottom: 10px;
 }
+
+#updateChromeNotice {
+	text-align: center;
+	background-color: #ff4f00;
+}

@@ -514,6 +514,14 @@ namespace CRMAppElement {
 				'Custom Right-Click Menu';
 		}
 
+		static _isOldChrome() {
+			return this.getChromeVersion() < 30;
+		}
+		
+		static _getChromeAge() {
+			return new Date().getUTCFullYear() - 2013;
+		}
+
 		static _getString(str: string | null): string {
 			return str || '';
 		}
@@ -522,6 +530,10 @@ namespace CRMAppElement {
 			type: string;
 		}>(option: T, type: T['type']): boolean {
 			return option.type === type;
+		}
+
+		private static getChromeVersion() {
+			return parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
 		}
 
 		private static _generateCodeOptionsArray<T extends CRM.Options>(this: CrmApp, settings: T|string): Array<{
@@ -4421,7 +4433,7 @@ namespace CRMAppElement {
 		 */
 		static util = class CRMAppUtil {
 			static getChromeVersion() {
-				return parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
+				return this.parent().getChromeVersion();
 			}
 
 			static showUpdateChromeMessage() {
