@@ -1371,7 +1371,7 @@ describe('Options Page', function() {
 	}
 	describe('Loading', function() {
 		this.timeout(60000 * TIME_MODIFIER);
-		this.slow(60000);
+		this.slow(60000 * TIME_MODIFIER);
 
 		it('should happen without errors', function(done)  {
 			driver.executeScript(inlineFn(() => {
@@ -1388,7 +1388,7 @@ describe('Options Page', function() {
 			return;
 		}
 		this.timeout(5000 * TIME_MODIFIER);
-		this.slow(4000);
+		this.slow(4000 * TIME_MODIFIER);
 		const checkboxDefaults = {
 			catchErrors: true,
 			showOptions: true,
@@ -1442,7 +1442,7 @@ describe('Options Page', function() {
 			return;
 		}
 		this.timeout(15000 * TIME_MODIFIER);
-		this.slow(10000);
+		this.slow(10000 * TIME_MODIFIER);
 		let searchEngineLink = '';
 		let defaultLinkName = '';
 
@@ -1537,7 +1537,7 @@ describe('Options Page', function() {
 			return;
 		}
 		this.timeout(150000 * TIME_MODIFIER);
-		this.slow(10000);
+		this.slow(10000 * TIME_MODIFIER);
 		let searchEngineLink = '';
 		let searchEngineName = '';
 
@@ -1669,7 +1669,7 @@ describe('Options Page', function() {
 		before('Reset settings', function() {
 			return resetSettings(this);
 		});
-		this.slow(5000);
+		this.slow(5000 * TIME_MODIFIER);
 		this.timeout(7500 * TIME_MODIFIER);
 
 		async function testURIScheme(toExecutePath: string, schemeName: string) {
@@ -1759,7 +1759,7 @@ describe('Options Page', function() {
 		const defaultName = 'name';
 		describe('Name Input', function() {
 			this.timeout(10000 * TIME_MODIFIER);
-			this.slow(10000);
+			this.slow(10000 * TIME_MODIFIER);
 
 			it('should not change when not saved', async function() {
 				before('Reset settings', function() {
@@ -1815,7 +1815,7 @@ describe('Options Page', function() {
 	function testVisibilityTriggers(type: CRM.NodeType) {
 		describe('Triggers', function() {
 			this.timeout(15000 * TIME_MODIFIER);
-			this.slow(12000);
+			this.slow(12000 * TIME_MODIFIER);
 
 			it('should not change when not saved', async function()  {
 				await resetSettings(this);
@@ -1889,7 +1889,7 @@ describe('Options Page', function() {
 	function testContentTypes(type: CRM.NodeType) {
 		describe('Content Types', function() {
 			this.timeout(30000 * TIME_MODIFIER);
-			this.slow(15000);
+			this.slow(15000 * TIME_MODIFIER);
 			const defaultContentTypes = [true, true, true, false, false, false];
 
 			it('should be editable through clicking on the checkboxes', async function()  {
@@ -2006,7 +2006,7 @@ describe('Options Page', function() {
 	function testClickTriggers(type: CRM.NodeType) {
 		describe('Click Triggers', function() {
 			this.timeout(30000 * TIME_MODIFIER);
-			this.slow(25000);
+			this.slow(25000 * TIME_MODIFIER);
 			[0, 1, 2, 3, 4].forEach((triggerOptionIndex) => {
 				describe(`Trigger option ${triggerOptionIndex}`, function() {
 					it(`should be possible to select trigger option number ${triggerOptionIndex}`, async function() {
@@ -2144,7 +2144,7 @@ describe('Options Page', function() {
 
 	function testEditorSettings(type: CRM.NodeType) {
 		describe('Theme', function() {
-			this.slow(8000);
+			this.slow(8000 * TIME_MODIFIER);
 			this.timeout(10000 * TIME_MODIFIER);
 			it('is changable', async function() {
 				await resetSettings(this);
@@ -2172,7 +2172,7 @@ describe('Options Page', function() {
 			});
 		});
 		describe('Zoom', function() {
-			this.slow(30000);
+			this.slow(30000 * TIME_MODIFIER);
 			this.timeout(40000 * TIME_MODIFIER);
 
 			const newZoom = '135';
@@ -2247,7 +2247,7 @@ describe('Options Page', function() {
 				assert.isTrue(typesMatch, 'new type matches expected');
 			}
 			this.timeout(10000 * TIME_MODIFIER);
-			this.slow(5000);
+			this.slow(5000 * TIME_MODIFIER);
 			
 			it('should be able to switch to a script', async function()  {
 				await resetSettings(this);
@@ -2307,7 +2307,7 @@ describe('Options Page', function() {
 			testContentTypes(type);
 
 			describe('Links', function() {
-				this.slow(20000);
+				this.slow(20000 * TIME_MODIFIER);
 				this.timeout(25000 * TIME_MODIFIER);
 
 				after('Reset settings', function() {
@@ -2505,7 +2505,7 @@ describe('Options Page', function() {
 
 			describe('Toggling', function() {
 				this.timeout(15000 * TIME_MODIFIER);
-				this.slow(7500);
+				this.slow(7500 * TIME_MODIFIER);
 				it('should be possible to toggle on', async () => {
 					await resetSettings(this);
 					await openDialog(type);
@@ -2548,7 +2548,7 @@ describe('Options Page', function() {
 				});
 			});
 			describe('Default State', function() {
-				this.slow(7500);
+				this.slow(7500 * TIME_MODIFIER);
 				this.timeout(10000 * TIME_MODIFIER);
 				it('should be togglable to true', async () => {
 					await resetSettings(this);
@@ -2626,7 +2626,7 @@ describe('Options Page', function() {
 					testEditorSettings(type);
 				});
 				describe('Fullscreen Tools', function() {
-					this.slow(70000);
+					this.slow(70000 * TIME_MODIFIER);
 					this.timeout(100000 * TIME_MODIFIER);
 					describe('Libraries', function() {
 						afterEach('Close dialog', async () => {
@@ -3216,7 +3216,7 @@ describe('Options Page', function() {
 	});
 	describe('Errors', function() {
 		this.timeout(60000 * TIME_MODIFIER);
-		this.slow(100);
+		this.slow(100 * TIME_MODIFIER);
 
 		it('should not have been thrown', async () => {
 			const result = await driver.executeScript(inlineFn(() => {
@@ -3245,7 +3245,7 @@ describe('On-Page CRM', function() {
 		return;
 	}
 	describe('Redraws on new CRM', function() {
-		this.slow(250);
+		this.slow(250 * TIME_MODIFIER);
 		this.timeout(1500 * TIME_MODIFIER);
 
 		const CRM1 = [
@@ -3279,7 +3279,7 @@ describe('On-Page CRM', function() {
 		];
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.slow(4000);
+			this.slow(4000 * TIME_MODIFIER);
 			this.timeout(5000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
@@ -3315,7 +3315,7 @@ describe('On-Page CRM', function() {
 		});
 	});
 	describe('Links', function() {
-		this.slow(150);
+		this.slow(150 * TIME_MODIFIER);
 		this.timeout(1500 * TIME_MODIFIER);
 		const CRMNodes = [
 			templates.getDefaultLinkNode({
@@ -3394,7 +3394,7 @@ describe('On-Page CRM', function() {
 		}
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.slow(4000);
+			this.slow(4000 * TIME_MODIFIER);
 			this.timeout(5000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
@@ -3638,7 +3638,7 @@ describe('On-Page CRM', function() {
 
 		it('should not throw when setting up the CRM', function(done) {
 			this.timeout(5000 * TIME_MODIFIER);
-			this.slow(4000);
+			this.slow(4000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
 				await driver.executeScript(inlineFn((REPLACE) => {
@@ -3652,14 +3652,14 @@ describe('On-Page CRM', function() {
 			}, 'setting up the CRM does not throw');
 		});
 		it('should have the correct structure', async function() {
-			this.slow(400);
+			this.slow(400 * TIME_MODIFIER);
 			this.timeout(1400 * TIME_MODIFIER);
 			const contextMenu = await getContextMenu();
 			assertContextMenuEquality(contextMenu, CRMNodes);
 		});
 	});
 	describe('Scripts', function() {
-		this.slow(900);
+		this.slow(900 * TIME_MODIFIER);
 		this.timeout(2000 * TIME_MODIFIER);
 
 		const CRMNodes = [
@@ -3742,7 +3742,7 @@ describe('On-Page CRM', function() {
 
 		it('should not throw when setting up the CRM', function(done) {
 			this.timeout(5000 * TIME_MODIFIER);
-			this.slow(4000);
+			this.slow(4000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
 				await driver.executeScript(inlineFn((REPLACE) => {
@@ -3967,7 +3967,7 @@ describe('On-Page CRM', function() {
 		});
 	});
 	describe('Stylesheets', function() {
-		this.slow(900);
+		this.slow(900 * TIME_MODIFIER);
 		this.timeout(2000 * TIME_MODIFIER);
 
 		const CRMNodes = [
@@ -4277,7 +4277,7 @@ describe('On-Page CRM', function() {
 
 		it('should not throw when setting up the CRM', function(done) {
 			this.timeout(5000 * TIME_MODIFIER);
-			this.slow(4000);
+			this.slow(4000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
 				await driver.executeScript(inlineFn((REPLACE) => {
@@ -4553,7 +4553,7 @@ describe('On-Page CRM', function() {
 			});
 			describe('Default off', function() {
 				const tabId = getRandomId();
-				this.slow(600);
+				this.slow(600 * TIME_MODIFIER);
 				this.timeout(1600 * TIME_MODIFIER);
 				it('should be off by default', async () => {
 					await wait(150);
@@ -4629,7 +4629,7 @@ describe('On-Page CRM', function() {
 				});
 			});
 			describe('Default on', function() {
-				this.slow(300);
+				this.slow(300 * TIME_MODIFIER);
 				this.timeout(1500 * TIME_MODIFIER);
 				it('should be on by default', async () => {
 					const dimensions = await dummy2.getSize();
@@ -4641,7 +4641,7 @@ describe('On-Page CRM', function() {
 	});
 	describe('Errors', function() {
 		this.timeout(60000 * TIME_MODIFIER);
-		this.slow(100);
+		this.slow(100 * TIME_MODIFIER);
 
 		it('should not have been thrown', async () => {
 			const result = await driver.executeScript(inlineFn(() => {
