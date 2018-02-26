@@ -271,9 +271,9 @@ interface Window {
 		const { from, propName, to, postfix } = properties;
 		if (_supportsTransformUnprefixed) {
 			return el.animate([{
-				transform: `${propName}(${from}px)`
+				transform: `${propName}(${from}${postfix})`
 			}, {
-				transform: `${propName}(${to}px)`
+				transform: `${propName}(${to}${postfix})`
 			}], options);
 		} else {
 			const diff = to - from;
