@@ -418,11 +418,11 @@ namespace CodeEditBehaviorNamespace {
 		/**
 		 * Enters fullscreen mode for the editor
 		 */
-		static enterFullScreen(this: CodeEditBehaviorInstance): Promise<void> {
-			return new Promise((resolve) => {
+		static async enterFullScreen(this: CodeEditBehaviorInstance): Promise<void> {
+			return new Promise<void>(async (resolve) => {
 				if (this.fullscreen) {
 					resolve(null);
-					return;
+					return null;
 				}
 				this.fullscreen = true;
 				window.doc.fullscreenEditor.style.display = 'block';
@@ -449,7 +449,7 @@ namespace CodeEditBehaviorNamespace {
 					}
 				}
 
-				this.fullscreenEditorManager = editorCont.createFrom(this.editorManager);
+				this.fullscreenEditorManager = await editorCont.createFrom(this.editorManager);
 
 				const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
 				const bcr = horizontalCenterer.getBoundingClientRect();

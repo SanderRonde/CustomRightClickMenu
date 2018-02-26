@@ -2176,7 +2176,7 @@ namespace MonacoEditorElement {
 				this._isTypescript = this._typeIsTS(editorType);
 
 				this.options = options;
-				this.setMonacoEditorScopes(() => {
+				await this.setMonacoEditorScopes(() => {
 					if (this._supportsMonaco()) {
 						this.editor = monaco.editor.createDiffEditor(this.$.editorElement, options, override) as MonacoDiffEditor;
 					} else {
@@ -2219,7 +2219,7 @@ namespace MonacoEditorElement {
 				return this;
 			}
 
-		static createFrom(this: MonacoEditor, from: MonacoEditor) {
+		static async createFrom(this: MonacoEditor, from: MonacoEditor) {
 			if (this._createInfo && this._createInfo.method === 'from') {
 				this._createInfo.from.removeChild(this);
 			}
@@ -2235,7 +2235,7 @@ namespace MonacoEditorElement {
 			}
 
 			this._isTypescript = this._typeIsTS(editorType);
-			this.setMonacoEditorScopes(() => {
+			await this.setMonacoEditorScopes(() => {
 				if (this._supportsMonaco()) {
 					this.editor = window.monaco.editor.create(this.$.editorElement, this._mergeObjects({
 						model: editor.getModel()
@@ -2294,7 +2294,7 @@ namespace MonacoEditorElement {
 				return await this.createDiff(createInfo.values,
 					createInfo.editorType, createInfo.options, createInfo.override);
 			} else {
-				return this.createFrom(createInfo.from);
+				return await this.createFrom(createInfo.from);
 			}
 		}
 
