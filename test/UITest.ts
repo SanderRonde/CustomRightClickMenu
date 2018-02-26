@@ -2964,16 +2964,16 @@ describe('Options Page', function() {
 					});
 					describe('GetPageProperties', function() {
 						const pagePropertyPairs = {
-							paperGetPropertySelection: 'crmAPI.getSelection();\r\n',
-							paperGetPropertyUrl: 'window.location.href;\r\n',
-							paperGetPropertyHost: 'window.location.host;\r\n',
-							paperGetPropertyPath: 'window.location.path;\r\n',
-							paperGetPropertyProtocol: 'window.location.protocol;\r\n',
-							paperGetPropertyWidth: 'window.innerWidth;\r\n',
-							paperGetPropertyHeight: 'window.innerHeight;\r\n',
-							paperGetPropertyPixels: 'window.scrollY;\r\n',
-							paperGetPropertyTitle: 'document.title;\r\n',
-							paperGetPropertyClicked: 'crmAPI.contextData.target;\r\n'
+							paperGetPropertySelection: 'crmAPI.getSelection();',
+							paperGetPropertyUrl: 'window.location.href;',
+							paperGetPropertyHost: 'window.location.host;',
+							paperGetPropertyPath: 'window.location.path;',
+							paperGetPropertyProtocol: 'window.location.protocol;',
+							paperGetPropertyWidth: 'window.innerWidth;',
+							paperGetPropertyHeight: 'window.innerHeight;',
+							paperGetPropertyPixels: 'window.scrollY;',
+							paperGetPropertyTitle: 'document.title;',
+							paperGetPropertyClicked: 'crmAPI.contextData.target;'
 						};
 						Object.getOwnPropertyNames(pagePropertyPairs).forEach((prop: keyof typeof pagePropertyPairs) => {
 							it(`should be able to insert the ${prop} property`, async function() {

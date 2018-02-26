@@ -38,34 +38,34 @@ namespace PaperGetPagePropertiesElement {
 			var option = e.target.getAttribute('id').split('paperGetProperty')[1];
 			switch (option) {
 				case 'Selection':
-					this.sendData('crmAPI.getSelection();\n');
+					this.sendData('crmAPI.getSelection();');
 					break;
 				case 'Url':
-					this.sendData('window.location.href;\n');
+					this.sendData('window.location.href;');
 					break;
 				case 'Host':
-					this.sendData('window.location.host;\n');
+					this.sendData('window.location.host;');
 					break;
 				case 'Path':
-					this.sendData('window.location.path;\n');
+					this.sendData('window.location.path;');
 					break;
 				case 'Protocol':
-					this.sendData('window.location.protocol;\n');
+					this.sendData('window.location.protocol;');
 					break;
 				case 'Width':
-					this.sendData('window.innerWidth;\n');
+					this.sendData('window.innerWidth;');
 					break;
 				case 'Height':
-					this.sendData('window.innerHeight;\n');
+					this.sendData('window.innerHeight;');
 					break;
 				case 'Pixels':
-					this.sendData('window.scrollY;\n');
+					this.sendData('window.scrollY;');
 					break;
 				case 'Title':
-					this.sendData('document.title;\n');
+					this.sendData('document.title;');
 					break;
 				case 'Clicked':
-					this.sendData('crmAPI.contextData.target;\n');
+					this.sendData('crmAPI.contextData.target;');
 					break;
 			}
 		};
