@@ -2147,6 +2147,7 @@ describe('Options Page', function() {
 			this.slow(8000 * TIME_MODIFIER);
 			this.timeout(10000 * TIME_MODIFIER);
 			it('is changable', async function() {
+				this.slow(10000 * TIME_MODIFIER);
 				await resetSettings(this);
 				await openDialog(type);
 				const dialog = await getDialog(type);
@@ -2250,6 +2251,7 @@ describe('Options Page', function() {
 			this.slow(5000 * TIME_MODIFIER);
 			
 			it('should be able to switch to a script', async function()  {
+				this.slow(6000 * TIME_MODIFIER);
 				await resetSettings(this);
 				await testTypeSwitch('script');
 			});
@@ -2260,6 +2262,7 @@ describe('Options Page', function() {
 				assert.strictEqual(crm[0].type, 'script', 'type has stayed the same');
 			});
 			it('should be able to switch to a menu', async function()  {
+				this.slow(6000 * TIME_MODIFIER);
 				await resetSettings(this);
 				await testTypeSwitch('menu');
 			});
@@ -2270,6 +2273,7 @@ describe('Options Page', function() {
 				assert.strictEqual(crm[0].type, 'menu', 'type has stayed the same');
 			});
 			it('should be able to switch to a divider', async function()  {
+				this.slow(6000 * TIME_MODIFIER);
 				await resetSettings(this);
 				await testTypeSwitch('divider');
 			});
@@ -2280,6 +2284,7 @@ describe('Options Page', function() {
 				assert.strictEqual(crm[0].type, 'divider', 'type has stayed the same');
 			});
 			it('should be able to switch to a stylesheet', async function()  {
+				this.slow(6000 * TIME_MODIFIER);
 				await resetSettings(this);
 				await testTypeSwitch('stylesheet');
 			});
@@ -2505,7 +2510,7 @@ describe('Options Page', function() {
 
 			describe('Toggling', function() {
 				this.timeout(15000 * TIME_MODIFIER);
-				this.slow(7500 * TIME_MODIFIER);
+				this.slow(10000 * TIME_MODIFIER);
 				it('should be possible to toggle on', async () => {
 					await resetSettings(this);
 					await openDialog(type);
@@ -2548,8 +2553,8 @@ describe('Options Page', function() {
 				});
 			});
 			describe('Default State', function() {
-				this.slow(7500 * TIME_MODIFIER);
 				this.timeout(10000 * TIME_MODIFIER);
+				this.slow(10000 * TIME_MODIFIER);
 				it('should be togglable to true', async () => {
 					await resetSettings(this);
 					await openDialog(type);
@@ -3216,7 +3221,7 @@ describe('Options Page', function() {
 	});
 	describe('Errors', function() {
 		this.timeout(60000 * TIME_MODIFIER);
-		this.slow(100 * TIME_MODIFIER);
+		this.slow(200 * TIME_MODIFIER);
 
 		it('should not have been thrown', async () => {
 			const result = await driver.executeScript(inlineFn(() => {
@@ -3279,8 +3284,8 @@ describe('On-Page CRM', function() {
 		];
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.slow(4000 * TIME_MODIFIER);
-			this.timeout(5000 * TIME_MODIFIER);
+			this.slow(6000 * TIME_MODIFIER);
+			this.timeout(10000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
 				await driver.executeScript(inlineFn((REPLACE) => {
@@ -3394,8 +3399,8 @@ describe('On-Page CRM', function() {
 		}
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.slow(4000 * TIME_MODIFIER);
-			this.timeout(5000 * TIME_MODIFIER);
+			this.slow(6000 * TIME_MODIFIER);
+			this.timeout(10000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
 				await driver.executeScript(inlineFn((REPLACE) => {
@@ -3443,6 +3448,7 @@ describe('On-Page CRM', function() {
 		});
 		it('should open the correct links when clicked for the default link', async function() {
 			this.timeout(2000 * TIME_MODIFIER);
+			this.slow(500 * TIME_MODIFIER);
 			const tabId = ~~(Math.random() * 100);
 			const windowId = ~~(Math.random() * 100);
 			const contextMenu = await getContextMenu();
@@ -3500,6 +3506,7 @@ describe('On-Page CRM', function() {
 		});
 		it('should open the correct links when clicked for multiple links', async () => {
 			this.timeout(2000 * TIME_MODIFIER);
+			this.slow(500 * TIME_MODIFIER);
 			const tabId = ~~(Math.random() * 100);
 			const windowId = ~~(Math.random() * 100);
 			const contextMenu = await getContextMenu();
@@ -3637,8 +3644,8 @@ describe('On-Page CRM', function() {
 		];
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.timeout(5000 * TIME_MODIFIER);
-			this.slow(4000 * TIME_MODIFIER);
+			this.timeout(10000 * TIME_MODIFIER);
+			this.slow(6000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
 				await driver.executeScript(inlineFn((REPLACE) => {
@@ -3741,8 +3748,8 @@ describe('On-Page CRM', function() {
 		}
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.timeout(5000 * TIME_MODIFIER);
-			this.slow(4000 * TIME_MODIFIER);
+			this.timeout(10000 * TIME_MODIFIER);
+			this.slow(6000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
 				await driver.executeScript(inlineFn((REPLACE) => {
@@ -3784,7 +3791,9 @@ describe('On-Page CRM', function() {
 			assert.strictEqual(activatedScripts[0].id, fakeTabId, 
 				'script was executed on right tab');
 		});
-		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', async () => {
+		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', async function() {
+			this.timeout(5000 * TIME_MODIFIER);
+			this.slow(2500 * TIME_MODIFIER);
 			const fakeTabId = getRandomId();
 			const contextMenu = await getContextMenu();
 			await driver.executeScript(inlineFn((REPLACE) => {
@@ -3821,7 +3830,9 @@ describe('On-Page CRM', function() {
 			assert.strictEqual(activatedScripts[0].id, fakeTabId,
 				'script was executed on the right tab');
 		});
-		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', async () => {
+		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', async function() {
+			this.timeout(5000 * TIME_MODIFIER);
+			this.slow(2500 * TIME_MODIFIER);
 			const fakeTabId = getRandomId();
 			await driver.executeScript(inlineFn((REPLACE) => {
 				window.chrome._clearExecutedScripts();
@@ -3850,7 +3861,9 @@ describe('On-Page CRM', function() {
 			assert.strictEqual(activatedScripts[1].id, fakeTabId, 
 				'new script was executed on right tab');
 		});
-		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', async () => {
+		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', async function() {
+			this.timeout(5000 * TIME_MODIFIER);
+			this.slow(2500 * TIME_MODIFIER);
 			const fakeTabId = getRandomId();
 			await driver.executeScript(inlineFn((REPLACE) => {
 				window.chrome._clearExecutedScripts();
@@ -4276,8 +4289,8 @@ describe('On-Page CRM', function() {
 		}
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.timeout(5000 * TIME_MODIFIER);
-			this.slow(4000 * TIME_MODIFIER);
+			this.timeout(6000 * TIME_MODIFIER);
+			this.slow(10000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
 				await driver.executeScript(inlineFn((REPLACE) => {
@@ -4291,7 +4304,9 @@ describe('On-Page CRM', function() {
 				done();
 			}, 'setting up the CRM does not throw');
 		});
-		it('should always run when launchMode is set to ALWAYS_RUN', async () => {
+		it('should always run when launchMode is set to ALWAYS_RUN', async function() {
+			this.timeout(2500 * TIME_MODIFIER);
+			this.slow(1000 * TIME_MODIFIER);
 			const fakeTabId = getRandomId();
 			await driver.executeScript(inlineFn((REPLACE) => {
 				window.chrome._clearExecutedScripts();
@@ -4561,7 +4576,9 @@ describe('On-Page CRM', function() {
 					assert.notStrictEqual(dimensions.width, 50,
 						'dummy element is not 50px wide');
 				});
-				it('should be on when clicked', async () => {
+				it('should be on when clicked', async function() {
+					this.slow(1000 * TIME_MODIFIER);
+					this.timeout(2000 * TIME_MODIFIER);
 					const contextMenu = await getContextMenu();
 					await driver.executeScript(inlineFn((REPLACE) => {
 						return window.chrome._currentContextMenu[0]
@@ -4641,7 +4658,7 @@ describe('On-Page CRM', function() {
 	});
 	describe('Errors', function() {
 		this.timeout(60000 * TIME_MODIFIER);
-		this.slow(100 * TIME_MODIFIER);
+		this.slow(200 * TIME_MODIFIER);
 
 		it('should not have been thrown', async () => {
 			const result = await driver.executeScript(inlineFn(() => {
