@@ -5,7 +5,7 @@
 		<link rel="stylesheet" href="../../elements/inputs/paper-toggle-option/paper-toggle-option.css">
 		<!-- /build -->
 		<style is="custom-style" include="paper-material-styles"></style>
-		<paper-checkbox id="checkbox" checked$="[[toggled]]" on-tap="onClick">
+		<paper-checkbox id="checkbox" checked="{{toggled}}" on-tap="onClick">
 			<slot></slot>
 		</paper-checkbox>
 		<template is="dom-if" if="[[_showMessage(disabled, showmessage)]]">
