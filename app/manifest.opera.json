@@ -1,0 +1,129 @@
+{
+	"manifest_version": 2,
+
+	"options_page": "html/options.html",
+	"name": "Custom Right-Click Menu",
+	"description": "Create a custom right-click menu and choose the links you to have in it. You can even add your own scripts or markup for the page.",
+	"version": "2.0.16",
+	"short_name": "CRM-dev",
+	"minimum_chrome_version": "26",
+
+	"background": {
+		"page": "html/background.html"
+	},
+
+	"content_scripts": [
+		{
+			"matches": [ "<all_urls>" ],
+			"js": [ "js/polyfills/browser.js", "js/contentscript.js" ]
+		}, {
+			"matches": [ "http://userstyles.org/*", "https://userstyles.org/*" ],
+			"js": [ "js/polyfills/browser.js", "js/installStylesheet.js" ],
+			"run_at": "document_end" 
+		}
+	],
+
+	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
+
+	"permissions": [
+		"<all_urls>",
+		"activeTab",
+		"contextMenus",
+		"storage",
+		"tabs",
+		"management",
+		"unlimitedStorage",
+		"webRequest",
+		"webRequestBlocking"
+	],
+
+	"web_accessible_resources": [
+		"js/jquery-2.0.3.js",
+		"js/crmapi.js",
+		"html/install.html",
+		"html/logging.html"
+	],
+
+	"optional_permissions": [
+		"alarms",
+		"bookmarks",
+		"browsingData",
+		"clipboardRead",
+		"clipboardWrite",
+		"contentSettings",
+		"cookies",
+		"declarativeContent",
+		"desktopCapture",
+		"downloads",
+		"history",
+		"identity",
+		"idle",
+		"management",
+		"notifications",
+		"pageCapture",
+		"power",
+		"printerProvider",
+		"privacy",
+		"sessions",
+		"system.cpu",
+		"system.memory",
+		"system.storage",
+		"topSites",
+		"tabCapture",
+		"tts",
+		"webNavigation",
+		"webRequest",
+		"webRequestBlocking"
+	],
+
+	"commands": {
+		"crm_command_01": {
+			"description": "CRM Keyboard Shortcut number 1",
+			"global": true
+		},
+		"crm_command_02": {
+			"description": "CRM Keyboard Shortcut number 2",
+			"global": true
+		},
+		"crm_command_03": {
+			"description": "CRM Keyboard Shortcut number 3",
+			"global": true
+		},
+		"crm_command_04": {
+			"description": "CRM Keyboard Shortcut number 4",
+			"global": true
+		},
+		"crm_command_05": {
+			"description": "CRM Keyboard Shortcut number 5",
+			"global": true
+		},
+		"crm_command_06": {
+			"description": "CRM Keyboard Shortcut number 6",
+			"global": true
+		},
+		"crm_command_07": {
+			"description": "CRM Keyboard Shortcut number 7",
+			"global": true
+		},
+		"crm_command_08": {
+			"description": "CRM Keyboard Shortcut number 8",
+			"global": true
+		},
+		"crm_command_09": {
+			"description": "CRM Keyboard Shortcut number 9",
+			"global": true
+		},
+		"crm_command_10": {
+			"description": "CRM Keyboard Shortcut number 10",
+			"global": true
+		}
+	},
+
+	"incognito": "spanning",
+
+	"icons": {
+		"16": "icon-supersmall.png",
+		"48": "icon-small.png",
+		"128": "icon-large.png"
+	}
+}
