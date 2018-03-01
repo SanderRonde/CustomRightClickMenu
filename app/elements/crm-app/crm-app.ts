@@ -533,6 +533,10 @@ namespace CRMAppElement {
 		}
 
 		private static getChromeVersion() {
+			if (!navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2]) {
+				//Not chrome, that means it's a modern browser
+				return 10000;
+			}
 			return parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
 		}
 
