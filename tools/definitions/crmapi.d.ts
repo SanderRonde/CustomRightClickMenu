@@ -2634,6 +2634,11 @@ declare namespace CRM {
 			onError: Function;
 	
 			/**
+			 * Whether this script is running on the backgroundpage
+			 */
+			isBackground: boolean;
+	
+			/**
 			 * The communications API used to communicate with other scripts and other instances
 			 *
 			 * @type Object
