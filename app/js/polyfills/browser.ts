@@ -141,7 +141,7 @@ namespace BrowserAPI {
 			},
 			onCommand: __chrome.commands.onCommand as Listener<string>
 		} : void 0,
-		contextMenus: {
+		contextMenus: __chrome.contextMenus ? {
 			create(createProperties: {
 				type?: _browser.contextMenus.ItemType,
 				id?: string,
@@ -193,8 +193,8 @@ namespace BrowserAPI {
 					__chrome.contextMenus.removeAll(handler);
 				});
 			}
-		},
-		downloads: {
+		} : void 0,
+		downloads: __chrome.downloads ? {
 			download(options: {
 				url: string,
 				filename?: string,
@@ -208,14 +208,14 @@ namespace BrowserAPI {
 					__chrome.downloads.download(options as any, handler);
 				});
 			}
-		},
-		extension: {
+		} : void 0,
+		extension: __chrome.extension ? {
 			isAllowedFileSchemeAccess(): Promise<boolean> {
 				return createPromise<boolean>((handler) => {
 					__chrome.extension.isAllowedFileSchemeAccess(handler);
 				});
 			}
-		},
+		} : void 0,
 		notifications: __chrome.notifications ? {
 			onClicked: __chrome.notifications.onClicked as Listener<string>,
 			onClosed: __chrome.notifications.onClosed as Listener<string>
@@ -242,7 +242,7 @@ namespace BrowserAPI {
 				});
 			}
 		} : void 0,
-		runtime: {
+		runtime: __chrome.runtime ? {
 			connect(extensionIdOrConnectInfo?: string, connectInfo?: {
 				name?: string;
 				includeTlsChannelId?: boolean
@@ -307,8 +307,8 @@ namespace BrowserAPI {
 			onMessage: (__chrome.runtime.onMessage as any) as EvListener<_browser.runtime.onMessageEvent>,
 			lastError: null as string|null,
 			id: __chrome.runtime.id
-		},
-		storage: {
+		} : void 0,
+		storage: __chrome.storage ? {
 			local: {...genStoragePolyfill('local'), ...{
 				get<T = CRM.StorageLocal>(keys?: string|Array<string>|null): Promise<T> {
 					return createPromise<T>((handler) => {
@@ -333,8 +333,8 @@ namespace BrowserAPI {
 			}},
 			onChanged: __chrome.storage.onChanged as EvListener<(changes: _browser.storage.ChangeDict, 
 				areaName: _browser.storage.StorageName) => void>
-		},
-		tabs: {
+		} : void 0,
+		tabs: __chrome.tabs ? {
 			create(createProperties: {
 				active?: boolean,
 				cookieStoreId?: string,
@@ -456,8 +456,8 @@ namespace BrowserAPI {
 				isWindowClosing: boolean,
 			}) => void>,
 			onHighlighted: (__chrome.tabs.onHighlighted as any) as Listener<{ windowId: number, tabIds: number[] }>
-		},
-		webRequest: {
+		} : void 0,
+		webRequest: __chrome.webRequest ? {
 			onBeforeRequest: (__chrome.webRequest.onBeforeRequest as any) as _browser.webRequest.ReqListener<{
 				requestId: string,
 				url: string,
@@ -474,7 +474,7 @@ namespace BrowserAPI {
 				timeStamp: number,
 				originUrl: string,
 			}, "blocking"|"requestBody">
-		}
+		} : void 0
 	};
 }
 
