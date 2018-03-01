@@ -1,5 +1,3 @@
-const __srcBrowser: typeof _chrome = 'chrome' in window ? (window as any).chrome : {};
-
 declare namespace _browser.runtime {
 	function getManifest(): _chrome.runtime.Manifest;
 }
@@ -16,6 +14,9 @@ declare namespace _browser.storage {
 }
 
 namespace BrowserAPI {
+	const __srcBrowser: typeof _chrome = 'chrome' in window ? 
+		(window as any).chrome : {};
+
 	function checkReject(reject: (err: _chrome.runtime.LastError) => void) {
 		if (__srcBrowser.runtime.lastError) {
 			reject(__srcBrowser.runtime.lastError);
