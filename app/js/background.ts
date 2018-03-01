@@ -1468,7 +1468,7 @@ if (typeof module === 'undefined') {
 			return haystack.split('').reverse().join('').indexOf(needle.split('').reverse().join('')) === 0;
 		}
 		static isTamperMonkeyEnabled(callback: (result: boolean) => void) {
-			if ('chrome' in window) {
+			if ((window as any).chrome && (window as any).chrome.management) {
 				(window as any).chrome.management.getAll((installedExtensions: Array<{
 					id: string;
 					enabled: boolean;
@@ -1802,9 +1802,9 @@ if (typeof module === 'undefined') {
 			globalObject.globals.availablePermissions = available.permissions;
 		}
 		static async refreshPermissions() {
-			if ('chrome' in window) {
+			if ((window as any).chrome && (window as any).chrome.permissions) {
 				const chromePermissions: typeof _chrome.permissions = (window as any).chrome.permissions;
-				if (chromePermissions && 'onRemoved' in chromePermissions && 'onAdded' in chromePermissions) {
+				if ('onRemoved' in chromePermissions && 'onAdded' in chromePermissions) {
 					chromePermissions.onRemoved.addListener(this._permissionsChanged);
 					chromePermissions.onAdded.addListener(this._permissionsChanged);
 				}
@@ -2286,7 +2286,7 @@ if (typeof module === 'undefined') {
 
 			function listenTamperMonkeyInstallState() {
 				updateTamperMonkeyInstallState();
-				if ('chrome' in window) {
+				if ((window as any).chrome && (window as any).chrome.management) {
 					const management: typeof _chrome.management = (window as any).chrome.management as any;
 					management.onInstalled.addListener(updateTamperMonkeyInstallState);
 					management.onEnabled.addListener(updateTamperMonkeyInstallState);
@@ -7798,7 +7798,7 @@ if (typeof module === 'undefined') {
 			}) {
 				try {
 					idHolder.id = browserAPI.contextMenus.create(rightClickItemOptions, () => {
-						if ('chrome' in window) {
+						if ((window as any).chrome && (window as any).chrome.runtime) {
 							const __chrome: typeof _chrome = (window as any).chrome;
 							if (__chrome && __chrome.runtime && __chrome.runtime.lastError) {
 								this._handleContextMenuError(rightClickItemOptions, __chrome.runtime.lastError, idHolder);
