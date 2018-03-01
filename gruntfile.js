@@ -822,6 +822,7 @@ module.exports = function(grunt) {
 
 	//Prepares the extension for hot reloading, developing
 	// through the app/ directory instead and not having to build
+	// make sure to run `yarn install --force` before this
 	grunt.registerTask('prepareForHotReload', ['crisper:components',
 		'copy:monacoTemp', 'string-replace:patchDevMonaco', 
 		'jsbeautifier:beautifyMonaco', 'copy:tsEmbedDev', 
