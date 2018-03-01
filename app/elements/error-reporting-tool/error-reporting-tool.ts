@@ -379,6 +379,9 @@ namespace ErrorReportingToolElement {
 		}
 
 		private static async _downloadFiles(this: ErrorReportingTool) {
+			if (!('downloads' in browser)) {
+				return false;
+			}
 			await browser.downloads.download({
 				url: this.image,
 				filename: 'screencap.png'
@@ -394,6 +397,7 @@ namespace ErrorReportingToolElement {
 					filename: 'settings.txt' //Downloads as text because github doesn't allow JSON uploads
 				});
 			}
+			return true;
 		};
 
 		private static _hideCheckmark(this: ErrorReportingTool) {
@@ -420,10 +424,19 @@ namespace ErrorReportingToolElement {
 		private static _getDownloadPermission(this: ErrorReportingTool) {
 			//Download the files
 			return new Promise<boolean>(async (resolve) => {
+				if ('downloads' in browser && 'download' in browser.downloads) {
+					return resolve(true);
+				}
+
+				if (!('permissions' in browser)) {
+					window.app.util.showToast('Your browser does not support asking for the download permission');
+					return resolve(false);
+				}
+
 				const granted = await browser.permissions.request({
 					permissions: ['downloads']
 				});
-				if (granted) {
+				if (granted && 'downloads' in browser) {
 					window.errorReportingTool.$.errorReportingDialog.close();
 					resolve(granted);
 
@@ -445,7 +458,10 @@ namespace ErrorReportingToolElement {
 			if (!granted) {
 				return;
 			}
-			await this._downloadFiles();
+			if (!await this._downloadFiles()) {
+				window.app.util.showToast('Your browser does not support the downloads API');
+				return;
+			}
 			//Take the user to the github page
 			const messageBody = 'WRITE MESSAGE HERE\n';
 			const title = (this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + 'TITLE HERE';

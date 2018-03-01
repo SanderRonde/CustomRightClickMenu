@@ -219,8 +219,8 @@ namespace BrowserAPI {
 		notifications: __chrome.notifications ? {
 			onClicked: __chrome.notifications.onClicked as Listener<string>,
 			onClosed: __chrome.notifications.onClosed as Listener<string>
-		} : null,
-		permissions: {
+		} : void 0,
+		permissions: __chrome.permissions ? {
 			contains(permissions: _browser.permissions.Permissions) {
 				return createPromise<boolean>((handler) => {
 					__chrome.permissions.contains(permissions, handler);
@@ -241,7 +241,7 @@ namespace BrowserAPI {
 					__chrome.permissions.remove(permissions, handler);
 				});
 			}
-		},
+		} : void 0,
 		runtime: {
 			connect(extensionIdOrConnectInfo?: string, connectInfo?: {
 				name?: string;

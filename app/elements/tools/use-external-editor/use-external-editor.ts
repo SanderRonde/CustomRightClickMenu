@@ -469,7 +469,7 @@ namespace UseExternalEditorElement {
 
 			const manager = window.codeEditBehavior.getEditor();
 			if (manager.isTextarea(manager.getEditorAsMonaco())) {
-				window.app.util.showUpdateChromeMessage();
+				window.app.util.showToast('Please update your chrome (at least chrome 30) to use this feature');
 				return;
 			}
 

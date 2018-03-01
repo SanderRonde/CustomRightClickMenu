@@ -266,20 +266,26 @@ namespace InstallConfirmElement {
 			if (checkbox.checked) {
 				const permission = checkbox.getAttribute('permission');
 				if (this._isManifestPermissions(permission as CRM.Permission)) {
-					const permissions = await browser.permissions.getAll();
-						const allowed = permissions.permissions;
-						if (allowed.indexOf(permission as _browser.permissions.Permission) === -1) {
-							try {
-								const granted = await browser.permissions.request({
-									permissions: [permission as _browser.permissions.Permission]
-								});
-								if (!granted) {
-									checkbox.checked = false;
-								}
-							} catch (e) {
-								//Is not a valid requestable permission
+					const { permissions } = 'permissions' in browser ? await browser.permissions.getAll() : {
+						permissions: []
+					};
+					if (permissions.indexOf(permission as _browser.permissions.Permission) === -1) {
+						try {
+							if (!('permissions' in browser)) {
+								window.app.util.showToast(`Not asking for permission ${permission} as your browser does not support asking for permissions`);
+								return;
 							}
+
+							const granted = await browser.permissions.request({
+								permissions: [permission as _browser.permissions.Permission]
+							});
+							if (!granted) {
+								checkbox.checked = false;
+							}
+						} catch (e) {
+							//Is not a valid requestable permission
 						}
+					}
 				}
 			}
 		};

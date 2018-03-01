@@ -314,6 +314,11 @@ namespace ScriptEditElement {
 						const slider = requestPermissionButton;
 						if (requestPermissionButton.checked) {
 							if (Array.prototype.slice.apply(extensionWideEnabledPermissions).indexOf(permission) === -1) {
+								if (!('permissions' in browser)) {
+									window.app.util.showToast(`Not asking for permission ${permission} as your browser does not support asking for permissions`);
+									return;
+								}
+
 								browser.permissions.request({
 									permissions: [permission as _browser.permissions.Permission]
 								}).then((accepted) => {
@@ -348,20 +353,25 @@ namespace ScriptEditElement {
 				});
 			}
 
-		static openPermissionsDialog(this: NodeEditBehaviorScriptInstance, item: Polymer.ClickEvent|CRM.ScriptNode,
-				callback: () => void) {
-			let nodeItem: CRM.ScriptNode;
-			let settingsStorage: Partial<CRM.ScriptNode>;
-			if (!item || item.type === 'tap') {
-				//It's an event, ignore it
-				nodeItem = this.item;
-				settingsStorage = this.newSettings;
-			} else {
-				nodeItem = item as CRM.ScriptNode;
-				settingsStorage = item as CRM.ScriptNode;
-			}
-			//Prepare all permissions
-			browser.permissions.getAll().then(({permissions}) => {
+		static openPermissionsDialog(this: NodeEditBehaviorScriptInstance, item: Polymer.ClickEvent|CRM.ScriptNode) {
+			return new Promise(async (resolve) => {
+				let nodeItem: CRM.ScriptNode;
+				let settingsStorage: Partial<CRM.ScriptNode>;
+				if (!item || item.type === 'tap') {
+					//It's an event, ignore it
+					nodeItem = this.item;
+					settingsStorage = this.newSettings;
+				} else {
+					nodeItem = item as CRM.ScriptNode;
+					settingsStorage = item as CRM.ScriptNode;
+				}
+				//Prepare all permissions
+				const { permissions } = 'permissions' in browser ? await browser.permissions.getAll() : {
+					permissions: []
+				};
+				if (!('permissions' in browser)) {
+					window.app.util.showToast('Not toggling for browser permissions as your browser does not support them');
+				}
 				if (!nodeItem.permissions) {
 					nodeItem.permissions = [];
 				}
@@ -432,7 +442,9 @@ namespace ScriptEditElement {
 				scriptPermissionDialog.addEventListener('iron-overlay-opened', () => {
 					this._onPermissionsDialogOpen(permissions, settingsStorage);
 				});
-				scriptPermissionDialog.addEventListener('iron-overlay-closed', callback);
+				scriptPermissionDialog.addEventListener('iron-overlay-closed', () => {
+					resolve(null);
+				});
 				scriptPermissionDialog.open();
 			});
 		};

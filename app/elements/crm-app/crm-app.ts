@@ -644,12 +644,11 @@ namespace CRMAppElement {
 			}
 		};
 
-		private static _runDialogsForImportedScripts(this: CrmApp, nodesToAdd: Array<CRM.Node>, dialogs: Array<CRM.ScriptNode>) {
+		private static async _runDialogsForImportedScripts(this: CrmApp, nodesToAdd: Array<CRM.Node>, dialogs: Array<CRM.ScriptNode>) {
 			if (dialogs[0]) {
 				const script = dialogs.splice(0, 1)[0];
-				window.scriptEdit.openPermissionsDialog(script, () => {
-					this._runDialogsForImportedScripts(nodesToAdd, dialogs);
-				});
+				await window.scriptEdit.openPermissionsDialog(script);
+				await this._runDialogsForImportedScripts(nodesToAdd, dialogs);
 			} else {
 				this._addImportedNodes(nodesToAdd);
 			}
@@ -676,10 +675,129 @@ namespace CRMAppElement {
 			return string.split('').reverse().join('');
 		};
 
+		private static _genRequestPermissionsHandler(this: CrmApp, overlay: HTMLPaperDialogElement, toRequest: Array<CRM.Permission>) {
+			const fn = () => {
+				let el: HTMLElement & {
+					animation?: {
+						reverse?(): void;
+					}
+				}, svg;
+				overlay.style.maxHeight = 'initial!important';
+				overlay.style.top = 'initial!important';
+				overlay.removeEventListener('iron-overlay-opened', fn);
+				$(window.app.util.getQuerySlot()(overlay, '.requestPermissionsShowBot')).off('click').on('click', function (this: HTMLElement) {
+					el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
+					svg = $(this).find('.requestPermissionsSvg')[0];
+					if ((svg as any).__rotated) {
+						window.setTransform(svg, 'rotate(90deg)');
+						(svg as any).rotated = false;
+					} else {
+						window.setTransform(svg, 'rotate(270deg)');
+						(svg as any).rotated = true;
+					}
+					if (el.animation && el.animation.reverse) {
+						el.animation.reverse();
+					} else {
+						el.animation = el.animate([
+							{
+								height: 0
+							}, {
+								height: el.scrollHeight + 'px'
+							}
+						], {
+							duration: 250,
+							easing: 'bez',
+							fill: 'both'
+						});
+					}
+				});
+				$(this.shadowRoot.querySelectorAll('#requestPermissionsShowOther')).off('click').on('click', function (this: HTMLElement) {
+					const showHideSvg = this;
+					const otherPermissions = $(this).parent().parent().parent().children('#requestPermissionsOther')[0];
+					if (!otherPermissions.style.height || otherPermissions.style.height === '0px') {
+						$(otherPermissions).animate({
+							height: otherPermissions.scrollHeight + 'px'
+						}, 350, function () {
+							(showHideSvg.children[0] as HTMLElement).style.display = 'none';
+							(showHideSvg.children[1] as HTMLElement).style.display = 'block';
+						});
+					} else {
+						$(otherPermissions).animate({
+							height: 0
+						}, 350, function () {
+							(showHideSvg.children[0] as HTMLElement).style.display = 'block';
+							(showHideSvg.children[1] as HTMLElement).style.display = 'none';
+						});
+					}
+				});
+
+				let permission: string;
+				$(this.shadowRoot.querySelectorAll('.requestPermissionButton')).off('click').on('click', function (this: HTMLPaperCheckboxElement) {
+					permission = this.previousElementSibling.previousElementSibling.textContent;
+					const slider = this;
+					if (this.checked) {
+						try {
+							browser.permissions.request({
+								permissions: [permission as _browser.permissions.Permission]
+							}).then((accepted) => {
+								if (!accepted) {
+									//The user didn't accept, don't pretend it's active when it's not, turn it off
+									slider.checked = false;
+								} else {
+									//Accepted, remove from to-request permissions
+									browser.storage.local.get<CRM.StorageLocal>().then((e) => {
+										const permissionsToRequest = e.requestPermissions;
+										permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
+										browser.storage.local.set({
+											requestPermissions: permissionsToRequest
+										});
+									});
+								}
+							});
+						} catch (e) {
+							//Accepted, remove from to-request permissions
+							browser.storage.local.get<CRM.StorageLocal>().then((e) => {
+								const permissionsToRequest = e.requestPermissions;
+								permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
+								browser.storage.local.set({
+									requestPermissions: permissionsToRequest
+								});
+							});
+						}
+					} else {
+						browser.permissions.remove({
+							permissions: [permission as _browser.permissions.Permission]
+						}).then((removed) => {
+							if (!removed) {
+								//It didn't get removed
+								slider.checked = true;
+							}
+						});
+					}
+				});
+
+				$(this.shadowRoot.querySelectorAll('#requestPermissionsAcceptAll')).off('click').on('click', function () {
+					browser.permissions.request({
+						permissions: toRequest as Array<_browser.permissions.Permission>
+					}).then((accepted) => {
+						if (accepted) {
+							browser.storage.local.set({
+								requestPermissions: []
+							});
+							$('.requestPermissionButton.required').each(function (this: HTMLPaperCheckboxElement) {
+								this.checked = true;
+							});
+						}
+					});
+				});
+			}
+			return fn;
+		}
+
 		/**
 		 * Shows the user a dialog and asks them to allow/deny those permissions
 		 */
-		private static _requestPermissions(this: CrmApp, toRequest: Array<CRM.Permission>,
+		private static async _requestPermissions(this: CrmApp, toRequest: Array<CRM.Permission>,
 			force: boolean = false) {
 			let i;
 			let index;
@@ -699,187 +817,72 @@ namespace CRMAppElement {
 			});
 
 			if (toRequest.length > 0 || force) {
-				browser.permissions.getAll().then((allowed) => {
-					const requested: Array<{
-						name: string;
-						description: string;
-						toggled: boolean;
-					}> = [];
-					for (i = 0; i < toRequest.length; i++) {
-						requested.push({
-							name: toRequest[i],
-							description: this.templates.getPermissionDescription(toRequest[i]),
-							toggled: false
-						});
-					}
+				const allowed = 'permissions' in browser ? await browser.permissions.getAll() : {
+					permissions: []
+				};
+				const requested: Array<{
+					name: string;
+					description: string;
+					toggled: boolean;
+				}> = [];
+				for (i = 0; i < toRequest.length; i++) {
+					requested.push({
+						name: toRequest[i],
+						description: this.templates.getPermissionDescription(toRequest[i]),
+						toggled: false
+					});
+				}
 
-					const other: Array<{
-						name: string;
-						description: string;
-						toggled: boolean;
-					}> = [];
-					for (i = 0; i < allPermissions.length; i++) {
-						other.push({
-							name: allPermissions[i],
-							description: this.templates.getPermissionDescription(allPermissions[i]),
-							toggled: (allowed.permissions.indexOf((allPermissions as Array<_browser.permissions.Permission>)[i]) > -1)
-						});
-					}
-					const requestPermissionsOther = this.$$('#requestPermissionsOther');
+				const other: Array<{
+					name: string;
+					description: string;
+					toggled: boolean;
+				}> = [];
+				for (i = 0; i < allPermissions.length; i++) {
+					other.push({
+						name: allPermissions[i],
+						description: this.templates.getPermissionDescription(allPermissions[i]),
+						toggled: (allowed.permissions.indexOf((allPermissions as Array<_browser.permissions.Permission>)[i]) > -1)
+					});
+				}
+				const requestPermissionsOther = this.$$('#requestPermissionsOther');
 
-					let overlay: HTMLPaperDialogElement;
+				let overlay: HTMLPaperDialogElement;
 
-					function handler(this: CrmApp) {
-						let el: HTMLElement & {
-							animation?: {
-								reverse?(): void;
-							}
-						}, svg;
-						overlay.style.maxHeight = 'initial!important';
-						overlay.style.top = 'initial!important';
-						overlay.removeEventListener('iron-overlay-opened', handler);
-						$(window.app.util.getQuerySlot()(overlay, '.requestPermissionsShowBot')).off('click').on('click', function (this: HTMLElement) {
-							el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
-							svg = $(this).find('.requestPermissionsSvg')[0];
-							if ((svg as any).__rotated) {
-								window.setTransform(svg, 'rotate(90deg)');
-								(svg as any).rotated = false;
-							} else {
-								window.setTransform(svg, 'rotate(270deg)');
-								(svg as any).rotated = true;
-							}
-							if (el.animation && el.animation.reverse) {
-								el.animation.reverse();
-							} else {
-								el.animation = el.animate([
-									{
-										height: 0
-									}, {
-										height: el.scrollHeight + 'px'
-									}
-								], {
-									duration: 250,
-									easing: 'bez',
-									fill: 'both'
-								});
-							}
-						});
-						$(this.shadowRoot.querySelectorAll('#requestPermissionsShowOther')).off('click').on('click', function (this: HTMLElement) {
-							const showHideSvg = this;
-							const otherPermissions = $(this).parent().parent().parent().children('#requestPermissionsOther')[0];
-							if (!otherPermissions.style.height || otherPermissions.style.height === '0px') {
-								$(otherPermissions).animate({
-									height: otherPermissions.scrollHeight + 'px'
-								}, 350, function () {
-									(showHideSvg.children[0] as HTMLElement).style.display = 'none';
-									(showHideSvg.children[1] as HTMLElement).style.display = 'block';
-								});
-							} else {
-								$(otherPermissions).animate({
-									height: 0
-								}, 350, function () {
-									(showHideSvg.children[0] as HTMLElement).style.display = 'block';
-									(showHideSvg.children[1] as HTMLElement).style.display = 'none';
-								});
-							}
-						});
+				const handler = this._genRequestPermissionsHandler(overlay, toRequest);
 
-						let permission: string;
-						$(this.shadowRoot.querySelectorAll('.requestPermissionButton')).off('click').on('click', function (this: HTMLPaperCheckboxElement) {
-							permission = this.previousElementSibling.previousElementSibling.textContent;
-							const slider = this;
-							if (this.checked) {
-								try {
-									browser.permissions.request({
-										permissions: [permission as _browser.permissions.Permission]
-									}).then((accepted) => {
-										if (!accepted) {
-											//The user didn't accept, don't pretend it's active when it's not, turn it off
-											slider.checked = false;
-										} else {
-											//Accepted, remove from to-request permissions
-											browser.storage.local.get<CRM.StorageLocal>().then((e) => {
-												const permissionsToRequest = e.requestPermissions;
-												permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
-												browser.storage.local.set({
-													requestPermissions: permissionsToRequest
-												});
-											});
-										}
-									});
-								} catch (e) {
-									//Accepted, remove from to-request permissions
-									browser.storage.local.get<CRM.StorageLocal>().then((e) => {
-										const permissionsToRequest = e.requestPermissions;
-										permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
-										browser.storage.local.set({
-											requestPermissions: permissionsToRequest
-										});
-									});
+				const interval = window.setInterval(() => {
+					try {
+						const centerer = window.doc.requestPermissionsCenterer as CenterElement;
+						overlay = window.app.util.getQuerySlot()(centerer)[0] as HTMLPaperDialogElement
+						if (overlay.open) {
+							window.clearInterval(interval);
+							const innerOverlay = window.app.util.getQuerySlot()(overlay)[0] as HTMLElement;
+							window.app.$.requestedPermissionsTemplate.items = requested;
+							window.app.$.requestedPermissionsOtherTemplate.items = other;
+							overlay.addEventListener('iron-overlay-opened', handler);
+							setTimeout(function () {
+								const requestedPermissionsCont = innerOverlay.querySelector('#requestedPermissionsCont');
+								const requestedPermissionsAcceptAll = innerOverlay.querySelector('#requestPermissionsAcceptAll');
+								const requestedPermissionsType = innerOverlay.querySelector('.requestPermissionsType');
+								if (requested.length === 0) {
+									requestedPermissionsCont.style.display = 'none';
+									requestPermissionsOther.style.height = (31 * other.length) + 'px';
+									requestedPermissionsAcceptAll.style.display = 'none';
+									requestedPermissionsType.style.display = 'none';
+								} else {
+									requestedPermissionsCont.style.display = 'block';
+									requestPermissionsOther.style.height = '0';
+									requestedPermissionsAcceptAll.style.display = 'block';
+									requestedPermissionsType.style.display = 'block';
 								}
-							} else {
-								browser.permissions.remove({
-									permissions: [permission as _browser.permissions.Permission]
-								}).then((removed) => {
-									if (!removed) {
-										//It didn't get removed
-										slider.checked = true;
-									}
-								});
-							}
-						});
-
-						$(this.shadowRoot.querySelectorAll('#requestPermissionsAcceptAll')).off('click').on('click', function () {
-							browser.permissions.request({
-								permissions: toRequest as Array<_browser.permissions.Permission>
-							}).then((accepted) => {
-								if (accepted) {
-									browser.storage.local.set({
-										requestPermissions: []
-									});
-									$('.requestPermissionButton.required').each(function (this: HTMLPaperCheckboxElement) {
-										this.checked = true;
-									});
-								}
-							});
-						});
-					}
-
-					const interval = window.setInterval(() => {
-						try {
-							const centerer = window.doc.requestPermissionsCenterer as CenterElement;
-							overlay = window.app.util.getQuerySlot()(centerer)[0] as HTMLPaperDialogElement
-							if (overlay.open) {
-								window.clearInterval(interval);
-								const innerOverlay = window.app.util.getQuerySlot()(overlay)[0] as HTMLElement;
-								window.app.$.requestedPermissionsTemplate.items = requested;
-								window.app.$.requestedPermissionsOtherTemplate.items = other;
-								overlay.addEventListener('iron-overlay-opened', () => {
-									handler.apply(this);
-								});
-								setTimeout(function () {
-									const requestedPermissionsCont = innerOverlay.querySelector('#requestedPermissionsCont');
-									const requestedPermissionsAcceptAll = innerOverlay.querySelector('#requestPermissionsAcceptAll');
-									const requestedPermissionsType = innerOverlay.querySelector('.requestPermissionsType');
-									if (requested.length === 0) {
-										requestedPermissionsCont.style.display = 'none';
-										requestPermissionsOther.style.height = (31 * other.length) + 'px';
-										requestedPermissionsAcceptAll.style.display = 'none';
-										requestedPermissionsType.style.display = 'none';
-									} else {
-										requestedPermissionsCont.style.display = 'block';
-										requestPermissionsOther.style.height = '0';
-										requestedPermissionsAcceptAll.style.display = 'block';
-										requestedPermissionsType.style.display = 'block';
-									}
-									overlay.open();
-								}, 0);
-							}
-						} catch (e) {
-							//Somehow the element doesn't exist yet
+								overlay.open();
+							}, 0);
 						}
-					}, 100);
-				});
+					} catch (e) {
+						//Somehow the element doesn't exist yet
+					}
+				}, 100);
 			}
 		};
 
@@ -1038,8 +1041,8 @@ namespace CRMAppElement {
 			//Reset storages
 
 			//On a demo or test page right now, use background page to init settings
-			window.Storages.loadStorages(() => {
-				this._setup.setupStorages();
+			window.Storages.loadStorages(async () => {
+				await this._setup.setupStorages();
 
 				//Reset checkboxes
 				this._setup.initCheckboxes(window.app.storageLocal);
@@ -1590,7 +1593,7 @@ namespace CRMAppElement {
 			});
 
 			this._setup.setupLoadingBar().then(() => {
-				this._setup.setupStorages.apply(this._setup);
+				this._setup.setupStorages();
 			});
 
 			this.show = false;
@@ -2007,209 +2010,210 @@ namespace CRMAppElement {
 				});
 			};
 
-			static setupStorages() {
+			static async setupStorages() {
 				const parent = this.parent();
-				browser.storage.local.get<CRM.StorageLocal>().then((storageLocal: CRM.StorageLocal & {
+				const storageLocal = await browser.storage.local.get<CRM.StorageLocal & {
 					nodeStorage: any;
 					settings?: CRM.SettingsStorage;
-				}) => {
-					function callback(items: CRM.SettingsStorage) {
-						parent.settings = items;
-						parent._settingsCopy = JSON.parse(JSON.stringify(items));
-						window.app.editCRM.$.rootCRMItem.updateName(items.rootName);
-						for (let i = 0; i < parent.onSettingsReadyCallbacks.length; i++) {
-							parent.onSettingsReadyCallbacks[i].callback.apply(
-								parent.onSettingsReadyCallbacks[i].thisElement,
-								parent.onSettingsReadyCallbacks[i].params);
-						}
-						parent.updateEditorZoom();
-						parent._setup.orderNodesById(items.crm);
-						parent._setup.buildNodePaths(items.crm, []);
-						if (parent.settings.latestId) {
-							parent._latestId = items.latestId;
-						} else {
-							parent._latestId = 0;
-						}
-						window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal
-							.CRMOnPage);
-						if (parent._isDemo()) {
-							window.doc.CRMOnPage.toggled = true;
-							window.app.setLocal('CRMOnPage', true);
-							window.doc.CRMOnPage.setCheckboxDisabledValue(true);
-							parent.pageDemo.create()
-						} else {
-							storageLocal.CRMOnPage && parent.pageDemo.create();
-						}
+				}>();
+				function callback(items: CRM.SettingsStorage) {
+					parent.settings = items;
+					parent._settingsCopy = JSON.parse(JSON.stringify(items));
+					window.app.editCRM.$.rootCRMItem.updateName(items.rootName);
+					for (let i = 0; i < parent.onSettingsReadyCallbacks.length; i++) {
+						parent.onSettingsReadyCallbacks[i].callback.apply(
+							parent.onSettingsReadyCallbacks[i].thisElement,
+							parent.onSettingsReadyCallbacks[i].params);
 					}
+					parent.updateEditorZoom();
+					parent._setup.orderNodesById(items.crm);
+					parent._setup.buildNodePaths(items.crm, []);
+					if (parent.settings.latestId) {
+						parent._latestId = items.latestId;
+					} else {
+						parent._latestId = 0;
+					}
+					window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal
+						.CRMOnPage);
+					if (parent._isDemo()) {
+						window.doc.CRMOnPage.toggled = true;
+						window.app.setLocal('CRMOnPage', true);
+						window.doc.CRMOnPage.setCheckboxDisabledValue(true);
+						parent.pageDemo.create()
+					} else {
+						storageLocal.CRMOnPage && parent.pageDemo.create();
+					}
+				}
 
-					Array.prototype.slice.apply(parent.shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
-						setting.init(storageLocal);
+				Array.prototype.slice.apply(parent.shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
+					setting.init(storageLocal);
+				});
+
+				parent._setup._bindListeners();
+				delete storageLocal.nodeStorage;
+				if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
+					if ('permissions' in browser) {
+						await parent._requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
+					}
+				}
+				if (storageLocal.editing) {
+					const editing = storageLocal.editing;
+					setTimeout(function () {
+						//Check out if the code is actually different
+						const node = parent._nodesById[editing.id] as CRM.ScriptNode | CRM.StylesheetNode;
+						const nodeCurrentCode = (node.type === 'script' ? node.value.script :
+							node.value.stylesheet);
+						if (nodeCurrentCode.trim() !== editing.val.trim()) {
+							parent._setup._restoreUnsavedInstances(editing);
+						} else {
+							browser.storage.local.set({
+								editing: null
+							});
+						}
+					}, 2500);
+				}
+				if (storageLocal.selectedCrmType !== undefined) {
+					parent.crmType = storageLocal.selectedCrmType;
+					parent._setup.switchToIcons(storageLocal.selectedCrmType);
+				} else {
+					browser.storage.local.set({
+						selectedCrmType: 0
+					});
+					parent.crmType = 0;
+					parent._setup.switchToIcons(0);
+				}
+				if (storageLocal.jsLintGlobals) {
+					parent.jsLintGlobals = storageLocal.jsLintGlobals;
+				} else {
+					parent.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
+					browser.storage.local.set({
+						jsLintGlobals: parent.jsLintGlobals
+					});
+				}
+				if (storageLocal.globalExcludes && storageLocal.globalExcludes.length >
+					1) {
+					parent.globalExcludes = storageLocal.globalExcludes;
+				} else {
+					parent.globalExcludes = [''];
+					browser.storage.local.set({
+						globalExcludes: parent.globalExcludes
+					});
+				}
+				if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
+					window.setTimeout(function () {
+						(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).tab = 0;
+						(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).maxTabs =
+							storageLocal.addedPermissions.length;
+						window.doc.addedPermissionsTabRepeater.items =
+							storageLocal.addedPermissions;
+
+						if (storageLocal.addedPermissions.length === 1) {
+							(window.doc.addedPermissionNextButton.querySelector('.next') as HTMLElement)
+								.style.display = 'none';
+						} else {
+							(window.doc.addedPermissionNextButton.querySelector('.close') as HTMLElement)
+								.style.display = 'none';
+						}
+						window.doc.addedPermissionPrevButton.style.display = 'none';
+						window.doc.addedPermissionsTabRepeater.render();
+						window.doc.addedPermissionsDialog.open();
+						browser.storage.local.set({
+							addedPermissions: null
+						});
+					}, 2500);
+				}
+				if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
+					parent.$.scriptUpdatesToast.text = parent._getUpdatedScriptString(
+						storageLocal.updatedScripts[0]);
+					parent.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
+					parent.$.scriptUpdatesToast.index = 0;
+					parent.$.scriptUpdatesToast.show();
+
+					if (storageLocal.updatedScripts.length > 1) {
+						parent.$.nextScriptUpdateButton.style.display = 'inline';
+					} else {
+						parent.$.nextScriptUpdateButton.style.display = 'none';
+					}
+					browser.storage.local.set({
+						updatedScripts: []
+					});
+					storageLocal.updatedScripts = [];
+				}
+				if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.wasUpdated) {
+					const versionData = storageLocal.settingsVersionData;
+					versionData.wasUpdated = false;
+					browser.storage.local.set({
+						settingsVersionData: versionData
 					});
 
-					parent._setup._bindListeners();
-					delete storageLocal.nodeStorage;
-					if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
-						parent._requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
-					}
-					if (storageLocal.editing) {
-						const editing = storageLocal.editing;
-						setTimeout(function () {
-							//Check out if the code is actually different
-							const node = parent._nodesById[editing.id] as CRM.ScriptNode | CRM.StylesheetNode;
-							const nodeCurrentCode = (node.type === 'script' ? node.value.script :
-								node.value.stylesheet);
-							if (nodeCurrentCode.trim() !== editing.val.trim()) {
-								parent._setup._restoreUnsavedInstances(editing);
-							} else {
-								browser.storage.local.set({
-									editing: null
-								});
-							}
-						}, 2500);
-					}
-					if (storageLocal.selectedCrmType !== undefined) {
-						parent.crmType = storageLocal.selectedCrmType;
-						parent._setup.switchToIcons(storageLocal.selectedCrmType);
-					} else {
-						browser.storage.local.set({
-							selectedCrmType: 0
-						});
-						parent.crmType = 0;
-						parent._setup.switchToIcons(0);
-					}
-					if (storageLocal.jsLintGlobals) {
-						parent.jsLintGlobals = storageLocal.jsLintGlobals;
-					} else {
-						parent.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-						browser.storage.local.set({
-							jsLintGlobals: parent.jsLintGlobals
-						});
-					}
-					if (storageLocal.globalExcludes && storageLocal.globalExcludes.length >
-						1) {
-						parent.globalExcludes = storageLocal.globalExcludes;
-					} else {
-						parent.globalExcludes = [''];
-						browser.storage.local.set({
-							globalExcludes: parent.globalExcludes
-						});
-					}
-					if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
-						window.setTimeout(function () {
-							(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).tab = 0;
-							(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).maxTabs =
-								storageLocal.addedPermissions.length;
-							window.doc.addedPermissionsTabRepeater.items =
-								storageLocal.addedPermissions;
+					const toast = window.doc.updatedSettingsToast;
+					toast.text = 'Settings were updated to those on ' + new Date(
+						versionData.latest.date
+					).toLocaleDateString();
+					toast.show();
+				}
 
-							if (storageLocal.addedPermissions.length === 1) {
-								(window.doc.addedPermissionNextButton.querySelector('.next') as HTMLElement)
-									.style.display = 'none';
-							} else {
-								(window.doc.addedPermissionNextButton.querySelector('.close') as HTMLElement)
-									.style.display = 'none';
-							}
-							window.doc.addedPermissionPrevButton.style.display = 'none';
-							window.doc.addedPermissionsTabRepeater.render();
-							window.doc.addedPermissionsDialog.open();
+				if (storageLocal.isTransfer) {
+					browser.storage.local.set({
+						isTransfer: false
+					});
+					window.doc.versionUpdateDialog.open();
+				}
+
+				parent.storageLocal = storageLocal;
+				parent._storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
+				if (storageLocal.useStorageSync) {
+					//Parse the data before sending it to the callback
+					browser.storage.sync.get().then((storageSync: any) => {
+						const sync = storageSync as {
+							[key: string]: string
+						} & {
+							indexes: Array<string>;
+						};
+						let indexes = sync.indexes;
+						if (!indexes) {
 							browser.storage.local.set({
-								addedPermissions: null
+								useStorageSync: false
 							});
-						}, 2500);
-					}
-					if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
-						parent.$.scriptUpdatesToast.text = parent._getUpdatedScriptString(
-							storageLocal.updatedScripts[0]);
-						parent.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
-						parent.$.scriptUpdatesToast.index = 0;
-						parent.$.scriptUpdatesToast.show();
-
-						if (storageLocal.updatedScripts.length > 1) {
-							parent.$.nextScriptUpdateButton.style.display = 'inline';
+							callback(storageLocal.settings);
 						} else {
-							parent.$.nextScriptUpdateButton.style.display = 'none';
+							const settingsJsonArray: Array<string> = [];
+							indexes.forEach(function (index) {
+								settingsJsonArray.push(sync[index]);
+							});
+							const jsonString = settingsJsonArray.join('');
+							parent.settingsJsonLength = jsonString.length;
+							const settings = JSON.parse(jsonString);
+							callback(settings);
 						}
+					});
+				} else {
+					//Send the "settings" object on the storage.local to the callback
+					parent.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
+					if (!storageLocal.settings) {
 						browser.storage.local.set({
-							updatedScripts: []
+							useStorageSync: true
 						});
-						storageLocal.updatedScripts = [];
-					}
-					if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.wasUpdated) {
-						const versionData = storageLocal.settingsVersionData;
-						versionData.wasUpdated = false;
-						browser.storage.local.set({
-							settingsVersionData: versionData
-						});
-
-						const toast = window.doc.updatedSettingsToast;
-						toast.text = 'Settings were updated to those on ' + new Date(
-							versionData.latest.date
-						).toLocaleDateString();
-						toast.show();
-					}
-
-					if (storageLocal.isTransfer) {
-						browser.storage.local.set({
-							isTransfer: false
-						});
-						window.doc.versionUpdateDialog.open();
-					}
-
-					parent.storageLocal = storageLocal;
-					parent._storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
-					if (storageLocal.useStorageSync) {
-						//Parse the data before sending it to the callback
 						browser.storage.sync.get().then((storageSync: any) => {
 							const sync = storageSync as {
 								[key: string]: string
 							} & {
 								indexes: Array<string>;
 							};
-							let indexes = sync.indexes;
-							if (!indexes) {
-								browser.storage.local.set({
-									useStorageSync: false
-								});
-								callback(storageLocal.settings);
-							} else {
-								const settingsJsonArray: Array<string> = [];
-								indexes.forEach(function (index) {
-									settingsJsonArray.push(sync[index]);
-								});
-								const jsonString = settingsJsonArray.join('');
-								parent.settingsJsonLength = jsonString.length;
-								const settings = JSON.parse(jsonString);
-								callback(settings);
-							}
+							const indexes = sync.indexes;
+							const settingsJsonArray: Array<string> = [];
+							indexes.forEach(function (index) {
+								settingsJsonArray.push(sync[index]);
+							});
+							const jsonString = settingsJsonArray.join('');
+							parent.settingsJsonLength = jsonString.length;
+							const settings = JSON.parse(jsonString);
+							callback(settings);
 						});
 					} else {
-						//Send the "settings" object on the storage.local to the callback
-						parent.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
-						if (!storageLocal.settings) {
-							browser.storage.local.set({
-								useStorageSync: true
-							});
-							browser.storage.sync.get().then((storageSync: any) => {
-								const sync = storageSync as {
-									[key: string]: string
-								} & {
-									indexes: Array<string>;
-								};
-								const indexes = sync.indexes;
-								const settingsJsonArray: Array<string> = [];
-								indexes.forEach(function (index) {
-									settingsJsonArray.push(sync[index]);
-								});
-								const jsonString = settingsJsonArray.join('');
-								parent.settingsJsonLength = jsonString.length;
-								const settings = JSON.parse(jsonString);
-								callback(settings);
-							});
-						} else {
-							callback(storageLocal.settings);
-						}
+						callback(storageLocal.settings);
 					}
-				});
+				}
 			};
 
 			static setupLoadingBar(): Promise<void> {
@@ -3299,8 +3303,12 @@ namespace CRMAppElement {
 				window.doc.cssEditorInfoDialog.open();
 			};
 
-			static showManagePermissions() {
-				this.parent()._requestPermissions([], true);
+			static async showManagePermissions() {
+				if ('permissions' in browser) {
+					await this.parent()._requestPermissions([], true);
+				} else {
+					window.app.util.showToast('Your browser does not support requesting permissions');
+				}
 			};
 
 			static iconSwitch(e: Polymer.ClickEvent, type: {
@@ -3373,7 +3381,32 @@ namespace CRMAppElement {
 				}
 			};
 
-			static _generateRegexFile() {
+			private static _getDownloadPermission() {
+				return new Promise<boolean>(async (resolve) => {
+					if ('downloads' in browser && 'download' in browser.downloads) {
+						return resolve(true);
+					}
+
+					if (!('permissions' in browser)) {
+						window.app.util.showToast('Your browser does not support asking for the download permission');
+						return resolve(false);
+					}
+
+					const granted = await browser.permissions.contains({
+						permissions: ['downloads']
+					});
+					if (granted) {
+						resolve(true);
+					} else {
+						const allowed = await browser.permissions.request({
+							permissions: ['downloads']
+						});
+						resolve(allowed);
+					}
+				});
+			}
+
+			static async _generateRegexFile() {
 				const filePath = this.parent().$.URISchemeFilePath.$$('input').value.replace(/\\/g, '\\\\');
 				const schemeName = this.parent().$.URISchemeSchemeName.$$('input').value;
 
@@ -3391,25 +3424,17 @@ namespace CRMAppElement {
 					'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open\\command]',
 					'@="\\"' + filePath + '\\""'
 				].join('\n');
-				browser.permissions.contains({
-					permissions: ['downloads']
-				}).then((hasPermission) => {
-					if (hasPermission) {
+				//TODO: this
+				if (await this._getDownloadPermission()) {
+					if ('downloads' in browser) {
 						browser.downloads.download({
 							url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
 							filename: schemeName + '.reg'
 						});
 					} else {
-						browser.permissions.request({
-							permissions: ['downloads']
-						}).then(() => {
-							browser.downloads.download({
-								url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
-								filename: schemeName + '.reg'
-							});
-						});
+						window.app.util.showToast('Your browser does not support the downloads API');
 					}
-				});
+				}
 			};
 
 			static globalExcludeChange(e: Polymer.ClickEvent) {
@@ -4442,9 +4467,9 @@ namespace CRMAppElement {
 				return this.parent().getChromeVersion();
 			}
 
-			static showUpdateChromeMessage() {
+			static showToast(text: string) {
 				const toast = window.app.$.messageToast;
-				toast.text = 'Please update your chrome (at least chrome 30) to use this feature';
+				toast.text = text;
 				toast.show();
 			}
 

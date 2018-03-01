@@ -1802,12 +1802,16 @@ if (typeof module === 'undefined') {
 			globalObject.globals.availablePermissions = available.permissions;
 		}
 		static async refreshPermissions() {
-			const chromePermissions: typeof _chrome.permissions = (window as any).chrome.permissions;
-			if ('onRemoved' in chromePermissions && 'onAdded' in chromePermissions) {
-				chromePermissions.onRemoved.addListener(this._permissionsChanged);
-				chromePermissions.onAdded.addListener(this._permissionsChanged);
+			if ('chrome' in window) {
+				const chromePermissions: typeof _chrome.permissions = (window as any).chrome.permissions;
+				if (chromePermissions && 'onRemoved' in chromePermissions && 'onAdded' in chromePermissions) {
+					chromePermissions.onRemoved.addListener(this._permissionsChanged);
+					chromePermissions.onAdded.addListener(this._permissionsChanged);
+				}
 			}
-			const available = await browser.permissions.getAll();
+			const available = 'permissions' in browser ? await browser.permissions.getAll() : {
+				permissions: []
+			};
 			globalObject.globals.availablePermissions = available.permissions;
 		}
 		static setHandlerFunction() {
@@ -6442,7 +6446,9 @@ if (typeof module === 'undefined') {
 						}
 
 						const { requestPermissions = [] } = await browser.storage.local.get<CRM.StorageLocal>();
-						const allPermissions = await browser.permissions.getAll();
+						const allPermissions = 'permissions' in browser ? await browser.permissions.getAll() : {
+							permissions: []
+						};
 						const allowed = allPermissions.permissions || [];
 						const joinedPermissions = [...requestPermissions, ...node.permissions].filter((permission: _browser.permissions.Permission) => {
 							return allowed.indexOf(permission) === -1;
