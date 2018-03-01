@@ -1,6 +1,7 @@
 {
 	"manifest_version": 2,
 
+	"author": "Sander Ronde",
 	"options_page": "html/options.html",
 	"name": "Custom Right-Click Menu",
 	"description": "Create a custom right-click menu and choose the links you to have in it. You can even add your own scripts or markup for the page.",
@@ -9,7 +10,8 @@
 	"minimum_chrome_version": "26",
 
 	"background": {
-		"page": "html/background.html"
+		"page": "html/background.html",
+		"persistent": true
 	},
 
 	"content_scripts": [
