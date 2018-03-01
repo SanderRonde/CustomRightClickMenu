@@ -2852,8 +2852,8 @@ namespace MonacoEditorElement {
 				[lib: string]: string;
 			} = {};
 
-			private static _isChromeEnv() {
-				return location.protocol === 'chrome-extension:';
+			private static _isWebPageEnv() {
+				return location.protocol === 'http:' || location.protocol === 'https:';
 			}
 
 			private static readonly BASE = '../';
@@ -2861,8 +2861,8 @@ namespace MonacoEditorElement {
 			static loadFile(name: string): Promise<string> {
 				return new window.Promise((resolve, reject) => {
 					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
-					const url = this._isChromeEnv() ?
-						browser.runtime.getURL(name) : `${this.BASE}${name}`;
+					const url = this._isWebPageEnv() ? `${this.BASE}${name}` :
+						browser.runtime.getURL(name);
 					xhr.open('GET', url);
 					xhr.onreadystatechange = () => {
 						if (xhr.readyState === XMLHttpRequest.DONE) {
