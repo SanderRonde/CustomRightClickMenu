@@ -1082,14 +1082,19 @@ namespace CRMAppElement {
 			let currentWord: string = '';
 			const logArgs: Array<string> = [];
 			const styleArgs: Array<string> = [];
+			const isEdge = BrowserAPI.getBrowser() === 'edge';
 			for (const arg of args) {
 				if (typeof arg === 'string') {
 					currentWord += arg;
 				} else {
 					const { content } = arg;
-					logArgs.push(`${currentWord}%c${content}`);
-					styleArgs.push('color: grey;font-weight: bold;');
-					currentWord = '';
+					if (isEdge) {
+						currentWord += arg;
+					} else {
+						logArgs.push(`${currentWord}%c${content}`);
+						styleArgs.push('color: grey;font-weight: bold;');
+						currentWord = '';
+					}
 				}
 			}
 			if (currentWord.length > 0) {
@@ -2233,8 +2238,12 @@ namespace CRMAppElement {
 									window.polymerElementsLoaded = true;
 								}, 500);
 
-								console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
-									'font-size:120%;font-weight:bold;');
+								if (BrowserAPI.getBrowser() === 'edge') {
+									console.log('Hey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu');	
+								} else {
+									console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
+										'font-size:120%;font-weight:bold;');
+								}
 								console.log('To get information about how to edit settings from the console' + 
 									' call the window.consoleInfo() function');
 							}, 200);
