@@ -3606,6 +3606,7 @@ declare namespace CRM {
 				}): void;
 				/**
 				 * Adds a listener for a keyboard event
+				 * Not supported in Edge (as of Edge 41)
 				 * 
 				 * @param {string} key - The keyboard shortcut to listen for
 				 * @param {function} callback - The function to call when a keyboard event occurs
