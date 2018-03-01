@@ -1,3 +1,4 @@
+/// <reference path="../js/polyfills/browser.ts" />
 /// <reference path="../../tools/definitions/webExtensions.d.ts" />
 /// <reference path="../../tools/definitions/polymer.d.ts"/>
 /// <reference path="../../tools/definitions/jquery.d.ts"/>

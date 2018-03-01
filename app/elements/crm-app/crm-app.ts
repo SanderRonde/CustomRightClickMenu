@@ -533,11 +533,10 @@ namespace CRMAppElement {
 		}
 
 		private static getChromeVersion() {
-			if (!navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2]) {
-				//Not chrome, that means it's a modern browser
-				return 10000;
+			if (BrowserAPI.getBrowser() === 'chrome') {
+				return parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);	
 			}
-			return parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
+			return 1000;
 		}
 
 		private static _generateCodeOptionsArray<T extends CRM.Options>(this: CrmApp, settings: T|string): Array<{

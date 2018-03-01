@@ -97,6 +97,41 @@ namespace BrowserAPI {
 		}
 	}
 
+	interface MultiBrowserWindow extends Window {
+		opr?: {
+			addons?: any;
+		}
+		opera?: any;
+		InstallTrigger?: any;
+		StyleMedia?: any;
+	}
+	
+	let _browser: 'chrome'|'firefox'|'edge'|'opera' = null;
+	function getBrowserUserAgent() {
+		const win = window as MultiBrowserWindow;
+		const isOpera = (!!win.opr && !!win.opr.addons) || !!win.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+		if (typeof win.InstallTrigger !== 'undefined') {
+			return 'firefox';
+		}
+		if (win.StyleMedia) {
+			return 'edge';
+		}
+		if (!isOpera && isBrowserAPISupported('chrome')) {
+			return 'chrome';
+		}
+		if (isOpera) {
+			return 'opera';
+		}
+		throw new Error('Unsupported browser');
+	}
+
+	export function getBrowser() {
+		if (_browser) {
+			return _browser;
+		} 
+		return (_browser = getBrowserUserAgent());
+	}
+
 	export const polyfill = {
 		commands: {
 			getAll() {
