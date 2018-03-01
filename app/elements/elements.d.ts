@@ -1,4 +1,4 @@
-/// <reference path="../../tools/definitions/chrome.d.ts"/>
+/// <reference path="../../tools/definitions/webExtensions.d.ts" />
 /// <reference path="../../tools/definitions/polymer.d.ts"/>
 /// <reference path="../../tools/definitions/jquery.d.ts"/>
 /// <reference path="./center-element/center-element.ts" />
