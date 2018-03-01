@@ -89,4 +89,6 @@ interface Window {
 	Set: typeof SetPolyfill;
 }
 
+type Set<T> = SetPolyfill<T>;
+
 window.Set = window.Set || SetPolyfill;

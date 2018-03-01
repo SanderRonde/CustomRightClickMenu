@@ -126,4 +126,6 @@ interface Window {
 	Map: typeof MapPolyfill;
 }
 
+type Map<K, V> = MapPolyfill<K, V>;
+
 window.Map = window.Map || MapPolyfill;
