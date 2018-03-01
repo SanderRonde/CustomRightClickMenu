@@ -5374,7 +5374,7 @@ if (typeof module === 'undefined') {
 				return true;
 			}
 			static getPackageDirectoryEntry(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
-				if (!('restartAfterDelay' in browser.runtime)) {
+				if (!('getPackageDirectoryEntry' in browser.runtime)) {
 					APIMessaging.ChromeMessage.throwError(message,
 						'getPackageDirectoryEntry is not supported on this platform');
 					return false;
