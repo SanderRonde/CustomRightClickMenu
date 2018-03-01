@@ -45,37 +45,50 @@
 
 #splashVerticalCenterer {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	height: 100%;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	        flex-direction: column;
 	-webkit-justify-content: center;
-	justify-content: center;
+	-webkit-box-pack: center;
+	        justify-content: center;
 }
 
 #splashHorizontalCenterer {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	width: 100%;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
+	        flex-direction: row;
 	-webkit-justify-content: center;
-	justify-content: center;
+	-webkit-box-pack: center;
+	        justify-content: center;
 }
 
 #splashTitle {
 	font-size: 800%;
+	font-size: -webkit-calc(100vw / 20);
 	font-size: calc(100vw / 20);
 	text-align: center;
 }
 
 #splashLoaderCenterer {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
+	        flex-direction: row;
 	-webkit-justify-content: center;
-	justify-content: center;
+	-webkit-box-pack: center;
+	        justify-content: center;
 }
 
 #splashBarCont {

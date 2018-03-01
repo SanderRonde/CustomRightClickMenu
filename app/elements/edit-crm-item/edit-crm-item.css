@@ -37,7 +37,6 @@
 .CRMItemTitle {
 	white-space: nowrap;
 	overflow: hidden;
-	-o-text-overflow: ellipsis;
 	-ms-text-overflow: ellipsis;
 	text-overflow: ellipsis;
 	position:relative;
@@ -64,11 +63,16 @@
 .codeSettingsButton {
 	position: relative;
 	right: 0;
+	display: -webkit-box;
 	display: flex;
 	display: -webkit-flex;
-	flex-direction: column;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
 }
 
 .codeSettingsButton:hover {
@@ -80,9 +84,16 @@
 	right: 0;
 	width: 20px;
 	height: 50px;
+	display: -webkit-box;
+	display: -webkit-flex;
 	display: flex;
-	flex-direction: column;
-	justify-content: center;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	        justify-content: center;
 }
 
 	.menuArrowCont:hover {

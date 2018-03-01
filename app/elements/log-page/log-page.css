@@ -30,9 +30,11 @@ app-header {
 
 #spinnerCenterer {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	-webkit-justify-content: center;
-	justify-content: center;
+	-webkit-box-pack: center;
+	        justify-content: center;
 	width:100%;
 }
 

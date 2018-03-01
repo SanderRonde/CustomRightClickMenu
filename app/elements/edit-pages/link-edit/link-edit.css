@@ -15,11 +15,15 @@
 	max-height: 100vh;
 	max-width: 100vw;
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
+	        flex-direction: row;
 	-webkit-justify-content: center;
-	justify-content: center;
+	-webkit-box-pack: center;
+	        justify-content: center;
 }
 
 #linkEditLeft {

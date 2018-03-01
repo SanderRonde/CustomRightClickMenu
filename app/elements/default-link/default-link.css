@@ -3,12 +3,16 @@
 }
 
 .defaultLinkCont {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	        flex-direction: row;
+	-webkit-box-pack: justify;
 	-webkit-justify-content: space-between;
-	justify-content: space-between;
+	        justify-content: space-between;
 }
 
 .defaultLinkHref {
@@ -22,8 +26,9 @@
 
 
 .defaultLinkName {
+	-webkit-box-flex: 3;
 	-webkit-flex-grow: 3;
-	flex-grow: 3;
+	        flex-grow: 3;
 	margin-left: 10px;
 	margin-right: 10px;
 }

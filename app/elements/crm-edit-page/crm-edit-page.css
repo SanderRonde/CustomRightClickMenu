@@ -5,13 +5,18 @@
 }
 
 #horizontalCenterer {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
-	flex-direction: row;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
+	        flex-direction: row;
 	flex-direction: row;
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
+	width: -webkit-calc(100vw - 20px);
 	width: calc(100vw - 20px);
 	height: 100vh;
 	position: fixed;
@@ -19,14 +24,17 @@
 }
 
 #verticalCenterer {
-	display: -webkit-flex;
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
-	flex-direction: column;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
+	        flex-direction: column;
 	flex-direction: column;
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
 }
 
 #nodeInfo, #scriptUpdateNotice {
@@ -35,10 +43,12 @@
     font-size: 125%;
     padding: 5px 8px;
 	pointer-events: all;
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+    -webkit-box-pack: justify;
     -webkit-justify-content: space-between;
-    justify-content: space-between;
+            justify-content: space-between;
 }
 
 #scriptUpdateNotice {
@@ -74,6 +84,12 @@ a:focus::before {
 		text-decoration: underline;
 	}
 
+#nodeInfo span::-moz-selection, #nodeInfo b::-moz-selection, #nodeInfo a::-moz-selection, #nodeInfo div::-moz-selection,
+#scriptUpdateNotice span::-moz-selection, #scriptUpdateNotice b::-moz-selection, #scriptUpdateNotice a::-moz-selection, #scriptUpdateNotice div::-moz-selection {
+    background-color: white;
+    color: black;
+}
+
 #nodeInfo span::selection, #nodeInfo b::selection, #nodeInfo a::selection, #nodeInfo div::selection,
 #scriptUpdateNotice span::selection, #scriptUpdateNotice b::selection, #scriptUpdateNotice a::selection, #scriptUpdateNotice div::selection {
     background-color: white;
@@ -85,12 +101,16 @@ a:focus::before {
 }
 
 #scriptUpdateWarningIcon {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
 	fill: white;
 	padding-right: 8px;
 }
@@ -112,10 +132,13 @@ a:focus::before {
 	}
 
 menu-edit, divider-edit, link-edit {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
 }
 
 #nodeInfo > div {
