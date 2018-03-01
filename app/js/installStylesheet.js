@@ -41,7 +41,7 @@ document.addEventListener("stylishInstallChrome", function() {
 				}
 
 				if (window.confirm('Do you want to install "' + name + '" as a stylesheet to CRM?')) {
-					chrome.runtime.sendMessage({
+					browser.runtime.sendMessage({
 						type: 'styleInstall',
 						data: {
 							code: code,

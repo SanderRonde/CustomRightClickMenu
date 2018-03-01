@@ -24,7 +24,7 @@
 
 	function runCRMAPI(callback) {
 		//Get CRM API URL
-		var url = chrome.runtime.getURL('/js/crmapi.js');
+		var url = browser.runtime.getURL('/js/crmapi.js');
 		fetchFile(url, function(code) {
 			hacksecuteScript(code);
 			callback();
@@ -39,7 +39,7 @@
 			} else {
 				var file = scripts[index].file;
 				if (file.indexOf('http') !== 0) {
-					file = chrome.runtime.getURL(file);
+					file = browser.runtime.getURL(file);
 				}
 				fetchFile(file, function(code) {
 					hacksecuteScript(code);
@@ -60,7 +60,7 @@
 	var contextElementId = 1;
 
 	var crmAPIExecuted = false;
-	chrome.runtime.onMessage.addListener(function (message, sender, respond) {
+	browser.runtime.onMessage.addListener(function (message, sender, respond) {
 		switch (message.type) {
 			case 'checkTabStatus':
 				//Code was already executed here, check if it has been matched before
@@ -104,17 +104,17 @@
 		}
 	});
 
-	chrome.runtime.sendMessage({
+	browser.runtime.sendMessage({
 		type: 'newTabCreated'
-	}, function(response) {
+	}).then(function(response) {
 		if (response && response.matched) {
 			matched = true;
 		}
 	});
 
-	chrome.storage.local.get('useAsUserscriptInstaller', function(result) {
+	browser.storage.local.get('useAsUserscriptInstaller').then(function(result) {
 		if (result.useAsUserscriptInstaller) {
-			var installURL = chrome.runtime.getURL('html/install.html');
+			var installURL = browser.runtime.getURL('html/install.html');
 			document.body.addEventListener('mousedown', function(e) {
 				var target = e.target;
 				if (target && target.href && target.href.indexOf(installURL) === -1 && target.href.match(/.+user\.js$/)) {
