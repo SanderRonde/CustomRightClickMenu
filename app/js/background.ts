@@ -2295,8 +2295,11 @@ if (typeof module === 'undefined') {
 				}
 			}
 
-			function updateKeyCommands() {
-				return browser.commands.getAll();
+			async function updateKeyCommands() {
+				if (browser.commands) {
+					return await browser.commands.getAll();
+				}
+				return [];
 			}
 
 			function permute<T>(arr: Array<T>, prefix: Array<T> = []): Array<Array<T>> {
@@ -2313,6 +2316,9 @@ if (typeof module === 'undefined') {
 			}
 
 			function listenKeyCommands() {
+				if (!browser.commands) {
+					return;
+				}
 				browser.commands.onCommand.addListener(async (command) => {
 					const commands = await updateKeyCommands();
 					commands.forEach((registerCommand) => {

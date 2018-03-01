@@ -133,14 +133,14 @@ namespace BrowserAPI {
 	}
 
 	export const polyfill = {
-		commands: {
+		commands: __chrome.commands ? {
 			getAll() {
 				return createPromise<Array<_browser.commands.Command>>((handler) => {
 					__chrome.commands.getAll(handler);
 				});
 			},
 			onCommand: __chrome.commands.onCommand as Listener<string>
-		},
+		} : void 0,
 		contextMenus: {
 			create(createProperties: {
 				type?: _browser.contextMenus.ItemType,
