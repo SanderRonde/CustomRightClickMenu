@@ -5003,6 +5003,10 @@ vulcanize@^1.9.3:
     nopt "^3.0.1"
     path-posix "^1.0.0"
 
+web-ext-types@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/web-ext-types/-/web-ext-types-2.0.1.tgz#eb311a15a922b459155aa7fef249cf6acf6ca402"
+
 websocket-driver@>=0.5.1:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/websocket-driver/-/websocket-driver-0.7.0.tgz#0caf9d2d755d93aee049d4bdd0d3fe2cca2a24eb"

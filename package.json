@@ -116,7 +116,8 @@
     "tty": "^1.0.1",
     "typescript": "^2.7.2",
     "util": "^0.10.3",
-    "vinyl-fs": "^2.4.4"
+    "vinyl-fs": "^2.4.4",
+    "web-ext-types": "^2.0.1"
   },
   "license": "MIT",
   "name": "custom-right-click-menu",
