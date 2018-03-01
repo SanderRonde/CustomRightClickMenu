@@ -6756,10 +6756,10 @@ if (typeof module === 'undefined') {
 						node.isLocal;
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
 					const supportedBrowserAPIs = [];
-					if (chromeAPIExists) {
+					if (BrowserAPI.isBrowserAPISupported('chrome')) {
 						supportedBrowserAPIs.push('chrome');
 					}
-					if (browserAPIExists) {
+					if (BrowserAPI.isBrowserAPISupported('browser')) {
 						supportedBrowserAPIs.push('browser');
 					}
 					return [
@@ -6940,10 +6940,10 @@ if (typeof module === 'undefined') {
 						node.isLocal;		
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;		
 					const supportedBrowserAPIs = [];
-					if (chromeAPIExists) {
+					if (BrowserAPI.isBrowserAPISupported('chrome')) {
 						supportedBrowserAPIs.push('chrome');
 					}
-					if (browserAPIExists) {
+					if (BrowserAPI.isBrowserAPISupported('browser')) {
 						supportedBrowserAPIs.push('browser');
 					}
 					return [		
@@ -6959,14 +6959,14 @@ if (typeof module === 'undefined') {
 								return JSON.stringify(param);		
 							}).join(', ')});`		
 						].join(', '),		
-						globalObject.globals.constants.templates.globalObjectWrapperCode('window', 'windowWrapper', node.isLocal && chromeAPIExists ? 'chrome' : 'void 0', node.isLocal && browserAPIExists ? 'browser' : 'void 0'),		
+						globalObject.globals.constants.templates.globalObjectWrapperCode('window', 'windowWrapper', node.isLocal && BrowserAPI.isBrowserAPISupported('chrome') ? 'chrome' : 'void 0', node.isLocal && BrowserAPI.isBrowserAPISupported('browser') ? 'browser' : 'void 0'),		
 						`${catchErrs ? 'try {' : ''}`,		
 						'function main(crmAPI, window, chrome, browser, menuitemid, parentmenuitemid, mediatype,' +		
 						'linkurl, srcurl, pageurl, frameurl, frameid,' +		
 						'selectiontext, editable, waschecked, checked) {',		
 						script,		
 						'}',		
-						`crmAPI.onReady(function() {main.apply(this, [crmAPI, windowWrapper, ${node.isLocal && chromeAPIExists ? 'chrome' : 'void 0'}, ${node.isLocal && browserAPIExists ? 'browser' : 'void 0'}].concat(${		
+						`crmAPI.onReady(function() {main.apply(this, [crmAPI, windowWrapper, ${node.isLocal && BrowserAPI.isBrowserAPISupported('chrome') ? 'chrome' : 'void 0'}, ${node.isLocal && BrowserAPI.isBrowserAPISupported('browser') ? 'browser' : 'void 0'}].concat(${		
 						JSON.stringify([		
 							info.menuItemId, info.parentMenuItemId, info.mediaType,		
 							info.linkUrl, info.srcUrl, info.pageUrl, info.frameUrl,		
