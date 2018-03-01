@@ -14,8 +14,18 @@ declare namespace _browser.storage {
 }
 
 namespace BrowserAPI {
-	const __srcBrowser: typeof _chrome = 'chrome' in window ? 
-		(window as any).chrome : {};
+	// Chrome uses callback-style APIs under the "chrome" global
+	// ^ Same for opera ^
+	// Edge uses callback-style APIs under the "browser" global
+	//	and an as good as empty "chrome" global (pls edge...)
+	// Firefox uses promise-based APIs under the "browser" global
+	// 	and callback-style APIs under the (probably temporary) "chrome" global
+
+	// So if browser is Edge, use "browser", otherwise use "chrome" if available
+	// 	to ensure always always getting callback-style APIs
+	const __srcBrowser: typeof _chrome = getBrowser() === 'edge' ?
+		window.browser : 'chrome' in window ? 
+			(window as any).chrome : {};
 
 	function checkReject(reject: (err: _chrome.runtime.LastError) => void) {
 		if (__srcBrowser.runtime.lastError) {
@@ -483,5 +493,11 @@ interface Window {
 	browser: typeof BrowserAPI.polyfill;
 }
 
-window.browser = window.browser || BrowserAPI.polyfill as typeof _browser;
+// Force override of window.browser if browser is edge or if no "browser"
+//	global exists already. Basically equal to 
+// 	window.browser = BrowserAPI.polyfill || window.browser  	&
+// 	if getBrowser() === 'edge': window.browser = BrowserAPI.polyfill
+window.browser = (BrowserAPI.getBrowser() === 'edge' || !window.browser) ?
+	BrowserAPI.polyfill as typeof _browser :
+	window.browser;
 const browser = window.browser as typeof BrowserAPI.polyfill;
