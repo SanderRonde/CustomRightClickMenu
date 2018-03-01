@@ -178,8 +178,26 @@ type CRMAPIMessage = {
 };
 
 (function(window: Window) {
-	const _chrome = {
-		chrome: typeof chrome === 'undefined' ? undefined : chrome
+	function runtimeGetURL(url: string): string {
+		if (typeof browser !== 'undefined') {
+			return browser.runtime.getURL(url);
+		} else if ('chrome' in window) {
+			return (window as any).chrome.runtime.getURL(url);
+		} else {
+			return url;
+		}
+	}
+
+	function runtimeConnect(id: string, options: {
+		name: string
+	}): _browser.runtime.Port|_chrome.runtime.Port {
+		if (typeof browser !== 'undefined') {
+			return browser.runtime.connect(id, options);
+		} else if ('chrome' in window) {
+			return (window as any).chrome.runtime.connect(id, options);
+		} else {
+			return null;
+		}
 	}
 
 	type Message<T> = T & {
@@ -1567,7 +1585,7 @@ type CRMAPIMessage = {
 					this.__privates._queue.push(message);
 				};
 				if (!this.__privates._isBackground) {
-					this.__privates._port = _chrome.chrome.runtime.connect(this.__privates._extensionId, {
+					this.__privates._port = runtimeConnect(this.__privates._extensionId, {
 						name: JSON.stringify(this.__privates._secretKey)
 					});
 				}
@@ -4591,7 +4609,7 @@ type CRMAPIMessage = {
 					};
 				}
 				details.type = 'basic';
-				details.iconUrl = details.iconUrl || _chrome.chrome.runtime.getURL('icon-large.png');
+				details.iconUrl = details.iconUrl || runtimeGetURL('icon-large.png');
 				const onclickRef = details.onclick && this.__privates._createCallbackFunction(details.onclick, new Error(), {
 					maxCalls: 1
 				});

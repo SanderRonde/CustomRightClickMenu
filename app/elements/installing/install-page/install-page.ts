@@ -132,63 +132,54 @@ namespace InstallPageElement {
 		};
 
 		private static _initSettings(this: InstallPage) {
-			this.settingsReady = new Promise((resolve) => {
-				chrome.storage.local.get((local: CRM.StorageLocal & {
-					settings: CRM.SettingsStorage;
-				}) => {
-					if (local.useStorageSync) {
-						//Parse the data before sending it to the callback
-						chrome.storage.sync.get((storageSync: {
+			this.settingsReady = new Promise(async (resolve) => {
+				const local: CRM.StorageLocal & {
+					settings?: CRM.SettingsStorage;
+				} = await browser.storage.local.get() as any;
+				if (local.useStorageSync) {
+					//Parse the data before sending it to the callback
+					const storageSync: {
+						[key: string]: string
+					} & {
+						indexes: Array<string>;
+					} = await browser.storage.sync.get() as any;
+					let indexes = storageSync.indexes;
+					if (!indexes) {
+						browser.storage.local.set({
+							useStorageSync: false
+						});
+						this.settings = local.settings;
+					} else {
+						const settingsJsonArray: Array<string> = [];
+						indexes.forEach(function (index) {
+							settingsJsonArray.push(storageSync[index]);
+						});
+						const jsonString = settingsJsonArray.join('');
+						this.settings = JSON.parse(jsonString);
+					}
+				} else {
+					//Send the "settings" object on the storage.local to the callback
+					if (!local.settings) {
+						browser.storage.local.set({
+							useStorageSync: true
+						});
+						const storageSync: {
 							[key: string]: string
 						} & {
 							indexes: Array<string>;
-						}) => {
-							let indexes = storageSync.indexes;
-							if (!indexes) {
-								chrome.storage.local.set({
-									useStorageSync: false
-								});
-								this.settings = local.settings;
-							} else {
-								const settingsJsonArray: Array<string> = [];
-								indexes.forEach(function (index) {
-									settingsJsonArray.push(storageSync[index]);
-								});
-								const jsonString = settingsJsonArray.join('');
-								this.settings = JSON.parse(jsonString);
-							}
-							resolve(null);
+						} = await browser.storage.sync.get() as any;
+						const indexes = storageSync.indexes;
+						const settingsJsonArray: Array<string> = [];
+						indexes.forEach(function (index) {
+							settingsJsonArray.push(storageSync[index]);
 						});
+						const jsonString = settingsJsonArray.join('');
+						this.settings = JSON.parse(jsonString);
 					} else {
-						//Send the "settings" object on the storage.local to the callback
-						if (!local.settings) {
-							chrome.storage.local.set({
-								useStorageSync: true
-							});
-							chrome.storage.sync.get((storageSync: {
-								[key: string]: string
-							} & {
-								indexes: Array<string>;
-							}) => {
-								const indexes = storageSync.indexes;
-								const settingsJsonArray: Array<string> = [];
-								indexes.forEach(function (index) {
-									settingsJsonArray.push(storageSync[index]);
-								});
-								const jsonString = settingsJsonArray.join('');
-								this.settings = JSON.parse(jsonString);
-								resolve(null);
-							});
-						} else {
-							this.settings = local.settings;
-							resolve(null);
-						}
+						this.settings = local.settings;
 					}
-				});
-				chrome.storage.sync.get((e: CRM.SettingsStorage) => {
-					this.settings = e;
-					resolve(null);
-				});
+				}
+				resolve(null);
 			});
 		}
 

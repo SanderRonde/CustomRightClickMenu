@@ -1375,20 +1375,17 @@ namespace MonacoEditorElement {
 		}
 
 		private async _getLibrary(name: string): Promise<string|false> {
-			return new Promise<string|false>((resolve) => {
-				chrome.storage.local.get((data: CRM.StorageLocal) => {
-					const libs = data.libraries;
-					for (const lib of libs) {
-						if (lib.name === name) {
-							if (lib.ts && lib.ts.enabled) {
-								resolve(lib.ts.code.compiled);
-							}
-							break;
-						}
+			const data = await browser.storage.local.get<CRM.StorageLocal>();
+			const libs = data.libraries;
+			for (const lib of libs) {
+				if (lib.name === name) {
+					if (lib.ts && lib.ts.enabled) {
+						return lib.ts.code.compiled;
 					}
-					resolve(false);
-				});
-			});
+					break;
+				}
+			}
+			return false;
 		}
 
 		private async _registerLibrary(library: CRM.Library): Promise<monaco.IDisposable> {
@@ -2865,7 +2862,7 @@ namespace MonacoEditorElement {
 				return new window.Promise((resolve, reject) => {
 					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
 					const url = this._isChromeEnv() ?
-						chrome.runtime.getURL(name) : `${this.BASE}${name}`;
+						browser.runtime.getURL(name) : `${this.BASE}${name}`;
 					xhr.open('GET', url);
 					xhr.onreadystatechange = () => {
 						if (xhr.readyState === XMLHttpRequest.DONE) {

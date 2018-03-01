@@ -72,7 +72,7 @@ namespace UseExternalEditorElement {
 		/**
 		 * The port at which the app is located
 		 */
-		private static appPort: chrome.runtime.Port = null;
+		private static appPort: _browser.runtime.Port = null;
 
 		/**
 		 * The connection to the app and its status
@@ -488,7 +488,7 @@ namespace UseExternalEditorElement {
 						_this.connection.fileConnected = true;
 						(window.scriptEdit && window.scriptEdit.active ? window.scriptEdit.reloadEditor(true) : window.stylesheetEdit.reloadEditor(true));
 						_this.createEditingOverlay();
-						_this.appPort.onMessage.removeListener(tempListener);
+						_this.appPort.onMessage.removeListener();
 					}
 				};
 				this.appPort.onMessage.addListener(tempListener);
@@ -519,7 +519,7 @@ namespace UseExternalEditorElement {
 		 * Sets up the external messages sent to go this element's handler
 		 */
 		static setupMessageHandler(this: UseExternalEditor) {
-			chrome.runtime.onConnectExternal.addListener((port) => {
+			browser.runtime.onConnectExternal.addListener((port) => {
 				if (port.sender.id === 'obnfehdnkjmbijebdllfcnccllcfceli') {
 					port.onMessage.addListener((msg: any) => {
 						this.messageHandler(msg);
@@ -575,7 +575,7 @@ namespace UseExternalEditorElement {
 		 */
 		private static establishConnection(this: UseExternalEditor) {
 			if (!this.appPort) {
-				this.appPort = chrome.runtime.connect(EXTERNAL_EDITOR_APP_ID);
+				this.appPort = browser.runtime.connect(EXTERNAL_EDITOR_APP_ID);
 				this.connection.status = 'connecting';
 				this.connection.stage = 0;
 				this.connection.fileConnected = false;

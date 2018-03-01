@@ -108,27 +108,30 @@ namespace LogConsoleElement {
 			this.set('textfilter', this.$.textFilter.value);
 		};
 
-		static _takeToTab(this: LogConsole, event: Polymer.ClickEvent) {
+		static async _takeToTab(this: LogConsole, event: Polymer.ClickEvent) {
 			const target = event.target;
 			let tabId = (target.children[0] as HTMLElement).innerText;
 			
-			chrome.tabs.get(~~tabId, (tab) => {
-				if (chrome.runtime.lastError) {
-					this.$.genericToast.text = 'Tab has been closed';
-					this.$.genericToast.show();
-					return;
-				}
+			const tab = await browser.tabs.get(~~tabId).catch((err) => {
+				window.logConsole.$.genericToast.text = 'Tab has been closed';
+				window.logConsole.$.genericToast.show();
+			});
+			if (!tab) {
+				return;
+			}
 
-				chrome.tabs.highlight({
+			if ('highlight' in browser.tabs) {
+				const chromeTabs: typeof _chrome.tabs = browser.tabs as any;
+				await chromeTabs.highlight({
 					windowId: tab.windowId,
 					tabs: tab.index
 				}, () => {
-					if (chrome.runtime.lastError) {
-						console.log(chrome.runtime.lastError);
-						alert('Sometihng went wrong highlighting the tab');
+					if ((window as any).chrome.runtime.lastError) {
+						console.log((window as any).chrome.runtime.lastError);
+						console.log('Something went wrong highlighting the tab');
 					}
 				});
-			});
+			}
 		};
 
 		static _focusInput(this: LogConsole) {
@@ -143,7 +146,7 @@ namespace LogConsoleElement {
 		private static _executeCode(this: LogConsole, code: string) {
 			if (this.selectedTab !== 0 && this.selectedId !== 0) {
 				const selectedItems = this._getSelectedItems();
-				chrome.runtime.sendMessage({
+				browser.runtime.sendMessage({
 					type: 'executeCRMCode',
 					data: {
 						code: code,
@@ -393,41 +396,40 @@ namespace LogConsoleElement {
 			}
 		}
 
-		private static _init(this: LogConsole, callback: () => void) {
-			chrome.runtime.getBackgroundPage((bgPage) => {
-				this._bgPage = bgPage;
+		private static async _init(this: LogConsole, callback: () => void) {
+			const bgPage = await browser.runtime.getBackgroundPage();
+			this._bgPage = bgPage;
 
-				bgPage._listenIds((ids) => {
-					const prevSelected = this.ids[~~this.selectedId - 1];
-					this.set('ids', ids);
-					this._transitionSelected(prevSelected, ids, 'selectedId');
-					
-					this.async(() => {
-						this._refreshMenu(this.$.idDropdown, this.$.idRepeat);
-					}, 50);
-				});
-				bgPage._listenTabs((tabs) => {
-					const prevSelected = this.tabs[this.selectedTab - 1];
-					this.set('tabs', tabs);
-					this._transitionSelected(prevSelected, tabs, 'selectedTab');
+			bgPage._listenIds((ids) => {
+				const prevSelected = this.ids[~~this.selectedId - 1];
+				this.set('ids', ids);
+				this._transitionSelected(prevSelected, ids, 'selectedId');
+				
+				this.async(() => {
+					this._refreshMenu(this.$.idDropdown, this.$.idRepeat);
+				}, 50);
+			});
+			bgPage._listenTabs((tabs) => {
+				const prevSelected = this.tabs[this.selectedTab - 1];
+				this.set('tabs', tabs);
+				this._transitionSelected(prevSelected, tabs, 'selectedTab');
 
-					this.async(() => {
-						this._refreshMenu(this.$.tabDropdown, this.$.tabRepeat);
-					}, 50);
-				});
-				bgPage._listenLog((logLine) => {
-					if (logLine.type && logLine.type === 'evalResult') {
-						this._processEvalLine(logLine);
-					} else if (logLine.type && logLine.type === 'hints') {
-						this._processLine(logLine);
-					} else {
-						this._processLine(logLine);
-					}
-				}, (logListener) => {
-					this._logListener = logListener;
-				}).forEach((logLine) => {
+				this.async(() => {
+					this._refreshMenu(this.$.tabDropdown, this.$.tabRepeat);
+				}, 50);
+			});
+			bgPage._listenLog((logLine) => {
+				if (logLine.type && logLine.type === 'evalResult') {
+					this._processEvalLine(logLine);
+				} else if (logLine.type && logLine.type === 'hints') {
 					this._processLine(logLine);
-				});
+				} else {
+					this._processLine(logLine);
+				}
+			}, (logListener) => {
+				this._logListener = logListener;
+			}).forEach((logLine) => {
+				this._processLine(logLine);
 			});
 
 			this.async(() => {
@@ -455,7 +457,7 @@ namespace LogConsoleElement {
 			const logLine = sourceLine.props.line;
 		
 			//Send a message to the background page
-			chrome.runtime.sendMessage({
+			browser.runtime.sendMessage({
 				type: 'createLocalLogVariable',
 				data: {
 					code: {

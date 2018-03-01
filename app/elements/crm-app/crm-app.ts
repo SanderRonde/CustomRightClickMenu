@@ -695,12 +695,12 @@ namespace CRMAppElement {
 				}
 			}
 
-			chrome.storage.local.set({
+			browser.storage.local.set({
 				requestPermissions: toRequest
 			});
 
 			if (toRequest.length > 0 || force) {
-				chrome.permissions.getAll((allowed) => {
+				browser.permissions.getAll().then((allowed) => {
 					const requested: Array<{
 						name: string;
 						description: string;
@@ -723,7 +723,7 @@ namespace CRMAppElement {
 						other.push({
 							name: allPermissions[i],
 							description: this.templates.getPermissionDescription(allPermissions[i]),
-							toggled: (allowed.permissions.indexOf(allPermissions[i]) > -1)
+							toggled: (allowed.permissions.indexOf((allPermissions as Array<_browser.permissions.Permission>)[i]) > -1)
 						});
 					}
 					const requestPermissionsOther = this.$$('#requestPermissionsOther');
@@ -791,18 +791,18 @@ namespace CRMAppElement {
 							const slider = this;
 							if (this.checked) {
 								try {
-									chrome.permissions.request({
-										permissions: [permission]
-									}, function (accepted) {
+									browser.permissions.request({
+										permissions: [permission as _browser.permissions.Permission]
+									}).then((accepted) => {
 										if (!accepted) {
 											//The user didn't accept, don't pretend it's active when it's not, turn it off
 											slider.checked = false;
 										} else {
 											//Accepted, remove from to-request permissions
-											chrome.storage.local.get(function (e: CRM.StorageLocal) {
+											browser.storage.local.get<CRM.StorageLocal>().then((e) => {
 												const permissionsToRequest = e.requestPermissions;
 												permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
-												chrome.storage.local.set({
+												browser.storage.local.set({
 													requestPermissions: permissionsToRequest
 												});
 											});
@@ -810,18 +810,18 @@ namespace CRMAppElement {
 									});
 								} catch (e) {
 									//Accepted, remove from to-request permissions
-									chrome.storage.local.get(function (e: CRM.StorageLocal) {
+									browser.storage.local.get<CRM.StorageLocal>().then((e) => {
 										const permissionsToRequest = e.requestPermissions;
 										permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
-										chrome.storage.local.set({
+										browser.storage.local.set({
 											requestPermissions: permissionsToRequest
 										});
 									});
 								}
 							} else {
-								chrome.permissions.remove({
-									permissions: [permission]
-								}, function (removed) {
+								browser.permissions.remove({
+									permissions: [permission as _browser.permissions.Permission]
+								}).then((removed) => {
 									if (!removed) {
 										//It didn't get removed
 										slider.checked = true;
@@ -831,11 +831,11 @@ namespace CRMAppElement {
 						});
 
 						$(this.shadowRoot.querySelectorAll('#requestPermissionsAcceptAll')).off('click').on('click', function () {
-							chrome.permissions.request({
-								permissions: toRequest
-							}, function (accepted) {
+							browser.permissions.request({
+								permissions: toRequest as Array<_browser.permissions.Permission>
+							}).then((accepted) => {
 								if (accepted) {
-									chrome.storage.local.set({
+									browser.storage.local.set({
 										requestPermissions: []
 									});
 									$('.requestPermissionButton.required').each(function (this: HTMLPaperCheckboxElement) {
@@ -976,7 +976,7 @@ namespace CRMAppElement {
 				window.doc.showHideToolsRibbonButton.classList.remove('hidden');
 			}
 			window.app.storageLocal.shrinkTitleRibbon = !window.app.storageLocal.shrinkTitleRibbon;
-			chrome.storage.local.set({
+			browser.storage.local.set({
 				shrinkTitleRibbon: window.app.storageLocal.shrinkTitleRibbon
 			});
 		};
@@ -1012,8 +1012,8 @@ namespace CRMAppElement {
 				[key]: value
 			};
 
-			chrome.storage.local.set(obj);
-			chrome.storage.local.get((storageLocal: CRM.StorageLocal) => {
+			browser.storage.local.set(obj as any);
+			browser.storage.local.get<CRM.StorageLocal>().then((storageLocal) => {
 				this.storageLocal = storageLocal;
 				this.upload();
 
@@ -1555,19 +1555,18 @@ namespace CRMAppElement {
 			window.doc = window.app.$;
 			this._setupConsoleInterface();
 
-			chrome.runtime.onInstalled.addListener((details) => {
+			browser.runtime.onInstalled.addListener((details) => {
 				if (details.reason === 'update') {
 					//Show a little message
 					this.$.messageToast.text = `Extension has been updated to version ${
-						chrome.runtime.getManifest().version
-						}`;
+						browser.runtime.getManifest().version}`;
 					this.$.messageToast.show();
 				}
 			});
 
 			if (typeof localStorage === 'undefined') {
 				//Running a test
-				chrome.runtime.onMessage.addListener((message) => {
+				browser.runtime.onMessage.addListener((message: any) => {
 					if (message.type === 'idUpdate') {
 						this._latestId = message.latestId;
 					}
@@ -1748,7 +1747,7 @@ namespace CRMAppElement {
 			private static _loadFile(path: string): Promise<string> {
 				return new Promise<string>((resolve, reject) => {
 					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
-					xhr.open('GET', chrome.runtime.getURL(path));
+					xhr.open('GET', browser.runtime.getURL(path));
 					xhr.onreadystatechange = () => {
 						if (xhr.readyState === XMLHttpRequest.DONE) {
 							if (xhr.status === 200) {
@@ -1838,7 +1837,7 @@ namespace CRMAppElement {
 						crmItem.value.stylesheet = editingObj.val;
 					}
 					window.app.upload();
-					chrome.storage.local.set({
+					browser.storage.local.set({
 						editing: null
 					});
 					window.setTimeout(function () {
@@ -1847,7 +1846,7 @@ namespace CRMAppElement {
 					}, 500);
 				});
 				this.parent().$.discardButton.addEventListener('click', () => {
-					chrome.storage.local.set({
+					browser.storage.local.set({
 						editing: null
 					});
 					window.setTimeout(function () {
@@ -2011,7 +2010,7 @@ namespace CRMAppElement {
 
 			static setupStorages() {
 				const parent = this.parent();
-				chrome.storage.local.get((storageLocal: CRM.StorageLocal & {
+				browser.storage.local.get<CRM.StorageLocal>().then((storageLocal: CRM.StorageLocal & {
 					nodeStorage: any;
 					settings?: CRM.SettingsStorage;
 				}) => {
@@ -2063,7 +2062,7 @@ namespace CRMAppElement {
 							if (nodeCurrentCode.trim() !== editing.val.trim()) {
 								parent._setup._restoreUnsavedInstances(editing);
 							} else {
-								chrome.storage.local.set({
+								browser.storage.local.set({
 									editing: null
 								});
 							}
@@ -2073,7 +2072,7 @@ namespace CRMAppElement {
 						parent.crmType = storageLocal.selectedCrmType;
 						parent._setup.switchToIcons(storageLocal.selectedCrmType);
 					} else {
-						chrome.storage.local.set({
+						browser.storage.local.set({
 							selectedCrmType: 0
 						});
 						parent.crmType = 0;
@@ -2083,7 +2082,7 @@ namespace CRMAppElement {
 						parent.jsLintGlobals = storageLocal.jsLintGlobals;
 					} else {
 						parent.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-						chrome.storage.local.set({
+						browser.storage.local.set({
 							jsLintGlobals: parent.jsLintGlobals
 						});
 					}
@@ -2092,7 +2091,7 @@ namespace CRMAppElement {
 						parent.globalExcludes = storageLocal.globalExcludes;
 					} else {
 						parent.globalExcludes = [''];
-						chrome.storage.local.set({
+						browser.storage.local.set({
 							globalExcludes: parent.globalExcludes
 						});
 					}
@@ -2114,7 +2113,7 @@ namespace CRMAppElement {
 							window.doc.addedPermissionPrevButton.style.display = 'none';
 							window.doc.addedPermissionsTabRepeater.render();
 							window.doc.addedPermissionsDialog.open();
-							chrome.storage.local.set({
+							browser.storage.local.set({
 								addedPermissions: null
 							});
 						}, 2500);
@@ -2131,7 +2130,7 @@ namespace CRMAppElement {
 						} else {
 							parent.$.nextScriptUpdateButton.style.display = 'none';
 						}
-						chrome.storage.local.set({
+						browser.storage.local.set({
 							updatedScripts: []
 						});
 						storageLocal.updatedScripts = [];
@@ -2139,7 +2138,7 @@ namespace CRMAppElement {
 					if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.wasUpdated) {
 						const versionData = storageLocal.settingsVersionData;
 						versionData.wasUpdated = false;
-						chrome.storage.local.set({
+						browser.storage.local.set({
 							settingsVersionData: versionData
 						});
 
@@ -2151,7 +2150,7 @@ namespace CRMAppElement {
 					}
 
 					if (storageLocal.isTransfer) {
-						chrome.storage.local.set({
+						browser.storage.local.set({
 							isTransfer: false
 						});
 						window.doc.versionUpdateDialog.open();
@@ -2161,21 +2160,22 @@ namespace CRMAppElement {
 					parent._storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 					if (storageLocal.useStorageSync) {
 						//Parse the data before sending it to the callback
-						chrome.storage.sync.get(function (storageSync: {
-							[key: string]: string
-						} & {
+						browser.storage.sync.get().then((storageSync: any) => {
+							const sync = storageSync as {
+								[key: string]: string
+							} & {
 								indexes: Array<string>;
-							}) {
-							let indexes = storageSync.indexes;
+							};
+							let indexes = sync.indexes;
 							if (!indexes) {
-								chrome.storage.local.set({
+								browser.storage.local.set({
 									useStorageSync: false
 								});
 								callback(storageLocal.settings);
 							} else {
 								const settingsJsonArray: Array<string> = [];
 								indexes.forEach(function (index) {
-									settingsJsonArray.push(storageSync[index]);
+									settingsJsonArray.push(sync[index]);
 								});
 								const jsonString = settingsJsonArray.join('');
 								parent.settingsJsonLength = jsonString.length;
@@ -2187,18 +2187,19 @@ namespace CRMAppElement {
 						//Send the "settings" object on the storage.local to the callback
 						parent.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
 						if (!storageLocal.settings) {
-							chrome.storage.local.set({
+							browser.storage.local.set({
 								useStorageSync: true
 							});
-							chrome.storage.sync.get(function (storageSync: {
-								[key: string]: string
-							} & {
+							browser.storage.sync.get().then((storageSync: any) => {
+								const sync = storageSync as {
+									[key: string]: string
+								} & {
 									indexes: Array<string>;
-								}) {
-								const indexes = storageSync.indexes;
+								};
+								const indexes = sync.indexes;
 								const settingsJsonArray: Array<string> = [];
 								indexes.forEach(function (index) {
-									settingsJsonArray.push(storageSync[index]);
+									settingsJsonArray.push(sync[index]);
 								});
 								const jsonString = settingsJsonArray.join('');
 								parent.settingsJsonLength = jsonString.length;
@@ -2415,7 +2416,7 @@ namespace CRMAppElement {
 
 				if (hasLocalChanged || haveSettingsChanged) {
 					//Changes occured
-					chrome.runtime.sendMessage({
+					browser.runtime.sendMessage({
 						type: 'updateStorage',
 						data: {
 							type: 'optionsPage',
@@ -3172,7 +3173,7 @@ namespace CRMAppElement {
 			}
 			static generateScriptUpgradeErrorHandler(id: number): ScriptUpgradeErrorHandler {
 				return function (oldScriptErrors, newScriptErrors, parseError) {
-					chrome.storage.local.get(function (keys: CRM.StorageLocal) {
+					browser.storage.local.get<CRM.StorageLocal>().then((keys) => {
 						if (!keys.upgradeErrors) {
 							var val: {
 								[key: number]: {
@@ -3195,7 +3196,7 @@ namespace CRMAppElement {
 							newScript: newScriptErrors,
 							generalError: parseError
 						};
-						chrome.storage.local.set({ upgradeErrors: keys.upgradeErrors });
+						browser.storage.local.set({ upgradeErrors: keys.upgradeErrors } as any);
 					});
 				};
 			};
@@ -3364,7 +3365,7 @@ namespace CRMAppElement {
 						}
 					}
 				}
-				chrome.storage.local.set({
+				browser.storage.local.set({
 					selectedCrmType: selectedType
 				});
 				if (this.parent().crmType !== selectedType) {
@@ -3391,19 +3392,19 @@ namespace CRMAppElement {
 					'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open\\command]',
 					'@="\\"' + filePath + '\\""'
 				].join('\n');
-				chrome.permissions.contains({
+				browser.permissions.contains({
 					permissions: ['downloads']
-				}, function (hasPermission) {
+				}).then((hasPermission) => {
 					if (hasPermission) {
-						chrome.downloads.download({
+						browser.downloads.download({
 							url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
 							filename: schemeName + '.reg'
 						});
 					} else {
-						chrome.permissions.request({
+						browser.permissions.request({
 							permissions: ['downloads']
-						}, function () {
-							chrome.downloads.download({
+						}).then(() => {
+							browser.downloads.download({
 								url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
 								filename: schemeName + '.reg'
 							});
@@ -3430,9 +3431,9 @@ namespace CRMAppElement {
 				const value = input.$$('input').value;
 				this.parent().globalExcludes[excludeIndex] = value;
 				this.parent().set('globalExcludes', this.parent().globalExcludes);
-				chrome.storage.local.set({
+				browser.storage.local.set({
 					globalExcludes: this.parent().globalExcludes
-				});
+				} as any);
 			};
 
 
@@ -3558,7 +3559,7 @@ namespace CRMAppElement {
 
 
 			static _openLogging() {
-				window.open(chrome.runtime.getURL('html/logging.html'), '_blank');
+				window.open(browser.runtime.getURL('html/logging.html'), '_blank');
 			};
 
 			static hideGenericToast() {
@@ -4215,6 +4216,7 @@ namespace CRMAppElement {
 					'crmWrite',
 					'crmRun',
 					'chrome',
+					'browser',
 
 					//GM_Permissions
 					'GM_info',
@@ -4279,6 +4281,7 @@ namespace CRMAppElement {
 					crmWrite: 'Allows the writing of data and nodes to your Custom Right-Click Menu. This includes <b>creating</b>, <b>copying</b> and <b>deleting</b> nodes. Be very careful with this permission as it can be used to just copy nodes until your CRM is full and delete any nodes you had. It also allows changing current values in the CRM such as names, actual scripts in script-nodes etc.',
 					crmRun: 'Allows the running of arbitrary scripts from the background-page',
 					chrome: 'Allows the use of chrome API\'s',
+					browser: 'Allows the use of browser API\'s',
 
 					//Tampermonkey APIs
 					GM_addStyle: 'Allows the adding of certain styles to the document through this API',
@@ -4305,7 +4308,7 @@ namespace CRMAppElement {
 					unsafeWindow: 'Allows the running on an unsafe window object - available by default'
 				};
 
-				return descriptions[permission];
+				return descriptions[permission as keyof typeof descriptions];
 			};
 
 			static parent(): CrmApp {

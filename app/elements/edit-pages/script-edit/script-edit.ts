@@ -60,7 +60,7 @@ namespace ScriptEditElement {
 		static jsLintGlobalsChange(this: NodeEditBehaviorScriptInstance) {
 			this.async(() => {
 				const globals = this.$.editorJSLintGlobalsInput.$$('input').value.split(',').map(global => global.trim());
-				chrome.storage.local.set({
+				browser.storage.local.set({
 					jsLintGlobals: globals
 				});
 				window.app.jsLintGlobals = globals;
@@ -314,18 +314,18 @@ namespace ScriptEditElement {
 						const slider = requestPermissionButton;
 						if (requestPermissionButton.checked) {
 							if (Array.prototype.slice.apply(extensionWideEnabledPermissions).indexOf(permission) === -1) {
-								chrome.permissions.request({
-									permissions: [permission]
-								}, function(accepted) {
+								browser.permissions.request({
+									permissions: [permission as _browser.permissions.Permission]
+								}).then((accepted) => {
 									if (!accepted) {
 										//The user didn't accept, don't pretend it's active when it's not, turn it off
 										slider.checked = false;
 									} else {
 										//Accepted, remove from to-request permissions if it's there
-										chrome.storage.local.get(function(e: CRM.StorageLocal) {
+										browser.storage.local.get<CRM.StorageLocal>().then((e) => {
 											const permissionsToRequest = e.requestPermissions;
 											permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
-											chrome.storage.local.set({
+											browser.storage.local.set({
 												requestPermissions: permissionsToRequest
 											});
 										});
@@ -361,7 +361,7 @@ namespace ScriptEditElement {
 				settingsStorage = item as CRM.ScriptNode;
 			}
 			//Prepare all permissions
-			chrome.permissions.getAll(({permissions}) => {
+			browser.permissions.getAll().then(({permissions}) => {
 				if (!nodeItem.permissions) {
 					nodeItem.permissions = [];
 				}
@@ -669,7 +669,7 @@ namespace ScriptEditElement {
 			window.scriptEdit = this;
 			window.externalEditor.init();
 			if (window.app.storageLocal.recoverUnsavedData) {
-				chrome.storage.local.set({
+				browser.storage.local.set({
 					editing: {
 						val: this.item.value.script,
 						id: this.item.id,
@@ -681,17 +681,17 @@ namespace ScriptEditElement {
 					if (this.active && this.editorManager) {
 						//Save
 						const val = this.editorManager.editor.getValue();
-						chrome.storage.local.set({
+						browser.storage.local.set({
 							editing: {
 								val: val,
 								id: this.item.id,
 								mode: this.editorMode,
 								crmType: window.app.crmType
 							}
-						}, function() { chrome.runtime.lastError; });
+						}).catch(() => {});
 					} else {
 						//Stop this interval
-						chrome.storage.local.set({
+						browser.storage.local.set({
 							editing: false
 						});
 						window.clearInterval(this.savingInterval);

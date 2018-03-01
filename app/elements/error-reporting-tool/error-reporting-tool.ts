@@ -90,73 +90,76 @@ namespace ErrorReportingToolElement {
 		};
 
 		private static _scaleScreenshot(this: ErrorReportingTool, canvas: HTMLCanvasElement,
-				newImg: HTMLImageElement, callback: () => void) {
-			this.image = canvas.toDataURL();
-			let maxViewportHeight = window.innerHeight - 450;
-			if (maxViewportHeight > 750) {
-				maxViewportHeight = 750;
-			}
-			if ((750 / newImg.width) * newImg.height > maxViewportHeight) {
-				const captureConts = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.captureCont'));
-				captureConts.forEach((captureCont: HTMLElement) => {
-					captureCont.style.width = ((maxViewportHeight / newImg.height) * newImg.width) + 'px';
-				});
-			}
-			callback && callback();
-		};
+			newImg: HTMLImageElement) {
+				this.image = canvas.toDataURL();
+				let maxViewportHeight = window.innerHeight - 450;
+				if (maxViewportHeight > 750) {
+					maxViewportHeight = 750;
+				}
+				if ((750 / newImg.width) * newImg.height > maxViewportHeight) {
+					const captureConts = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.captureCont'));
+					captureConts.forEach((captureCont: HTMLElement) => {
+						captureCont.style.width = ((maxViewportHeight / newImg.height) * newImg.width) + 'px';
+					});
+				}
+			};
 
 		private static _cropScreenshot(this: ErrorReportingTool, dataURI: string, cropData: {
-				width: number;
-				height: number;
-				left: number;
-				top: number;
-			}, callback: () => void) {
-			const img = new Image();
-			const canvas = this.$.cropCanvas;
-			const context = canvas.getContext('2d');
-			img.onload = () => {
-				//Crop the image
-				context.clearRect(0, 0, canvas.width, canvas.height);
-				canvas.setAttribute('height', cropData.height + '');
-				canvas.setAttribute('width', cropData.width + '');
-				canvas.style.display = 'none';
-				this.appendChild(canvas);
-				context.drawImage(img, cropData.left, cropData.top, cropData.width, cropData.height, 0, 0, cropData.width, cropData.height);
-
-				//Scale the image to fit the canvas
-				const base64 = canvas.toDataURL();
-				const newImg = new Image();
-				newImg.onload = () => {
-					this._scaleScreenshot(canvas, newImg, callback);
-				};
-				newImg.src = base64;
-
-				const imgTag = document.createElement('img');
-				imgTag.src = base64;
-				document.body.appendChild(imgTag);
-			};
-			img.src = dataURI;
-
-			const imgTag2 = document.createElement('img');
-			imgTag2.src = dataURI;
-			document.body.appendChild(imgTag2);
-		};
-
-		private static _screenshot(this: ErrorReportingTool, cropData: {
 			width: number;
 			height: number;
 			left: number;
 			top: number;
-		}, callback: () => void) {
+		}) {
+			return new Promise<void>((resolve) => {
+				const img = new Image();
+				const canvas = this.$.cropCanvas;
+				const context = canvas.getContext('2d');
+				img.onload = () => {
+					//Crop the image
+					context.clearRect(0, 0, canvas.width, canvas.height);
+					canvas.setAttribute('height', cropData.height + '');
+					canvas.setAttribute('width', cropData.width + '');
+					canvas.style.display = 'none';
+					this.appendChild(canvas);
+					context.drawImage(img, cropData.left, cropData.top, cropData.width, cropData.height, 0, 0, cropData.width, cropData.height);
+
+					//Scale the image to fit the canvas
+					const base64 = canvas.toDataURL();
+					const newImg = new Image();
+					newImg.onload = () => {
+						this._scaleScreenshot(canvas, newImg);
+						resolve(null);
+					};
+					newImg.src = base64;
+
+					const imgTag = document.createElement('img');
+					imgTag.src = base64;
+					document.body.appendChild(imgTag);
+				};
+				img.src = dataURI;
+
+				const imgTag2 = document.createElement('img');
+				imgTag2.src = dataURI;
+				document.body.appendChild(imgTag2);
+			});
+		};
+
+		private static async _screenshot(this: ErrorReportingTool, cropData: {
+			width: number;
+			height: number;
+			left: number;
+			top: number;
+		}) {
 			//Make sure the overlay is gone for a while
 			this.$.overlay.style.display = 'none';
-			chrome.tabs.captureVisibleTab({
-				format: 'png'
-			}, (dataURI) => {
-				//Turn it on again
-				this.$.overlay.style.display = 'block';
-				this._cropScreenshot(dataURI, cropData, callback);
+			const { windowId } = await browser.tabs.getCurrent();
+			const dataURI = await browser.tabs.captureVisibleTab(windowId, {
+				format: 'png',
+				quality: 100
 			});
+			//Turn it on again
+			this.$.overlay.style.display = 'block';
+			await this._cropScreenshot(dataURI, cropData);
 		};
 
 		private static _px(this: ErrorReportingTool, num: number): string {
@@ -338,16 +341,15 @@ namespace ErrorReportingToolElement {
 			this.$.errorReportingDialog.open();
 		};
 
-		static finishScreencap(this: ErrorReportingTool) {
+		static async finishScreencap(this: ErrorReportingTool) {
 			this._toggleScreenCapArea(false);
-			this._screenshot({
+			await this._screenshot({
 				top: this._dragStart.Y,
 				left: this._dragStart.X,
 				height: this._lastSize.Y,
 				width: this._lastSize.X
-			}, () => {
-				this.$.errorReportingDialog.open();
 			});
+			this.$.errorReportingDialog.open();
 		};
 
 		private static _resetVars(this: ErrorReportingTool) {
@@ -369,35 +371,29 @@ namespace ErrorReportingToolElement {
 			this.$.errorReportingDialog.open();
 		};
 
-		private static _getStorages(callback: (local: CRM.StorageLocal, sync: CRM.SettingsStorage) => void) {
-			chrome.storage.local.get((local) => {
-				chrome.storage.sync.get((sync) => {
-					callback(local as any, sync as any);
-				});
-			});
+		private static async _getStorages() {
+			return {
+				local: await browser.storage.local.get<CRM.StorageLocal>(),
+				sync: await browser.storage.local.get<CRM.SettingsStorage>(),
+			}
 		}
 
-		private static _downloadFiles(this: ErrorReportingTool, callback: () => void) {
-			chrome.downloads.download({
+		private static async _downloadFiles(this: ErrorReportingTool) {
+			await browser.downloads.download({
 				url: this.image,
 				filename: 'screencap.png'
-			}, () => {
-				if (this.reportType === 'bug') {
-					this._getStorages((localKeys, syncKeys) => {
-						const dataCont = {
-							local: localKeys,
-							sync: syncKeys,
-							lastError: this._lastError
-						};
-						chrome.downloads.download({
-							url: 'data:text/plain;base64,' + window.btoa(JSON.stringify(dataCont)),
-							filename: 'settings.txt' //Downloads as text because github doesn't allow JSON uploads
-						}, callback);
-					});
-				} else {
-					callback();
-				}
 			});
+			if (this.reportType === 'bug') {
+				const { local, sync } = await this._getStorages();
+				const dataCont = {
+					local, sync,
+					lastError: this._lastError
+				};
+				await browser.downloads.download({
+					url: 'data:text/plain;base64,' + window.btoa(JSON.stringify(dataCont)),
+					filename: 'settings.txt' //Downloads as text because github doesn't allow JSON uploads
+				});
+			}
 		};
 
 		private static _hideCheckmark(this: ErrorReportingTool) {
@@ -421,16 +417,15 @@ namespace ErrorReportingToolElement {
 			}, 350);
 		};
 
-		private static _getDownloadPermission(this: ErrorReportingTool, callback: () => void) {
+		private static _getDownloadPermission(this: ErrorReportingTool) {
 			//Download the files
-			chrome.permissions.request({
-				permissions: [
-					'downloads'
-				]
-			}, (granted) => {
+			return new Promise<boolean>(async (resolve) => {
+				const granted = await browser.permissions.request({
+					permissions: ['downloads']
+				});
 				if (granted) {
-					callback();
 					window.errorReportingTool.$.errorReportingDialog.close();
+					resolve(granted);
 
 					//Do a nice checkmark animation on the report button
 					const listener = () => {
@@ -440,19 +435,21 @@ namespace ErrorReportingToolElement {
 					window.addEventListener('focus', listener);
 				} else {
 					window.doc.acceptDownloadToast.show();
+					resolve(granted);
 				}
 			});
 		};
 
-		static submitErrorReport(this: ErrorReportingTool) {
-			this._getDownloadPermission(() => {
-				this._downloadFiles(() => {
-					//Take the user to the github page
-					const messageBody = 'WRITE MESSAGE HERE\n';
-					const title = (this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + 'TITLE HERE';
-					window.open('https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=' + title + '&body=' + messageBody, '_blank');
-				});
-			});
+		static async submitErrorReport(this: ErrorReportingTool) {
+			const granted = await this._getDownloadPermission();
+			if (!granted) {
+				return;
+			}
+			await this._downloadFiles();
+			//Take the user to the github page
+			const messageBody = 'WRITE MESSAGE HERE\n';
+			const title = (this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + 'TITLE HERE';
+			window.open('https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=' + title + '&body=' + messageBody, '_blank');
 		};
 
 		private static _onError(this: ErrorReportingTool, message: string, source: any, lineno: number, colno: number, error: Error) {

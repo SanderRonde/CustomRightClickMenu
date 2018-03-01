@@ -60,64 +60,55 @@ namespace InstallConfirmElement {
 			}, 0);
 		}
 
-		private static _loadSettings(this: InstallConfirm, cb: () => void) {
-			const __this = this;
-
-			function callback(items: CRM.SettingsStorage) {
-				__this._settings = items;
-				cb && cb.apply(__this);
-			}
-
-			chrome.storage.local.get(function(storageLocal: CRM.StorageLocal & {
-				settings?: CRM.SettingsStorage;
-			}) {
-				if (storageLocal.useStorageSync) {
+		private static async _loadSettings(this: InstallConfirm) {
+			return new Promise(async (resolve) => {
+				const local: CRM.StorageLocal & {
+					settings?: CRM.SettingsStorage;
+				} = await browser.storage.local.get() as any;
+				if (local.useStorageSync) {
 					//Parse the data before sending it to the callback
-					chrome.storage.sync.get(function(storageSync: {
+					const storageSync: {
 						[key: string]: string
 					} & {
 						indexes: Array<string>;
-					}) {
-						let indexes = storageSync.indexes;
-						if (!indexes) {
-							chrome.storage.local.set({
-								useStorageSync: false
-							});
-							callback(storageLocal.settings);
-						} else {
-							const settingsJsonArray: Array<string> = [];
-							indexes.forEach(function(index) {
-								settingsJsonArray.push(storageSync[index]);
-							});
-							const jsonString = settingsJsonArray.join('');
-							const settings = JSON.parse(jsonString);
-							callback(settings);
-						}
-					});
+					} = await browser.storage.sync.get() as any;
+					let indexes = storageSync.indexes;
+					if (!indexes) {
+						browser.storage.local.set({
+							useStorageSync: false
+						});
+						this._settings = local.settings;
+					} else {
+						const settingsJsonArray: Array<string> = [];
+						indexes.forEach(function (index) {
+							settingsJsonArray.push(storageSync[index]);
+						});
+						const jsonString = settingsJsonArray.join('');
+						this._settings = JSON.parse(jsonString);
+					}
 				} else {
 					//Send the "settings" object on the storage.local to the callback
-					if (!storageLocal.settings) {
-						chrome.storage.local.set({
+					if (!local.settings) {
+						browser.storage.local.set({
 							useStorageSync: true
 						});
-						chrome.storage.sync.get(function(storageSync: {
+						const storageSync: {
 							[key: string]: string
 						} & {
 							indexes: Array<string>;
-						}) {
-							const indexes = storageSync.indexes;
-							const settingsJsonArray: Array<string> = [];
-							indexes.forEach(function(index) {
-								settingsJsonArray.push(storageSync[index]);
-							});
-							const jsonString = settingsJsonArray.join('');
-							const settings = JSON.parse(jsonString);
-							callback(settings);
+						} = await browser.storage.sync.get() as any;
+						const indexes = storageSync.indexes;
+						const settingsJsonArray: Array<string> = [];
+						indexes.forEach(function (index) {
+							settingsJsonArray.push(storageSync[index]);
 						});
+						const jsonString = settingsJsonArray.join('');
+						this._settings = JSON.parse(jsonString);
 					} else {
-						callback(storageLocal.settings);
+						this._settings = local.settings;
 					}
 				}
+				resolve(null);
 			});
 		};
 
@@ -163,6 +154,7 @@ namespace InstallConfirmElement {
 				crmWrite: 'Allows the writing of data and nodes to your Custom Right-Click Menu. This includes <b>creating</b>, <b>copying</b> and <b>deleting</b> nodes. Be very careful with this permission as it can be used to just copy nodes until your CRM is full and delete any nodes you had. It also allows changing current values in the CRM such as names, actual scripts in script-nodes etc.',
 				crmRun: 'Allows the running of arbitrary scripts from the background-page',
 				chrome: 'Allows the use of chrome API\'s.',
+				browser: 'Allows the use of browser API\'s',
 
 				//Tampermonkey APIs
 				GM_addStyle: 'Allows the adding of certain styles to the document through this API',
@@ -189,7 +181,7 @@ namespace InstallConfirmElement {
 				unsafeWindow: 'Allows the running on an unsafe window object - available by default'
 			};
 
-			return descriptions[permission];
+			return descriptions[permission as keyof typeof descriptions];
 		};
 
 		static showPermissionDescription(this: InstallConfirm, e: Polymer.ClickEvent) {
@@ -264,7 +256,7 @@ namespace InstallConfirmElement {
 			return permissions.indexOf(permission) > -1;
 		};
 
-		static checkPermission(this: InstallConfirm, e: Polymer.ClickEvent) {
+		static async checkPermission(this: InstallConfirm, e: Polymer.ClickEvent) {
 			let el = e.target;
 			while (el.tagName.toLowerCase() !== 'paper-checkbox') {
 				el = el.parentElement;
@@ -274,22 +266,20 @@ namespace InstallConfirmElement {
 			if (checkbox.checked) {
 				const permission = checkbox.getAttribute('permission');
 				if (this._isManifestPermissions(permission as CRM.Permission)) {
-					chrome.permissions.getAll(function(permissions) {
+					const permissions = await browser.permissions.getAll();
 						const allowed = permissions.permissions;
-						if (allowed.indexOf(permission) === -1) {
+						if (allowed.indexOf(permission as _browser.permissions.Permission) === -1) {
 							try {
-								chrome.permissions.request({
-									permissions: [permission]
-								}, function(granted) {
-									if (!granted) {
-										checkbox.checked = false;
-									}
+								const granted = await browser.permissions.request({
+									permissions: [permission as _browser.permissions.Permission]
 								});
+								if (!granted) {
+									checkbox.checked = false;
+								}
 							} catch (e) {
 								//Is not a valid requestable permission
 							}
 						}
-					});
 				}
 			}
 		};
@@ -303,7 +293,7 @@ namespace InstallConfirmElement {
 			this._getCheckboxes().forEach((checkbox) => {
 				checkbox.checked && allowedPermissions.push(checkbox.getAttribute('permission') as CRM.Permission);
 			});
-			chrome.runtime.sendMessage({
+			browser.runtime.sendMessage({
 				type: 'installUserScript',
 				data: {
 					metaTags: this._metaTags,
@@ -395,7 +385,7 @@ namespace InstallConfirmElement {
 		};
 
 		static ready(this: InstallConfirm) {
-			this._loadSettings(() => {
+			this._loadSettings().then(() => {
 				this._loadEditor();
 			});
 			window.installConfirm = this;

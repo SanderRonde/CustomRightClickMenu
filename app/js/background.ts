@@ -1,11 +1,13 @@
-/// <reference path="../../tools/definitions/chrome.d.ts"/>
 /// <reference path="../../tools/definitions/specialJSON.d.ts" />
+/// <reference path="../../tools/definitions/chrome.d.ts" />
+/// <reference path="../../tools/definitions/webExtensions.d.ts" />
 /// <reference path="../../tools/definitions/crm.d.ts" />
-/// <reference path="crmapi.ts" />
 /// <reference path="../../tools/definitions/tern.d.ts" />
 /// <reference path="../../node_modules/@types/node/index.d.ts" />
 /// <reference path="../../tools/definitions/typescript.d.ts" />
+/// <reference path="polyfills/browser.ts" />
 /// <reference path="../js/shared.ts" />
+/// <reference path="crmapi.ts" />
 
 type UserPageMessage = {
 	id: number;
@@ -213,6 +215,16 @@ interface ChromeAPIMessage extends CRMAPIMessageInstance<'chrome', void> {
 	requestType: CRM.Permission;
 }
 
+interface BrowserAPIMessage extends CRMAPIMessageInstance<'browser', void> {
+	api: string;
+	args: Array<{
+		type: 'fn' | 'return' | 'arg';
+		isPersistent?: boolean;
+		val: any;
+	}>;
+	requestType: CRM.Permission;
+}
+
 interface BackgroundAPIMessage extends CRMAPIMessageInstance<'background', {
 	[key: string]: any;
 	[key: number]: any;
@@ -222,7 +234,40 @@ interface BackgroundAPIMessage extends CRMAPIMessageInstance<'background', {
 
 type MaybeArray<T> = T | Array<T>;
 
-interface ContextMenuSettings extends chrome.contextMenus.CreateProperties {
+interface ContextMenusCreateProperties {
+	type?: _browser.contextMenus.ItemType,
+	id?: string,
+	title?: string,
+	checked?: boolean,
+	command?: "_execute_browser_action" | "_execute_page_action" | "_execute_sidebar_action",
+	contexts?: _browser.contextMenus.ContextType[],
+	onclick?: (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => void,
+	parentId?: number|string,
+	documentUrlPatterns?: string[],
+	targetUrlPatterns?: string[],
+	enabled?: boolean,
+}
+
+interface BrowserTabsQueryInfo {
+	active?: boolean,
+	audible?: boolean,
+	// unsupported: autoDiscardable?: boolean,
+	cookieStoreId?: string,
+	currentWindow?: boolean,
+	discarded?: boolean,
+	highlighted?: boolean,
+	index?: number,
+	muted?: boolean,
+	lastFocusedWindow?: boolean,
+	pinned?: boolean,
+	status?: _browser.tabs.TabStatus,
+	title?: string,
+	url?: string|string[],
+	windowId?: number,
+	windowType?: _browser.tabs.WindowType,
+}
+
+interface ContextMenuSettings extends ContextMenusCreateProperties {
 	generatedId?: number;
 }
 
@@ -243,7 +288,7 @@ interface Window {
 	isDev: boolean;
 	createHandlerFunction: (port: {
 		postMessage: (message: Object) => void;
-	}) => (message: any, port: chrome.runtime.Port) => void;
+	}|_browser.runtime.Port) => (message: any) => Promise<void>;
 	backgroundPageLog: (id: number, sourceData: [string, number], ...params: Array<any>) => void;
 	filter: (nodeId: any, tabId: any) => void;
 	_getCurrentTabIndex: (id: number, currentTab: number|'background', callback: (newTabIndexes: Array<number>) => void) => void;
@@ -279,10 +324,10 @@ interface Window {
 
 interface ContextMenuItemTreeItem {
 	index: number;
-	id: number;
+	id: string|number;
 	enabled: boolean;
 	node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
-	parentId: number;
+	parentId: string|number;
 	children: Array<ContextMenuItemTreeItem>;
 	parentTree: Array<ContextMenuItemTreeItem>;
 }
@@ -368,7 +413,7 @@ interface CRMTemplates {
 	getDefaultDividerOrMenuNode(options: Partial<CRM.DividerNode> | Partial<CRM.MenuNode>, type: 'menu' | 'divider'): CRM.DividerNode | CRM.MenuNode;
 	getDefaultDividerNode(options?: Partial<CRM.DividerNode>): CRM.DividerNode;
 	getDefaultMenuNode(options?: Partial<CRM.MenuNode>): CRM.MenuNode;
-	globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string): string;
+	globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string, browserVal: string): string;
 }
 
 const enum SCRIPT_CONVERSION_TYPE {
@@ -451,7 +496,7 @@ interface GlobalObject extends Partial<Window> {
 					nodes: {
 						[nodeId: number]: Array<{
 							secretKey: Array<number>;
-							port?: chrome.runtime.Port | {
+							port?: _browser.runtime.Port | {
 								postMessage(message: Object): void;
 							};
 							usesLocalStorage: boolean;
@@ -462,9 +507,9 @@ interface GlobalObject extends Partial<Window> {
 					};
 				};
 			};
-			rootId: number;
+			rootId: number|string;
 			contextMenuIds: {
-				[nodeId: number]: number;
+				[nodeId: number]: string|number;
 			};
 			nodeInstances: {
 				[nodeId: number]: {
@@ -474,7 +519,12 @@ interface GlobalObject extends Partial<Window> {
 				};
 			};
 			contextMenuInfoById: {
-				[nodeId: number]: {
+				[contextMenuId: number]: {
+					path: Array<number>;
+					settings: ContextMenuSettings;
+					enabled: boolean;
+				};
+				[contextMenuId: string]: {
 					path: Array<number>;
 					settings: ContextMenuSettings;
 					enabled: boolean;
@@ -532,7 +582,7 @@ interface GlobalObject extends Partial<Window> {
 			templates: CRMTemplates;
 			specialJSON: SpecialJSON;
 			permissions: Array<CRM.Permission>;
-			contexts: Array<string>;
+			contexts: Array<_browser.contextMenus.ContextType>;
 			tamperMonkeyExtensions: Array<string>;
 		};
 		listeners: {
@@ -565,7 +615,7 @@ interface GlobalObject extends Partial<Window> {
 
 interface Extensions<T> extends CRM.Extendable<T> { }
 
-window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
+window.isDev = browser.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 if (typeof module === 'undefined') {
 	// Running in the browser
@@ -584,7 +634,7 @@ if (typeof module === 'undefined') {
 }
 
 ((globalObject: GlobalObject, sandboxes: {
-	sandboxChrome: (api: string, args: Array<any>) => any;
+	sandboxChrome: (api: string, base: 'chrome'|'browser', args: Array<any>) => any;
 	sandbox: (id: number, script: string, libraries: Array<string>,
 		secretKey: Array<number>, getInstances: () => Array<{
 			id: string;
@@ -650,15 +700,15 @@ if (typeof module === 'undefined') {
 			};
 
 			try {
-				globalObject.globals.crmValues.tabData[tabId].nodes[id][tabIndex].port
-					.postMessage(message);
+				Util.postMessage(globalObject.globals.crmValues.tabData[tabId].nodes[id][tabIndex].port,
+					message);
 			} catch (e) {
 				if (e.message === 'Converting circular structure to JSON') {
 					message.data =
 						'Converting circular structure to JSON, getting a response from this API will not work';
 					message.type = 'error';
-					globalObject.globals.crmValues.tabData[tabId].nodes[id][tabIndex].port
-						.postMessage(message);
+					Util.postMessage(globalObject.globals.crmValues.tabData[tabId].nodes[id][tabIndex].port, 
+						message);
 				} else {
 					throw e;
 				}
@@ -841,13 +891,14 @@ if (typeof module === 'undefined') {
 				getDefaultMenuNode(this: CRMTemplates, options: Partial<CRM.MenuNode> = {}): CRM.MenuNode {
 					return this.getDefaultDividerOrMenuNode(options, 'menu') as CRM.MenuNode;
 				},
-				globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string): string {
+				globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string, browserVal: string): string {
 					return `var ${wrapperName} = (${((REPLACE: {
 						wrapperName: any;
 						name: {
 							[key: string]: any;
 						};
 						crmAPI: any;
+						browserVal: string;
 						chromeVal: string;
 					}, REPLACEWrapperName: {
 						[key: string]: any;
@@ -871,6 +922,8 @@ if (typeof module === 'undefined') {
 													return tempWrapper;
 												} else if (prop === 'crmAPI') {
 													return REPLACE.crmAPI;
+												} else if (prop === 'browser') {
+													return REPLACE.browserVal;
 												} else if (prop === 'chrome') {
 													return REPLACE.chromeVal;
 												} else {
@@ -890,6 +943,7 @@ if (typeof module === 'undefined') {
 					}).toString()	
 						.replace(/REPLACE.name/g, name)
 						.replace(/REPLACE.chromeVal/g, chromeVal)
+						.replace(/REPLACE.browserVal/g, browserVal)
 						.replace(/REPLACE.crmAPI/g, 'crmAPI')
 						.replace(/REPLACEWrapperName = /g, wrapperName + '=')
 						.replace(/REPLACEWrapperName/g, wrapperName)})()`;
@@ -1388,11 +1442,6 @@ if (typeof module === 'undefined') {
 				});
 			}
 		}
-		static checkForChromeErrors(log: boolean) {
-			if (chrome.runtime.lastError && log) {
-				window.log('chrome runtime error', chrome.runtime.lastError);
-			}
-		}
 		static removeTab(tabId: number) {
 			const nodeStatusses = globalObject.globals.crmValues.stylesheetNodeStatusses;
 			for (let nodeId in nodeStatusses) {
@@ -1419,13 +1468,20 @@ if (typeof module === 'undefined') {
 			return haystack.split('').reverse().join('').indexOf(needle.split('').reverse().join('')) === 0;
 		}
 		static isTamperMonkeyEnabled(callback: (result: boolean) => void) {
-			chrome.management.getAll((installedExtensions) => {
-				const TMExtensions = installedExtensions.filter((extension) => {
-					return globalObject.globals.constants.tamperMonkeyExtensions.indexOf(extension.id) > -1 &&
-						extension.enabled;
+			if ('chrome' in window) {
+				(window as any).chrome.management.getAll((installedExtensions: Array<{
+					id: string;
+					enabled: boolean;
+				}>) => {
+					const TMExtensions = installedExtensions.filter((extension) => {
+						return globalObject.globals.constants.tamperMonkeyExtensions.indexOf(extension.id) > -1 &&
+							extension.enabled;
+					});
+					callback(TMExtensions.length > 0);
 				});
-				callback(TMExtensions.length > 0);
-			});
+			} else {
+				callback(false);
+			}
 		}
 		static async execFile(path: string): Promise<void> {
 			if (this._requiredFiles.indexOf(path) > -1) {
@@ -1453,14 +1509,11 @@ if (typeof module === 'undefined') {
 			if (!url || url.indexOf('chrome://') !== -1) {
 				return false;
 			}
-			return new Promise<boolean>((resolve) => {
-				chrome.extension.isAllowedFileSchemeAccess((allowed) => {
-					if (allowed) {
-						resolve(true);
-					}
-					resolve(url.indexOf('file://') !== -1);
-				});
-			});
+			const allowed = await browser.extension.isAllowedFileSchemeAccess();
+			if (allowed) {
+				return true;
+			}
+			return url.indexOf('file://') !== -1;
 		}
 		static async xhr(url: string, msg?: Array<any>): Promise<string> {
 			return new Promise<string>((resolve, reject) => {
@@ -1482,10 +1535,49 @@ if (typeof module === 'undefined') {
 				xhr.send();
 			});
 		}
+		static proxyPromise<T>(promise: Promise<T>, rejectHandler?: (error: Error) => void): Promise<T|void> {
+			return new Promise<T|void>((resolve) => {
+				promise.then((result) => {
+					resolve(result);
+				}).catch((err) => {
+					rejectHandler && rejectHandler(err);
+					resolve(null);
+				});
+			});
+		}
+		static wait(duration: number): Promise<void> {
+			return new Promise<void>((resolve) => {
+				window.setTimeout(() => {
+					resolve(null);
+				}, duration);
+			});
+		}
+		//Immediately-invoked promise expresion
+		static iipe<T>(fn: () => Promise<T>): Promise<T> {
+			return fn();
+		}
+		static promiseChain<T>(initializers: Array<() => Promise<any>>) {
+			return new Promise<T>((resolve) => {
+				initializers[0]().then((result) => {
+					if (initializers[1]) {
+						this.promiseChain<T>(initializers.slice(1)).then((result) => {
+							resolve(result);
+						});
+					} else {
+						resolve(result);
+					}
+				});
+			});
+		}
+		static postMessage(port: {
+			postMessage(message: any): void;
+		}, message: any) {
+			port.postMessage(message);
+		}
 
 		private static _requiredFiles: Array<string> = [];
 		private static _loadFile(path: string, ...msg: Array<any>): Promise<string> {
-			return this.xhr(chrome.runtime.getURL(path), msg);
+			return this.xhr(browser.runtime.getURL(path), msg);
 		}
 		private static _compareObj(firstObj: {
 			[key: string]: any;
@@ -1706,13 +1798,17 @@ if (typeof module === 'undefined') {
 				}
 			}
 		}
-		private static _permissionsChanged(available: chrome.permissions.Permissions) {
+		private static _permissionsChanged(available: _browser.permissions.Permissions) {
 			globalObject.globals.availablePermissions = available.permissions;
 		}
-		static refreshPermissions() {
-			chrome.permissions.onRemoved.addListener(this._permissionsChanged);
-			chrome.permissions.onAdded.addListener(this._permissionsChanged);
-			chrome.permissions.getAll(this._permissionsChanged);
+		static async refreshPermissions() {
+			const chromePermissions: typeof _chrome.permissions = (window as any).chrome.permissions;
+			if ('onRemoved' in chromePermissions && 'onAdded' in chromePermissions) {
+				chromePermissions.onRemoved.addListener(this._permissionsChanged);
+				chromePermissions.onAdded.addListener(this._permissionsChanged);
+			}
+			const available = await browser.permissions.getAll();
+			globalObject.globals.availablePermissions = available.permissions;
 		}
 		static setHandlerFunction() {
 			interface HandshakeMessage extends CRMAPIMessageInstance<string, any> {
@@ -1720,7 +1816,7 @@ if (typeof module === 'undefined') {
 			}
 
 			window.createHandlerFunction = (port) => {
-				return (message: HandshakeMessage) => {
+				return async (message: HandshakeMessage) => {
 					const crmValues = globalObject.globals.crmValues;
 					const tabData = crmValues.tabData;
 					const nodeInstances = crmValues.nodeInstances;
@@ -1753,7 +1849,7 @@ if (typeof module === 'undefined') {
 												id: ~~instance,
 												tabIndex: index
 											});
-											tabInstance.port.postMessage({
+											Util.postMessage(tabInstance.port, {
 												change: {
 													type: 'added',
 													value: ~~message.tabId,
@@ -1774,26 +1870,23 @@ if (typeof module === 'undefined') {
 								hasHandler: false
 							});
 
-							port.postMessage({
+							Util.postMessage(port, {
 								data: 'connected',
 								instances: instancesArr
 							});
 						}
 					} else {
-						MessageHandling.handleCrmAPIMessage((message as any) as CRMFunctionMessage | ChromeAPIMessage);
+						await MessageHandling.handleCrmAPIMessage((message as any) as CRMFunctionMessage | ChromeAPIMessage);
 					}
 				};
 			};
 		}
 		static init() {
-			function removeNode(node: ContextMenuItemTreeItem) {
-				chrome.contextMenus.remove(node.id, () => {
-					Util.checkForChromeErrors(false);
-				});
+			async function removeNode({id}: ContextMenuItemTreeItem) {
+				await browser.contextMenus.remove(id).catch(() => { });
 			}
 
-			function setStatusForTree(tree: Array<ContextMenuItemTreeItem>,
-				enabled: boolean) {
+			function setStatusForTree(tree: Array<ContextMenuItemTreeItem>, enabled: boolean) {
 				for (let i = 0; i < tree.length; i++) {
 					tree[i].enabled = enabled;
 					if (tree[i].children) {
@@ -1803,7 +1896,11 @@ if (typeof module === 'undefined') {
 			}
 
 			function getFirstRowChange(row: Array<ContextMenuItemTreeItem>, changes: {
-				[nodeId: number]: {
+				[contextMenuId: string]: {
+					node: CRM.Node;
+					type: 'hide' | 'show';
+				}
+				[contextMenuId: number]: {
 					node: CRM.Node;
 					type: 'hide' | 'show';
 				}
@@ -1816,17 +1913,20 @@ if (typeof module === 'undefined') {
 				return Infinity;
 			}
 
-			function reCreateNode(parentId: number, node: ContextMenuItemTreeItem, changes: {
-				[nodeId: number]: {
+			async function reCreateNode(parentId: string|number, node: ContextMenuItemTreeItem, changes: {
+				[contextMenuId: string]: {
+					node: CRM.Node;
+					type: 'hide' | 'show';
+				}
+				[contextMenuId: number]: {
 					node: CRM.Node;
 					type: 'hide' | 'show';
 				}
 			}) {
 				const oldId = node.id;
 				node.enabled = true;
-				const settings = globalObject.globals.crmValues.contextMenuInfoById[node
-					.id]
-					.settings;
+				const settings = globalObject.globals.crmValues
+					.contextMenuInfoById[node.id].settings;
 				if (node.node.type === 'stylesheet' && node.node.value.toggle) {
 					settings.checked = node.node.value.defaultOn;
 				}
@@ -1834,7 +1934,7 @@ if (typeof module === 'undefined') {
 
 				//This is added by chrome to the object during/after creation so delete it manually
 				delete settings.generatedId;
-				const id = chrome.contextMenus.create(settings);
+				const id = await browser.contextMenus.create(settings);
 
 				//Update ID
 				node.id = id;
@@ -1846,13 +1946,17 @@ if (typeof module === 'undefined') {
 				globalObject.globals.crmValues.contextMenuInfoById[id].enabled = true;
 
 				if (node.children) {
-					buildSubTreeFromNothing(id, node.children, changes);
+					await buildSubTreeFromNothing(id, node.children, changes);
 				}
 			}
 
-			function buildSubTreeFromNothing(parentId: number,
+			async function buildSubTreeFromNothing(parentId: string|number,
 				tree: Array<ContextMenuItemTreeItem>, changes: {
-					[nodeId: number]: {
+					[contextMenuId: string]: {
+						node: CRM.Node;
+						type: 'hide' | 'show';
+					}
+					[contextMenuId: number]: {
 						node: CRM.Node;
 						type: 'hide' | 'show';
 					}
@@ -1860,7 +1964,7 @@ if (typeof module === 'undefined') {
 				for (let i = 0; i < tree.length; i++) {
 					if ((changes[tree[i].id] && changes[tree[i].id].type === 'show') ||
 						!changes[tree[i].id]) {
-						reCreateNode(parentId, tree[i], changes);
+						await reCreateNode(parentId, tree[i], changes);
 					} else {
 						globalObject.globals.crmValues.contextMenuInfoById[tree[i].id]
 							.enabled = false;
@@ -1868,214 +1972,201 @@ if (typeof module === 'undefined') {
 				}
 			}
 
-			function applyNodeChangesOntree(parentId: number,
+			async function applyNodeChangesOntree(parentId: string|number,
 				tree: Array<ContextMenuItemTreeItem>, changes: {
-					[nodeId: number]: {
+					[contextMenuId: string]: {
+						node: CRM.Node;
+						type: 'hide' | 'show';
+					}
+					[contextMenuId: number]: {
 						node: CRM.Node;
 						type: 'hide' | 'show';
 					}
 				}) {
-				//Remove all nodes below it and re-enable them and its children
+					//Remove all nodes below it and re-enable them and its children
 
-				//Remove all nodes below it and store them
-				const firstChangeIndex = getFirstRowChange(tree, changes);
-				if (firstChangeIndex < tree.length) {
-					for (let i = 0; i < firstChangeIndex; i++) {
-						//Normally check its children
-						if (tree[i].children && tree[i].children.length > 0) {
-							applyNodeChangesOntree(tree[i].id, tree[i].children, changes);
+					//TODO: check and make prettier
+					//First check everything above it
+					const firstChangeIndex = getFirstRowChange(tree, changes);
+					if (firstChangeIndex < tree.length) {
+						//Normally check everything before the changed one
+						for (let i = 0; i < firstChangeIndex; i++) {
+							if (tree[i].children && tree[i].children.length > 0) {
+								await applyNodeChangesOntree(tree[i].id, tree[i].children, changes);
+							}
 						}
 					}
-				}
 
-				for (let i = firstChangeIndex; i < tree.length; i++) {
-					if (changes[tree[i].id]) {
-						if (changes[tree[i].id].type === 'hide') {
-							//Don't check its children, just remove it
-							removeNode(tree[i]);
+					//Check everything below it
+					for (let i = firstChangeIndex; i < tree.length; i++) {
+						if (changes[tree[i].id]) {
+							if (changes[tree[i].id].type === 'hide') {
+								//Don't check its children, just remove it
+								await removeNode(tree[i]);
 
-							//Set it and its children's status to hidden
-							tree[i].enabled = false;
-							if (tree[i].children) {
-								setStatusForTree(tree[i].children, false);
-							}
-						} else {
-							//Remove every node after it and show them again
-							const enableAfter = [tree[i]];
-							for (let j = i + 1; j < tree.length; j++) {
-								if (changes[tree[j].id]) {
-									if (changes[tree[j].id].type === 'hide') {
-										removeNode(tree[j]);
-										globalObject.globals.crmValues.contextMenuItemTree[tree[j].id]
-											.enabled = false;
-									} else { //Is in toShow
+								//Set it and its children's status to hidden
+								tree[i].enabled = false;
+								if (tree[i].children) {
+									setStatusForTree(tree[i].children, false);
+								}
+							} else {
+								//Remove every node after it and show them again
+								const enableAfter = [tree[i]];
+								for (let j = i + 1; j < tree.length; j++) {
+									if (changes[tree[j].id]) {
+										if (changes[tree[j].id].type === 'hide') {
+											await removeNode(tree[j]);
+											globalObject.globals.crmValues.contextMenuItemTree[tree[j].index]
+												.enabled = false;
+										} else { //Is in toShow
+											enableAfter.push(tree[j]);
+										}
+									} else if (tree[j].enabled) {
 										enableAfter.push(tree[j]);
+										await removeNode(tree[j]);
 									}
-								} else if (tree[j].enabled) {
-									enableAfter.push(tree[j]);
-									removeNode(tree[j]);
+								}
+
+								for (let j = 0; j < enableAfter.length; j++) {
+									await reCreateNode(parentId, enableAfter[j], changes);
 								}
 							}
-
-							for (let j = 0; j < enableAfter.length; j++) {
-								reCreateNode(parentId, enableAfter[j], changes);
-							}
 						}
 					}
 				}
 
-			}
-
 			function getNodeStatusses(subtree: Array<ContextMenuItemTreeItem>,
-				hiddenNodes: Array<ContextMenuItemTreeItem>,
-				shownNodes: Array<ContextMenuItemTreeItem>) {
-				for (let i = 0; i < subtree.length; i++) {
-					if (subtree[i]) {
-						(subtree[i].enabled ? shownNodes : hiddenNodes).push(subtree[i]);
-						getNodeStatusses(subtree[i].children, hiddenNodes, shownNodes);
+				hiddenNodes: Array<ContextMenuItemTreeItem> = [],
+				shownNodes: Array<ContextMenuItemTreeItem> = []) {
+					for (let i = 0; i < subtree.length; i++) {
+						if (subtree[i]) {
+							(subtree[i].enabled ? shownNodes : hiddenNodes).push(subtree[i]);
+							getNodeStatusses(subtree[i].children, hiddenNodes, shownNodes);
+						}
+					}
+					return {
+						hiddenNodes,
+						shownNodes
 					}
 				}
+
+			function getToHide(tab: _browser.tabs.Tab, shown: Array<ContextMenuItemTreeItem>): Array<{
+				node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
+				id: string | number;
+				type: 'hide'|'show';
+			}> {
+				return shown.map(({node, id}) => {
+					const hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[node.id];
+					if (hideOn && URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
+						//Don't hide on current url
+						return {
+							node,
+							id,
+							type: 'hide'
+						} as {
+							node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
+							id: string | number;
+							type: 'hide';
+						};
+					}
+					return null;
+				}).filter(val => !!val)
 			}
 
-			function tabChangeListener(changeInfo: {
-				tabIds?: Array<number>;
-				tabs: Array<number>;
+			function getToEnable(tab: _browser.tabs.Tab, hidden: Array<ContextMenuItemTreeItem>): Array<{
+				node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
+				id: string | number;
+				type: 'show'|'hide';
+			}> {
+				return hidden.map(({node, id}) => {
+					const hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[node.id];
+					if (!hideOn || !URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
+						//Don't hide on current url
+						return {
+							node,
+							id,
+							type: 'show'
+						} as {
+							node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
+							id: string | number;
+							type: 'show';
+						}
+					}
+					return null;
+				}).filter(val => !!val).filter(({node}) => {
+					const hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[node.id];
+					return !hideOn || !URLParsing.matchesUrlSchemes(hideOn, tab.url);
+				});
+			}
+
+			async function tabChangeListener(changeInfo: {
+				tabIds: Array<number>;
 				windowId?: number;
 			}) {
 				//Horrible workaround that allows the hiding of nodes on certain url's that
 				//	surprisingly only takes ~1-2ms per tab switch.
 				const currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
-				chrome.tabs.get(currentTabId, (tab) => {
-					if (chrome.runtime.lastError) {
-						if (chrome.runtime.lastError.message.indexOf('No tab with id:') > -1) {
-							globalObject.globals.storages.failedLookups.push(currentTabId);
-						} else {
-							window.log(chrome.runtime.lastError.message);
-						}
-						return;
+				const tab = await Util.proxyPromise(browser.tabs.get(currentTabId), (err) => {
+					if (err.message.indexOf('No tab with id:') > -1) {
+						globalObject.globals.storages.failedLookups.push(currentTabId);
+					} else {
+						window.log(err.message);
 					}
-
-					//Show/remove nodes based on current URL
-					const toHide: Array<{
-						node: CRM.Node;
-						id: number;
-					}> = [];
-					const toEnable: Array<{
-						node: CRM.Node;
-						id: number;
-					}> = [];
-
-					const changes: {
-						[nodeId: number]: {
-							node: CRM.Node;
-							type: 'hide' | 'show';
-						}
-					} = {};
-					const shownNodes: Array<ContextMenuItemTreeItem> = [];
-					const hiddenNodes: Array<ContextMenuItemTreeItem> = [];
-					getNodeStatusses(globalObject.globals.crmValues.contextMenuItemTree,
-						hiddenNodes, shownNodes);
-
-
-					//Find nodes to enable
-					let hideOn: Array<{
-						not: boolean;
-						url: string;
-					}>;
-					for (let i = 0; i < hiddenNodes.length; i++) {
-						hideOn = globalObject.globals.crmValues
-							.hideNodesOnPagesData[hiddenNodes[i]
-								.node.id];
-						if (!hideOn || !URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
-							//Don't hide on current url
-							toEnable.push({
-								node: hiddenNodes[i].node,
-								id: hiddenNodes[i].id
-							});
-						}
-					}
-
-					//Find nodes to hide
-					for (let i = 0; i < shownNodes.length; i++) {
-						hideOn = globalObject.globals.crmValues
-							.hideNodesOnPagesData[shownNodes[i]
-								.node.id];
-						if (hideOn) {
-							if (URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
-								//Don't hide on current url
-								toHide.push({
-									node: shownNodes[i].node,
-									id: shownNodes[i].id
-								});
-							}
-						}
-					}
-
-					//Re-check if the toEnable nodes might be disabled after all
-					let length = toEnable.length;
-					for (let i = 0; i < length; i++) {
-						hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[toEnable[i]
-							.node.id];
-						if (hideOn) {
-							if (URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
-								//Don't hide on current url
-								toEnable.splice(i, 1);
-								length--;
-								i--;
-							}
-						}
-					}
-
-					for (let i = 0; i < toHide.length; i++) {
-						changes[toHide[i].id] = {
-							node: toHide[i].node,
-							type: 'hide'
-						};
-					}
-					for (let i = 0; i < toEnable.length; i++) {
-						changes[toEnable[i].id] = {
-							node: toEnable[i].node,
-							type: 'show'
-						};
-					}
-
-					//Apply changes
-					applyNodeChangesOntree(globalObject.globals.crmValues.rootId, globalObject
-						.globals.crmValues.contextMenuItemTree, changes);
 				});
-
-				const statuses = globalObject.globals.crmValues.stylesheetNodeStatusses;
-
-				function checkForRuntimeErrors() {
-					if (chrome.runtime.lastError) {
-						window.log(chrome.runtime.lastError);
-					}
+				if (!tab) {
+					return;
 				}
 
-				for (let nodeId in statuses) {
-					if (statuses.hasOwnProperty(nodeId) && statuses[nodeId]) {
-						chrome.contextMenus.update(globalObject.globals.crmValues
-							.contextMenuIds[nodeId], {
-								checked: typeof statuses[nodeId][currentTabId] !== 'boolean' ?
-									statuses[nodeId].defaultValue :
-									statuses[nodeId][currentTabId]
-							}, checkForRuntimeErrors);
+				//Show/remove nodes based on current URL
+				const changes: {
+					[contextMenuId: string]: {
+						node: CRM.Node;
+						type: 'hide' | 'show';
 					}
+					[contextMenuId: number]: {
+						node: CRM.Node;
+						type: 'hide' | 'show';
+					}
+				} = {};
+				const { shownNodes, hiddenNodes } = getNodeStatusses(globalObject.globals.crmValues.contextMenuItemTree);
+				[...getToHide(tab, shownNodes), ...getToEnable(tab, hiddenNodes)].forEach(({ node, id, type }) => {
+					changes[id] = {
+						node,
+						type
+					}
+				});
+
+				//Apply changes
+				await applyNodeChangesOntree(globalObject.globals.crmValues.rootId, globalObject
+					.globals.crmValues.contextMenuItemTree, changes);
+
+				const statuses = globalObject.globals.crmValues.stylesheetNodeStatusses;
+				const ids = globalObject.globals.crmValues.contextMenuIds;
+
+				for (let nodeId in statuses) {
+					const status = statuses[nodeId];
+					const currentValue = status[currentTabId];
+					await Util.proxyPromise(browser.contextMenus.update(ids[nodeId], {
+						checked: typeof currentValue === 'boolean' ?
+							currentValue : status.defaultValue
+					}), (err) => {
+						window.log(err.message);
+					});
 				}
 			}
 
 			function setupResourceProxy() {
-				chrome.webRequest.onBeforeRequest.addListener((details) => {
+				browser.webRequest.onBeforeRequest.addListener((details) => {
 					window.info('Redirecting', details);
 					return {
-						redirectUrl: `chrome-extension://${chrome.runtime.id}/fonts/fonts.css`
+						redirectUrl: `${location.protocol}//${browser.runtime.id}/fonts/fonts.css`
 					}
 				}, {
 					urls: ['*://fonts.googleapis.com/', '*://fonts.gstatic.com/']
 				});
 			}
 
-			function onTabUpdated(id: number, details: chrome.tabs.Tab) {
+			function onTabUpdated(id: number, details: _browser.tabs.Tab) {
 				if (!Util.canRunOnUrl(details.url)) {
 					return;
 				}
@@ -2111,7 +2202,7 @@ if (typeof module === 'undefined') {
 				for (let i = 0; i < deleted.length; i++) {
 					if ((deleted[i] as any).node && (deleted[i] as any).node.id !== undefined) {
 						globalObject.globals.crmValues.tabData[tabId].nodes[(deleted[i] as any).node.id].forEach((tabInstance) => {
-							tabInstance.port.postMessage({
+							Util.postMessage(tabInstance.port, {
 								change: {
 									type: 'removed',
 									value: tabId
@@ -2127,8 +2218,8 @@ if (typeof module === 'undefined') {
 			}
 
 			function listenNotifications() {
-				if (chrome.notifications) {
-					chrome.notifications.onClicked.addListener((notificationId: string) => {
+				if (browser.notifications) {
+					browser.notifications.onClicked.addListener((notificationId: string) => {
 						const notification = globalObject.globals
 							.notificationListeners[notificationId];
 						if (notification && notification.onClick !== undefined) {
@@ -2140,7 +2231,7 @@ if (typeof module === 'undefined') {
 								});
 						}
 					});
-					chrome.notifications.onClosed.addListener((notificationId, byUser) => {
+					browser.notifications.onClosed.addListener((notificationId, byUser?) => {
 						const notification = globalObject.globals
 							.notificationListeners[notificationId];
 						if (notification && notification.onDone !== undefined) {
@@ -2159,7 +2250,7 @@ if (typeof module === 'undefined') {
 			function updateTamperMonkeyInstallState() {
 				Util.isTamperMonkeyEnabled((isEnabled) => {
 					globalObject.globals.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
-					chrome.storage.local.set({
+					browser.storage.local.set({
 						useAsUserscriptInstaller: !isEnabled
 					});
 				});
@@ -2167,18 +2258,17 @@ if (typeof module === 'undefined') {
 
 			function listenTamperMonkeyInstallState() {
 				updateTamperMonkeyInstallState();
-				chrome.management.onInstalled.addListener(updateTamperMonkeyInstallState);
-				chrome.management.onEnabled.addListener(updateTamperMonkeyInstallState);
-				chrome.management.onUninstalled.addListener(updateTamperMonkeyInstallState);
-				chrome.management.onDisabled.addListener(updateTamperMonkeyInstallState);
+				if ('chrome' in window) {
+					const management: typeof _chrome.management = (window as any).chrome.management as any;
+					management.onInstalled.addListener(updateTamperMonkeyInstallState);
+					management.onEnabled.addListener(updateTamperMonkeyInstallState);
+					management.onUninstalled.addListener(updateTamperMonkeyInstallState);
+					management.onDisabled.addListener(updateTamperMonkeyInstallState);
+				}
 			}
 
 			function updateKeyCommands() {
-				return new window.Promise<Array<chrome.commands.Command>>((resolve) => {
-					chrome.commands.getAll((commands) => {
-						resolve(commands);
-					});
-				});
+				return browser.commands.getAll();
 			}
 
 			function permute<T>(arr: Array<T>, prefix: Array<T> = []): Array<Array<T>> {
@@ -2195,7 +2285,7 @@ if (typeof module === 'undefined') {
 			}
 
 			function listenKeyCommands() {
-				chrome.commands.onCommand.addListener(async (command) => {
+				browser.commands.onCommand.addListener(async (command) => {
 					const commands = await updateKeyCommands();
 					commands.forEach((registerCommand) => {
 						if (registerCommand.name === command) {
@@ -2213,21 +2303,20 @@ if (typeof module === 'undefined') {
 				});
 			}
 
-			chrome.tabs.onUpdated.addListener(onTabUpdated);
-			chrome.tabs.onRemoved.addListener(onTabsRemoved);
-			chrome.tabs.onHighlighted.addListener(tabChangeListener);
-			chrome.webRequest.onBeforeRequest.addListener(
-				(details) => {
-					const split = details.url
-						.split(`chrome-extension://${chrome.runtime.id}/resource/`)[1].split('/');
-					const name = split[0];
-					const scriptId = ~~split[1];
-					return {
-						redirectUrl: this.getResourceData(name, scriptId)
-					};
-				}, {
-					urls: [`chrome-extension://${chrome.runtime.id}/resource/*`]
-				}, ['blocking']);
+			browser.tabs.onUpdated.addListener(onTabUpdated);
+			browser.tabs.onRemoved.addListener(onTabsRemoved);
+			browser.tabs.onHighlighted.addListener(tabChangeListener);
+			browser.webRequest.onBeforeRequest.addListener((details) => {
+				const split = details.url
+					.split(`${location.protocol}//${browser.runtime.id}/resource/`)[1].split('/');
+				const name = split[0];
+				const scriptId = ~~split[1];
+				return {
+					redirectUrl: this.getResourceData(name, scriptId)
+				};
+			}, {
+				urls: [`${location.protocol}//${browser.runtime.id}/resource/*`]
+			}, ['blocking']);
 			listenNotifications();
 			listenTamperMonkeyInstallState();
 			listenKeyCommands();
@@ -2243,55 +2332,48 @@ if (typeof module === 'undefined') {
 			return null;
 		}
 
-		static restoreOpenTabs() {
-			return new window.Promise<void>((resolve) => {
-				chrome.tabs.query({}, async (tabs) => {
-					if (tabs.length === 0) {
-						resolve(null);
-					} else {
-						await window.Promise.all(tabs.map((tab) => {
-							return Promise.race([
-								new window.Promise<RestoreTabStatus>((resolveInner) => {
-									if (Util.canRunOnUrl(tab.url)) {
-										chrome.tabs.executeScript(tab.id, {
-											file: 'js/contentscript.js'
-										}, () => {
-											if (chrome.runtime.lastError) {
-												resolveInner(RestoreTabStatus.UNKNOWN_ERROR);
-											}
-											resolveInner(RestoreTabStatus.SUCCESS);
-										});
-									} else {
-										resolveInner(RestoreTabStatus.IGNORED);
-									}
-								}),
-								new window.Promise<RestoreTabStatus>((resolveInner) => {
-									window.setTimeout(() => {
-										resolveInner(RestoreTabStatus.FROZEN);
-									}, 2500);
-								})
-							]).then((state) => {
-								switch (state) {
-									case RestoreTabStatus.SUCCESS:
-										window.log('Restored tab with id', tab.id);
-										break;
-									case RestoreTabStatus.UNKNOWN_ERROR:
-										window.log('Failed to restore tab with id', tab.id);
-										break;
-									case RestoreTabStatus.IGNORED:
-										window.log('Ignoring tab with id', tab.id, '(chrome or file url)');
-										break;
-									case RestoreTabStatus.FROZEN:
-										window.log('Skipping restoration of tab with id', tab.id,
-											'Tab is frozen, most likely due to user debugging');
-										break;
-								}
-							});
-						}));
-						resolve(null);
-					}
-				});
-			});
+		static async restoreOpenTabs() {
+			const tabs = await browser.tabs.query({});
+			if (tabs.length === 0) {
+				return;
+			}
+			await window.Promise.all(tabs.map(async (tab) => {
+				const state = await Promise.race([
+					Util.iipe<RestoreTabStatus>(async () => {
+						if (Util.canRunOnUrl(tab.url)) {
+							try {
+								await browser.tabs.executeScript(tab.id, {
+									file: '/js/contentscript.js'
+								});
+								return RestoreTabStatus.SUCCESS;
+							} catch(_e) {
+								return RestoreTabStatus.UNKNOWN_ERROR;
+							}
+						} else {
+							return RestoreTabStatus.IGNORED;
+						}
+					}),
+					new window.Promise<RestoreTabStatus>(async () => {
+						await Util.wait(2500);
+						return RestoreTabStatus.FROZEN;
+					})
+				]);
+				switch (state) {
+					case RestoreTabStatus.SUCCESS:
+						window.log('Restored tab with id', tab.id);
+						break;
+					case RestoreTabStatus.UNKNOWN_ERROR:
+						window.log('Failed to restore tab with id', tab.id);
+						break;
+					case RestoreTabStatus.IGNORED:
+						window.log('Ignoring tab with id', tab.id, '(chrome or file url)');
+						break;
+					case RestoreTabStatus.FROZEN:
+						window.log('Skipping restoration of tab with id', tab.id,
+							'Tab is frozen, most likely due to user debugging');
+						break;
+				};
+			}));
 		}
 	}
 
@@ -2310,12 +2392,11 @@ if (typeof module === 'undefined') {
 				if (!globalObject.globals.crmValues.tabData[message.tab]) {
 					return;
 				}
-				globalObject.globals.crmValues.tabData[message.tab].nodes[message.id][message.tabIndex].port
-					.postMessage({
-						messageType: type,
-						code: message.code,
-						logCallbackIndex: message.logListener.index
-					});
+				Util.postMessage(globalObject.globals.crmValues.tabData[message.tab].nodes[message.id][message.tabIndex].port, {
+					messageType: type,
+					code: message.code,
+					logCallbackIndex: message.logListener.index
+				});
 			}
 			static displayHints(message: CRMAPIMessageInstance<'displayHints', {
 				hints: Array<string>;
@@ -2390,19 +2471,17 @@ if (typeof module === 'undefined') {
 								title: 'background'
 							} as TabData));
 						} else {
-							tabs.push(new Promise((resolve) => {
-								chrome.tabs.get(tabId, (tab) => {
-									if (chrome.runtime.lastError) {
-										//Tab does not exist, remove it from tabData
-										Util.removeTab(tabId);
-										resolve(null);
-									} else {
-										resolve({
-											id: tabId,
-											title: tab.title
-										});
-									}
+							tabs.push(Util.iipe(async () => {
+								const tab = await Util.proxyPromise(browser.tabs.get(tabId), () => {
+									Util.removeTab(tabId);
 								});
+								if (!tab) {
+									return null;
+								}
+								return {
+									id: tabId,
+									title: tab.title
+								}
 							}));
 						}
 					});
@@ -2481,7 +2560,7 @@ if (typeof module === 'undefined') {
 			globalObject.globals.logging[id].logMessages.push(srcObj);
 			Logging._updateLogs(srcObj);
 		}
-		static logHandler(message: {
+		static async logHandler(message: {
 			type: string;
 			id: number;
 			lineNumber: string;
@@ -2506,27 +2585,26 @@ if (typeof module === 'undefined') {
 			this._prepareLog(message.id, message.tabId);
 			switch (message.type) {
 				case 'evalResult':
-					chrome.tabs.get(message.tabId, (tab) => {
-						globalObject.globals.listeners.log[message.callbackIndex].listener({
-							id: message.id,
-							tabId: message.tabId,
-							tabInstanceIndex: message.tabIndex,
-							nodeTitle: globalObject.globals.crm.crmById[message.id].name,
-							tabTitle: tab.title,
-							type: 'evalResult',
-							lineNumber: message.lineNumber,
-							timestamp: message.timestamp,
-							val: (message.value.type === 'success') ?
-								{
-									type: 'success',
-									result: globalObject.globals.constants.specialJSON.fromJSON(message.value.result as string)
-								} : message.value
-						});
+					const tab = await browser.tabs.get(message.tabId);
+					globalObject.globals.listeners.log[message.callbackIndex].listener({
+						id: message.id,
+						tabId: message.tabId,
+						tabInstanceIndex: message.tabIndex,
+						nodeTitle: globalObject.globals.crm.crmById[message.id].name,
+						tabTitle: tab.title,
+						type: 'evalResult',
+						lineNumber: message.lineNumber,
+						timestamp: message.timestamp,
+						val: (message.value.type === 'success') ?
+							{
+								type: 'success',
+								result: globalObject.globals.constants.specialJSON.fromJSON(message.value.result as string)
+							} : message.value
 					});
 					break;
 				case 'log':
 				default:
-					this._logHandlerLog({
+					await this._logHandlerLog({
 						type: message.type,
 						id: message.id,
 						data: message.data,
@@ -2570,7 +2648,7 @@ if (typeof module === 'undefined') {
 				}
 			});
 		}
-		private static _logHandlerLog(message: {
+		private static async _logHandlerLog(message: {
 			type: string;
 			id: number;
 			data: string;
@@ -2585,7 +2663,7 @@ if (typeof module === 'undefined') {
 				id: number;
 				tabId: number;
 				tabIndex: number;
-				tab: chrome.tabs.Tab;
+				tab: _browser.tabs.Tab;
 				url: string;
 				tabTitle: string;
 				node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
@@ -2606,29 +2684,28 @@ if (typeof module === 'undefined') {
 				timestamp: new Date().toLocaleString()
 			} as any;
 
-			chrome.tabs.get(message.tabId, (tab) => {
-				const data: Array<any> = globalObject.globals.constants.specialJSON
-					.fromJSON(message.data);
-				args = args.concat(data);
-				this.log.bind(globalObject, message.id, message.tabId)
-					.apply(globalObject, args);
+			const tab = await browser.tabs.get(message.tabId);
+			const data: Array<any> = globalObject.globals.constants.specialJSON
+				.fromJSON(message.data);
+			args = args.concat(data);
+			this.log.bind(globalObject, message.id, message.tabId)
+				.apply(globalObject, args);
 
-				srcObj.id = message.id;
-				srcObj.tabId = message.tabId;
-				srcObj.tab = tab;
-				srcObj.url = tab.url;
-				srcObj.tabIndex = message.tabIndex;
-				srcObj.tabTitle = tab.title;
-				srcObj.node = globalObject.globals.crm.crmById[message.id];
-				srcObj.nodeName = srcObj.node.name;
+			srcObj.id = message.id;
+			srcObj.tabId = message.tabId;
+			srcObj.tab = tab;
+			srcObj.url = tab.url;
+			srcObj.tabIndex = message.tabIndex;
+			srcObj.tabTitle = tab.title;
+			srcObj.node = globalObject.globals.crm.crmById[message.id];
+			srcObj.nodeName = srcObj.node.name;
 
-				logValue.tabTitle = tab.title;
-				logValue.nodeTitle = srcObj.nodeName;
-				logValue.data = data;
+			logValue.tabTitle = tab.title;
+			logValue.nodeTitle = srcObj.nodeName;
+			logValue.data = data;
 
-				globalObject.globals.logging[message.id].logMessages.push(logValue);
-				this._updateLogs(logValue);
-			});
+			globalObject.globals.logging[message.id].logMessages.push(logValue);
+			this._updateLogs(logValue);
 		}
 	}
 
@@ -2689,8 +2766,7 @@ if (typeof module === 'undefined') {
 		}
 		static queryCrm(__this: CRMFunction) {
 			__this.checkPermissions(['crmGet'], () => {
-				__this.typeCheck([
-					{
+				__this.typeCheck([{
 						val: 'query',
 						type: 'object'
 					}, {
@@ -2722,8 +2798,7 @@ if (typeof module === 'undefined') {
 
 					let searchScope = null as any;
 					if (optionals['query.inSubTree']) {
-						const searchScopeObj = __this.getNodeFromId(
-							query.inSubTree,
+						const searchScopeObj = __this.getNodeFromId(query.inSubTree,
 							true, true);
 						let searchScopeObjChildren: Array<CRM.Node> = [];
 						if (searchScopeObj) {
@@ -2791,8 +2866,7 @@ if (typeof module === 'undefined') {
 		}
 		static createNode(__this: CRMFunction) {
 			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				__this.typeCheck([
-					{
+				__this.typeCheck([{
 						val: 'options',
 						type: 'object'
 					}, {
@@ -2802,26 +2876,22 @@ if (typeof module === 'undefined') {
 					}, {
 						val: 'options.triggers',
 						type: 'array',
-						forChildren: [
-							{
-								val: 'url',
-								type: 'string'
-							}
-						],
+						forChildren: [{
+							val: 'url',
+							type: 'string'
+						}],
 						optional: true
 					}, {
 						val: 'options.linkData',
 						type: 'array',
-						forChildren: [
-							{
-								val: 'url',
-								type: 'string'
-							}, {
-								val: 'newTab',
-								type: 'boolean',
-								optional: true
-							}
-						],
+						forChildren: [{
+							val: 'url',
+							type: 'string'
+						}, {
+							val: 'newTab',
+							type: 'boolean',
+							optional: true
+						}],
 						optional: true
 					}, {
 						val: 'options.scriptData',
@@ -2843,23 +2913,19 @@ if (typeof module === 'undefined') {
 						val: 'options.scriptData.triggers',
 						type: 'array',
 						optional: true,
-						forChildren: [
-							{
-								val: 'url',
-								type: 'string'
-							}
-						]
+						forChildren: [{
+							val: 'url',
+							type: 'string'
+						}]
 					}, {
 						dependency: 'options.scriptData',
 						val: 'options.scriptData.libraries',
 						type: 'array',
 						optional: true,
-						forChildren: [
-							{
-								val: 'name',
-								type: 'string'
-							}
-						]
+						forChildren: [{
+							val: 'name',
+							type: 'string'
+						}]
 					}, {
 						val: 'options.stylesheetData',
 						type: 'object',
@@ -2875,12 +2941,10 @@ if (typeof module === 'undefined') {
 						dependency: 'options.stylesheetData',
 						val: 'options.stylesheetData.triggers',
 						type: 'array',
-						forChildren: [
-							{
-								val: 'url',
-								type: 'string'
-							}
-						],
+						forChildren: [{
+							val: 'url',
+							type: 'string'
+						}],
 						optional: true
 					}, {
 						dependency: 'options.stylesheetData',
@@ -2897,51 +2961,50 @@ if (typeof module === 'undefined') {
 						type: 'object',
 						optional: true
 					}
-				], () => {
+				], async () => {
 					const id = Util.generateItemId();
-					let node = __this.message.data.options;
-					node = CRM.makeSafe(node);
-					node.id = id;
-					node.nodeInfo = __this.getNodeFromId(__this.message.id, false, true)
-						.nodeInfo;
-					if (__this.getNodeFromId(__this.message.id, false, true).isLocal) {
-						node.isLocal = true;
+					const sourceNode = __this.getNodeFromId(__this.message.id, false, true);
+					if (!sourceNode) {
+						return false;
 					}
+					const { nodeInfo, isLocal } = sourceNode;
+					const baseNode = { ...CRM.makeSafe(__this.message.data.options), ...{
+						id, isLocal, nodeInfo
+					}} as any;
 
 					let newNode: CRM.Node;
 					switch (__this.message.data.options.type) {
 						case 'script':
 							newNode = globalObject.globals.constants.templates
-								.getDefaultScriptNode(node);
+								.getDefaultScriptNode(baseNode);
 							newNode.type = 'script';
 							break;
 						case 'stylesheet':
 							newNode = globalObject.globals.constants.templates
-								.getDefaultStylesheetNode(node);
+								.getDefaultStylesheetNode(baseNode);
 							newNode.type = 'stylesheet';
 							break;
 						case 'menu':
 							newNode = globalObject.globals.constants.templates
-								.getDefaultMenuNode(node);
+								.getDefaultMenuNode(baseNode);
 							newNode.type = 'menu';
 							break;
 						case 'divider':
 							newNode = globalObject.globals.constants.templates
-								.getDefaultDividerNode(node);
+								.getDefaultDividerNode(baseNode);
 							newNode.type = 'divider';
 							break;
 						default:
 						case 'link':
 							newNode = globalObject.globals.constants.templates
-								.getDefaultLinkNode(node);
+								.getDefaultLinkNode(baseNode);
 							newNode.type = 'link';
 							break;
 					}
 
 					if ((newNode = __this.moveNode(newNode, __this.message.data.options.position) as CRM.Node)) {
-						CRM.updateCrm([newNode.id]).then(() => {
-							__this.respondSuccess(__this.getNodeFromId(newNode.id, true, true));
-						});
+						await CRM.updateCrm([newNode.id]);
+						__this.respondSuccess(__this.getNodeFromId(newNode.id, true, true));
 					} else {
 						__this.respondError('Failed to place node');
 					}
@@ -2964,11 +3027,12 @@ if (typeof module === 'undefined') {
 					__this.getNodeFromId(__this.message.data.nodeId, true).run((node: CRM.Node) => {
 						let newNode = JSON.parse(JSON.stringify(node));
 						newNode.id = Util.generateItemId();
-						if (__this.getNodeFromId(__this.message.id, false, true).local === true &&
+
+						if (__this.getNodeFromId(__this.message.id, false, true, true).isLocal === true &&
 							node.isLocal === true) {
 							newNode.isLocal = true;
 						}
-						newNode.nodeInfo = __this.getNodeFromId(__this.message.id, false, true)
+						newNode.nodeInfo = __this.getNodeFromId(__this.message.id, false, true, true)
 							.nodeInfo;
 						delete newNode.storage;
 						delete (newNode as any).file;
@@ -3010,22 +3074,16 @@ if (typeof module === 'undefined') {
 		}
 		static deleteNode(__this: CRMFunction) {
 			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 					const parentChildren = __this.lookup(node.path, globalObject.globals.crm.crmTree, true) as Array<CRM.Node>;
 					parentChildren.splice(node.path[node.path.length - 1], 1);
-					if (globalObject.globals.crmValues.contextMenuIds[node
-						.id] !==
-						undefined) {
-						chrome.contextMenus.remove(globalObject.globals.crmValues
-							.contextMenuIds[node.id], () => {
-								CRM.updateCrm([__this.message.data.nodeId]).then(() => {
-									__this.respondSuccess(true);
-								});
-							});
+					if (globalObject.globals.crmValues.contextMenuIds[node.id] !== undefined) {
+						await browser.contextMenus.remove(globalObject.globals.crmValues.contextMenuIds[node.id]);
+						await CRM.updateCrm([__this.message.data.nodeId]);
+						__this.respondSuccess(true);
 					} else {
-						CRM.updateCrm([__this.message.data.nodeId]).then(() => {
-							__this.respondSuccess(true);
-						});
+						await CRM.updateCrm([__this.message.data.nodeId]);
+						__this.respondSuccess(true);
 					}
 				});
 			});
@@ -3159,18 +3217,15 @@ if (typeof module === 'undefined') {
 							matchPatterns[0] = '<all_urls>';
 						}
 						if (globalObject.globals.crmValues.contextMenuIds[node.id]) {
-							chrome.contextMenus.update(globalObject.globals.crmValues
+							await browser.contextMenus.update(globalObject.globals.crmValues
 								.contextMenuIds[node.id], {
 									documentUrlPatterns: matchPatterns
-								}, () => {
-									CRM.updateCrm().then(() => {
-										__this.respondSuccess(Util.safe(node));
-									});
 								});
+							await CRM.updateCrm();
+							__this.respondSuccess(Util.safe(node));
 						} else {
-							CRM.updateCrm().then(() => {
-								__this.respondSuccess(Util.safe(node));
-							});
+							await CRM.updateCrm();
+							__this.respondSuccess(Util.safe(node));
 						}
 					});
 				});
@@ -3208,18 +3263,15 @@ if (typeof module === 'undefined') {
 							node['showOnSpecified'] = msg['useTriggers'];
 							await CRM.updateCrm();
 							if (globalObject.globals.crmValues.contextMenuIds[node.id]) {
-								chrome.contextMenus.update(globalObject.globals.crmValues
+								browser.contextMenus.update(globalObject.globals.crmValues
 									.contextMenuIds[node.id], {
 										documentUrlPatterns: ['<all_urls>']
-									}, () => {
-										CRM.updateCrm().then(() => {
-											__this.respondSuccess(Util.safe(node));
-										});
 									});
+								await CRM.updateCrm();
+								__this.respondSuccess(Util.safe(node));
 							} else {
-								CRM.updateCrm().then(() => {
-									__this.respondSuccess(Util.safe(node));
-								});
+								await CRM.updateCrm();
+								__this.respondSuccess(Util.safe(node));
 							}
 						} else {
 							__this.respondError('Node is not of right type, can only be menu, link or divider');
@@ -3256,14 +3308,12 @@ if (typeof module === 'undefined') {
 					__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 						node.onContentTypes[msg['index']] = msg['value'];
 						await CRM.updateCrm();
-						chrome.contextMenus.update(globalObject.globals.crmValues
+						await browser.contextMenus.update(globalObject.globals.crmValues
 							.contextMenuIds[node.id], {
 								contexts: CRM.getContexts(node.onContentTypes)
-							}, () => {
-								CRM.updateCrm().then(() => {
-									__this.respondSuccess(node.onContentTypes);
-								});
 							});
+						await CRM.updateCrm();
+						__this.respondSuccess(node.onContentTypes);
 					});
 				});
 			});
@@ -3276,15 +3326,14 @@ if (typeof module === 'undefined') {
 						type: 'array'
 					}
 				], () => {
-					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+					__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 						const msg = __this.message.data as CRMFunctionDataBase & {
 							contentTypes: Array<string>;
 						};
 
 						for (let i = 0; i < msg['contentTypes'].length; i++) {
 							if (typeof msg['contentTypes'][i] !== 'string') {
-								__this
-									.respondError('Not all values in array contentTypes are of type string');
+								__this.respondError('Not all values in array contentTypes are of type string');
 								return false;
 							}
 						}
@@ -3298,8 +3347,7 @@ if (typeof module === 'undefined') {
 							'page', 'link', 'selection', 'image', 'video', 'audio'
 						];
 						for (let i = 0; i < msg['contentTypes'].length; i++) {
-							hasContentType = msg['contentTypes'].indexOf(contentTypeStrings[i]) >
-								-1;
+							hasContentType = msg['contentTypes'].indexOf(contentTypeStrings[i]) > -1;
 							if (hasContentType) {
 								matches++;
 							}
@@ -3310,14 +3358,12 @@ if (typeof module === 'undefined') {
 							contentTypes = [true, true, true, true, true, true];
 						}
 						node['onContentTypes'] = contentTypes;
-						chrome.contextMenus.update(globalObject.globals.crmValues
+						await browser.contextMenus.update(globalObject.globals.crmValues
 							.contextMenuIds[node.id], {
 								contexts: CRM.getContexts(node.onContentTypes)
-							}, () => {
-								CRM.updateCrm().then(() => {
-									__this.respondSuccess(Util.safe(node));
-								});
 							});
+						await CRM.updateCrm();
+						__this.respondSuccess(Util.safe(node));
 						return true;
 					});
 				});
@@ -3609,9 +3655,9 @@ if (typeof module === 'undefined') {
 									};
 									const compiled = await CRM.TS.compileLibrary(newLibrary);
 									globalObject.globals.storages.storageLocal.libraries.push(compiled);
-									chrome.storage.local.set({
+									await browser.storage.local.set({
 										libraries: globalObject.globals.storages.storageLocal.libraries
-									});
+									} as any);
 									__this.respondSuccess(newLibrary);
 								}
 							});
@@ -3630,9 +3676,9 @@ if (typeof module === 'undefined') {
 						};
 						const compiled = await CRM.TS.compileLibrary(newLibrary);
 						globalObject.globals.storages.storageLocal.libraries.push(compiled);
-						chrome.storage.local.set({
+						await browser.storage.local.set({
 							libraries: globalObject.globals.storages.storageLocal.libraries
-						});
+						} as any);
 						__this.respondSuccess(newLibrary);
 					} else {
 						__this.respondError('No URL or code given');
@@ -4014,12 +4060,10 @@ if (typeof module === 'undefined') {
 		}
 		static setMenuChildren(__this: CRMFunction) {
 			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				__this.typeCheck([
-					{
-						val: 'childrenIds',
-						type: 'array'
-					}
-				], () => {
+				__this.typeCheck([{
+					val: 'childrenIds',
+					type: 'array'
+				}], () => {
 					__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
 						const msg = __this.message.data as CRMFunctionDataBase & {
 							childrenIds: Array<number>;
@@ -4032,8 +4076,7 @@ if (typeof module === 'undefined') {
 
 						for (let i = 0; i < msg['childrenIds'].length; i++) {
 							if (typeof msg['childrenIds'][i] !== 'number') {
-								__this
-									.respondError('Not all values in array childrenIds are of type number');
+								__this.respondError('Not all values in array childrenIds are of type number');
 								return false;
 							}
 						}
@@ -4041,22 +4084,24 @@ if (typeof module === 'undefined') {
 						const oldLength = node.children.length;
 
 						for (let i = 0; i < msg['childrenIds'].length; i++) {
-							const toMove = __this.getNodeFromId(msg['childrenIds'][i], false,
-								true);
+							const toMove = __this.getNodeFromId(msg['childrenIds'][i], false, true);
+							if (!toMove) {
+								return false;
+							}
 							__this.moveNode(toMove, {
 								relation: 'lastChild',
 								node: __this.message.data.nodeId
 							}, {
-									children: __this.lookup(toMove.path, globalObject.globals.crm.crmTree,
-										true),
-									index: toMove.path[toMove.path.length - 1]
-								});
+								children: __this.lookup(toMove.path, globalObject.globals.crm.crmTree,
+									true),
+								index: toMove.path[toMove.path.length - 1]
+							});
 						}
 
-						__this.getNodeFromId(node.id, false, true).children.splice(0, oldLength);
+						(__this.getNodeFromId(node.id, false, true, true) as CRM.MenuNode).children.splice(0, oldLength);
 
 						CRM.updateCrm().then(() => {
-							__this.respondSuccess(__this.getNodeFromId(node.id, true, true));
+							__this.respondSuccess(__this.getNodeFromId(node.id, true, true, true));
 						});
 						return true;
 					});
@@ -4091,14 +4136,17 @@ if (typeof module === 'undefined') {
 						for (let i = 0; i < msg['childrenIds'].length; i++) {
 							const toMove = __this.getNodeFromId(msg['childrenIds'][i], false,
 								true);
+							if (!toMove) {
+								return false;
+							}
 							__this.moveNode(toMove, {
 								relation: 'lastChild',
 								node: __this.message.data.nodeId
 							}, {
-									children: __this.lookup(toMove.path, globalObject.globals.crm.crmTree,
-										true),
-									index: toMove.path[toMove.path.length - 1]
-								});
+								children: __this.lookup(toMove.path, globalObject.globals.crm.crmTree,
+									true),
+								index: toMove.path[toMove.path.length - 1]
+							});
 						}
 
 						CRM.updateCrm().then(() => {
@@ -4137,29 +4185,29 @@ if (typeof module === 'undefined') {
 						CRM.updateCrm().then(() => {
 							__this.respondSuccess(spliced.map((splicedNode) => {
 								return CRM.makeSafe(splicedNode);
-							}), __this.getNodeFromId(node.id, true, true).children);
+							}), (__this.getNodeFromId(node.id, true, true) as CRM.MenuNode).children);
 						});
 						return true;
 					});
 				});
 			});
 		}
-		private static _queryTabs(options: chrome.tabs.QueryInfo & {
+		private static async _queryTabs(options: BrowserTabsQueryInfo & {
 			all?: boolean;
-		}, callback: (tabs: Array<chrome.tabs.Tab>) => void) {
+		}): Promise<Array<_browser.tabs.Tab>> {
 			if (Object.getOwnPropertyNames(options).length === 0) {
-				callback([]);
+				return [];
 			} else if (options.all) {
-				chrome.tabs.query({}, callback);
+				return browser.tabs.query({});
 			} else {
 				if (options.all === false) {
 					delete options.all;
 				}
-				chrome.tabs.query(options, callback);
+				return browser.tabs.query(options);
 			}
 		}
-		private static _removeDuplicateTabs(tabs: Array<chrome.tabs.Tab>): Array<chrome.tabs.Tab> {
-			const nonDuplicates: Array<chrome.tabs.Tab> = [];
+		private static _removeDuplicateTabs(tabs: Array<_browser.tabs.Tab>): Array<_browser.tabs.Tab> {
+			const nonDuplicates: Array<_browser.tabs.Tab> = [];
 			const ids: Array<number> = [];
 			for (let i = 0; i < tabs.length; i++) {
 				const id = tabs[i].id;
@@ -4173,7 +4221,7 @@ if (typeof module === 'undefined') {
 
 			return nonDuplicates;
 		}
-		private static _runScript(__this: CRMFunction, id: number, options: chrome.tabs.QueryInfo & {
+		private static async _runScript(__this: CRMFunction, id: number, options: BrowserTabsQueryInfo & {
 			tabId?: MaybeArray<number>;
 		}) {
 			if (typeof options.tabId === 'number') {
@@ -4184,27 +4232,21 @@ if (typeof module === 'undefined') {
 			delete options.tabId;
 
 			//Get results from tab query
-			this._queryTabs(options, async (result) => {
-				let tabs = await window.Promise.all((tabIds || []).map((tabId) => {
-					return new window.Promise<chrome.tabs.Tab>((resolve) => {
-						chrome.tabs.get(tabId, (tab) => {
-							resolve(tab);
-						});
-					});
-				}));
-				//Remove duplicates
-				result && (tabs = tabs.concat(result));
-				tabs = this._removeDuplicateTabs(tabs);
-
-				const node = __this.getNodeFromId(id, false, true);
-
-				tabs.forEach((tab) => {
-					CRM.Script.Handler.createHandler(node)({
-						pageUrl: tab.url,
-						menuItemId: 0,
-						editable: false
-					}, tab, true);
-				});
+			const queriedTabs = await this._queryTabs(options) || [];
+			const tabIdTabs = await window.Promise.all((tabIds || []).map(async (tabId) => {
+				return browser.tabs.get(tabId);
+			}));
+			const node = __this.getNodeFromId(id, false, true);
+			if (!node || node.type !== 'script') {
+				return;
+			}
+			this._removeDuplicateTabs([...queriedTabs, ...tabIdTabs]).forEach((tab) => {
+				CRM.Script.Handler.createHandler(node)({
+					pageUrl: tab.url,
+					menuItemId: 0,
+					editable: false,
+					modifiers: []
+				}, tab, true);
 			});
 		}
 		static runScript(__this: CRMFunction) {
@@ -4279,10 +4321,10 @@ if (typeof module === 'undefined') {
 					val: 'options.tabId',
 					type: ['number', 'array'],
 					optional: true
-				}], () => {
+				}], async () => {
 					const msg = __this.message.data as CRMFunctionDataBase & {
 						id: number;
-						options: chrome.tabs.QueryInfo & {
+						options: BrowserTabsQueryInfo & {
 							tabId?: MaybeArray<number>;
 						}
 					};
@@ -4291,7 +4333,7 @@ if (typeof module === 'undefined') {
 						msg.options.tabId = [msg.options.tabId];
 					}
 
-					this._runScript(__this, msg.id, msg.options);
+					await this._runScript(__this, msg.id, msg.options);
 				});
 			})
 		}
@@ -4364,7 +4406,7 @@ if (typeof module === 'undefined') {
 					val: 'options.tabId',
 					type: ['number', 'array'],
 					optional: true
-				}], () => {
+				}], async () => {
 					const msg = __this.message.data as CRMFunctionDataBase & {
 						options: {
 							tabId?: Array<number> | number;
@@ -4376,7 +4418,7 @@ if (typeof module === 'undefined') {
 						msg.options.tabId = [msg.options.tabId];
 					}
 
-					this._runScript(__this, __this.message.id, msg.options);
+					await this._runScript(__this, __this.message.id, msg.options);
 				});
 			})
 		}
@@ -4409,7 +4451,7 @@ if (typeof module === 'undefined') {
 
 	class APIMessaging {
 		static readonly CRMMessage = class CRMMessage {
-			static respond(message: CRMAPIMessageInstance<'crm' | 'chrome' | 'background', any>,
+			static respond(message: CRMAPIMessageInstance<'crm' | 'chrome' | 'browser' | 'background', any>,
 				type: 'success' | 'error' | 'chromeError', data: any | string, stackTrace?:
 					string) {
 				const msg: CRMAPIResponse<any> = {
@@ -4417,17 +4459,15 @@ if (typeof module === 'undefined') {
 					callbackId: message.onFinish,
 					messageType: 'callback'
 				} as any;
-				msg.data = (type === 'error' || type === 'chromeError' ?
-					{
-						error: data,
-						message: data,
-						stackTrace: stackTrace,
-						lineNumber: message.lineNumber
-					} :
-					data);
+				msg.data = (type === 'error' || type === 'chromeError' ? {
+					error: data,
+					message: data,
+					stackTrace: stackTrace,
+					lineNumber: message.lineNumber
+				} : data);
 				try {
-					globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id][message.tabIndex]
-						.port.postMessage(msg);
+					Util.postMessage(globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id][message.tabIndex]
+						.port, msg);
 				} catch (e) {
 					if (e.message === 'Converting circular structure to JSON') {
 						APIMessaging.CRMMessage.respond(message, 'error',
@@ -4439,7 +4479,7 @@ if (typeof module === 'undefined') {
 			}
 		};
 		static readonly ChromeMessage = class ChromeMessage {
-			static throwError(message: ChromeAPIMessage, error: string, stackTrace?: string) {
+			static throwError(message: ChromeAPIMessage|BrowserAPIMessage, error: string, stackTrace?: string) {
 				console.warn('Error:', error);
 				if (stackTrace) {
 					const stacktraceSplit = stackTrace.split('\n');
@@ -4450,8 +4490,11 @@ if (typeof module === 'undefined') {
 				APIMessaging.CRMMessage.respond(message, 'chromeError', error,
 					stackTrace);
 			}
+			static succeed(message: BrowserAPIMessage, result: any) {
+				APIMessaging.CRMMessage.respond(message, 'success', result);
+			}
 		};
-		static createReturn(message: CRMAPIMessageInstance<'crm' | 'chrome', any>,
+		static createReturn(message: CRMAPIMessageInstance<'crm' | 'chrome' | 'browser', any>,
 			callbackIndex: number) {
 			return (result: any) => {
 				this.CRMMessage.respond(message, 'success', {
@@ -4460,7 +4503,7 @@ if (typeof module === 'undefined') {
 				});
 			};
 		}
-		static sendThroughComm(message: ChromeAPIMessage) {
+		static sendThroughComm(message: ChromeAPIMessage|BrowserAPIMessage) {
 			const instancesObj = globalObject.globals.crmValues.nodeInstances[message.id];
 			const instancesArr: Array<{
 				id: number;
@@ -4501,8 +4544,8 @@ if (typeof module === 'undefined') {
 			}
 
 			for (let i = 0; i < instancesArr.length; i++) {
-				globalObject.globals.crmValues.tabData[instancesArr[i].id].nodes[message.id][instancesArr[i].tabIndex]
-					.port.postMessage({
+				Util.postMessage(globalObject.globals.crmValues.tabData[instancesArr[i].id].nodes[message.id][instancesArr[i].tabIndex]
+					.port, {
 						messageType: 'instanceMessage',
 						message: args[0]
 					});
@@ -4735,7 +4778,7 @@ if (typeof module === 'undefined') {
 			const oldCrmTree = JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree));
 
 			//Put the node in the tree
-			let relativeNode: Array<CRM.Node> | CRM.Node;
+			let relativeNode: Array<CRM.Node> | CRM.Node | false;
 			position = position || {};
 
 			if (!this.checkType(position, 'object', 'position')) {
@@ -4743,10 +4786,12 @@ if (typeof module === 'undefined') {
 			}
 
 			if (!this.checkType(position.node, 'number', 'node', TypecheckOptional.OPTIONAL, null, false, () => {
-				if (!(relativeNode = crmFunction.getNodeFromId(position.node, false, true))) {
-					return;
-				}
+				relativeNode = crmFunction.getNodeFromId(position.node, false, true);
 			})) {
+				return false;
+			}
+
+			if (!relativeNode) {
 				return false;
 			}
 
@@ -4803,14 +4848,26 @@ if (typeof module === 'undefined') {
 			return node;
 		}
 
+		getNodeFromId(id: number, makeSafe: true, synchronous: true, _forceValid: true): CRM.SafeNode;
+		getNodeFromId(id: number, makeSafe: true, synchronous: true, _forceValid: boolean): CRM.SafeNode | false;
+		getNodeFromId(id: number, makeSafe: true, synchronous: true): CRM.SafeNode | false;
+		getNodeFromId(id: number, makeSafe: true, synchronous: false): GetNodeFromIdCallback<CRM.SafeNode>;
+		getNodeFromId(id: number, makeSafe: false, synchronous: true, _forceValid: true): CRM.Node;
+		getNodeFromId(id: number, makeSafe: false, synchronous: true, _forceValid: boolean): CRM.Node | false;
+		getNodeFromId(id: number, makeSafe: false, synchronous: true): CRM.Node | false;
+		getNodeFromId(id: number, makeSafe: false, synchronous: false): GetNodeFromIdCallback<CRM.SafeNode>;
+		getNodeFromId(id: number, makeSafe: boolean, synchronous: boolean): GetNodeFromIdCallback<CRM.Node>|GetNodeFromIdCallback<CRM.SafeNode> | CRM.Node | CRM.SafeNode | false;
+		getNodeFromId(id: number, makeSafe: boolean, synchronous: true, _forceValid: true): CRM.Node | CRM.SafeNode;
+		getNodeFromId(id: number, makeSafe: boolean, synchronous: true, _forceValid: boolean): CRM.Node | CRM.SafeNode | false;
+		getNodeFromId(id: number, makeSafe: boolean, synchronous: true): CRM.Node | CRM.SafeNode | false;
+		getNodeFromId(id: number, makeSafe: boolean, synchronous: false): GetNodeFromIdCallback<CRM.Node>|GetNodeFromIdCallback<CRM.SafeNode>;
+		getNodeFromId(id: number, makeSafe: boolean): GetNodeFromIdCallback<CRM.Node>|GetNodeFromIdCallback<CRM.SafeNode>;
+		getNodeFromId(id: number, makeSafe: true): GetNodeFromIdCallback<CRM.SafeNode>;
+		getNodeFromId(id: number, makeSafe: false): GetNodeFromIdCallback<CRM.Node>;
 		getNodeFromId(id: number): GetNodeFromIdCallback<CRM.Node>;
-		getNodeFromId(id: number,
-			makeSafe: boolean): GetNodeFromIdCallback<CRM.Node | CRM.SafeNode>;
-		getNodeFromId(id: number, makeSafe: boolean, synchronous: boolean):
-			GetNodeFromIdCallback<CRM.Node | CRM.SafeNode> | CRM.Node | CRM.SafeNode | boolean | any
-		getNodeFromId(id: number, makeSafe: boolean = false,
-			synchronous: boolean = false):
-			GetNodeFromIdCallback<CRM.Node | CRM.SafeNode> | CRM.Node | CRM.SafeNode | boolean | any {
+		getNodeFromId(id: number, makeSafe: boolean = false, synchronous: boolean = false, _forceValid = false):
+			GetNodeFromIdCallback<CRM.Node> | GetNodeFromIdCallback<CRM.SafeNode> | CRM.Node | CRM.SafeNode | false {
+				//TODO: make async
 			const node = (makeSafe ?
 				globalObject.globals.crm.crmByIdSafe :
 				globalObject.globals.crm.crmById)[id];
@@ -5071,15 +5128,14 @@ if (typeof module === 'undefined') {
 		};
 	}
 
-	class ChromeHandler {
-		static handle(message: ChromeAPIMessage) {
-			if (!this._handleSpecialCalls(message)) {
+	class BrowserHandler {
+		static async handle(message: ChromeAPIMessage|BrowserAPIMessage) {
+			if (!await BrowserHandler._handleSpecialCalls(message)) {
 				return false;
 			}
-			const apiPermission = message
-				.requestType ||
+			const apiPermission = message.requestType ||
 				message.api.split('.')[0] as CRM.Permission;
-			if (!this._hasPermission(message, apiPermission)) {
+			if (!BrowserHandler._hasPermission(message, apiPermission)) {
 				return false;
 			}
 			if (globalObject.globals.constants.permissions.indexOf(apiPermission) === -1) {
@@ -5090,11 +5146,10 @@ if (typeof module === 'undefined') {
 			if (globalObject.globals.availablePermissions.indexOf(apiPermission) === -1) {
 				APIMessaging.ChromeMessage.throwError(message,
 					`Permissions ${apiPermission} not available to the extension, visit options page`);
-				chrome.storage.local.get('requestPermissions', (storageData) => {
-					const perms = storageData['requestPermissions'] || [apiPermission];
-					chrome.storage.local.set({
-						requestPermissions: perms
-					});
+				const storageData = await browser.storage.local.get<CRM.StorageLocal>();
+				const perms = storageData.requestPermissions || [apiPermission];
+				await browser.storage.local.set({
+					requestPermissions: perms
 				});
 				return false;
 			}
@@ -5107,7 +5162,7 @@ if (typeof module === 'undefined') {
 						params.push(Util.jsonFn.parse(message.args[i].val));
 						break;
 					case 'fn':
-						params.push(this._createChromeFnCallbackHandler(message, message.args[i].val));
+						params.push(BrowserHandler._createChromeFnCallbackHandler(message, message.args[i].val));
 						break;
 					case 'return':
 						returnFunctions.push(APIMessaging.createReturn(message, message.args[i].val));
@@ -5116,7 +5171,10 @@ if (typeof module === 'undefined') {
 			}
 
 			try {
-				const result = sandboxes.sandboxChrome(message.api, params);
+				let result = sandboxes.sandboxChrome(message.api, message.type, params);
+				if (this._isThennable(result)) {
+					result = await result;	
+				}
 				for (let i = 0; i < returnFunctions.length; i++) {
 					returnFunctions[i](result);
 				}
@@ -5127,20 +5185,24 @@ if (typeof module === 'undefined') {
 			return true;
 		}
 
-		private static _hasPermission(message: ChromeAPIMessage, apiPermission: CRM.Permission) {
+		private static _isThennable(value: any): value is Promise<any> {
+			return value && typeof value === "object" && typeof value.then === "function";
+		}
+		private static _hasPermission(message: ChromeAPIMessage|BrowserAPIMessage, apiPermission: CRM.Permission) {
 			const node = globalObject.globals.crm.crmById[message.id];
 			if (!node.isLocal) {
 				let apiFound: boolean;
-				let chromeFound = (node.permissions.indexOf('chrome') !== -1);
+				let baseFound = node.permissions.indexOf('chrome') !== -1 || 
+					node.permissions.indexOf('browser') !== -1;
 				apiFound = (node.permissions.indexOf(apiPermission) !== -1);
-				if (!chromeFound && !apiFound) {
+				if (!baseFound && !apiFound) {
 					APIMessaging.ChromeMessage.throwError(message,
-						`Both permissions chrome and ${apiPermission
+						`Both permissions ${message.type} and ${apiPermission
 						} not available to this script`);
 					return false;
-				} else if (!chromeFound) {
+				} else if (!baseFound) {
 					APIMessaging.ChromeMessage.throwError(message,
-						'Permission chrome not available to this script');
+						`Permission ${message.type} not available to this script`);
 					return false;
 				} else if (!apiFound) {
 					APIMessaging.ChromeMessage.throwError(message,
@@ -5150,16 +5212,15 @@ if (typeof module === 'undefined') {
 			}
 			return true;
 		}
-		private static _handleSpecialCalls(message: ChromeAPIMessage) {
+		private static async _handleSpecialCalls(message: ChromeAPIMessage|BrowserAPIMessage) {
 			if (!/[a-zA-Z0-9]*/.test(message.api)) {
 				APIMessaging.ChromeMessage.throwError(message, `Passed API "${message
 					.api}" is not alphanumeric.`);
 				return false;
-			} else if (this._checkForRuntimeMessages(message)) {
+			} else if (await BrowserHandler._checkForRuntimeMessages(message)) {
 				return false;
 			} else if (message.api === 'runtime.sendMessage') {
-				console
-					.warn('The chrome.runtime.sendMessage API is not meant to be used, use ' +
+				console.warn(`The ${message.type}.runtime.sendMessage API is not meant to be used, use ` +
 					'crmAPI.comm instead');
 				APIMessaging.sendThroughComm(message);
 				return false;
@@ -5167,47 +5228,51 @@ if (typeof module === 'undefined') {
 			return true;
 		}
 		private static readonly ChromeAPIs = class ChromeAPIs {
-			private static _checkFirstRuntimeArg(message: ChromeAPIMessage, expectedType: string, name: string) {
-				if (!message.args[0] || message.args[0].type !== expectedType) {
+			private static _checkFirstRuntimeArg(message: ChromeAPIMessage|BrowserAPIMessage, expectedType: string, name: string) {
+				if (!message.args[0] || (message.type === 'chrome' && message.args[0].type !== expectedType) ||
+					(message.type === 'browser' && message.args[0].type !== 'return')) {
 					APIMessaging.ChromeMessage.throwError(message, expectedType === 'fn' ?
 						`First argument of ${name} should be a function` :
-						`${name} should have a function to retunr to`);
+						`${name} should have something to return to`);
 					return true;
 				}
 				return false;
 			}
-			private static _respondSuccess(message: ChromeAPIMessage, params: Array<any>) {
-				APIMessaging.CRMMessage.respond(message, 'success', {
-					callbackId: message.args[0].val,
-					params: params
-				});
+			private static _respondSuccess(message: ChromeAPIMessage|BrowserAPIMessage, params: Array<any>) {
+				if (message.type === 'browser') {
+					APIMessaging.createReturn(message, message.args[0].val)(params[0]);
+				} else {
+					APIMessaging.CRMMessage.respond(message, 'success', {
+						callbackId: message.args[0].val,
+						params: params
+					});
+				}
 			}
-			static getBackgroundPage(message: ChromeAPIMessage, api: string) {
-				console.warn('The chrome.runtime.getBackgroundPage API should not be used');
+			static getBackgroundPage(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
+				console.warn(`The ${message.type}.runtime.getBackgroundPage API should not be used`);
 				if (this._checkFirstRuntimeArg(message, 'fn', api)) {
 					return true;
 				}
 				this._respondSuccess(message, [{}]);
 				return true;
 			}
-			static openOptionsPage(message: ChromeAPIMessage, api: string) {
+			static async openOptionsPage(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
 				if (this._checkFirstRuntimeArg(message, 'fn', api)) {
 					return true;
 				}
-				chrome.runtime.openOptionsPage(() => {
-					message.args[0] && this._respondSuccess(message, []);
-				});
+				await browser.runtime.openOptionsPage();
+				message.args[0] && this._respondSuccess(message, []);
 				return true;
 			}
-			static getManifest(message: ChromeAPIMessage, api: string) {
+			static getManifest(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
 				if (this._checkFirstRuntimeArg(message, 'return', api)) {
 					return true;
 				}
 				APIMessaging.createReturn(message, message.args[0].val)(
-					chrome.runtime.getManifest());
+					browser.runtime.getManifest());
 				return true;
 			}
-			static getURL(message: ChromeAPIMessage, api: string) {
+			static getURL(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
 				const returns: Array<any> = [];
 				const args: Array<any> = [];
 				for (let i = 0; i < message.args.length; i++) {
@@ -5225,26 +5290,34 @@ if (typeof module === 'undefined') {
 					APIMessaging.ChromeMessage.throwError(message,
 						'getURL should be a return function with at least one argument');
 				}
-				APIMessaging.createReturn(message, returns[0])(chrome.runtime
-					.getURL(args[0]));
+				APIMessaging.createReturn(message, returns[0])(browser.runtime.getURL(args[0]));
 				return true;
 			}
-			static unaccessibleAPI(message: ChromeAPIMessage) {
+			static unaccessibleAPI(message: ChromeAPIMessage|BrowserAPIMessage) {
 				APIMessaging.ChromeMessage.throwError(message,
 					'This API should not be accessed');
 				return true;
 			}
-			static reload(message: ChromeAPIMessage, api: string) {
-				chrome.runtime.reload();
+			static reload(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
+				browser.runtime.reload();
 				return true;
 			}
-			static restart(message: ChromeAPIMessage, api: string) {
-				chrome.runtime.restart();
+			static restart(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
+				if ('restart' in browser.runtime) {
+					const chromeRuntime = ((browser.runtime as any) as typeof _chrome.runtime);
+					chromeRuntime.restart();
+				}
 				return true;
 			}
-			static restartAfterDelay(message: ChromeAPIMessage, api: string) {
+			static restartAfterDelay(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
 				const fns: Array<() => void> = [];
 				const args: Array<any> = [];
+				if (!('restartAfterDelay' in browser.runtime)) {
+					APIMessaging.ChromeMessage.throwError(message,
+						'restartAfterDelay is not supported on this platform');
+					return true;
+				}
+
 				for (let i = 0; i < message.args.length; i++) {
 					if (message.args[i].type === 'fn') {
 						fns.push(message.args[i].val);
@@ -5256,7 +5329,8 @@ if (typeof module === 'undefined') {
 						return true;
 					}
 				}
-				chrome.runtime.restartAfterDelay(args[0], () => {
+				const chromeRuntime = ((browser.runtime as any) as typeof _chrome.runtime);
+				chromeRuntime.restartAfterDelay(args[0], () => {
 					APIMessaging.CRMMessage.respond(message, 'success', {
 						callbackId: fns[0],
 						params: []
@@ -5264,29 +5338,35 @@ if (typeof module === 'undefined') {
 				});
 				return true;
 			}
-			static getPlatformInfo(message: ChromeAPIMessage, api: string) {
+			static async getPlatformInfo(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
 				if (this._checkFirstRuntimeArg(message, 'fn', api)) {
 					return true;
 				}
-				chrome.runtime.getPlatformInfo((platformInfo) => {
-					message.args[0] && this._respondSuccess(message, [platformInfo]);
-				});
+				const platformInfo = await browser.runtime.getPlatformInfo();
+				message.args[0] && this._respondSuccess(message, [platformInfo]);
 				return true;
 			}
-			static getPackageDirectoryEntry(message: ChromeAPIMessage, api: string) {
+			static getPackageDirectoryEntry(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
+				if (!('restartAfterDelay' in browser.runtime)) {
+					APIMessaging.ChromeMessage.throwError(message,
+						'getPackageDirectoryEntry is not supported on this platform');
+					return false;
+				}
 				if (this._checkFirstRuntimeArg(message, 'fn', api)) {
 					return true;
 				}
-				chrome.runtime.getPackageDirectoryEntry((directoryInfo) => {
+				
+				const chromeRuntime = ((browser.runtime as any) as typeof _chrome.runtime);
+				chromeRuntime.getPackageDirectoryEntry((directoryInfo) => {
 					message.args[0] && this._respondSuccess(message, [directoryInfo]);
 				});
 				return true;
 			}
 			static parent() {
-				return ChromeHandler;
+				return BrowserHandler;
 			}
 		}
-		private static _handlePossibleChromeEvent(message: ChromeAPIMessage, api: string) {
+		private static _handlePossibleChromeEvent(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
 			if (api.split('.').length > 1) {
 				if (!message.args[0] || message.args[0].type !== 'fn') {
 					APIMessaging.ChromeMessage.throwError(message,
@@ -5302,8 +5382,8 @@ if (typeof module === 'undefined') {
 					'onRestartRequired'
 				];
 				const listenerTarget = api.split('.')[0];
-				if (allowedTargets.indexOf(listenerTarget) > -1) {
-					(chrome.runtime as any)[listenerTarget].addListener((...listenerArgs: Array<any>) => {
+				if (allowedTargets.indexOf(listenerTarget) > -1 && listenerTarget in browser.runtime) {
+					(browser.runtime as any)[listenerTarget].addListener((...listenerArgs: Array<any>) => {
 						const params = Array.prototype.slice.apply(listenerArgs);
 						APIMessaging.CRMMessage.respond(message, 'success', {
 							callbackId: message.args[0].val,
@@ -5316,6 +5396,10 @@ if (typeof module === 'undefined') {
 						'This method of listening to messages is not allowed,' +
 						' use crmAPI.comm instead');
 					return true;
+				} else if (!(listenerTarget in browser.runtime)) {
+					APIMessaging.ChromeMessage.throwError(message,
+						'Given event is not supported on this platform');
+					return true;
 				} else {
 					APIMessaging.ChromeMessage.throwError(message,
 						'You are not allowed to listen to given event');
@@ -5324,40 +5408,40 @@ if (typeof module === 'undefined') {
 			}
 			return false;
 		}
-		private static _checkForRuntimeMessages(message: ChromeAPIMessage) {
+		private static async _checkForRuntimeMessages(message: ChromeAPIMessage|BrowserAPIMessage) {
 			const api = message.api.split('.').slice(1).join('.');
 			if (message.api.split('.')[0] !== 'runtime') {
 				return false;
 			}
 			switch (api) {
 				case 'getBackgroundPage':
-					return this.ChromeAPIs.getBackgroundPage(message, api);
+					return BrowserHandler.ChromeAPIs.getBackgroundPage(message, api);
 				case 'openOptionsPage':
-					return this.ChromeAPIs.openOptionsPage(message, api);
+					return await BrowserHandler.ChromeAPIs.openOptionsPage(message, api);
 				case 'getManifest':
-					return this.ChromeAPIs.getManifest(message, api);
+					return BrowserHandler.ChromeAPIs.getManifest(message, api);
 				case 'getURL':
-					return this.ChromeAPIs.getURL(message, api);
+					return BrowserHandler.ChromeAPIs.getURL(message, api);
 				case 'connect':
 				case 'connectNative':
 				case 'setUninstallURL':
 				case 'sendNativeMessage':
 				case 'requestUpdateCheck':
-					return this.ChromeAPIs.unaccessibleAPI(message);
+					return BrowserHandler.ChromeAPIs.unaccessibleAPI(message);
 				case 'reload':
-					return this.ChromeAPIs.reload(message, api);
+					return BrowserHandler.ChromeAPIs.reload(message, api);
 				case 'restart':
-					return this.ChromeAPIs.restart(message, api);
+					return BrowserHandler.ChromeAPIs.restart(message, api);
 				case 'restartAfterDelay':
-					return this.ChromeAPIs.restartAfterDelay(message, api);
+					return BrowserHandler.ChromeAPIs.restartAfterDelay(message, api);
 				case 'getPlatformInfo':
-					return this.ChromeAPIs.getPlatformInfo(message, api);
+					return await BrowserHandler.ChromeAPIs.getPlatformInfo(message, api);
 				case 'getPackageDirectoryEntry':
-					return this.ChromeAPIs.getPackageDirectoryEntry(message, api);
+					return BrowserHandler.ChromeAPIs.getPackageDirectoryEntry(message, api);
 			}
-			return this._handlePossibleChromeEvent(message, api);
+			return BrowserHandler._handlePossibleChromeEvent(message, api);
 		}
-		private static _createChromeFnCallbackHandler(message: ChromeAPIMessage,
+		private static _createChromeFnCallbackHandler(message: ChromeAPIMessage|BrowserAPIMessage,
 			callbackIndex: number) {
 			return (...params: Array<any>) => {
 				APIMessaging.CRMMessage.respond(message, 'success', {
@@ -5531,9 +5615,9 @@ if (typeof module === 'undefined') {
 						dataString: dataString,
 						hashes: registerHashes,
 						matchesHashes: this._matchesHashes(registerHashes, dataString),
-						crmUrl: `chrome-extension://${chrome.runtime.id}/resource/${scriptId}/${name}`
+						crmUrl: `${location.protocol}//${browser.runtime.id}/resource/${scriptId}/${name}`
 					};
-					chrome.storage.local.set({
+					browser.storage.local.set({
 						resources: resources,
 						urlDataPairs: globalObject.globals.storages.urlDataPairs
 					});
@@ -5552,7 +5636,7 @@ if (typeof module === 'undefined') {
 				hashes: registerHashes,
 				scriptId: scriptId
 			});
-			chrome.storage.local.set({
+			browser.storage.local.set({
 				resourceKeys: resourceKeys
 			});
 		}
@@ -5587,7 +5671,7 @@ if (typeof module === 'undefined') {
 				delete globalObject.globals.storages.resources[scriptId][name];
 			}
 
-			chrome.storage.local.set({
+			browser.storage.local.set({
 				resourceKeys: globalObject.globals.storages.resourceKeys,
 				resources: globalObject.globals.storages.resources,
 				urlDataPairs: globalObject.globals.storages.urlDataPairs
@@ -5613,7 +5697,7 @@ if (typeof module === 'undefined') {
 						globalObject.globals.storages.urlDataPairs[key.sourceUrl].dataURI = dataURI;
 						globalObject.globals.storages.urlDataPairs[key.sourceUrl].dataString = dataString;
 
-						chrome.storage.local.set({
+						browser.storage.local.set({
 							resources: resources,
 							urlDataPairs: globalObject.globals.storages.urlDataPairs
 						});
@@ -5652,8 +5736,8 @@ if (typeof module === 'undefined') {
 					data: data
 				};
 				try {
-					globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id][message.tabIndex]
-						.port.postMessage(msg);
+					Util.postMessage(globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id][message.tabIndex]
+						.port, msg);
 				} catch (e) {
 					if (e.message === 'Converting circular structure to JSON') {
 						this.respond(message, 'error',
@@ -5687,7 +5771,7 @@ if (typeof module === 'undefined') {
 					tabData[data.toInstanceId] &&
 					tabData[data.toInstanceId].nodes[data.id]) {
 					if (globalObject.globals.crmValues.nodeInstances[data.id][data.toInstanceId][data.toTabIndex].hasHandler) {
-						tabData[data.toInstanceId].nodes[data.id][data.toTabIndex].port.postMessage({
+						Util.postMessage(tabData[data.toInstanceId].nodes[data.id][data.toTabIndex].port, {
 							messageType: 'instanceMessage',
 							message: data.message
 						});
@@ -5750,8 +5834,8 @@ if (typeof module === 'undefined') {
 			}
 		};
 
-		static handleRuntimeMessage(message: CRMAPIMessageInstance<string, any>,
-			messageSender?: chrome.runtime.MessageSender,
+		static async handleRuntimeMessage(message: CRMAPIMessageInstance<string, any>,
+			messageSender?: _browser.runtime.MessageSender,
 			respond?: (message: any) => void) {
 			switch (message.type) {
 				case 'executeCRMCode':
@@ -5769,7 +5853,7 @@ if (typeof module === 'undefined') {
 					}>);
 					break;
 				case 'logCrmAPIValue':
-					Logging.logHandler(message.data);
+					await Logging.logHandler(message.data);
 					break;
 				case 'resource':
 					Resources.Resource.handle(message.data);
@@ -5802,7 +5886,7 @@ if (typeof module === 'undefined') {
 					break;
 				case 'newTabCreated':
 					if (messageSender && respond) {
-						CRM.Script.Running.executeScriptsForTab(messageSender.tab.id, respond);
+						await CRM.Script.Running.executeScriptsForTab(messageSender.tab.id, respond);
 					}
 					break;
 				case 'styleInstall':
@@ -5816,23 +5900,24 @@ if (typeof module === 'undefined') {
 					});
 					break;
 				case 'installUserScript':
-					CRM.Script.Updating.install(message.data);
+					await CRM.Script.Updating.install(message.data);
 					break;
 				case 'applyLocalStorage':
 					localStorage.setItem(message.data.key, message.data.value);
 					break;
 			}
 		}
-		static handleCrmAPIMessage(message: CRMFunctionMessage | ChromeAPIMessage | BackgroundAPIMessage) {
+		static async handleCrmAPIMessage(message: CRMFunctionMessage | ChromeAPIMessage | BrowserAPIMessage | BackgroundAPIMessage) {
 			switch (message.type) {
 				case 'crm':
 					new CRMFunction(message, message.action);
 					break;
 				case 'chrome':
-					ChromeHandler.handle(message);
+				case 'browser':
+					await BrowserHandler.handle(message);
 					break;
 				default:
-					this.handleRuntimeMessage(message);
+					await this.handleRuntimeMessage(message);
 					break;
 			}
 		}
@@ -5846,7 +5931,7 @@ if (typeof module === 'undefined') {
 						if (tabInstance.usesLocalStorage &&
 							globalObject.globals.crm.crmById[nodeId].isLocal) {
 							try {
-								tabInstance.port.postMessage({
+								Util.postMessage(tabInstance.port, {
 									messageType: 'localStorageProxy',
 									message: storage
 								});
@@ -5860,8 +5945,8 @@ if (typeof module === 'undefined') {
 		}
 	}
 
-	type ClickHandler = (clickData: chrome.contextMenus.OnClickData,
-		tabInfo: chrome.tabs.Tab, isAutoActivate?: boolean) => void;
+	type ClickHandler = (clickData: _browser.contextMenus.OnClickData,
+		tabInfo: _browser.tabs.Tab, isAutoActivate?: boolean) => void;
 
 	class CRM {
 		static readonly Script = class Script {
@@ -5932,45 +6017,34 @@ if (typeof module === 'undefined') {
 
 				return newScript;
 			}
-			private static _executeScript(nodeId: number, tabId: number, scripts: Array<{
-				code?: string;
-				file?: string;
-				runAt: string;
-			}>, i: number) {
-				return () => {
-					if (chrome.runtime.lastError) {
-						if (chrome.runtime.lastError.message.indexOf('Could not establish connection') === -1 &&
-							chrome.runtime.lastError.message.indexOf('closed') === -1) {
-							window.log('Couldn\'t execute on tab with id', tabId, 'for node', nodeId, chrome.runtime.lastError);
-						}
-						return;
-					}
-					if (scripts.length > i) {
-						try {
-							chrome.tabs.executeScript(tabId, this._ensureRunAt(nodeId, scripts[i]), this._executeScript(nodeId, tabId,
-								scripts, i + 1));
-						} catch (e) {
-							//The tab was closed during execution
-						}
-					}
-				};
-			}
-
 			private static _executeScripts(nodeId: number, tabId: number, scripts: Array<{		
 				code?: string;		
 				file?: string;		
-				runAt: string;		
+				runAt: _browser.extensionTypes.RunAt;		
 			}>, usesUnsafeWindow: boolean) {		
 				if (usesUnsafeWindow) {		
 					//Send it to the content script and run it there		
-					chrome.tabs.sendMessage(tabId, {		
+					browser.tabs.sendMessage(tabId, {		
 						type: 'runScript',		
 						data: {		
 							scripts: scripts		
 						}		
 					});		
-				} else {		
-					this._executeScript(nodeId, tabId, scripts, 0)();		
+				} else {
+					Util.promiseChain(scripts.map((script) => {
+						return async () => {
+							try {
+								await Util.proxyPromise(browser.tabs.executeScript(tabId, this._ensureRunAt(nodeId, script)), (err) => {
+									if (err.message.indexOf('Could not establish connection') === -1 &&
+										err.message.indexOf('closed') === -1) {
+										window.log('Couldn\'t execute on tab with id', tabId, 'for node', nodeId, err);
+									}
+								});
+							} catch(e) {
+								//The tab was closed during execution
+							}
+						}
+					}));
 				}		
 			}
 
@@ -5980,10 +6054,7 @@ if (typeof module === 'undefined') {
 						-1) {
 						return true;
 					}
-					for (let i = 0;
-						i < globalObject.globals.storages.globalExcludes.length;
-						i++
-					) {
+					for (let i = 0; i < globalObject.globals.storages.globalExcludes.length;i++) {
 						const pattern = globalObject.globals.storages
 							.globalExcludes[i] as MatchPattern;
 						if (pattern && URLParsing.urlMatchesPattern(pattern, url)) {
@@ -5992,33 +6063,34 @@ if (typeof module === 'undefined') {
 					}
 					return false;
 				}
-				static executeNode(node: CRM.Node, tab: chrome.tabs.Tab) {
+				static executeNode(node: CRM.Node, tab: _browser.tabs.Tab) {
 					if (node.type === 'script') {
 						CRM.Script.Handler.createHandler(node as CRM.ScriptNode)({
 							pageUrl: tab.url,
 							menuItemId: 0,
-							editable: false
+							editable: false,
+							modifiers: []
 						}, tab, true);
 					} else if (node.type === 'stylesheet') {
 						CRM.Stylesheet.createClickHandler(node)({
 							pageUrl: tab.url,
 							menuItemId: 0,
-							editable: false
+							editable: false,
+							modifiers: []
 						}, tab);
 					} else if (node.type === 'link') {
 						CRM.Link.createHandler(node)({
 							pageUrl: tab.url,
 							menuItemId: 0,
-							editable: false
+							editable: false,
+							modifiers: []
 						}, tab);
 					}
 				}
 
-				static executeScriptsForTab(tabId: number, respond: (message: any) => void) {
-					chrome.tabs.get(tabId, (tab) => {
-						if (window.chrome.runtime.lastError) {
-							return;
-						}
+				static async executeScriptsForTab(tabId: number, respond: (message: any) => void) {
+					try {
+						const tab = await browser.tabs.get(tabId);
 						if (tab.url && tab.url.indexOf('chrome') !== 0) {
 							globalObject.globals.crmValues.tabData[tab.id] = {
 								libraries: {},
@@ -6028,7 +6100,7 @@ if (typeof module === 'undefined') {
 							if (!this._urlIsGlobalExcluded(tab.url)) {
 								const toExecute: Array<{
 									node: CRM.Node;
-									tab: chrome.tabs.Tab;
+									tab: _browser.tabs.Tab;
 								}> = [];
 								for (let nodeId in globalObject.globals.toExecuteNodes.onUrl) {
 									if (globalObject.globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) &&
@@ -6054,16 +6126,18 @@ if (typeof module === 'undefined') {
 								});
 							}
 						}
-					});
+					} catch(e) {
+						return;
+					}
 				}
 
 			};
 			static readonly Updating = class Updating {
-				private static _removeOldNode(id: number) {
+				private static async _removeOldNode(id: number) {
 					const children = globalObject.globals.crm.crmById[id].children;
 					if (children) {
 						for (let i = 0; i < children.length; i++) {
-							this._removeOldNode(children[i].id);
+							await this._removeOldNode(children[i].id);
 						}
 					}
 
@@ -6077,9 +6151,7 @@ if (typeof module === 'undefined') {
 
 					const contextMenuId = globalObject.globals.crmValues.contextMenuIds[id];
 					if (contextMenuId !== undefined && contextMenuId !== null) {
-						chrome.contextMenus.remove(contextMenuId, () => {
-							Util.checkForChromeErrors(false);
-						});
+						await Util.proxyPromise(browser.contextMenus.remove(contextMenuId));
 					}
 				}
 				private static _registerNode(node: CRM.Node, oldPath?: Array<number>) {
@@ -6232,7 +6304,7 @@ if (typeof module === 'undefined') {
 						this._createUserscriptScriptData(metaTags, code, node);
 					}
 				}
-				static install(message: {
+				static async install(message: {
 					script: string;
 					downloadURL: string;
 					allowedPermissions: Array<CRM.Permission>;
@@ -6242,210 +6314,158 @@ if (typeof module === 'undefined') {
 				}) {
 					const oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages
 						.settingsStorage.crm));
-					const newScript = CRM.Script.Updating.installUserscript(message.metaTags, message.script,
+					const newScript = await CRM.Script.Updating.installUserscript(message.metaTags, message.script,
 						message.downloadURL, message.allowedPermissions);
 
 					if (newScript.path) { //Has old node
 						const nodePath = newScript.path as Array<number>;
-						this._removeOldNode(newScript.oldNodeId);
+						await this._removeOldNode(newScript.oldNodeId);
 						this._registerNode(newScript.node, nodePath);
 					} else {
 						this._registerNode(newScript.node);
 					}
 
-					Storages.uploadChanges('settings', [
-						{
-							key: 'crm',
-							oldValue: oldTree,
-							newValue: globalObject.globals.storages.settingsStorage.crm
-						}
-					]);
+					await Storages.uploadChanges('settings', [{
+						key: 'crm',
+						oldValue: oldTree,
+						newValue: globalObject.globals.storages.settingsStorage.crm
+					}]);
 				}
-				static installUserscript(metaTags: {
+				static async installUserscript(metaTags: {
 					[key: string]: any;
 				}, code: string, downloadURL: string, allowedPermissions: Array<CRM.Permission>,
-					oldNodeId?: number): {
+					oldNodeId?: number): Promise<{
 						node: CRM.ScriptNode | CRM.StylesheetNode,
 						path?: Array<number>,
 						oldNodeId?: number,
-					} {
-					let node: Partial<CRM.ScriptNode | CRM.StylesheetNode> = {};
-					let hasOldNode = false;
-					if (oldNodeId !== undefined && oldNodeId !== null) {
-						hasOldNode = true;
-						node.id = oldNodeId;
-					} else {
-						node.id = Util.generateItemId();
-					}
+					}> {
+						let node: Partial<CRM.ScriptNode | CRM.StylesheetNode> = {};
+						let hasOldNode = false;
+						if (oldNodeId !== undefined && oldNodeId !== null) {
+							hasOldNode = true;
+							node.id = oldNodeId;
+						} else {
+							node.id = Util.generateItemId();
+						}
 
-					node.name = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'name') || 'name';
-					this._createUserscriptTypeData(metaTags, code, node);
-					const { launchMode, triggers } = this._createUserscriptTriggers(metaTags);
-					node.triggers = triggers;
-					node.value.launchMode = launchMode;
-					const updateUrl = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'updateURL') ||
-						CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'downloadURL') ||
-						downloadURL;
+						node.name = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'name') || 'name';
+						this._createUserscriptTypeData(metaTags, code, node);
+						const { launchMode, triggers } = this._createUserscriptTriggers(metaTags);
+						node.triggers = triggers;
+						node.value.launchMode = launchMode;
+						const updateUrl = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'updateURL') ||
+							CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'downloadURL') ||
+							downloadURL;
 
-					//Requested permissions
-					let permissions = [];
-					if (metaTags['grant']) {
-						permissions = metaTags['grant'];
-						permissions = permissions.splice(permissions.indexOf('none'), 1);
-					}
+						//Requested permissions
+						let permissions = [];
+						if (metaTags['grant']) {
+							permissions = metaTags['grant'];
+							permissions = permissions.splice(permissions.indexOf('none'), 1);
+						}
 
-					//NodeInfo
-					node.nodeInfo = {
-						version: CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'version') || null,
-						source: {
-							updateURL: updateUrl || downloadURL,
-							url: updateUrl || CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'namespace') ||
-							downloadURL,
-							author: CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'author') ||
-							'Anonymous'
-						},
-						isRoot: true,
-						permissions: permissions,
-						lastUpdatedAt: Date.now(),
-						installDate: new Date().toLocaleDateString()
-					};
+						//NodeInfo
+						node.nodeInfo = {
+							version: CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'version') || null,
+							source: {
+								updateURL: updateUrl || downloadURL,
+								url: updateUrl || CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'namespace') ||
+								downloadURL,
+								author: CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'author') ||
+								'Anonymous'
+							},
+							isRoot: true,
+							permissions: permissions,
+							lastUpdatedAt: Date.now(),
+							installDate: new Date().toLocaleDateString()
+						};
 
-					if (hasOldNode) {
-						node.nodeInfo.installDate = (globalObject.globals.crm
-							.crmById[oldNodeId] &&
-							globalObject.globals.crm.crmById[oldNodeId].nodeInfo &&
-							globalObject.globals.crm.crmById[oldNodeId].nodeInfo.installDate) ||
-							node.nodeInfo.installDate;
-					}
+						if (hasOldNode) {
+							node.nodeInfo.installDate = (globalObject.globals.crm
+								.crmById[oldNodeId] &&
+								globalObject.globals.crm.crmById[oldNodeId].nodeInfo &&
+								globalObject.globals.crm.crmById[oldNodeId].nodeInfo.installDate) ||
+								node.nodeInfo.installDate;
+						}
 
-					//Content types
-					if (CRM.Script.MetaTags.getlastMetaTagValue(metaTags,'CRM_contentTypes')) {
-						try {
-							node.onContentTypes = JSON.parse(CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
-								'CRM_contentTypes'));
-						} catch (e) {
+						//Content types
+						if (CRM.Script.MetaTags.getlastMetaTagValue(metaTags,'CRM_contentTypes')) {
+							try {
+								node.onContentTypes = JSON.parse(CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
+									'CRM_contentTypes'));
+							} catch (e) {
+							}
+						}
+						if (!node.onContentTypes) {
+							node.onContentTypes = [true, true, true, true, true, true];
+						}
+						//Allowed permissions
+						node.permissions = allowedPermissions || [];
+
+						//Resources
+						if (metaTags['resource']) {
+							//Register resources
+							const resources: Array<string> = metaTags['resource'];
+							resources.forEach(resource => {
+								const resourceSplit = resource.split(/(\s*)/);
+								const [resourceName, resourceUrl] = resourceSplit;
+								Resources.Resource.handle({
+									type: 'register',
+									name: resourceName,
+									url: resourceUrl,
+									scriptId: node.id
+								});
+							});
+						}
+
+						const { requestPermissions = [] } = await browser.storage.local.get<CRM.StorageLocal>();
+						const allPermissions = await browser.permissions.getAll();
+						const allowed = allPermissions.permissions || [];
+						const joinedPermissions = [...requestPermissions, ...node.permissions].filter((permission: _browser.permissions.Permission) => {
+							return allowed.indexOf(permission) === -1;
+						}).filter((permission, index, self) => {
+							return self.indexOf(permission) === index;
+						});
+						browser.storage.local.set({
+							requestPermissions: joinedPermissions
+						}).then(() => {
+							if (joinedPermissions.length > 0) {
+								browser.runtime.openOptionsPage();
+							}
+						});
+
+						if (node.type === 'script') {
+							node = globalObject.globals.constants.templates
+								.getDefaultScriptNode(node);
+						} else {
+							node = globalObject.globals.constants.templates
+								.getDefaultStylesheetNode(node);
+						}
+
+						if (hasOldNode) {
+							const path = globalObject.globals.crm.crmById[oldNodeId].path;
+							return {
+								node: node as CRM.ScriptNode | CRM.StylesheetNode,
+								path: path,
+								oldNodeId: oldNodeId
+							};
+						} else {
+							return {
+								node: node as CRM.ScriptNode | CRM.StylesheetNode,
+								path: null,
+								oldNodeId: null
+							};
 						}
 					}
-					if (!node.onContentTypes) {
-						node.onContentTypes = [true, true, true, true, true, true];
-					}
-					//Allowed permissions
-					node.permissions = allowedPermissions || [];
-
-					//Resources
-					if (metaTags['resource']) {
-						//Register resources
-						const resources: Array<string> = metaTags['resource'];
-						resources.forEach(resource => {
-							const resourceSplit = resource.split(/(\s*)/);
-							const [resourceName, resourceUrl] = resourceSplit;
-							Resources.Resource.handle({
-								type: 'register',
-								name: resourceName,
-								url: resourceUrl,
-								scriptId: node.id
-							});
-						});
-					}
-
-					chrome.storage.local.get('requestPermissions', keys => {
-						chrome.permissions.getAll((allowed: {
-							permissions: Array<string>;
-						}) => {
-							const requestPermissionsAllowed = allowed.permissions || [];
-							let requestPermissions: Array<string> = keys['requestPermissions'] || [];
-							requestPermissions = requestPermissions.concat(node.permissions
-								.filter(nodePermission => (requestPermissionsAllowed.indexOf(nodePermission) === -1)));
-							requestPermissions = requestPermissions.filter((nodePermission, index) => (requestPermissions.indexOf(nodePermission) === index));
-							chrome.storage.local.set({
-								requestPermissions: requestPermissions
-							}, () => {
-								if (requestPermissions.length > 0) {
-									chrome.runtime.openOptionsPage();
-								}
-							});
-						});
-					});
-
-					if (node.type === 'script') {
-						node = globalObject.globals.constants.templates
-							.getDefaultScriptNode(node);
-					} else {
-						node = globalObject.globals.constants.templates
-							.getDefaultStylesheetNode(node);
-					}
-
-					if (hasOldNode) {
-						const path = globalObject.globals.crm.crmById[oldNodeId].path;
-						return {
-							node: node as CRM.ScriptNode | CRM.StylesheetNode,
-							path: path,
-							oldNodeId: oldNodeId
-						};
-					} else {
-						return {
-							node: node as CRM.ScriptNode | CRM.StylesheetNode,
-							path: null,
-							oldNodeId: null
-						};
-					}
-
-				}
 				static updateScripts(callback?: (data: any) => void) {
 					const checking = [];
-					const updatedScripts: Array<{
+					const updated: Array<{
 						oldNodeId: number;
 						node: CRM.Node;
 						path: Array<number>;
 					}> = [];
 					const oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages
 						.settingsStorage.crm));
-
-					const __this = this;
-					function onDone() {
-						const updatedData = updatedScripts.map((updatedScript) => {
-							const oldNode = globalObject.globals.crm.crmById[updatedScript
-								.oldNodeId];
-							return {
-								name: updatedScript.node.name,
-								id: updatedScript.node.id,
-								oldVersion: (oldNode && oldNode.nodeInfo && oldNode.nodeInfo.version
-								) ||
-								undefined,
-								newVersion: updatedScript.node.nodeInfo.version
-							};
-						});
-
-						updatedScripts.forEach((updatedScript) => {
-							if (updatedScript.path) { //Has old node
-								__this._removeOldNode(updatedScript.oldNodeId);
-								__this._registerNode(updatedScript.node, updatedScript.path);
-							} else {
-								__this._registerNode(updatedScript.node);
-							}
-						});
-
-						Storages.uploadChanges('settings', [
-							{
-								key: 'crm',
-								oldValue: oldTree,
-								newValue: globalObject.globals.storages.settingsStorage.crm
-							}
-						]);
-
-						chrome.storage.local.get('updatedScripts', (storage) => {
-							let localStorageUpdatedScripts = storage['updatedScripts'] || [];
-							localStorageUpdatedScripts = localStorageUpdatedScripts.concat(updatedData);
-							chrome.storage.local.set({
-								updatedScripts: localStorageUpdatedScripts
-							});
-						});
-
-						if (callback) {
-							callback(updatedData);
-						}
-					}
-
 					window.info('Looking for updated scripts...');
 					for (let id in globalObject.globals.crm.crmById) {
 						if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
@@ -6464,9 +6484,55 @@ if (typeof module === 'undefined') {
 									checking,
 									checkingId,
 									downloadURL,
-									onDone,
-									updatedScripts);
+									this._genNodeUpdateOnDone(updated, oldTree, callback),
+									updated);
 							}
+						}
+					}
+				}
+				private static _genNodeUpdateOnDone(updated: Array<{
+					oldNodeId: number;
+					node: CRM.Node;
+					path: Array<number>;
+				}>, oldTree: CRM.Tree, callback?: (data: any) => void) {
+					return async () => {
+						const updatedData = updated.map((updatedScript) => {
+							const oldNode = globalObject.globals.crm.crmById[updatedScript
+								.oldNodeId];
+							return {
+								name: updatedScript.node.name,
+								id: updatedScript.node.id,
+								oldVersion: (oldNode && oldNode.nodeInfo && oldNode.nodeInfo.version) ||
+									undefined,
+								newVersion: updatedScript.node.nodeInfo.version
+							};
+						});
+
+						await Promise.all(updated.map((updatedScript) => {
+							return Util.iipe(async () => {
+								if (updatedScript.path) { //Has old node
+									await this._removeOldNode(updatedScript.oldNodeId);
+									this._registerNode(updatedScript.node, updatedScript.path);
+								} else {
+									this._registerNode(updatedScript.node);
+								}
+							});
+						}));
+
+						await Storages.uploadChanges('settings', [{
+							key: 'crm',
+							oldValue: oldTree,
+							newValue: globalObject.globals.storages.settingsStorage.crm
+						}]);
+
+						const { updatedScripts } = await browser.storage.local.get<CRM.StorageLocal>();
+						const joinedData = [...updatedScripts, ...updatedData];
+						browser.storage.local.set({
+							updatedScripts: joinedData
+						});
+
+						if (callback) {
+							callback(joinedData);
 						}
 					}
 				}
@@ -6482,34 +6548,31 @@ if (typeof module === 'undefined') {
 							//Do a request to get that script from its download URL
 							if (downloadURL && Util.endsWith(downloadURL, '.user.js')) {
 								try {
-									Util.convertFileToDataURI(downloadURL, (dataURI, dataString) => {
+									Util.convertFileToDataURI(downloadURL, async (dataURI, dataString) => {
 										//Get the meta tags
 										try {
 											const metaTags = CRM.Script.MetaTags
 												.getMetaTags(dataString);
-											if (Util.isNewer(metaTags['version'][0], node.nodeInfo
-												.version)) {
+											if (Util.isNewer(metaTags['version'][0], node.nodeInfo.version)) {
 												if (!Util.compareArray(node.nodeInfo.permissions,
 													metaTags['grant']) &&
 													!(metaTags['grant'].length === 0 &&
 														metaTags['grant'][0] === 'none')) {
 													//New permissions were added, notify user
-													chrome.storage.local.get('addedPermissions', (data) => {
-														const addedPermissions = data['addedPermissions'] || [];
-														addedPermissions.push({
-															node: node.id,
-															permissions: metaTags['grant'].filter((newPermission: CRM.Permission) => {
-																return node.nodeInfo.permissions.indexOf(newPermission) === -1;
-															})
-														});
-														chrome.storage.local.set({
-															addedPermissions: addedPermissions
-														});
-														chrome.runtime.openOptionsPage();
+													const { addedPermissions = [] } = await browser.storage.local.get<CRM.StorageLocal>();
+													addedPermissions.push({
+														node: node.id,
+														permissions: metaTags['grant'].filter((newPermission: CRM.Permission) => {
+															return node.nodeInfo.permissions.indexOf(newPermission) === -1;
+														})
 													});
+													await browser.storage.local.set({
+														addedPermissions: addedPermissions
+													});
+													browser.runtime.openOptionsPage();
 												}
 
-												updatedScripts.push(this.installUserscript(metaTags,
+												updatedScripts.push(await this.installUserscript(metaTags,
 													dataString, downloadURL, node.permissions, node.id));
 											}
 
@@ -6669,13 +6732,20 @@ if (typeof module === 'undefined') {
 					const enableBackwardsCompatibility = (await Util.getScriptNodeScript(node)).indexOf('/*execute locally*/') > -1 &&
 						node.isLocal;
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
+					const supportedBrowserAPIs = [];
+					if (chromeAPIExists) {
+						supportedBrowserAPIs.push('chrome');
+					}
+					if (browserAPIExists) {
+						supportedBrowserAPIs.push('browser');
+					}
 					return [
 						code.join('\n'), [
 							`var crmAPI = new (window._crmAPIRegistry.pop())(${[
 								safeNode, node.id, { id: 0 }, {}, key,
 								nodeStorage, null,
 								greaseMonkeyData, true, CRM._fixOptionsErrors((node.value && node.value.options) || {}),
-								enableBackwardsCompatibility, 0, chrome.runtime.id
+								enableBackwardsCompatibility, 0, browser.runtime.id, supportedBrowserAPIs.join(',')
 							]
 								.map((param) => {
 									if (param === void 0) {
@@ -6684,7 +6754,7 @@ if (typeof module === 'undefined') {
 									return JSON.stringify(param);
 								}).join(', ')});`
 						].join(', '),
-						globalObject.globals.constants.templates.globalObjectWrapperCode('self', 'selfWrapper', void 0),
+						globalObject.globals.constants.templates.globalObjectWrapperCode('self', 'selfWrapper', void 0, void 0),
 						`${catchErrs ? 'try {' : ''}`,
 						'function main(crmAPI, self, menuitemid, parentmenuitemid, mediatype,' +
 						`${indentUnit}linkurl, srcurl, pageurl, frameurl, frameid,` +
@@ -6783,7 +6853,7 @@ if (typeof module === 'undefined') {
 									try {
 										globalObject.globals.crmValues.tabData[instance]
 											.nodes[node.id].forEach((tabIndexInstance, index) => {
-												tabIndexInstance.port.postMessage({
+												Util.postMessage(tabIndexInstance.port, {
 													messageType: 'dummy'
 												});
 												instancesArr.push({
@@ -6835,9 +6905,9 @@ if (typeof module === 'undefined') {
 					node,		
 					safeNode,		
 				}: {		
-					tab: chrome.tabs.Tab;		
+					tab: _browser.tabs.Tab;		
 					key: Array<number>;		
-					info: chrome.contextMenus.OnClickData;		
+					info: _browser.contextMenus.OnClickData;		
 					node: CRM.ScriptNode;		
 					safeNode: CRM.SafeNode;		
 				}, [contextData, [nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]]: [EncodedContextData,		
@@ -6846,12 +6916,19 @@ if (typeof module === 'undefined') {
 					const enableBackwardsCompatibility = (await Util.getScriptNodeScript(node)).indexOf('/*execute locally*/') > -1 &&		
 						node.isLocal;		
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;		
+					const supportedBrowserAPIs = [];
+					if (chromeAPIExists) {
+						supportedBrowserAPIs.push('chrome');
+					}
+					if (browserAPIExists) {
+						supportedBrowserAPIs.push('browser');
+					}
 					return [		
 						[		
 							`var crmAPI = new (window._crmAPIRegistry.pop())(${[		
 								safeNode, node.id, tab, info, key, nodeStorage,		
 								contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},		
-								enableBackwardsCompatibility, tabIndex, chrome.runtime.id		
+								enableBackwardsCompatibility, tabIndex, browser.runtime.id, supportedBrowserAPIs.join(',')
 							].map((param) => {		
 								if (param === void 0) {		
 									return JSON.stringify(null);		
@@ -6859,14 +6936,14 @@ if (typeof module === 'undefined') {
 								return JSON.stringify(param);		
 							}).join(', ')});`		
 						].join(', '),		
-						globalObject.globals.constants.templates.globalObjectWrapperCode('window', 'windowWrapper', node.isLocal ? 'chrome' : 'void 0'),		
+						globalObject.globals.constants.templates.globalObjectWrapperCode('window', 'windowWrapper', node.isLocal && chromeAPIExists ? 'chrome' : 'void 0', node.isLocal && browserAPIExists ? 'browser' : 'void 0'),		
 						`${catchErrs ? 'try {' : ''}`,		
-						'function main(crmAPI, window, chrome, menuitemid, parentmenuitemid, mediatype,' +		
+						'function main(crmAPI, window, chrome, browser, menuitemid, parentmenuitemid, mediatype,' +		
 						'linkurl, srcurl, pageurl, frameurl, frameid,' +		
 						'selectiontext, editable, waschecked, checked) {',		
 						script,		
 						'}',		
-						`crmAPI.onReady(function() {main.apply(this, [crmAPI, windowWrapper, ${node.isLocal ? 'chrome' : 'void 0'}].concat(${		
+						`crmAPI.onReady(function() {main.apply(this, [crmAPI, windowWrapper, ${node.isLocal && chromeAPIExists ? 'chrome' : 'void 0'}, ${node.isLocal && browserAPIExists ? 'browser' : 'void 0'}].concat(${		
 						JSON.stringify([		
 							info.menuItemId, info.parentMenuItemId, info.mediaType,		
 							info.linkUrl, info.srcUrl, info.pageUrl, info.frameUrl,		
@@ -6884,10 +6961,10 @@ if (typeof module === 'undefined') {
 						].join('\n') : ''}`		
 					].join('\n');		
 				}		
-				private static _getScriptsToRun(code: string, runAt: string, node: CRM.ScriptNode, usesUnsafeWindow: boolean): Array<{		
+				private static _getScriptsToRun(code: string, runAt: _browser.extensionTypes.RunAt, node: CRM.ScriptNode, usesUnsafeWindow: boolean): Array<{		
 					code?: string;		
 					file?: string;		
-					runAt: string;		
+					runAt: _browser.extensionTypes.RunAt;		
 				}> {		
 					const scripts = [];		
 					const globalLibraries = globalObject.globals.storages.storageLocal.libraries;
@@ -7002,7 +7079,7 @@ if (typeof module === 'undefined') {
 							scriptUpdateURL: metaVal('updateURL'),
 							scriptWillUpdate: true,
 							scriptHandler: 'Custom Right-Click Menu',
-							version: chrome.runtime.getManifest().version
+							version: browser.runtime.getManifest().version
 						},
 						resources: globalObject.globals.storages.resources[node.id] || {}
 					};
@@ -7038,7 +7115,7 @@ if (typeof module === 'undefined') {
 					});
 				}
 				static createHandler(node: CRM.ScriptNode): ClickHandler {
-					return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab, isAutoActivate: boolean = false) => {
+					return (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab, isAutoActivate: boolean = false) => {
 						let key: Array<number> = [];
 						let err = false;
 						try {
@@ -7048,23 +7125,22 @@ if (typeof module === 'undefined') {
 							err = e;
 						}
 						if (err) {
-							chrome.tabs.executeScript(tab.id, {
-								code:
-								'alert("Something went wrong very badly, please go to your Custom Right-Click Menu options page and remove any sketchy scripts.")'
-							}, () => {
-								chrome.runtime.reload();
+							browser.tabs.executeScript(tab.id, {
+								code: 'alert("Something went wrong very badly, please go to your Custom Right-Click Menu' +
+									' options page and remove any sketchy scripts.")'
+							}).then(() => {
+								browser.runtime.reload();
 							});
 						} else {
-							window.Promise.all<any>([new window.Promise<EncodedContextData>((resolve) => {
+							window.Promise.all<any>([Util.iipe<EncodedContextData>(async () => {
 								//If it was triggered by clicking, ask contentscript about some data
 								if (isAutoActivate) {
-									resolve(null);
+									return null;
 								} else {
-									chrome.tabs.sendMessage(tab.id, {
+									const response = await browser.tabs.sendMessage(tab.id, {
 										type: 'getLastClickInfo'
-									}, (response: EncodedContextData) => {
-										resolve(response);
-									});
+									}) as EncodedContextData;
+									return response;
 								}
 							}), new window.Promise<[any, GreaseMonkeyData, string, string, string, number]>(async (resolve) => {
 								const globalNodeStorage = globalObject.globals.storages.nodeStorage;
@@ -7078,7 +7154,7 @@ if (typeof module === 'undefined') {
 								const metaData: {
 									[key: string]: any;
 								} = CRM.Script.MetaTags.getMetaTags(await Util.getScriptNodeScript(node));
-								const runAt: string = metaData['run-at'] || metaData['run_at'] || 'document_end';
+								const runAt: _browser.extensionTypes.RunAt = metaData['run-at'] || metaData['run_at'] || 'document_end';
 								const { excludes, includes } = this.getInExcludes(node)
 
 								const greaseMonkeyData = await this.generateGreaseMonkeyData(metaData, node, includes, excludes, tab)
@@ -7091,7 +7167,7 @@ if (typeof module === 'undefined') {
 
 								resolve([nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]);
 							})]).then(async (args: [EncodedContextData,
-								[any, GreaseMonkeyData, string, string, string, number]]) => {
+								[any, GreaseMonkeyData, string, string, _browser.extensionTypes.RunAt, number]]) => {
 									const safeNode = CRM.makeSafe(node);
 									(safeNode as any).permissions = node.permissions;
 									const code = await this._genCodeOnPage({
@@ -7120,12 +7196,12 @@ if (typeof module === 'undefined') {
 			}
 
 			static createHandler(node: CRM.LinkNode): ClickHandler {
-				return (clickData: chrome.contextMenus.OnClickData,
-					tabInfo: chrome.tabs.Tab) => {
+				return (clickData: _browser.contextMenus.OnClickData,
+					tabInfo: _browser.tabs.Tab) => {
 					let finalUrl: string;
 					for (let i = 0; i < node.value.length; i++) {
 						if (node.value[i].newTab) {
-							chrome.tabs.create({
+							browser.tabs.create({
 								windowId: tabInfo.windowId,
 								url: this._sanitizeUrl(node.value[i].url),
 								openerTabId: tabInfo.id
@@ -7135,7 +7211,7 @@ if (typeof module === 'undefined') {
 						}
 					}
 					if (finalUrl) {
-						chrome.tabs.update(tabInfo.id, {
+						browser.tabs.update(tabInfo.id, {
 							url: this._sanitizeUrl(finalUrl)
 						});
 					}
@@ -7144,7 +7220,7 @@ if (typeof module === 'undefined') {
 		};
 		static readonly Stylesheet = class Stylesheet {
 			static createToggleHandler(node: CRM.StylesheetNode): ClickHandler {
-				return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
+				return (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => {
 					let code: string;
 					const className = node.id + '' + tab.id;
 					if (info.wasChecked) {
@@ -7166,14 +7242,14 @@ if (typeof module === 'undefined') {
 					}
 					globalObject.globals.crmValues
 						.stylesheetNodeStatusses[node.id][tab.id] = info.checked;
-					chrome.tabs.executeScript(tab.id, {
+					browser.tabs.executeScript(tab.id, {
 						code: code,
 						allFrames: true
 					});
 				};
 			}
 			static createClickHandler(node: CRM.StylesheetNode): ClickHandler {
-				return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
+				return (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => {
 					const className = node.id + '' + tab.id;
 					const css = this._Options.getConvertedStylesheet(node).replace(/[ |\n]/g, '');
 					const code = [
@@ -7188,7 +7264,7 @@ if (typeof module === 'undefined') {
 						'document.head.appendChild(CRMSSInsert);',
 						'}());'
 					].join('');
-					chrome.tabs.executeScript(tab.id, {
+					browser.tabs.executeScript(tab.id, {
 						code: code,
 						allFrames: true
 					});
@@ -7614,7 +7690,7 @@ if (typeof module === 'undefined') {
 				}
 			}
 			private static _handleHideOnPages(node: CRM.Node, launchMode: CRMLaunchModes,
-				rightClickItemOptions: chrome.contextMenus.CreateProperties) {
+				rightClickItemOptions: ContextMenusCreateProperties) {
 				if ((node['showOnSpecified'] && (node.type === 'link' || node.type === 'divider' ||
 					node.type === 'menu')) ||
 					launchMode === CRMLaunchModes.SHOW_ON_SPECIFIED) {
@@ -7637,7 +7713,7 @@ if (typeof module === 'undefined') {
 				}
 			}
 			private static _generateClickHandler(node: CRM.Node,
-				rightClickItemOptions: chrome.contextMenus.CreateProperties) {
+				rightClickItemOptions: ContextMenusCreateProperties) {
 				//It requires a click handler
 				switch (node.type) {
 					case 'divider':
@@ -7665,34 +7741,46 @@ if (typeof module === 'undefined') {
 						break;
 				}
 			}
-			private static _generateContextMenuItem(rightClickItemOptions: chrome.contextMenus.CreateProperties,
-				idHolder: {
-					id: number;
-				}) {
-				idHolder.id = chrome.contextMenus.create(rightClickItemOptions, () => {
-					if (chrome.runtime.lastError) {
-						if (rightClickItemOptions.documentUrlPatterns) {
-							console
-								.log('An error occurred with your context menu, attempting again with no url matching.', chrome.runtime.lastError);
-							delete rightClickItemOptions.documentUrlPatterns;
-							idHolder.id = chrome.contextMenus.create(rightClickItemOptions, () => {
-								idHolder.id = chrome.contextMenus.create({
-									title: 'ERROR',
-									onclick: CRM._createOptionsPageHandler()
-								});
-								window.log('Another error occured with your context menu!',
-									chrome.runtime.lastError);
-							});
+			private static _handleContextMenuError(options: ContextMenusCreateProperties, e: _chrome.runtime.LastError|string, idHolder: {
+				id: number|string;
+			}) {
+				if (options.documentUrlPatterns) {
+					console.log('An error occurred with your context menu, attempting again with no url matching.', e);
+					delete options.documentUrlPatterns;
+					idHolder.id = browser.contextMenus.create(options, () => {
+						idHolder.id = browser.contextMenus.create({
+							title: 'ERROR',
+							onclick: CRM._createOptionsPageHandler()
+						});
+						window.log('Another error occured with your context menu!', e);
+					});
+				} else {
+					window.log('An error occured with your context menu!', e);
+				}
+			}
+			private static _generateContextMenuItem(rightClickItemOptions: ContextMenusCreateProperties, idHolder: {
+				id: number|string;
+			}) {
+				try {
+					idHolder.id = browser.contextMenus.create(rightClickItemOptions, () => {
+						if ('chrome' in window) {
+							const __chrome: typeof _chrome = (window as any).chrome;
+							if (__chrome && __chrome.runtime && __chrome.runtime.lastError) {
+								this._handleContextMenuError(rightClickItemOptions, __chrome.runtime.lastError, idHolder);
+							}
 						} else {
-							window.log('An error occured with your context menu!',
-								chrome.runtime.lastError);
+							if (browser.runtime.lastError) {
+								this._handleContextMenuError(rightClickItemOptions, browser.runtime.lastError, idHolder);
+							}
 						}
-					}
-				});
+					});
+				} catch(e) {
+					this._handleContextMenuError(rightClickItemOptions, e, idHolder);
+				}
 			}
 			private static _addRightClickItemClick(node: CRM.Node, launchMode: CRMLaunchModes,
-				rightClickItemOptions: chrome.contextMenus.CreateProperties, idHolder: {
-					id: number;
+				rightClickItemOptions: ContextMenusCreateProperties, idHolder: {
+					id: number|string;
 				}) {
 				//On by default
 				this._pushToGlobalToExecute(node, launchMode)
@@ -7707,8 +7795,8 @@ if (typeof module === 'undefined') {
 				};
 			}
 			private static async _setLaunchModeData(node: CRM.Node,
-				rightClickItemOptions: chrome.contextMenus.CreateProperties, idHolder: {
-					id: number;
+				rightClickItemOptions: ContextMenusCreateProperties, idHolder: {
+					id: number|string;
 				}) {
 				const launchMode = ((node.type === 'script' || node.type === 'stylesheet') &&
 					node.value.launchMode) || CRMLaunchModes.RUN_ON_CLICKING;
@@ -7730,7 +7818,7 @@ if (typeof module === 'undefined') {
 				}
 			}
 
-			static async createNode(node: CRM.Node, parentId: number) {
+			static async createNode(node: CRM.Node, parentId: string|number) {
 				const replaceStylesheetTabs = this._getStylesheetReplacementTabs(node);
 				const rightClickItemOptions = {
 					title: node.name,
@@ -7739,7 +7827,7 @@ if (typeof module === 'undefined') {
 				};
 
 				const idHolder: {
-					id: number;
+					id: number|string;
 				} = { id: null };
 				await this._setLaunchModeData(node, rightClickItemOptions, idHolder);
 				const id = idHolder.id;
@@ -7754,7 +7842,7 @@ if (typeof module === 'undefined') {
 						const css = node.value.stylesheet.replace(/[ |\n]/g, '');
 						code +=
 							`var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes${className}";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode(${JSON.stringify(css)}));document.head.appendChild(CRMSSInsert);`;
-						chrome.tabs.executeScript(replaceStylesheetTabs[i].id, {
+						browser.tabs.executeScript(replaceStylesheetTabs[i].id, {
 							code: code,
 							allFrames: true
 						});
@@ -7841,13 +7929,13 @@ if (typeof module === 'undefined') {
 		}
 
 		static async updateCrm(toUpdate?: Array<number>) {
-			Storages.uploadChanges('settings', [{
+			await Storages.uploadChanges('settings', [{
 				key: 'crm',
 				newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)),
 				oldValue: {} as any
 			}]);
 			CRM.TS.compileAllInTree();
-			CRM.updateCRMValues();
+			await CRM.updateCRMValues();
 			CRM.buildPageCRM();
 			await MessageHandling.signalNewCRM();
 
@@ -7855,7 +7943,7 @@ if (typeof module === 'undefined') {
 				toUpdate
 			});
 		}
-		static updateCRMValues() {
+		static async updateCRMValues() {
 			const crmBefore = JSON.stringify(globalObject.globals.storages.settingsStorage.crm);
 			Storages.crmForEach(globalObject.globals.storages
 				.settingsStorage.crm, (node) => {
@@ -7874,7 +7962,7 @@ if (typeof module === 'undefined') {
 			this._buildByIdObjects();
 
 			if (!match) {
-				Storages.uploadChanges('settings', [{
+				await Storages.uploadChanges('settings', [{
 					key: 'crm',
 					newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)),
 					oldValue: {} as any
@@ -7904,8 +7992,8 @@ if (typeof module === 'undefined') {
 		static async buildPageCRM() {
 			const length = globalObject.globals.crm.crmTree.length;
 			globalObject.globals.crmValues.stylesheetNodeStatusses = {};
-			chrome.contextMenus.removeAll();
-			globalObject.globals.crmValues.rootId = chrome.contextMenus.create({
+			await browser.contextMenus.removeAll();
+			globalObject.globals.crmValues.rootId = browser.contextMenus.create({
 				title: globalObject.globals.storages.settingsStorage.rootName || 'Custom Menu',
 				contexts: ['all']
 			});
@@ -7932,19 +8020,19 @@ if (typeof module === 'undefined') {
 			}
 
 			if (globalObject.globals.storages.storageLocal.showOptions) {
-				chrome.contextMenus.create({
+				browser.contextMenus.create({
 					type: 'separator',
 					parentId: globalObject.globals.crmValues.rootId
 				});
-				chrome.contextMenus.create({
+				browser.contextMenus.create({
 					title: 'Options',
 					onclick: this._createOptionsPageHandler(),
 					parentId: globalObject.globals.crmValues.rootId
 				});
 			}
 		}
-		static getContexts(contexts: CRM.ContentTypes): Array<string> {
-			const newContexts = ['browser_action'];
+		static getContexts(contexts: CRM.ContentTypes): Array<_browser.contextMenus.ContextType> {
+			const newContexts: Array<_browser.contextMenus.ContextType> = ['browser_action'];
 			const textContexts = globalObject.globals.constants.contexts;
 			for (let i = 0; i < 6; i++) {
 				if (contexts[i]) {
@@ -8078,18 +8166,18 @@ if (typeof module === 'undefined') {
 		}
 		private static _createOptionsPageHandler(): () => void {
 			return () => {
-				chrome.runtime.openOptionsPage();
+				browser.runtime.openOptionsPage();
 			};
 		}
-		private static async _buildPageCRMTree(node: CRM.Node, parentId: number,
+		private static async _buildPageCRMTree(node: CRM.Node, parentId: string|number,
 			path: Array<number>,
 			parentTree: Array<ContextMenuItemTreeItem>): Promise<{
-				id: number;
+				id: string|number;
 				path: Array<number>;
 				enabled: boolean;
 				children: Array<ContextMenuItemTreeItem>;
 				index?: number;
-				parentId?: number;
+				parentId?: string|number;
 				node?: CRM.Node;
 				parentTree?: Array<ContextMenuItemTreeItem>;
 			}> {
@@ -9126,32 +9214,14 @@ if (typeof module === 'undefined') {
 						}
 					}
 					static generateScriptUpgradeErrorHandler(id: number): UpgradeErrorHandler {
-						return function (oldScriptErrors, newScriptErrors, parseError) {
-							chrome.storage.local.get(function (keys: CRM.StorageLocal) {
-								if (!keys.upgradeErrors) {
-									var val: {
-										[key: number]: {
-											oldScript: Array<CursorPosition>;
-											newScript: Array<CursorPosition>;
-											generalError: boolean;
-										}
-									} = {};
-									val[id] = {
-										oldScript: oldScriptErrors,
-										newScript: newScriptErrors,
-										generalError: parseError
-									};
-
-									keys.upgradeErrors = val;
-									globalObject.globals.storages.storageLocal.upgradeErrors = val;
-								}
-								keys.upgradeErrors[id] = globalObject.globals.storages.storageLocal.upgradeErrors[id] = {
-									oldScript: oldScriptErrors,
-									newScript: newScriptErrors,
-									generalError: parseError
-								};
-								chrome.storage.local.set({ upgradeErrors: keys.upgradeErrors });
-							});
+						return async (oldScriptErrors, newScriptErrors, parseError) => {
+							const { upgradeErrors = {} } = await browser.storage.local.get<CRM.StorageLocal>();
+							upgradeErrors[id] = globalObject.globals.storages.storageLocal.upgradeErrors[id] = {
+								oldScript: oldScriptErrors,
+								newScript: newScriptErrors,
+								generalError: parseError
+							};
+							browser.storage.local.set({ upgradeErrors } as any);
 						};
 					};
 					static convertScriptFromLegacy(script: string, id: number, method: SCRIPT_CONVERSION_TYPE): string {
@@ -9344,7 +9414,7 @@ if (typeof module === 'undefined') {
 						globalExcludes: [''],
 						useStorageSync: true,
 						notFirstTime: true,
-						lastUpdatedAt: chrome.runtime.getManifest().version,
+						lastUpdatedAt: browser.runtime.getManifest().version,
 						authorName: 'anonymous',
 						showOptions: true,
 						recoverUnsavedData: false,
@@ -9426,7 +9496,7 @@ if (typeof module === 'undefined') {
 					this._getDefaultStorages(([defaultLocalStorage, defaultSyncStorage]) => {
 
 						//Save local storage
-						chrome.storage.local.set(defaultLocalStorage);
+						browser.storage.local.set(defaultLocalStorage);
 
 						//Save sync storage
 						this._uploadStorageSyncData(defaultSyncStorage);
@@ -9458,7 +9528,7 @@ if (typeof module === 'undefined') {
 			}> {
 				window.localStorage.setItem('transferToVersion2', 'true');
 
-				chrome.storage.local.set({
+				browser.storage.local.set({
 					isTransfer: true
 				});
 
@@ -9517,38 +9587,33 @@ if (typeof module === 'undefined') {
 					});
 				});
 			}
-			private static _uploadStorageSyncData(data: CRM.SettingsStorage) {
+			private static async _uploadStorageSyncData(data: CRM.SettingsStorage) {
 				const settingsJson = JSON.stringify(data);
 
 				//Using chrome.storage.sync
 				if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
-					chrome.storage.local.set({
+					await browser.storage.local.set({
 						useStorageSync: false
-					}, () => {
-						this._uploadStorageSyncData(data);
 					});
+					this._uploadStorageSyncData(data);
 				} else {
 					//Cut up all data into smaller JSON
 					const obj = Storages.cutData(settingsJson);
-					chrome.storage.sync.set(obj, () => {
-						if (chrome.runtime.lastError) {
-							//Switch to local storage
-							window.log('Error on uploading to chrome.storage.sync ',
-								chrome.runtime.lastError);
-							chrome.storage.local.set({
-								useStorageSync: false
-							}, () => {
-								this._uploadStorageSyncData(data);
-							});
-						} else {
-							chrome.storage.local.set({
-								settings: null
-							});
-						}
+					browser.storage.sync.set(obj).then(() => {
+						browser.storage.local.set({
+							settings: null
+						});
+					}).catch(async (err) => {
+						//Switch to local storage
+						window.log('Error on uploading to chrome.storage.sync ', err);
+						await browser.storage.local.set({
+							useStorageSync: false
+						});
+						this._uploadStorageSyncData(data);
 					});
 				}
 			}
-		};
+		}
 
 		static async checkBackgroundPagesForChange({ change, toUpdate }: {
 			change?: {
@@ -9653,9 +9718,9 @@ if (typeof module === 'undefined') {
 			}
 			return null;
 		}
-		private static _uploadSync(changes: StorageChange[]) {
+		private static async _uploadSync(changes: StorageChange[]) {
             const settingsJson = JSON.stringify(globalObject.globals.storages.settingsStorage);
-            chrome.storage.local.set({
+            browser.storage.local.set({
                 settingsVersionData: {
                     current: {
                         hash: window.md5(settingsJson),
@@ -9666,80 +9731,70 @@ if (typeof module === 'undefined') {
                 }
             });
             if (!globalObject.globals.storages.storageLocal.useStorageSync) {
-                chrome.storage.local.set({
+                await browser.storage.local.set({
                     settings: globalObject.globals.storages.settingsStorage
-                }, () => {
-                    if (chrome.runtime.lastError) {
-                        window.log('Error on uploading to chrome.storage.local ', chrome.runtime.lastError);
-                    }
-                    else {
-                        this._changeCRMValuesIfSettingsChanged(changes);
-                    }
+                }).then(() => {
+					this._changeCRMValuesIfSettingsChanged(changes);
+				}).catch((e) => {
+					window.log('Error on uploading to chrome.storage.local ', e);
                 });
-                chrome.storage.sync.set({
+                await browser.storage.sync.set({
                     indexes: null
                 });
             }
             else {
                 //Using chrome.storage.sync
                 if (settingsJson.length >= 101400) {
-                    chrome.storage.local.set({
+                    await browser.storage.local.set({
                         useStorageSync: false
-                    }, () => {
-                        this.uploadChanges('settings', changes);
                     });
+					await this.uploadChanges('settings', changes);
                 }
                 else {
                     //Cut up all data into smaller JSON
                     const obj = this.cutData(settingsJson);
-                    chrome.storage.sync.set(obj, () => {
-                        if (chrome.runtime.lastError) {
-                            //Switch to local storage
-                            window.log('Error on uploading to chrome.storage.sync ', chrome.runtime.lastError);
-                            chrome.storage.local.set({
-                                useStorageSync: false
-                            }, () => {
-                                this.uploadChanges('settings', changes);
-                            });
-                        }
-                        else {
-                            this._changeCRMValuesIfSettingsChanged(changes);
-                            chrome.storage.local.set({
-                                settings: null
-                            });
-                        }
-                    });
+                    await browser.storage.sync.set(obj as any).then(() => {
+						this._changeCRMValuesIfSettingsChanged(changes);
+						browser.storage.local.set({
+							settings: null
+						});
+					}).catch(async (err) => {
+						window.log('Error on uploading to chrome.storage.sync ', err);
+						await browser.storage.local.set({
+							useStorageSync: false
+						});
+						await this.uploadChanges('settings', changes);
+					});
                 }
             }
         }
-		static uploadChanges(type: 'local' | 'settings' | 'libraries', changes:
-			Array<StorageChange>,
+		static async uploadChanges(type: 'local' | 'settings' | 'libraries', changes: Array<StorageChange>,
 			useStorageSync: boolean = null) {
-			switch (type) {
-				case 'local':
-					chrome.storage.local.set(globalObject.globals.storages.storageLocal);
-					for (let i = 0; i < changes.length; i++) {
-						if (changes[i].key === 'useStorageSync') {
-							const change = changes[i] as StorageLocalChange<'useStorageSync'>;
-							this.uploadChanges('settings', [], change.newValue);
+				switch (type) {
+					case 'local':
+						browser.storage.local.set(globalObject.globals.storages.storageLocal);
+						for (let i = 0; i < changes.length; i++) {
+							if (changes[i].key === 'useStorageSync') {
+								const change = changes[i] as StorageLocalChange<'useStorageSync'>;
+								await this.uploadChanges('settings', [], change.newValue);
+							}
 						}
-					}
-					break;
-				case 'settings':
-					globalObject.globals.storages.settingsStorage.settingsLastUpdatedAt = new Date().getTime();
-					if (useStorageSync !== null) {
-						globalObject.globals.storages.storageLocal.useStorageSync = useStorageSync;
-					}
+						break;
+					case 'settings':
+						globalObject.globals.storages.settingsStorage.settingsLastUpdatedAt = new Date().getTime();
+						if (useStorageSync !== null) {
+							globalObject.globals.storages.storageLocal.useStorageSync = useStorageSync;
+						}
 
-                    Storages._uploadSync(changes);
-					break;
-				case 'libraries':
-					chrome.storage.local.set({
-						libraries: changes
-					});
-					break;
+						await Storages._uploadSync(changes);
+						break;
+					case 'libraries':
+						browser.storage.local.set({
+							libraries: changes
+						});
+						break;
+				}
 			}
-		}
 
 		static async applyChanges(data: {
 			type: 'optionsPage' | 'libraries' | 'nodeStorage';
@@ -9755,12 +9810,12 @@ if (typeof module === 'undefined') {
 					if (data.localChanges) {
 						this._applyChangeForStorageType(globalObject.globals.storages.storageLocal,
 							data.localChanges);
-						this.uploadChanges('local', data.localChanges);
+						await this.uploadChanges('local', data.localChanges);
 					}
 					if (data.settingsChanges) {
 						this._applyChangeForStorageType(globalObject.globals.storages.settingsStorage,
 							data.settingsChanges);
-						this.uploadChanges('settings', data.settingsChanges);
+						await this.uploadChanges('settings', data.settingsChanges);
 					}
 					break;
 				case 'libraries':
@@ -9780,7 +9835,7 @@ if (typeof module === 'undefined') {
 					break;
 			}
 		}
-		static setStorages(storageLocalCopy: CRM.StorageLocal, settingsStorage: CRM.SettingsStorage,
+		static async setStorages(storageLocalCopy: CRM.StorageLocal, settingsStorage: CRM.SettingsStorage,
 			chromeStorageLocal: CRM.StorageLocal, callback?: () => void) {
 			window.info('Setting global data stores');
 			globalObject.globals.storages.storageLocal = storageLocalCopy;
@@ -9810,7 +9865,7 @@ if (typeof module === 'undefined') {
 				});
 
 			window.info('Building CRM representations');
-			CRM.updateCRMValues();
+			await CRM.updateCRMValues();
 
 			if (callback) {
 				callback();
@@ -9832,76 +9887,79 @@ if (typeof module === 'undefined') {
 			obj.indexes = indexes;
 			return obj;
 		}
-		static loadStorages(callback: () => void) {
-			window.info('Loading sync storage data');
-			chrome.storage.sync.get((chromeStorageSync: {
-				[key: string]: string
-			} & {
-				indexes: Array<string>;
-			}) => {
+		static loadStorages() {
+			return new Promise<void>(async (resolve) => {
+				window.info('Loading sync storage data');
+				const storageSync: {
+					[key: string]: string
+				} & {
+					indexes: Array<string>;
+				} = await browser.storage.sync.get() as any;
 				window.info('Loading local storage data');
-				chrome.storage.local.get((chromeStorageLocal: CRM.StorageLocal & {
+				const storageLocal: CRM.StorageLocal & {
 					settings?: CRM.SettingsStorage;
-				}) => {
-					window.info('Checking if this is the first run');
-					const result = this._isFirstTime(chromeStorageLocal);
-					if (result.type === 'firstTimeCallback') {
-						result.fn.then((data) => {
-							this.setStorages(data.storageLocalCopy, data.settingsStorage,
-								data.chromeStorageLocal, callback);
+				} = await browser.storage.local.get() as any;
+				window.info('Checking if this is the first run');
+				const result = this._isFirstTime(storageLocal);
+				if (result.type === 'firstTimeCallback') {
+					const data = await result.fn;
+					await this.setStorages(data.storageLocalCopy, data.settingsStorage,
+						data.chromeStorageLocal, () => {
+							resolve(null);
 						});
-					} else {
-						window.info('Parsing data encoding');
-						const storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
-						delete storageLocalCopy.globalExcludes;
+				} else {
+					window.info('Parsing data encoding');
+					const storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
+					delete storageLocalCopy.globalExcludes;
 
-						let settingsStorage;
-						if (chromeStorageLocal['useStorageSync']) {
-							//Parse the data before sending it to the callback
-							const indexes = chromeStorageSync['indexes'];
-							if (!indexes) {
-								chrome.storage.local.set({
-									useStorageSync: false
-								});
-								settingsStorage = chromeStorageLocal.settings;
-							} else {
-								const settingsJsonArray: Array<string> = [];
-								indexes.forEach((index) => {
-									settingsJsonArray.push(chromeStorageSync[index]);
-								});
-								const jsonString = settingsJsonArray.join('');
-								settingsStorage = JSON.parse(jsonString);
-							}
+					let settingsStorage;
+					if (storageLocal['useStorageSync']) {
+						//Parse the data before sending it to the callback
+						const indexes = storageSync['indexes'];
+						if (!indexes) {
+							await browser.storage.local.set({
+								useStorageSync: false
+							});
+							settingsStorage = storageLocal.settings;
 						} else {
-							//Send the "settings" object on the storage.local to the callback
-							if (!chromeStorageLocal['settings']) {
-								chrome.storage.local.set({
-									useStorageSync: true
-								});
-								const indexes = chromeStorageSync['indexes'];
-								const settingsJsonArray: Array<string> = [];
-								indexes.forEach((index) => {
-									settingsJsonArray.push(chromeStorageSync[index]);
-								});
-								const jsonString = settingsJsonArray.join('');
-								settingsStorage = JSON.parse(jsonString);
-							} else {
-								delete storageLocalCopy.settings;
-								settingsStorage = chromeStorageLocal['settings'];
-							}
+							const settingsJsonArray: Array<string> = [];
+							indexes.forEach((index) => {
+								settingsJsonArray.push(storageSync[index]);
+							});
+							const jsonString = settingsJsonArray.join('');
+							settingsStorage = JSON.parse(jsonString);
 						}
-
-						window.info('Checking for data updates')
-						this._checkForStorageSyncUpdates(settingsStorage, chromeStorageLocal);
-
-						this.setStorages(storageLocalCopy, settingsStorage,
-							chromeStorageLocal, callback);
-
-						if (result.type === 'upgradeVersion') {
-							result.fn();
+					} else {
+						//Send the "settings" object on the storage.local to the callback
+						if (!storageLocal['settings']) {
+							await browser.storage.local.set({
+								useStorageSync: true
+							});
+							const indexes = storageSync['indexes'];
+							const settingsJsonArray: Array<string> = [];
+							indexes.forEach((index) => {
+								settingsJsonArray.push(storageSync[index]);
+							});
+							const jsonString = settingsJsonArray.join('');
+							settingsStorage = JSON.parse(jsonString);
+						} else {
+							delete storageLocalCopy.settings;
+							settingsStorage = storageLocal['settings'];
 						}
 					}
-				});
+
+					window.info('Checking for data updates')
+					this._checkForStorageSyncUpdates(settingsStorage, storageLocal);
+
+					await this.setStorages(storageLocalCopy, settingsStorage,
+						storageLocal, () => {
+							resolve(null);
+						});
+
+					if (result.type === 'upgradeVersion') {
+						result.fn();
+					}
+				}
 			});
 		}
 
@@ -9922,7 +9980,7 @@ if (typeof module === 'undefined') {
 					}
 					updated.crm = true;
 
-					CRM.updateCRMValues();
+					await CRM.updateCRMValues();
 					CRM.TS.compileAllInTree();
 					await Storages.checkBackgroundPagesForChange({
 						change: changes[i]
@@ -9936,7 +9994,7 @@ if (typeof module === 'undefined') {
 					updated.id = true;
 					const change = changes[i] as StorageSyncChange<'latestId'>;
 					globalObject.globals.latestId = change.newValue;
-					chrome.runtime.sendMessage({
+					browser.runtime.sendMessage({
 						type: 'idUpdate',
 						latestId: change.newValue
 					});
@@ -9946,7 +10004,7 @@ if (typeof module === 'undefined') {
 					}
 					updated.rootName = true;
 					const rootNameChange = changes[i] as StorageSyncChange<'rootName'>;
-					chrome.contextMenus.update(globalObject.globals.crmValues.rootId, {
+					browser.contextMenus.update(globalObject.globals.crmValues.rootId, {
 						title: rootNameChange.newValue
 					});
 				}
@@ -9956,9 +10014,9 @@ if (typeof module === 'undefined') {
 			if (obj[key]) {
 				return obj[key];
 			}
-			chrome.storage.local.set({
+			browser.storage.local.set({
 				key: defaultValue
-			});
+			} as any);
 			return defaultValue;
 		}
 		private static _applyChangeForStorageType(storageObj: {
@@ -9986,7 +10044,7 @@ if (typeof module === 'undefined') {
 			//Update in storage
 			globalObject.globals.crm.crmById[id].storage = globalObject.globals.storages
 				.nodeStorage[id];
-			chrome.storage.local.set({
+			browser.storage.local.set({
 				nodeStorage: globalObject.globals.storages.nodeStorage
 			});
 
@@ -9998,7 +10056,7 @@ if (typeof module === 'undefined') {
 						const nodes = tabData[tab].nodes;
 						if (nodes[id]) {
 							nodes[id].forEach((tabIndexInstance) => {
-								tabIndexInstance.port.postMessage({
+								Util.postMessage(tabIndexInstance.port, {
 									changes: changes,
 									messageType: 'storageUpdate'
 								});
@@ -10101,7 +10159,7 @@ if (typeof module === 'undefined') {
 			if (this._isVersionInRange(oldVersion, newVersion, '2.0.11')) {
 				Util.isTamperMonkeyEnabled((isEnabled) => {
 					globalObject.globals.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
-					chrome.storage.local.set({
+					browser.storage.local.set({
 						useAsUserscriptInstaller: !isEnabled
 					});
 				});
@@ -10111,8 +10169,8 @@ if (typeof module === 'undefined') {
 					sync.rootName = 'Custom Menu';
 					return sync;
 				});
-				fns.afterSync.push(() => {
-					Storages.uploadChanges('settings', [{
+				fns.afterSync.push(async () => {
+					await Storages.uploadChanges('settings', [{
 						key: 'rootName',
 						oldValue: undefined,
 						newValue: 'Custom Menu'
@@ -10173,7 +10231,7 @@ if (query) {
 				});
 			}
 
-			chrome.storage.local.set({
+			browser.storage.local.set({
 				lastUpdatedAt: newVersion
 			});
 
@@ -10188,7 +10246,7 @@ if (query) {
 		} | {
 			type: 'noChanges';
 		} {				
-			const currentVersion = chrome.runtime.getManifest().version;
+			const currentVersion = browser.runtime.getManifest().version;
 			if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt === currentVersion) {
 				return {
 					type: 'noChanges'
@@ -10233,7 +10291,7 @@ if (query) {
 
 			if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.current.hash !== hash) {
 				//Data changed, show a message and update current hash
-				chrome.storage.local.set({
+				browser.storage.local.set({
 					settingsVersionData: {
 						current: {
 							hash: hash,
@@ -10256,80 +10314,79 @@ if (query) {
 				' get its ID (you can type getID("name") to find the ID),' +
 				' and type filter(id, [optional tabId]) to show only those messages.' +
 				' You can also visit the logging page for even better logging over at ',
-				chrome.runtime.getURL('html/logging.html'));
+				browser.runtime.getURL('html/logging.html'));
 		}
 		window.console.group('Initialization');
 		window.console.group('Loading storage data');
-		globalObject.backgroundPageLoaded = new Promise((resolve) => {
-			Storages.loadStorages(async () => {
+		globalObject.backgroundPageLoaded = new Promise(async (resolve) => {
+			await Storages.loadStorages();
+			window.console.groupEnd();
+			try {
+				globalObject.globals.latestId = globalObject.globals.storages.settingsStorage.latestId;
+				window.info('Registering permission listeners');
+				await GlobalDeclarations.refreshPermissions();
+				window.info('Setting CRMAPI message handler');
+				GlobalDeclarations.setHandlerFunction();
+				browser.runtime.onConnect.addListener((port) => {
+					port.onMessage.addListener(window.createHandlerFunction(port));
+				});
+				browser.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
+				window.info('Building Custom Right-Click Menu');
+				await CRM.buildPageCRM();
+				window.info('Compiling typescript');
+				await CRM.TS.compileAllInTree();
+				window.console.groupCollapsed('Restoring previous open tabs');
+				await GlobalDeclarations.restoreOpenTabs();
 				window.console.groupEnd();
-				try {
-					globalObject.globals.latestId = globalObject.globals.storages.settingsStorage.latestId;
-					window.info('Registering permission listeners');
-					GlobalDeclarations.refreshPermissions();
-					window.info('Setting CRMAPI message handler');
-					GlobalDeclarations.setHandlerFunction();
-					chrome.runtime.onConnect.addListener((port) => {
-						port.onMessage.addListener(window.createHandlerFunction(port));
-					});
-					chrome.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
-					window.info('Building Custom Right-Click Menu');
-					await CRM.buildPageCRM();
-					window.info('Compiling typescript');
-					await CRM.TS.compileAllInTree();
-					window.console.groupCollapsed('Restoring previous open tabs');
-					await GlobalDeclarations.restoreOpenTabs();
-					window.console.groupEnd();
-					window.console.groupCollapsed('Creating backgroundpages');
-					await CRM.Script.Background.createBackgroundPages();
-					window.console.groupEnd();
-					window.info('Registering global handlers');
-					GlobalDeclarations.init();
-	
-					//Checks if all values are still correct
-					window.console.group('Checking Resources');
-					window.info('Updating resources');
-					Resources.updateResourceValues();
-					window.info('Updating scripts');
-					CRM.Script.Updating.updateScripts();
-					window.setInterval(() => {
-						CRM.Script.Updating.updateScripts();
-					}, 6 * 60 * 60 * 1000);
-					window.console.groupEnd();
+				window.console.groupCollapsed('Creating backgroundpages');
+				await CRM.Script.Background.createBackgroundPages();
+				window.console.groupEnd();
+				window.info('Registering global handlers');
+				GlobalDeclarations.init();
 
-					//Debugging data
-					window.console.groupCollapsed('Debugging'); 
-					window.info('For all of these arrays goes, close and re-expand them to "refresh" their contents')
-					window.info('Invalidated tabs:', globalObject.globals.storages.failedLookups);
-					window.info('Insufficient permissions:', globalObject.globals.storages.insufficientPermissions);
-					window.console.groupEnd();
-	
-					window.info('Registering console user interface');
-					GlobalDeclarations.initGlobalFunctions();
-	
-					if (location.href.indexOf('test') > -1) {
-						globalObject.Storages = Storages;
-					}
-					if (typeof module !== 'undefined') {
-						globalObject.TransferFromOld =
-							Storages.SetupHandling.TransferFromOld;
-					}
-					
-					for (let i = 0; i < 5; i++) {
-						window.console.groupEnd();
-					}
-	
-					window.info('Done!');
-					resolve(null);
-				} catch (e) {
-					for (let i = 0; i < 10; i++) {
-						window.console.groupEnd();
-					}
-	
-					window.log(e);
-					throw e;
+				//Checks if all values are still correct
+				window.console.group('Checking Resources');
+				window.info('Updating resources');
+				Resources.updateResourceValues();
+				window.info('Updating scripts');
+				CRM.Script.Updating.updateScripts();
+				window.setInterval(() => {
+					CRM.Script.Updating.updateScripts();
+				}, 6 * 60 * 60 * 1000);
+				window.console.groupEnd();
+
+				//Debugging data
+				window.console.groupCollapsed('Debugging'); 
+				window.info('For all of these arrays goes, close and re-expand them to "refresh" their contents')
+				window.info('Invalidated tabs:', globalObject.globals.storages.failedLookups);
+				window.info('Insufficient permissions:', globalObject.globals.storages.insufficientPermissions);
+				window.console.groupEnd();
+
+				window.info('Registering console user interface');
+				GlobalDeclarations.initGlobalFunctions();
+
+				if (location.href.indexOf('test') > -1) {
+					globalObject.Storages = Storages;
 				}
-			});
+				if (typeof module !== 'undefined') {
+					globalObject.TransferFromOld =
+						Storages.SetupHandling.TransferFromOld;
+				}
+				
+				for (let i = 0; i < 5; i++) {
+					window.console.groupEnd();
+				}
+
+				window.info('Done!');
+				resolve(null);
+			} catch (e) {
+				for (let i = 0; i < 10; i++) {
+					window.console.groupEnd();
+				}
+
+				window.log(e);
+				throw e;
+			}
 		});
 	})();
 })(
@@ -10344,19 +10401,19 @@ if (query) {
 			callback: (worker: any) => void) => void;
 		sandboxChrome?: any;
 	}) => {
-		function sandboxChromeFunction(window: void, sandboxes: void, chrome: void, fn: Function, context: any, args: Array<any>) {
+		function sandboxChromeFunction(window: void, sandboxes: void, chrome: void, browser: void, fn: Function, context: any, args: Array<any>) {
 			return fn.apply(context, args);
 		}
 
-		sandboxes.sandboxChrome = (api: string, args: Array<any>) => {
+		sandboxes.sandboxChrome = (api: string, base: 'chrome'|'browser', args: Array<any>) => {
 			let context = {};
-			let fn = window.chrome;
+			let fn = (window as any)[base];
 			const apiSplit = api.split('.');
 			for (let i = 0; i < apiSplit.length; i++) {
 				context = fn;
 				fn = (fn as any)[apiSplit[i]];
 			}
-			return sandboxChromeFunction(null, null, null, (fn as any) as Function, context, args);
+			return sandboxChromeFunction(null, null, null, null, (fn as any) as Function, context, args);
 		};
 
 		return sandboxes as {
@@ -10366,7 +10423,7 @@ if (query) {
 					tabIndex: number;
 				}>,
 				callback: (worker: any) => void) => void;
-			sandboxChrome: (api: string, args: Array<any>) => any;
+			sandboxChrome: (api: string, base: 'chrome'|'browser', args: Array<any>) => any;
 		};
 	})((() => {
 		const sandboxes: {
