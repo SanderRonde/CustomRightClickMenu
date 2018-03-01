@@ -583,7 +583,16 @@ window.chrome = {
 			if (arg === 'js/libraries/crmapi.d.ts') {
 				return '/build/' + arg;
 			}
-			return 'chrome-extension://' + extensionId + '/' + arg;
+			switch (BrowserAPI.getBrowser()) {
+				case 'firefox':
+					return `moz-extension://${extensionId}/${arg}`;
+				case 'edge':
+					return `ms-browser-extension://${extensionId}/${arg}`;
+				case 'opera':
+				case 'chrome':
+					return `chrome-extension://${extensionId}/${arg}`;
+			}
+			return `?://${extensionId}/${arg}`;
 		},
 		id: extensionId,
 		reload: function() {},
