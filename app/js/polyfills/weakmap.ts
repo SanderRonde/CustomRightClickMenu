@@ -1,8 +1,8 @@
 ///<reference path="map.ts" />
 
 class WeakMapPolyfill<K,V> extends MapPolyfill<K,V> {
-	constructor() {
-		super();
+	constructor(iterable?: Iterable<[K, V]>) {
+		super(iterable);
 	}
 }
 
