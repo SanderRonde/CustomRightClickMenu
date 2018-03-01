@@ -92,7 +92,8 @@ module.exports = function (grunt) {
 
 		const destination = path.join(__dirname, '../', options.dest);
 
-		const joinedFile = `<html>
+		const joinedFile = `<!DOCTYPE html>
+		<html>
 			<head>
 				${contents.map((content) => {
 					return content.head;
