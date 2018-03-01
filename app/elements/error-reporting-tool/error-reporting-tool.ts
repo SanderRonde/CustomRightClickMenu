@@ -424,7 +424,7 @@ namespace ErrorReportingToolElement {
 		private static _getDownloadPermission(this: ErrorReportingTool) {
 			//Download the files
 			return new Promise<boolean>(async (resolve) => {
-				if (browser.downloads && browser.download.downloads) {
+				if (browser.downloads && browser.downloads.download) {
 					return resolve(true);
 				}
 

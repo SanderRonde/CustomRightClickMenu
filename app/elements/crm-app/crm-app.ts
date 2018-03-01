@@ -3383,7 +3383,7 @@ namespace CRMAppElement {
 
 			private static _getDownloadPermission() {
 				return new Promise<boolean>(async (resolve) => {
-					if (browser.downloads && browser.download.downloads) {
+					if (browser.downloads && browser.downloads.download) {
 						return resolve(true);
 					}
 
