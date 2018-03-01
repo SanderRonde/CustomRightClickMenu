@@ -1985,7 +1985,6 @@ if (typeof module === 'undefined') {
 				}) {
 					//Remove all nodes below it and re-enable them and its children
 
-					//TODO: check and make prettier
 					//First check everything above it
 					const firstChangeIndex = getFirstRowChange(tree, changes);
 					if (firstChangeIndex < tree.length) {
@@ -2001,27 +2000,41 @@ if (typeof module === 'undefined') {
 					for (let i = firstChangeIndex; i < tree.length; i++) {
 						if (changes[tree[i].id]) {
 							if (changes[tree[i].id].type === 'hide') {
-								//Don't check its children, just remove it
-								await removeNode(tree[i]);
-
-								//Set it and its children's status to hidden
-								tree[i].enabled = false;
-								if (tree[i].children) {
-									setStatusForTree(tree[i].children, false);
+								if (tree[i].enabled === false) {
+									//The part below already disabled it, no point in disabling it again
+									continue;
 								}
+								await hideNodeAndChildren(tree[i]);
 							} else {
-								//Remove every node after it and show them again
+								if (tree[i].enabled) {
+									//Already enabled
+									continue;
+								}
+
+								//Create list of nodes to enable afterwards as they are added in order of creating
 								const enableAfter = [tree[i]];
+								
+								//Iterate next siblings
 								for (let j = i + 1; j < tree.length; j++) {
 									if (changes[tree[j].id]) {
+										//If changes were happening anyway
 										if (changes[tree[j].id].type === 'hide') {
-											await removeNode(tree[j]);
-											globalObject.globals.crmValues.contextMenuItemTree[tree[j].index]
-												.enabled = false;
-										} else { //Is in toShow
+											if (tree[i].enabled === false) {
+												//It was already disabled
+												continue;
+											}
+
+											//If it was going to be removed anyway, remove it now and don't show it again
+											await hideNodeAndChildren(tree[j]);
+										} else {
+											//It was going to be showed, add it to the toShow list
 											enableAfter.push(tree[j]);
+											if (tree[j].enabled) {
+												await removeNode(tree[j]);		
+											}
 										}
 									} else if (tree[j].enabled) {
+										//It was already enabled and should be enabled again
 										enableAfter.push(tree[j]);
 										await removeNode(tree[j]);
 									}
@@ -2034,6 +2047,17 @@ if (typeof module === 'undefined') {
 						}
 					}
 				}
+
+			async function hideNodeAndChildren(node: ContextMenuItemTreeItem) {
+				//Remove hidden node and its children
+				await removeNode(node);
+
+				//Set it and its children's status to hidden
+				node.enabled = false;
+				if (node.children) {
+					setStatusForTree(node.children, false);
+				}
+			}
 
 			function getNodeStatusses(subtree: Array<ContextMenuItemTreeItem>,
 				hiddenNodes: Array<ContextMenuItemTreeItem> = [],
