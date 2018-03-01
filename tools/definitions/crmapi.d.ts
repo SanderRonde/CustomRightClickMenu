@@ -256,7 +256,7 @@ declare namespace CRM {
 	/**
 	 * Permissions related to the CRM API
 	 */
-	type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
+	type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome' | 'browser';
 
 	/**
 	 * An extendable object
@@ -309,6 +309,7 @@ declare namespace CRM {
 		crmGet: string;
 		crmWrite: string;
 		chrome: string;
+		browser: string;
 	}
 
 	/**
@@ -1979,7 +1980,7 @@ declare namespace CRM {
 		/**
 		 * Data about a chrome request
 		 */
-		interface ChromeRequest {
+		interface BrowserRequest {
 			/**
 			 * The API it's using
 			 */
@@ -2050,11 +2051,49 @@ declare namespace CRM {
 			/**
 			 * Info about the request itself
 			 */
-			request: ChromeRequest;
+			request: BrowserRequest;
 			/**
 			 * A function to run when an error occurs on running given chrome request
 			 */
 			onError?: Function
+		}
+
+		interface BrowserRequestReturn extends Function {
+			/**
+			 * A regular call with given arguments (functions can only be called once
+			 * unless you use .persistent)
+			 */
+			(...params: Array<any>): BrowserRequestReturn;
+			/**
+			 * A regular call with given arguments (functions can only be called once
+			 * unless you use .persistent)
+			 */
+			args: (...params: Array<any>) => BrowserRequestReturn;
+			/**
+			 * A regular call with given arguments (functions can only be called once
+			 * unless you use .persistent)
+			 */
+			a: (...params: Array<any>) => BrowserRequestReturn;
+			/**
+			 * A persistent callback (that can be called multiple times)
+			 */
+			persistent: (...functions: Array<Function>) => BrowserRequestReturn;
+			/**
+			 * A persistent callback (that can be called multiple times)
+			 */
+			p: (...functions: Array<Function>) => BrowserRequestReturn;
+			/**
+			 * Sends the function and returns a promise that resolves with its result
+			 */
+			send: () => Promise<any>;
+			/**
+			 * Sends the function and returns a promise that resolves with its result
+			 */
+			s: () => Promise<any>;
+			/**
+			 * Info about the request itself
+			 */
+			request: BrowserRequest;
 		}
 
 		/**
@@ -2569,7 +2608,8 @@ declare namespace CRM {
 				clickData: ClickData, secretKey: Array<number>,
 				nodeStorage: NodeStorage, contextData: ContextData,
 				greasemonkeyData: GreaseMonkeyData, isBackground: boolean,
-				options: CRM.Options, enableBackwardsCompatibility: boolean);
+				options: CRM.Options, enableBackwardsCompatibility: boolean,
+				tabIndex: number, extensionId: string, supportedAPIs: string);
 	
 			/**
 			 * When true, shows stacktraces on error in the console of the page
@@ -2632,11 +2672,12 @@ declare namespace CRM {
 			 * If set, calls this function when an error occurs
 			 */
 			onError: Function;
-	
+
 			/**
 			 * Whether this script is running on the backgroundpage
 			 */
 			isBackground: boolean;
+
 	
 			/**
 			 * The communications API used to communicate with other scripts and other instances

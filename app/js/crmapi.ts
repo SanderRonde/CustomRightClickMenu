@@ -137,6 +137,24 @@ type CRMAPIMessage = {
 	tabId: number;
 	requestType: 'GM_download'|'GM_notification'|undefined;
 }|{
+	type: 'browser';
+	id: number;
+	tabIndex: number;
+	api: string;
+	args: Array<({
+		type: "fn";
+		isPersistent: boolean;
+		val: number;
+	}|{
+		type: "arg";
+		val: string;
+	}|{
+		type: "return";
+		val: number;
+	})>;
+	tabId: number;
+	requestType: 'GM_download'|'GM_notification'|undefined;
+}|{
 	id: number;
 	type: 'addNotificationListener';
 	data: {
@@ -323,6 +341,31 @@ type CRMAPIMessage = {
 				stackTrace: string;
 				lineNumber: number;
 			}): void;
+		};
+	}
+
+	interface BrowserRequestInterface {
+		a?(...params: Array<any>): BrowserRequestInterface;
+		args?(...params: Array<any>): BrowserRequestInterface;
+		p?(...functions: Array<(...args: Array<any>) => void>): BrowserRequestInterface;
+		persistent?(...functions: Array<(...args: Array<any>) => void>): BrowserRequestInterface;
+		send?(): Promise<any>;
+		s?(): Promise<any>;
+		request?: {
+			api: string;
+			chromeAPIArguments: Array<{
+				type: 'fn';
+				isPersistent: boolean;
+				val: number;
+			}|{
+				type: 'arg';
+				val: string;	
+			}|{
+				type: 'return';
+				val: number;	
+			}>;
+			_sent: boolean;
+			type?: string;
 		};
 	}
 
@@ -529,16 +572,16 @@ type CRMAPIMessage = {
 		const thisArgs: Array<Object> = [];
 
 		return class extends target {
-			constructor(node: CRM.Node, id: number, tabData: chrome.tabs.Tab,
-				clickData: chrome.contextMenus.OnClickData, secretKey: Array<number>,
+			constructor(node: CRM.Node, id: number, tabData: _browser.tabs.Tab,
+				clickData: _browser.contextMenus.OnClickData, secretKey: Array<number>,
 				nodeStorage: CRM.NodeStorage, contextData: EncodedContextData,
 				greasemonkeyData: GreaseMonkeyData, isBackground: boolean, 
 				options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: number, 
-				extensionId: string) {
+				extensionId: string, supportedAPIs: string) {
 					super(node, id, tabData, clickData, secretKey, nodeStorage,
 						contextData, greasemonkeyData, isBackground,
 						options, enableBackwardsCompatibility, tabIndex,
-						extensionId);
+						extensionId, supportedAPIs);
 
 					mapObjThisArgs(this, thisMap, thisArgs);
 
@@ -552,7 +595,7 @@ type CRMAPIMessage = {
 					this._init(node, id, tabData, clickData, secretKey, nodeStorage,
 						contextData, greasemonkeyData, isBackground,
 						options, enableBackwardsCompatibility, tabIndex,
-						extensionId);
+						extensionId, supportedAPIs);
 				}
 		}
 	}
@@ -582,6 +625,7 @@ type CRMAPIMessage = {
 	 * @param {boolean} enableBackwardsCompatibility - Whether the localStorage object should reflect nodes
 	 * @param {number} tabIndex - The index of this script (with this id) running on this tab
 	 * @param {string} extensionId - The id of the extension
+	 * @param {string} supportedAPIs - The supported browser APIs
 	 */
 	@truePrivateClass
 	class CrmAPIInstance {
@@ -589,8 +633,8 @@ type CRMAPIMessage = {
 		private __privates: {
 			_node: CRM.Node,
 			_id: number,
-			_tabData: chrome.tabs.Tab,
-			_clickData: chrome.contextMenus.OnClickData,
+			_tabData: _browser.tabs.Tab,
+			_clickData: _browser.contextMenus.OnClickData,
 			_secretKey: Array<number>;
 			_nodeStorage: CRM.NodeStorage;
 			_contextData: EncodedContextData|RestoredContextData;
@@ -600,6 +644,7 @@ type CRMAPIMessage = {
 			_enableBackwardsCompatibility: boolean;
 			_tabIndex: number;
 			_extensionId: string;
+			_supportedAPIs: string;
 
 			_sendMessage: (message: any) => void;
 
@@ -831,6 +876,19 @@ type CRMAPIMessage = {
 			/**
 			 * Uses given arguments as arguments for the API in order specified. If the argument is
 			 * not a function, it is simply passed along, if it is, it's converted to a
+			 * function that will preserve scope but is not passed to the browser API itself.
+			 * Instead a placeholder is passed that will take any arguments the browser API passes to it
+			 * and calls your fn function with local scope with the arguments the browser API passed. Keep in
+			 * mind that there is no connection between your function and the browser API, the browser API only
+			 * sees a placeholder function with which it can do nothing so don't use this as say a forEach handler.
+			 */
+			_browserRequest: BrowserRequestInterface & {
+				new(__this: CrmAPIInstance, api: string, type?: string): BrowserRequestInterface;
+			};
+
+			/**
+			 * Uses given arguments as arguments for the API in order specified. If the argument is
+			 * not a function, it is simply passed along, if it is, it's converted to a
 			 * function that will preserve scope but is not passed to the chrome API itself.
 			 * Instead a placeholder is passed that will take any arguments the chrome API passes to it
 			 * and calls your fn function with local scope with the arguments the chrome API passed. Keep in
@@ -841,7 +899,7 @@ type CRMAPIMessage = {
 				new(__this: CrmAPIInstance, api: string, type?: string): ChromeRequestInterface;
 			};
 
-			_chromeSpecialRequest(api: string, type: string): ChromeRequestInterface;
+			_specialRequest(api: string, type: string): BrowserRequestInterface;
 
 			_setupRequestEvent(aOpts: {
 				method?: string,
@@ -889,6 +947,7 @@ type CRMAPIMessage = {
 			_enableBackwardsCompatibility: null,
 			_tabIndex: null,
 			_extensionId: null,
+			_supportedAPIs: null,
 
 			_sendMessage: null,
 
@@ -1825,6 +1884,194 @@ type CRMAPIMessage = {
 				return true;
 			},
 
+			_browserRequest: class BrowserRequest implements BrowserRequestInterface {
+				request: {
+					api: string;
+					chromeAPIArguments: Array<{
+						type: 'fn';
+						isPersistent: boolean;
+						val: number;
+					}|{
+						type: 'arg';
+						val: string;	
+					}|{
+						type: 'return';
+						val: number;	
+					}>;
+					_sent: boolean;
+					type?: string;
+					onError?(error: {
+						error: string;
+						message: string;
+						stackTrace: string;
+						lineNumber: number;
+					}): void;
+				};
+
+				returnedVal: BrowserRequestInterface;
+
+				constructor(public __this: CrmAPIInstance, api: string, type?: string) {
+					const request: {
+						api: string;
+						chromeAPIArguments: Array<{
+							type: 'fn';
+							isPersistent: boolean;
+							val: number;
+						}|{
+							type: 'arg';
+							val: string;	
+						}|{
+							type: 'return';
+							val: number;	
+						}>;
+						_sent: boolean;
+						type?: string;
+					} = {
+						api: api,
+						chromeAPIArguments: [],
+						_sent: false
+					};
+					this.request = request;
+					if (__this.warnOnChromeFunctionNotSent) {
+						window.setTimeout(() => {
+							if (!request._sent) {
+								console.warn('Looks like you didn\'t send your chrome function,' + 
+									' set crmAPI.warnOnChromeFunctionNotSent to false to disable this message');
+							}
+						}, 5000);
+					}
+					Object.defineProperty(request, 'type', {
+						get: function () {
+							return type;
+						}
+					});
+
+					const returnVal: BrowserRequestInterface = CrmAPIInstance._helpers.mergeObjects((...args: Array<any>) => {
+						return this.a.bind(this)(...args);
+					}, {
+						a: this.a.bind(this),
+						args: this.args.bind(this),
+						p: this.p.bind(this),
+						persistent: this.persistent.bind(this),
+						send: this.send.bind(this),
+						s: this.s.bind(this),
+						request: this.request
+					});
+					this.returnedVal = returnVal;
+
+					return this.returnedVal as any;
+				}
+				new(__this: CrmAPIInstance, api: string, type?: string): BrowserRequest { 
+					return this;
+				}
+				args(...args: Array<any>): BrowserRequestInterface {
+					for (let i = 0; i < args.length; i++) {
+						const arg = arguments[i];
+						if (typeof arg === 'function') {
+							this.request.chromeAPIArguments.push({
+								type: 'fn',
+								isPersistent: false,
+								val: this.__this.__privates._createCallback(arg, new Error(), {
+									maxCalls: 1
+								})
+							});
+						}
+						else {
+							this.request.chromeAPIArguments.push({
+								type: 'arg',
+								val: CrmAPIInstance._helpers.jsonFn.stringify(arg)
+							});
+						}
+					}
+					return this.returnedVal;
+				};
+				a(...args: Array<any>): BrowserRequestInterface {
+					return this.args(...args);
+				}
+				/**
+				 * 	A function that is a persistent callback that will not be removed when called.
+				 * 	This can be used on APIs like chrome.tabs.onCreated where multiple calls can occuring
+				 * 	contrary to chrome.tabs.get where only one callback will occur.
+				 */
+				persistent(...fns: Array<any>): BrowserRequestInterface {
+					for (let i = 0; i < fns.length; i++) {
+						this.request.chromeAPIArguments.push({
+							type: 'fn',
+							isPersistent: true,
+							val: this.__this.__privates._createCallback(fns[i], new Error(), {
+								persistent: true
+							})
+						});
+					}
+					return this.returnedVal;
+				}
+				p(...fns: Array<any>): BrowserRequestInterface {
+					return this.persistent(...fns);
+				}
+				s<T>(): Promise<T> {
+					return this.send<T>();
+				}
+				send<T>(): Promise<T> {
+					return new Promise<T>((resolve, reject) => {
+						const requestThis = this;
+						this.request._sent = true;
+						let maxCalls = 0;
+						let isPersistent = false;
+
+						this.request.chromeAPIArguments.forEach((arg) => {
+							if (arg.type === 'fn') {
+								maxCalls++;
+								if ((arg as {
+									type: 'fn';
+									isPersistent: true;
+									val: number;
+								}).isPersistent) {
+									isPersistent = true;
+								}
+							}
+						});
+
+						const onFinishFn = (status: 'success'|'error'|'chromeError', messageOrParams: {
+							error: string;
+							message: string;
+							stackTrace: string;
+							lineNumber: number;
+						}|any, stackTrace: Array<string>) => {
+							if (status === 'error' || status === 'chromeError') {
+								reject({...messageOrParams as {
+									error: string;
+									message: string;
+									stackTrace: string;
+									lineNumber: number;
+								}, ...{
+									localStackTrace: stackTrace }
+								});
+							} else {
+								resolve(messageOrParams);
+							}
+						}
+
+						const onFinish = {
+							maxCalls: maxCalls,
+							persistent: isPersistent,
+							fn: onFinishFn
+						};
+
+						const message = {
+							type: 'browser',
+							id: this.__this.__privates._id,
+							tabIndex: this.__this.__privates._tabIndex,
+							api: requestThis.request.api,
+							args: requestThis.request.chromeAPIArguments,
+							tabId: this.__this.__privates._tabData.id,
+							requestType: requestThis.request.type,
+							onFinish: onFinish
+						};
+						this.__this.__privates._sendMessage(message);
+					});
+				}
+			},
+
 			/**
 			 * Uses given arguments as arguments for the API in order specified. If the argument is
 			 * not a function, it is simply passed along, if it is, it's converted to a
@@ -2090,8 +2337,8 @@ type CRMAPIMessage = {
 				}
 			},
 
-			_chromeSpecialRequest(this: CrmAPIInstance, api: string, type: string) {
-				return new this.__privates._chromeRequest(this, api, type);
+			_specialRequest(this: CrmAPIInstance, api: string, type: string) {
+				return new this.__privates._browserRequest(this, api, type);
 			},
 
 			//From https://gist.github.com/arantius/3123124
@@ -2220,13 +2467,14 @@ type CRMAPIMessage = {
  		 * @param {boolean} enableBackwardsCompatibility - Whether the localStorage object should reflect nodes
 		 * @param {number} tabIndex - The index of this script (with this id) running on this tab
 		 * @param {string} extensionId - The id of the extension
+		 * @param {string} supportedAPIs - The supported browser APIs
 		 */
-		constructor(node: CRM.Node, id: number, tabData: chrome.tabs.Tab,
-			clickData: chrome.contextMenus.OnClickData, secretKey: Array<number>,
+		constructor(node: CRM.Node, id: number, tabData: _browser.tabs.Tab,
+			clickData: _browser.contextMenus.OnClickData, secretKey: Array<number>,
 			nodeStorage: CRM.NodeStorage, contextData: EncodedContextData,
 			greasemonkeyData: GreaseMonkeyData, isBackground: boolean, 
 			options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: number, 
-			extensionId: string) { 
+			extensionId: string, supportedAPIs: string) { 
 				this.__privates._node = node;
 				this.__privates._id = id;
 				this.__privates._tabData = tabData;
@@ -2240,22 +2488,25 @@ type CRMAPIMessage = {
 				this.__privates._enableBackwardsCompatibility = enableBackwardsCompatibility;
 				this.__privates._tabIndex = tabIndex;
 				this.__privates._extensionId = extensionId;
+				this.__privates._supportedAPIs = supportedAPIs;
 
 				this.tabId = tabData.id;
 				this.currentTabIndex = tabIndex;
 				this.permissions = JSON.parse(JSON.stringify(node.permissions || []));
 				this.id = id;				
 				this.isBackground = isBackground;
+				this.chromeAPISupported = supportedAPIs.split(',').indexOf('chrome') > -1;
+				this.browserAPISupported = supportedAPIs.split(',').indexOf('browser') > -1;
 
 				this.__privates._findElementsOnPage.bind(this)(contextData);
 			}
 
-		_init(node: CRM.Node, id: number, tabData: chrome.tabs.Tab,
-			clickData: chrome.contextMenus.OnClickData, secretKey: Array<number>,
+		_init(node: CRM.Node, id: number, tabData: _browser.tabs.Tab,
+			clickData: _browser.contextMenus.OnClickData, secretKey: Array<number>,
 			nodeStorage: CRM.NodeStorage, contextData: EncodedContextData,
 			greasemonkeyData: GreaseMonkeyData, isBackground: boolean, 
 			options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: number, 
-			extensionId: string) {
+			extensionId: string, supportedAPIs: string) {
 				if (!enableBackwardsCompatibility) {
 					localStorageProxy = typeof localStorage === 'undefined' ? {} : localStorage;
 				}
@@ -2364,6 +2615,20 @@ type CRMAPIMessage = {
 		 * @type {boolean}
 		 */
 		isBackground: boolean;
+
+		/**
+		 * Whether the chrome API is supported (it's running in a chrome browser)
+		 * 
+		 * @type {boolean}
+		 */
+		chromeAPISupported: boolean;
+
+		/**
+		 * Whether the browser API is supported
+		 * 
+		 * @type {boolean}
+		 */
+		browserAPISupported: boolean;
 
 		/**
 		 * Registers a function to be called
@@ -3178,7 +3443,7 @@ type CRMAPIMessage = {
 		 *
 		 * @returns {Object} - An object containing any info about the page, some data may be undefined if it doesn't apply
 		 */
-		getClickInfo(): chrome.contextMenus.OnClickData {
+		getClickInfo(): _browser.contextMenus.OnClickData {
 			return this.__privates._clickData;
 		};
 
@@ -3187,7 +3452,7 @@ type CRMAPIMessage = {
 		 *
 		 * @returns {Object} - An object of type tab (https://developer.chrome.com/extensions/tabs#type-Tab)
 		 */
-		getTabInfo(): chrome.tabs.Tab {
+		getTabInfo(): _browser.tabs.Tab {
 			return this.__privates._tabData;
 		};
 
@@ -4081,7 +4346,7 @@ type CRMAPIMessage = {
 			 * @param {boolean} [options.muted] - Whether the tabs are muted
 			 * @param {number|number[]} [options.tabId] - The IDs of the tabs
 			 */
-			runScript(this: CrmAPIInstance, id: number, options: chrome.tabs.QueryInfo & {
+			runScript(this: CrmAPIInstance, id: number, options: BrowserTabsQueryInfo & {
 				tabId?: MaybeArray<number>;
 				all?: boolean;
 			}): void {
@@ -4115,7 +4380,7 @@ type CRMAPIMessage = {
 			 * @param {boolean} [options.muted] - Whether the tabs are muted
 			 * @param {number|number[]} [options.tabId] - The IDs of the tabs
 			 */
-			runSelf(this: CrmAPIInstance, options: chrome.tabs.QueryInfo & {
+			runSelf(this: CrmAPIInstance, options: BrowserTabsQueryInfo & {
 				tabId?: MaybeArray<number>;
 				all?: boolean;
 			}): void {
@@ -4238,6 +4503,10 @@ type CRMAPIMessage = {
 		chrome(api: string) {
 			return new this.__privates._chromeRequest(this, api);
 		};
+
+		browser(api: string) {
+
+		}
 
 		/**
 		 * The GM API that fills in any APIs that GreaseMonkey uses and points them to their
@@ -4508,7 +4777,8 @@ type CRMAPIMessage = {
 					saveAs: name,
 					headers: details.headers
 				};
-				const request = this.__privates._chromeSpecialRequest('downloads.download', 'GM_download').args(options).args((result: any) => {
+				const request = this.__privates._specialRequest('downloads.download', 'GM_download').args(options);
+				request.send().then((result: any) => {
 					const downloadId = result.APIArgs[0];
 					if (downloadId === undefined) {
 						CrmAPIInstance._helpers.isFn(details.onerror) && details.onerror({
@@ -4518,14 +4788,12 @@ type CRMAPIMessage = {
 					} else {
 						CrmAPIInstance._helpers.isFn(details.onload) && details.onload();
 					}
-				});
-				request.request.onError = (errorMessage) => {
+				}).catch((err) => {
 					CrmAPIInstance._helpers.isFn(details.onerror) && details.onerror({
 						error: 'not_permitted',
-						details: errorMessage.error
+						details: err.error
 					});
-				};
-				request.send();
+				});
 			},
 			/**
 			 * Please use the comms API instead of this one
@@ -4618,13 +4886,11 @@ type CRMAPIMessage = {
 				});
 				delete details.onclick;
 				delete details.ondone;
-				const request = this.__privates._chromeSpecialRequest('notifications.create', 'GM_notification').args(details).args((notificationId: number) => {
+				this.__privates._specialRequest('notifications.create', 'GM_notification').args(details).s().then((notificationId: number) => {
 					this.__privates._addNotificationListener(notificationId, onclickRef, ondoneRef);
+				}).catch((err) => {
+					console.warn(err);
 				});
-				request.request.onError = (errorMessage) => {
-					console.warn(errorMessage);
-				};
-				request.send();
 			}
 		};
 

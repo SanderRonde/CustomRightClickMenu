@@ -32,7 +32,7 @@ declare namespace CRM {
 	/**
 	 * Permissions related to the CRM API
 	 */
-	type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
+	type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome' | 'browser';
 
 	/**
 	 * An extendable object
@@ -1109,6 +1109,8 @@ declare namespace CRM {
 		 * The name of the root node
 		 */
 		rootName: string;
+		
+		[key: string]: any;
 	}
 
 	/**
@@ -1324,5 +1326,7 @@ declare namespace CRM {
 				generalError: boolean;		
 			}		
 		};
+		
+		[key: string]: any;
 	}
 }
