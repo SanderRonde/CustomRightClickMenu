@@ -471,7 +471,7 @@ class xhr {
 	}
 	open(method, filePath) {
 		//Strip chrome-extension://
-		filePath = filePath.split('chrome-extension://something/')[1];
+		filePath = filePath.split('://something/')[1];
 
 		this.readyState = xhr.UNSENT;
 		this._config = {
