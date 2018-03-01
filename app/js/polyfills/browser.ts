@@ -23,7 +23,7 @@ namespace BrowserAPI {
 
 	// So if browser is Edge, use "browser", otherwise use "chrome" if available
 	// 	to ensure always always getting callback-style APIs
-	const __srcBrowser: typeof _chrome = getBrowser() === 'edge' ?
+	const __srcBrowser: typeof _chrome = 'StyleMedia' in (window as any) ?
 		window.browser : 'chrome' in window ? 
 			(window as any).chrome : {};
 
