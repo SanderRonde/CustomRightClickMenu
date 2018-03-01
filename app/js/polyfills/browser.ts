@@ -482,5 +482,5 @@ interface Window {
 	browser: typeof BrowserAPI.polyfill;
 }
 
-const browser = BrowserAPI.polyfill;
 window.browser = window.browser || BrowserAPI.polyfill as typeof _browser;
+const browser = window.browser as typeof BrowserAPI.polyfill;
