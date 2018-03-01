@@ -360,28 +360,31 @@ window.logElements = (() => {
 		}) {
 			super(props);
 		}
-		takeToTab() {
+		async takeToTab() {
 			if (this.props.line.tabId === 'background') {
 				window.logConsole.$.genericToast.text = 'Can\'t open a background page';
 				window.logConsole.$.genericToast.show();
 			} else {
-				chrome.tabs.get(~~this.props.line.tabId, function(tab) {
-					if (chrome.runtime.lastError) {
-						window.logConsole.$.genericToast.text = 'Tab has been closed';
-						window.logConsole.$.genericToast.show();
-						return;
-					}
+				const tab = await browser.tabs.get(~~this.props.line.tabId).catch((err) => {
+					window.logConsole.$.genericToast.text = 'Tab has been closed';
+					window.logConsole.$.genericToast.show();
+				});
+				if (!tab) {
+					return;
+				}
 
-					chrome.tabs.highlight({
+				if ('highlight' in browser.tabs) {
+					const chromeTabs: typeof _chrome.tabs = browser.tabs as any;
+					await chromeTabs.highlight({
 						windowId: tab.windowId,
 						tabs: tab.index
 					}, () => {
-						if (chrome.runtime.lastError) {
-							console.log(chrome.runtime.lastError);
+						if ((window as any).chrome.runtime.lastError) {
+							console.log((window as any).chrome.runtime.lastError);
 							console.log('Something went wrong highlighting the tab');
 						}
 					});
-				});
+				}
 			}
 		}
 		getLineNumber() {
@@ -426,24 +429,27 @@ window.logElements = (() => {
 		isLine() {
 			return true;
 		}
-		takeToTab() {
-			chrome.tabs.get(~~this.props.line.tabId, function(tab) {
-				if (chrome.runtime.lastError) {
-					window.logConsole.$.genericToast.text = 'Tab has been closed';
-					window.logConsole.$.genericToast.show();
-					return;
-				}
+		async takeToTab() {
+			const tab = await browser.tabs.get(~~this.props.line.tabId).catch((err) => {
+				window.logConsole.$.genericToast.text = 'Tab has been closed';
+				window.logConsole.$.genericToast.show();
+			});
+			if (!tab) {
+				return;
+			}
 
-				chrome.tabs.highlight({
+			if ('highlight' in browser.tabs) {
+				const chromeTabs: typeof _chrome.tabs = browser.tabs as any;
+				await chromeTabs.highlight({
 					windowId: tab.windowId,
 					tabs: tab.index
 				}, () => {
-					if (chrome.runtime.lastError) {
-						console.log(chrome.runtime.lastError);
+					if ((window as any).chrome.runtime.lastError) {
+						console.log((window as any).chrome.runtime.lastError);
 						console.log('Something went wrong highlighting the tab');
 					}
 				});
-			});
+			}
 		}
 		render() {
 			return (
