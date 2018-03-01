@@ -112,7 +112,7 @@ namespace LogConsoleElement {
 			const target = event.target;
 			let tabId = (target.children[0] as HTMLElement).innerText;
 			
-			const tab = await browser.tabs.get(~~tabId).catch((err) => {
+			const tab = await browserAPI.tabs.get(~~tabId).catch((err) => {
 				window.logConsole.$.genericToast.text = 'Tab has been closed';
 				window.logConsole.$.genericToast.show();
 			});
@@ -120,8 +120,8 @@ namespace LogConsoleElement {
 				return;
 			}
 
-			if ('highlight' in browser.tabs) {
-				const chromeTabs: typeof _chrome.tabs = browser.tabs as any;
+			if ('highlight' in browserAPI.tabs) {
+				const chromeTabs: typeof _chrome.tabs = browserAPI.tabs as any;
 				if (!chromeTabs.highlight) {
 					return;
 				}
@@ -149,7 +149,7 @@ namespace LogConsoleElement {
 		private static _executeCode(this: LogConsole, code: string) {
 			if (this.selectedTab !== 0 && this.selectedId !== 0) {
 				const selectedItems = this._getSelectedItems();
-				browser.runtime.sendMessage({
+				browserAPI.runtime.sendMessage({
 					type: 'executeCRMCode',
 					data: {
 						code: code,
@@ -400,7 +400,7 @@ namespace LogConsoleElement {
 		}
 
 		private static async _init(this: LogConsole, callback: () => void) {
-			const bgPage = await browser.runtime.getBackgroundPage();
+			const bgPage = await browserAPI.runtime.getBackgroundPage();
 			this._bgPage = bgPage;
 
 			bgPage._listenIds((ids) => {
@@ -460,7 +460,7 @@ namespace LogConsoleElement {
 			const logLine = sourceLine.props.line;
 		
 			//Send a message to the background page
-			browser.runtime.sendMessage({
+			browserAPI.runtime.sendMessage({
 				type: 'createLocalLogVariable',
 				data: {
 					code: {

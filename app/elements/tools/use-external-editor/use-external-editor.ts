@@ -519,7 +519,7 @@ namespace UseExternalEditorElement {
 		 * Sets up the external messages sent to go this element's handler
 		 */
 		static setupMessageHandler(this: UseExternalEditor) {
-			browser.runtime.onConnectExternal.addListener((port) => {
+			browserAPI.runtime.onConnectExternal.addListener((port) => {
 				if (port.sender.id === 'obnfehdnkjmbijebdllfcnccllcfceli') {
 					port.onMessage.addListener((msg: any) => {
 						this.messageHandler(msg);
@@ -575,7 +575,7 @@ namespace UseExternalEditorElement {
 		 */
 		private static establishConnection(this: UseExternalEditor) {
 			if (!this.appPort) {
-				this.appPort = browser.runtime.connect(EXTERNAL_EDITOR_APP_ID);
+				this.appPort = browserAPI.runtime.connect(EXTERNAL_EDITOR_APP_ID);
 				this.connection.status = 'connecting';
 				this.connection.stage = 0;
 				this.connection.fileConnected = false;

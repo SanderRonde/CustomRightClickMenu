@@ -152,8 +152,8 @@ namespace ErrorReportingToolElement {
 		}) {
 			//Make sure the overlay is gone for a while
 			this.$.overlay.style.display = 'none';
-			const { windowId } = await browser.tabs.getCurrent();
-			const dataURI = await browser.tabs.captureVisibleTab(windowId, {
+			const { windowId } = await browserAPI.tabs.getCurrent();
+			const dataURI = await browserAPI.tabs.captureVisibleTab(windowId, {
 				format: 'png',
 				quality: 100
 			});
@@ -373,16 +373,16 @@ namespace ErrorReportingToolElement {
 
 		private static async _getStorages() {
 			return {
-				local: await browser.storage.local.get<CRM.StorageLocal>(),
-				sync: await browser.storage.local.get<CRM.SettingsStorage>(),
+				local: await browserAPI.storage.local.get<CRM.StorageLocal>(),
+				sync: await browserAPI.storage.local.get<CRM.SettingsStorage>(),
 			}
 		}
 
 		private static async _downloadFiles(this: ErrorReportingTool) {
-			if (!(browser.downloads)) {
+			if (!(browserAPI.downloads)) {
 				return false;
 			}
-			await browser.downloads.download({
+			await browserAPI.downloads.download({
 				url: this.image,
 				filename: 'screencap.png'
 			});
@@ -392,7 +392,7 @@ namespace ErrorReportingToolElement {
 					local, sync,
 					lastError: this._lastError
 				};
-				await browser.downloads.download({
+				await browserAPI.downloads.download({
 					url: 'data:text/plain;base64,' + window.btoa(JSON.stringify(dataCont)),
 					filename: 'settings.txt' //Downloads as text because github doesn't allow JSON uploads
 				});
@@ -424,19 +424,19 @@ namespace ErrorReportingToolElement {
 		private static _getDownloadPermission(this: ErrorReportingTool) {
 			//Download the files
 			return new Promise<boolean>(async (resolve) => {
-				if (browser.downloads && browser.downloads.download) {
+				if (browserAPI.downloads && browserAPI.downloads.download) {
 					return resolve(true);
 				}
 
-				if (!(browser.permissions)) {
+				if (!(browserAPI.permissions)) {
 					window.app.util.showToast('Your browser does not support asking for the download permission');
 					return resolve(false);
 				}
 
-				const granted = await browser.permissions.request({
+				const granted = await browserAPI.permissions.request({
 					permissions: ['downloads']
 				});
-				if (granted && browser.downloads) {
+				if (granted && browserAPI.downloads) {
 					window.errorReportingTool.$.errorReportingDialog.close();
 					resolve(granted);
 

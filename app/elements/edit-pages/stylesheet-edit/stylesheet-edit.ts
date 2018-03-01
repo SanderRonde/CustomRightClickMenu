@@ -159,7 +159,7 @@ namespace StylesheetEditElement {
 			window.stylesheetEdit = this;
 			window.externalEditor.init();
 			if (window.app.storageLocal.recoverUnsavedData) {
-				browser.storage.local.set({
+				browserAPI.storage.local.set({
 					editing: {
 						val: this.item.value.stylesheet,
 						id: this.item.id,
@@ -172,7 +172,7 @@ namespace StylesheetEditElement {
 						let val;
 						try {
 							val = this.editorManager.editor.getValue();
-							browser.storage.local.set({
+							browserAPI.storage.local.set({
 								editing: {
 									val: val,
 									id: this.item.id,
@@ -182,7 +182,7 @@ namespace StylesheetEditElement {
 						} catch (e) { }
 					} else {
 						//Stop this interval
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							editing: false
 						});
 						window.clearInterval(this.savingInterval);

@@ -971,7 +971,7 @@ namespace EditCrmElement {
 			window.doc.exportAuthorName.addEventListener('keydown', () => {
 				window.setTimeout(() => {
 					const author = window.doc.exportAuthorName.value;
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						authorName: author
 					});
 					let data;
@@ -1007,7 +1007,7 @@ namespace EditCrmElement {
 				const author = (event.target as {
 					value: string;
 				}).value;
-				browser.storage.local.set({
+				browserAPI.storage.local.set({
 					authorName: author
 				});
 				for (let j = 0; j < safeExports.length; j++) {

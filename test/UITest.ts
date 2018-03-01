@@ -529,8 +529,8 @@ function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackCo
 	const promise = new webdriver.promise.Promise<void>(async (resolve) => {
 		const result = await driver.executeScript(inlineFn(() => {
 			try {
-				window.browser.storage.local.clear();
-				window.browser.storage.sync.clear();
+				window.browserAPI.storage.local.clear();
+				window.browserAPI.storage.sync.clear();
 				window.app.refreshPage();
 				return null;
 			} catch(e) {
@@ -3787,7 +3787,7 @@ describe('On-Page CRM', function() {
 					title: 'notexample',
 					url: 'http://www.notexample.com'
 				};
-				window.browser.runtime.sendMessage({
+				window.browserAPI.runtime.sendMessage({
 					type: 'newTabCreated'
 				}, {
 					tab: {
@@ -3860,7 +3860,7 @@ describe('On-Page CRM', function() {
 					title: 'example',
 					url: 'http://www.example.com'
 				};
-				window.browser.runtime.sendMessage({
+				window.browserAPI.runtime.sendMessage({
 					type: 'newTabCreated'
 				}, {
 					tab: {
@@ -3891,7 +3891,7 @@ describe('On-Page CRM', function() {
 					title: 'example',
 					url: 'http://www.example2.com'
 				};
-				window.browser.runtime.sendMessage({
+				window.browserAPI.runtime.sendMessage({
 					type: 'newTabCreated'
 				}, {
 					tab: {
@@ -4347,7 +4347,7 @@ describe('On-Page CRM', function() {
 					url: 'http://www.notexample.com'
 				};
 				
-				window.browser.runtime.sendMessage({
+				window.browserAPI.runtime.sendMessage({
 					type: 'newTabCreated'
 				}, {
 					tab: {
@@ -4419,7 +4419,7 @@ describe('On-Page CRM', function() {
 					title: 'example',
 					url: 'http://www.example.com'
 				};
-				window.browser.runtime.sendMessage({
+				window.browserAPI.runtime.sendMessage({
 					type: 'newTabCreated'
 				}, {
 					tab: {
@@ -4449,7 +4449,7 @@ describe('On-Page CRM', function() {
 					title: 'example',
 					url: 'http://www.example2.com'
 				};
-				window.browser.runtime.sendMessage({
+				window.browserAPI.runtime.sendMessage({
 					type: 'newTabCreated'
 				}, {
 					tab: {

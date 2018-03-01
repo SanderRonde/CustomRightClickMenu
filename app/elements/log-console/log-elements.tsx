@@ -365,7 +365,7 @@ window.logElements = (() => {
 				window.logConsole.$.genericToast.text = 'Can\'t open a background page';
 				window.logConsole.$.genericToast.show();
 			} else {
-				const tab = await browser.tabs.get(~~this.props.line.tabId).catch((err) => {
+				const tab = await browserAPI.tabs.get(~~this.props.line.tabId).catch((err) => {
 					window.logConsole.$.genericToast.text = 'Tab has been closed';
 					window.logConsole.$.genericToast.show();
 				});
@@ -373,8 +373,8 @@ window.logElements = (() => {
 					return;
 				}
 
-				if ('highlight' in browser.tabs) {
-					const chromeTabs: typeof _chrome.tabs = browser.tabs as any;
+				if ('highlight' in browserAPI.tabs) {
+					const chromeTabs: typeof _chrome.tabs = browserAPI.tabs as any;
 					if (!chromeTabs.highlight) {
 						return;
 					}
@@ -433,7 +433,7 @@ window.logElements = (() => {
 			return true;
 		}
 		async takeToTab() {
-			const tab = await browser.tabs.get(~~this.props.line.tabId).catch((err) => {
+			const tab = await browserAPI.tabs.get(~~this.props.line.tabId).catch((err) => {
 				window.logConsole.$.genericToast.text = 'Tab has been closed';
 				window.logConsole.$.genericToast.show();
 			});
@@ -441,8 +441,8 @@ window.logElements = (() => {
 				return;
 			}
 
-			if ('highlight' in browser.tabs) {
-				const chromeTabs: typeof _chrome.tabs = browser.tabs as any;
+			if ('highlight' in browserAPI.tabs) {
+				const chromeTabs: typeof _chrome.tabs = browserAPI.tabs as any;
 				if (!chromeTabs.highlight) {
 					return;
 				}

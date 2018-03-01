@@ -737,7 +737,7 @@ namespace CRMAppElement {
 					const slider = this;
 					if (this.checked) {
 						try {
-							browser.permissions.request({
+							browserAPI.permissions.request({
 								permissions: [permission as _browser.permissions.Permission]
 							}).then((accepted) => {
 								if (!accepted) {
@@ -745,10 +745,10 @@ namespace CRMAppElement {
 									slider.checked = false;
 								} else {
 									//Accepted, remove from to-request permissions
-									browser.storage.local.get<CRM.StorageLocal>().then((e) => {
+									browserAPI.storage.local.get<CRM.StorageLocal>().then((e) => {
 										const permissionsToRequest = e.requestPermissions;
 										permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
-										browser.storage.local.set({
+										browserAPI.storage.local.set({
 											requestPermissions: permissionsToRequest
 										});
 									});
@@ -756,16 +756,16 @@ namespace CRMAppElement {
 							});
 						} catch (e) {
 							//Accepted, remove from to-request permissions
-							browser.storage.local.get<CRM.StorageLocal>().then((e) => {
+							browserAPI.storage.local.get<CRM.StorageLocal>().then((e) => {
 								const permissionsToRequest = e.requestPermissions;
 								permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
-								browser.storage.local.set({
+								browserAPI.storage.local.set({
 									requestPermissions: permissionsToRequest
 								});
 							});
 						}
 					} else {
-						browser.permissions.remove({
+						browserAPI.permissions.remove({
 							permissions: [permission as _browser.permissions.Permission]
 						}).then((removed) => {
 							if (!removed) {
@@ -777,11 +777,11 @@ namespace CRMAppElement {
 				});
 
 				$(this.shadowRoot.querySelectorAll('#requestPermissionsAcceptAll')).off('click').on('click', function () {
-					browser.permissions.request({
+					browserAPI.permissions.request({
 						permissions: toRequest as Array<_browser.permissions.Permission>
 					}).then((accepted) => {
 						if (accepted) {
-							browser.storage.local.set({
+							browserAPI.storage.local.set({
 								requestPermissions: []
 							});
 							$('.requestPermissionButton.required').each(function (this: HTMLPaperCheckboxElement) {
@@ -812,12 +812,12 @@ namespace CRMAppElement {
 				}
 			}
 
-			browser.storage.local.set({
+			browserAPI.storage.local.set({
 				requestPermissions: toRequest
 			});
 
 			if (toRequest.length > 0 || force) {
-				const allowed = browser.permissions ? await browser.permissions.getAll() : {
+				const allowed = browserAPI.permissions ? await browserAPI.permissions.getAll() : {
 					permissions: []
 				};
 				const requested: Array<{
@@ -978,7 +978,7 @@ namespace CRMAppElement {
 				window.doc.showHideToolsRibbonButton.classList.remove('hidden');
 			}
 			window.app.storageLocal.shrinkTitleRibbon = !window.app.storageLocal.shrinkTitleRibbon;
-			browser.storage.local.set({
+			browserAPI.storage.local.set({
 				shrinkTitleRibbon: window.app.storageLocal.shrinkTitleRibbon
 			});
 		};
@@ -1014,8 +1014,8 @@ namespace CRMAppElement {
 				[key]: value
 			};
 
-			browser.storage.local.set(obj as any);
-			browser.storage.local.get<CRM.StorageLocal>().then((storageLocal) => {
+			browserAPI.storage.local.set(obj as any);
+			browserAPI.storage.local.get<CRM.StorageLocal>().then((storageLocal) => {
 				this.storageLocal = storageLocal;
 				this.upload();
 
@@ -1557,18 +1557,18 @@ namespace CRMAppElement {
 			window.doc = window.app.$;
 			this._setupConsoleInterface();
 
-			browser.runtime.onInstalled.addListener((details) => {
+			browserAPI.runtime.onInstalled.addListener((details) => {
 				if (details.reason === 'update') {
 					//Show a little message
 					this.$.messageToast.text = `Extension has been updated to version ${
-						browser.runtime.getManifest().version}`;
+						browserAPI.runtime.getManifest().version}`;
 					this.$.messageToast.show();
 				}
 			});
 
 			if (typeof localStorage === 'undefined') {
 				//Running a test
-				browser.runtime.onMessage.addListener((message: any) => {
+				browserAPI.runtime.onMessage.addListener((message: any) => {
 					if (message.type === 'idUpdate') {
 						this._latestId = message.latestId;
 					}
@@ -1749,7 +1749,7 @@ namespace CRMAppElement {
 			private static _loadFile(path: string): Promise<string> {
 				return new Promise<string>((resolve, reject) => {
 					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
-					xhr.open('GET', browser.runtime.getURL(path));
+					xhr.open('GET', browserAPI.runtime.getURL(path));
 					xhr.onreadystatechange = () => {
 						if (xhr.readyState === XMLHttpRequest.DONE) {
 							if (xhr.status === 200) {
@@ -1839,7 +1839,7 @@ namespace CRMAppElement {
 						crmItem.value.stylesheet = editingObj.val;
 					}
 					window.app.upload();
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						editing: null
 					});
 					window.setTimeout(function () {
@@ -1848,7 +1848,7 @@ namespace CRMAppElement {
 					}, 500);
 				});
 				this.parent().$.discardButton.addEventListener('click', () => {
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						editing: null
 					});
 					window.setTimeout(function () {
@@ -2012,7 +2012,7 @@ namespace CRMAppElement {
 
 			static async setupStorages() {
 				const parent = this.parent();
-				const storageLocal = await browser.storage.local.get<CRM.StorageLocal & {
+				const storageLocal = await browserAPI.storage.local.get<CRM.StorageLocal & {
 					nodeStorage: any;
 					settings?: CRM.SettingsStorage;
 				}>();
@@ -2052,7 +2052,7 @@ namespace CRMAppElement {
 				parent._setup._bindListeners();
 				delete storageLocal.nodeStorage;
 				if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
-					if (browser.permissions) {
+					if (browserAPI.permissions) {
 						await parent._requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
 					}
 				}
@@ -2066,7 +2066,7 @@ namespace CRMAppElement {
 						if (nodeCurrentCode.trim() !== editing.val.trim()) {
 							parent._setup._restoreUnsavedInstances(editing);
 						} else {
-							browser.storage.local.set({
+							browserAPI.storage.local.set({
 								editing: null
 							});
 						}
@@ -2076,7 +2076,7 @@ namespace CRMAppElement {
 					parent.crmType = storageLocal.selectedCrmType;
 					parent._setup.switchToIcons(storageLocal.selectedCrmType);
 				} else {
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						selectedCrmType: 0
 					});
 					parent.crmType = 0;
@@ -2086,7 +2086,7 @@ namespace CRMAppElement {
 					parent.jsLintGlobals = storageLocal.jsLintGlobals;
 				} else {
 					parent.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						jsLintGlobals: parent.jsLintGlobals
 					});
 				}
@@ -2095,7 +2095,7 @@ namespace CRMAppElement {
 					parent.globalExcludes = storageLocal.globalExcludes;
 				} else {
 					parent.globalExcludes = [''];
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						globalExcludes: parent.globalExcludes
 					});
 				}
@@ -2117,7 +2117,7 @@ namespace CRMAppElement {
 						window.doc.addedPermissionPrevButton.style.display = 'none';
 						window.doc.addedPermissionsTabRepeater.render();
 						window.doc.addedPermissionsDialog.open();
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							addedPermissions: null
 						});
 					}, 2500);
@@ -2134,7 +2134,7 @@ namespace CRMAppElement {
 					} else {
 						parent.$.nextScriptUpdateButton.style.display = 'none';
 					}
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						updatedScripts: []
 					});
 					storageLocal.updatedScripts = [];
@@ -2142,7 +2142,7 @@ namespace CRMAppElement {
 				if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.wasUpdated) {
 					const versionData = storageLocal.settingsVersionData;
 					versionData.wasUpdated = false;
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						settingsVersionData: versionData
 					});
 
@@ -2154,7 +2154,7 @@ namespace CRMAppElement {
 				}
 
 				if (storageLocal.isTransfer) {
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						isTransfer: false
 					});
 					window.doc.versionUpdateDialog.open();
@@ -2164,7 +2164,7 @@ namespace CRMAppElement {
 				parent._storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 				if (storageLocal.useStorageSync) {
 					//Parse the data before sending it to the callback
-					browser.storage.sync.get().then((storageSync: any) => {
+					browserAPI.storage.sync.get().then((storageSync: any) => {
 						const sync = storageSync as {
 							[key: string]: string
 						} & {
@@ -2172,7 +2172,7 @@ namespace CRMAppElement {
 						};
 						let indexes = sync.indexes;
 						if (!indexes) {
-							browser.storage.local.set({
+							browserAPI.storage.local.set({
 								useStorageSync: false
 							});
 							callback(storageLocal.settings);
@@ -2191,10 +2191,10 @@ namespace CRMAppElement {
 					//Send the "settings" object on the storage.local to the callback
 					parent.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
 					if (!storageLocal.settings) {
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							useStorageSync: true
 						});
-						browser.storage.sync.get().then((storageSync: any) => {
+						browserAPI.storage.sync.get().then((storageSync: any) => {
 							const sync = storageSync as {
 								[key: string]: string
 							} & {
@@ -2419,7 +2419,7 @@ namespace CRMAppElement {
 
 				if (hasLocalChanged || haveSettingsChanged) {
 					//Changes occured
-					browser.runtime.sendMessage({
+					browserAPI.runtime.sendMessage({
 						type: 'updateStorage',
 						data: {
 							type: 'optionsPage',
@@ -3176,7 +3176,7 @@ namespace CRMAppElement {
 			}
 			static generateScriptUpgradeErrorHandler(id: number): ScriptUpgradeErrorHandler {
 				return function (oldScriptErrors, newScriptErrors, parseError) {
-					browser.storage.local.get<CRM.StorageLocal>().then((keys) => {
+					browserAPI.storage.local.get<CRM.StorageLocal>().then((keys) => {
 						if (!keys.upgradeErrors) {
 							var val: {
 								[key: number]: {
@@ -3199,7 +3199,7 @@ namespace CRMAppElement {
 							newScript: newScriptErrors,
 							generalError: parseError
 						};
-						browser.storage.local.set({ upgradeErrors: keys.upgradeErrors } as any);
+						browserAPI.storage.local.set({ upgradeErrors: keys.upgradeErrors } as any);
 					});
 				};
 			};
@@ -3304,7 +3304,7 @@ namespace CRMAppElement {
 			};
 
 			static async showManagePermissions() {
-				if (browser.permissions) {
+				if (browserAPI.permissions) {
 					await this.parent()._requestPermissions([], true);
 				} else {
 					window.app.util.showToast('Your browser does not support requesting permissions');
@@ -3372,7 +3372,7 @@ namespace CRMAppElement {
 						}
 					}
 				}
-				browser.storage.local.set({
+				browserAPI.storage.local.set({
 					selectedCrmType: selectedType
 				});
 				if (this.parent().crmType !== selectedType) {
@@ -3383,22 +3383,22 @@ namespace CRMAppElement {
 
 			private static _getDownloadPermission() {
 				return new Promise<boolean>(async (resolve) => {
-					if (browser.downloads && browser.downloads.download) {
+					if (browserAPI.downloads && browserAPI.downloads.download) {
 						return resolve(true);
 					}
 
-					if (!(browser.permissions)) {
+					if (!(browserAPI.permissions)) {
 						window.app.util.showToast('Your browser does not support asking for the download permission');
 						return resolve(false);
 					}
 
-					const granted = await browser.permissions.contains({
+					const granted = await browserAPI.permissions.contains({
 						permissions: ['downloads']
 					});
 					if (granted) {
 						resolve(true);
 					} else {
-						const allowed = await browser.permissions.request({
+						const allowed = await browserAPI.permissions.request({
 							permissions: ['downloads']
 						});
 						resolve(allowed);
@@ -3426,8 +3426,8 @@ namespace CRMAppElement {
 				].join('\n');
 				//TODO: this
 				if (await this._getDownloadPermission()) {
-					if (browser.downloads) {
-						browser.downloads.download({
+					if (browserAPI.downloads) {
+						browserAPI.downloads.download({
 							url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
 							filename: schemeName + '.reg'
 						});
@@ -3455,7 +3455,7 @@ namespace CRMAppElement {
 				const value = input.$$('input').value;
 				this.parent().globalExcludes[excludeIndex] = value;
 				this.parent().set('globalExcludes', this.parent().globalExcludes);
-				browser.storage.local.set({
+				browserAPI.storage.local.set({
 					globalExcludes: this.parent().globalExcludes
 				} as any);
 			};
@@ -3583,7 +3583,7 @@ namespace CRMAppElement {
 
 
 			static _openLogging() {
-				window.open(browser.runtime.getURL('html/logging.html'), '_blank');
+				window.open(browserAPI.runtime.getURL('html/logging.html'), '_blank');
 			};
 
 			static hideGenericToast() {

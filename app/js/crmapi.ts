@@ -197,8 +197,8 @@ type CRMAPIMessage = {
 
 (function(window: Window) {
 	function runtimeGetURL(url: string): string {
-		if (typeof browser !== 'undefined') {
-			return browser.runtime.getURL(url);
+		if (typeof browserAPI !== 'undefined') {
+			return browserAPI.runtime.getURL(url);
 		} else if ('chrome' in window) {
 			return (window as any).chrome.runtime.getURL(url);
 		} else {
@@ -209,8 +209,8 @@ type CRMAPIMessage = {
 	function runtimeConnect(id: string, options: {
 		name: string
 	}): _browser.runtime.Port|_chrome.runtime.Port {
-		if (typeof browser !== 'undefined') {
-			return browser.runtime.connect(id, options);
+		if (typeof browserAPI !== 'undefined') {
+			return browserAPI.runtime.connect(id, options);
 		} else if ('chrome' in window) {
 			return (window as any).chrome.runtime.connect(id, options);
 		} else {

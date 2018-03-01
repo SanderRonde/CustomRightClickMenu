@@ -64,17 +64,17 @@ namespace InstallConfirmElement {
 			return new Promise(async (resolve) => {
 				const local: CRM.StorageLocal & {
 					settings?: CRM.SettingsStorage;
-				} = await browser.storage.local.get() as any;
+				} = await browserAPI.storage.local.get() as any;
 				if (local.useStorageSync) {
 					//Parse the data before sending it to the callback
 					const storageSync: {
 						[key: string]: string
 					} & {
 						indexes: Array<string>;
-					} = await browser.storage.sync.get() as any;
+					} = await browserAPI.storage.sync.get() as any;
 					let indexes = storageSync.indexes;
 					if (!indexes) {
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							useStorageSync: false
 						});
 						this._settings = local.settings;
@@ -89,14 +89,14 @@ namespace InstallConfirmElement {
 				} else {
 					//Send the "settings" object on the storage.local to the callback
 					if (!local.settings) {
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							useStorageSync: true
 						});
 						const storageSync: {
 							[key: string]: string
 						} & {
 							indexes: Array<string>;
-						} = await browser.storage.sync.get() as any;
+						} = await browserAPI.storage.sync.get() as any;
 						const indexes = storageSync.indexes;
 						const settingsJsonArray: Array<string> = [];
 						indexes.forEach(function (index) {
@@ -266,17 +266,17 @@ namespace InstallConfirmElement {
 			if (checkbox.checked) {
 				const permission = checkbox.getAttribute('permission');
 				if (this._isManifestPermissions(permission as CRM.Permission)) {
-					const { permissions } = browser.permissions ? await browser.permissions.getAll() : {
+					const { permissions } = browserAPI.permissions ? await browserAPI.permissions.getAll() : {
 						permissions: []
 					};
 					if (permissions.indexOf(permission as _browser.permissions.Permission) === -1) {
 						try {
-							if (!(browser.permissions)) {
+							if (!(browserAPI.permissions)) {
 								window.app.util.showToast(`Not asking for permission ${permission} as your browser does not support asking for permissions`);
 								return;
 							}
 
-							const granted = await browser.permissions.request({
+							const granted = await browserAPI.permissions.request({
 								permissions: [permission as _browser.permissions.Permission]
 							});
 							if (!granted) {
@@ -299,7 +299,7 @@ namespace InstallConfirmElement {
 			this._getCheckboxes().forEach((checkbox) => {
 				checkbox.checked && allowedPermissions.push(checkbox.getAttribute('permission') as CRM.Permission);
 			});
-			browser.runtime.sendMessage({
+			browserAPI.runtime.sendMessage({
 				type: 'installUserScript',
 				data: {
 					metaTags: this._metaTags,

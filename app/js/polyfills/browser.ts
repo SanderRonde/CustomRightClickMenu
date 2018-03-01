@@ -14,6 +14,12 @@ declare namespace _browser.storage {
 }
 
 namespace BrowserAPI {
+	interface AllBrowserAPIsWindow extends Window {
+		browser: typeof _browser;
+		chrome: typeof _chrome;
+		StyleMedia?: any;
+	}
+
 	// Chrome uses callback-style APIs under the "chrome" global
 	// ^ Same for opera ^
 	// Edge uses callback-style APIs under the "browser" global
@@ -23,9 +29,9 @@ namespace BrowserAPI {
 
 	// So if browser is Edge, use "browser", otherwise use "chrome" if available
 	// 	to ensure always always getting callback-style APIs
-	const __srcBrowser: typeof _chrome = 'StyleMedia' in (window as any) ?
-		window.browser : 'chrome' in window ? 
-			(window as any).chrome : {};
+	const apisWindow = window as AllBrowserAPIsWindow;
+	const __srcBrowser: typeof _chrome = apisWindow.StyleMedia ?
+		(apisWindow.browser as any) : apisWindow.chrome;
 
 	function checkReject(reject: (err: _chrome.runtime.LastError) => void) {
 		if (__srcBrowser.runtime.lastError) {
@@ -117,7 +123,7 @@ namespace BrowserAPI {
 		StyleMedia?: any;
 	}
 	
-	let _browser: 'chrome'|'firefox'|'edge'|'opera' = null;
+	let _browserUserAgent: 'chrome'|'firefox'|'edge'|'opera' = null;
 	function getBrowserUserAgent() {
 		const win = window as MultiBrowserWindow;
 		const isOpera = (!!win.opr && !!win.opr.addons) || !!win.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
@@ -137,13 +143,13 @@ namespace BrowserAPI {
 	}
 
 	export function getBrowser() {
-		if (_browser) {
-			return _browser;
+		if (_browserUserAgent) {
+			return _browserUserAgent;
 		} 
-		return (_browser = getBrowserUserAgent());
+		return (_browserUserAgent = getBrowserUserAgent());
 	}
 
-	export const polyfill = {
+	export const polyfill = !__srcBrowser ? {} : {
 		commands: __srcBrowser.commands ? {
 			getAll() {
 				return createPromise<Array<_browser.commands.Command>>((handler) => {
@@ -487,17 +493,27 @@ namespace BrowserAPI {
 			}, "blocking"|"requestBody">
 		} : void 0
 	};
+
+	export const test = {
+		'a': 'b'
+	}
 }
 
 interface Window {
-	browser: typeof BrowserAPI.polyfill;
+	browserAPI: typeof BrowserAPI.polyfill & {
+		__isProxied: boolean;
+	};
 }
 
-// Force override of window.browser if browser is edge or if no "browser"
-//	global exists already. Basically equal to 
-// 	window.browser = BrowserAPI.polyfill || window.browser  	&
-// 	if getBrowser() === 'edge': window.browser = BrowserAPI.polyfill
-window.browser = (BrowserAPI.getBrowser() === 'edge' || !window.browser) ?
-	BrowserAPI.polyfill as typeof _browser :
-	window.browser;
-const browser = window.browser as typeof BrowserAPI.polyfill;
+if (!window.browserAPI) {
+	// Force override of window.browser if browser is edge or if no "browser"
+	//	global exists already. Basically equal to 
+	// 	window.browser = BrowserAPI.polyfill || window.browser  	&
+	// 	if getBrowser() === 'edge': window.browser = BrowserAPI.polyfill
+	window.browserAPI = (BrowserAPI.getBrowser() === 'edge' || !window.browserAPI) ?
+		{...BrowserAPI.polyfill as typeof BrowserAPI.polyfill, ...{
+			__isProxied: true
+		}} :
+		window.browserAPI;
+}
+const browserAPI = window.browserAPI as typeof BrowserAPI.polyfill;

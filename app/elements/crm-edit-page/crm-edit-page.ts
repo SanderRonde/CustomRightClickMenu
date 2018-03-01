@@ -275,7 +275,7 @@ namespace CrmEditPageElement {
 				setTimeout(() => {
 					this.hideUpdateMergeDialog();
 				}, 250);
-				browser.storage.local.set({
+				browserAPI.storage.local.set({
 					upgradeErrors: window.app.storageLocal.upgradeErrors || {}
 				} as any);
 			}, true, window.app.storageLocal.upgradeErrors && window.app.storageLocal.upgradeErrors[this.item.id]);

@@ -139,7 +139,7 @@ namespace CodeEditBehaviorNamespace {
 		}
 
 		static finishEditing(this: CodeEditBehaviorInstance) {
-			browser.storage.local.set({
+			browserAPI.storage.local.set({
 				editing: null
 			});
 			window.useOptionsCompletions = false;
@@ -463,7 +463,7 @@ namespace CodeEditBehaviorNamespace {
 						window.doc.showHideToolsRibbonButton.classList.remove('hidden');
 					}
 				} else {
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						hideToolsRibbon: false
 					});
 					window.app.storageLocal.hideToolsRibbon = false;
@@ -476,7 +476,7 @@ namespace CodeEditBehaviorNamespace {
 						window.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(270deg)');
 					}
 				} else {
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						shrinkTitleRibbon: false
 					});
 					window.app.storageLocal.shrinkTitleRibbon = false;

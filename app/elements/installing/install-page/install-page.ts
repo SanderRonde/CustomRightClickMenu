@@ -135,17 +135,17 @@ namespace InstallPageElement {
 			this.settingsReady = new Promise(async (resolve) => {
 				const local: CRM.StorageLocal & {
 					settings?: CRM.SettingsStorage;
-				} = await browser.storage.local.get() as any;
+				} = await browserAPI.storage.local.get() as any;
 				if (local.useStorageSync) {
 					//Parse the data before sending it to the callback
 					const storageSync: {
 						[key: string]: string
 					} & {
 						indexes: Array<string>;
-					} = await browser.storage.sync.get() as any;
+					} = await browserAPI.storage.sync.get() as any;
 					let indexes = storageSync.indexes;
 					if (!indexes) {
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							useStorageSync: false
 						});
 						this.settings = local.settings;
@@ -160,14 +160,14 @@ namespace InstallPageElement {
 				} else {
 					//Send the "settings" object on the storage.local to the callback
 					if (!local.settings) {
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							useStorageSync: true
 						});
 						const storageSync: {
 							[key: string]: string
 						} & {
 							indexes: Array<string>;
-						} = await browser.storage.sync.get() as any;
+						} = await browserAPI.storage.sync.get() as any;
 						const indexes = storageSync.indexes;
 						const settingsJsonArray: Array<string> = [];
 						indexes.forEach(function (index) {

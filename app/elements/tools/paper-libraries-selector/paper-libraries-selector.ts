@@ -79,17 +79,17 @@ namespace PaperLibrariesSelectorElement {
 		}> = [];
 
 		static ready(this: PaperLibrariesSelector) {
-			browser.storage.local.get<CRM.StorageLocal>().then((keys) => {
+			browserAPI.storage.local.get<CRM.StorageLocal>().then((keys) => {
 				if (keys.libraries) {
 					this.installedLibraries = keys.libraries;
 				} else {
 					this.installedLibraries = [];
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						libaries: this.installedLibraries
 					} as any);
 				}
 			});
-			browser.storage.onChanged.addListener((changes, areaName) => {
+			browserAPI.storage.onChanged.addListener((changes, areaName) => {
 				if (areaName === 'local' && changes['libraries']) {
 					this.installedLibraries = changes['libraries'].newValue;
 				}
@@ -266,10 +266,10 @@ namespace PaperLibrariesSelectorElement {
 		}
 
 		private static _setLibraries(this: PaperLibrariesSelector, libraries: Array<CRM.InstalledLibrary>) {
-			browser.storage.local.set({
+			browserAPI.storage.local.set({
 				libraries: libraries
 			} as any);
-			browser.runtime.sendMessage({
+			browserAPI.runtime.sendMessage({
 				type: 'updateStorage',
 				data: {
 					type: 'libraries',
@@ -453,7 +453,7 @@ namespace PaperLibrariesSelectorElement {
 
 		private static _getInstalledLibrary(this: PaperLibrariesSelector, library: LibrarySelectorLibrary): Promise<CRM.InstalledLibrary> {
 			return new Promise<CRM.InstalledLibrary>((resolve) => {
-				browser.storage.local.get<CRM.StorageLocal>().then((e) => {
+				browserAPI.storage.local.get<CRM.StorageLocal>().then((e) => {
 					const libs = e.libraries;
 					for (const lib of libs) {
 						if (lib.name === library.name) {
@@ -482,7 +482,7 @@ namespace PaperLibrariesSelectorElement {
 			const newVal = window.scriptEdit.fullscreenEditorManager.editor.getValue();
 			const lib = this._editingInstance.library;
 			
-			browser.storage.local.get<CRM.StorageLocal>().then((e) => {
+			browserAPI.storage.local.get<CRM.StorageLocal>().then((e) => {
 				const installedLibs = e.libraries;
 				for (const installedLib of installedLibs) {
 					if (installedLib.name === lib.name) {
@@ -591,7 +591,7 @@ namespace PaperLibrariesSelectorElement {
 				parentNode = e.target.parentElement as LibraryElement;
 			}
 			const library = parentNode.dataLib;
-			browser.runtime.sendMessage({
+			browserAPI.runtime.sendMessage({
 				type: 'resource',
 				data: {
 					type: 'remove',

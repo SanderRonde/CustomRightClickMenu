@@ -60,7 +60,7 @@ namespace ScriptEditElement {
 		static jsLintGlobalsChange(this: NodeEditBehaviorScriptInstance) {
 			this.async(() => {
 				const globals = this.$.editorJSLintGlobalsInput.$$('input').value.split(',').map(global => global.trim());
-				browser.storage.local.set({
+				browserAPI.storage.local.set({
 					jsLintGlobals: globals
 				});
 				window.app.jsLintGlobals = globals;
@@ -314,12 +314,12 @@ namespace ScriptEditElement {
 						const slider = requestPermissionButton;
 						if (requestPermissionButton.checked) {
 							if (Array.prototype.slice.apply(extensionWideEnabledPermissions).indexOf(permission) === -1) {
-								if (!(browser.permissions)) {
+								if (!(browserAPI.permissions)) {
 									window.app.util.showToast(`Not asking for permission ${permission} as your browser does not support asking for permissions`);
 									return;
 								}
 
-								browser.permissions.request({
+								browserAPI.permissions.request({
 									permissions: [permission as _browser.permissions.Permission]
 								}).then((accepted) => {
 									if (!accepted) {
@@ -327,10 +327,10 @@ namespace ScriptEditElement {
 										slider.checked = false;
 									} else {
 										//Accepted, remove from to-request permissions if it's there
-										browser.storage.local.get<CRM.StorageLocal>().then((e) => {
+										browserAPI.storage.local.get<CRM.StorageLocal>().then((e) => {
 											const permissionsToRequest = e.requestPermissions;
 											permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
-											browser.storage.local.set({
+											browserAPI.storage.local.set({
 												requestPermissions: permissionsToRequest
 											});
 										});
@@ -366,10 +366,10 @@ namespace ScriptEditElement {
 					settingsStorage = item as CRM.ScriptNode;
 				}
 				//Prepare all permissions
-				const { permissions } = browser.permissions ? await browser.permissions.getAll() : {
+				const { permissions } = browserAPI.permissions ? await browserAPI.permissions.getAll() : {
 					permissions: []
 				};
-				if (!(browser.permissions)) {
+				if (!(browserAPI.permissions)) {
 					window.app.util.showToast('Not toggling for browser permissions as your browser does not support them');
 				}
 				if (!nodeItem.permissions) {
@@ -681,7 +681,7 @@ namespace ScriptEditElement {
 			window.scriptEdit = this;
 			window.externalEditor.init();
 			if (window.app.storageLocal.recoverUnsavedData) {
-				browser.storage.local.set({
+				browserAPI.storage.local.set({
 					editing: {
 						val: this.item.value.script,
 						id: this.item.id,
@@ -693,7 +693,7 @@ namespace ScriptEditElement {
 					if (this.active && this.editorManager) {
 						//Save
 						const val = this.editorManager.editor.getValue();
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							editing: {
 								val: val,
 								id: this.item.id,
@@ -703,7 +703,7 @@ namespace ScriptEditElement {
 						}).catch(() => {});
 					} else {
 						//Stop this interval
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							editing: false
 						});
 						window.clearInterval(this.savingInterval);

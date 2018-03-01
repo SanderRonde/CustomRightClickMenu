@@ -1375,7 +1375,7 @@ namespace MonacoEditorElement {
 		}
 
 		private async _getLibrary(name: string): Promise<string|false> {
-			const data = await browser.storage.local.get<CRM.StorageLocal>();
+			const data = await browserAPI.storage.local.get<CRM.StorageLocal>();
 			const libs = data.libraries;
 			for (const lib of libs) {
 				if (lib.name === name) {
@@ -2862,7 +2862,7 @@ namespace MonacoEditorElement {
 				return new window.Promise((resolve, reject) => {
 					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
 					const url = this._isWebPageEnv() ? `${this.BASE}${name}` :
-						browser.runtime.getURL(name);
+						browserAPI.runtime.getURL(name);
 					xhr.open('GET', url);
 					xhr.onreadystatechange = () => {
 						if (xhr.readyState === XMLHttpRequest.DONE) {

@@ -615,7 +615,7 @@ interface GlobalObject extends Partial<Window> {
 
 interface Extensions<T> extends CRM.Extendable<T> { }
 
-window.isDev = browser.runtime.getManifest().short_name.indexOf('dev') > -1;
+window.isDev = browserAPI.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 if (typeof module === 'undefined') {
 	// Running in the browser
@@ -1509,7 +1509,7 @@ if (typeof module === 'undefined') {
 			if (!url || url.indexOf('chrome://') !== -1) {
 				return false;
 			}
-			const allowed = await browser.extension.isAllowedFileSchemeAccess();
+			const allowed = await browserAPI.extension.isAllowedFileSchemeAccess();
 			if (allowed) {
 				return true;
 			}
@@ -1577,7 +1577,7 @@ if (typeof module === 'undefined') {
 
 		private static _requiredFiles: Array<string> = [];
 		private static _loadFile(path: string, ...msg: Array<any>): Promise<string> {
-			return this.xhr(browser.runtime.getURL(path), msg);
+			return this.xhr(browserAPI.runtime.getURL(path), msg);
 		}
 		private static _compareObj(firstObj: {
 			[key: string]: any;
@@ -1809,7 +1809,7 @@ if (typeof module === 'undefined') {
 					chromePermissions.onAdded.addListener(this._permissionsChanged);
 				}
 			}
-			const available = browser.permissions ? await browser.permissions.getAll() : {
+			const available = browserAPI.permissions ? await browserAPI.permissions.getAll() : {
 				permissions: []
 			};
 			globalObject.globals.availablePermissions = available.permissions;
@@ -1887,7 +1887,7 @@ if (typeof module === 'undefined') {
 		}
 		static init() {
 			async function removeNode({id}: ContextMenuItemTreeItem) {
-				await browser.contextMenus.remove(id).catch(() => { });
+				await browserAPI.contextMenus.remove(id).catch(() => { });
 			}
 
 			function setStatusForTree(tree: Array<ContextMenuItemTreeItem>, enabled: boolean) {
@@ -1938,7 +1938,7 @@ if (typeof module === 'undefined') {
 
 				//This is added by chrome to the object during/after creation so delete it manually
 				delete settings.generatedId;
-				const id = await browser.contextMenus.create(settings);
+				const id = await browserAPI.contextMenus.create(settings);
 
 				//Update ID
 				node.id = id;
@@ -2134,7 +2134,7 @@ if (typeof module === 'undefined') {
 				//Horrible workaround that allows the hiding of nodes on certain url's that
 				//	surprisingly only takes ~1-2ms per tab switch.
 				const currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
-				const tab = await Util.proxyPromise(browser.tabs.get(currentTabId), (err) => {
+				const tab = await Util.proxyPromise(browserAPI.tabs.get(currentTabId), (err) => {
 					if (err.message.indexOf('No tab with id:') > -1) {
 						globalObject.globals.storages.failedLookups.push(currentTabId);
 					} else {
@@ -2174,7 +2174,7 @@ if (typeof module === 'undefined') {
 				for (let nodeId in statuses) {
 					const status = statuses[nodeId];
 					const currentValue = status[currentTabId];
-					await Util.proxyPromise(browser.contextMenus.update(ids[nodeId], {
+					await Util.proxyPromise(browserAPI.contextMenus.update(ids[nodeId], {
 						checked: typeof currentValue === 'boolean' ?
 							currentValue : status.defaultValue
 					}), (err) => {
@@ -2184,10 +2184,10 @@ if (typeof module === 'undefined') {
 			}
 
 			function setupResourceProxy() {
-				browser.webRequest.onBeforeRequest.addListener((details) => {
+				browserAPI.webRequest.onBeforeRequest.addListener((details) => {
 					window.info('Redirecting', details);
 					return {
-						redirectUrl: `${location.protocol}//${browser.runtime.id}/fonts/fonts.css`
+						redirectUrl: `${location.protocol}//${browserAPI.runtime.id}/fonts/fonts.css`
 					}
 				}, {
 					urls: ['*://fonts.googleapis.com/', '*://fonts.gstatic.com/']
@@ -2246,8 +2246,8 @@ if (typeof module === 'undefined') {
 			}
 
 			function listenNotifications() {
-				if (browser.notifications) {
-					browser.notifications.onClicked.addListener((notificationId: string) => {
+				if (browserAPI.notifications) {
+					browserAPI.notifications.onClicked.addListener((notificationId: string) => {
 						const notification = globalObject.globals
 							.notificationListeners[notificationId];
 						if (notification && notification.onClick !== undefined) {
@@ -2259,7 +2259,7 @@ if (typeof module === 'undefined') {
 								});
 						}
 					});
-					browser.notifications.onClosed.addListener((notificationId, byUser?) => {
+					browserAPI.notifications.onClosed.addListener((notificationId, byUser?) => {
 						const notification = globalObject.globals
 							.notificationListeners[notificationId];
 						if (notification && notification.onDone !== undefined) {
@@ -2278,7 +2278,7 @@ if (typeof module === 'undefined') {
 			function updateTamperMonkeyInstallState() {
 				Util.isTamperMonkeyEnabled((isEnabled) => {
 					globalObject.globals.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						useAsUserscriptInstaller: !isEnabled
 					});
 				});
@@ -2296,8 +2296,8 @@ if (typeof module === 'undefined') {
 			}
 
 			async function updateKeyCommands() {
-				if (browser.commands) {
-					return await browser.commands.getAll();
+				if (browserAPI.commands) {
+					return await browserAPI.commands.getAll();
 				}
 				return [];
 			}
@@ -2316,10 +2316,10 @@ if (typeof module === 'undefined') {
 			}
 
 			function listenKeyCommands() {
-				if (!browser.commands) {
+				if (!browserAPI.commands) {
 					return;
 				}
-				browser.commands.onCommand.addListener(async (command) => {
+				browserAPI.commands.onCommand.addListener(async (command) => {
 					const commands = await updateKeyCommands();
 					commands.forEach((registerCommand) => {
 						if (registerCommand.name === command) {
@@ -2337,19 +2337,19 @@ if (typeof module === 'undefined') {
 				});
 			}
 
-			browser.tabs.onUpdated.addListener(onTabUpdated);
-			browser.tabs.onRemoved.addListener(onTabsRemoved);
-			browser.tabs.onHighlighted.addListener(tabChangeListener);
-			browser.webRequest.onBeforeRequest.addListener((details) => {
+			browserAPI.tabs.onUpdated.addListener(onTabUpdated);
+			browserAPI.tabs.onRemoved.addListener(onTabsRemoved);
+			browserAPI.tabs.onHighlighted.addListener(tabChangeListener);
+			browserAPI.webRequest.onBeforeRequest.addListener((details) => {
 				const split = details.url
-					.split(`${location.protocol}//${browser.runtime.id}/resource/`)[1].split('/');
+					.split(`${location.protocol}//${browserAPI.runtime.id}/resource/`)[1].split('/');
 				const name = split[0];
 				const scriptId = ~~split[1];
 				return {
 					redirectUrl: this.getResourceData(name, scriptId)
 				};
 			}, {
-				urls: [`${location.protocol}//${browser.runtime.id}/resource/*`]
+				urls: [`${location.protocol}//${browserAPI.runtime.id}/resource/*`]
 			}, ['blocking']);
 			listenNotifications();
 			listenTamperMonkeyInstallState();
@@ -2367,7 +2367,7 @@ if (typeof module === 'undefined') {
 		}
 
 		static async restoreOpenTabs() {
-			const tabs = await browser.tabs.query({});
+			const tabs = await browserAPI.tabs.query({});
 			if (tabs.length === 0) {
 				return;
 			}
@@ -2376,7 +2376,7 @@ if (typeof module === 'undefined') {
 					Util.iipe<RestoreTabStatus>(async () => {
 						if (Util.canRunOnUrl(tab.url)) {
 							try {
-								await browser.tabs.executeScript(tab.id, {
+								await browserAPI.tabs.executeScript(tab.id, {
 									file: '/js/contentscript.js'
 								});
 								return RestoreTabStatus.SUCCESS;
@@ -2506,7 +2506,7 @@ if (typeof module === 'undefined') {
 							} as TabData));
 						} else {
 							tabs.push(Util.iipe(async () => {
-								const tab = await Util.proxyPromise(browser.tabs.get(tabId), () => {
+								const tab = await Util.proxyPromise(browserAPI.tabs.get(tabId), () => {
 									Util.removeTab(tabId);
 								});
 								if (!tab) {
@@ -2619,7 +2619,7 @@ if (typeof module === 'undefined') {
 			this._prepareLog(message.id, message.tabId);
 			switch (message.type) {
 				case 'evalResult':
-					const tab = await browser.tabs.get(message.tabId);
+					const tab = await browserAPI.tabs.get(message.tabId);
 					globalObject.globals.listeners.log[message.callbackIndex].listener({
 						id: message.id,
 						tabId: message.tabId,
@@ -2718,7 +2718,7 @@ if (typeof module === 'undefined') {
 				timestamp: new Date().toLocaleString()
 			} as any;
 
-			const tab = await browser.tabs.get(message.tabId);
+			const tab = await browserAPI.tabs.get(message.tabId);
 			const data: Array<any> = globalObject.globals.constants.specialJSON
 				.fromJSON(message.data);
 			args = args.concat(data);
@@ -3112,7 +3112,7 @@ if (typeof module === 'undefined') {
 					const parentChildren = __this.lookup(node.path, globalObject.globals.crm.crmTree, true) as Array<CRM.Node>;
 					parentChildren.splice(node.path[node.path.length - 1], 1);
 					if (globalObject.globals.crmValues.contextMenuIds[node.id] !== undefined) {
-						await browser.contextMenus.remove(globalObject.globals.crmValues.contextMenuIds[node.id]);
+						await browserAPI.contextMenus.remove(globalObject.globals.crmValues.contextMenuIds[node.id]);
 						await CRM.updateCrm([__this.message.data.nodeId]);
 						__this.respondSuccess(true);
 					} else {
@@ -3251,7 +3251,7 @@ if (typeof module === 'undefined') {
 							matchPatterns[0] = '<all_urls>';
 						}
 						if (globalObject.globals.crmValues.contextMenuIds[node.id]) {
-							await browser.contextMenus.update(globalObject.globals.crmValues
+							await browserAPI.contextMenus.update(globalObject.globals.crmValues
 								.contextMenuIds[node.id], {
 									documentUrlPatterns: matchPatterns
 								});
@@ -3297,7 +3297,7 @@ if (typeof module === 'undefined') {
 							node['showOnSpecified'] = msg['useTriggers'];
 							await CRM.updateCrm();
 							if (globalObject.globals.crmValues.contextMenuIds[node.id]) {
-								browser.contextMenus.update(globalObject.globals.crmValues
+								browserAPI.contextMenus.update(globalObject.globals.crmValues
 									.contextMenuIds[node.id], {
 										documentUrlPatterns: ['<all_urls>']
 									});
@@ -3342,7 +3342,7 @@ if (typeof module === 'undefined') {
 					__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 						node.onContentTypes[msg['index']] = msg['value'];
 						await CRM.updateCrm();
-						await browser.contextMenus.update(globalObject.globals.crmValues
+						await browserAPI.contextMenus.update(globalObject.globals.crmValues
 							.contextMenuIds[node.id], {
 								contexts: CRM.getContexts(node.onContentTypes)
 							});
@@ -3392,7 +3392,7 @@ if (typeof module === 'undefined') {
 							contentTypes = [true, true, true, true, true, true];
 						}
 						node['onContentTypes'] = contentTypes;
-						await browser.contextMenus.update(globalObject.globals.crmValues
+						await browserAPI.contextMenus.update(globalObject.globals.crmValues
 							.contextMenuIds[node.id], {
 								contexts: CRM.getContexts(node.onContentTypes)
 							});
@@ -3689,7 +3689,7 @@ if (typeof module === 'undefined') {
 									};
 									const compiled = await CRM.TS.compileLibrary(newLibrary);
 									globalObject.globals.storages.storageLocal.libraries.push(compiled);
-									await browser.storage.local.set({
+									await browserAPI.storage.local.set({
 										libraries: globalObject.globals.storages.storageLocal.libraries
 									} as any);
 									__this.respondSuccess(newLibrary);
@@ -3710,7 +3710,7 @@ if (typeof module === 'undefined') {
 						};
 						const compiled = await CRM.TS.compileLibrary(newLibrary);
 						globalObject.globals.storages.storageLocal.libraries.push(compiled);
-						await browser.storage.local.set({
+						await browserAPI.storage.local.set({
 							libraries: globalObject.globals.storages.storageLocal.libraries
 						} as any);
 						__this.respondSuccess(newLibrary);
@@ -4232,12 +4232,12 @@ if (typeof module === 'undefined') {
 			if (Object.getOwnPropertyNames(options).length === 0) {
 				return [];
 			} else if (options.all) {
-				return browser.tabs.query({});
+				return browserAPI.tabs.query({});
 			} else {
 				if (options.all === false) {
 					delete options.all;
 				}
-				return browser.tabs.query(options);
+				return browserAPI.tabs.query(options);
 			}
 		}
 		private static _removeDuplicateTabs(tabs: Array<_browser.tabs.Tab>): Array<_browser.tabs.Tab> {
@@ -4268,7 +4268,7 @@ if (typeof module === 'undefined') {
 			//Get results from tab query
 			const queriedTabs = await this._queryTabs(options) || [];
 			const tabIdTabs = await window.Promise.all((tabIds || []).map(async (tabId) => {
-				return browser.tabs.get(tabId);
+				return browserAPI.tabs.get(tabId);
 			}));
 			const node = __this.getNodeFromId(id, false, true);
 			if (!node || node.type !== 'script') {
@@ -5179,9 +5179,9 @@ if (typeof module === 'undefined') {
 			if (globalObject.globals.availablePermissions.indexOf(apiPermission) === -1) {
 				APIMessaging.ChromeMessage.throwError(message,
 					`Permissions ${apiPermission} not available to the extension, visit options page`);
-				const storageData = await browser.storage.local.get<CRM.StorageLocal>();
+				const storageData = await browserAPI.storage.local.get<CRM.StorageLocal>();
 				const perms = storageData.requestPermissions || [apiPermission];
-				await browser.storage.local.set({
+				await browserAPI.storage.local.set({
 					requestPermissions: perms
 				});
 				return false;
@@ -5293,7 +5293,7 @@ if (typeof module === 'undefined') {
 				if (this._checkFirstRuntimeArg(message, 'fn', api)) {
 					return true;
 				}
-				await browser.runtime.openOptionsPage();
+				await browserAPI.runtime.openOptionsPage();
 				message.args[0] && this._respondSuccess(message, []);
 				return true;
 			}
@@ -5302,7 +5302,7 @@ if (typeof module === 'undefined') {
 					return true;
 				}
 				APIMessaging.createReturn(message, message.args[0].val)(
-					browser.runtime.getManifest());
+					browserAPI.runtime.getManifest());
 				return true;
 			}
 			static getURL(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
@@ -5323,7 +5323,7 @@ if (typeof module === 'undefined') {
 					APIMessaging.ChromeMessage.throwError(message,
 						'getURL should be a return function with at least one argument');
 				}
-				APIMessaging.createReturn(message, returns[0])(browser.runtime.getURL(args[0]));
+				APIMessaging.createReturn(message, returns[0])(browserAPI.runtime.getURL(args[0]));
 				return true;
 			}
 			static unaccessibleAPI(message: ChromeAPIMessage|BrowserAPIMessage) {
@@ -5332,12 +5332,12 @@ if (typeof module === 'undefined') {
 				return true;
 			}
 			static reload(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
-				browser.runtime.reload();
+				browserAPI.runtime.reload();
 				return true;
 			}
 			static restart(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
-				if ('restart' in browser.runtime) {
-					const chromeRuntime = ((browser.runtime as any) as typeof _chrome.runtime);
+				if ('restart' in browserAPI.runtime) {
+					const chromeRuntime = ((browserAPI.runtime as any) as typeof _chrome.runtime);
 					chromeRuntime.restart();
 				}
 				return true;
@@ -5345,7 +5345,7 @@ if (typeof module === 'undefined') {
 			static restartAfterDelay(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
 				const fns: Array<() => void> = [];
 				const args: Array<any> = [];
-				if (!('restartAfterDelay' in browser.runtime)) {
+				if (!('restartAfterDelay' in browserAPI.runtime)) {
 					APIMessaging.ChromeMessage.throwError(message,
 						'restartAfterDelay is not supported on this platform');
 					return true;
@@ -5362,7 +5362,7 @@ if (typeof module === 'undefined') {
 						return true;
 					}
 				}
-				const chromeRuntime = ((browser.runtime as any) as typeof _chrome.runtime);
+				const chromeRuntime = ((browserAPI.runtime as any) as typeof _chrome.runtime);
 				chromeRuntime.restartAfterDelay(args[0], () => {
 					APIMessaging.CRMMessage.respond(message, 'success', {
 						callbackId: fns[0],
@@ -5375,12 +5375,12 @@ if (typeof module === 'undefined') {
 				if (this._checkFirstRuntimeArg(message, 'fn', api)) {
 					return true;
 				}
-				const platformInfo = await browser.runtime.getPlatformInfo();
+				const platformInfo = await browserAPI.runtime.getPlatformInfo();
 				message.args[0] && this._respondSuccess(message, [platformInfo]);
 				return true;
 			}
 			static getPackageDirectoryEntry(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
-				if (!('getPackageDirectoryEntry' in browser.runtime)) {
+				if (!('getPackageDirectoryEntry' in browserAPI.runtime)) {
 					APIMessaging.ChromeMessage.throwError(message,
 						'getPackageDirectoryEntry is not supported on this platform');
 					return false;
@@ -5389,7 +5389,7 @@ if (typeof module === 'undefined') {
 					return true;
 				}
 				
-				const chromeRuntime = ((browser.runtime as any) as typeof _chrome.runtime);
+				const chromeRuntime = ((browserAPI.runtime as any) as typeof _chrome.runtime);
 				chromeRuntime.getPackageDirectoryEntry((directoryInfo) => {
 					message.args[0] && this._respondSuccess(message, [directoryInfo]);
 				});
@@ -5415,8 +5415,8 @@ if (typeof module === 'undefined') {
 					'onRestartRequired'
 				];
 				const listenerTarget = api.split('.')[0];
-				if (allowedTargets.indexOf(listenerTarget) > -1 && listenerTarget in browser.runtime) {
-					(browser.runtime as any)[listenerTarget].addListener((...listenerArgs: Array<any>) => {
+				if (allowedTargets.indexOf(listenerTarget) > -1 && listenerTarget in browserAPI.runtime) {
+					(browserAPI.runtime as any)[listenerTarget].addListener((...listenerArgs: Array<any>) => {
 						const params = Array.prototype.slice.apply(listenerArgs);
 						APIMessaging.CRMMessage.respond(message, 'success', {
 							callbackId: message.args[0].val,
@@ -5429,7 +5429,7 @@ if (typeof module === 'undefined') {
 						'This method of listening to messages is not allowed,' +
 						' use crmAPI.comm instead');
 					return true;
-				} else if (!(listenerTarget in browser.runtime)) {
+				} else if (!(listenerTarget in browserAPI.runtime)) {
 					APIMessaging.ChromeMessage.throwError(message,
 						'Given event is not supported on this platform');
 					return true;
@@ -5648,9 +5648,9 @@ if (typeof module === 'undefined') {
 						dataString: dataString,
 						hashes: registerHashes,
 						matchesHashes: this._matchesHashes(registerHashes, dataString),
-						crmUrl: `${location.protocol}//${browser.runtime.id}/resource/${scriptId}/${name}`
+						crmUrl: `${location.protocol}//${browserAPI.runtime.id}/resource/${scriptId}/${name}`
 					};
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						resources: resources,
 						urlDataPairs: globalObject.globals.storages.urlDataPairs
 					});
@@ -5669,7 +5669,7 @@ if (typeof module === 'undefined') {
 				hashes: registerHashes,
 				scriptId: scriptId
 			});
-			browser.storage.local.set({
+			browserAPI.storage.local.set({
 				resourceKeys: resourceKeys
 			});
 		}
@@ -5704,7 +5704,7 @@ if (typeof module === 'undefined') {
 				delete globalObject.globals.storages.resources[scriptId][name];
 			}
 
-			browser.storage.local.set({
+			browserAPI.storage.local.set({
 				resourceKeys: globalObject.globals.storages.resourceKeys,
 				resources: globalObject.globals.storages.resources,
 				urlDataPairs: globalObject.globals.storages.urlDataPairs
@@ -5730,7 +5730,7 @@ if (typeof module === 'undefined') {
 						globalObject.globals.storages.urlDataPairs[key.sourceUrl].dataURI = dataURI;
 						globalObject.globals.storages.urlDataPairs[key.sourceUrl].dataString = dataString;
 
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							resources: resources,
 							urlDataPairs: globalObject.globals.storages.urlDataPairs
 						});
@@ -6057,7 +6057,7 @@ if (typeof module === 'undefined') {
 			}>, usesUnsafeWindow: boolean) {		
 				if (usesUnsafeWindow) {		
 					//Send it to the content script and run it there		
-					browser.tabs.sendMessage(tabId, {		
+					browserAPI.tabs.sendMessage(tabId, {		
 						type: 'runScript',		
 						data: {		
 							scripts: scripts		
@@ -6067,7 +6067,7 @@ if (typeof module === 'undefined') {
 					Util.promiseChain(scripts.map((script) => {
 						return async () => {
 							try {
-								await Util.proxyPromise(browser.tabs.executeScript(tabId, this._ensureRunAt(nodeId, script)), (err) => {
+								await Util.proxyPromise(browserAPI.tabs.executeScript(tabId, this._ensureRunAt(nodeId, script)), (err) => {
 									if (err.message.indexOf('Could not establish connection') === -1 &&
 										err.message.indexOf('closed') === -1) {
 										window.log('Couldn\'t execute on tab with id', tabId, 'for node', nodeId, err);
@@ -6123,7 +6123,7 @@ if (typeof module === 'undefined') {
 
 				static async executeScriptsForTab(tabId: number, respond: (message: any) => void) {
 					try {
-						const tab = await browser.tabs.get(tabId);
+						const tab = await browserAPI.tabs.get(tabId);
 						if (tab.url && tab.url.indexOf('chrome') !== 0) {
 							globalObject.globals.crmValues.tabData[tab.id] = {
 								libraries: {},
@@ -6184,7 +6184,7 @@ if (typeof module === 'undefined') {
 
 					const contextMenuId = globalObject.globals.crmValues.contextMenuIds[id];
 					if (contextMenuId !== undefined && contextMenuId !== null) {
-						await Util.proxyPromise(browser.contextMenus.remove(contextMenuId));
+						await Util.proxyPromise(browserAPI.contextMenus.remove(contextMenuId));
 					}
 				}
 				private static _registerNode(node: CRM.Node, oldPath?: Array<number>) {
@@ -6451,8 +6451,8 @@ if (typeof module === 'undefined') {
 							});
 						}
 
-						const { requestPermissions = [] } = await browser.storage.local.get<CRM.StorageLocal>();
-						const allPermissions = browser.permissions ? await browser.permissions.getAll() : {
+						const { requestPermissions = [] } = await browserAPI.storage.local.get<CRM.StorageLocal>();
+						const allPermissions = browserAPI.permissions ? await browserAPI.permissions.getAll() : {
 							permissions: []
 						};
 						const allowed = allPermissions.permissions || [];
@@ -6461,11 +6461,11 @@ if (typeof module === 'undefined') {
 						}).filter((permission, index, self) => {
 							return self.indexOf(permission) === index;
 						});
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							requestPermissions: joinedPermissions
 						}).then(() => {
 							if (joinedPermissions.length > 0) {
-								browser.runtime.openOptionsPage();
+								browserAPI.runtime.openOptionsPage();
 							}
 						});
 
@@ -6560,9 +6560,9 @@ if (typeof module === 'undefined') {
 							newValue: globalObject.globals.storages.settingsStorage.crm
 						}]);
 
-						const { updatedScripts } = await browser.storage.local.get<CRM.StorageLocal>();
+						const { updatedScripts } = await browserAPI.storage.local.get<CRM.StorageLocal>();
 						const joinedData = [...updatedScripts, ...updatedData];
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							updatedScripts: joinedData
 						});
 
@@ -6594,17 +6594,17 @@ if (typeof module === 'undefined') {
 													!(metaTags['grant'].length === 0 &&
 														metaTags['grant'][0] === 'none')) {
 													//New permissions were added, notify user
-													const { addedPermissions = [] } = await browser.storage.local.get<CRM.StorageLocal>();
+													const { addedPermissions = [] } = await browserAPI.storage.local.get<CRM.StorageLocal>();
 													addedPermissions.push({
 														node: node.id,
 														permissions: metaTags['grant'].filter((newPermission: CRM.Permission) => {
 															return node.nodeInfo.permissions.indexOf(newPermission) === -1;
 														})
 													});
-													await browser.storage.local.set({
+													await browserAPI.storage.local.set({
 														addedPermissions: addedPermissions
 													});
-													browser.runtime.openOptionsPage();
+													browserAPI.runtime.openOptionsPage();
 												}
 
 												updatedScripts.push(await this.installUserscript(metaTags,
@@ -6780,7 +6780,7 @@ if (typeof module === 'undefined') {
 								safeNode, node.id, { id: 0 }, {}, key,
 								nodeStorage, null,
 								greaseMonkeyData, true, CRM._fixOptionsErrors((node.value && node.value.options) || {}),
-								enableBackwardsCompatibility, 0, browser.runtime.id, supportedBrowserAPIs.join(',')
+								enableBackwardsCompatibility, 0, browserAPI.runtime.id, supportedBrowserAPIs.join(',')
 							]
 								.map((param) => {
 									if (param === void 0) {
@@ -6963,7 +6963,7 @@ if (typeof module === 'undefined') {
 							`var crmAPI = new (window._crmAPIRegistry.pop())(${[		
 								safeNode, node.id, tab, info, key, nodeStorage,		
 								contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},		
-								enableBackwardsCompatibility, tabIndex, browser.runtime.id, supportedBrowserAPIs.join(',')
+								enableBackwardsCompatibility, tabIndex, browserAPI.runtime.id, supportedBrowserAPIs.join(',')
 							].map((param) => {		
 								if (param === void 0) {		
 									return JSON.stringify(null);		
@@ -7114,7 +7114,7 @@ if (typeof module === 'undefined') {
 							scriptUpdateURL: metaVal('updateURL'),
 							scriptWillUpdate: true,
 							scriptHandler: 'Custom Right-Click Menu',
-							version: browser.runtime.getManifest().version
+							version: browserAPI.runtime.getManifest().version
 						},
 						resources: globalObject.globals.storages.resources[node.id] || {}
 					};
@@ -7160,11 +7160,11 @@ if (typeof module === 'undefined') {
 							err = e;
 						}
 						if (err) {
-							browser.tabs.executeScript(tab.id, {
+							browserAPI.tabs.executeScript(tab.id, {
 								code: 'alert("Something went wrong very badly, please go to your Custom Right-Click Menu' +
 									' options page and remove any sketchy scripts.")'
 							}).then(() => {
-								browser.runtime.reload();
+								browserAPI.runtime.reload();
 							});
 						} else {
 							window.Promise.all<any>([Util.iipe<EncodedContextData>(async () => {
@@ -7172,7 +7172,7 @@ if (typeof module === 'undefined') {
 								if (isAutoActivate) {
 									return null;
 								} else {
-									const response = await browser.tabs.sendMessage(tab.id, {
+									const response = await browserAPI.tabs.sendMessage(tab.id, {
 										type: 'getLastClickInfo'
 									}) as EncodedContextData;
 									return response;
@@ -7236,7 +7236,7 @@ if (typeof module === 'undefined') {
 					let finalUrl: string;
 					for (let i = 0; i < node.value.length; i++) {
 						if (node.value[i].newTab) {
-							browser.tabs.create({
+							browserAPI.tabs.create({
 								windowId: tabInfo.windowId,
 								url: this._sanitizeUrl(node.value[i].url),
 								openerTabId: tabInfo.id
@@ -7246,7 +7246,7 @@ if (typeof module === 'undefined') {
 						}
 					}
 					if (finalUrl) {
-						browser.tabs.update(tabInfo.id, {
+						browserAPI.tabs.update(tabInfo.id, {
 							url: this._sanitizeUrl(finalUrl)
 						});
 					}
@@ -7277,7 +7277,7 @@ if (typeof module === 'undefined') {
 					}
 					globalObject.globals.crmValues
 						.stylesheetNodeStatusses[node.id][tab.id] = info.checked;
-					browser.tabs.executeScript(tab.id, {
+					browserAPI.tabs.executeScript(tab.id, {
 						code: code,
 						allFrames: true
 					});
@@ -7299,7 +7299,7 @@ if (typeof module === 'undefined') {
 						'document.head.appendChild(CRMSSInsert);',
 						'}());'
 					].join('');
-					browser.tabs.executeScript(tab.id, {
+					browserAPI.tabs.executeScript(tab.id, {
 						code: code,
 						allFrames: true
 					});
@@ -7782,8 +7782,8 @@ if (typeof module === 'undefined') {
 				if (options.documentUrlPatterns) {
 					console.log('An error occurred with your context menu, attempting again with no url matching.', e);
 					delete options.documentUrlPatterns;
-					idHolder.id = browser.contextMenus.create(options, () => {
-						idHolder.id = browser.contextMenus.create({
+					idHolder.id = browserAPI.contextMenus.create(options, () => {
+						idHolder.id = browserAPI.contextMenus.create({
 							title: 'ERROR',
 							onclick: CRM._createOptionsPageHandler()
 						});
@@ -7797,15 +7797,15 @@ if (typeof module === 'undefined') {
 				id: number|string;
 			}) {
 				try {
-					idHolder.id = browser.contextMenus.create(rightClickItemOptions, () => {
+					idHolder.id = browserAPI.contextMenus.create(rightClickItemOptions, () => {
 						if ('chrome' in window) {
 							const __chrome: typeof _chrome = (window as any).chrome;
 							if (__chrome && __chrome.runtime && __chrome.runtime.lastError) {
 								this._handleContextMenuError(rightClickItemOptions, __chrome.runtime.lastError, idHolder);
 							}
 						} else {
-							if (browser.runtime.lastError) {
-								this._handleContextMenuError(rightClickItemOptions, browser.runtime.lastError, idHolder);
+							if (browserAPI.runtime.lastError) {
+								this._handleContextMenuError(rightClickItemOptions, browserAPI.runtime.lastError, idHolder);
 							}
 						}
 					});
@@ -7877,7 +7877,7 @@ if (typeof module === 'undefined') {
 						const css = node.value.stylesheet.replace(/[ |\n]/g, '');
 						code +=
 							`var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes${className}";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode(${JSON.stringify(css)}));document.head.appendChild(CRMSSInsert);`;
-						browser.tabs.executeScript(replaceStylesheetTabs[i].id, {
+						browserAPI.tabs.executeScript(replaceStylesheetTabs[i].id, {
 							code: code,
 							allFrames: true
 						});
@@ -8027,8 +8027,8 @@ if (typeof module === 'undefined') {
 		static async buildPageCRM() {
 			const length = globalObject.globals.crm.crmTree.length;
 			globalObject.globals.crmValues.stylesheetNodeStatusses = {};
-			await browser.contextMenus.removeAll();
-			globalObject.globals.crmValues.rootId = browser.contextMenus.create({
+			await browserAPI.contextMenus.removeAll();
+			globalObject.globals.crmValues.rootId = browserAPI.contextMenus.create({
 				title: globalObject.globals.storages.settingsStorage.rootName || 'Custom Menu',
 				contexts: ['all']
 			});
@@ -8055,11 +8055,11 @@ if (typeof module === 'undefined') {
 			}
 
 			if (globalObject.globals.storages.storageLocal.showOptions) {
-				browser.contextMenus.create({
+				browserAPI.contextMenus.create({
 					type: 'separator',
 					parentId: globalObject.globals.crmValues.rootId
 				});
-				browser.contextMenus.create({
+				browserAPI.contextMenus.create({
 					title: 'Options',
 					onclick: this._createOptionsPageHandler(),
 					parentId: globalObject.globals.crmValues.rootId
@@ -8201,7 +8201,7 @@ if (typeof module === 'undefined') {
 		}
 		private static _createOptionsPageHandler(): () => void {
 			return () => {
-				browser.runtime.openOptionsPage();
+				browserAPI.runtime.openOptionsPage();
 			};
 		}
 		private static async _buildPageCRMTree(node: CRM.Node, parentId: string|number,
@@ -9250,13 +9250,13 @@ if (typeof module === 'undefined') {
 					}
 					static generateScriptUpgradeErrorHandler(id: number): UpgradeErrorHandler {
 						return async (oldScriptErrors, newScriptErrors, parseError) => {
-							const { upgradeErrors = {} } = await browser.storage.local.get<CRM.StorageLocal>();
+							const { upgradeErrors = {} } = await browserAPI.storage.local.get<CRM.StorageLocal>();
 							upgradeErrors[id] = globalObject.globals.storages.storageLocal.upgradeErrors[id] = {
 								oldScript: oldScriptErrors,
 								newScript: newScriptErrors,
 								generalError: parseError
 							};
-							browser.storage.local.set({ upgradeErrors } as any);
+							browserAPI.storage.local.set({ upgradeErrors } as any);
 						};
 					};
 					static convertScriptFromLegacy(script: string, id: number, method: SCRIPT_CONVERSION_TYPE): string {
@@ -9449,7 +9449,7 @@ if (typeof module === 'undefined') {
 						globalExcludes: [''],
 						useStorageSync: true,
 						notFirstTime: true,
-						lastUpdatedAt: browser.runtime.getManifest().version,
+						lastUpdatedAt: browserAPI.runtime.getManifest().version,
 						authorName: 'anonymous',
 						showOptions: true,
 						recoverUnsavedData: false,
@@ -9531,7 +9531,7 @@ if (typeof module === 'undefined') {
 					this._getDefaultStorages(([defaultLocalStorage, defaultSyncStorage]) => {
 
 						//Save local storage
-						browser.storage.local.set(defaultLocalStorage);
+						browserAPI.storage.local.set(defaultLocalStorage);
 
 						//Save sync storage
 						this._uploadStorageSyncData(defaultSyncStorage);
@@ -9563,7 +9563,7 @@ if (typeof module === 'undefined') {
 			}> {
 				window.localStorage.setItem('transferToVersion2', 'true');
 
-				browser.storage.local.set({
+				browserAPI.storage.local.set({
 					isTransfer: true
 				});
 
@@ -9627,21 +9627,21 @@ if (typeof module === 'undefined') {
 
 				//Using chrome.storage.sync
 				if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
-					await browser.storage.local.set({
+					await browserAPI.storage.local.set({
 						useStorageSync: false
 					});
 					this._uploadStorageSyncData(data);
 				} else {
 					//Cut up all data into smaller JSON
 					const obj = Storages.cutData(settingsJson);
-					browser.storage.sync.set(obj).then(() => {
-						browser.storage.local.set({
+					browserAPI.storage.sync.set(obj).then(() => {
+						browserAPI.storage.local.set({
 							settings: null
 						});
 					}).catch(async (err) => {
 						//Switch to local storage
 						window.log('Error on uploading to chrome.storage.sync ', err);
-						await browser.storage.local.set({
+						await browserAPI.storage.local.set({
 							useStorageSync: false
 						});
 						this._uploadStorageSyncData(data);
@@ -9755,7 +9755,7 @@ if (typeof module === 'undefined') {
 		}
 		private static async _uploadSync(changes: StorageChange[]) {
             const settingsJson = JSON.stringify(globalObject.globals.storages.settingsStorage);
-            browser.storage.local.set({
+            browserAPI.storage.local.set({
                 settingsVersionData: {
                     current: {
                         hash: window.md5(settingsJson),
@@ -9766,21 +9766,21 @@ if (typeof module === 'undefined') {
                 }
             });
             if (!globalObject.globals.storages.storageLocal.useStorageSync) {
-                await browser.storage.local.set({
+                await browserAPI.storage.local.set({
                     settings: globalObject.globals.storages.settingsStorage
                 }).then(() => {
 					this._changeCRMValuesIfSettingsChanged(changes);
 				}).catch((e) => {
 					window.log('Error on uploading to chrome.storage.local ', e);
                 });
-                await browser.storage.sync.set({
+                await browserAPI.storage.sync.set({
                     indexes: null
                 });
             }
             else {
                 //Using chrome.storage.sync
                 if (settingsJson.length >= 101400) {
-                    await browser.storage.local.set({
+                    await browserAPI.storage.local.set({
                         useStorageSync: false
                     });
 					await this.uploadChanges('settings', changes);
@@ -9788,14 +9788,14 @@ if (typeof module === 'undefined') {
                 else {
                     //Cut up all data into smaller JSON
                     const obj = this.cutData(settingsJson);
-                    await browser.storage.sync.set(obj as any).then(() => {
+                    await browserAPI.storage.sync.set(obj as any).then(() => {
 						this._changeCRMValuesIfSettingsChanged(changes);
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							settings: null
 						});
 					}).catch(async (err) => {
 						window.log('Error on uploading to chrome.storage.sync ', err);
-						await browser.storage.local.set({
+						await browserAPI.storage.local.set({
 							useStorageSync: false
 						});
 						await this.uploadChanges('settings', changes);
@@ -9807,7 +9807,7 @@ if (typeof module === 'undefined') {
 			useStorageSync: boolean = null) {
 				switch (type) {
 					case 'local':
-						browser.storage.local.set(globalObject.globals.storages.storageLocal);
+						browserAPI.storage.local.set(globalObject.globals.storages.storageLocal);
 						for (let i = 0; i < changes.length; i++) {
 							if (changes[i].key === 'useStorageSync') {
 								const change = changes[i] as StorageLocalChange<'useStorageSync'>;
@@ -9824,7 +9824,7 @@ if (typeof module === 'undefined') {
 						await Storages._uploadSync(changes);
 						break;
 					case 'libraries':
-						browser.storage.local.set({
+						browserAPI.storage.local.set({
 							libraries: changes
 						});
 						break;
@@ -9929,11 +9929,11 @@ if (typeof module === 'undefined') {
 					[key: string]: string
 				} & {
 					indexes: Array<string>;
-				} = await browser.storage.sync.get() as any;
+				} = await browserAPI.storage.sync.get() as any;
 				window.info('Loading local storage data');
 				const storageLocal: CRM.StorageLocal & {
 					settings?: CRM.SettingsStorage;
-				} = await browser.storage.local.get() as any;
+				} = await browserAPI.storage.local.get() as any;
 				window.info('Checking if this is the first run');
 				const result = this._isFirstTime(storageLocal);
 				if (result.type === 'firstTimeCallback') {
@@ -9952,7 +9952,7 @@ if (typeof module === 'undefined') {
 						//Parse the data before sending it to the callback
 						const indexes = storageSync['indexes'];
 						if (!indexes) {
-							await browser.storage.local.set({
+							await browserAPI.storage.local.set({
 								useStorageSync: false
 							});
 							settingsStorage = storageLocal.settings;
@@ -9967,7 +9967,7 @@ if (typeof module === 'undefined') {
 					} else {
 						//Send the "settings" object on the storage.local to the callback
 						if (!storageLocal['settings']) {
-							await browser.storage.local.set({
+							await browserAPI.storage.local.set({
 								useStorageSync: true
 							});
 							const indexes = storageSync['indexes'];
@@ -10029,7 +10029,7 @@ if (typeof module === 'undefined') {
 					updated.id = true;
 					const change = changes[i] as StorageSyncChange<'latestId'>;
 					globalObject.globals.latestId = change.newValue;
-					browser.runtime.sendMessage({
+					browserAPI.runtime.sendMessage({
 						type: 'idUpdate',
 						latestId: change.newValue
 					});
@@ -10039,7 +10039,7 @@ if (typeof module === 'undefined') {
 					}
 					updated.rootName = true;
 					const rootNameChange = changes[i] as StorageSyncChange<'rootName'>;
-					browser.contextMenus.update(globalObject.globals.crmValues.rootId, {
+					browserAPI.contextMenus.update(globalObject.globals.crmValues.rootId, {
 						title: rootNameChange.newValue
 					});
 				}
@@ -10049,7 +10049,7 @@ if (typeof module === 'undefined') {
 			if (obj[key]) {
 				return obj[key];
 			}
-			browser.storage.local.set({
+			browserAPI.storage.local.set({
 				key: defaultValue
 			} as any);
 			return defaultValue;
@@ -10079,7 +10079,7 @@ if (typeof module === 'undefined') {
 			//Update in storage
 			globalObject.globals.crm.crmById[id].storage = globalObject.globals.storages
 				.nodeStorage[id];
-			browser.storage.local.set({
+			browserAPI.storage.local.set({
 				nodeStorage: globalObject.globals.storages.nodeStorage
 			});
 
@@ -10194,7 +10194,7 @@ if (typeof module === 'undefined') {
 			if (this._isVersionInRange(oldVersion, newVersion, '2.0.11')) {
 				Util.isTamperMonkeyEnabled((isEnabled) => {
 					globalObject.globals.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
-					browser.storage.local.set({
+					browserAPI.storage.local.set({
 						useAsUserscriptInstaller: !isEnabled
 					});
 				});
@@ -10266,7 +10266,7 @@ if (query) {
 				});
 			}
 
-			browser.storage.local.set({
+			browserAPI.storage.local.set({
 				lastUpdatedAt: newVersion
 			});
 
@@ -10281,7 +10281,7 @@ if (query) {
 		} | {
 			type: 'noChanges';
 		} {				
-			const currentVersion = browser.runtime.getManifest().version;
+			const currentVersion = browserAPI.runtime.getManifest().version;
 			if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt === currentVersion) {
 				return {
 					type: 'noChanges'
@@ -10326,7 +10326,7 @@ if (query) {
 
 			if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.current.hash !== hash) {
 				//Data changed, show a message and update current hash
-				browser.storage.local.set({
+				browserAPI.storage.local.set({
 					settingsVersionData: {
 						current: {
 							hash: hash,
@@ -10349,7 +10349,7 @@ if (query) {
 				' get its ID (you can type getID("name") to find the ID),' +
 				' and type filter(id, [optional tabId]) to show only those messages.' +
 				' You can also visit the logging page for even better logging over at ',
-				browser.runtime.getURL('html/logging.html'));
+				browserAPI.runtime.getURL('html/logging.html'));
 		}
 		window.console.group('Initialization');
 		window.console.group('Loading storage data');
@@ -10362,10 +10362,10 @@ if (query) {
 				await GlobalDeclarations.refreshPermissions();
 				window.info('Setting CRMAPI message handler');
 				GlobalDeclarations.setHandlerFunction();
-				browser.runtime.onConnect.addListener((port) => {
+				browserAPI.runtime.onConnect.addListener((port) => {
 					port.onMessage.addListener(window.createHandlerFunction(port));
 				});
-				browser.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
+				browserAPI.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
 				window.info('Building Custom Right-Click Menu');
 				await CRM.buildPageCRM();
 				window.info('Compiling typescript');
