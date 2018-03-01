@@ -15,10 +15,10 @@
 	"content_scripts": [
 		{
 			"matches": [ "<all_urls>" ],
-			"js": [ "js/contentscript.js" ]
+			"js": [ "js/polyfills/browser.js", "js/contentscript.js" ]
 		}, {
 			"matches": [ "http://userstyles.org/*", "https://userstyles.org/*" ],
-			"js": [ "js/installStylesheet.js" ],
+			"js": [ "js/polyfills/browser.js", "js/installStylesheet.js" ],
 			"run_at": "document_end" 
 		}
 	],
