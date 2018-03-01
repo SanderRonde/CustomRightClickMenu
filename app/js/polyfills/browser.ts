@@ -510,7 +510,7 @@ if (!window.browserAPI) {
 	//	global exists already. Basically equal to 
 	// 	window.browser = BrowserAPI.polyfill || window.browser  	&
 	// 	if getBrowser() === 'edge': window.browser = BrowserAPI.polyfill
-	window.browserAPI = (BrowserAPI.getBrowser() === 'edge' || !window.browserAPI) ?
+	window.browserAPI = (BrowserAPI.getBrowser() === 'edge' || !(window as any).browser) ?
 		{...BrowserAPI.polyfill as typeof BrowserAPI.polyfill, ...{
 			__isProxied: true
 		}} :
