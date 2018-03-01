@@ -77,19 +77,27 @@
 			}
 
 			#splashScreenVerticalCenterer, #splashScreenHorizontalCenterer {
+				display: -webkit-box;
 				display: -webkit-flex;
 				display: flex;
+				-webkit-box-pack: center;
 				-webkit-justify-content: center;
-				justify-content: center;
+	        	justify-content: center;
 				height: 100vh;
 			}
 
 			#splashScreenVerticalCenterer {
+				-moz-flex-direction: column;
+				-webkit-box-orient: vertical;
+				-webkit-box-direction: normal;
 				-webkit-flex-direction: column;
 				flex-direction: column;
 			}
 
 			#splashScreenHorizontalCenterer {
+				-moz-flex-direction: row;
+				-webkit-box-orient: horizontal;
+				-webkit-box-direction: normal;
 				-webkit-flex-direction: row;
 				flex-direction: row;
 			}
@@ -100,10 +108,15 @@
 			}
 
 			#splashScreenLoaderCenterer {
+				display: -webkit-box;
 				display: -webkit-flex;
 				display: flex;
+				-moz-flex-direction: row;
+				-webkit-box-orient: horizontal;
+				-webkit-box-direction: normal;
 				-webkit-flex-direction: row;
 				flex-direction: row;
+				-webkit-box-pack: center;
 				-webkit-justify-content: center;
 				justify-content: center;
 			}
@@ -111,7 +124,7 @@
 			.elementsLoading #splashScreen {
 				opacity: 1;
 				pointer-events: initial;
-			}
+		}
 
 			#splashScreenProgressBarCont {
 				width: 50vw;
