@@ -4867,7 +4867,6 @@ if (typeof module === 'undefined') {
 		getNodeFromId(id: number): GetNodeFromIdCallback<CRM.Node>;
 		getNodeFromId(id: number, makeSafe: boolean = false, synchronous: boolean = false, _forceValid = false):
 			GetNodeFromIdCallback<CRM.Node> | GetNodeFromIdCallback<CRM.SafeNode> | CRM.Node | CRM.SafeNode | false {
-				//TODO: make async
 			const node = (makeSafe ?
 				globalObject.globals.crm.crmByIdSafe :
 				globalObject.globals.crm.crmById)[id];
