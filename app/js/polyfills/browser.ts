@@ -1,4 +1,4 @@
-const __chrome: typeof _chrome = 'chrome' in window ? (window as any).chrome : {};
+const __srcBrowser: typeof _chrome = 'chrome' in window ? (window as any).chrome : {};
 
 declare namespace _browser.runtime {
 	function getManifest(): _chrome.runtime.Manifest;
@@ -17,8 +17,8 @@ declare namespace _browser.storage {
 
 namespace BrowserAPI {
 	function checkReject(reject: (err: _chrome.runtime.LastError) => void) {
-		if (__chrome.runtime.lastError) {
-			reject(__chrome.runtime.lastError);
+		if (__srcBrowser.runtime.lastError) {
+			reject(__srcBrowser.runtime.lastError);
 			return true;
 		}
 		return false;
@@ -36,8 +36,8 @@ namespace BrowserAPI {
 	}): ChromeCallbackHandler<T> {
 		const { resolve, reject } = prom;
 		const fn = ((...args: Array<any>) => {
-			if (__chrome.runtime.lastError) {
-				reject(__chrome.runtime.lastError);
+			if (__srcBrowser.runtime.lastError) {
+				reject(__srcBrowser.runtime.lastError);
 			} else {
 				resolve(args[0]);
 			}
@@ -59,7 +59,7 @@ namespace BrowserAPI {
 		return {
 			set(keys: any) {
 				return createPromise<void>((handler) => {
-					__chrome.storage[type].set(keys, handler);
+					__srcBrowser.storage[type].set(keys, handler);
 				});
 			},
 			remove(keys: string|Array<string>) {
@@ -67,19 +67,19 @@ namespace BrowserAPI {
 					if (Array.isArray(keys)) {
 						Promise.all(keys.map((key) => {
 							return new Promise((resolveMapped) => {
-								__chrome.storage[type].remove(key, () => {
+								__srcBrowser.storage[type].remove(key, () => {
 									checkReject(handler.reject) || resolveMapped(null);
 								});
 							});
 						})).then(handler)
 					} else {
-						__chrome.storage[type].remove(keys, handler);
+						__srcBrowser.storage[type].remove(keys, handler);
 					}
 				});
 			},
 			clear(): Promise<void> {
 				return createPromise<void>((handler) => {
-					__chrome.storage[type].clear(handler);
+					__srcBrowser.storage[type].clear(handler);
 				});
 			}
 		}
@@ -133,15 +133,15 @@ namespace BrowserAPI {
 	}
 
 	export const polyfill = {
-		commands: __chrome.commands ? {
+		commands: __srcBrowser.commands ? {
 			getAll() {
 				return createPromise<Array<_browser.commands.Command>>((handler) => {
-					__chrome.commands.getAll(handler);
+					__srcBrowser.commands.getAll(handler);
 				});
 			},
-			onCommand: __chrome.commands.onCommand as Listener<string>
+			onCommand: __srcBrowser.commands.onCommand as Listener<string>
 		} : void 0,
-		contextMenus: __chrome.contextMenus ? {
+		contextMenus: __srcBrowser.contextMenus ? {
 			create(createProperties: {
 				type?: _browser.contextMenus.ItemType,
 				id?: string,
@@ -155,12 +155,12 @@ namespace BrowserAPI {
 				targetUrlPatterns?: string[],
 				enabled?: boolean,
 			}, callback?: () => void): number|string {
-				return __chrome.contextMenus.create(createProperties as any, () => {
+				return __srcBrowser.contextMenus.create(createProperties as any, () => {
 					if (!callback) {
 						return;
 					}
-					if (__chrome.runtime.lastError) {
-						polyfill.runtime.lastError = __chrome.runtime.lastError.message;
+					if (__srcBrowser.runtime.lastError) {
+						polyfill.runtime.lastError = __srcBrowser.runtime.lastError.message;
 						callback();
 						polyfill.runtime.lastError = null;
 					} else {
@@ -180,21 +180,21 @@ namespace BrowserAPI {
 				enabled?: boolean,
 			}) {
 				return createPromise<void>((handler) => {
-					__chrome.contextMenus.update(id + '', updateProperties, handler);
+					__srcBrowser.contextMenus.update(id + '', updateProperties, handler);
 				});
 			},
 			remove(id: string|number) {
 				return createPromise<void>((handler) => {
-					__chrome.contextMenus.remove(~~id, handler);
+					__srcBrowser.contextMenus.remove(~~id, handler);
 				});
 			},
 			removeAll() {
 				return createPromise<void>((handler) => {
-					__chrome.contextMenus.removeAll(handler);
+					__srcBrowser.contextMenus.removeAll(handler);
 				});
 			}
 		} : void 0,
-		downloads: __chrome.downloads ? {
+		downloads: __srcBrowser.downloads ? {
 			download(options: {
 				url: string,
 				filename?: string,
@@ -205,79 +205,79 @@ namespace BrowserAPI {
 				body?: string,
 			}) {
 				return createPromise<number>((handler) => {
-					__chrome.downloads.download(options as any, handler);
+					__srcBrowser.downloads.download(options as any, handler);
 				});
 			}
 		} : void 0,
-		extension: __chrome.extension ? {
+		extension: __srcBrowser.extension ? {
 			isAllowedFileSchemeAccess(): Promise<boolean> {
 				return createPromise<boolean>((handler) => {
-					__chrome.extension.isAllowedFileSchemeAccess(handler);
+					__srcBrowser.extension.isAllowedFileSchemeAccess(handler);
 				});
 			}
 		} : void 0,
-		notifications: __chrome.notifications ? {
-			onClicked: __chrome.notifications.onClicked as Listener<string>,
-			onClosed: __chrome.notifications.onClosed as Listener<string>
+		notifications: __srcBrowser.notifications ? {
+			onClicked: __srcBrowser.notifications.onClicked as Listener<string>,
+			onClosed: __srcBrowser.notifications.onClosed as Listener<string>
 		} : void 0,
-		permissions: __chrome.permissions ? {
+		permissions: __srcBrowser.permissions ? {
 			contains(permissions: _browser.permissions.Permissions) {
 				return createPromise<boolean>((handler) => {
-					__chrome.permissions.contains(permissions, handler);
+					__srcBrowser.permissions.contains(permissions, handler);
 				});
 			},
 			getAll() {
 				return createPromise<_browser.permissions.Permissions>((handler) => {
-					__chrome.permissions.getAll(handler);
+					__srcBrowser.permissions.getAll(handler);
 				});
 			},
 			request(permissions: _browser.permissions.Permissions) {
 				return createPromise<boolean>((handler) => {
-					__chrome.permissions.request(permissions, handler);
+					__srcBrowser.permissions.request(permissions, handler);
 				});
 			},
 			remove(permissions: _browser.permissions.Permissions) {
 				return createPromise<boolean>((handler) => {
-					__chrome.permissions.remove(permissions, handler);
+					__srcBrowser.permissions.remove(permissions, handler);
 				});
 			}
 		} : void 0,
-		runtime: __chrome.runtime ? {
+		runtime: __srcBrowser.runtime ? {
 			connect(extensionIdOrConnectInfo?: string, connectInfo?: {
 				name?: string;
 				includeTlsChannelId?: boolean
 			}): _browser.runtime.Port {
 				if (connectInfo) {
-					return __chrome.runtime.connect(extensionIdOrConnectInfo, connectInfo) as any;
+					return __srcBrowser.runtime.connect(extensionIdOrConnectInfo, connectInfo) as any;
 				} else if (extensionIdOrConnectInfo) {
-					return __chrome.runtime.connect(extensionIdOrConnectInfo) as any;
+					return __srcBrowser.runtime.connect(extensionIdOrConnectInfo) as any;
 				} else {
-					return __chrome.runtime.connect() as any;
+					return __srcBrowser.runtime.connect() as any;
 				}
 			},
 			getBackgroundPage() {
 				return createPromise<Window>((handler) => {
-					__chrome.runtime.getBackgroundPage(handler);
+					__srcBrowser.runtime.getBackgroundPage(handler);
 				});
 			},
 			getManifest() {
-				return __chrome.runtime.getManifest();
+				return __srcBrowser.runtime.getManifest();
 			},
 			getURL(path: string) {
-				return __chrome.runtime.getURL(path);
+				return __srcBrowser.runtime.getURL(path);
 			},
 			getPlatformInfo() {
 				return createPromise<_browser.runtime.PlatformInfo>((handler) => {
-					__chrome.runtime.getPlatformInfo(handler);
+					__srcBrowser.runtime.getPlatformInfo(handler);
 				});
 			},
 			openOptionsPage() {
 				return createPromise<void>((handler) => {
-					__chrome.runtime.openOptionsPage(handler);
+					__srcBrowser.runtime.openOptionsPage(handler);
 				});
 			},
 			reload() {
-				__chrome.runtime.reload();
+				__srcBrowser.runtime.reload();
 			},
 			sendMessage<U>(extensionIdOrmessage: string|any, optionsOrMessage?: any|{
 				includeTlsChannelId?: boolean;
@@ -288,34 +288,34 @@ namespace BrowserAPI {
 			}) {
 				return createPromise<U|void>((handler) => {
 					if (options) {
-						__chrome.runtime.sendMessage(extensionIdOrmessage, optionsOrMessage, options, handler);
+						__srcBrowser.runtime.sendMessage(extensionIdOrmessage, optionsOrMessage, options, handler);
 					} else if (optionsOrMessage) {
 						//extensionId, message or message, options
-						__chrome.runtime.sendMessage(extensionIdOrmessage, optionsOrMessage, handler);
+						__srcBrowser.runtime.sendMessage(extensionIdOrmessage, optionsOrMessage, handler);
 					} else {
-						__chrome.runtime.sendMessage(extensionIdOrmessage, handler);
+						__srcBrowser.runtime.sendMessage(extensionIdOrmessage, handler);
 					}
 				});
 			},
-			onInstalled: (__chrome.runtime.onInstalled as any) as Listener<{
+			onInstalled: (__srcBrowser.runtime.onInstalled as any) as Listener<{
 				reason: _browser.runtime.OnInstalledReason,
 				previousVersion?: string,
 				id?: string,
 			}>,
-			onConnectExternal: (__chrome.runtime.onConnectExternal as any) as Listener<_browser.runtime.Port>,
-			onConnect: (__chrome.runtime.onConnect as any) as Listener<_browser.runtime.Port>,
-			onMessage: (__chrome.runtime.onMessage as any) as EvListener<_browser.runtime.onMessageEvent>,
+			onConnectExternal: (__srcBrowser.runtime.onConnectExternal as any) as Listener<_browser.runtime.Port>,
+			onConnect: (__srcBrowser.runtime.onConnect as any) as Listener<_browser.runtime.Port>,
+			onMessage: (__srcBrowser.runtime.onMessage as any) as EvListener<_browser.runtime.onMessageEvent>,
 			lastError: null as string|null,
-			id: __chrome.runtime.id
+			id: __srcBrowser.runtime.id
 		} : void 0,
-		storage: __chrome.storage ? {
+		storage: __srcBrowser.storage ? {
 			local: {...genStoragePolyfill('local'), ...{
 				get<T = CRM.StorageLocal>(keys?: string|Array<string>|null): Promise<T> {
 					return createPromise<T>((handler) => {
 						if (keys) {
-							__chrome.storage.local.get(keys, handler);
+							__srcBrowser.storage.local.get(keys, handler);
 						} else {
-							__chrome.storage.local.get(handler);
+							__srcBrowser.storage.local.get(handler);
 						}
 					});
 				},	
@@ -324,17 +324,17 @@ namespace BrowserAPI {
 				get<T = CRM.SettingsStorage>(keys?: string|Array<string>|null): Promise<T> {
 					return createPromise<T>((handler) => {
 						if (keys) {
-							__chrome.storage.sync.get(keys, handler);
+							__srcBrowser.storage.sync.get(keys, handler);
 						} else {
-							__chrome.storage.sync.get(handler);
+							__srcBrowser.storage.sync.get(handler);
 						}
 					});
 				},
 			}},
-			onChanged: __chrome.storage.onChanged as EvListener<(changes: _browser.storage.ChangeDict, 
+			onChanged: __srcBrowser.storage.onChanged as EvListener<(changes: _browser.storage.ChangeDict, 
 				areaName: _browser.storage.StorageName) => void>
 		} : void 0,
-		tabs: __chrome.tabs ? {
+		tabs: __srcBrowser.tabs ? {
 			create(createProperties: {
 				active?: boolean,
 				cookieStoreId?: string,
@@ -346,28 +346,28 @@ namespace BrowserAPI {
 				windowId?: number,
 			}) {
 				return createPromise<_browser.tabs.Tab>((handler) => {
-					__chrome.tabs.create(createPromise as any, handler);
+					__srcBrowser.tabs.create(createPromise as any, handler);
 				});
 			},
 			get(tabId: number) {
 				return createPromise<_browser.tabs.Tab>((handler) => {
-					__chrome.tabs.get(tabId, handler);
+					__srcBrowser.tabs.get(tabId, handler);
 				});
 			},
 			getCurrent() {
 				return createPromise<_browser.tabs.Tab>((handler) => {
-					__chrome.tabs.getCurrent(handler);
+					__srcBrowser.tabs.getCurrent(handler);
 				});
 			},
 			captureVisibleTab(windowIdOrOptions?: number|_browser.extensionTypes.ImageDetails, 
 				options?: _browser.extensionTypes.ImageDetails) {
 					return createPromise<string>((handler) => {
 						if (options) {
-							__chrome.tabs.captureVisibleTab(windowIdOrOptions as number, options, handler);
+							__srcBrowser.tabs.captureVisibleTab(windowIdOrOptions as number, options, handler);
 						} else if (windowIdOrOptions) {
-							__chrome.tabs.captureVisibleTab(windowIdOrOptions as _browser.extensionTypes.ImageDetails, handler);
+							__srcBrowser.tabs.captureVisibleTab(windowIdOrOptions as _browser.extensionTypes.ImageDetails, handler);
 						} else {
-							__chrome.tabs.captureVisibleTab(handler);
+							__srcBrowser.tabs.captureVisibleTab(handler);
 						}
 					});
 				},
@@ -395,8 +395,8 @@ namespace BrowserAPI {
 				return createPromise<_browser.tabs.Tab>((handler) => {
 					if (!options) {
 						//No tab id passed, get current
-						__chrome.tabs.getCurrent(({id}) => {
-							__chrome.tabs.update(id, tabIdOrOptions as {
+						__srcBrowser.tabs.getCurrent(({id}) => {
+							__srcBrowser.tabs.update(id, tabIdOrOptions as {
 								active?: boolean,
 								// unsupported: autoDiscardable?: boolean,
 								// unsupported: highlighted?: boolean,
@@ -409,13 +409,13 @@ namespace BrowserAPI {
 							}, handler);
 						});
 					} else {
-						__chrome.tabs.update(tabIdOrOptions as number, options, handler);
+						__srcBrowser.tabs.update(tabIdOrOptions as number, options, handler);
 					}
 				});
 			},
 			query(queryInfo: BrowserTabsQueryInfo) {
 				return createPromise<Array<_browser.tabs.Tab>>((handler) => {
-					__chrome.tabs.query(queryInfo, handler);
+					__srcBrowser.tabs.query(queryInfo, handler);
 				});
 			},
 			executeScript(tabIdOrDetails: number|_browser.extensionTypes.InjectDetails, 
@@ -423,12 +423,12 @@ namespace BrowserAPI {
 					return createPromise<Array<any>>((handler) => {
 						if (!details) {
 							//No tab id passed, get current
-							__chrome.tabs.getCurrent(({id}) => {
-								__chrome.tabs.executeScript(id, 
+							__srcBrowser.tabs.getCurrent(({id}) => {
+								__srcBrowser.tabs.executeScript(id, 
 									tabIdOrDetails as _browser.extensionTypes.InjectDetails, handler);
 							});
 						} else {
-							__chrome.tabs.executeScript(tabIdOrDetails as number, details, handler);
+							__srcBrowser.tabs.executeScript(tabIdOrDetails as number, details, handler);
 						}
 					});
 				},
@@ -436,12 +436,12 @@ namespace BrowserAPI {
 				frameId: number;
 			}) {
 				return createPromise<void|R>(({ resolve, reject }) => {
-					__chrome.tabs.sendMessage(tabId, message, (response?: R) => {
+					__srcBrowser.tabs.sendMessage(tabId, message, (response?: R) => {
 						checkReject(reject) || resolve(response);
 					});
 				});
 			},
-			onUpdated: (__chrome.tabs.onUpdated as any) as EvListener<(tabId: number, changeInfo: {
+			onUpdated: (__srcBrowser.tabs.onUpdated as any) as EvListener<(tabId: number, changeInfo: {
 				audible?: boolean,
 				discarded?: boolean,
 				favIconUrl?: string,
@@ -451,14 +451,14 @@ namespace BrowserAPI {
 				title?: string,
 				url?: string,
 			}, tab: _browser.tabs.Tab) => void>,
-			onRemoved: (__chrome.tabs.onRemoved as any) as EvListener<(tabId: number, removeInfo: {
+			onRemoved: (__srcBrowser.tabs.onRemoved as any) as EvListener<(tabId: number, removeInfo: {
 				windowId: number,
 				isWindowClosing: boolean,
 			}) => void>,
-			onHighlighted: (__chrome.tabs.onHighlighted as any) as Listener<{ windowId: number, tabIds: number[] }>
+			onHighlighted: (__srcBrowser.tabs.onHighlighted as any) as Listener<{ windowId: number, tabIds: number[] }>
 		} : void 0,
-		webRequest: __chrome.webRequest ? {
-			onBeforeRequest: (__chrome.webRequest.onBeforeRequest as any) as _browser.webRequest.ReqListener<{
+		webRequest: __srcBrowser.webRequest ? {
+			onBeforeRequest: (__srcBrowser.webRequest.onBeforeRequest as any) as _browser.webRequest.ReqListener<{
 				requestId: string,
 				url: string,
 				method: string,
