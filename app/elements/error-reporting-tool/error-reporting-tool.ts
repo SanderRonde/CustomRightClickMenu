@@ -379,7 +379,7 @@ namespace ErrorReportingToolElement {
 		}
 
 		private static async _downloadFiles(this: ErrorReportingTool) {
-			if (!('downloads' in browser)) {
+			if (!(browser.downloads)) {
 				return false;
 			}
 			await browser.downloads.download({
@@ -424,11 +424,11 @@ namespace ErrorReportingToolElement {
 		private static _getDownloadPermission(this: ErrorReportingTool) {
 			//Download the files
 			return new Promise<boolean>(async (resolve) => {
-				if ('downloads' in browser && 'download' in browser.downloads) {
+				if (browser.downloads && browser.download.downloads) {
 					return resolve(true);
 				}
 
-				if (!('permissions' in browser)) {
+				if (!(browser.permissions)) {
 					window.app.util.showToast('Your browser does not support asking for the download permission');
 					return resolve(false);
 				}
@@ -436,7 +436,7 @@ namespace ErrorReportingToolElement {
 				const granted = await browser.permissions.request({
 					permissions: ['downloads']
 				});
-				if (granted && 'downloads' in browser) {
+				if (granted && browser.downloads) {
 					window.errorReportingTool.$.errorReportingDialog.close();
 					resolve(granted);
 

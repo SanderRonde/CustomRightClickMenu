@@ -1809,7 +1809,7 @@ if (typeof module === 'undefined') {
 					chromePermissions.onAdded.addListener(this._permissionsChanged);
 				}
 			}
-			const available = 'permissions' in browser ? await browser.permissions.getAll() : {
+			const available = browser.permissions ? await browser.permissions.getAll() : {
 				permissions: []
 			};
 			globalObject.globals.availablePermissions = available.permissions;
@@ -6446,7 +6446,7 @@ if (typeof module === 'undefined') {
 						}
 
 						const { requestPermissions = [] } = await browser.storage.local.get<CRM.StorageLocal>();
-						const allPermissions = 'permissions' in browser ? await browser.permissions.getAll() : {
+						const allPermissions = browser.permissions ? await browser.permissions.getAll() : {
 							permissions: []
 						};
 						const allowed = allPermissions.permissions || [];

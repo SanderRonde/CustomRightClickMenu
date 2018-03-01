@@ -817,7 +817,7 @@ namespace CRMAppElement {
 			});
 
 			if (toRequest.length > 0 || force) {
-				const allowed = 'permissions' in browser ? await browser.permissions.getAll() : {
+				const allowed = browser.permissions ? await browser.permissions.getAll() : {
 					permissions: []
 				};
 				const requested: Array<{
@@ -2052,7 +2052,7 @@ namespace CRMAppElement {
 				parent._setup._bindListeners();
 				delete storageLocal.nodeStorage;
 				if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
-					if ('permissions' in browser) {
+					if (browser.permissions) {
 						await parent._requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
 					}
 				}
@@ -3304,7 +3304,7 @@ namespace CRMAppElement {
 			};
 
 			static async showManagePermissions() {
-				if ('permissions' in browser) {
+				if (browser.permissions) {
 					await this.parent()._requestPermissions([], true);
 				} else {
 					window.app.util.showToast('Your browser does not support requesting permissions');
@@ -3383,11 +3383,11 @@ namespace CRMAppElement {
 
 			private static _getDownloadPermission() {
 				return new Promise<boolean>(async (resolve) => {
-					if ('downloads' in browser && 'download' in browser.downloads) {
+					if (browser.downloads && browser.download.downloads) {
 						return resolve(true);
 					}
 
-					if (!('permissions' in browser)) {
+					if (!(browser.permissions)) {
 						window.app.util.showToast('Your browser does not support asking for the download permission');
 						return resolve(false);
 					}
@@ -3426,7 +3426,7 @@ namespace CRMAppElement {
 				].join('\n');
 				//TODO: this
 				if (await this._getDownloadPermission()) {
-					if ('downloads' in browser) {
+					if (browser.downloads) {
 						browser.downloads.download({
 							url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
 							filename: schemeName + '.reg'

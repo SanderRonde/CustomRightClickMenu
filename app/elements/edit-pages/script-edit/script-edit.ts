@@ -314,7 +314,7 @@ namespace ScriptEditElement {
 						const slider = requestPermissionButton;
 						if (requestPermissionButton.checked) {
 							if (Array.prototype.slice.apply(extensionWideEnabledPermissions).indexOf(permission) === -1) {
-								if (!('permissions' in browser)) {
+								if (!(browser.permissions)) {
 									window.app.util.showToast(`Not asking for permission ${permission} as your browser does not support asking for permissions`);
 									return;
 								}
@@ -366,10 +366,10 @@ namespace ScriptEditElement {
 					settingsStorage = item as CRM.ScriptNode;
 				}
 				//Prepare all permissions
-				const { permissions } = 'permissions' in browser ? await browser.permissions.getAll() : {
+				const { permissions } = browser.permissions ? await browser.permissions.getAll() : {
 					permissions: []
 				};
-				if (!('permissions' in browser)) {
+				if (!(browser.permissions)) {
 					window.app.util.showToast('Not toggling for browser permissions as your browser does not support them');
 				}
 				if (!nodeItem.permissions) {

@@ -375,6 +375,9 @@ window.logElements = (() => {
 
 				if ('highlight' in browser.tabs) {
 					const chromeTabs: typeof _chrome.tabs = browser.tabs as any;
+					if (!chromeTabs.highlight) {
+						return;
+					}
 					await chromeTabs.highlight({
 						windowId: tab.windowId,
 						tabs: tab.index
@@ -440,6 +443,9 @@ window.logElements = (() => {
 
 			if ('highlight' in browser.tabs) {
 				const chromeTabs: typeof _chrome.tabs = browser.tabs as any;
+				if (!chromeTabs.highlight) {
+					return;
+				}
 				await chromeTabs.highlight({
 					windowId: tab.windowId,
 					tabs: tab.index

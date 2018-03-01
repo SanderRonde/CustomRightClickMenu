@@ -266,12 +266,12 @@ namespace InstallConfirmElement {
 			if (checkbox.checked) {
 				const permission = checkbox.getAttribute('permission');
 				if (this._isManifestPermissions(permission as CRM.Permission)) {
-					const { permissions } = 'permissions' in browser ? await browser.permissions.getAll() : {
+					const { permissions } = browser.permissions ? await browser.permissions.getAll() : {
 						permissions: []
 					};
 					if (permissions.indexOf(permission as _browser.permissions.Permission) === -1) {
 						try {
-							if (!('permissions' in browser)) {
+							if (!(browser.permissions)) {
 								window.app.util.showToast(`Not asking for permission ${permission} as your browser does not support asking for permissions`);
 								return;
 							}
