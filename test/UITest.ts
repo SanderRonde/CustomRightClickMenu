@@ -1,5 +1,5 @@
 /// <reference path="../tools/definitions/selenium-webdriver.d.ts" />
-/// <reference path="../tools/definitions/chrome.d.ts" />
+/// <reference path="../tools/definitions/webExtensions.d.ts" />
 /// <reference path="../tools/definitions/crm.d.ts" />
 /// <reference path="../app/js/background.ts" />
 /// <reference path="../app/elements/edit-crm-item/edit-crm-item.ts" />
@@ -24,8 +24,8 @@ interface ChromeLastCall {
 
 interface ContextMenuItem {
 	id: number;
-	createProperties: chrome.contextMenus.CreateProperties;
-	currentProperties: chrome.contextMenus.CreateProperties;
+	createProperties: ContextMenusCreateProperties;
+	currentProperties: ContextMenusCreateProperties;
 	children: Array<ContextMenuItem>;
 }
 
@@ -529,8 +529,8 @@ function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackCo
 	const promise = new webdriver.promise.Promise<void>(async (resolve) => {
 		const result = await driver.executeScript(inlineFn(() => {
 			try {
-				window.chrome.storage.local.clear();
-				window.chrome.storage.sync.clear();
+				window.browser.storage.local.clear();
+				window.browser.storage.sync.clear();
 				window.app.refreshPage();
 				return null;
 			} catch(e) {
@@ -1681,9 +1681,9 @@ describe('Options Page', function() {
 			const lastCall = JSON.parse(await driver.executeScript(inlineFn(() => {
 				return JSON.stringify(window.chrome._lastCall);
 			})));
-			assert.isDefined(lastCall, 'a call to the chrome API was made');
+			assert.isDefined(lastCall, 'a call to the browser API was made');
 			assert.strictEqual(lastCall.api, 'downloads.download',
-				'chrome downloads API was called');
+				'browser downloads API was called');
 			assert.isArray(lastCall.args, 'api args are present');
 			assert.lengthOf(lastCall.args, 1, 'api has only one arg');
 			assert.strictEqual(lastCall.args[0].url, 
@@ -2728,9 +2728,13 @@ describe('Options Page', function() {
 								page: {
 									menuItemId: contextMenu[0].id,
 									editable: false,
-									pageUrl: 'www.google.com'
+									pageUrl: 'www.google.com',
+									modifiers: []
 								},
 								tab: {
+									isArticle: false,
+									isInReaderMode: false,
+									lastAccessed: 0,
 									id: tabId,
 									index: 1,
 									windowId: getRandomId(),
@@ -2885,9 +2889,13 @@ describe('Options Page', function() {
 								page: {
 									menuItemId: contextMenu[0].id,
 									editable: false,
-									pageUrl: 'www.google.com'
+									pageUrl: 'www.google.com',
+									modifiers: []
 								},
 								tab: {
+									isArticle: false,
+									isInReaderMode: false,
+									lastAccessed: 0,
 									id: tabId,
 									index: 1,
 									windowId: getRandomId(),
@@ -3462,9 +3470,12 @@ describe('On-Page CRM', function() {
 				page: {
 					menuItemId: contextMenu[LinkOnPageTest.DEFAULT_LINKS].id,
 					editable: false,
-					pageUrl: 'www.google.com'
+					pageUrl: 'www.google.com',
+					modifiers: []
 				},
-				tab: {
+				tab: {isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
 					id: tabId,
 					index: 1,
 					windowId: windowId,
@@ -3523,9 +3534,13 @@ describe('On-Page CRM', function() {
 				page: {
 					menuItemId: contextMenu[LinkOnPageTest.PRESET_LINKS].id,
 					editable: false,
-					pageUrl: 'www.google.com'
+					pageUrl: 'www.google.com',
+					modifiers: []
 				},
 				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
 					id: tabId,
 					index: 1,
 					windowId: windowId,
@@ -3772,13 +3787,13 @@ describe('On-Page CRM', function() {
 					title: 'notexample',
 					url: 'http://www.notexample.com'
 				};
-				window.chrome.runtime.sendMessage({
+				window.browser.runtime.sendMessage({
 					type: 'newTabCreated'
 				}, {
 					tab: {
 						id: REPLACE.fakeTabId
 					}
-				} as any, function() { });
+				} as any);
 			}, {
 				fakeTabId: fakeTabId
 			}));
@@ -3807,9 +3822,13 @@ describe('On-Page CRM', function() {
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
-					pageUrl: 'www.google.com'
+					pageUrl: 'www.google.com',
+					modifiers: []
 				},
 				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
 					id: fakeTabId,
 					index: 1,
 					windowId: getRandomId(),
@@ -3841,13 +3860,13 @@ describe('On-Page CRM', function() {
 					title: 'example',
 					url: 'http://www.example.com'
 				};
-				window.chrome.runtime.sendMessage({
+				window.browser.runtime.sendMessage({
 					type: 'newTabCreated'
 				}, {
 					tab: {
 						id: REPLACE.fakeTabId
 					}
-				} as any, function () { });
+				} as any);
 			}, {
 				fakeTabId: fakeTabId
 			}));
@@ -3872,13 +3891,13 @@ describe('On-Page CRM', function() {
 					title: 'example',
 					url: 'http://www.example2.com'
 				};
-				window.chrome.runtime.sendMessage({
+				window.browser.runtime.sendMessage({
 					type: 'newTabCreated'
 				}, {
 					tab: {
 						id: REPLACE.fakeTabId
 					}
-				} as any, function () { });
+				} as any);
 			}, {
 				fakeTabId: fakeTabId
 			}));
@@ -3897,9 +3916,13 @@ describe('On-Page CRM', function() {
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
-					pageUrl: 'www.google.com'
+					pageUrl: 'www.google.com',
+					modifiers: []
 				},
 				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
 					id: fakeTabId,
 					index: 1,
 					windowId: getRandomId(),
@@ -3952,9 +3975,13 @@ describe('On-Page CRM', function() {
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
-					pageUrl: 'www.google.com'
+					pageUrl: 'www.google.com',
+					modifiers: []
 				},
 				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
 					id: fakeTabId,
 					index: 1,
 					windowId: getRandomId(),
@@ -4257,9 +4284,13 @@ describe('On-Page CRM', function() {
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
-					pageUrl: 'www.google.com'
+					pageUrl: 'www.google.com',
+					modifiers: []
 				},
 				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
 					id: fakeTabId,
 					index: 1,
 					windowId: getRandomId(),
@@ -4316,13 +4347,13 @@ describe('On-Page CRM', function() {
 					url: 'http://www.notexample.com'
 				};
 				
-				window.chrome.runtime.sendMessage({
+				window.browser.runtime.sendMessage({
 					type: 'newTabCreated'
 				}, {
 					tab: {
 						id: REPLACE.fakeTabId
 					}
-				} as any, function () { });
+				} as any);
 			}, {
 				fakeTabId: fakeTabId
 			}));
@@ -4351,9 +4382,13 @@ describe('On-Page CRM', function() {
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
-					pageUrl: 'www.google.com'
+					pageUrl: 'www.google.com',
+					modifiers: []
 				},
 				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
 					id: fakeTabId,
 					index: 1,
 					windowId: getRandomId(),
@@ -4384,13 +4419,13 @@ describe('On-Page CRM', function() {
 					title: 'example',
 					url: 'http://www.example.com'
 				};
-				window.chrome.runtime.sendMessage({
+				window.browser.runtime.sendMessage({
 					type: 'newTabCreated'
 				}, {
 					tab: {
 						id: REPLACE.fakeTabId
 					}
-				} as any, function () { });
+				} as any);
 			}, {
 				fakeTabId: fakeTabId
 			}));
@@ -4414,13 +4449,13 @@ describe('On-Page CRM', function() {
 					title: 'example',
 					url: 'http://www.example2.com'
 				};
-				window.chrome.runtime.sendMessage({
+				window.browser.runtime.sendMessage({
 					type: 'newTabCreated'
 				}, {
 					tab: {
 						id: REPLACE.fakeTabId
 					}
-				} as any, function () { });
+				} as any);
 			}, {
 				fakeTabId: fakeTabId
 			}));
@@ -4438,9 +4473,13 @@ describe('On-Page CRM', function() {
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
-					pageUrl: 'www.google.com'
+					pageUrl: 'www.google.com',
+					modifiers: []
 				},
 				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
 					id: fakeTabId,
 					index: 1,
 					windowId: getRandomId(),
@@ -4482,9 +4521,13 @@ describe('On-Page CRM', function() {
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
-					pageUrl: 'www.google.com'
+					pageUrl: 'www.google.com',
+					modifiers: []
 				},
 				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
 					id: fakeTabId,
 					index: 1,
 					windowId: getRandomId(),
@@ -4591,9 +4634,13 @@ describe('On-Page CRM', function() {
 							menuItemId: contextMenu[0].id,
 							editable: false,
 							pageUrl: 'www.google.com',
-							wasChecked: false
+							wasChecked: false,
+							modifiers: []
 						},
 						tab: {
+							isArticle: false,
+							isInReaderMode: false,
+							lastAccessed: 0,
 							id: tabId,
 							index: 1,
 							windowId: getRandomId(),
@@ -4624,9 +4671,13 @@ describe('On-Page CRM', function() {
 							menuItemId: contextMenu[0].id,
 							editable: false,
 							pageUrl: 'www.google.com',
-							wasChecked: true
+							wasChecked: true,
+							modifiers: []
 						},
 						tab: {
+							isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
 							id: tabId,
 							index: 1,
 							windowId: getRandomId(),
