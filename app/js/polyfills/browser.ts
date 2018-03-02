@@ -515,5 +515,15 @@ if (!window.browserAPI) {
 			__isProxied: true
 		}} :
 		window.browserAPI;
+
+	type MenusBrowserAPI = typeof BrowserAPI.polyfill & {
+		menus?: (typeof BrowserAPI.polyfill)['contextMenus']
+	};
+	const menusBrowserAPI = window.browserAPI as MenusBrowserAPI;
+	if (!menusBrowserAPI.contextMenus) {
+		menusBrowserAPI.contextMenus = menusBrowserAPI.menus;
+	} else if (!menusBrowserAPI.menus) {
+		menusBrowserAPI.menus = menusBrowserAPI.contextMenus;
+	}
 }
 const browserAPI = window.browserAPI as typeof BrowserAPI.polyfill;
