@@ -347,6 +347,34 @@ module.exports = function(grunt) {
 					dest: 'app/manifest.json'
 				}]
 			},
+			copyManifestChromeBuild: {
+				files: [{
+					expand: false,
+					src: ['app/manifest.chrome.json'],
+					dest: 'build/manifest.json'
+				}]
+			},
+			copyManifestEdgeBuild: {
+				files: [{
+					expand: false,
+					src: ['app/manifest.edge.json'],
+					dest: 'build/manifest.json'
+				}]
+			},
+			copyManifestFirefoxBuild: {
+				files: [{
+					expand: false,
+					src: ['app/manifest.firefox.json'],
+					dest: 'build/manifest.json'
+				}]
+			},
+			copyManifestOperaBuild: {
+				files: [{
+					expand: false,
+					src: ['app/manifest.opera.json'],
+					dest: 'build/manifest.json'
+				}]
+			},
 			stashManifest: {
 				files: [{
 					expand: false,

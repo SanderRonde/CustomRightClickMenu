@@ -9,7 +9,7 @@ before_install:
   -in test/UI/secrets.js.enc -out test/UI/secrets.js -d
 - npm install grunt -g
 install:
-- npm install
+- yarn
 script: sh ./build.sh
 notifications:
   email:

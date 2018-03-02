@@ -71,7 +71,6 @@ interface AppWindow extends Window {
 
 declare const require: any;
 declare const window: AppWindow;
-declare const process: any;
 
 import * as chai from 'chai';
 import * as webdriver from 'selenium-webdriver';
@@ -113,7 +112,7 @@ function arrContains<T>(arr: ArrayLike<T>, fn: (item: T) => boolean): T {
 }
 
 function getCapabilities(): BrowserstackCapabilities {
-	if (process.argv.indexOf('--latest-chrome')) {
+	if (process.argv.indexOf('--latest-chrome') > -1) {
 		return {
 			'browserName' : 'Chrome',
 			'os' : 'Windows',
@@ -134,6 +133,87 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browser_version': `${chromeVersion}.0`,
 			'os' : 'Windows',
 			'os_version' : '8',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
+			'browserstack.local': true,
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
+	}
+	if (process.argv.indexOf('--firefox-quantum') > -1) {
+		return {
+			'browserName' : 'Firefox',
+			'browser_version': '57.0',
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
+			'browserstack.local': true,
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
+	}
+	if (process.argv.indexOf('--firefox-latest') > -1) {
+		return {
+			'browserName' : 'Firefox',
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
+			'browserstack.local': true,
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
+	}
+	if (process.argv.indexOf('--edge-16') > -1) {
+		return {
+			'browserName' : 'Edge',
+			'browser_version': '16.0',
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
+			'browserstack.local': true,
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
+	}
+	if (process.argv.indexOf('--edge-latest') > -1) {
+		return {
+			'browserName' : 'Edge',
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
+			'browserstack.local': true,
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
+	}
+	if (process.argv.indexOf('--opera-51') > -1) {
+		return {
+			'browserName' : 'Opera',
+			'browser_version': '51.0',
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
+			'browserstack.local': true,
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
+	}
+	if (process.argv.indexOf('--opera-latest') > -1) {
+		return {
+			'browserName' : 'Opera',
+			'os' : 'Windows',
+			'os_version' : '10',
 			'resolution' : '1920x1080',
 			'browserstack.user' : secrets.user,
 			'browserstack.key' : secrets.key,
@@ -172,7 +252,8 @@ before('Driver connect', function(done: any) {
 		SKIP_DIALOG_TYPES_EXCEPT) {
 			console.warn('Skipping is enabled, make sure this isn\'t in a production build')
 		}
-	result.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`).then(() => {
+	const { browserName } = capabilities;
+	result.get(`http://localhost:${PORT}/dist/${browserName.toLowerCase()}/html/UITest.html#noClear-test-noBackgroundInfo`).then(() => {
 		driver = result;
 		let attempts = 0;
 		let timer = setInterval(() => {
