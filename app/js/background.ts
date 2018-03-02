@@ -8027,6 +8027,7 @@ if (typeof module === 'undefined') {
 		static async buildPageCRM() {
 			const length = globalObject.globals.crm.crmTree.length;
 			globalObject.globals.crmValues.stylesheetNodeStatusses = {};
+			//TODO: problematic in edge
 			await browserAPI.contextMenus.removeAll();
 			globalObject.globals.crmValues.rootId = browserAPI.contextMenus.create({
 				title: globalObject.globals.storages.settingsStorage.rootName || 'Custom Menu',
