@@ -321,49 +321,43 @@ module.exports = function(grunt) {
 			},
 			copyManifestChromeDev: {
 				files: [{
-					expand: true,
-					cwd: 'app/',
-					src: ['manifest.chrome.json'],
+					expand: false,
+					src: ['app/manifest.chrome.json'],
 					dest: 'app/manifest.json'
 				}]
 			},
 			copyManifestEdgeDev: {
 				files: [{
-					expand: true,
-					cwd: 'app/',
-					src: ['manifest.edge.json'],
+					expand: false,
+					src: ['app/manifest.edge.json'],
 					dest: 'app/manifest.json'
 				}]
 			},
 			copyManifestFirefoxDev: {
 				files: [{
-					expand: true,
-					cwd: 'app/',
-					src: ['manifest.firefox.json'],
+					expand: false,
+					src: ['app/manifest.firefox.json'],
 					dest: 'app/manifest.json'
 				}]
 			},
 			copyManifestOperaDev: {
 				files: [{
-					expand: true,
-					cwd: 'app/',
-					src: ['manifest.opera.json'],
+					expand: false,
+					src: ['app/manifest.opera.json'],
 					dest: 'app/manifest.json'
 				}]
 			},
 			stashManifest: {
 				files: [{
-					expand: true,
-					cwd: 'app/',
-					src: ['manifest.json'],
+					expand: false,
+					src: ['app/manifest.json'],
 					dest: 'app/manifest.temp.json'
 				}]
 			},
 			unstashManifest: {
 				files: [{
-					expand: true,
-					cwd: 'app/',
-					src: ['manifest.temp.json'],
+					expand: false,
+					src: ['app/manifest.temp.json'],
 					dest: 'app/manifest.json'
 				}]
 			}
