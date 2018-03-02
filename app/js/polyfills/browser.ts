@@ -43,8 +43,8 @@ namespace BrowserAPI {
 
 	type ChromeCallbackHandler<T> = {
 		(...args: Array<any>): void;
-		resolve(value: T): void;
-		reject(err: any): void;
+		__resolve(value: T): void;
+		__reject(err: any): void;
 	}
 
 	function createCallback<T>(prom: {
@@ -59,8 +59,8 @@ namespace BrowserAPI {
 				resolve(args[0]);
 			}
 		}) as Partial<ChromeCallbackHandler<T>>;
-		fn.resolve = resolve;
-		fn.reject = reject;
+		fn.__resolve = resolve;
+		fn.__reject = reject;
 		return fn as ChromeCallbackHandler<T>;
 	}
 
@@ -85,7 +85,7 @@ namespace BrowserAPI {
 						Promise.all(keys.map((key) => {
 							return new Promise((resolveMapped) => {
 								__srcBrowser.storage[type].remove(key, () => {
-									checkReject(handler.reject) || resolveMapped(null);
+									checkReject(handler.__reject) || resolveMapped(null);
 								});
 							});
 						})).then(handler)
@@ -452,9 +452,9 @@ namespace BrowserAPI {
 			sendMessage<R>(tabId: number, message: any, options?: {
 				frameId: number;
 			}) {
-				return createPromise<void|R>(({ resolve, reject }) => {
+				return createPromise<void|R>(({ __resolve, __reject }) => {
 					__srcBrowser.tabs.sendMessage(tabId, message, (response?: R) => {
-						checkReject(reject) || resolve(response);
+						checkReject(__reject) || __resolve(response);
 					});
 				});
 			},
