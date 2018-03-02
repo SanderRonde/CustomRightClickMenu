@@ -253,3 +253,4 @@ test/UI/built/UITest.html
 test/UI/UITest.html
 test/UI/background.js
 test/UI/options.js
+app/manifest.json
