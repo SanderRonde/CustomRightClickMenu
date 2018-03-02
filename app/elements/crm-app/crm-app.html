@@ -78,14 +78,14 @@
 								</div>
 								<br />
 								<div id="editorThemeFontSize">
-									<paper-input on-change="domListener" data-on-change="fontSizeChange" id="editorThemeFontSizeInput" type="number" label="font size %">
+									<paper-input on-change="domListener" data-on-change="fontSizeChange" id="editorThemeFontSizeInput" type="number" always-float-label label="font size %">
 										<div suffix>%</div>
 									</paper-input>
 								</div>
 								<br />
 								<div id="editorJSLintGlobals">
 									<div id="editorJSLintGlobalsFlexCont">
-										<paper-input on-keypress="domListener" data-on-keypress="jsLintGlobalsChange" id="editorJSLintGlobalsInput" label="Comma seperated list of JSLint globals"></paper-input>
+										<paper-input on-keypress="domListener" data-on-keypress="jsLintGlobalsChange" id="editorJSLintGlobalsInput" label="Comma seperated list of JSLint globals"  always-float-label></paper-input>
 									</div>
 								</div>
 								<br />
@@ -95,7 +95,7 @@
 									<template id="keyBindingsTemplate" is="dom-repeat" as="keyBinding">
 										<div class="keyBinding">
 											<div>
-												<paper-input data-index="{{itemIndex}}" on-keydown="domListener" data-on-keydown="onKeyBindingKeyDown" label="{{keyBinding.name}}" value="{{getKeyBindingValue(keyBinding)}}" class="keyBindingSettingKeyInput"></paper-input>
+												<paper-input data-index="{{itemIndex}}" on-keydown="domListener" data-on-keydown="onKeyBindingKeyDown" label="{{keyBinding.name}}" value="{{getKeyBindingValue(keyBinding)}}" class="keyBindingSettingKeyInput" always-float-label></paper-input>
 											</div>
 											<br />
 										</div>
