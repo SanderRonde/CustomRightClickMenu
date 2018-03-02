@@ -278,7 +278,7 @@ interface Window {
 		fill?: 'forwards'|'backwards'|'both';
 	}) => {
 		const { from, propName, to, postfix } = properties;
-		if (_supportsTransformUnprefixed) {
+		if (_supportsTransformUnprefixed && !el.animate.isJqueryPolyfill) {
 			return el.animate([{
 				transform: `${propName}(${from}${postfix})`
 			}, {

@@ -54,7 +54,7 @@ namespace CRMAppElement {
 
 	(() => {
 		const animateExists = !!document.createElement('div').animate;
-		const animatePolyFill = function (this: HTMLElement, properties:  Array<{
+		const animatePolyFill = function (this: HTMLElement, properties: Array<{
 			[key: string]: any;
 		}>, options: {
 			duration?: number;
@@ -86,7 +86,7 @@ namespace CRMAppElement {
 							}
 						});
 				},
-				reverse(this: Animation) {
+				reverse() {
 					direction = 'backwards';
 					this.play();
 				},
@@ -297,7 +297,7 @@ namespace CRMAppElement {
 		}
 
 		if (!animateExists) {
-			(HTMLElement.prototype.animate as any).isJqueryFill = true;
+			HTMLElement.prototype.animate.isJqueryPolyfill = true;
 		}
 	})();
 

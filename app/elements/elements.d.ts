@@ -227,19 +227,22 @@ interface Animation {
 }
 
 interface HTMLElement {
-	animate<K extends {
-		[key: string]: string;
-	} = {
-		[key: string]: string;
-	}>(this: HTMLElement, properties: [{
-		[key in keyof K]: string|number;
-	}, {
-		[key in keyof K]: string|number;
-	}], options: {
-		duration?: number;
-		easing?: string;
-		fill?: 'forwards'|'backwards'|'both';
-	}): Animation;
+	animate: {
+		<K extends {
+			[key: string]: string;
+		} = {
+			[key: string]: string;
+		}>(this: HTMLElement, properties: [{
+			[key in keyof K]: string|number;
+		}, {
+			[key in keyof K]: string|number;
+		}], options: {
+			duration?: number;
+			easing?: string;
+			fill?: 'forwards'|'backwards'|'both';
+		}): Animation;
+		isJqueryPolyfill?: boolean;
+	}
 	animateTo<K extends {
 		[key: string]: string;
 	} = {
