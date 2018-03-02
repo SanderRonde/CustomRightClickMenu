@@ -3433,7 +3433,6 @@ namespace CRMAppElement {
 					'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open\\command]',
 					'@="\\"' + filePath + '\\""'
 				].join('\n');
-				//TODO: this
 				if (await this._getDownloadPermission()) {
 					if (browserAPI.downloads) {
 						browserAPI.downloads.download({
