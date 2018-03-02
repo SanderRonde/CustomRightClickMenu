@@ -11,25 +11,25 @@
 	display: flex;
 	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	        justify-content: center;
+		justify-content: center;
 }
 
 #centerHorizontal {
 	-webkit-box-orient: horizontal;
 	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
-	        flex-direction: row;
+		flex-direction: row;
 	width: 100%;
 }
 
 #centerVertical {
 	-webkit-box-flex: 100;
 	-webkit-flex-grow: 100;
-	        flex-grow: 100;
+		flex-grow: 100;
 	-webkit-box-orient: vertical;
 	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	        flex-direction: column;
+		flex-direction: column;
 }
 
 #content {
