@@ -185,7 +185,16 @@ interface Window {
 	}
 
 	const register = (fn: any) => {
-		Polymer(objectify(fn));
+		const objectified = objectify(fn);
+		const prevReady = objectified.ready;
+		Polymer({...objectified, ...{
+			ready(this: Polymer.InitializerProperties & Polymer.PolymerElement) {
+				this.classList.add(`browser-${BrowserAPI.getBrowser()}`);
+				if (prevReady && typeof prevReady === 'function') {
+					prevReady.apply(this, []);
+				}
+			}
+		}});
 	}
 
 	window.withAsync = async <T>(initializer: () => Promise<Withable>, fn: () => Promise<T>): Promise<T> => {
