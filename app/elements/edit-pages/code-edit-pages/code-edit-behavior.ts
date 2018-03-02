@@ -565,18 +565,10 @@ namespace CodeEditBehaviorNamespace {
 		};
 
 		static _hideFullscreenOptions(this: CodeEditBehaviorInstance) {
-			window.animateTransform(window.app.$.fullscreenSettingsContainer, {
-				propName: 'translateX',
-				postfix: 'px',
-				from: 0,
-				to: 500
-			}, {
-				duration: 500,
-				easing: 'bez',
-				fill: 'both'
-			}).onfinish = () => {
-				window.app.$.fullscreenEditorToggle.style.display = 'block';		
-			}
+			window.setTransform(window.app.$.fullscreenSettingsContainer, 'translateX(500px)');
+			window.setTimeout(() => {
+				window.app.$.fullscreenEditorToggle.style.display = 'block';
+			}, 500);
 		}
 
 		/**
@@ -660,16 +652,7 @@ namespace CodeEditBehaviorNamespace {
 
 		static _showFullscreenOptions(this: CodeEditBehaviorInstance) {
 			window.app.$.fullscreenEditorToggle.style.display = 'none';		
-			window.animateTransform(window.app.$.fullscreenSettingsContainer, {
-				propName: 'translateX',
-				postfix: 'px',
-				from: 500,
-				to: 0
-			}, {
-				duration: 500,
-				easing: 'bez',
-				fill: 'both'
-			})
+			window.setTransform(window.app.$.fullscreenSettingsContainer, 'translateX(0)');
 		}
 
 		/**
