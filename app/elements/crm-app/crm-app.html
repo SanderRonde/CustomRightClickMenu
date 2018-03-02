@@ -118,8 +118,11 @@
 						<div main-title class="title">[[_getPageTitle()]]</div>
 					</app-toolbar>
 					<template is="dom-if" if="[[_isOldChrome()]]">
-						<div id="updateChromeNotice">You are using a very old version of chrome (<span>[[_getChromeAge()]]</span> years old).
+						<div class="badBrowserBanner">You are using a very old version of Chrome (<span>[[_getChromeAge()]]</span> years old).
 							Some features may perform worse or not at all. Please consider updating your chrome.</div>
+					</template>
+					<template is="dom-if" if="[[_isEdge()]]">
+						<div class="badBrowserBanner">You are using Edge. Please consider switching to a better browser (like Chrome) as some features may perform worse or not at all.</div>
 					</template>
 				</app-header>
 				<div class="container">
