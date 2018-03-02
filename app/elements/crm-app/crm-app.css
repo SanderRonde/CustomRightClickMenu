@@ -1232,7 +1232,7 @@ paper-checkbox {
 }
 
 #fullscreenEditorToggle {
-	margin-top: 0;
+	margin-top: -3px;
 }
 
 #fullscreenEditorSettings {
@@ -1240,8 +1240,8 @@ paper-checkbox {
 }
 
 #fullscreenEditorSettings svg {
-	-webkit-transform: translateY(-2px);
-	transform: translateY(-2px);
+	-webkit-transform: translateY(-10px);
+	transform: translateY(-10px);
 }
 
 .paper-material {
