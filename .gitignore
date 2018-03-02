@@ -255,3 +255,4 @@ test/UI/background.js
 test/UI/options.js
 app/manifest.json
 app/manifest.temp.json
+dist/
