@@ -160,7 +160,7 @@
 		background-color: rgb(230,230,230);
 	}
 
-.edge-browser .item {
+:host(.browser-edge) .item {
 	transform: translateY(-34px);
 }
 
