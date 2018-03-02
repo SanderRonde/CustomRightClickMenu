@@ -230,18 +230,18 @@ namespace CRMAppElement {
 					const { equal, reverse } = areConfigsEqual(animation.properties, properties);
 					const timingsEqual = areTimingsEqual(animation.options, options);
 					if (!equal || !timingsEqual) {
-						break;
+						continue;
 					}
 
 					if (reverse === (animation.state === 'completed')) {
 						if (animation.state === 'initial') {
 							if (!animation.animation) {
-								break;
+								continue;
 							}
 							animation.animation.play();
 						} else {
 							if (!animation.animation.reverse) {
-								break;
+								continue;
 							}
 							animation.animation.reverse();
 						}
