@@ -8024,48 +8024,57 @@ if (typeof module === 'undefined') {
 			]);
 			return newNode as CRM.SafeNode;
 		}
-		static async buildPageCRM() {
-			const length = globalObject.globals.crm.crmTree.length;
-			globalObject.globals.crmValues.stylesheetNodeStatusses = {};
-			//TODO: problematic in edge
-			await browserAPI.contextMenus.removeAll();
-			globalObject.globals.crmValues.rootId = browserAPI.contextMenus.create({
-				title: globalObject.globals.storages.settingsStorage.rootName || 'Custom Menu',
-				contexts: ['all']
-			});
-			globalObject.globals.toExecuteNodes = {
-				onUrl: {},
-				always: [],
-				documentStart: []
-			};
-			for (let i = 0; i < length; i++) {
-				const result = await this._buildPageCRMTree(globalObject.globals.crm.crmTree[i],
-					globalObject.globals.crmValues.rootId, [i], globalObject.globals.crmValues
-						.contextMenuItemTree);
-				if (result) {
-					globalObject.globals.crmValues.contextMenuItemTree[i] = {
-						index: i,
-						id: result.id,
-						enabled: true,
-						node: globalObject.globals.crm.crmTree[i],
-						parentId: globalObject.globals.crmValues.rootId,
-						children: result.children,
-						parentTree: globalObject.globals.crmValues.contextMenuItemTree
+		static buildPageCRM() {
+			return new Promise<void>((resolve) => {
+				const length = globalObject.globals.crm.crmTree.length;
+				globalObject.globals.crmValues.stylesheetNodeStatusses = {};
+				browserAPI.contextMenus.removeAll().then(() => {
+					globalObject.globals.crmValues.rootId = browserAPI.contextMenus.create({
+						title: globalObject.globals.storages.settingsStorage.rootName || 'Custom Menu',
+						contexts: ['all']
+					});
+					globalObject.globals.toExecuteNodes = {
+						onUrl: {},
+						always: [],
+						documentStart: []
 					};
-				}
-			}
-
-			if (globalObject.globals.storages.storageLocal.showOptions) {
-				browserAPI.contextMenus.create({
-					type: 'separator',
-					parentId: globalObject.globals.crmValues.rootId
+					Util.promiseChain(Array.prototype.slice.apply(new Array(length)).map((_item: any, i: number) => {
+						return () => {
+							return new Promise<void>((resolveInner) => {
+								this._buildPageCRMTree(globalObject.globals.crm.crmTree[i],
+									globalObject.globals.crmValues.rootId, [i], globalObject.globals.crmValues
+										.contextMenuItemTree).then((result) => {
+									if (result) {
+										globalObject.globals.crmValues.contextMenuItemTree[i] = {
+											index: i,
+											id: result.id,
+											enabled: true,
+											node: globalObject.globals.crm.crmTree[i],
+											parentId: globalObject.globals.crmValues.rootId,
+											children: result.children,
+											parentTree: globalObject.globals.crmValues.contextMenuItemTree
+										};
+									}
+									resolveInner(null);
+								});
+							});
+						}
+					})).then(() => {
+						if (globalObject.globals.storages.storageLocal.showOptions) {
+							browserAPI.contextMenus.create({
+								type: 'separator',
+								parentId: globalObject.globals.crmValues.rootId
+							});
+							browserAPI.contextMenus.create({
+								title: 'Options',
+								onclick: this._createOptionsPageHandler(),
+								parentId: globalObject.globals.crmValues.rootId
+							});
+						}
+						resolve(null);
+					});
 				});
-				browserAPI.contextMenus.create({
-					title: 'Options',
-					onclick: this._createOptionsPageHandler(),
-					parentId: globalObject.globals.crmValues.rootId
-				});
-			}
+			});
 		}
 		static getContexts(contexts: CRM.ContentTypes): Array<_browser.contextMenus.ContextType> {
 			const newContexts: Array<_browser.contextMenus.ContextType> = ['browser_action'];
