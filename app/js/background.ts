@@ -2339,7 +2339,7 @@ if (typeof module === 'undefined') {
 
 			browserAPI.tabs.onUpdated.addListener(onTabUpdated);
 			browserAPI.tabs.onRemoved.addListener(onTabsRemoved);
-			browserAPI.tabs.onHighlighted.addListener(tabChangeListener);
+			browserAPI.tabs.onHighlighted && browserAPI.tabs.onHighlighted.addListener(tabChangeListener);
 			browserAPI.webRequest.onBeforeRequest.addListener((details) => {
 				const split = details.url
 					.split(`${location.protocol}//${browserAPI.runtime.id}/resource/`)[1].split('/');
