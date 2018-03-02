@@ -318,6 +318,54 @@ module.exports = function(grunt) {
 					src: ['html/optionsPrefix.js'],
 					dest: 'build/'
 				}]
+			},
+			copyManifestChromeDev: {
+				files: [{
+					expand: true,
+					cwd: 'app/',
+					src: ['manifest.chrome.json'],
+					dest: 'app/manifest.json'
+				}]
+			},
+			copyManifestEdgeDev: {
+				files: [{
+					expand: true,
+					cwd: 'app/',
+					src: ['manifest.edge.json'],
+					dest: 'app/manifest.json'
+				}]
+			},
+			copyManifestFirefoxDev: {
+				files: [{
+					expand: true,
+					cwd: 'app/',
+					src: ['manifest.firefox.json'],
+					dest: 'app/manifest.json'
+				}]
+			},
+			copyManifestOperaDev: {
+				files: [{
+					expand: true,
+					cwd: 'app/',
+					src: ['manifest.opera.json'],
+					dest: 'app/manifest.json'
+				}]
+			},
+			stashManifest: {
+				files: [{
+					expand: true,
+					cwd: 'app/',
+					src: ['manifest.json'],
+					dest: 'app/manifest.temp.json'
+				}]
+			},
+			unstashManifest: {
+				files: [{
+					expand: true,
+					cwd: 'app/',
+					src: ['manifest.temp.json'],
+					dest: 'app/manifest.json'
+				}]
 			}
 		},
 		htmlmin: {
@@ -925,4 +973,25 @@ module.exports = function(grunt) {
 	//Crisps all HTML files for CSP compliance
 	grunt.registerTask('crispify', ['crisper:optionsPage', 
 		'crisper:background']);
+
+
+
+	//Choosing a browser to test/build/develop
+	//Copy the chrome manifest.json
+	grunt.registerTask('browserChrome', ['copy:copyManifestChromeDev']);
+
+	//Copy the firefox manifest.json
+	grunt.registerTask('browserFirefox', ['copy:copyManifestFirefoxDev']);
+
+	//Copy the edge manifest.json
+	grunt.registerTask('browserEdge', ['copy:copyManifestEdgeDev']);
+
+	//Copy the opera manifest.json
+	grunt.registerTask('browserOpera', ['copy:copyManifestOpereDev']);
+
+	//Copy the current manifest and store it to undo overrides later
+	grunt.registerTask('stashBrowser', ['copy:stashManifest']);
+
+	//Undo any overrides since the last stashing of the manifest
+	grunt.registerTask('unstashBrowser', ['copy:unstashManifest']);
 };
