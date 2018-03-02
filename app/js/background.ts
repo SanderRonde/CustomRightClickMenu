@@ -2342,14 +2342,14 @@ if (typeof module === 'undefined') {
 			browserAPI.tabs.onHighlighted && browserAPI.tabs.onHighlighted.addListener(tabChangeListener);
 			browserAPI.webRequest.onBeforeRequest.addListener((details) => {
 				const split = details.url
-					.split(`${location.protocol}//${browserAPI.runtime.id}/resource/`)[1].split('/');
+					.split(`https://www.localhost.io/resource/`)[1].split('/');
 				const name = split[0];
 				const scriptId = ~~split[1];
 				return {
 					redirectUrl: this.getResourceData(name, scriptId)
 				};
 			}, {
-				urls: [`${location.protocol}//${browserAPI.runtime.id}/resource/*`]
+				urls: [`https://www.localhost.io/resource/*`]
 			}, ['blocking']);
 			listenNotifications();
 			listenTamperMonkeyInstallState();
@@ -5648,7 +5648,7 @@ if (typeof module === 'undefined') {
 						dataString: dataString,
 						hashes: registerHashes,
 						matchesHashes: this._matchesHashes(registerHashes, dataString),
-						crmUrl: `${location.protocol}//${browserAPI.runtime.id}/resource/${scriptId}/${name}`
+						crmUrl: `https://www.localhost.io/resource/${scriptId}/${name}`
 					};
 					browserAPI.storage.local.set({
 						resources: resources,
