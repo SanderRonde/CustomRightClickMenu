@@ -10430,6 +10430,7 @@ if (query) {
 				}
 
 				window.log(e);
+				window.console.trace();
 				throw e;
 			}
 		});
