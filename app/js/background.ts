@@ -1559,7 +1559,7 @@ if (typeof module === 'undefined') {
 		static promiseChain<T>(initializers: Array<() => Promise<any>>) {
 			return new Promise<T>((resolve) => {
 				if (!initializers[0]) {
-					resolve(null);
+					return resolve(null);
 				}
 
 				initializers[0]().then((result) => {
