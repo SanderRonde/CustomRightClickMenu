@@ -112,7 +112,7 @@ function arrContains<T>(arr: ArrayLike<T>, fn: (item: T) => boolean): T {
 }
 
 function getCapabilities(): BrowserstackCapabilities {
-	if (process.argv.indexOf('--latest-chrome') > -1) {
+	if (process.argv.indexOf('--chrome-latest') > -1) {
 		return {
 			'browserName' : 'Chrome',
 			'os' : 'Windows',
