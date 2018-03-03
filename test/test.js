@@ -978,6 +978,7 @@ var chrome = {
 		},
 		removeAll: function(callback) {
 			checkOnlyCallback(callback, true);
+			callback();
 		}
 	},
 	commands: {
