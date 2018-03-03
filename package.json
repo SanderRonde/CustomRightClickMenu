@@ -111,7 +111,7 @@
     "polymer-build": "^2.1.1",
     "readline": "^1.3.0",
     "request": "^2.79.0",
-    "selenium-webdriver": "^3.0.0-beta-3",
+    "selenium-webdriver": "^3.6.0",
     "supports-color": "^3.1.2",
     "tty": "^1.0.1",
     "typescript": "^2.7.2",
@@ -130,7 +130,6 @@
     "pretest": "yarn pretest:main && yarn pretest:post",
     "pretest:main": "grunt stashBrowser && grunt buildTest",
     "pretest:post": "grunt unstashBrowser",
-
     "test": "yarn test:global && yarn test:chrome && yarn test:firefox && yarn test:edge",
     "test:global": "mocha test/test.js",
     "test:chrome": "yarn test:chrome:26 && yarn test:chrome:30 && yarn test:chrome:latest",
@@ -143,7 +142,6 @@
     "test:edge": "yarn test:edge:16 && yarn test:edge:latest",
     "test:edge:16": "mocha test/UITest.js --remote --edge-16",
     "test:edge:latest": "mocha test/UITest.js --remote --edge-latest",
-
     "build": "yarn build:main && yarn build:chrome-copy && yarn build:firefox-copy && yarn build:edge-copy && yarn build:opera-copy && yarn build:post",
     "build:main": "grunt stashBrowser && grunt build",
     "build:chrome-copy": "grunt copy:copyManifestChromeBuild && grunt copy:buildToChrome",
@@ -151,7 +149,6 @@
     "build:edge-copy": "grunt copy:copyManifestEdgeBuild && grunt copy:buildToEdge",
     "build:opera-copy": "grunt copy:copyManifestOperaBuild && grunt copy:buildToOpera",
     "build:post": "grunt unstashBrowser",
-
     "build-chrome": "grunt stashBrowser && grunt browserChrome && grunt build && grunt copy:buildToChrome",
     "build-firefox": "grunt stashBrowser && grunt browserFirefox && grunt build && grunt copy:buildToFirefox",
     "build-edge": "grunt stashBrowser && grunt browserEdge && grunt build && grunt copy:buildToEdge",
