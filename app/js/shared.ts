@@ -221,6 +221,7 @@ interface Window {
 
 	let _supportsFlexUnprefixed: boolean = null;
 	let _supportsTransformUnprefixed: boolean = 
+		window.getComputedStyle && 
 		'transform' in window.getComputedStyle(document.documentElement, '');
 
 	window.setDisplayFlex = (el: HTMLElement|SVGElement) => {
