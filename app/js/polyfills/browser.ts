@@ -109,6 +109,8 @@ namespace BrowserAPI {
 			return browserAPIExists;
 		} else if (api === 'chrome') {
 			return chromeAPIExists;
+		} else if (typeof module !== 'undefined') {
+			return false;
 		} else {
 			throw new Error('Unsupported browser API support queried');
 		}
@@ -123,7 +125,7 @@ namespace BrowserAPI {
 		StyleMedia?: any;
 	}
 	
-	let _browserUserAgent: 'chrome'|'firefox'|'edge'|'opera' = null;
+	let _browserUserAgent: 'chrome'|'firefox'|'edge'|'opera'|'node' = null;
 	function getBrowserUserAgent() {
 		const win = window as MultiBrowserWindow;
 		const isOpera = (!!win.opr && !!win.opr.addons) || !!win.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
@@ -138,6 +140,9 @@ namespace BrowserAPI {
 		}
 		if (isOpera) {
 			return 'opera';
+		}
+		if (typeof module !== 'undefined') {
+			return 'node';
 		}
 		throw new Error('Unsupported browser');
 	}
