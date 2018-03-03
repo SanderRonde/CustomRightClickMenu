@@ -13,8 +13,8 @@ const LOCAL_URL = 'http://localhost:9515';
 
 const SKIP_OPTIONS_PAGE = false;
 const SKIP_OPTIONS_PAGE_NON_DIALOGS = false;
-const SKIP_OPTIONS_PAGE_DIALOGS = false;
-const SKIP_CONTEXTMENU = false;
+const SKIP_OPTIONS_PAGE_DIALOGS = true;
+const SKIP_CONTEXTMENU = true;
 const SKIP_DIALOG_TYPES_EXCEPT = false as CRM.NodeType|false;
 
 interface ChromeLastCall {
@@ -270,17 +270,16 @@ before('Driver connect', async function() {
 		SKIP_DIALOG_TYPES_EXCEPT) {
 			console.warn('Skipping is enabled, make sure this isn\'t in a production build')
 		}
-	await driver.manage().timeouts().setScriptTimeout(600000)
 	await driver.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`);
 	await waitFor(async () => {
 		return await driver.executeScript(inlineFn(() => {
-				return window.polymerElementsLoaded;
+			return window.polymerElementsLoaded;
 		}));
 	}, 2500, 600000 * TIME_MODIFIER).catch(() => {
-				//About to time out
-				throw new Error('Failed to get elements loaded message, page load is failing');
-	})
+		//About to time out
+		throw new Error('Failed to get elements loaded message, page load is failing');
 	});
+});
 
 const sentIds: Array<number> = [];
 function getRandomId(): number {
@@ -514,6 +513,31 @@ function inlineFn<T extends {
 		return str as StringifedFunction<U>;
 	}
 
+function inlineAsyncFn<T extends {
+	[key: string]: any;
+}, U>(fn: (done: (result: U) => void, REPLACE: T) => void|void, args?: T,
+	...insertedFunctions: Array<Function>): StringifedFunction<U> {
+		args = args || {} as T;
+		let str = `${insertedFunctions.map(inserted => inserted.toString()).join('\n')}
+			try { return (${es3IfyFunction(fn.toString())})(arguments[arguments.length - 1]) } catch(err) { throw new Error(err.name + '-' + err.stack); }`;
+		Object.getOwnPropertyNames(args).forEach((key) => {
+			let arg = args[key];
+			if (typeof arg === 'object' || typeof arg === 'function') {
+				arg = JSON.stringify(arg);
+			}
+
+			if (typeof arg === 'string' && arg.split('\n').length > 1) {
+				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), 
+					`' + ${JSON.stringify(arg.split('\n'))}.join('\\n') + '`);
+			} else {
+				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), arg !== undefined &&
+					arg !== null && typeof arg === 'string' ?
+						arg.replace(/\\\"/g, `\\\\\"`) : arg);
+			}
+		});
+		return str as StringifedFunction<U>;
+	}
+
 function getSyncSettings(): webdriver.promise.Promise<CRM.SettingsStorage> {
 	return new webdriver.promise.Promise<CRM.SettingsStorage>((resolve) => { 
 		driver.executeScript(inlineFn(() => {
@@ -649,15 +673,16 @@ function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackConte
 	__this.timeout(60000 * TIME_MODIFIER);
 	const promise = new webdriver.promise.Promise<void>((resolve) => {
 		wait(500).then(() => {
-			driver.executeScript(inlineFn(() => {
+			driver.executeAsyncScript(inlineAsyncFn((done) => {
 				try {
-					window.app.refreshPage();
-					return null;
+					window.app.refreshPage().then(() => {
+						done(null);
+					});
 				} catch(e) {
-					return {
+					done({
 						message: e.message,
 						stack: e.stack
-					};
+					});
 				}
 			})).then((e) => {
 				if (e) {
