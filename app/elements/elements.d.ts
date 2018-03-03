@@ -166,7 +166,7 @@ interface Window {
 	addCalcFn(element: HTMLElement, prop: string, calcValue: string, disable?: boolean): void;
 	useOptionsCompletions: boolean;
 	Storages: {
-		loadStorages(callback: () => void): void;
+		loadStorages(): Promise<void>;
 	}
 	Polymer: Polymer.Polymer;
 

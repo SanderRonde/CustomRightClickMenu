@@ -1045,7 +1045,7 @@ namespace CRMAppElement {
 			//Reset storages
 
 			//On a demo or test page right now, use background page to init settings
-			window.Storages.loadStorages(async () => {
+			window.Storages.loadStorages().then(async () => {
 				await this._setup.setupStorages();
 
 				//Reset checkboxes
