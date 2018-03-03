@@ -872,6 +872,16 @@ module.exports = function(grunt) {
 					dest: 'build/html/UITest.html'
 				}
 			},
+			testForDist: {
+				options: {
+					parts: [
+						'test/UI/skeleton-dist.html',
+						'build/html/background.html',
+						'build/html/options.html'
+					],
+					dest: 'build/html/UITest.html'
+				}
+			},
 			build: {
 				options: {
 					parts: [
@@ -1013,6 +1023,9 @@ module.exports = function(grunt) {
 
 	//Builds the test page
 	grunt.registerTask('buildTest', ['build', 'joinPages:test']);
+
+	//Builds the test page
+	grunt.registerTask('buildTestForDists', ['build', 'joinPages:testForDist']);
 
 	//Builds the test page without compiling the test files
 	// Can be handy if you're already running a typescript compiler
