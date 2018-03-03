@@ -1031,7 +1031,7 @@ namespace CRMAppElement {
 			});
 		};
 
-		static refreshPage(this: CrmApp) {
+		static async refreshPage(this: CrmApp) {
 			//Reset dialog
 			if (window.app.item) {
 				const dialog = window[window.app.item.type + 'Edit' as
@@ -1045,28 +1045,27 @@ namespace CRMAppElement {
 			//Reset storages
 
 			//On a demo or test page right now, use background page to init settings
-			window.Storages.loadStorages().then(async () => {
-				await this._setup.setupStorages();
+			await window.Storages.loadStorages();
+			await this._setup.setupStorages();
 
-				//Reset checkboxes
-				this._setup.initCheckboxes(window.app.storageLocal);
-				
-				//Reset default links and searchengines
-				Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('default-link')).forEach(function (link: DefaultLink) {
-					link.reset();
-				});
-
-				//Reset regedit part
-				window.doc.URISchemeFilePath.value = 'C:\\files\\my_file.exe';
-				window.doc.URISchemeSchemeName.value = 'myscheme';
-
-				//Hide all open dialogs
-				Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
-					dialog.opened && dialog.close();
-				});
-
-				this.upload(true);
+			//Reset checkboxes
+			this._setup.initCheckboxes(window.app.storageLocal);
+			
+			//Reset default links and searchengines
+			Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('default-link')).forEach(function (link: DefaultLink) {
+				link.reset();
 			});
+
+			//Reset regedit part
+			window.doc.URISchemeFilePath.value = 'C:\\files\\my_file.exe';
+			window.doc.URISchemeSchemeName.value = 'myscheme';
+
+			//Hide all open dialogs
+			Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
+				dialog.opened && dialog.close();
+			});
+
+			this.upload(true);
 		};
 
 		private static _codeStr(code: string): {
