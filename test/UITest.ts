@@ -229,50 +229,55 @@ function getCapabilities(): BrowserstackCapabilities {
 
 const capabilities = getCapabilities();
 
-before('Driver connect', function(done: any) {
+function waitFor(condition: () => Promise<boolean>|boolean, interval: number, max: number) {
+	return new Promise<void>((resolve, reject) => {
+		let totalTime = 0;
+		const timer = setInterval(async () => {
+			let conditionResult = condition();
+			if (typeof conditionResult !== 'boolean') {
+				conditionResult = await conditionResult;
+			}
+
+			if (conditionResult) {
+				resolve(null);
+				clearInterval(timer);
+			} else {
+				totalTime += interval;
+				if (totalTime >= max) {
+					reject(`Condition took longer than ${max}ms`)
+					clearInterval(timer);
+				}
+			}
+		}, interval);
+	});
+}
+
+before('Driver connect', async function() {
 	const url = TEST_LOCAL ?
 		LOCAL_URL : 'http://hub-cloud.browserstack.com/wd/hub';
 
 	this.timeout(600000 * TIME_MODIFIER);
-	const result = new webdriver.Builder()
+	driver = new webdriver.Builder()
 		.usingServer(url)
 		.withCapabilities(capabilities)
 		.build();
-
-	let called = false;
-	function callDone() {
-		if (!called) {
-			called = true;
-			done();
-		}
-	}
 
 	if (SKIP_OPTIONS_PAGE || SKIP_OPTIONS_PAGE_NON_DIALOGS ||
 		SKIP_OPTIONS_PAGE_DIALOGS || SKIP_CONTEXTMENU ||
 		SKIP_DIALOG_TYPES_EXCEPT) {
 			console.warn('Skipping is enabled, make sure this isn\'t in a production build')
 		}
-	result.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`).then(() => {
-		driver = result;
-		let attempts = 0;
-		let timer = setInterval(() => {
-			attempts += 1;
-			driver.executeScript(inlineFn(() => {
+	await driver.manage().timeouts().setScriptTimeout(600000)
+	await driver.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`);
+	await waitFor(async () => {
+		return await driver.executeScript(inlineFn(() => {
 				return window.polymerElementsLoaded;
-			})).then((loaded) => {
-				if (loaded) {
-					clearInterval(timer);
-					callDone();
-				}
-			});
-
-			if (attempts >= ((600000 * TIME_MODIFIER) / 2500) - 1) {
+		}));
+	}, 2500, 600000 * TIME_MODIFIER).catch(() => {
 				//About to time out
 				throw new Error('Failed to get elements loaded message, page load is failing');
-			}
-		}, 2500);
+	})
 	});
-});
 
 const sentIds: Array<number> = [];
 function getRandomId(): number {
