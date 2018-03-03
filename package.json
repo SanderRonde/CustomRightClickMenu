@@ -127,12 +127,8 @@
     "url": "https://github.com/SanderRonde/CustomRightClickMenu.git"
   },
   "scripts": {
-    "pretest": "yarn pretest:main && yarn pretest:chrome-copy && yarn pretest:firefox-copy && yarn pretest:edge-copy && yarn pretest:opera-copy && yarn pretest:post",
+    "pretest": "yarn pretest:main && yarn pretest:post",
     "pretest:main": "grunt stashBrowser && grunt buildTest",
-    "pretest:chrome-copy": "grunt copy:copyManifestChromeBuild && grunt copy:buildToChrome",
-    "pretest:firefox-copy": "grunt copy:copyManifestFirefoxBuild && grunt copy:buildToFirefox",
-    "pretest:edge-copy": "grunt copy:copyManifestEdgeBuild && grunt copy:buildToEdge",
-    "pretest:opera-copy": "grunt copy:copyManifestOperaBuild && grunt copy:buildToOpera",
     "pretest:post": "grunt unstashBrowser",
 
     "test": "yarn test:global && yarn test:chrome && yarn test:firefox && yarn test:edge",
