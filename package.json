@@ -128,7 +128,7 @@
   },
   "scripts": {
     "pretest": "yarn pretest:main && yarn pretest:chrome-copy && yarn pretest:firefox-copy && yarn pretest:edge-copy && yarn pretest:opera-copy && yarn pretest:post",
-    "pretest:main": "grunt stashBrowser && grunt buildTestForDists",
+    "pretest:main": "grunt stashBrowser && grunt buildTest",
     "pretest:chrome-copy": "grunt copy:copyManifestChromeBuild && grunt copy:buildToChrome",
     "pretest:firefox-copy": "grunt copy:copyManifestFirefoxBuild && grunt copy:buildToFirefox",
     "pretest:edge-copy": "grunt copy:copyManifestEdgeBuild && grunt copy:buildToEdge",

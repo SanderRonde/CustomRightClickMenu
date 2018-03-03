@@ -1024,9 +1024,6 @@ module.exports = function(grunt) {
 	//Builds the test page
 	grunt.registerTask('buildTest', ['build', 'joinPages:test']);
 
-	//Builds the test page
-	grunt.registerTask('buildTestForDists', ['build', 'joinPages:testForDist']);
-
 	//Builds the test page without compiling the test files
 	// Can be handy if you're already running a typescript compiler
 	// or have made some changes the typescript compiler doesn't like

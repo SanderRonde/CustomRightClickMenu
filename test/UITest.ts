@@ -252,8 +252,7 @@ before('Driver connect', function(done: any) {
 		SKIP_DIALOG_TYPES_EXCEPT) {
 			console.warn('Skipping is enabled, make sure this isn\'t in a production build')
 		}
-	const { browserName } = capabilities;
-	result.get(`http://localhost:${PORT}/dist/${browserName.toLowerCase()}/html/UITest.html#noClear-test-noBackgroundInfo`).then(() => {
+	result.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`).then(() => {
 		driver = result;
 		let attempts = 0;
 		let timer = setInterval(() => {
