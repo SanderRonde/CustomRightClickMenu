@@ -60,15 +60,8 @@ yarn run test:edge:latest
 echo -en "travis_fold:end:edge.2\\r"
 echo -en "travis_fold:end:edge\\r"
 
-echo "UI Tests for opera" && echo -en "travis_fold:start:opera\\r"
-echo "UI Tests for opera 51" && echo -en "travis_fold:start:opera.1\\r"
-yarn run test:opera:51
-echo -en "travis_fold:end:opera.1\\r"
+# Opera is barely supported on browserstack so not testable
 
-echo "UI Tests for latest opera" && echo -en "travis_fold:start:opera.2\\r"
-yarn run test:opera:latest
-echo -en "travis_fold:end:opera.2\\r"
-echo -en "travis_fold:end:opera\\r"
 
 if [ "$TRAVIS_BRANCH" = "master" ]; then
   echo "Changing branches"

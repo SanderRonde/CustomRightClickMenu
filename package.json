@@ -135,7 +135,7 @@
     "pretest:opera-copy": "grunt copy:copyManifestOperaBuild && grunt copy:buildToOpera",
     "pretest:post": "grunt unstashBrowser",
 
-    "test": "yarn test:global && yarn test:chrome && yarn test:firefox && yarn test:edge && yarn test:opera",
+    "test": "yarn test:global && yarn test:chrome && yarn test:firefox && yarn test:edge",
     "test:global": "mocha test/test.js",
     "test:chrome": "yarn test:chrome:26 && yarn test:chrome:30 && yarn test:chrome:latest",
     "test:chrome:26": "mocha test/UITest.js --remote --chrome-26",
@@ -147,9 +147,6 @@
     "test:edge": "yarn test:edge:16 && yarn test:edge:latest",
     "test:edge:16": "mocha test/UITest.js --remote --edge-16",
     "test:edge:latest": "mocha test/UITest.js --remote --edge-latest",
-    "test:opera": "yarn test:opera:51 && yarn test:opera:latest",
-    "test:opera:51": "mocha test/UITest.js --remote --opera-51",
-    "test:opera:latest": "mocha test/UITest.js --remote --opera-latest",
 
     "build": "yarn build:main && yarn build:chrome-copy && yarn build:firefox-copy && yarn build:edge-copy && yarn build:opera-copy && yarn build:post",
     "build:main": "grunt stashBrowser && grunt build",
