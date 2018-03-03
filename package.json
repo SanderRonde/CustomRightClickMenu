@@ -127,12 +127,13 @@
     "url": "https://github.com/SanderRonde/CustomRightClickMenu.git"
   },
   "scripts": {
-    "pretest": "yarn pretest:main && yarn pretest:chrome-copy && yarn pretest:firefox-copy && yarn pretest:edge-copy && yarn pretest:opera-copy",
+    "pretest": "yarn pretest:main && yarn pretest:chrome-copy && yarn pretest:firefox-copy && yarn pretest:edge-copy && yarn pretest:opera-copy && yarn pretest:post",
     "pretest:main": "grunt stashBrowser && grunt buildTest",
     "pretest:chrome-copy": "grunt copy:copyManifestChromeBuild && grunt copy:buildToChrome",
     "pretest:firefox-copy": "grunt copy:copyManifestFirefoxBuild && grunt copy:buildToFirefox",
     "pretest:edge-copy": "grunt copy:copyManifestEdgeBuild && grunt copy:buildToEdge",
     "pretest:opera-copy": "grunt copy:copyManifestOperaBuild && grunt copy:buildToOpera",
+    "pretest:post": "grunt unstashBrowser",
 
     "test": "yarn test:global && yarn test:chrome && yarn test:firefox && yarn test:edge && yarn test:opera",
     "test:global": "mocha test/test.js",
@@ -150,12 +151,13 @@
     "test:opera:51": "mocha test/UITest.js --remote --opera-51",
     "test:opera:latest": "mocha test/UITest.js --remote --opera-latest",
 
-    "build": "yarn build:main && yarn build:chrome-copy && yarn build:firefox-copy && yarn build:edge-copy && yarn build:opera-copy",
+    "build": "yarn build:main && yarn build:chrome-copy && yarn build:firefox-copy && yarn build:edge-copy && yarn build:opera-copy && yarn build:post",
     "build:main": "grunt stashBrowser && grunt build",
     "build:chrome-copy": "grunt copy:copyManifestChromeBuild && grunt copy:buildToChrome",
     "build:firefox-copy": "grunt copy:copyManifestFirefoxBuild && grunt copy:buildToFirefox",
     "build:edge-copy": "grunt copy:copyManifestEdgeBuild && grunt copy:buildToEdge",
     "build:opera-copy": "grunt copy:copyManifestOperaBuild && grunt copy:buildToOpera",
+    "build:post": "grunt unstashBrowser",
 
     "build-chrome": "grunt stashBrowser && grunt browserChrome && grunt build && grunt copy:buildToChrome",
     "build-firefox": "grunt stashBrowser && grunt browserFirefox && grunt build && grunt copy:buildToFirefox",
