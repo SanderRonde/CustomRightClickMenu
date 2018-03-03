@@ -1138,6 +1138,9 @@ window.chrome = {
 		}
 	}
 };
+if ('StyleMedia' in window) {
+	window.browser = window.chrome;
+}
 
 const originalWorker = window.Worker;
 window.Worker = function(url) {
