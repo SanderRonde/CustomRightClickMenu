@@ -1449,20 +1449,6 @@ describe('Options Page', function() {
 	if (SKIP_OPTIONS_PAGE) {
 		return;
 	}
-	describe('Loading', function() {
-		this.timeout(60000 * TIME_MODIFIER);
-		this.slow(60000 * TIME_MODIFIER);
-
-		it('should happen without errors', function(done)  {
-			driver.executeScript(inlineFn(() => {
-				return window.lastError ? window.lastError : 'noError';
-			})).then((result) => {
-				assert.ifError(result !== 'noError' ? result : false,
-					'no errors should be thrown when loading');
-				done();
-			});
-		});
-	});
 	describe('CheckboxOptions', function() {
 		if (SKIP_OPTIONS_PAGE_NON_DIALOGS) {
 			return;
@@ -3307,29 +3293,6 @@ describe('Options Page', function() {
 			});
 		});
 	});
-	describe('Errors', function() {
-		this.timeout(60000 * TIME_MODIFIER);
-		this.slow(200 * TIME_MODIFIER);
-
-		it('should not have been thrown', async () => {
-			const result = await driver.executeScript(inlineFn(() => {
-				return window.lastError ? {
-					message: window.lastError.message,
-					stack: window.lastError.stack
-					} : 'noError';
-			})) as 'noError'|{
-				message: string;
-				stack: string;
-			};
-			if (result !== 'noError' && 
-				result.message.indexOf('Object [object global] has no method') !== -1) {
-				console.log(result);
-				assert.ifError(result, 'no errors should be thrown during testing');
-			} else {
-				assert.ifError(false, 'no errors should be thrown during testing');
-			}
-		});
-	});
 });
 
 
@@ -4785,29 +4748,6 @@ describe('On-Page CRM', function() {
 						'dummy element is 50px wide');
 				});
 			});
-		});
-	});
-	describe('Errors', function() {
-		this.timeout(60000 * TIME_MODIFIER);
-		this.slow(200 * TIME_MODIFIER);
-
-		it('should not have been thrown', async () => {
-			const result = await driver.executeScript(inlineFn(() => {
-				return window.lastError ? {
-					message: window.lastError.message,
-					stack: window.lastError.stack
-					} : 'noError';
-			})) as 'noError'|{
-				message: string;
-				stack: string;
-			};
-			if (result !== 'noError' && 
-				result.message.indexOf('Object [object global] has no method') !== -1) {
-				console.log(result);
-				assert.ifError(result, 'no errors should be thrown during testing');
-			} else {
-				assert.ifError(false, 'no errors should be thrown during testing');
-			}
 		});
 	});
 });
