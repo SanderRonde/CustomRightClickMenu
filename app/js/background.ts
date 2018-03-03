@@ -1556,6 +1556,13 @@ if (typeof module === 'undefined') {
 		static iipe<T>(fn: () => Promise<T>): Promise<T> {
 			return fn();
 		}
+		static createArray(length: number): Array<void> {
+			const arr = [];
+			for (let i = 0; i < length; i++) {
+				arr[i] = undefined;
+			}
+			return arr;
+		}
 		static promiseChain<T>(initializers: Array<() => Promise<any>>) {
 			return new Promise<T>((resolve) => {
 				if (!initializers[0]) {
@@ -8042,7 +8049,7 @@ if (typeof module === 'undefined') {
 						always: [],
 						documentStart: []
 					};
-					Util.promiseChain(Array.prototype.slice.apply(new Array(length)).map((_item: any, i: number) => {
+					Util.promiseChain(Util.createArray(length).map((_item: any, i: number) => {
 						return () => {
 							return new Promise<void>((resolveInner) => {
 								this._buildPageCRMTree(globalObject.globals.crm.crmTree[i],
