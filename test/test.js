@@ -521,81 +521,6 @@ class xhr {
 	}
 }
 
-/**
- * @type {GlobalObject & {crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}}}
- */
-var window;
-/**
- * @type {GlobalObject & {crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}}}
- */
-// @ts-ignore
-var backgroundPageWindow = window = {
-	HTMLElement: function HTMLElement() {
-		return {};
-	},
-	console: {
-		log: console.log,
-		group: function() {},
-		groupEnd: function() {},
-		groupCollapsed: function() {}
-	},
-	JSON: JSON,
-	setTimeout: setTimeout,
-	setInterval: setInterval,
-	clearInterval: clearInterval,
-	md5: function() {
-		return generateRandomString();
-	},
-	addEventListener: function() {},
-	XMLHttpRequest: xhr,
-	document: {
-		querySelector: function() {
-			return {
-				classList: {
-					remove: function() {
-						
-					}
-				}
-			}
-		},
-		createElement: function () {
-			return {
-				setAttribute: function () { },
-				appendChild: function () { },
-				classList: {
-					add: function () { }
-				},
-				animate: function () {
-					return {
-						onfinish: function () { }
-					};
-				},
-				addEventListener: function () { },
-				style: {}
-			};
-		},
-		createDocumentFragment: function () {
-			return {
-				setAttribute: function () { },
-				appendChild: function () { },
-				classList: {
-					add: function () { }
-				},
-				animate: function () {
-					return {
-						onfinish: function () { }
-					};
-				},
-				addEventListener: function () { },
-				style: {}
-			};
-		},
-		addEventListener: function() {},
-		nodeType: 9,
-		documentElement: {}
-	}
-};
-
 // Simulate user-agent chrome on windows for codemirror
 var navigator = {
 	userAgent: 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
@@ -1275,6 +1200,81 @@ var chrome = {
 			}
 		}
 	}
+};
+/**
+ * @type {GlobalObject & {crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}} & {chrome: typeof chrome}}
+ */
+var window;
+/**
+ * @type {GlobalObject & {crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}} & {chrome: typeof chrome}}
+ */
+// @ts-ignore
+var backgroundPageWindow = window = {
+	HTMLElement: function HTMLElement() {
+		return {};
+	},
+	console: {
+		log: console.log,
+		group: function() {},
+		groupEnd: function() {},
+		groupCollapsed: function() {}
+	},
+	JSON: JSON,
+	setTimeout: setTimeout,
+	setInterval: setInterval,
+	clearInterval: clearInterval,
+	md5: function() {
+		return generateRandomString();
+	},
+	addEventListener: function() {},
+	XMLHttpRequest: xhr,
+	document: {
+		querySelector: function() {
+			return {
+				classList: {
+					remove: function() {
+						
+					}
+				}
+			}
+		},
+		createElement: function () {
+			return {
+				setAttribute: function () { },
+				appendChild: function () { },
+				classList: {
+					add: function () { }
+				},
+				animate: function () {
+					return {
+						onfinish: function () { }
+					};
+				},
+				addEventListener: function () { },
+				style: {}
+			};
+		},
+		createDocumentFragment: function () {
+			return {
+				setAttribute: function () { },
+				appendChild: function () { },
+				classList: {
+					add: function () { }
+				},
+				animate: function () {
+					return {
+						onfinish: function () { }
+					};
+				},
+				addEventListener: function () { },
+				style: {}
+			};
+		},
+		addEventListener: function() {},
+		nodeType: 9,
+		documentElement: {}
+	},
+	chrome: chrome
 };
 describe('Meta', () => {
 	var changelogCode;
