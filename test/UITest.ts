@@ -222,7 +222,10 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
-	console.error('Please specify a chrome version to test using either --latest-chrome or --chrome-{version}');
+	console.error('Please specify a chrome version to test');
+	console.log('Choose from:');
+	console.log('\n--chrome-latest\n--chrome-{version}\n--firefox-quantum')
+	console.log('--firefox-latest\n--edge-16\n--edge-latest\n--opera-51\n--opera-latest')
 	process.exit(1);
 	return {} as any;
 }
