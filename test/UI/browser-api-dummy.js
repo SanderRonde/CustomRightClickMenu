@@ -585,14 +585,14 @@ window.chrome = {
 			}
 			switch (BrowserAPI.getBrowser()) {
 				case 'firefox':
-					return `moz-extension://${extensionId}/${arg}`;
+					return 'moz-extension://' + extensionId + '/' + arg;
 				case 'edge':
-					return `ms-browser-extension://${extensionId}/${arg}`;
+					return 'ms-browser-extension://' + extensionId + '/' + arg;
 				case 'opera':
 				case 'chrome':
-					return `chrome-extension://${extensionId}/${arg}`;
+					return 'chrome-extension://' + extensionId + '/' + arg;
 			}
-			return `?://${extensionId}/${arg}`;
+			return '?://' + extensionId + '/' + arg;
 		},
 		id: extensionId,
 		reload: function() {},
