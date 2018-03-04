@@ -2098,8 +2098,7 @@ namespace CRMAppElement {
 						jsLintGlobals: parent.jsLintGlobals
 					});
 				}
-				if (storageLocal.globalExcludes && storageLocal.globalExcludes.length >
-					1) {
+				if (storageLocal.globalExcludes && storageLocal.globalExcludes.length > 1) {
 					parent.globalExcludes = storageLocal.globalExcludes;
 				} else {
 					parent.globalExcludes = [''];
