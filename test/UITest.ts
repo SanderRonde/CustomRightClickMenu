@@ -13,8 +13,8 @@ const LOCAL_URL = 'http://localhost:9515';
 
 const SKIP_OPTIONS_PAGE = false;
 const SKIP_OPTIONS_PAGE_NON_DIALOGS = false;
-const SKIP_OPTIONS_PAGE_DIALOGS = true;
-const SKIP_CONTEXTMENU = true;
+const SKIP_OPTIONS_PAGE_DIALOGS = false;
+const SKIP_CONTEXTMENU = false;
 const SKIP_DIALOG_TYPES_EXCEPT = false as CRM.NodeType|false;
 
 interface ChromeLastCall {
