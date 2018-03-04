@@ -6094,13 +6094,11 @@ if (typeof module === 'undefined') {
 
 			static readonly Running = class Running {
 				private static _urlIsGlobalExcluded(url: string): boolean {
-					if (globalObject.globals.storages.globalExcludes.indexOf('<all_urls>') >
-						-1) {
+					if (globalObject.globals.storages.globalExcludes.indexOf('<all_urls>') >-1) {
 						return true;
 					}
 					for (let i = 0; i < globalObject.globals.storages.globalExcludes.length;i++) {
-						const pattern = globalObject.globals.storages
-							.globalExcludes[i] as MatchPattern;
+						const pattern = globalObject.globals.storages.globalExcludes[i] as MatchPattern;
 						if (pattern && URLParsing.urlMatchesPattern(pattern, url)) {
 							return true;
 						}
@@ -9793,7 +9791,7 @@ if (typeof module === 'undefined') {
 					this._changeCRMValuesIfSettingsChanged(changes);
 				}).catch((e) => {
 					window.log('Error on uploading to chrome.storage.local ', e);
-                });
+				});
                 await browserAPI.storage.sync.set({
                     indexes: null
                 });
