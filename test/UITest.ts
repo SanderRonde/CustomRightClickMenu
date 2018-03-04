@@ -16,6 +16,7 @@ const SKIP_OPTIONS_PAGE_NON_DIALOGS = false;
 const SKIP_OPTIONS_PAGE_DIALOGS = false;
 const SKIP_CONTEXTMENU = false;
 const SKIP_DIALOG_TYPES_EXCEPT = false as CRM.NodeType|false;
+const WAIT_ON_DONE = false;
 
 interface ChromeLastCall {
 	api: string;
@@ -4788,14 +4789,22 @@ describe('On-Page CRM', function() {
 after('quit driver', function() {
 	this.timeout(210000);
 	return new webdriver.promise.Promise<void>((resolve) => {
-		//Resolve after 20 seconds regardless of quitting result
-		setTimeout(() => {
-			console.log('Resolving automatically');
-			resolve(null);
-		}, 15000);
+		if (!WAIT_ON_DONE) {
+			//Resolve after 20 seconds regardless of quitting result
+			setTimeout(() => {
+				console.log('Resolving automatically');
+				resolve(null);
+			}, 15000);
 		
-		driver.quit().then(() => {
-			resolve(null);
-		});
+			driver.quit().then(() => {
+				resolve(null);
+			});
+		} else {
+			setTimeout(() => {
+				driver.quit().then(() => {
+					resolve(null);
+				});
+			}, 600000);
+		}
 	});
 });
