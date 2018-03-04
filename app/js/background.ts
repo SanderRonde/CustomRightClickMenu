@@ -10069,7 +10069,7 @@ if (typeof module === 'undefined') {
 				return obj[key];
 			}
 			browserAPI.storage.local.set({
-				key: defaultValue
+				[key]: defaultValue
 			} as any);
 			return defaultValue;
 		}
