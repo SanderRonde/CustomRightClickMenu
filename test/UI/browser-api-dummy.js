@@ -62,7 +62,7 @@ var activatedBackgroundPages = [];
 
 function findItemWithId(arr, id, fn) {
 	for (var i = 0; i < arr.length; i++) {
-		if (arr[i].id === id) {
+		if (areStringsEqual(arr[i].id, id)) {
 			fn(arr[i]);
 			return;	
 		}
@@ -234,6 +234,10 @@ function checkOnlyCallback(callback, optional) {
 var contexts = ['all', 'page', 'frame', 'selection', 'link',
 	'editable', 'image', 'video', 'audio', 'launcher',
 	'browser_action', 'page_action'];
+
+function areStringsEqual(a, b) {
+	return (a + '') === (b + '');
+}
 
 window.chrome = {
 	_lastCall: null,
@@ -411,7 +415,7 @@ window.chrome = {
 
 			var index = null;
 			for (var i = 0; i < currentContextMenu.length; i++) {
-				if (currentContextMenu[i].id === id) {
+				if (areStringsEqual(currentContextMenu[i].id, id)) {
 					index = i;
 				}
 			}
@@ -443,7 +447,7 @@ window.chrome = {
 
 			var index = null;
 			for (var i = 0; i < currentContextMenu.length; i++) {
-				if (currentContextMenu[i].id === id) {
+				if (areStringsEqual(currentContextMenu[i].id, id)) {
 					index = i;
 				}
 			}
