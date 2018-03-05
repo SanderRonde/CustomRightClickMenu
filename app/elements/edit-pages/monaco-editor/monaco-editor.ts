@@ -1591,17 +1591,19 @@ namespace MonacoEditorElement {
 		}
 
 		focus() {
-			this._textareaElements[0].focus();
+			this._textareaElements[0] && this._textareaElements[0].focus();
 		}
 
 		layout() {}
 
 		dispose() {
-			this._textareaElements && this._textareaElements.forEach(el => el.remove());
+			this._textareaElements && this._textareaElements.forEach((el) => {
+				el && el.remove();
+			});
 			this._textareaElements = [];
-			this._models.map(model => model.dispose());
+			this._models.forEach(model => model.dispose());
 			this._models = [];
-			this._baseElements.container.remove();
+			this._baseElements.container && this._baseElements.container.remove();
 			this._baseElements = {};
 		}
 
@@ -1623,6 +1625,9 @@ namespace MonacoEditorElement {
 			content: string
 		} {
 			for (const textarea of this._textareaElements) {
+				if (!textarea) {
+					continue;
+				}
 				const start = textarea.selectionStart;
 				const finish = textarea.selectionEnd;
 				const selection = textarea.value.substring(start, finish);
