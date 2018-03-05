@@ -4863,10 +4863,9 @@ after('quit driver', function() {
 				resolve(null);
 			});
 		} else {
+			resolve(null);
 			setTimeout(() => {
-				driver.quit().then(() => {
-					resolve(null);
-				});
+				driver.quit();
 			}, 600000);
 		}
 	});
