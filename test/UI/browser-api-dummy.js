@@ -260,6 +260,12 @@ function areStringsEqual(a, b) {
 	return (a + '') === (b + '');
 }
 
+function FakeCRMAPI() { }
+FakeCRMAPI.prototype.onReady = function(callback) {
+	callback();
+}
+FakeCRMAPI.prototype.debugOnError = false;
+
 window.chrome = {
 	_lastCall: null,
 	_currentContextMenu: currentContextMenu,
@@ -799,6 +805,9 @@ window.chrome = {
 					code: scriptSettings.code
 				});
 				eval(scriptSettings.code);
+			} else if (scriptSettings.file === '/js/crmapi.js') {
+				window._crmAPIRegistry = window._crmAPIRegistry || [];
+				window._crmAPIRegistry.push(FakeCRMAPI);
 			}
 			callback && callback([]);
 		},
