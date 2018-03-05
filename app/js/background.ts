@@ -946,7 +946,8 @@ if (typeof module === 'undefined') {
 						.replace(/REPLACE.browserVal/g, browserVal)
 						.replace(/REPLACE.crmAPI/g, 'crmAPI')
 						.replace(/REPLACEWrapperName = /g, wrapperName + '=')
-						.replace(/REPLACEWrapperName/g, wrapperName)})()`;
+						.replace(/REPLACEWrapperName/g, wrapperName)})()`
+						.replace(/\n/g, '')
 				}
 			},
 			specialJSON: {
