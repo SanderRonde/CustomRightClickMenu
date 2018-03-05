@@ -588,7 +588,7 @@ function executeAsyncScript<T>(script: StringifiedCallbackFunction<number, T>): 
 	return new webdriver.promise.Promise<T>(async (resolve, reject) => {
 		const asyncIndex = await driver.executeScript(script);
 		const descr = await waitFor(async () => {
-			const result = driver.executeScript(inlineFn((REPLACE) => {
+			const result = await driver.executeScript(inlineFn((REPLACE) => {
 				const index = REPLACE.index;
 				if (window.__asyncs[index].state !== 'pending') {
 					const descr = window.__asyncs[index] as AsyncStates<T>;
