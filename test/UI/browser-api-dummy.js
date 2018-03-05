@@ -11,14 +11,33 @@ function storageGenerator(container) {
 	return {
 		get: function(key, callback) {
 			if (typeof key === 'function') {
-				key(container);
-			} else {
-				var result = {};
-				result[key] = container[key];
-				callback(result);
+				callback = key;
+				key = void 0;
 			}
+
+			typeCheck({
+				key: key,
+				callback: callback
+			}, [{
+				val: 'key',
+				type: 'string',
+				optional: true
+			}, {
+				val: 'callback',
+				type: 'function'
+			}]);
+
+			var result = {};
+			if (key) {
+				result[key] = container[key];
+			} else {
+				result = container;
+			}
+			callback(result);
 		},
 		set: function(data, callback) {
+			checkOnlyCallback(callback, true);
+
 			for (var objKey in data) {
 				if (data.hasOwnProperty(objKey)) {
 					var oldData = container[objKey];
@@ -36,15 +55,17 @@ function storageGenerator(container) {
 			syncToLocalStorage();
 			callback && callback(container);
 		},
-		clear: function() {
-			container === window.storageSync ? 
-				(window.storageSync = {}) : 
-				(window.storageLocal = {});
-			for (var key in container) {
-				delete container[key];
+		clear: function(callback) {
+			checkOnlyCallback(callback, true);
+
+			if (container === window.storageSync) {
+				container = window.storageSync = {};
+			} else {
+				container = window.storageLocal = {};
 			}
-			localStorage.removeItem('local');
-			localStorage.removeItem('sync');
+
+			syncToLocalStorage();
+			callback && callback();
 		}
 	}
 }
