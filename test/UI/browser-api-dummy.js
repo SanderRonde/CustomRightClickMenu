@@ -155,19 +155,19 @@ function _typesMatch(data, value) {
 			return type;
 		}
 	}
-	throw new Error("Value for " + data.val + " is not of type " + types.join(' or ') +
+	throw new Error("Value for '" + data.val + "' is not of type " + types.join(' or ') +
 	 	getOriginalFunctionName(new Error()));
 };
 function _checkNumberConstraints(data, value) {
 	if (data.min !== undefined) {
 		if (data.min > value) {
-			throw new Error("Value for " + data.val + " is smaller than " + data.min +
+			throw new Error("Value for '" + data.val + "' is smaller than " + data.min +
 				getOriginalFunctionName(new Error()));
 		}
 	}
 	if (data.max !== undefined) {
 		if (data.max < value) {
-			throw new Error("Value for " + data.val + " is bigger than " + data.max + 
+			throw new Error("Value for '" + data.val + "' is bigger than " + data.max + 
 				getOriginalFunctionName(new Error()));
 		}
 	}
