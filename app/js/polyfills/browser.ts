@@ -368,7 +368,7 @@ namespace BrowserAPI {
 				windowId?: number,
 			}) {
 				return createPromise<_browser.tabs.Tab>((handler) => {
-					__srcBrowser.tabs.create(createPromise as any, handler);
+					__srcBrowser.tabs.create(createProperties as any, handler);
 				});
 			},
 			get(tabId: number) {
