@@ -59,6 +59,17 @@ interface AppChrome extends Chrome {
 	}>;
 }
 
+type AsyncStates<T> = {
+	state: 'pending';
+	result: null
+}|{
+	state: 'complete';
+	result: T;
+}|{
+	state: 'error';
+	result: Error;
+}
+
 interface AppWindow extends Window {
 	logs: Array<any>;
 	lastError: any|void;
@@ -68,6 +79,9 @@ interface AppWindow extends Window {
 	globals: GlobalObject['globals'];
 
 	_log: Array<any>;
+	__asyncs: {
+		[index: number]: AsyncStates<any>;
+	}
 }
 
 declare const require: any;
@@ -233,28 +247,33 @@ function getCapabilities(): BrowserstackCapabilities {
 
 const capabilities = getCapabilities();
 
-function waitFor(condition: () => webdriver.promise.Promise<boolean>|boolean, interval: number, max: number) {
-	return new webdriver.promise.Promise<void>((resolve, reject) => {
-		let totalTime = 0;
-		const timer = setInterval(async () => {
-			let conditionResult = condition();
-			if (typeof conditionResult !== 'boolean') {
-				conditionResult = await conditionResult;
-			}
-
-			if (conditionResult) {
-				resolve(null);
-				clearInterval(timer);
-			} else {
-				totalTime += interval;
-				if (totalTime >= max) {
-					reject(`Condition took longer than ${max}ms`)
-					clearInterval(timer);
-				}
-			}
-		}, interval);
-	});
+function isThennable(value: any): value is Promise<any> {
+	return value && typeof value === "object" && typeof value.then === "function";
 }
+
+function waitFor<T>(condition: () => webdriver.promise.Promise<false|T>|Promise<false|T>|false|T, interval: number, 
+	max: number): webdriver.promise.Promise<T> {
+		return new webdriver.promise.Promise<T>((resolve, reject) => {
+			let totalTime = 0;
+			const timer = setInterval(async () => {
+				let conditionResult = condition();
+				if (isThennable(conditionResult)) {
+					conditionResult = await conditionResult;
+				}
+
+				if (conditionResult !== false) {
+					resolve(conditionResult as T);
+					clearInterval(timer);
+				} else {
+					totalTime += interval;
+					if (totalTime >= max) {
+						reject(`Condition took longer than ${max}ms`)
+						clearInterval(timer);
+					}
+				}
+			}, interval);
+		});
+	}
 
 before('Driver connect', async function() {
 	const url = TEST_LOCAL ?
@@ -272,7 +291,6 @@ before('Driver connect', async function() {
 			console.warn('Skipping is enabled, make sure this isn\'t in a production build')
 		}
 	await driver.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`);
-	//await driver.manage().timeouts().setScriptTimeout(60000 * TIME_MODIFIER);
 	await waitFor(() => {
 		return driver.executeScript(inlineFn(() => {
 			return window.polymerElementsLoaded;
@@ -482,6 +500,11 @@ type StringifedFunction<RETVAL> = string & {
 	__fn: RETVAL;
 }
 
+type StringifiedCallbackFunction<RETVAL, CALLBACKRES> = string & {
+	__fn: RETVAL;
+	__cb: CALLBACKRES;
+}
+
 function es3IfyFunction(str: string): string {
 	if (str.indexOf('=>') === -1) {
 		return str;
@@ -517,11 +540,32 @@ function inlineFn<T extends {
 
 function inlineAsyncFn<T extends {
 	[key: string]: any;
-}, U>(fn: (done: (result: U) => void, REPLACE: T) => void|void, args?: T,
-	...insertedFunctions: Array<Function>): StringifedFunction<U> {
+}, U>(fn: (resolve: (result: U) => void, reject: (err: Error) => void, 
+	REPLACE: T) => void|void, args?: T,
+	...insertedFunctions: Array<Function>): StringifiedCallbackFunction<number, U> {
 		args = args || {} as T;
 		let str = `${insertedFunctions.map(inserted => inserted.toString()).join('\n')}
-			try { (${es3IfyFunction(fn.toString())})(arguments[arguments.length - 1]) } catch(err) { throw new Error(err.name + '-' + err.stack); }`;
+			window.__asyncs = window.__asyncs || {};
+			window.__lastAsync = window.__lastAsync || 1;
+			var currentAsync = window.__lastAsync++;
+			var onDone = function(result) {
+				window.__asyncs[currentAsync] = {
+					state: 'complete',
+					result: result
+				}
+			}
+			var onFail = function(err) {
+				window.__asyncs[currentAsync] = {
+					state: 'error',
+					result: err
+				}
+			}
+			window.__asyncs[currentAsync] = {
+				state: 'pending',
+				result: null
+			}
+			try { (${es3IfyFunction(fn.toString())})(onDone, onFail) } catch(err) { onFail(err.name + '-' + err.stack); }
+			return currentAsync;`;
 		Object.getOwnPropertyNames(args).forEach((key) => {
 			let arg = args[key];
 			if (typeof arg === 'object' || typeof arg === 'function') {
@@ -537,8 +581,36 @@ function inlineAsyncFn<T extends {
 						arg.replace(/\\\"/g, `\\\\\"`) : arg);
 			}
 		});
-		return str as StringifedFunction<U>;
+		return str as StringifiedCallbackFunction<number, U>;
 	}
+
+function executeAsyncScript<T>(script: StringifiedCallbackFunction<number, T>): webdriver.promise.Promise<T> {
+	return new webdriver.promise.Promise<T>(async (resolve, reject) => {
+		const asyncIndex = await driver.executeScript(script);
+		const descr = await waitFor(async () => {
+			const result = driver.executeScript(inlineFn((REPLACE) => {
+				const index = REPLACE.index;
+				if (window.__asyncs[index].state !== 'pending') {
+					const descr = window.__asyncs[index] as AsyncStates<T>;
+					delete window.__asyncs[index];
+					return descr;
+				}
+				return null;
+			}, {
+				index: asyncIndex
+			}));
+			if (result) {
+				return result;
+			}
+			return false;
+		}, 15, 60000 * TIME_MODIFIER);
+		if (descr.state === 'complete') {
+			resolve(descr.result);
+		} else if (descr.state === 'error') {
+			reject(descr.result);
+		}
+	});
+}
 
 function getSyncSettings(): webdriver.promise.Promise<CRM.SettingsStorage> {
 	return new webdriver.promise.Promise<CRM.SettingsStorage>((resolve) => { 
@@ -641,7 +713,7 @@ function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackCo
 function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
 	__this.timeout(30000 * TIME_MODIFIER);
 	const promise = new webdriver.promise.Promise<void>(async (resolve) => {
-		const result = await driver.executeAsyncScript(inlineAsyncFn((done) => {
+		const result = await executeAsyncScript(inlineAsyncFn((done) => {
 			try {
 				window.browserAPI.storage.local.clear().then(() => {
 					window.browserAPI.storage.sync.clear().then(() => {
@@ -678,7 +750,7 @@ function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackConte
 	__this.timeout(60000 * TIME_MODIFIER);
 	const promise = new webdriver.promise.Promise<void>((resolve) => {
 		wait(500).then(() => {
-			driver.executeAsyncScript(inlineAsyncFn((done) => {
+			executeAsyncScript(inlineAsyncFn((done) => {
 				try {
 					window.app.refreshPage().then(() => {
 						done(null);
