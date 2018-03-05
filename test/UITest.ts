@@ -640,18 +640,21 @@ function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackCo
 function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
 	__this.timeout(30000 * TIME_MODIFIER);
 	const promise = new webdriver.promise.Promise<void>(async (resolve) => {
-		const result = await driver.executeScript(inlineFn(() => {
+		const result = await driver.executeAsyncScript(inlineAsyncFn((done) => {
 			try {
-				window.browserAPI.storage.local.clear();
-				window.browserAPI.storage.sync.clear();
-				window.app.refreshPage();
-				return null;
+				window.browserAPI.storage.local.clear().then(() => {
+					window.browserAPI.storage.sync.clear().then(() => {
+						window.app.refreshPage().then(() => {
+							done(null);
+						});
+					});
+				});
 			} catch(e) {
-				return {
+				done({
 					message: e.message,
 					stack: e.stack
-				};
-			}
+				});
+			};
 		}));
 		if (result) {
 			console.log(result);
