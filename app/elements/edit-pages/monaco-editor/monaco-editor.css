@@ -4,6 +4,7 @@
 	display: flex;
 	-webkit-flex-direction: column;
 	flex-direction: column;
+	-webkit-flex-grow: 100000;
 	flex-grow: 100000;
 }
 
@@ -23,6 +24,7 @@
 	display: flex;
 	-webkit-flex-direction: column;
 	flex-direction: column;
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 }
 
@@ -32,6 +34,7 @@
 
 #editorElement {
 	display: flex;
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 }
 
@@ -71,6 +74,7 @@
 }
 
 #editorElement > * {
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 	height: auto!important;
 }
