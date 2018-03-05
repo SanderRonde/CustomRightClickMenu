@@ -707,26 +707,13 @@ function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackConte
 	}
 }
 
-function waitForCRM(timeRemaining: number): webdriver.promise.Promise<void> {
-	return new webdriver.promise.Promise<void>((resolve, reject) => {
-		if (timeRemaining <= 0) {
-			reject(new Error('Ran out of time waiting for CRM'));
-			return;
-		}
-
-		driver.executeScript(inlineFn(() => {
+async function waitForCRM(timeRemaining: number): webdriver.promise.Promise<void> {
+	await waitFor(() => {
+		return driver.executeScript(inlineFn(() => {
 			const crmItem = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])')[0];
 			return !!crmItem;
-		})).then((result) => {
-			if (result) {
-			resolve(null);
-			} else {
-				setTimeout(() => {
-					waitForCRM(timeRemaining - 250).then(resolve, reject);
-				}, 250);
-			}
-		})
-	});
+		}));
+	}, 250, timeRemaining);
 }
 
 async function switchToTypeAndOpen(type: CRM.NodeType) {
