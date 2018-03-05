@@ -9543,9 +9543,9 @@ if (typeof module === 'undefined') {
 							chromeStorageLocal: CRM.StorageLocal;
 						}
 					} = {
-							done: false,
-							onDone: null
-						}
+						done: false,
+						onDone: null
+					}
 
 					this._getDefaultStorages(([defaultLocalStorage, defaultSyncStorage]) => {
 
@@ -9645,7 +9645,7 @@ if (typeof module === 'undefined') {
 				const settingsJson = JSON.stringify(data);
 
 				if (settingsJson.length >= 101400) {
-					await browserAPI.storage.local.set({
+                    await browserAPI.storage.local.set({
 						useStorageSync: false
 					});
 					await browserAPI.storage.local.set({
@@ -9654,7 +9654,7 @@ if (typeof module === 'undefined') {
 					await browserAPI.storage.sync.set({
 						indexes: null
 					});
-				} else {
+                } else {
 					//Cut up all data into smaller JSON
 					const obj = Storages.cutData(settingsJson);
 					await browserAPI.storage.sync.set(obj).then(() => {
@@ -9669,7 +9669,7 @@ if (typeof module === 'undefined') {
 						});
 						await browserAPI.storage.local.set({
 							settings: data
-					});
+						});
 						await browserAPI.storage.sync.set({
 							indexes: null
 						});
@@ -9792,7 +9792,7 @@ if (typeof module === 'undefined') {
                     latest: globalObject.globals.storages.storageLocal.settingsVersionData.latest,
                     wasUpdated: globalObject.globals.storages.storageLocal.settingsVersionData.wasUpdated
                 }
-            });
+			});
             if (!globalObject.globals.storages.storageLocal.useStorageSync) {
                 await browserAPI.storage.local.set({
                     settings: globalObject.globals.storages.settingsStorage
@@ -10023,6 +10023,10 @@ if (typeof module === 'undefined') {
 					}
 				}
 			});
+		}
+		static clearStorages() {
+			globalObject.globals.storages.settingsStorage = null;
+			globalObject.globals.storages.storageLocal = null;
 		}
 
 		private static async _changeCRMValuesIfSettingsChanged(changes: Array<StorageChange>) {

@@ -1040,9 +1040,10 @@ namespace CRMAppElement {
 			}
 			window.app.item = null;
 
-			window.app.settings = window.app.storageLocal = null;
-
 			//Reset storages
+			window.app.settings = window.app.storageLocal = null;
+			window.app._settingsCopy = window.app._storageLocalCopy = null;
+			window.Storages.clearStorages();
 
 			//On a demo or test page right now, use background page to init settings
 			await window.Storages.loadStorages();
@@ -1066,6 +1067,7 @@ namespace CRMAppElement {
 			});
 
 			this.upload(true);
+			await window.onExistsChain(window, 'app', 'settings', 'crm');
 		};
 
 		private static _codeStr(code: string): {

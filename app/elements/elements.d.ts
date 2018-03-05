@@ -167,6 +167,7 @@ interface Window {
 	useOptionsCompletions: boolean;
 	Storages: {
 		loadStorages(): Promise<void>;
+		clearStorages(): void;
 	}
 	Polymer: Polymer.Polymer;
 
