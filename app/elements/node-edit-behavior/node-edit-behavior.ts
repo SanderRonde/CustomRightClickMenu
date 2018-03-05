@@ -190,7 +190,6 @@ namespace NodeEditBehaviorNamespace {
 			if (this.editorMode && this.editorMode === 'background') {
 				return;
 			}
-			console.log(e);
 			const element = window.app.util.findElementWithClassName(e, 'showOnContentItemCont');
 			const checkbox = $(element).find('paper-checkbox')[0] as HTMLPaperCheckboxElement;
 			checkbox.checked = !checkbox.checked;
