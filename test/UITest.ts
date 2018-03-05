@@ -272,6 +272,7 @@ before('Driver connect', async function() {
 			console.warn('Skipping is enabled, make sure this isn\'t in a production build')
 		}
 	await driver.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`);
+	//await driver.manage().timeouts().setScriptTimeout(60000 * TIME_MODIFIER);
 	await waitFor(async () => {
 		return await driver.executeScript(inlineFn(() => {
 			return window.polymerElementsLoaded;
@@ -520,7 +521,7 @@ function inlineAsyncFn<T extends {
 	...insertedFunctions: Array<Function>): StringifedFunction<U> {
 		args = args || {} as T;
 		let str = `${insertedFunctions.map(inserted => inserted.toString()).join('\n')}
-			try { return (${es3IfyFunction(fn.toString())})(arguments[arguments.length - 1]) } catch(err) { throw new Error(err.name + '-' + err.stack); }`;
+			try { (${es3IfyFunction(fn.toString())})(arguments[arguments.length - 1]) } catch(err) { throw new Error(err.name + '-' + err.stack); }`;
 		Object.getOwnPropertyNames(args).forEach((key) => {
 			let arg = args[key];
 			if (typeof arg === 'object' || typeof arg === 'function') {
