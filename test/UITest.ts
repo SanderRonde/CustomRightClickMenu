@@ -273,7 +273,7 @@ function waitFor<T>(condition: () => webdriver.promise.Promise<false|T>|Promise<
 					}
 				}
 				if (!stop) {
-					window.setTimeout(fn, interval);
+					setTimeout(fn, interval);
 				}
 			};
 			fn();
