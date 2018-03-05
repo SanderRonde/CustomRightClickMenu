@@ -9553,7 +9553,7 @@ if (typeof module === 'undefined') {
 						browserAPI.storage.local.set(defaultLocalStorage);
 
 						//Save sync storage
-						this._uploadStorageSyncData(defaultSyncStorage);
+						this._uploadStorageSyncInitial(defaultSyncStorage);
 
 						if (crm) {
 							defaultSyncStorage.crm = crm;
@@ -9641,29 +9641,38 @@ if (typeof module === 'undefined') {
 					});
 				});
 			}
-			private static async _uploadStorageSyncData(data: CRM.SettingsStorage) {
+			private static async _uploadStorageSyncInitial(data: CRM.SettingsStorage) {
 				const settingsJson = JSON.stringify(data);
 
-				//Using chrome.storage.sync
-				if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
+				if (settingsJson.length >= 101400) {
 					await browserAPI.storage.local.set({
 						useStorageSync: false
 					});
-					this._uploadStorageSyncData(data);
+					await browserAPI.storage.local.set({
+						settings: data
+					});
+					await browserAPI.storage.sync.set({
+						indexes: null
+					});
 				} else {
 					//Cut up all data into smaller JSON
 					const obj = Storages.cutData(settingsJson);
-					browserAPI.storage.sync.set(obj).then(() => {
+					await browserAPI.storage.sync.set(obj).then(() => {
 						browserAPI.storage.local.set({
 							settings: null
 						});
 					}).catch(async (err) => {
 						//Switch to local storage
-						window.log('Error on uploading to chrome.storage.sync ', err);
+						window.log('Error on uploading to chrome.storage.sync', err);
 						await browserAPI.storage.local.set({
 							useStorageSync: false
 						});
-						this._uploadStorageSyncData(data);
+						await browserAPI.storage.local.set({
+							settings: data
+					});
+						await browserAPI.storage.sync.set({
+							indexes: null
+						});
 					});
 				}
 			}
