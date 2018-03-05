@@ -2068,8 +2068,8 @@ describe('Options Page', function() {
 			it('should be editable through clicking on the checkboxes', async function()  {
 				this.retries(3);
 				await resetSettings(this);
-				await openDialog('link');
-				const dialog = await getDialog('link');
+				await openDialog(type);
+				const dialog = await getDialog(type);
 				await dialog.findElements(webdriver.By.className('showOnContentItemCont')).mapWait((element) => {
 					return element.findElement(webdriver.By.tagName('paper-checkbox')).click().then(() => {
 						return wait(25);
@@ -2093,8 +2093,8 @@ describe('Options Page', function() {
 			it('should be editable through clicking on the icons', async function()  {
 				this.retries(3);
 				await resetSettings(this);
-				await openDialog('link');
-				const dialog = await getDialog('link');
+				await openDialog(type);
+				const dialog = await getDialog(type);
 				await dialog.findElements(webdriver.By.className('showOnContentItemCont')).mapWait((element) => {
 					return element.findElement(webdriver.By.className('showOnContentItemIcon')).click().then(() => {
 						return wait(25);
@@ -2117,8 +2117,8 @@ describe('Options Page', function() {
 			it('should be editable through clicking on the names', async function()  {
 				this.retries(3);
 				await resetSettings(this);
-				await openDialog('link');
-				const dialog = await getDialog('link');
+				await openDialog(type);
+				const dialog = await getDialog(type);
 				await dialog.findElements(webdriver.By.className('showOnContentItemCont')).mapWait((element) => {
 					return element.findElement(webdriver.By.className('showOnContentItemTxt')).click().then(() => {
 						return wait(25);
@@ -2155,8 +2155,8 @@ describe('Options Page', function() {
 			});
 			it('should not change when not saved', async function()  {
 				await resetSettings(this);
-				await openDialog('link');
-				const dialog = await getDialog('link');
+				await openDialog(type);
+				const dialog = await getDialog(type);
 				await dialog.findElements(webdriver.By.className('showOnContentItemCont')).mapWait((element) => {
 					return element.findElement(webdriver.By.className('showOnContentItemIcon')).click().then(() => {
 						return wait(25);
