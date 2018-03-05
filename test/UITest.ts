@@ -11,12 +11,17 @@ const TEST_LOCAL: boolean = process.argv.indexOf('--remote') > -1 ? false : TEST
 const TIME_MODIFIER = 1.2;
 const LOCAL_URL = 'http://localhost:9515';
 
-const SKIP_OPTIONS_PAGE = false;
-const SKIP_OPTIONS_PAGE_NON_DIALOGS = false;
-const SKIP_OPTIONS_PAGE_DIALOGS = false;
-const SKIP_CONTEXTMENU = false;
-const SKIP_DIALOG_TYPES_EXCEPT = false as CRM.NodeType|false;
-const WAIT_ON_DONE = false;
+const SKIP_OPTIONS_PAGE = process.argv.indexOf('--skip-options') > -1;
+const SKIP_OPTIONS_PAGE_NON_DIALOGS = process.argv.indexOf('--skip-non-dialogs') > -1;
+const SKIP_OPTIONS_PAGE_DIALOGS = process.argv.indexOf('--skip-dialogs') > -1;
+const SKIP_CONTEXTMENU = process.argv.indexOf('--skip-contextmenu') > -1;
+const SKIP_DIALOG_TYPES_EXCEPT: CRM.NodeType|false = 
+	process.argv.indexOf('--skip-types-except-stylesheet') > -1 ? 'stylesheet' :
+		process.argv.indexOf('--skip-types-except-divider') > -1 ? 'divider' : 
+			process.argv.indexOf('--skip-types-except-script') > -1 ? 'script' : 
+				process.argv.indexOf('--skip-types-except-link') > -1 ? 'link' : 
+					process.argv.indexOf('--skip-types-except-menu') > -1 ? 'menu' : false;
+const WAIT_ON_DONE = process.argv.indexOf('--wait-on-done') > -1;
 
 interface ChromeLastCall {
 	api: string;
