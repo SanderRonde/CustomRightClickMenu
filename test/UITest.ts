@@ -233,8 +233,8 @@ function getCapabilities(): BrowserstackCapabilities {
 
 const capabilities = getCapabilities();
 
-function waitFor(condition: () => Promise<boolean>|boolean, interval: number, max: number) {
-	return new Promise<void>((resolve, reject) => {
+function waitFor(condition: () => webdriver.promise.Promise<boolean>|boolean, interval: number, max: number) {
+	return new webdriver.promise.Promise<void>((resolve, reject) => {
 		let totalTime = 0;
 		const timer = setInterval(async () => {
 			let conditionResult = condition();
