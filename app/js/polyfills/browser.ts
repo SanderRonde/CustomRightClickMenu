@@ -444,11 +444,7 @@ namespace BrowserAPI {
 				details?: _browser.extensionTypes.InjectDetails) {
 					return createPromise<Array<any>>((handler) => {
 						if (!details) {
-							//No tab id passed, get current
-							__srcBrowser.tabs.getCurrent(({id}) => {
-								__srcBrowser.tabs.executeScript(id, 
-									tabIdOrDetails as _browser.extensionTypes.InjectDetails, handler);
-							});
+							__srcBrowser.tabs.executeScript(tabIdOrDetails as _browser.extensionTypes.InjectDetails, handler);
 						} else {
 							__srcBrowser.tabs.executeScript(tabIdOrDetails as number, details, handler);
 						}
