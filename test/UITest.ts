@@ -273,11 +273,11 @@ before('Driver connect', async function() {
 		}
 	await driver.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`);
 	//await driver.manage().timeouts().setScriptTimeout(60000 * TIME_MODIFIER);
-	await waitFor(async () => {
-		return await driver.executeScript(inlineFn(() => {
+	await waitFor(() => {
+		return driver.executeScript(inlineFn(() => {
 			return window.polymerElementsLoaded;
 		}));
-	}, 2500, 600000 * TIME_MODIFIER).catch(() => {
+	}, 2500, 600000 * TIME_MODIFIER).thenCatch(() => {
 		//About to time out
 		throw new Error('Failed to get elements loaded message, page load is failing');
 	});
