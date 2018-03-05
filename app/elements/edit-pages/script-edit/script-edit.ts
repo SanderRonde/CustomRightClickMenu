@@ -249,7 +249,6 @@ namespace ScriptEditElement {
 				typeHandler.getMetaBlock().content;
 		};
 
-
 		static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<CRM.ScriptNode>) {
 			resultStorage.value.metaTags = this._getMetaTagValues() || {};
 			resultStorage.value.launchMode = this.$.dropdownMenu.selected;

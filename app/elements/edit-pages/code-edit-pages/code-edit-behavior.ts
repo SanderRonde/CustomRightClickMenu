@@ -151,7 +151,6 @@ namespace CodeEditBehaviorNamespace {
 				function(tab: HTMLElement) {
 					tab.classList.remove('active');
 				});
-			this.editorManager.destroy();
 			this.$$('.mainEditorTab').classList.add('active');
 		};
 		

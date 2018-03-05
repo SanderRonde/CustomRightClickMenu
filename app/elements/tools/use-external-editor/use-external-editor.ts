@@ -179,13 +179,7 @@ namespace UseExternalEditorElement {
 					status: 'connected',
 					action: 'disconnect'
 				});
-			} catch (e) {
-			}
-			if (window.scriptEdit && window.scriptEdit.active) {
-				window.scriptEdit.editorManager.destroy();
-			} else if (window.stylesheetEdit && window.stylesheetEdit.active) {
-				window.stylesheetEdit.editorManager.destroy();
-			}
+			} catch (e) { }
 		};
 
 		private static EditingOverlay =  class EditingOverlay {
