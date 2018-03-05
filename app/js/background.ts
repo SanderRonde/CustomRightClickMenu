@@ -9812,8 +9812,7 @@ if (typeof module === 'undefined') {
                         useStorageSync: false
                     });
 					await this.uploadChanges('settings', changes);
-                }
-                else {
+                } else {
                     //Cut up all data into smaller JSON
                     const obj = this.cutData(settingsJson);
                     await browserAPI.storage.sync.set(obj as any).then(() => {
