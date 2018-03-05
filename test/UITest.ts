@@ -255,7 +255,8 @@ function waitFor<T>(condition: () => webdriver.promise.Promise<false|T>|Promise<
 	max: number): webdriver.promise.Promise<T> {
 		return new webdriver.promise.Promise<T>((resolve, reject) => {
 			let totalTime = 0;
-			const timer = setInterval(async () => {
+			let stop: boolean = false;
+			const fn = async () => {
 				let conditionResult = condition();
 				if (isThennable(conditionResult)) {
 					conditionResult = await conditionResult;
@@ -263,15 +264,19 @@ function waitFor<T>(condition: () => webdriver.promise.Promise<false|T>|Promise<
 
 				if (conditionResult !== false) {
 					resolve(conditionResult as T);
-					clearInterval(timer);
+					stop = true;
 				} else {
 					totalTime += interval;
 					if (totalTime >= max) {
 						reject(`Condition took longer than ${max}ms`)
-						clearInterval(timer);
+						stop = true;
 					}
 				}
-			}, interval);
+				if (!stop) {
+					window.setTimeout(fn, interval);
+				}
+			};
+			fn();
 		});
 	}
 
