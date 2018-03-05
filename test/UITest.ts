@@ -295,7 +295,7 @@ before('Driver connect', async function() {
 		return driver.executeScript(inlineFn(() => {
 			return window.polymerElementsLoaded;
 		}));
-	}, 2500, 600000 * TIME_MODIFIER).thenCatch(() => {
+	}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
 		//About to time out
 		throw new Error('Failed to get elements loaded message, page load is failing');
 	});
