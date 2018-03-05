@@ -128,7 +128,7 @@
   },
   "scripts": {
     "pretest": "yarn pretest:main && yarn pretest:post",
-    "pretest:main": "grunt stashBrowser && grunt buildTest",
+    "pretest:main": "grunt stashBrowser && grunt browserChrome && grunt buildTest",
     "pretest:post": "grunt unstashBrowser",
     "test": "yarn test:global && yarn test:chrome && yarn test:firefox && yarn test:edge",
     "test:global": "mocha test/test.js",
