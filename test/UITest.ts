@@ -652,23 +652,39 @@ function getContextMenu(): webdriver.promise.Promise<ContextMenu> {
 	});
 }
 
+async function waitForEditor() {
+	await waitFor(() => {
+		return driver.executeScript(inlineFn(() => {
+			if (window.app.item.type === 'script') {
+				return window.scriptEdit.editorManager &&
+					window.scriptEdit.editorManager.getModel('default') &&
+					window.scriptEdit.editorManager.getModel('default').handlers && 
+					!!window.scriptEdit.editorManager.getModel('default').handlers[0]
+			} else if (window.app.item.type === 'stylesheet') {
+				return window.stylesheetEdit.editorManager &&
+					window.stylesheetEdit.editorManager.getModel('default') &&
+					window.stylesheetEdit.editorManager.getModel('default').handlers && 
+					!!window.stylesheetEdit.editorManager.getModel('default').handlers[0]
+			} else {
+				return true;
+			}
+		}));
+	}, 25, 60000 * TIME_MODIFIER);
+}
+
 function saveDialog(dialog: FoundElement): webdriver.promise.Promise<void> {
-	return new webdriver.promise.Promise<void>((resolve) => {
-		dialog
-			.findElement(webdriver.By.id('saveButton'))
-			.click().then(() => {
-				resolve(null);
-			})
+	return new webdriver.promise.Promise<void>(async (resolve) => {
+		await waitForEditor();
+		await dialog.findElement(webdriver.By.id('saveButton')).click();
+		resolve(null);
 	});
 }
 
 function cancelDialog(dialog: FoundElement): webdriver.promise.Promise<void> {
-	return new webdriver.promise.Promise<void>((resolve) => {
-		dialog
-			.findElement(webdriver.By.id('cancelButton'))
-			.click().then(() => {
-				resolve(null);
-			});
+	return new webdriver.promise.Promise<void>(async (resolve) => {
+		await waitForEditor();
+		await dialog.findElement(webdriver.By.id('cancelButton')).click();
+		resolve(null);
 	});
 }
 
