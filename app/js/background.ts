@@ -699,16 +699,15 @@ if (typeof module === 'undefined') {
 				messageType: 'callback'
 			};
 
+			const tabData = globalObject.globals.crmValues.tabData;
 			try {
-				Util.postMessage(globalObject.globals.crmValues.tabData[tabId].nodes[id][tabIndex].port,
-					message);
+				Util.postMessage(tabData[tabId].nodes[id][tabIndex].port, message);
 			} catch (e) {
 				if (e.message === 'Converting circular structure to JSON') {
-					message.data =
-						'Converting circular structure to JSON, getting a response from this API will not work';
+					message.data = 'Converting circular structure to JSON, ' + 
+						'getting a response from this API will not work';
 					message.type = 'error';
-					Util.postMessage(globalObject.globals.crmValues.tabData[tabId].nodes[id][tabIndex].port, 
-						message);
+					Util.postMessage(tabData[tabId].nodes[id][tabIndex].port, message);
 				} else {
 					throw e;
 				}
@@ -734,14 +733,14 @@ if (typeof module === 'undefined') {
 							typeof mainArray[i] === 'object' &&
 							mainArray[i] !== undefined &&
 							mainArray[i] !== null) {
-							if (Array.isArray(additionArray[i])) {
-								mainArray[i] = this.mergeArrays(mainArray[i] as T, additionArray[i] as T);
+								if (Array.isArray(additionArray[i])) {
+									mainArray[i] = this.mergeArrays(mainArray[i] as T, additionArray[i] as T);
+								} else {
+									mainArray[i] = this.mergeObjects(mainArray[i], additionArray[i]);
+								}
 							} else {
-								mainArray[i] = this.mergeObjects(mainArray[i], additionArray[i]);
+								mainArray[i] = additionArray[i];
 							}
-						} else {
-							mainArray[i] = additionArray[i];
-						}
 					}
 					return mainArray;
 				},
@@ -755,14 +754,14 @@ if (typeof module === 'undefined') {
 								typeof mainObject[key] === 'object' &&
 								mainObject[key] !== undefined &&
 								mainObject[key] !== null) {
-								if (Array.isArray(additions[key])) {
-									mainObject[key] = this.mergeArrays(mainObject[key], additions[key]);
+									if (Array.isArray(additions[key])) {
+										mainObject[key] = this.mergeArrays(mainObject[key], additions[key]);
+									} else {
+										mainObject[key] = this.mergeObjects(mainObject[key], additions[key]);
+									}
 								} else {
-									mainObject[key] = this.mergeObjects(mainObject[key], additions[key]);
+									mainObject[key] = additions[key];
 								}
-							} else {
-								mainObject[key] = additions[key];
-							}
 						}
 					}
 					return mainObject as T & Y;
@@ -786,19 +785,15 @@ if (typeof module === 'undefined') {
 						type: 'link',
 						showOnSpecified: false,
 						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
-						triggers: [
-							{
-								url: '*://*.example.com/*',
-								not: false
-							}
-						],
+						triggers: [{
+							url: '*://*.example.com/*',
+							not: false
+						}],
 						isLocal: false,
-						value: [
-							{
-								newTab: true,
-								url: 'https://www.example.com'
-							}
-						]
+						value: [{
+							newTab: true,
+							url: 'https://www.example.com'
+						}]
 					};
 
 					return this.mergeObjects(defaultNode, options) as CRM.LinkNode;
@@ -840,12 +835,10 @@ if (typeof module === 'undefined') {
 						type: 'script',
 						isLocal: false,
 						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
-						triggers: [
-							{
-								url: '*://*.example.com/*',
-								not: false
-							}
-						],
+						triggers: [{
+							url: '*://*.example.com/*',
+							not: false
+						}],
 						value: this.getDefaultScriptValue(options.value)
 					};
 
@@ -858,12 +851,10 @@ if (typeof module === 'undefined') {
 						type: 'stylesheet',
 						isLocal: true,
 						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
-						triggers: [
-							{
-								url: '*://*.example.com/*',
-								not: false
-							}
-						],
+						triggers: [{
+							url: '*://*.example.com/*',
+							not: false
+						}],
 						value: this.getDefaultStylesheetValue(options.value)
 					};
 
@@ -908,34 +899,31 @@ if (typeof module === 'undefined') {
 								[key: string]: any;
 							} = {};
 							const original = REPLACE.name;
-							for (var prop in original) {
-								//Makes sure prop is local
-								(function(prop) {
-									if (prop !== 'webkitStorageInfo' && typeof original[prop] === 'function') {
-										tempWrapper[prop] = function() {
-											return original[prop].apply(original, arguments);
-										}
-									} else {
-										Object.defineProperty(tempWrapper, prop, {
-											get: function() {
-												if (original === original) {
-													return tempWrapper;
-												} else if (prop === 'crmAPI') {
-													return REPLACE.crmAPI;
-												} else if (prop === 'browser') {
-													return REPLACE.browserVal;
-												} else if (prop === 'chrome') {
-													return REPLACE.chromeVal;
-												} else {
-													return original[prop];
-												}
-											},
-											set: function(value) {
-												tempWrapper[prop] = value;
-											}
-										});
+							for (const prop in original) {
+								if (prop !== 'webkitStorageInfo' && typeof original[prop] === 'function') {
+									tempWrapper[prop] = function() {
+										return original[prop].apply(original, arguments);
 									}
-								})(prop);
+								} else {
+									Object.defineProperty(tempWrapper, prop, {
+										get: function() {
+											if (original === original) {
+												return tempWrapper;
+											} else if (prop === 'crmAPI') {
+												return REPLACE.crmAPI;
+											} else if (prop === 'browser') {
+												return REPLACE.browserVal;
+											} else if (prop === 'chrome') {
+												return REPLACE.chromeVal;
+											} else {
+												return original[prop];
+											}
+										},
+										set: function(value) {
+											tempWrapper[prop] = value;
+										}
+									});
+								}
 							}
 							return tempWrapper;
 						})();
@@ -1044,16 +1032,16 @@ if (typeof module === 'undefined') {
 					data: Array<any>;
 					rootType: 'array';
 				} | {
-						refs: Refs;
-						data: {
-							[key: string]: any;
-						};
-						rootType: 'object';
-					} | {
-						refs: Refs;
-						data: string;
-						rootType: 'normal';
-					} {
+					refs: Refs;
+					data: {
+						[key: string]: any;
+					};
+					rootType: 'object';
+				} | {
+					refs: Refs;
+					data: string;
+					rootType: 'normal';
+				} {
 					if (!(this._isObject(data) || Array.isArray(data))) {
 						return {
 							refs: [],
@@ -1276,9 +1264,8 @@ if (typeof module === 'undefined') {
 				});
 			},
 			parse: (str: string, date2Obj?: boolean): any => {
-				const iso8061 = date2Obj ?
-					/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/ :
-					false;
+				const iso8061 = !date2Obj ? false :
+					/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/;
 				return JSON.parse(str, (key: string, value: any) => {
 					if (typeof value !== 'string') {
 						return value;
@@ -1406,9 +1393,7 @@ if (typeof module === 'undefined') {
 			const newSplit = newVersion.split('.');
 			const oldSplit = oldVersion.split('.');
 
-			const longest = (newSplit.length > oldSplit.length ?
-				newSplit.length :
-				oldSplit.length);
+			const longest = Math.max(newSplit.length, oldSplit.length);
 			for (let i = 0; i < longest; i++) {
 				const newNum = ~~newSplit[i];
 				const oldNum = ~~oldSplit[i];
@@ -1438,18 +1423,16 @@ if (typeof module === 'undefined') {
 		static flattenCrm(searchScope: Array<CRM.Node>, obj: CRM.Node) {
 			searchScope.push(obj);
 			if (obj.type === 'menu' && obj.children) {
-				obj.children.forEach((child: CRM.Node) => {
+				for (const child of obj.children) {
 					this.flattenCrm(searchScope, child);
-				});
+				}
 			}
 		}
 		static removeTab(tabId: number) {
 			const nodeStatusses = globalObject.globals.crmValues.stylesheetNodeStatusses;
 			for (let nodeId in nodeStatusses) {
-				if (nodeStatusses.hasOwnProperty(nodeId)) {
-					if (nodeStatusses[nodeId][tabId]) {
-						delete nodeStatusses[nodeId][tabId];
-					}
+				if (nodeStatusses[nodeId][tabId]) {
+					delete nodeStatusses[nodeId][tabId];
 				}
 			}
 
@@ -1494,8 +1477,7 @@ if (typeof module === 'undefined') {
 		}
 		static getScriptNodeJS(script: CRM.ScriptNode|CRM.SafeScriptNode, type: 'background'|'script' = 'script'): string {
 			return type === 'background' ?
-				script.value.backgroundScript :
-				script.value.script;
+				script.value.backgroundScript : script.value.script;
 		}
 		static async getScriptNodeScript(script: CRM.ScriptNode|CRM.SafeScriptNode, type: 'background'|'script' = 'script'): Promise<string> {
 			if (script.value.ts && script.value.ts.enabled) {
@@ -1570,14 +1552,11 @@ if (typeof module === 'undefined') {
 					return resolve(null);
 				}
 
-				initializers[0]().then((result) => {
+				initializers[0]().then(async (result) => {
 					if (initializers[1]) {
-						this.promiseChain<T>(initializers.slice(1)).then((result) => {
-							resolve(result);
-						});
-					} else {
-						resolve(result);
+						result = await this.promiseChain<T>(initializers.slice(1));
 					}
+					resolve(result);
 				});
 			});
 		}
@@ -1632,24 +1611,23 @@ if (typeof module === 'undefined') {
 
 	class GlobalDeclarations {
 		static initGlobalFunctions() {
-			window.getID = (name: string) => {
-				name = name.toLocaleLowerCase();
+			window.getID = (searchedName: string) => {
+				searchedName = searchedName.toLowerCase();
 				const matches: Array<{
 					id: number;
 					node: CRM.ScriptNode;
 				}> = [];
 				for (let id in globalObject.globals.crm.crmById) {
-					if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
-						const node = globalObject.globals.crm.crmById[id];
-						const nodeName = node.name;
-						if (node.type === 'script' &&
-							typeof nodeName === 'string' &&
-							name === nodeName.toLocaleLowerCase()) {
-							matches.push({
-								id: (id as any) as number,
-								node: node
-							});
-						}
+					const node = globalObject.globals.crm.crmById[id];
+					const { name } = node;
+					if (!name) {
+						continue;
+					}
+					if (node.type === 'script' && searchedName === name.toLowerCase()) {
+						matches.push({
+							id: (id as any) as number,
+							node: node
+						});
 					}
 				}
 
