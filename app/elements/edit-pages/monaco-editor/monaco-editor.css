@@ -33,6 +33,7 @@
 }
 
 #editorElement {
+	display: -webkit-flex;
 	display: flex;
 	-webkit-flex-grow: 100;
 	flex-grow: 100;
@@ -79,10 +80,19 @@
 	height: auto!important;
 }
 
+.monacoTextareaContainer {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+}
+
 .monacoEditorTextarea {
 	width: 100%;
 	height: 100%;
 	resize: none;
+	-webkit-flex-grow: 100;
+	flex-grow: 100;
 }
 
 .monacoEditorTextarea.dark-theme {
