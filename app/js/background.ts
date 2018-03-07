@@ -413,6 +413,13 @@ interface CRMTemplates {
 	getDefaultDividerOrMenuNode(options: Partial<CRM.DividerNode> | Partial<CRM.MenuNode>, type: 'menu' | 'divider'): CRM.DividerNode | CRM.MenuNode;
 	getDefaultDividerNode(options?: Partial<CRM.DividerNode>): CRM.DividerNode;
 	getDefaultMenuNode(options?: Partial<CRM.MenuNode>): CRM.MenuNode;
+	_globalObjectWrapperCache: Array<{
+		cacheName: string;
+		cacheWrapperName: string;
+		cacheChromeVal: string;
+		cacheBrowserVal: string;
+		cached: string;
+	}>;
 	globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string, browserVal: string): string;
 }
 
@@ -882,23 +889,38 @@ if (typeof module === 'undefined') {
 				getDefaultMenuNode(this: CRMTemplates, options: Partial<CRM.MenuNode> = {}): CRM.MenuNode {
 					return this.getDefaultDividerOrMenuNode(options, 'menu') as CRM.MenuNode;
 				},
+				_globalObjectWrapperCache: [],
 				globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string, browserVal: string): string {
-					return `var ${wrapperName} = (${((REPLACE: {
-						wrapperName: any;
-						name: {
+					for (const { 
+						cacheName, 
+						cacheWrapperName, 
+						cacheChromeVal,
+						cacheBrowserVal,
+						cached 
+					} of this._globalObjectWrapperCache) {
+						if (name === cacheName && wrapperName === cacheWrapperName && 
+							chromeVal === cacheChromeVal && browserVal === cacheBrowserVal) {
+								return cached;
+							}
+					}
+
+					const result = `var ${wrapperName} = (${((REPLACE: {
+						REPLACEWrapperName: any;
+						REPLACEName: {
 							[key: string]: any;
 						};
-						crmAPI: any;
-						browserVal: string;
-						chromeVal: string;
-					}, REPLACEWrapperName: {
-						[key: string]: any;
+						REPLACECrmAPI: any;
+						REPLACEBrowserVal: string;
+						REPLACEChromeVal: string;
 					}) => {
-						var REPLACEWrapperName = (() => {
-							var tempWrapper: {
+						let REPLACEWrapperName: {
+							[key: string]: any;
+						};
+						return (REPLACEWrapperName = (() => {
+							const tempWrapper: {
 								[key: string]: any;
 							} = {};
-							const original = REPLACE.name;
+							const original = REPLACE.REPLACEName;
 							for (var prop in original) {
 								((prop) => {
 								if (prop !== 'webkitStorageInfo' && typeof original[prop] === 'function') {
@@ -911,11 +933,11 @@ if (typeof module === 'undefined') {
 											if (original === original) {
 												return tempWrapper;
 											} else if (prop === 'crmAPI') {
-												return REPLACE.crmAPI;
+													return REPLACE.REPLACECrmAPI;
 											} else if (prop === 'browser') {
-												return REPLACE.browserVal;
+													return REPLACE.REPLACEBrowserVal;
 											} else if (prop === 'chrome') {
-												return REPLACE.chromeVal;
+													return REPLACE.REPLACEChromeVal;
 											} else {
 												return original[prop];
 											}
@@ -928,16 +950,23 @@ if (typeof module === 'undefined') {
 								})(prop);
 							}
 							return tempWrapper;
-						})();
-						return REPLACEWrapperName;
+						})());
 					}).toString()	
-						.replace(/REPLACE.name/g, name)
-						.replace(/REPLACE.chromeVal/g, chromeVal)
-						.replace(/REPLACE.browserVal/g, browserVal)
-						.replace(/REPLACE.crmAPI/g, 'crmAPI')
-						.replace(/REPLACEWrapperName = /g, wrapperName + '=')
-						.replace(/REPLACEWrapperName/g, wrapperName)})()`
-						.replace(/\n/g, '')
+						.replace(/\w+.REPLACEName/g, name)
+						.replace(/\w+.REPLACEChromeVal/g, chromeVal)
+						.replace(/\w+.REPLACEBrowserVal/g, browserVal)
+						.replace(/\w+.REPLACECrmAPI/g, 'crmAPI')
+						.replace(/\var\s\w+;/g, `var ${wrapperName};`)
+						.replace(/return \(\w+ = \(/g, `return (${wrapperName} = (`)})()`
+						.replace(/\n/g, '');
+					this._globalObjectWrapperCache.push({
+						cacheName: name,
+						cacheWrapperName: wrapperName,
+						cacheChromeVal: chromeVal,
+						cacheBrowserVal: browserVal,
+						cached: result
+					});
+					return result;
 				}
 			},
 			specialJSON: {
