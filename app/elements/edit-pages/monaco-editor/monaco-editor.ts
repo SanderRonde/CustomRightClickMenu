@@ -1631,19 +1631,17 @@ namespace MonacoEditorElement {
 				const start = textarea.selectionStart;
 				const finish = textarea.selectionEnd;
 				const selection = textarea.value.substring(start, finish);
-				if (selection.length > 0) {
-					return {
-						from: {
-							...this._totalCharIndexToPosition(textarea.value, start),
-							totalChar: start
-						},
-						to: {
-							...this._totalCharIndexToPosition(textarea.value, finish),
-							totalChar: finish
-						},
-						content: selection
-					};
-				}
+				return {
+					from: {
+						...this._totalCharIndexToPosition(textarea.value, start),
+						totalChar: start
+					},
+					to: {
+						...this._totalCharIndexToPosition(textarea.value, finish),
+						totalChar: finish
+					},
+					content: selection
+				};
 			}
 			return null;
 		}
