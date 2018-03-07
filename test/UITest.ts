@@ -3244,12 +3244,15 @@ describe('Options Page', function() {
 								await wait(500);
 								const newCode = await getEditorValue(type);
 								
-								assert.strictEqual(subtractStrings(newCode, prevCode), [
+								const lines = [
 									'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
 									'var url = \'https://www.google.com/search?q=%s\';',
 									'var toOpen = url.replace(/%s/g,search);',
 									'window.open(toOpen, \'_blank\');'
-								].join('\r\n'), 'Added code matches expected');
+								];
+								const possibilities = [lines.join('\r\n'), lines.join('\n')];
+								assert.include(possibilities, subtractStrings(newCode, prevCode), 
+									'Added code matches expected');
 							});
 							it('should correctly add a search engine script (current tab)', async () => {
 								await enterEditorFullscreen(this, type);
@@ -3288,12 +3291,16 @@ describe('Options Page', function() {
 									.click();
 								await wait(500);
 								const newCode = await getEditorValue(type);
-								assert.strictEqual(subtractStrings(newCode, prevCode), [
+
+								const lines = [
 									'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
 									'var url = \'https://www.google.com/search?q=%s\';',
 									'var toOpen = url.replace(/%s/g,search);',
 									'location.href = toOpen;'
-								].join('\r\n'), 'Added code matches expected');
+								];
+								const possibilities = [lines.join('\r\n'), lines.join('\n')];
+								assert.include(possibilities, subtractStrings(newCode, prevCode), 
+									'Added code matches expected');
 							});
 						});
 						describe('Custom Input', function() {
@@ -3334,12 +3341,16 @@ describe('Options Page', function() {
 									.click();
 								await wait(500);
 								const newCode = await getEditorValue(type);
-								assert.strictEqual(subtractStrings(newCode, prevCode), [
+
+								const lines = [
 									'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
 									`var url = '${exampleSearchURL.replace('customRightClickMenu', '%s')}';`,
 									'var toOpen = url.replace(/%s/g,search);',
 									'location.href = toOpen;'
-								].join('\r\n'), 'Script should match expected value');
+								];
+								const possibilities = [lines.join('\r\n'), lines.join('\n')];
+								assert.include(possibilities, subtractStrings(newCode, prevCode), 
+									'Script should match expected value');
 							});
 							it('should be able to add one from your visited websites', async () => {
 								const exampleVisitedWebsites: Array<{
@@ -3403,12 +3414,16 @@ describe('Options Page', function() {
 									.click();
 								await wait(500);
 								const newValue = await getEditorValue(type);
-								assert.strictEqual(subtractStrings(newValue, oldValue), [
+
+								const lines = [
 									'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
 									`var url = '${exampleVisitedWebsites[0].searchUrl}';`,
 									'var toOpen = url.replace(/%s/g,search);',
 									'location.href = toOpen;'
-								].join('\r\n'), 'Added script should match expected');
+								];
+								const possibilities = [lines.join('\r\n'), lines.join('\n')];
+								assert.include(possibilities, subtractStrings(newValue, oldValue), 
+									'Added script should match expected');
 							});
 						});
 					});
