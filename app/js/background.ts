@@ -899,7 +899,8 @@ if (typeof module === 'undefined') {
 								[key: string]: any;
 							} = {};
 							const original = REPLACE.name;
-							for (const prop in original) {
+							for (var prop in original) {
+								((prop) => {
 								if (prop !== 'webkitStorageInfo' && typeof original[prop] === 'function') {
 									tempWrapper[prop] = function() {
 										return original[prop].apply(original, arguments);
@@ -924,6 +925,7 @@ if (typeof module === 'undefined') {
 										}
 									});
 								}
+								})(prop);
 							}
 							return tempWrapper;
 						})();
