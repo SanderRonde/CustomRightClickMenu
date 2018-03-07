@@ -125,7 +125,10 @@ namespace PaperSearchWebsiteDialog {
 		 */
 		static hideAllWindows(this: PaperSearchWebsiteDialog, except: string) {
 			this.windows.forEach((item) => {
-				item !== except && (this.$[item].style.display = 'none');
+				if (item !== except) {
+					this.$[item].style.display = 'none';
+					this.$[item].classList.remove('visible');
+				}
 			});
 		};
 
@@ -137,6 +140,7 @@ namespace PaperSearchWebsiteDialog {
 			this.windowPath.pop();
 			this.hideAllWindows(newWindow);
 			this.$[newWindow].style.display = 'block';
+			this.$[newWindow].classList.add('visible');
 			this.fit();
 		};
 
@@ -147,6 +151,7 @@ namespace PaperSearchWebsiteDialog {
 			this.hideAllWindows(window);
 			if (window === 'successWindow') {
 				this.$.successWindow.setAttribute('style', 'display:block;');
+				this.$.successWindow.classList.add('visible');
 				this.$.successWindow.querySelector('.checkmark').classList.add('animateIn');
 				$(this.$.successWindow).animate({
 					backgroundColor: 'rgb(38,153,244)'
@@ -157,6 +162,7 @@ namespace PaperSearchWebsiteDialog {
 				this.insertCode();
 			} else {
 				this.$[window].style.display = 'block';
+				this.$[window].classList.add('visible');
 			}
 			this.windowPath.push(this.windows.indexOf(window));
 			this.fit();
