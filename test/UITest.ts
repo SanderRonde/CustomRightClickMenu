@@ -2936,16 +2936,17 @@ describe('Options Page', function() {
 									incognito: false
 								}
 							}));
+							await wait(1000);
 							const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
 								const str = JSON.stringify(window.chrome._executedScripts);
 								window.chrome._clearExecutedScripts();
 								return str;
-							})));
+							}))).map(scr => JSON.stringify(scr));
 
-							assert.include(activatedScripts, {
+							assert.include(activatedScripts, JSON.stringify({
 								id: tabId,
 								code: jqCode
-							}, 'library was properly executed');
+							}), 'library was properly executed');
 						});
 						it('should not add a library through url when not saved', async () => {
 							const libName = getRandomString(25);
@@ -3097,6 +3098,7 @@ describe('Options Page', function() {
 									incognito: false
 								}
 							}));
+							await wait(1000);
 							const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
 								return JSON.stringify(window.chrome._executedScripts);
 							})));
