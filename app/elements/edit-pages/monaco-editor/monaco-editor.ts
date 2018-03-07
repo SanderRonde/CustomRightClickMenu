@@ -2121,7 +2121,7 @@ namespace MonacoEditorElement {
 		}
 		
 		private static _supportsMonaco() {
-			return window.app.util.getChromeVersion() > 30;
+			return window.app.util.getChromeVersion() >= 30;
 		}
 
 		static async create(this: MonacoEditor, editorType: EditorConfig, options?: monaco.editor.IEditorConstructionOptions, 
