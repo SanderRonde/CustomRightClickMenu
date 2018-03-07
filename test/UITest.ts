@@ -2742,7 +2742,7 @@ describe('Options Page', function() {
 				});
 			});
 			describe('Default State', function() {
-				this.timeout(10000 * TIME_MODIFIER);
+				this.timeout(20000 * TIME_MODIFIER);
 				this.slow(10000 * TIME_MODIFIER);
 				it('should be togglable to true', async () => {
 					await resetSettings(this);
