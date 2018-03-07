@@ -65,6 +65,7 @@ namespace CRMAppElement {
 				return {
 					play: function () { },
 					reverse: function () { },
+					cancel: function() { },
 					effect: {
 						target: this
 					}
@@ -75,7 +76,7 @@ namespace CRMAppElement {
 			let direction: 'forwards' | 'backwards' = 'forwards';
 			const returnVal: Animation = {
 				play() {
-					$(element).animate(properties[~~(direction === 'forwards')],
+					$(element).stop().animate(properties[~~(direction === 'forwards')],
 						(options && options.duration) || 500, function () {
 							if (returnVal.onfinish) {
 								returnVal.onfinish.apply({
@@ -89,6 +90,9 @@ namespace CRMAppElement {
 				reverse() {
 					direction = 'backwards';
 					this.play();
+				},
+				cancel() {
+					$(element).stop()
 				},
 				effect: {
 					target: this

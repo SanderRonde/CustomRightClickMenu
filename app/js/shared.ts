@@ -245,19 +245,29 @@ interface Window {
 		}
 	}
 
-	function createAnimation(el: HTMLElement, from: string, to: string, doAnimation: (from: string, to: string, done: () => void) => void): Animation {
+	function createAnimation(el: HTMLElement, from: string, to: string, doAnimation: (from: string, to: string, done: () => void) => {
+		cancel(): void;
+	}): Animation {
+		let currentAnimation: {
+			cancel(): void;
+		} = null;
 		const retVal: Animation = {
 			effect: {
 				target: el
 			},
 			onfinish: null,
+			cancel() {
+				currentAnimation && currentAnimation.cancel();
+			},
 			play() {
-				doAnimation(from, to, () => {
+				currentAnimation && currentAnimation.cancel();
+				currentAnimation = doAnimation(from, to, () => {
 					this.onfinish && this.onfinish();
 				});
 			},
 			reverse() {
-				doAnimation(to, from, () => {
+				currentAnimation && currentAnimation.cancel();
+				currentAnimation = doAnimation(to, from, () => {
 					this.onfinish && this.onfinish();
 				});
 			}
@@ -308,6 +318,11 @@ interface Window {
 						done();
 					}
 				});
+				return {
+					cancel() {
+						$(dummy).stop();
+					}
+				}
 			});
 		}
 	}

@@ -221,6 +221,7 @@ interface LogLineContainerInterface {
 interface Animation {
 	onfinish?: () => void;
 	play(): void;
+	cancel(): void;
 	reverse?(): void;
 	effect: {
 		target: HTMLElement;
