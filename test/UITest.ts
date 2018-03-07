@@ -3441,8 +3441,8 @@ describe('On-Page CRM', function() {
 		return;
 	}
 	describe('Redraws on new CRM', function() {
-		this.slow(250 * TIME_MODIFIER);
-		this.timeout(1500 * TIME_MODIFIER);
+		this.slow(2000 * TIME_MODIFIER);
+		this.timeout(30000 * TIME_MODIFIER);
 
 		const CRM1 = [
 			templates.getDefaultLinkNode({
@@ -3511,8 +3511,8 @@ describe('On-Page CRM', function() {
 		});
 	});
 	describe('Links', function() {
-		this.slow(150 * TIME_MODIFIER);
-		this.timeout(1500 * TIME_MODIFIER);
+		this.slow(2000 * TIME_MODIFIER);
+		this.timeout(3000 * TIME_MODIFIER);
 		const CRMNodes = [
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
@@ -3638,8 +3638,6 @@ describe('On-Page CRM', function() {
 			}
 		});
 		it('should open the correct links when clicked for the default link', async function() {
-			this.timeout(2000 * TIME_MODIFIER);
-			this.slow(500 * TIME_MODIFIER);
 			const tabId = ~~(Math.random() * 100);
 			const windowId = ~~(Math.random() * 100);
 			const contextMenu = await getContextMenu();
@@ -3699,8 +3697,6 @@ describe('On-Page CRM', function() {
 				'opened tabs match expected');
 		});
 		it('should open the correct links when clicked for multiple links', async () => {
-			this.timeout(2000 * TIME_MODIFIER);
-			this.slow(500 * TIME_MODIFIER);
 			const tabId = ~~(Math.random() * 100);
 			const windowId = ~~(Math.random() * 100);
 			const contextMenu = await getContextMenu();
@@ -3765,6 +3761,8 @@ describe('On-Page CRM', function() {
 		});
 	});
 	describe('Menu & Divider', function() {
+		this.slow(2000 * TIME_MODIFIER);
+		this.timeout(3000 * TIME_MODIFIER);
 		const CRMNodes = [
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
@@ -3864,8 +3862,8 @@ describe('On-Page CRM', function() {
 		});
 	});
 	describe('Scripts', function() {
-		this.slow(900 * TIME_MODIFIER);
-		this.timeout(2000 * TIME_MODIFIER);
+		this.slow(2000 * TIME_MODIFIER);
+		this.timeout(3000 * TIME_MODIFIER);
 
 		const CRMNodes = [
 			templates.getDefaultScriptNode({
