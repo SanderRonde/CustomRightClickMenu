@@ -3485,6 +3485,7 @@ describe('On-Page CRM', function() {
 				}, {
 					crm: CRM1
 				}));
+				await wait(1000);
 				done();
 			}, 'setting up the CRM does not throw');
 		});
@@ -3502,6 +3503,7 @@ describe('On-Page CRM', function() {
 				}, {
 					crm: CRM2
 				}));
+				await wait(1000);
 				done();
 			}, 'settings CRM does not throw');
 		});
@@ -3601,6 +3603,7 @@ describe('On-Page CRM', function() {
 				}, {
 					crm: CRMNodes
 				}));
+				await wait(1000);
 				done();
 			}, 'setting up the CRM does not throw');
 		});
@@ -3841,7 +3844,7 @@ describe('On-Page CRM', function() {
 
 		it('should not throw when setting up the CRM', function(done) {
 			this.timeout(10000 * TIME_MODIFIER);
-			this.slow(6000 * TIME_MODIFIER);
+			this.slow(8000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
 				await driver.executeScript(inlineFn((REPLACE) => {
@@ -3851,6 +3854,7 @@ describe('On-Page CRM', function() {
 				}, {
 					crm: CRMNodes
 				}));
+				await wait(1000);
 				done();
 			}, 'setting up the CRM does not throw');
 		});
@@ -3956,6 +3960,7 @@ describe('On-Page CRM', function() {
 				}, {
 					crm: CRMNodes
 				}));
+				await wait(1000);
 				done();
 			}, 'setting up the CRM does not throw');
 		});
@@ -4082,6 +4087,7 @@ describe('On-Page CRM', function() {
 			}, {
 				fakeTabId: fakeTabId
 			}));
+			await wait(500);
 			const contextMenu = await getContextMenu();
 
 			assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
@@ -4116,6 +4122,7 @@ describe('On-Page CRM', function() {
 					incognito: false
 				}
 			}));
+			await wait(500);
 			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
 				return JSON.stringify(window.chrome._executedScripts);
 			})));
@@ -4513,6 +4520,7 @@ describe('On-Page CRM', function() {
 				}, {
 					crm: CRMNodes
 				}));
+				await wait(1000);
 				done();
 			}, 'setting up the CRM does not throw');
 		});
