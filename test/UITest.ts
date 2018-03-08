@@ -1578,6 +1578,7 @@ describe('Options Page', function() {
 		}
 		this.timeout(10000 * TIME_MODIFIER);
 		this.slow(8000 * TIME_MODIFIER);
+		this.retries(3);
 		const checkboxDefaults = {
 			catchErrors: true,
 			showOptions: true,
