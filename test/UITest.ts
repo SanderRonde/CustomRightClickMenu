@@ -1576,8 +1576,8 @@ describe('Options Page', function() {
 		if (SKIP_OPTIONS_PAGE_NON_DIALOGS) {
 			return;
 		}
-		this.timeout(5000 * TIME_MODIFIER);
-		this.slow(4000 * TIME_MODIFIER);
+		this.timeout(10000 * TIME_MODIFIER);
+		this.slow(8000 * TIME_MODIFIER);
 		const checkboxDefaults = {
 			catchErrors: true,
 			showOptions: true,
