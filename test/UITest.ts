@@ -244,6 +244,9 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
+	if (TEST_LOCAL) {
+		return {} as any;
+	}
 	console.error('Please specify a chrome version to test');
 	console.log('Choose from:');
 	console.log('\n--chrome-latest\n--chrome-{version}\n--firefox-quantum')
