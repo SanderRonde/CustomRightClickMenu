@@ -4,7 +4,7 @@
         "alwaysStrict": true,
         "baseUrl": "./tools/definitions/",
         "forceConsistentCasingInFileNames": true,
-        "module": "commonjs",
+        "module": "esnext",
         "noImplicitAny": true,
         "noImplicitThis": true,
         "removeComments": true,
