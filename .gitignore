@@ -256,3 +256,5 @@ test/UI/options.js
 app/manifest.json
 app/manifest.temp.json
 dist/
+
+app/js/background/*.js
