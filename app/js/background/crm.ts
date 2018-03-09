@@ -586,21 +586,21 @@ export namespace CRMNodes.Script.Background {
 					if (nodeInstances.hasOwnProperty(instance) &&
 						nodeInstances[instance]) {
 
-						try {
-							modules.crmValues.tabData[instance].nodes[node.id]
-								.forEach((tabIndexInstance, index) => {
-									modules.Util.postMessage(tabIndexInstance.port, {
-										messageType: 'dummy'
+							try {
+								modules.crmValues.tabData[instance].nodes[node.id]
+									.forEach((tabIndexInstance, index) => {
+										modules.Util.postMessage(tabIndexInstance.port, {
+											messageType: 'dummy'
+										});
+										instancesArr.push({
+											id: instance,
+											tabIndex: index
+										});
 									});
-									instancesArr.push({
-										id: instance,
-										tabIndex: index
-									});
-								});
-						} catch (e) {
-							delete nodeInstances[instance];
+							} catch (e) {
+								delete nodeInstances[instance];
+							}
 						}
-					}
 				}
 				return instancesArr;
 			}, (worker) => {
