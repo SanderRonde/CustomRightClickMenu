@@ -1,4 +1,4 @@
-import { Globals, ModuleData, CRMTemplates } from "./moduleTypes.js";
+import { Globals, ModuleData, CRMTemplates } from "./moduleTypes";
 
 export namespace Global {
 	export let modules: ModuleData;

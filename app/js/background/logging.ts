@@ -1,5 +1,5 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
-import { ModuleData } from "./moduleTypes.js";
+import { ModuleData } from "./moduleTypes";
 
 declare const window: BackgroundpageWindow;
 

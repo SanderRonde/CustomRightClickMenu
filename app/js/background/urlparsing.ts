@@ -1,4 +1,4 @@
-import { ModuleData } from "./moduleTypes.js";
+import { ModuleData } from "./moduleTypes";
 
 export interface MatchPattern {
 	scheme: string;

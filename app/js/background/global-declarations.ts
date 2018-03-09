@@ -1,7 +1,7 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
 import { MessageHandling } from "./messagehandling.js";
 import { BrowserHandler } from "./browserhandler.js";
-import { ModuleData } from "./moduleTypes.js";
+import { ModuleData } from "./moduleTypes";
 
 declare const window: BackgroundpageWindow;
 

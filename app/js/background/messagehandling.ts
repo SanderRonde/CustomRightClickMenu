@@ -1,7 +1,7 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
 import { BrowserHandler } from "./browserhandler.js";
 import { CRMFunctions } from "./crmfunctions.js";
-import { ModuleData } from "./moduleTypes.js";
+import { ModuleData } from "./moduleTypes";
 
 export namespace MessageHandling.Instances {
 	export function respond(message: {
