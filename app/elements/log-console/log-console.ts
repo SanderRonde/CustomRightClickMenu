@@ -86,7 +86,7 @@ namespace LogConsoleElement {
 	export class LC {
 		static is: string = 'log-console';
 
-		private static _bgPage: Window;
+		private static _bgPage: BackgroundpageWindow;
 
 		static properties: any = logConsoleProperties;
 
@@ -400,7 +400,7 @@ namespace LogConsoleElement {
 		}
 
 		private static async _init(this: LogConsole, callback: () => void) {
-			const bgPage = await browserAPI.runtime.getBackgroundPage();
+			const bgPage = await browserAPI.runtime.getBackgroundPage() as BackgroundpageWindow;
 			this._bgPage = bgPage;
 
 			bgPage._listenIds((ids) => {

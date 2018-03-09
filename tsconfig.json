@@ -15,7 +15,8 @@
         "noImplicitReturns": true,
         "noUnusedLocals": true,
         "target": "es3",
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "strictPropertyInitialization": true
 	}, 
     "allowJs": true,
     "compileOnSave": true,

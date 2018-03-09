@@ -157,6 +157,7 @@ interface Window {
 	Intl: typeof Intl;
 	unescape(str: string): string;
 	md5: (input: any) => string;
+	XMLHttpRequest: any;
 
 	doc: ModuleMap['crm-app'];
 	logElements?: {

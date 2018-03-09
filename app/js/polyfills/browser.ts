@@ -1,3 +1,5 @@
+/// <reference path="../background/sharedTypes.ts"/>
+
 declare namespace _browser.runtime {
 	function getManifest(): _chrome.runtime.Manifest;
 }
