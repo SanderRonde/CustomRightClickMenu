@@ -30,8 +30,8 @@ interface ChromeLastCall {
 
 interface ContextMenuItem {
 	id: number;
-	createProperties: ContextMenusCreateProperties;
-	currentProperties: ContextMenusCreateProperties;
+	createProperties: CRMNodes.NodeCreation.ContextMenusCreateProperties;
+	currentProperties: CRMNodes.NodeCreation.ContextMenusCreateProperties;
 	children: Array<ContextMenuItem>;
 }
 
@@ -94,6 +94,8 @@ declare const window: AppWindow;
 
 import * as chai from 'chai';
 import * as webdriver from 'selenium-webdriver';
+import { GlobalObject } from '../app/js/background/moduleTypes';
+import { CRMNodes } from '../app/js/background/crm';
 require('mocha-steps');
 const secrets = require('./UI/secrets');
 const request = require('request');
