@@ -1,19 +1,19 @@
 import {ModuleData, GlobalObject, StorageModules, Modules } from "./moduleTypes";
-import { GlobalDeclarations } from "./global-declarations";
-import { MessageHandling } from "./messagehandling";
-import { BrowserHandler } from "./browserhandler";
-import { APIMessaging } from "./api-messaging";
-import { CRMFunctions } from "./crmfunctions";
-import { CRMFunction } from "./crmfunction";
-import { URLParsing } from "./urlparsing";
-import { Resources } from "./resources";
-import { Storages } from "./storages";
-import { Logging } from "./logging";
-import { Sandbox } from "./sandbox";
-import { Global } from "./global";
-import { CRMNodes } from "./crm";
-import { Info } from "./info";
-import { Util } from "./util";
+import { GlobalDeclarations } from "./global-declarations.js";
+import { MessageHandling } from "./messagehandling.js";
+import { BrowserHandler } from "./browserhandler.js";
+import { APIMessaging } from "./api-messaging.js";
+import { CRMFunctions } from "./crmfunctions.js";
+import { CRMFunction } from "./crmfunction.js";
+import { URLParsing } from "./urlparsing.js";
+import { Resources } from "./resources.js";
+import { Storages } from "./storages.js";
+import { Logging } from "./logging.js";
+import { Sandbox } from "./sandbox.js";
+import { Global } from "./global.js";
+import { CRMNodes } from "./crm.js";
+import { Info } from "./info.js";
+import { Util } from "./util.js";
 
 declare const window: BackgroundpageWindow;
 

@@ -1,4 +1,4 @@
-import { ModuleData } from "./moduleTypes";
+import { ModuleData } from "./moduleTypes.js";
 
 declare const window: BackgroundpageWindow;
 

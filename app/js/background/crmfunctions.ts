@@ -1,7 +1,7 @@
 /// <reference path="./sharedTypes.ts"/>
-import { MessageHandling } from "./messagehandling";
-import { ModuleData } from "./moduleTypes";
-import { CRMFunction } from "./crmfunction";
+import { MessageHandling } from "./messagehandling.js";
+import { CRMFunction } from "./crmfunction.js";
+import { ModuleData } from "./moduleTypes.js";
 
 declare const window: BackgroundpageWindow;
 

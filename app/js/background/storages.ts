@@ -1,5 +1,5 @@
-import { ModuleData } from "./moduleTypes";
-import { MatchPattern } from "./urlparsing";
+import { ModuleData } from "./moduleTypes.js";
+import { MatchPattern } from "./urlparsing.js";
 
 declare const window: BackgroundpageWindow;
 

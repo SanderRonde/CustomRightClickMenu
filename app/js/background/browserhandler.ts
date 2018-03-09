@@ -1,5 +1,5 @@
 /// <reference path="../background/sharedTypes.ts"/>
-import { ModuleData } from "./moduleTypes";
+import { ModuleData } from "./moduleTypes.js";
 
 export namespace BrowserHandler.ChromeAPIs {
 	function _checkFirstRuntimeArg(message: ChromeAPIMessage|BrowserAPIMessage, expectedType: string, name: string) {

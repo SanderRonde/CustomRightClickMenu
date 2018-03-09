@@ -1,18 +1,18 @@
 /// <reference path="../shared.ts" />
 /// <reference path="../background/sharedTypes.ts"/>
-import { GlobalDeclarations } from "./global-declarations";
-import { MessageHandling } from "./messagehandling";
-import { BrowserHandler } from "./browserhandler";
-import { APIMessaging } from "./api-messaging";
-import { CRMFunctions } from "./crmfunctions";
-import { CRMFunction } from "./crmfunction";
-import { URLParsing, MatchPattern } from "./urlparsing";
-import { Resources } from "./resources";
-import { Sandbox, SandboxWorker } from "./sandbox";
-import { Storages } from "./storages";
-import { Logging } from "./logging";
-import { CRMNodes } from "./crm";
-import { Util } from "./util";
+import { GlobalDeclarations } from "./global-declarations.js";
+import { URLParsing, MatchPattern } from "./urlparsing.js";
+import { MessageHandling } from "./messagehandling.js";
+import { Sandbox, SandboxWorker } from "./sandbox.js";
+import { BrowserHandler } from "./browserhandler.js";
+import { APIMessaging } from "./api-messaging.js";
+import { CRMFunctions } from "./crmfunctions.js";
+import { CRMFunction } from "./crmfunction.js";
+import { Resources } from "./resources.js";
+import { Storages } from "./storages.js";
+import { Logging } from "./logging.js";
+import { CRMNodes } from "./crm.js";
+import { Util } from "./util.js";
 
 export interface BGStorages {
 	settingsStorage: CRM.SettingsStorage;

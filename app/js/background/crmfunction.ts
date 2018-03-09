@@ -1,6 +1,6 @@
-import { MessageHandling } from "./messagehandling";
-import { CRMFunctions } from "./crmfunctions";
-import { ModuleData } from "./moduleTypes";
+import { MessageHandling } from "./messagehandling.js";
+import { CRMFunctions } from "./crmfunctions.js";
+import { ModuleData } from "./moduleTypes.js";
 
 export namespace CRMFunction {
 	export let modules: ModuleData;

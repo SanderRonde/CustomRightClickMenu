@@ -1,6 +1,6 @@
 /// <reference path="../background/sharedTypes.ts"/>
-import { ModuleData } from "./moduleTypes";
-import { MatchPattern } from "./urlparsing";
+import { MatchPattern } from "./urlparsing.js";
+import { ModuleData } from "./moduleTypes.js";
 
 declare const window: BackgroundpageWindow;
 
