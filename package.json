@@ -143,7 +143,7 @@
     "test:edge:16": "mocha test/UITest.js --remote --edge-16",
     "test:edge:latest": "mocha test/UITest.js --remote --edge-latest",
     "build": "yarn build:main && yarn build:chrome-copy && yarn build:firefox-copy && yarn build:edge-copy && yarn build:opera-copy && yarn build:post",
-    "build:main": "grunt stashBrowser && grunt build",
+    "build:main": "grunt stashBrowser && grunt browserChrome && grunt build",
     "build:chrome-copy": "grunt copy:copyManifestChromeBuild && grunt copy:buildToChrome",
     "build:firefox-copy": "grunt copy:copyManifestFirefoxBuild && grunt copy:buildToFirefox",
     "build:edge-copy": "grunt copy:copyManifestEdgeBuild && grunt copy:buildToEdge",
