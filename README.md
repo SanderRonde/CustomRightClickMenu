@@ -29,9 +29,11 @@ as userstyles.
 
 Run your own javascript scripts on the current page or simply use ones that someone else wrote by sharing them. You can also write
 the javascript in the extension itself or use your own editor with the external editor app ([source](https://github.com/SanderRonde/CRM-External-Editor-App), [app](https://chrome.google.com/webstore/detail/crm-external-editor-app/hkjjmhkhhlmkflpihbikfpcojeofbjgn) (chrome only)).
-Apart from using standard javascript you can also access the Custom Right-Click Menu's own APIs allowing you to extend the menu
-through your own code which simplifies creating self-contained scripts or sub-menus of course featuring a permissions system for any
-external scripts to make sure they don't spam your menu with copies. Next to this you can access almost every single browser API
+You can also write [TypeScript](typescriptlang.org), which is compiled in the extension.
+Apart from using standard javascript APIs, you can also access the Custom Right-Click Menu's own APIs.
+These allow you to extend the menu through your own code, which simplifies creating self-contained scripts or sub-menus. 
+Of course featuring a permissions system for any external scripts to make sure they don't spam your menu with copies or
+ run unauthorized scripts. Next to this you can access almost every single browser API
 without having to go through the hassle of creating a browser extension specifically for it. This allows you to easily increase your
 productivity by for example automatically creating bookmarks, managing your tabs or even setting alarms. If you're using chromeOS
 this becomes even better since then you can even change things like your wallpaper and things about the system itself.
