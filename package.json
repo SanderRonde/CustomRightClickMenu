@@ -153,6 +153,7 @@
     "build-firefox": "grunt stashBrowser && grunt browserFirefox && grunt build && grunt copy:buildToFirefox",
     "build-edge": "grunt stashBrowser && grunt browserEdge && grunt build && grunt copy:buildToEdge",
     "build-opera": "grunt stashBrowser && grunt browserOpera && grunt build && grunt copy:buildToOpera",
+    "test-local": "yarn test:global && mocha test/UITest.js",
     "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'app/bower_components', 'junction') } catch (e) { }\""
   },
   "version": "2.0.16",
