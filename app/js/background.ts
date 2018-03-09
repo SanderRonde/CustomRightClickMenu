@@ -9,8 +9,8 @@
 /// <reference path="../js/shared.ts" />
 /// <reference path="crmapi.ts" />
 
-import { Init } from "./background/init";
 
-{
+(async () => {
+	const { Init } = await import("./background/init.js");
 	Init.init();
-}
+})();
