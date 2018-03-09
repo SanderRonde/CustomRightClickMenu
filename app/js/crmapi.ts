@@ -2348,7 +2348,7 @@
 									//Filler
 									refData.refs.push(null);
 									refData.paths[index] = path;
-									const newData = this._toJSON(copyTarget[key], element, path.concat(key), refData);
+									const newData = this._toJSON(copyTarget[key as keyof typeof copyTarget], element, path.concat(key), refData);
 									refData.refs[index] = newData.data;
 									refData.originalValues[index] = element;
 								}
@@ -2614,7 +2614,7 @@
 			static mergeObjects<T extends {
 				[key: string]: any;
 				[key: number]: any;
-			}, Y extends Partial<T> & Object>(mainObject: T, additions: Y): T & Y {
+			}, Y extends Partial<T>>(mainObject: T, additions: Y): T & Y {
 				for (const key in additions) {
 					if (additions.hasOwnProperty(key)) {
 						if (typeof additions[key] === 'object' &&
