@@ -225,7 +225,7 @@ type BackgroundpageWindow = Window & SharedWindow & {
 	testLog?: typeof console.log;
 }
 
-const enum SCRIPT_CONVERSION_TYPE {
+declare const enum SCRIPT_CONVERSION_TYPE {
 	CHROME = 0,
 	LOCAL_STORAGE = 1,
 	BOTH = 2

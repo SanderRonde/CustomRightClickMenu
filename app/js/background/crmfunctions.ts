@@ -1,4 +1,4 @@
-/// <reference path="./sharedTypes.ts"/>
+/// <reference path="./sharedTypes.d.ts"/>
 import { MessageHandling } from "./messagehandling.js";
 import { CRMFunction } from "./crmfunction.js";
 import { ModuleData } from "./moduleTypes.js";

@@ -1,4 +1,4 @@
-/// <reference path="../background/sharedTypes.ts"/>
+/// <reference path="../background/sharedTypes.d.ts"/>
 import { BrowserHandler } from "./browserhandler.js";
 import { ModuleData } from "./moduleTypes.js";
 

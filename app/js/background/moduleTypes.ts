@@ -1,5 +1,5 @@
 /// <reference path="../shared.ts" />
-/// <reference path="../background/sharedTypes.ts"/>
+/// <reference path="../background/sharedTypes.d.ts"/>
 import { GlobalDeclarations } from "./global-declarations.js";
 import { URLParsing, MatchPattern } from "./urlparsing.js";
 import { MessageHandling } from "./messagehandling.js";

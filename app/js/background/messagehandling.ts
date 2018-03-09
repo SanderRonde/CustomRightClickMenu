@@ -1,4 +1,4 @@
-/// <reference path="../background/sharedTypes.ts"/>
+/// <reference path="../background/sharedTypes.d.ts"/>
 import { BrowserHandler } from "./browserhandler.js";
 import { CRMFunctions } from "./crmfunctions.js";
 import { ModuleData } from "./moduleTypes.js";
