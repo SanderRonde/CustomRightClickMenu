@@ -25,7 +25,7 @@ export namespace Logging.LogExecution {
 		});
 	}
 	export function displayHints(message: CRMAPIMessageInstance<'displayHints', {
-		hints: Array<string>;
+		hints: string[];
 		id: number;
 		callbackIndex: number;
 		tabId: number;
@@ -51,7 +51,7 @@ export namespace Logging.Listeners {
 
 	export function getIds(filterTabId: number = -1) {
 		const tabData = modules.crmValues.tabData;
-		const ids: Array<number> = [];
+		const ids: number[] = [];
 		_iterateInt(tabData, (tabId, tab) => {
 			if (filterTabId !== -1 && filterTabId !== tabId) {
 				return;
@@ -70,7 +70,7 @@ export namespace Logging.Listeners {
 			title: modules.crm.crmById[id].name
 		}));
 	}
-	function _compareToCurrent<T extends Array<U>, U>(current: T, previous: T, changeListeners: Array<(result: T) => void>, type: 'id'|'tab') {
+	function _compareToCurrent<T extends U[], U>(current: T, previous: T, changeListeners: ((result: T) => void)[], type: 'id'|'tab') {
 		if (!modules.Util.compareArray(current, previous)) {
 			changeListeners.forEach((listener) => {
 				listener(current);
@@ -82,10 +82,10 @@ export namespace Logging.Listeners {
 			}
 		}
 	}
-	export function getTabs(nodeId: number = 0): Promise<Array<TabData>> {
-		return new Promise<Array<TabData>>(async (resolveOuter) => {
+	export function getTabs(nodeId: number = 0): Promise<TabData[]> {
+		return new Promise<TabData[]>(async (resolveOuter) => {
 			const tabData = modules.crmValues.tabData;
-			const tabs: Array<Promise<TabData>> = [];
+			const tabs: Promise<TabData>[] = [];
 			_iterateInt(tabData, (tabId, tab) => {
 				if (!tab.nodes[nodeId] && nodeId !== 0) {
 					return;
@@ -115,11 +115,11 @@ export namespace Logging.Listeners {
 		});
 	}
 	export async function updateTabAndIdLists(): Promise<{
-		ids: Array<{
+		ids: {
 			id: number;
 			title: string;
-		}>;
-		tabs: Array<TabData>
+		}[];
+		tabs: TabData[]
 	}> {
 		const listeners = modules.globalObject.globals.listeners;
 
@@ -143,7 +143,7 @@ export namespace Logging {
 		modules = _modules;
 	}
 
-	export function log(nodeId: number, tabId: number | string, ...args: Array<any>) {
+	export function log(nodeId: number, tabId: number | string, ...args: any[]) {
 		const filter = modules.globalObject.globals.logging.filter;
 		if (filter.id !== null && nodeId === filter.id && filter.tabId !== null) {
 			if (tabId === '*' || tabId === filter.tabId) {
@@ -154,7 +154,7 @@ export namespace Logging {
 		}
 	}
 	export function backgroundPageLog(this: Window | typeof Logging, 
-		id: number, sourceData: [string, number], ...args: Array<any>) {
+		id: number, sourceData: [string, number], ...args: any[]) {
 			sourceData = sourceData || [undefined, undefined];
 
 			const srcObjDetails = {
@@ -254,8 +254,8 @@ export namespace Logging {
 			}
 		} else {
 			const idObj: {
-				values: Array<any>;
-				logMessages: Array<LogListenerLine>;
+				values: any[];
+				logMessages: LogListenerLine[];
 				[tabId: number]: any;
 			} = {
 					values: [],
@@ -313,7 +313,7 @@ export namespace Logging {
 		} as any;
 
 		const tab = await browserAPI.tabs.get(message.tabId);
-		const data: Array<any> = modules.constants.specialJSON
+		const data: any[] = modules.constants.specialJSON
 			.fromJSON(message.data);
 		args = args.concat(data);
 		log.bind(modules.globalObject, message.id, message.tabId)

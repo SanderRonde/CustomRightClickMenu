@@ -75,14 +75,14 @@ export namespace Resources {
 			});
 		}
 	}
-	function _getHashes(url: string): Array<{
+	function _getHashes(url: string): {
 		algorithm: string;
 		hash: string;
-	}> {
-		const hashes: Array<{
+	}[] {
+		const hashes: {
 			algorithm: string;
 			hash: string;
-		}> = [];
+		}[] = [];
 		const hashString = url.split('#')[1];
 		if (!hashString) {
 			return [];
@@ -117,10 +117,10 @@ export namespace Resources {
 
 		return name.slice(0, numIndex).toUpperCase() + '-' + name.slice(numIndex);
 	}
-	function _matchesHashes(hashes: Array<{
+	function _matchesHashes(hashes: {
 		algorithm: string;
 		hash: string;
-	}>, data: string) {
+	}[], data: string) {
 		if (hashes.length === 0) {
 			return true;
 		}
@@ -236,10 +236,10 @@ export namespace Resources {
 	function _compareResource(key: {
 		name: string;
 		sourceUrl: string;
-		hashes: Array<{
+		hashes: {
 			algorithm: string;
 			hash: string;
-		}>;
+		}[];
 		scriptId: number;
 	}) {
 		const resources = modules.storages.resources;
@@ -264,10 +264,10 @@ export namespace Resources {
 	function _generateUpdateCallback(resourceKey: {
 		name: string;
 		sourceUrl: string;
-		hashes: Array<{
+		hashes: {
 			algorithm: string;
 			hash: string;
-		}>;
+		}[];
 		scriptId: number;
 	}) {
 		return () => {

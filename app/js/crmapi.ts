@@ -1,7 +1,7 @@
 /// <reference path="background.ts" />
 
 interface Window {
-	_crmAPIRegistry: Array<any>;
+	_crmAPIRegistry: any[];
 }
 
 type CRMAPIMessage = {
@@ -35,7 +35,7 @@ type CRMAPIMessage = {
 	tabId: number;
 	tabIndex: number;
 	data: {
-		hints: Array<string>;
+		hints: string[];
 		id: number;
 		tabIndex: number;
 		callbackIndex: number;
@@ -94,11 +94,11 @@ type CRMAPIMessage = {
 	type: 'updateStorage';
 	data: {
 		type: 'nodeStorage';
-		nodeStorageChanges: Array<{
+		nodeStorageChanges: {
 			key: string;
 			oldValue: any;
 			newValue: any;
-		}>;
+		}[];
 		id: number;
 		tabIndex: number;
 		tabId: number;
@@ -110,8 +110,8 @@ type CRMAPIMessage = {
 	type: 'crm';
 	tabIndex: number;
 	action: string;
-	crmPath: Array<number>;
-	data: Array<any>;
+	crmPath: number[];
+	data: any[];
 	onFInish: {
 		persistent: boolean;
 		maxCalls: number;
@@ -123,7 +123,7 @@ type CRMAPIMessage = {
 	id: number;
 	tabIndex: number;
 	api: string;
-	args: Array<({
+	args: ({
 		type: "fn";
 		isPersistent: boolean;
 		val: number;
@@ -133,7 +133,7 @@ type CRMAPIMessage = {
 	}|{
 		type: "return";
 		val: number;
-	})>;
+	})[];
 	tabId: number;
 	requestType: 'GM_download'|'GM_notification'|undefined;
 }|{
@@ -141,7 +141,7 @@ type CRMAPIMessage = {
 	id: number;
 	tabIndex: number;
 	api: string;
-	args: Array<({
+	args: ({
 		type: "fn";
 		isPersistent: boolean;
 		val: number;
@@ -151,7 +151,7 @@ type CRMAPIMessage = {
 	}|{
 		type: "return";
 		val: number;
-	})>;
+	})[];
 	tabId: number;
 	requestType: 'GM_download'|'GM_notification'|undefined;
 }|{
@@ -186,7 +186,7 @@ type CRMAPIMessage = {
 	tabIndex: number;
 	data: {
 		type: 'log',
-		data: EncodedString<Array<string>>,
+		data: EncodedString<string[]>,
 		id: number;
 		logId: number;
 		tabIndex: number;
@@ -226,7 +226,7 @@ type CRMAPIMessage = {
 	interface CallbackMessage {
 		callbackId: number;
 		type: 'success'|'error'|'chromeErrror';
-		data: string|Array<any>;
+		data: string|any[];
 		messageType: 'callback';
 	}
 
@@ -240,9 +240,9 @@ type CRMAPIMessage = {
 		name?: string;
 		type?: CRM.NodeType;
 		usesTriggers?: boolean;
-		triggers?: Array<{
+		triggers?: {
 			url: string;
-		}>;
+		}[];
 
 		linkData?: Partial<CRM.LinkVal>;
 		scriptData?: Partial<CRM.ScriptVal>;
@@ -250,10 +250,10 @@ type CRMAPIMessage = {
 	}
 
 	interface SpecialJSONObject {
-		refs: Array<any>;
-		data: Array<any>|Object;
+		refs: any[];
+		data: any[]|Object;
 		rootType: 'normal'|'array'|'object';
-		paths: Array<Array<string|number>>;
+		paths: (string|number)[][];
 	}
 
 	interface RestoredContextData {
@@ -309,20 +309,20 @@ type CRMAPIMessage = {
 
 	type CRMNodeCallback = (node: CRM.SafeNode) => void;
 
-	type MaybeArray<T> = T | Array<T>;
+	type MaybeArray<T> = T | T[];
 
 	interface ChromeRequestInterface {
-		a?(...params: Array<any>): ChromeRequestInterface;
-		args?(...params: Array<any>): ChromeRequestInterface;
-		r?(handler: (...args: Array<any>) => void): ChromeRequestInterface;
-		return?(handler: (...args: Array<any>) => void): ChromeRequestInterface;
-		p?(...functions: Array<(...args: Array<any>) => void>): ChromeRequestInterface;
-		persistent?(...functions: Array<(...args: Array<any>) => void>): ChromeRequestInterface;
+		a?(...params: any[]): ChromeRequestInterface;
+		args?(...params: any[]): ChromeRequestInterface;
+		r?(handler: (...args: any[]) => void): ChromeRequestInterface;
+		return?(handler: (...args: any[]) => void): ChromeRequestInterface;
+		p?(...functions: ((...args: any[]) => void)[]): ChromeRequestInterface;
+		persistent?(...functions: ((...args: any[]) => void)[]): ChromeRequestInterface;
 		send?(): ChromeRequestInterface;
 		s?(): ChromeRequestInterface;
 		request?: {
 			api: string;
-			chromeAPIArguments: Array<{
+			chromeAPIArguments: ({
 				type: 'fn';
 				isPersistent: boolean;
 				val: number;
@@ -332,7 +332,7 @@ type CRMAPIMessage = {
 			}|{
 				type: 'return';
 				val: number;	
-			}>;
+			})[];
 			_sent: boolean;
 			type?: string;
 			onError?(error: {
@@ -345,15 +345,15 @@ type CRMAPIMessage = {
 	}
 
 	interface BrowserRequestInterface {
-		a?(...params: Array<any>): BrowserRequestInterface;
-		args?(...params: Array<any>): BrowserRequestInterface;
-		p?(...functions: Array<(...args: Array<any>) => void>): BrowserRequestInterface;
-		persistent?(...functions: Array<(...args: Array<any>) => void>): BrowserRequestInterface;
+		a?(...params: any[]): BrowserRequestInterface;
+		args?(...params: any[]): BrowserRequestInterface;
+		p?(...functions: ((...args: any[]) => void)[]): BrowserRequestInterface;
+		persistent?(...functions: ((...args: any[]) => void)[]): BrowserRequestInterface;
 		send?(): Promise<any>;
 		s?(): Promise<any>;
 		request?: {
 			api: string;
-			chromeAPIArguments: Array<{
+			chromeAPIArguments: ({
 				type: 'fn';
 				isPersistent: boolean;
 				val: number;
@@ -363,7 +363,7 @@ type CRMAPIMessage = {
 			}|{
 				type: 'return';
 				val: number;	
-			}>;
+			})[];
 			_sent: boolean;
 			type?: string;
 		};
@@ -467,10 +467,10 @@ type CRMAPIMessage = {
 	});
 
 	type TruePrivateClass<T> = T & {
-		__privates__: Array<keyof T>;
+		__privates__: (keyof T)[];
 	};
 
-	function mapObject<T>(obj: T, privateKeys: Array<keyof T>): T {
+	function mapObject<T>(obj: T, privateKeys: (keyof T)[]): T {
 		const privateData: T = {} as T;
 		const privateValues: T = {} as T;
 		for (let key in obj) {
@@ -499,14 +499,14 @@ type CRMAPIMessage = {
 		return privateValues;
 	}
 
-	function removePrivateValues<T>(target: T, privateKeys: Array<keyof T>) {
+	function removePrivateValues<T>(target: T, privateKeys: (keyof T)[]) {
 		for (let i = 0; i < privateKeys.length; i++) {
 			(target as any)[privateKeys[i]] = undefined;
 		}
 	}
 
 	class DataMap<K, V> {
-		_store: Array<[K, V]> = [];
+		_store: ([K, V])[] = [];
 
 		set(key: K, value: V) {
 			this._store.push([key, value]);
@@ -523,8 +523,8 @@ type CRMAPIMessage = {
 	}
 
 	function getFunctionThisMap(original: Function, 
-		thisMap: DataMap<Object, Object>): (this: any, ...args: Array<any>) => any|void {
-			const newFn = function(this: any, ...args: Array<any>): any|void {
+		thisMap: DataMap<Object, Object>): (this: any, ...args: any[]) => any|void {
+			const newFn = function(this: any, ...args: any[]): any|void {
 				return original.apply(thisMap.get(this) || this, args);
 			};
 			return newFn;
@@ -533,7 +533,7 @@ type CRMAPIMessage = {
 	function mapObjThisArgs<T extends {
 		[key: string]: any;
 		[key: number]: any;
-	}|Array<any>>(target: T, thisMap: DataMap<Object, Object>, thisArgs: Array<Object>) {
+	}|any[]>(target: T, thisMap: DataMap<Object, Object>, thisArgs: Object[]) {
 		const windowVar = typeof window === 'undefined' ? self : window;
 		let hasKeys = false;
 		for (let key in target) {
@@ -569,11 +569,11 @@ type CRMAPIMessage = {
 		const thisMap = new DataMap<Object, Object>();
 		const proto = target.prototype as TruePrivateClass<typeof target.prototype>;
 
-		const thisArgs: Array<Object> = [];
+		const thisArgs: Object[] = [];
 
 		return class extends target {
 			constructor(node: CRM.Node, id: number, tabData: _browser.tabs.Tab,
-				clickData: _browser.contextMenus.OnClickData, secretKey: Array<number>,
+				clickData: _browser.contextMenus.OnClickData, secretKey: number[],
 				nodeStorage: CRM.NodeStorage, contextData: EncodedContextData,
 				greasemonkeyData: GreaseMonkeyData, isBackground: boolean, 
 				options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: number, 
@@ -635,7 +635,7 @@ type CRMAPIMessage = {
 			_id: number,
 			_tabData: _browser.tabs.Tab,
 			_clickData: _browser.contextMenus.OnClickData,
-			_secretKey: Array<number>;
+			_secretKey: number[];
 			_nodeStorage: CRM.NodeStorage;
 			_contextData: EncodedContextData|RestoredContextData;
 			_greasemonkeyData: GreaseMonkeyData;
@@ -648,7 +648,7 @@ type CRMAPIMessage = {
 
 			_sendMessage: (message: any) => void;
 
-			_queue: Array<any>;
+			_queue: any[];
 
 			_port: {
 				postMessage(data: any): void;
@@ -660,14 +660,14 @@ type CRMAPIMessage = {
 			_findElementsOnPage(contextData: EncodedContextData): void;
 			_setupStorages(): void;
 			_callInfo: CallbackStorageInterface<{
-				callback(...args: Array<any>): void;
-				stackTrace: Array<string>;
+				callback(...args: any[]): void;
+				stackTrace: string[];
 				persistent: boolean;
 				maxCalls: number;
 			}>;
-			_getStackTrace(error: Error): Array<string>;
+			_getStackTrace(error: Error): string[];
 			_createDeleterFunction(index: number): () => void;
-			_createCallback(callback: (...args: Array<any>) => void, error: Error, options: {
+			_createCallback(callback: (...args: any[]) => void, error: Error, options: {
 				persistent?: boolean;
 				maxCalls?: number;
 			}): number;
@@ -696,14 +696,14 @@ type CRMAPIMessage = {
 				code: string;
 				logCallbackIndex: number;
 			}>): void;
-			_getObjectProperties(target: any): Array<string>;
+			_getObjectProperties(target: any): string[];
 
 			_leadingWordRegex: RegExp,
 			_sectionRegex: RegExp,
 			_endRegex: RegExp,
 			_getCodeSections(code: string): {
 				lead: string;
-				words: Array<string>;
+				words: string[];
 				end: {
 					type: 'brackets'|'dotnotation';
 					currentWord: string;
@@ -714,23 +714,23 @@ type CRMAPIMessage = {
 				messageType: 'getCRMHints';
 				code: string;
 				logCallbackIndex: number;
-			}>): Array<string>;
+			}>): string[];
 			_getHints(message: Message<{
 				messageType: 'getCRMHints';
 				code: any;
 				logCallbackIndex: number;
 			}>): void;
-			_remoteStorageChange(changes: Array<{
+			_remoteStorageChange(changes: {
 				oldValue: any;
 				newValue: any;
 				key: string;
-			}>): void;
+			}[]): void;
 
 			_instancesReady: boolean,
-			_instancesReadyListeners: Array<(instances: Array<{
+			_instancesReadyListeners: ((instances: {
 				id: number;
 				tabIndex: number;
-			}>) => void>,
+			}[]) => void)[],
 			_instances: CallbackStorageInterface<Instance>;
 
 			_instancesChange(change: {
@@ -748,7 +748,7 @@ type CRMAPIMessage = {
 				message: any;
 			}>): void;
 
-			_handleValueChanges(oldData: Array<string>, newData: Array<string>, indexes: {
+			_handleValueChanges(oldData: string[], newData: string[], indexes: {
 				[key: string]: any;
 				[key: number]: any;
 			}, index: number): () => void;
@@ -785,13 +785,13 @@ type CRMAPIMessage = {
 
 			_createVariable(log: {
 				logObj: SpecialJSONObject;
-				originalValues: Array<any>;
+				originalValues: any[];
 			}, index: number): void;
 
-			_sentLogs: Array<{
+			_sentLogs:{
 				logObj: SpecialJSONObject;
-				originalValues: Array<any>;
-			}>;
+				originalValues: any[];
+			}[];
 
 			_createLocalVariable(message: Message<{
 				code: {
@@ -806,7 +806,7 @@ type CRMAPIMessage = {
 
 			_connect(): void;
 
-			_saveLogValues(arr: Array<any>): {
+			_saveLogValues(arr: any[]): {
 				data: string;
 				logId: number;
 			};
@@ -843,9 +843,9 @@ type CRMAPIMessage = {
 			/**
 			 * Notifies any listeners of changes to the storage object
 			 */
-			_notifyChanges(keyPath: string|Array<string>|Array<number>, oldValue: any, newValue: any, remote?: boolean): void;
+			_notifyChanges(keyPath: string|string[]|number[], oldValue: any, newValue: any, remote?: boolean): void;
 
-			_localStorageChange(keyPath: string|Array<string>|Array<number>, oldValue: any, newValue: any): void;
+			_localStorageChange(keyPath: string|string[]|number[], oldValue: any, newValue: any): void;
 
 			/**
 			 * Sends a message to the background script with given parameters
@@ -854,7 +854,7 @@ type CRMAPIMessage = {
 			 * @param {function} callback - The function to run when done
 			 * @param {Object} params - Any options or parameters
 			 */
-			_sendOptionalCallbackCrmMessage(this: CrmAPIInstance, action: string, callback: (...args: Array<any>) => void, params: {
+			_sendOptionalCallbackCrmMessage(this: CrmAPIInstance, action: string, callback: (...args: any[]) => void, params: {
 				[key: string]: any;
 				[key: number]: any;
 			}, persistent?: boolean): void;
@@ -866,7 +866,7 @@ type CRMAPIMessage = {
 			 * @param {function} callback - The function to run when done
 			 * @param {Object} params - Any options or parameters
 			 */
-			_sendCrmMessage(action: string, callback: (...args: Array<any>) => void, params?: {
+			_sendCrmMessage(action: string, callback: (...args: any[]) => void, params?: {
 				[key: string]: any;
 				[key: number]: any;
 			}): void;
@@ -990,8 +990,8 @@ type CRMAPIMessage = {
 
 			_setupStorages(this: CrmAPIInstance) {
 				this.__privates._callInfo = new CrmAPIInstance._helpers.CallbackStorage<{
-					callback(...args: Array<any>): void;
-					stackTrace: Array<string>;
+					callback(...args: any[]): void;
+					stackTrace: string[];
 					persistent: boolean;
 					maxCalls: number;
 				}>()
@@ -1008,7 +1008,7 @@ type CRMAPIMessage = {
 
 			_callInfo: null,
 
-			_getStackTrace(error: Error): Array<string> {
+			_getStackTrace(error: Error): string[] {
 				return error.stack.split('\n');
 			},
 
@@ -1033,7 +1033,7 @@ type CRMAPIMessage = {
 			 * 		before the crmapi stops listening for it. 
 			 * @returns {number} - The index of the callback to use (can be used to retrieve it)
 			 */
-			_createCallback(this: CrmAPIInstance, callback: (...args: Array<any>) => void, error: Error, options: {
+			_createCallback(this: CrmAPIInstance, callback: (...args: any[]) => void, error: Error, options: {
 				persistent?: boolean;
 				maxCalls?: number;
 			}): number {
@@ -1079,7 +1079,7 @@ type CRMAPIMessage = {
 					message: string;
 					stackTrace: string;
 					lineNumber: number;
-				}, stackTrace: Array<string>) {
+				}, stackTrace: string[]) {
 					if (status === 'error') {
 						__this.onError && __this.onError(messageOrParams);
 						if (__this.stackTraces) {
@@ -1181,7 +1181,7 @@ type CRMAPIMessage = {
 				});
 			},
 
-			_getObjectProperties(this: CrmAPIInstance, target: any): Array<string>{
+			_getObjectProperties(this: CrmAPIInstance, target: any): string[]{
 				const prototypeKeys = Object.getOwnPropertyNames(Object.getPrototypeOf(target));
 				const targetKeys = [];
 				for (const key in target) {
@@ -1196,7 +1196,7 @@ type CRMAPIMessage = {
 			_endRegex: /^(\.(\w+)?|\[((['"`])((\w+)(\11)?)?)?)?/,
 			_getCodeSections(this: CrmAPIInstance, code: string): {
 				lead: string;
-				words: Array<string>;
+				words: string[];
 				end: {
 					type: 'brackets'|'dotnotation';
 					currentWord: string;
@@ -1235,7 +1235,7 @@ type CRMAPIMessage = {
 				messageType: 'getCRMHints';
 				code: string;
 				logCallbackIndex: number;
-			}>): Array<string> {
+			}>): string[] {
 				const { lead, words, end } = this.__privates._getCodeSections(message.code);
 				if (!end) {
 					return null;
@@ -1255,8 +1255,8 @@ type CRMAPIMessage = {
 
 					//Now for the actual hinting
 					const hints: {
-						full: Array<string>;
-						partial: Array<string>;
+						full: string[];
+						partial: string[];
 					} = {
 						full: [],
 						partial: []
@@ -1298,11 +1298,11 @@ type CRMAPIMessage = {
 				});
 			},
 
-			_remoteStorageChange(this: CrmAPIInstance, changes: Array<{
+			_remoteStorageChange(this: CrmAPIInstance, changes: {
 				oldValue: any;
 				newValue: any;
 				key: string;
-			}>) {
+			}[]) {
 				for (let i = 0; i < changes.length; i++) {
 					const keyPath = changes[i].key.split('.');
 					this.__privates._notifyChanges(keyPath, changes[i].oldValue, changes[i].newValue, true);
@@ -1352,7 +1352,7 @@ type CRMAPIMessage = {
 				});
 			},
 
-			_handleValueChanges(this: CrmAPIInstance, oldData: Array<string>, newData: Array<string>, indexes: {
+			_handleValueChanges(this: CrmAPIInstance, oldData: string[], newData: string[], indexes: {
 				[key: string]: any;
 				[key: number]: any;
 			}, index: number): () => void {
@@ -1526,7 +1526,7 @@ type CRMAPIMessage = {
 
 			_createVariable(this: CrmAPIInstance, log: {
 				logObj: SpecialJSONObject;
-				originalValues: Array<any>;
+				originalValues: any[];
 			}, index: number) {
 				const global = (this.__privates._isBackground ? self : window);
 
@@ -1577,10 +1577,10 @@ type CRMAPIMessage = {
 					//Update instance array
 					const instanceArr = (message as Message<{
 						data: 'connected';
-						instances: Array<{
+						instances: {
 							id: number;
 							tabIndex: number;
-						}>;
+						}[];
 					}>).instances;
 					for (let i = 0; i < instanceArr.length; i++) {
 						this.__privates._instances.add({
@@ -1590,10 +1590,10 @@ type CRMAPIMessage = {
 						});
 					}
 
-					const instancesArr: Array<{
+					const instancesArr: {
 						id: number;
 						tabIndex: number;
-					}> = [];
+					}[] = [];
 					this.__privates._instances.forEach((instance) => {
 						instancesArr.push(instance);
 					});
@@ -1661,7 +1661,7 @@ type CRMAPIMessage = {
 				}
 			},
 
-			_saveLogValues(this: CrmAPIInstance, arr: Array<any>): {
+			_saveLogValues(this: CrmAPIInstance, arr: any[]): {
 				data: string;
 				logId: number;
 			} {
@@ -1765,7 +1765,7 @@ type CRMAPIMessage = {
 			/**
 			 * Notifies any listeners of changes to the storage object
 			 */
-			_notifyChanges(this: CrmAPIInstance, keyPath: string|Array<string>|Array<number>, oldValue: any, newValue: any, remote: boolean = false) {
+			_notifyChanges(this: CrmAPIInstance, keyPath: string|string[]|number[], oldValue: any, newValue: any, remote: boolean = false) {
 				let keyPathString: string;
 				if (Array.isArray(keyPath)) {
 					keyPathString = keyPath.join('.');
@@ -1780,7 +1780,7 @@ type CRMAPIMessage = {
 				this.__privates._storagePrevious = this.__privates._nodeStorage;
 			},
 
-			_localStorageChange(this: CrmAPIInstance, keyPath: string|Array<string>|Array<number>, oldValue: any, newValue: any) {
+			_localStorageChange(this: CrmAPIInstance, keyPath: string|string[]|number[], oldValue: any, newValue: any) {
 				this.__privates._sendMessage({
 					id: this.__privates._id,
 					type: 'updateStorage',
@@ -1810,7 +1810,7 @@ type CRMAPIMessage = {
 			 * @param {function} callback - The function to run when done
 			 * @param {Object} params - Any options or parameters
 			 */
-			_sendOptionalCallbackCrmMessage(this: CrmAPIInstance, action: string, callback: (...args: Array<any>) => void, params: {
+			_sendOptionalCallbackCrmMessage(this: CrmAPIInstance, action: string, callback: (...args: any[]) => void, params: {
 				[key: string]: any;
 				[key: number]: any;
 			}, persistent: boolean = false) {
@@ -1819,7 +1819,7 @@ type CRMAPIMessage = {
 					message: string;
 					stackTrace: string;
 					lineNumber: number;
-				}, stackTrace: Array<string>) => {
+				}, stackTrace: string[]) => {
 					if (!callback) {
 						return;
 					}
@@ -1867,7 +1867,7 @@ type CRMAPIMessage = {
 			 * @param {function} callback - The function to run when done
 			 * @param {Object} params - Any options or parameters
 			 */
-			_sendCrmMessage(this: CrmAPIInstance, action: string, callback: (...args: Array<any>) => void, params: {
+			_sendCrmMessage(this: CrmAPIInstance, action: string, callback: (...args: any[]) => void, params: {
 				[key: string]: any;
 				[key: number]: any;
 			} = {}) {
@@ -1887,7 +1887,7 @@ type CRMAPIMessage = {
 			_browserRequest: class BrowserRequest implements BrowserRequestInterface {
 				request: {
 					api: string;
-					chromeAPIArguments: Array<{
+					chromeAPIArguments: ({
 						type: 'fn';
 						isPersistent: boolean;
 						val: number;
@@ -1897,7 +1897,7 @@ type CRMAPIMessage = {
 					}|{
 						type: 'return';
 						val: number;	
-					}>;
+					})[];
 					_sent: boolean;
 					type?: string;
 					onError?(error: {
@@ -1913,7 +1913,7 @@ type CRMAPIMessage = {
 				constructor(public __this: CrmAPIInstance, api: string, type?: string) {
 					const request: {
 						api: string;
-						chromeAPIArguments: Array<{
+						chromeAPIArguments: ({
 							type: 'fn';
 							isPersistent: boolean;
 							val: number;
@@ -1923,7 +1923,7 @@ type CRMAPIMessage = {
 						}|{
 							type: 'return';
 							val: number;	
-						}>;
+						})[];
 						_sent: boolean;
 						type?: string;
 					} = {
@@ -1946,7 +1946,7 @@ type CRMAPIMessage = {
 						}
 					});
 
-					const returnVal: BrowserRequestInterface = CrmAPIInstance._helpers.mergeObjects((...args: Array<any>) => {
+					const returnVal: BrowserRequestInterface = CrmAPIInstance._helpers.mergeObjects((...args: any[]) => {
 						return this.a.bind(this)(...args);
 					}, {
 						a: this.a.bind(this),
@@ -1964,7 +1964,7 @@ type CRMAPIMessage = {
 				new(__this: CrmAPIInstance, api: string, type?: string): BrowserRequest { 
 					return this;
 				}
-				args(...args: Array<any>): BrowserRequestInterface {
+				args(...args: any[]): BrowserRequestInterface {
 					for (let i = 0; i < args.length; i++) {
 						const arg = arguments[i];
 						if (typeof arg === 'function') {
@@ -1985,7 +1985,7 @@ type CRMAPIMessage = {
 					}
 					return this.returnedVal;
 				};
-				a(...args: Array<any>): BrowserRequestInterface {
+				a(...args: any[]): BrowserRequestInterface {
 					return this.args(...args);
 				}
 				/**
@@ -1993,7 +1993,7 @@ type CRMAPIMessage = {
 				 * 	This can be used on APIs like chrome.tabs.onCreated where multiple calls can occuring
 				 * 	contrary to chrome.tabs.get where only one callback will occur.
 				 */
-				persistent(...fns: Array<any>): BrowserRequestInterface {
+				persistent(...fns: any[]): BrowserRequestInterface {
 					for (let i = 0; i < fns.length; i++) {
 						this.request.chromeAPIArguments.push({
 							type: 'fn',
@@ -2005,7 +2005,7 @@ type CRMAPIMessage = {
 					}
 					return this.returnedVal;
 				}
-				p(...fns: Array<any>): BrowserRequestInterface {
+				p(...fns: any[]): BrowserRequestInterface {
 					return this.persistent(...fns);
 				}
 				s<T>(): Promise<T> {
@@ -2036,7 +2036,7 @@ type CRMAPIMessage = {
 							message: string;
 							stackTrace: string;
 							lineNumber: number;
-						}|any, stackTrace: Array<string>) => {
+						}|any, stackTrace: string[]) => {
 							if (status === 'error' || status === 'chromeError') {
 								reject({...messageOrParams as {
 									error: string;
@@ -2084,7 +2084,7 @@ type CRMAPIMessage = {
 			_chromeRequest: class ChromeRequest implements ChromeRequestInterface {
 				request: {
 					api: string;
-					chromeAPIArguments: Array<{
+					chromeAPIArguments: ({
 						type: 'fn';
 						isPersistent: boolean;
 						val: number;
@@ -2094,7 +2094,7 @@ type CRMAPIMessage = {
 					}|{
 						type: 'return';
 						val: number;	
-					}>;
+					})[];
 					_sent: boolean;
 					type?: string;
 					onError?(error: {
@@ -2110,7 +2110,7 @@ type CRMAPIMessage = {
 				constructor(public __this: CrmAPIInstance, api: string, type?: string) {
 					const request: {
 						api: string;
-						chromeAPIArguments: Array<{
+						chromeAPIArguments: ({
 							type: 'fn';
 							isPersistent: boolean;
 							val: number;
@@ -2120,7 +2120,7 @@ type CRMAPIMessage = {
 						}|{
 							type: 'return';
 							val: number;	
-						}>;
+						})[];
 						_sent: boolean;
 						type?: string;
 						onError?(error: {
@@ -2149,7 +2149,7 @@ type CRMAPIMessage = {
 						}
 					});
 
-					const returnVal: ChromeRequestInterface = CrmAPIInstance._helpers.mergeObjects((...args: Array<any>) => {
+					const returnVal: ChromeRequestInterface = CrmAPIInstance._helpers.mergeObjects((...args: any[]) => {
 						return this.a.bind(this)(...args);
 					}, {
 						a: this.a.bind(this),
@@ -2169,7 +2169,7 @@ type CRMAPIMessage = {
 				new(__this: CrmAPIInstance, api: string, type?: string): ChromeRequest { 
 					return this;
 				}
-				args(...args: Array<any>): ChromeRequestInterface {
+				args(...args: any[]): ChromeRequestInterface {
 					for (let i = 0; i < args.length; i++) {
 						const arg = arguments[i];
 						if (typeof arg === 'function') {
@@ -2190,7 +2190,7 @@ type CRMAPIMessage = {
 					}
 					return this.returnedVal;
 				};
-				a(...args: Array<any>): ChromeRequestInterface {
+				a(...args: any[]): ChromeRequestInterface {
 					return this.args(...args);
 				}
 				/**
@@ -2198,7 +2198,7 @@ type CRMAPIMessage = {
 				 * be used for APIs that don't use callbacks and instead just return values such as
 				 * chrome.runtime.getURL(). 
 				 */
-				return(handler: (...args: Array<any>) => void): ChromeRequestInterface {
+				return(handler: (...args: any[]) => void): ChromeRequestInterface {
 					this.request.chromeAPIArguments.push({
 						type: 'return',
 						val: this.__this.__privates._createCallback(handler, new Error(), {
@@ -2212,7 +2212,7 @@ type CRMAPIMessage = {
 				 * be used for APIs that don't use callbacks and instead just return values such as
 				 * chrome.runtime.getURL(). 
 				 */
-				r(handler: (...args: Array<any>) => void): ChromeRequestInterface {
+				r(handler: (...args: any[]) => void): ChromeRequestInterface {
 					return this.return(handler);
 				}
 				/**
@@ -2220,7 +2220,7 @@ type CRMAPIMessage = {
 				 * 	This can be used on APIs like chrome.tabs.onCreated where multiple calls can occuring
 				 * 	contrary to chrome.tabs.get where only one callback will occur.
 				 */
-				persistent(...fns: Array<any>): ChromeRequestInterface {
+				persistent(...fns: any[]): ChromeRequestInterface {
 					for (let i = 0; i < fns.length; i++) {
 						this.request.chromeAPIArguments.push({
 							type: 'fn',
@@ -2232,7 +2232,7 @@ type CRMAPIMessage = {
 					}
 					return this.returnedVal;
 				}
-				p(...fns: Array<any>): ChromeRequestInterface {
+				p(...fns: any[]): ChromeRequestInterface {
 					return this.persistent(...fns);
 				}
 				/**
@@ -2260,7 +2260,7 @@ type CRMAPIMessage = {
 						message: string;
 						stackTrace: string;
 						lineNumber: number;
-					}, stackTrace: Array<string>) {
+					}, stackTrace: string[]) {
 						if (messageOrParams.stackTrace) {
 							console.warn('Remote stack trace:');
 							messageOrParams.stackTrace.split('\n').forEach((line) => { console.warn(line); });
@@ -2276,8 +2276,8 @@ type CRMAPIMessage = {
 						lineNumber: number;
 					}|{
 						callbackId: number;
-						params: Array<any>;
-					}, stackTrace: Array<string>) => {
+						params: any[];
+					}, stackTrace: string[]) => {
 						if (status === 'error' || status === 'chromeError') {
 							const errMessage = messageOrParams as {
 								error: string;
@@ -2303,7 +2303,7 @@ type CRMAPIMessage = {
 						} else {
 							const successMessage= messageOrParams as {
 								callbackId: number;
-								params: Array<any>;
+								params: any[];
 							};
 							this.__this.__privates._callInfo.get(successMessage.callbackId).callback.apply(window, successMessage.params);
 							if (!this.__this.__privates._callInfo.get(successMessage.callbackId).persistent) {
@@ -2470,7 +2470,7 @@ type CRMAPIMessage = {
 		 * @param {string} supportedAPIs - The supported browser APIs
 		 */
 		constructor(node: CRM.Node, id: number, tabData: _browser.tabs.Tab,
-			clickData: _browser.contextMenus.OnClickData, secretKey: Array<number>,
+			clickData: _browser.contextMenus.OnClickData, secretKey: number[],
 			nodeStorage: CRM.NodeStorage, contextData: EncodedContextData,
 			greasemonkeyData: GreaseMonkeyData, isBackground: boolean, 
 			options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: number, 
@@ -2502,7 +2502,7 @@ type CRMAPIMessage = {
 			}
 
 		_init(node: CRM.Node, id: number, tabData: _browser.tabs.Tab,
-			clickData: _browser.contextMenus.OnClickData, secretKey: Array<number>,
+			clickData: _browser.contextMenus.OnClickData, secretKey: number[],
 			nodeStorage: CRM.NodeStorage, contextData: EncodedContextData,
 			greasemonkeyData: GreaseMonkeyData, isBackground: boolean, 
 			options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: number, 
@@ -2593,7 +2593,7 @@ type CRMAPIMessage = {
 		 * 
 		 * @type {string[]}
 		 */
-		permissions: Array<CRM.Permission>;
+		permissions: CRM.Permission[];
 
 		/**
 		 * The id of this script
@@ -2707,8 +2707,8 @@ type CRMAPIMessage = {
 			}
 			static specialJSON = {
 				_regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'],
-				_getRegexFlags(this: SpecialJSON, expr: RegExp): Array<string> {
-					const flags: Array<string> = [];
+				_getRegexFlags(this: SpecialJSON, expr: RegExp): string[] {
+					const flags: string[] = [];
 					this._regexFlagNames.forEach((flagName: string) => {
 						if ((expr as any)[flagName]) {
 							if (flagName === 'sticky') {
@@ -2770,7 +2770,7 @@ type CRMAPIMessage = {
 					fn: (data: any, index: string | number, container: ArrOrObj) => any) {
 					if (Array.isArray(iterable)) {
 						copyTarget = copyTarget || [];
-						(iterable as Array<any>).forEach((data: any, key: number, container: Array<any>) => {
+						(iterable as any[]).forEach((data: any, key: number, container: any[]) => {
 							(copyTarget as any)[key] = fn(data, key, container);
 						});
 					} else {
@@ -2787,13 +2787,13 @@ type CRMAPIMessage = {
 					}
 					return typeof data === 'object' && !Array.isArray(data);
 				},
-				_toJSON(this: SpecialJSON, copyTarget: ArrOrObj, data: any, path: Array<string | number>, refData: {
+				_toJSON(this: SpecialJSON, copyTarget: ArrOrObj, data: any, path: (string|number)[], refData: {
 					refs: Refs,
-					paths: Array<Array<string | number>>,
-					originalValues: Array<any>
+					paths: (string|number)[][],
+					originalValues: any[]
 				}): {
 					refs: Refs;
-					data: Array<any>;
+					data: any[];
 					rootType: 'array';
 				} | {
 						refs: Refs;
@@ -2843,7 +2843,7 @@ type CRMAPIMessage = {
 						if (isArr) {
 							return {
 								refs: refData.refs,
-								data: copyTarget as Array<any>,
+								data: copyTarget as any[],
 								rootType: 'array'
 							};
 						} else {
@@ -2859,9 +2859,9 @@ type CRMAPIMessage = {
 				},
 				toJSON(this: SpecialJSON, data: any, noJSON: boolean = false, refs: Refs = []): {
 					json: string|SpecialJSONObject;
-					originalValues: Array<any>;
+					originalValues: any[];
 				} {
-					const paths: Array<Array<string | number>> = [[]];
+					const paths: (string|number)[][] = [[]];
 					const originalValues = [data];
 
 					if (!(this._isObject(data) || Array.isArray(data))) {
@@ -2946,12 +2946,12 @@ type CRMAPIMessage = {
 						};
 					});
 
-					const refs = parsed.refs as Array<{
-						ref: Array<any> | {
+					const refs = parsed.refs as {
+						ref: any[] | {
 							[key: string]: any
 						};
 						parsed: boolean;
-					}>;
+					}[];
 
 					if (parsed.rootType === 'normal') {
 						return JSON.parse(parsed.data);
@@ -3024,8 +3024,8 @@ type CRMAPIMessage = {
 			 * if a boolean and true, turns on non-error-mode
 			 * @returns {boolean} - Whether the type matches
 			 */
-			static checkType(value: any, type: ModifiedSymbolTypes|Array<ModifiedSymbolTypes>, nameOrMode: string|true): boolean {
-				let typeArray: Array<ModifiedSymbolTypes>;
+			static checkType(value: any, type: ModifiedSymbolTypes|ModifiedSymbolTypes[], nameOrMode: string|true): boolean {
+				let typeArray: ModifiedSymbolTypes[];
 				if (!Array.isArray(type)) {
 					typeArray = [type];
 				}
@@ -3054,7 +3054,7 @@ type CRMAPIMessage = {
 			static lookup<T extends {
 				[key: string]: T|U;
 				[key: number]: T|U;
-			}, U>(path: Array<string|number>, data: T, hold: boolean = false) {
+			}, U>(path: (string|number)[], data: T, hold: boolean = false) {
 				this.checkType(path, 'array', 'path');
 				this.checkType(data, 'object', 'data');
 				let length = path.length;
@@ -3079,7 +3079,7 @@ type CRMAPIMessage = {
 			static isFn<T extends Function>(fn: T): fn is T {
 				return fn && typeof fn === 'function';
 			}
-			static mergeArrays<T extends Array<T> | Array<U>, U>(mainArray: T, additionArray: T): T {
+			static mergeArrays<T extends T[] | U[], U>(mainArray: T, additionArray: T): T {
 				for (let i = 0; i < additionArray.length; i++) {
 					if (mainArray[i] && typeof additionArray[i] === 'object' && 
 						mainArray[i] !== undefined && mainArray[i] !== null) {
@@ -3134,9 +3134,9 @@ type CRMAPIMessage = {
 			 *
 			 * @param {function} callback - A function to call with the instances
 			 */
-			getInstances(this: CrmAPIInstance, callback: (instances: Array<Instance>) => void) {
+			getInstances(this: CrmAPIInstance, callback: (instances: Instance[]) => void) {
 				if (this.__privates._instancesReady) {
-					const instancesArr: Array<Instance> = [];
+					const instancesArr: Instance[] = [];
 					this.__privates._instances.forEach((instance) => {
 						instancesArr.push(instance);
 					});
@@ -3254,7 +3254,7 @@ type CRMAPIMessage = {
 			 *		can also hold nothing to return the entire storage
 			 * @returns {any} - The data you are looking for
 			 */
-			get(this: CrmAPIInstance, keyPath: string|Array<string>|Array<number>): any {
+			get(this: CrmAPIInstance, keyPath: string|string[]|number[]): any {
 				if (!keyPath) {
 					return this.__privates._nodeStorage;
 				}
@@ -3283,7 +3283,7 @@ type CRMAPIMessage = {
 			 * 		an object. This object will be written on top of the storage object
 			 * @param {any} [value] - The value to set it to, optional if keyPath is an object
 			 */
-			set(this: CrmAPIInstance, keyPath: string|Array<string>|Array<number>|{
+			set(this: CrmAPIInstance, keyPath: string|string[]|number[]|{
 				[key: string]: any;
 				[key: number]: any;
 			}, value: any): void {
@@ -3341,7 +3341,7 @@ type CRMAPIMessage = {
 			 *		a string with dots seperating the path, an array with each entry holding
 			 *		one section of the path, or just a plain string without dots as the key
 			 */
-			remove(this: CrmAPIInstance, keyPath: string|Array<string>|Array<number>): void {
+			remove(this: CrmAPIInstance, keyPath: string|string[]|number[]): void {
 				if (CrmAPIInstance._helpers.checkType(keyPath, 'string', true)) {
 					const keyPathStr = keyPath;
 					if (typeof keyPathStr === 'string') {
@@ -3597,7 +3597,7 @@ type CRMAPIMessage = {
 			 * @permission crmGet
 			 * @param {function} callback - A function that is called when done with the data as an argument
 			 */
-			getTree(this: CrmAPIInstance, callback: (data: Array<CRM.SafeNode>) => void) {
+			getTree(this: CrmAPIInstance, callback: (data: CRM.SafeNode[]) => void) {
 				this.__privates._sendCrmMessage('getTree', callback);
 			},
 			/**
@@ -3607,7 +3607,7 @@ type CRMAPIMessage = {
 			 * @param {number} nodeId - The ID of the subtree's root node
 			 * @param {function} callback - A function that is called when done with the data as an argument
 			 */
-			getSubTree(this: CrmAPIInstance, nodeId: number, callback: (data: Array<CRM.SafeNode>) => void) {
+			getSubTree(this: CrmAPIInstance, nodeId: number, callback: (data: CRM.SafeNode[]) => void) {
 				this.__privates._sendCrmMessage('getSubTree', callback, {
 					nodeId: nodeId
 				});
@@ -3631,7 +3631,7 @@ type CRMAPIMessage = {
 			 *		represents the n-th child of the current node, so [1,2] represents the 2nd item(0,>1<,2)'s third child (0,1,>2<,3)
 			 * @param {function} callback - The function that is called with the ID as an argument
 			 */
-			getNodeIdFromPath(this: CrmAPIInstance, path: Array<number>, callback: (id: number) => void) {
+			getNodeIdFromPath(this: CrmAPIInstance, path: number[], callback: (id: number) => void) {
 				this.__privates._sendCrmMessage('getNodeIdFromPath', callback, {
 					path: path
 				});
@@ -3647,7 +3647,7 @@ type CRMAPIMessage = {
 			 * @param {number} [query.inSubTree] - The subtree in which this item is located (the number given is the id of the root item)
 			 * @param {CrmCallback} callback - A callback with the resulting nodes in an array
 			 */
-			queryCrm(this: CrmAPIInstance, query: { name?: string, type?: CRM.NodeType, inSubTree?: number}, callback: (results: Array<CRM.SafeNode>) => void) {
+			queryCrm(this: CrmAPIInstance, query: { name?: string, type?: CRM.NodeType, inSubTree?: number}, callback: (results: CRM.SafeNode[]) => void) {
 				this.__privates._sendCrmMessage('queryCrm', callback, {
 					query: query
 				});
@@ -3859,7 +3859,7 @@ type CRMAPIMessage = {
 			 * @param {number} nodeId - The node of which to get the triggers
 			 * @param {CrmCallback} callback - A function to run when done, with the triggers as an argument
 			 */
-			getTriggers(this: CrmAPIInstance, nodeId: number, callback: (triggers: Array<CRM.Trigger>) => void): void {
+			getTriggers(this: CrmAPIInstance, nodeId: number, callback: (triggers: CRM.Trigger[]) => void): void {
 				this.__privates._sendCrmMessage('getTriggers', callback, {
 					nodeId: nodeId
 				});
@@ -3879,7 +3879,7 @@ type CRMAPIMessage = {
 			 * @param {boolean} triggers.not - If true does NOT show the node on that URL
 			 * @param {CrmCallback} [callback] - A function to run when done, with the node as an argument
 			 */
-			setTriggers(this: CrmAPIInstance, nodeId: number, triggers: Array<CRM.Triggers>, callback?: CRMNodeCallback): void {
+			setTriggers(this: CrmAPIInstance, nodeId: number, triggers: CRM.Triggers[], callback?: CRMNodeCallback): void {
 				this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setTriggers', callback, {
 					nodeId: nodeId,
 					triggers: triggers
@@ -4045,7 +4045,7 @@ type CRMAPIMessage = {
 				 *		newTab: Whether the link should open in a new tab or the current tab
 				 *		url: The URL of the link
 				 */
-				getLinks(this: CrmAPIInstance, nodeId: number, callback: (result: Array<CRM.LinkNodeLink>) => void): void {
+				getLinks(this: CrmAPIInstance, nodeId: number, callback: (result: CRM.LinkNodeLink[]) => void): void {
 					this.__privates._sendCrmMessage('linkGetLinks', callback, {
 						nodeId: nodeId
 					});
@@ -4061,7 +4061,7 @@ type CRMAPIMessage = {
 				 * @param {string} [items.url] - The URL to open on clicking the link
 				 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
 				 */
-				setLinks(this: CrmAPIInstance, nodeId: number, items: MaybeArray<CRM.LinkNodeLink>, callback?: (result: Array<CRM.LinkNodeLink>) => void): void {
+				setLinks(this: CrmAPIInstance, nodeId: number, items: MaybeArray<CRM.LinkNodeLink>, callback?: (result: CRM.LinkNodeLink[]) => void): void {
 					this.__privates._sendOptionalCallbackCrmMessage.call(this, 'linkSetLinks', callback, {
 						nodeId: nodeId,
 						items: items
@@ -4078,7 +4078,7 @@ type CRMAPIMessage = {
 				 * @param {string} [items.url] - The URL to open on clicking the link
 				 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
 				 */
-				push(this: CrmAPIInstance, nodeId: number, items: MaybeArray<CRM.LinkNodeLink>, callback: (result: Array<CRM.LinkNodeLink>) => void): void {
+				push(this: CrmAPIInstance, nodeId: number, items: MaybeArray<CRM.LinkNodeLink>, callback: (result: CRM.LinkNodeLink[]) => void): void {
 					this.__privates._sendOptionalCallbackCrmMessage.call(this, 'linkPush', callback, {
 						items: items,
 						nodeId: nodeId
@@ -4096,7 +4096,7 @@ type CRMAPIMessage = {
 				 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 				 */
 				splice(this: CrmAPIInstance, nodeId: number, start: number, amount: number, 
-					callback: (spliced: Array<CRM.LinkNodeLink>, newArr: Array<CRM.LinkNodeLink>) => void): void {
+					callback: (spliced: CRM.LinkNodeLink[], newArr: CRM.LinkNodeLink[]) => void): void {
 					this.__privates._sendOptionalCallbackCrmMessage.call(this, 'linkSplice', callback, {
 						nodeId: nodeId,
 						start: start,
@@ -4181,7 +4181,7 @@ type CRMAPIMessage = {
 					 * @param {string} libraries.name - The name of the library
 					 * @param {function} [callback] - A callback with the new array as an argument
 					 */
-					push(this: CrmAPIInstance, nodeId: number, libraries: MaybeArray<CRM.Library>, callback?: (libs: Array<CRM.Library>) => void): void {
+					push(this: CrmAPIInstance, nodeId: number, libraries: MaybeArray<CRM.Library>, callback?: (libs: CRM.Library[]) => void): void {
 						this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptLibraryPush', callback, {
 							nodeId: nodeId,
 							libraries: libraries
@@ -4199,7 +4199,7 @@ type CRMAPIMessage = {
 					 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 					 */
 					splice(this: CrmAPIInstance, nodeId: number, start: number, amount: number, 
-						callback?: (spliced: Array<CRM.Library>, newArr: Array<CRM.Library>) => void): void {
+						callback?: (spliced: CRM.Library[], newArr: CRM.Library[]) => void): void {
 						this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptLibrarySplice', callback, {
 							nodeId: nodeId,
 							start: start,
@@ -4224,7 +4224,7 @@ type CRMAPIMessage = {
 					 * @param {string} libraries.name - The name of the library
 					 * @param {function} [callback] - A callback with the new array as an argument
 					 */
-					push(this: CrmAPIInstance, nodeId: number, libraries: MaybeArray<CRM.Library>, callback?: (libs: Array<CRM.Library>) => void): void {
+					push(this: CrmAPIInstance, nodeId: number, libraries: MaybeArray<CRM.Library>, callback?: (libs: CRM.Library[]) => void): void {
 						this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptBackgroundLibraryPush', callback, {
 							nodeId: nodeId,
 							libraries: libraries
@@ -4242,7 +4242,7 @@ type CRMAPIMessage = {
 					 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 					 */
 					splice(this: CrmAPIInstance, nodeId: number, start: number, amount: number, 
-						callback?: (spliced: Array<CRM.Library>, newArr: Array<CRM.Library>) => void): void {
+						callback?: (spliced: CRM.Library[], newArr: CRM.Library[]) => void): void {
 						this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptBackgroundLibrarySplice', callback, {
 							nodeId: nodeId,
 							start: start,
@@ -4264,7 +4264,7 @@ type CRMAPIMessage = {
 				 * @param {number} nodeId - The id of the node of which to get the children
 				 * @param {CrmCallback} callback - A callback with the nodes as an argument
 				 */
-				getChildren(this: CrmAPIInstance, nodeId: number, callback: (children: Array<CRM.SafeNode>) => void): void {
+				getChildren(this: CrmAPIInstance, nodeId: number, callback: (children: CRM.SafeNode[]) => void): void {
 					this.__privates._sendCrmMessage('getMenuChildren', callback, {
 						nodeId: nodeId
 					});
@@ -4280,7 +4280,7 @@ type CRMAPIMessage = {
 				 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
 				 * @param {CrmCallback} [callback] - A callback with the node as an argument
 				 */
-				setChildren(this: CrmAPIInstance, nodeId: number, childrenIds: Array<number>, callback: CRMNodeCallback): void {
+				setChildren(this: CrmAPIInstance, nodeId: number, childrenIds: number[], callback: CRMNodeCallback): void {
 					this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setMenuChildren', callback, {
 						nodeId: nodeId,
 						childrenIds: childrenIds
@@ -4318,7 +4318,7 @@ type CRMAPIMessage = {
 				 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 				 */
 				splice(this: CrmAPIInstance, nodeId: number, start: number, amount: number, 
-					callback?: (spliced: Array<CRM.SafeNode>, newArr: Array<CRM.SafeNode>) => void): void {
+					callback?: (spliced: CRM.SafeNode[], newArr: CRM.SafeNode[]) => void): void {
 					this.__privates._sendOptionalCallbackCrmMessage.call(this, 'spliceMenuChildren', callback, {
 						nodeId: nodeId,
 						start: start,
@@ -4576,7 +4576,7 @@ type CRMAPIMessage = {
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_listValues}
 			 * @returns {String[]} All keys of the storage
 			 */
-			GM_listValues(this: CrmAPIInstance, ): Array<string> {
+			GM_listValues(this: CrmAPIInstance, ): string[] {
 				const keys = [];
 				for (const key in this.__privates._nodeStorage) {
 					if (this.__privates._nodeStorage.hasOwnProperty(key)) {
@@ -4923,7 +4923,7 @@ type CRMAPIMessage = {
 		 * @param {any} argument - An argument to pass (can be as many as you want)
 		 * 		in the form of crmAPI.log(a,b,c,d);
 		 */
-		log(...args: Array<any>): void {
+		log(...args: any[]): void {
 			let err = (new Error()).stack.split('\n')[2];
 			if (err.indexOf('eval') > -1) {
 				err = (new Error()).stack.split('\n')[3];

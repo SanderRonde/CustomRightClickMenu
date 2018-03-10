@@ -11,7 +11,7 @@ declare namespace _browser.storage {
 		<S extends CRM.StorageLocal|CRM.SettingsStorage,
 			K extends keyof S>(keys: K): Promise<S>;
 		<S extends CRM.StorageLocal|CRM.SettingsStorage,
-			K extends keyof S>(keys: Array<K>): Promise<S>;
+			K extends keyof S>(keys: K[]): Promise<S>;
 	}
 }
 
@@ -44,7 +44,7 @@ namespace BrowserAPI {
 	}
 
 	type ChromeCallbackHandler<T> = {
-		(...args: Array<any>): void;
+		(...args: any[]): void;
 		__resolve(value: T): void;
 		__reject(err: any): void;
 	}
@@ -54,7 +54,7 @@ namespace BrowserAPI {
 		reject: (reason: any) => void;
 	}): ChromeCallbackHandler<T> {
 		const { resolve, reject } = prom;
-		const fn = ((...args: Array<any>) => {
+		const fn = ((...args: any[]) => {
 			if (__srcBrowser.runtime.lastError) {
 				reject(__srcBrowser.runtime.lastError);
 			} else {
@@ -81,7 +81,7 @@ namespace BrowserAPI {
 					__srcBrowser.storage[type].set(keys, handler);
 				});
 			},
-			remove(keys: string|Array<string>) {
+			remove(keys: string|string[]) {
 				return createPromise<void>((handler) => {
 					if (Array.isArray(keys)) {
 						Promise.all(keys.map((key) => {
@@ -159,7 +159,7 @@ namespace BrowserAPI {
 	export const polyfill = !__srcBrowser ? {} : {
 		commands: __srcBrowser.commands ? {
 			getAll() {
-				return createPromise<Array<_browser.commands.Command>>((handler) => {
+				return createPromise<_browser.commands.Command[]>((handler) => {
 					__srcBrowser.commands.getAll(handler);
 				});
 			},
@@ -334,7 +334,7 @@ namespace BrowserAPI {
 		} : void 0,
 		storage: __srcBrowser.storage ? {
 			local: {...genStoragePolyfill('local'), ...{
-				get<T = CRM.StorageLocal>(keys?: string|Array<string>|null): Promise<T> {
+				get<T = CRM.StorageLocal>(keys?: string|string[]|null): Promise<T> {
 					return createPromise<T>((handler) => {
 						if (keys) {
 							__srcBrowser.storage.local.get(keys, handler);
@@ -345,7 +345,7 @@ namespace BrowserAPI {
 				},	
 			}},
 			sync: {...genStoragePolyfill('sync'), ...{
-				get<T = CRM.SettingsStorage>(keys?: string|Array<string>|null): Promise<T> {
+				get<T = CRM.SettingsStorage>(keys?: string|string[]|null): Promise<T> {
 					return createPromise<T>((handler) => {
 						if (keys) {
 							__srcBrowser.storage.sync.get(keys, handler);
@@ -438,13 +438,13 @@ namespace BrowserAPI {
 				});
 			},
 			query(queryInfo: BrowserTabsQueryInfo) {
-				return createPromise<Array<_browser.tabs.Tab>>((handler) => {
+				return createPromise<_browser.tabs.Tab[]>((handler) => {
 					__srcBrowser.tabs.query(queryInfo, handler);
 				});
 			},
 			executeScript(tabIdOrDetails: number|_browser.extensionTypes.InjectDetails, 
 				details?: _browser.extensionTypes.InjectDetails) {
-					return createPromise<Array<any>>((handler) => {
+					return createPromise<any[]>((handler) => {
 						if (!details) {
 							__srcBrowser.tabs.executeScript(tabIdOrDetails as _browser.extensionTypes.InjectDetails, handler);
 						} else {

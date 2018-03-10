@@ -4,12 +4,12 @@ declare const window: BackgroundpageWindow;
 
 export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.LocalStorageReplace {
 	interface PersistentData {
-		lineSeperators: Array<{
+		lineSeperators: {
 			start: number;
 			end: number;
-		}>;
+		}[];
 		script: string;
-		lines: Array<string>;
+		lines: string[];
 	}
 
 	function _findLocalStorageExpression(expression: Tern.Expression, data: PersistentData): boolean {
@@ -110,10 +110,10 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Loca
 		}
 		return false;
 	}
-	function _getLineSeperators(lines: Array<string>): Array<{
+	function _getLineSeperators(lines: string[]): {
 		start: number;
 		end: number;
-	}> {
+	}[] {
 		let index = 0;
 		const lineSeperators = [];
 		for (let i = 0; i < lines.length; i++) {
@@ -124,7 +124,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Loca
 		}
 		return lineSeperators;
 	}
-	export function replaceCalls(lines: Array<string>): string {
+	export function replaceCalls(lines: string[]): string {
 		//Analyze the file
 		const file = new TernFile('[doc]');
 		file.text = lines.join('\n');
@@ -168,15 +168,15 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 		persistent: {
 			passes: number;
 			diagnostic: boolean;
-			lineSeperators: Array<{
+			lineSeperators: {
 				start: number;
 				end: number;
-			}>;
+			}[];
 			script: string;
-			lines: Array<string>;
+			lines: string[];
 		};
-		parentExpressions: Array<Tern.Expression>;
-		functionCall: Array<string>;
+		parentExpressions: Tern.Expression[];
+		functionCall: string[];
 		isReturn: boolean;
 		isValidReturn: boolean;
 		returnExpr: Tern.Expression;
@@ -202,10 +202,10 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 		}
 		return toCheck.replace(/['|"|`]/g, '') === prop;
 	}
-	function _getCallLines(lineSeperators: Array<{
+	function _getCallLines(lineSeperators: {
 		start: number;
 		end: number;
-	}>, start: number, end: number): {
+	}[], start: number, end: number): {
 			from: {
 				index: number;
 				line: number;
@@ -275,7 +275,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 			args: args
 		};
 	}
-	function _getLineIndexFromTotalIndex(lines: Array<string>, 
+	function _getLineIndexFromTotalIndex(lines: string[], 
 		line: number, index: number): number {
 			for (let i = 0; i < line; i++) {
 				index -= lines[i].length + 1;
@@ -517,7 +517,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 				break;
 			case 'CallExpression':
 			case 'MemberExpression':
-				const argsTocheck: Array<Tern.Expression> = [];
+				const argsTocheck: Tern.Expression[] = [];
 				if (expression.arguments && expression.arguments.length > 0) {
 					for (let i = 0; i < expression.arguments.length; i++) {
 						if (expression.arguments[i].type !== 'MemberExpression' && expression.arguments[i].type !== 'CallExpression') {
@@ -639,7 +639,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 		}
 		return false;
 	}
-	function _generateOnError(container: Array<Array<TransferOnErrorError>>): (
+	function _generateOnError(container: TransferOnErrorError[][]): (
 		position: TransferOnErrorError, passes: number
 	) => void {
 		return (position: TransferOnErrorError, passes: number) => {
@@ -650,7 +650,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 			}
 		};
 	}
-	function _replaceChromeCalls(lines: Array<string>, passes: number,
+	function _replaceChromeCalls(lines: string[], passes: number,
 		onError: TransferOnErrorHandler): string {
 			//Analyze the file
 			var file = new LegacyScriptReplace.TernFile('[doc]');
@@ -682,8 +682,8 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 
 			//Check all expressions for chrome calls
 			const persistentData: {
-				lines: Array<any>,
-				lineSeperators: Array<any>,
+				lines: any[],
+				lineSeperators: any[],
 				script: string,
 				passes: number,
 				diagnostic?: boolean;
@@ -720,9 +720,9 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 
 			return script;
 		}
-	function _removePositionDuplicates(arr: Array<TransferOnErrorError>):
-		Array<TransferOnErrorError> {
-		var jsonArr: Array<EncodedString<TransferOnErrorError>> = [];
+	function _removePositionDuplicates(arr: TransferOnErrorError[]):
+		TransferOnErrorError[] {
+		var jsonArr: EncodedString<TransferOnErrorError>[] = [];
 		arr.forEach((item, index) => {
 			jsonArr[index] = JSON.stringify(item);
 		});
@@ -734,8 +734,8 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 		});
 	}
 	export function replace(script: string, onError: (
-		oldScriptErrors: Array<TransferOnErrorError>,
-		newScriptErrors: Array<TransferOnErrorError>,
+		oldScriptErrors: TransferOnErrorError[],
+		newScriptErrors: TransferOnErrorError[],
 		parseError?: boolean
 	) => void): string {
 		//Remove execute locally
@@ -747,7 +747,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 			}
 		}
 
-		const errors: Array<Array<TransferOnErrorError>> = [];
+		const errors: TransferOnErrorError[][] = [];
 		try {
 			script = _replaceChromeCalls(script.split('\n'), 0,
 				_generateOnError(errors));
@@ -773,7 +773,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace {
 		scope: any;
 		text: string;
 		ast: Tern.ParsedFile;
-		lineOffsets: Array<number>;
+		lineOffsets: number[];
 
 		constructor(public name: string) { }
 	}
@@ -865,7 +865,7 @@ export namespace Storages.SetupHandling.TransferFromOld {
 		}
 
 		//Structure nodes with children etc
-		const crm: Array<CRM.Node> = [];
+		const crm: CRM.Node[] = [];
 		_assignParents(crm, nodes, {
 			index: 0
 		}, nodes.length);
@@ -948,7 +948,7 @@ export namespace Storages.SetupHandling.TransferFromOld {
 		return node;
 	}
 	function _assignParents(parent: CRM.Tree,
-		nodes: Array<CRM.Node>, index: {
+		nodes: CRM.Node[], index: {
 			index: number;
 		}, amount: number) {
 		for (; amount !== 0 && nodes[index.index]; index.index++ , amount--) {
@@ -1030,7 +1030,7 @@ export namespace Storages.SetupHandling {
 		};
 	}
 
-	export function handleFirstRun(crm?: Array<CRM.Node>): Promise<{
+	export function handleFirstRun(crm?: CRM.Node[]): Promise<{
 		settingsStorage: CRM.SettingsStorage;
 		storageLocalCopy: CRM.StorageLocal;
 		chromeStorageLocal: CRM.StorageLocal;
@@ -1114,7 +1114,7 @@ export namespace Storages.SetupHandling {
 	}
 	export function loadTernFiles(): Promise<void> {
 		return new Promise((resolve, reject) => {
-			const files: Array<string> = [
+			const files: string[] = [
 				'/js/libraries/tern/walk.js',
 				'/js/libraries/tern/signal.js',
 				'/js/libraries/tern/acorn.js',
@@ -1136,7 +1136,7 @@ export namespace Storages.SetupHandling {
 		});
 	}
 
-	function _chainPromise<T>(promiseInitializers: Array<() =>Promise<T>>, index: number = 0): Promise<T> {
+	function _chainPromise<T>(promiseInitializers: (() =>Promise<T>)[], index: number = 0): Promise<T> {
 		return new Promise<T>((resolve, reject) => {
 			promiseInitializers[index]().then((value) => {
 				if (index + 1 >= promiseInitializers.length) {
@@ -1217,7 +1217,7 @@ export namespace Storages {
 			newValue: any;
 			oldValue: any;
 		};
-		toUpdate?: Array<number>
+		toUpdate?: number[]
 	}) {
 		await toUpdate && toUpdate.map((id) => {
 			return new Promise(async (resolve) => {
@@ -1261,7 +1261,7 @@ export namespace Storages {
 		same: CRM.Tree;
 	} {
 		if (!previous) {
-			const all: Array<CRM.Node> = [];
+			const all: CRM.Node[] = [];
 			modules.Util.crmForEach(current, (node) => {
 				all.push(node);
 			});
@@ -1271,11 +1271,11 @@ export namespace Storages {
 				same: []
 			}
 		}
-		const previousIds: Array<number> = [];
+		const previousIds: number[] = [];
 		modules.Util.crmForEach(previous, (node) => {
 			previousIds.push(node.id);
 		});
-		const currentIds: Array<number> = [];
+		const currentIds: number[] = [];
 		modules.Util.crmForEach(current, (node) => {
 			currentIds.push(node.id);
 		});
@@ -1364,7 +1364,7 @@ export namespace Storages {
 			}
 		}
 	}
-	export async function uploadChanges(type: 'local' | 'settings' | 'libraries', changes: Array<StorageChange>,
+	export async function uploadChanges(type: 'local' | 'settings' | 'libraries', changes: StorageChange[],
 		useStorageSync: boolean = null) {
 			switch (type) {
 				case 'local':
@@ -1394,10 +1394,10 @@ export namespace Storages {
 
 	export async function applyChanges(data: {
 		type: 'optionsPage' | 'libraries' | 'nodeStorage';
-		localChanges?: Array<StorageChange>;
-		settingsChanges?: Array<StorageChange>;
-		libraries?: Array<CRM.InstalledLibrary>;
-		nodeStorageChanges?: Array<StorageChange>;
+		localChanges?: StorageChange[];
+		settingsChanges?: StorageChange[];
+		libraries?: CRM.InstalledLibrary[];
+		nodeStorageChanges?: StorageChange[];
 		id?: number;
 		tabId?: number;
 	}) {
@@ -1438,10 +1438,10 @@ export namespace Storages {
 			modules.storages.settingsStorage = settingsStorage;
 
 			modules.storages.globalExcludes = _setIfNotSet(chromeStorageLocal,
-				'globalExcludes', [] as Array<string>).map(modules.URLParsing.validatePatternUrl)
+				'globalExcludes', [] as string[]).map(modules.URLParsing.validatePatternUrl)
 				.filter((pattern) => {
 					return pattern !== null;
-				}) as Array<MatchPattern>;
+				}) as MatchPattern[];
 			modules.storages.resources = _setIfNotSet(chromeStorageLocal,
 				'resources', []);
 			modules.storages.nodeStorage = _setIfNotSet(chromeStorageLocal,
@@ -1454,7 +1454,7 @@ export namespace Storages {
 				'urlDataPairs', {} as {
 					[key: string]: {
 						dataString: string;
-						refs: Array<number>;
+						refs: number[];
 						dataURI: string;
 					}
 				});
@@ -1465,11 +1465,11 @@ export namespace Storages {
 			callback && callback();
 		}
 	export function cutData(data: any): {
-		indexes: Array<number>;
+		indexes: number[];
 		[key: number]: string;
 	} {
 		const obj = {} as any;
-		const indexes: Array<string> = [];
+		const indexes: string[] = [];
 		const splitJson = data.match(/[\s\S]{1,5000}/g);
 		splitJson.forEach((section: String) => {
 			const arrLength = indexes.length;
@@ -1486,7 +1486,7 @@ export namespace Storages {
 			const storageSync: {
 				[key: string]: string
 			} & {
-				indexes: Array<string>;
+				indexes: string[];
 			} = await browserAPI.storage.sync.get() as any;
 			window.info('Loading local storage data');
 			const storageLocal: CRM.StorageLocal & {
@@ -1515,7 +1515,7 @@ export namespace Storages {
 						});
 						settingsStorage = storageLocal.settings;
 					} else {
-						const settingsJsonArray: Array<string> = [];
+						const settingsJsonArray: string[] = [];
 						indexes.forEach((index) => {
 							settingsJsonArray.push(storageSync[index]);
 						});
@@ -1529,7 +1529,7 @@ export namespace Storages {
 							useStorageSync: true
 						});
 						const indexes = storageSync['indexes'];
-						const settingsJsonArray: Array<string> = [];
+						const settingsJsonArray: string[] = [];
 						indexes.forEach((index) => {
 							settingsJsonArray.push(storageSync[index]);
 						});
@@ -1560,7 +1560,7 @@ export namespace Storages {
 		modules.storages.storageLocal = null;
 	}
 
-	async function _changeCRMValuesIfSettingsChanged(changes: Array<StorageChange>) {
+	async function _changeCRMValuesIfSettingsChanged(changes: StorageChange[]) {
 		const updated: {
 			crm: boolean;
 			id: boolean;
@@ -1619,7 +1619,7 @@ export namespace Storages {
 	function _applyChangeForStorageType(storageObj: {
 		[key: string]: any;
 		[key: number]: any;
-	}, changes: Array<StorageChange>, usesDots: boolean = false) {
+	}, changes: StorageChange[], usesDots: boolean = false) {
 		for (let i = 0; i < changes.length; i++) {
 			if (usesDots) {
 				const indexes = changes[i].key.split('.');
@@ -1637,7 +1637,7 @@ export namespace Storages {
 		}
 	}
 	function _notifyNodeStorageChanges(id: number, tabId: number,
-		changes: Array<StorageChange>) {
+		changes: StorageChange[]) {
 		//Update in storage
 		modules.crm.crmById[id].storage = modules.storages
 			.nodeStorage[id];
@@ -1668,7 +1668,7 @@ export namespace Storages {
 		minor: number;
 		patch: number;
 	} {
-		let [major, minor, patch]: Array<string|number> = version.split('.');
+		let [major, minor, patch]: (string|number)[] = version.split('.');
 		major = ~~major;
 		minor = ~~minor;
 		patch = ~~patch;
@@ -1694,14 +1694,14 @@ export namespace Storages {
 		return true;
 	}
 	function _upgradeVersion(oldVersion: string, newVersion: string): {
-		beforeSyncLoad: Array<(local: Partial<CRM.StorageLocal>) => void>;
-		afterSyncLoad: Array<(sync: Partial<CRM.SettingsStorage>) => Partial<CRM.SettingsStorage>>;
-		afterSync: Array<() => void>;
+		beforeSyncLoad: ((local: Partial<CRM.StorageLocal>) => void)[];
+		afterSyncLoad: ((sync: Partial<CRM.SettingsStorage>) => Partial<CRM.SettingsStorage>)[];
+		afterSync: (() => void)[];
 	} {
 		const fns: {
-			beforeSyncLoad: Array<(local: Partial<CRM.StorageLocal>) => Partial<CRM.StorageLocal>>;
-			afterSyncLoad: Array<(sync: Partial<CRM.SettingsStorage>) => Partial<CRM.SettingsStorage>>;
-			afterSync: Array<() => void>;
+			beforeSyncLoad: ((local: Partial<CRM.StorageLocal>) => Partial<CRM.StorageLocal>)[];
+			afterSyncLoad: ((sync: Partial<CRM.SettingsStorage>) => Partial<CRM.SettingsStorage>)[];
+			afterSync: (() => void)[];
 		} = {
 			beforeSyncLoad: [],
 			afterSyncLoad: [],

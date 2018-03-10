@@ -56,7 +56,7 @@ export namespace Global {
 		sendCallbackMessage: (tabId: number, tabIndex: number, id: number, data: {
 			err: boolean;
 			errorMessage?: string;
-			args?: Array<any>;
+			args?: any[];
 			callbackId: number;
 		}) => {
 			const message = {
@@ -94,7 +94,7 @@ export namespace Global {
 			supportedHashes: ['sha1', 'sha256', 'sha384', 'sha512', 'md5'],
 			validSchemes: ['http', 'https', 'file', 'ftp', '*'],
 			templates: {
-				mergeArrays<T extends Array<T> | Array<U>, U>(this: CRMTemplates, mainArray: T, additionArray: T): T {
+				mergeArrays<T extends T[] | U[], U>(this: CRMTemplates, mainArray: T, additionArray: T): T {
 					for (let i = 0; i < additionArray.length; i++) {
 						if (mainArray[i] &&
 							typeof additionArray[i] === 'object' &&
@@ -314,8 +314,8 @@ export namespace Global {
 				},
 			specialJSON: {
 				_regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'],
-				_getRegexFlags(this: SpecialJSON, expr: RegExp): Array<string> {
-					const flags: Array<string> = [];
+				_getRegexFlags(this: SpecialJSON, expr: RegExp): string[] {
+					const flags: string[] = [];
 					this._regexFlagNames.forEach((flagName: string) => {
 						if ((expr as any)[flagName]) {
 							if (flagName === 'sticky') {
@@ -354,7 +354,7 @@ export namespace Global {
 						if ((matchedData = this._specialStringRegex.exec(dataParsed))) {
 							const dataContent = matchedData[2] as EncodedString<{
 								regexp: string;
-								flags: Array<string>;
+								flags: string[];
 							}>;
 							switch (matchedData[1]) {
 								case 'fn':
@@ -380,7 +380,7 @@ export namespace Global {
 					fn: (data: any, index: string | number, container: ArrOrObj) => any) {
 					if (Array.isArray(iterable)) {
 						copyTarget = copyTarget || [];
-						(iterable as Array<any>).forEach((data: any, key: number, container: Array<any>) => {
+						(iterable as any[]).forEach((data: any, key: number, container: any[]) => {
 							(copyTarget as any)[key] = fn(data, key, container);
 						});
 					} else {
@@ -397,13 +397,13 @@ export namespace Global {
 					}
 					return typeof data === 'object' && !Array.isArray(data);
 				},
-				_toJSON(this: SpecialJSON, copyTarget: ArrOrObj, data: any, path: Array<string | number>, refData: {
+				_toJSON(this: SpecialJSON, copyTarget: ArrOrObj, data: any, path: (string|number)[], refData: {
 					refs: Refs,
-					paths: Array<Array<string | number>>,
-					originalValues: Array<any>
+					paths: (string|number)[][],
+					originalValues: any[]
 				}): {
 					refs: Refs;
-					data: Array<any>;
+					data: any[];
 					rootType: 'array';
 				} | {
 					refs: Refs;
@@ -453,7 +453,7 @@ export namespace Global {
 						if (isArr) {
 							return {
 								refs: refData.refs,
-								data: copyTarget as Array<any>,
+								data: copyTarget as any[],
 								rootType: 'array'
 							};
 						} else {
@@ -468,7 +468,7 @@ export namespace Global {
 					}
 				},
 				toJSON(this: SpecialJSON, data: any, refs: Refs = []): string {
-					const paths: Array<Array<string | number>> = [[]];
+					const paths: (string|number)[][] = [[]];
 					const originalValues = [data];
 
 					if (!(this._isObject(data) || Array.isArray(data))) {
@@ -545,12 +545,12 @@ export namespace Global {
 						};
 					});
 
-					const refs = parsed.refs as Array<{
-						ref: Array<any> | {
+					const refs = parsed.refs as {
+						ref: any[] | {
 							[key: string]: any
 						};
 						parsed: boolean;
-					}>;
+					}[];
 
 					if (parsed.rootType === 'normal') {
 						return JSON.parse(parsed.data);

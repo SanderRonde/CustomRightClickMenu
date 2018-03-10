@@ -16,7 +16,7 @@ interface LogListenerLine {
 	tabInstanceIndex: number;
 	nodeTitle?: string;
 	tabTitle?: string;
-	data?: Array<LogLineData>;
+	data?: LogLineData[];
 	val?: {
 		type: 'success';
 		result: any;
@@ -34,7 +34,7 @@ interface LogListenerLine {
 	type?: string;
 	isEval?: boolean;
 	isError?: boolean;
-	suggestions?: Array<string>;
+	suggestions?: string[];
 }
 
 interface LogLineData {
@@ -49,7 +49,7 @@ interface LogListenerObject {
 	listener: LogListener;
 	id: number | string;
 	tab: number | string;
-	update: (id: string | number, tab: string | number, tabIndex: number, textFilter: string) => Array<LogListenerLine>;
+	update: (id: string | number, tab: string | number, tabIndex: number, textFilter: string) => LogListenerLine[];
 	text: string;
 	index: number;
 }
@@ -65,8 +65,8 @@ interface ContextMenuItemTreeItem {
 	enabled: boolean;
 	node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
 	parentId: string|number;
-	children: Array<ContextMenuItemTreeItem>;
-	parentTree: Array<ContextMenuItemTreeItem>;
+	children: ContextMenuItemTreeItem[];
+	parentTree: ContextMenuItemTreeItem[];
 }
 
 interface BrowserTabsQueryInfo {
@@ -125,13 +125,13 @@ interface GreaseMonkeyDataInfo {
 		author?: string;
 		copyright?: string;
 		description?: string;
-		excludes?: Array<string>;
+		excludes?: string[];
 		homepage?: string;
 		icon?: string;
 		icon64?: string;
-		includes?: Array<string>;
+		includes?: string[];
 		lastUpdated: number; //Never updated
-		matches?: Array<string>;
+		matches?: string[];
 		isIncognito: boolean;
 		downloadMode: string;
 		name: string;
@@ -148,14 +148,14 @@ interface GreaseMonkeyDataInfo {
 			override: {
 				excludes: boolean;
 				includes: boolean;
-				orig_excludes?: Array<string>;
-				orig_includes?: Array<string>;
-				use_excludes: Array<string>;
-				use_includes: Array<string>;
+				orig_excludes?: string[];
+				orig_includes?: string[];
+				use_excludes: string[];
+				use_includes: string[];
 			}
 		},
 		position: number;
-		resources: Array<Resource>;
+		resources: Resource[];
 		"run-at": string;
 		system: boolean;
 		unwrap: boolean;
@@ -176,8 +176,8 @@ interface GreaseMonkeyData {
 
 interface MessageLogging {
 	[nodeId: number]: {
-		logMessages: Array<LogListenerLine>;
-		values: Array<any>;
+		logMessages: LogListenerLine[];
+		values: any[];
 		[tabId: number]: any;
 	};
 	filter: {
@@ -192,23 +192,23 @@ type BackgroundpageWindow = Window & SharedWindow & {
 	createHandlerFunction: (port: {
 		postMessage: (message: Object) => void;
 	}|_browser.runtime.Port) => (message: any) => Promise<void>;
-	backgroundPageLog: (id: number, sourceData: [string, number], ...params: Array<any>) => void;
+	backgroundPageLog: (id: number, sourceData: [string, number], ...params: any[]) => void;
 	filter: (nodeId: any, tabId: any) => void;
-	_getCurrentTabIndex: (id: number, currentTab: number|'background', callback: (newTabIndexes: Array<number>) => void) => void;
+	_getCurrentTabIndex: (id: number, currentTab: number|'background', callback: (newTabIndexes: number[]) => void) => void;
 	_getIdsAndTabs: (selectedId: number, selectedTab: number|'background', callback: (result: {
-		ids: Array<{
+		ids: {
 			id: string|number;
 			title: string;
-		}>;
-		tabs: Array<TabData>;
+		}[];
+		tabs: TabData[];
 	}) => void) => void;
-	_listenIds: (listener: (newIds: Array<{
+	_listenIds: (listener: (newIds: {
 		id: number;
 		title: string;
-	}>) => void) => void;
-	_listenTabs: (listener: (newTabs: Array<TabData>) => void) => void;
+	}[]) => void) => void;
+	_listenTabs: (listener: (newTabs: TabData[]) => void) => void;
 	_listenLog: (listener: LogListener,
-		callback: (result: LogListenerObject) => void) => Array<LogListenerLine>;
+		callback: (result: LogListenerObject) => void) => LogListenerLine[];
 	XMLHttpRequest: any;
 	setTimeout(callback: () => void, time: number): void;
 	TextEncoder: any;
@@ -242,20 +242,20 @@ interface MatchPattern {
 
 interface BGStorages {
 	settingsStorage: CRM.SettingsStorage;
-	globalExcludes: Array<MatchPattern | '<all_urls>'>;
-	resourceKeys: Array<{
+	globalExcludes: (MatchPattern|'<all_urls>')[];
+	resourceKeys: {
 		name: string;
 		sourceUrl: string;
-		hashes: Array<{
+		hashes: {
 			algorithm: string;
 			hash: string;
-		}>;
+		}[];
 		scriptId: number;
-	}>;
+	}[];
 	urlDataPairs: {
 		[url: string]: {
 			dataString: string;
-			refs: Array<number>;
+			refs: number[];
 			dataURI: string;
 		};
 	};
@@ -272,15 +272,15 @@ interface BGStorages {
 				dataURI: string;
 				dataString: string;
 				crmUrl: string;
-				hashes: Array<{
+				hashes: {
 					algorithm: string;
 					hash: string;
-				}>
+				}[]
 			};
 		};
 	};
-	insufficientPermissions: Array<string>;
-	failedLookups: Array<number>;
+	insufficientPermissions: string[];
+	failedLookups: number[];
 }
 
 interface SandboxWorkerInterface {
@@ -298,11 +298,11 @@ interface BGBackground {
 }
 
 interface BGCRM {
-	crmTree: Array<CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode>;
+	crmTree: (CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode)[]
 	crmById: {
 		[id: number]: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
 	};
-	safeTree: Array<CRM.SafeNode>;
+	safeTree: CRM.SafeNode[];
 	crmByIdSafe: {
 		[id: number]: CRM.SafeNode;
 	};
@@ -332,20 +332,20 @@ interface UserAddedContextMenu {
 	generatedId: string|number;
 	actualId: string|number;
 	parent: UserAddedContextMenu;
-	children: Array<UserAddedContextMenu>;
+	children: UserAddedContextMenu[];
 }
 
 interface BGCRMValues {
 	tabData: {
 		[tabId: number]: {
 			nodes: {
-				[nodeId: number]: Array<{
-					secretKey: Array<number>;
+				[nodeId: number]: {
+					secretKey: number[];
 					port?: _browser.runtime.Port | {
 						postMessage(message: Object): void;
 					};
 					usesLocalStorage: boolean;
-				}>;
+				}[];
 			};
 			libraries: {
 				[library: string]: boolean;
@@ -358,34 +358,34 @@ interface BGCRMValues {
 	};
 	nodeInstances: {
 		[nodeId: number]: {
-			[instanceId: number]: Array<{
+			[instanceId: number]: {
 				hasHandler: boolean;
-			}>;
+			}[];
 		};
 	};
 	contextMenuInfoById: {
 		[contextMenuId: number]: {
-			path: Array<number>;
+			path: number[];
 			settings: ContextMenuSettings;
 			enabled: boolean;
 		};
 		[contextMenuId: string]: {
-			path: Array<number>;
+			path: number[];
 			settings: ContextMenuSettings;
 			enabled: boolean;
 		};
 	};
-	contextMenuItemTree: Array<ContextMenuItemTreeItem>;
-	userAddedContextMenus: Array<UserAddedContextMenu>;
+	contextMenuItemTree: ContextMenuItemTreeItem[];
+	userAddedContextMenus: UserAddedContextMenu[];
 	userAddedContextMenusById: {
 		[mappedId: string]: UserAddedContextMenu;
 		[mappedId: number]: UserAddedContextMenu;
 	}
 	hideNodesOnPagesData: {
-		[nodeId: number]: Array<{
+		[nodeId: number]: {
 			not: boolean;
 			url: string;
-		}>;
+		}[];
 	};
 	stylesheetNodeStatusses: {
 		[nodeId: number]: {
@@ -397,16 +397,16 @@ interface BGCRMValues {
 
 interface BGToExecute {
 	onUrl: {
-		[nodeId: number]: Array<CRM.Trigger>;
+		[nodeId: number]: CRM.Trigger[];
 	};
-	documentStart: Array<CRM.ScriptNode>;
-	always: Array<CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode>;
+	documentStart: CRM.ScriptNode[];
+	always: (CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode)[];
 }
 
 type SendCallbackMessage = (tabId: number, tabIndex: number, id: number, data: {
 	err: boolean,
 	errorMessage?: string;
-	args?: Array<any>;
+	args?: any[];
 	callbackId: number;
 }) => void;
 
@@ -418,7 +418,7 @@ interface Globals {
 	keys: {
 		[secretKey: string]: boolean;
 	};
-	availablePermissions: Array<string>;
+	availablePermissions: string[];
 	crmValues: BGCRMValues;
 	toExecuteNodes: BGToExecute;
 	sendCallbackMessage: SendCallbackMessage;
@@ -434,10 +434,10 @@ interface Globals {
 			};
 		};
 		shortcutListeners: {
-			[shortcut: string]: Array<{
+			[shortcut: string]: {
 				shortcut: string;
 				callback(): void;
-			}>;
+			}[];
 		};
 	};
 	logging: MessageLogging;
@@ -446,7 +446,7 @@ interface Globals {
 }
 
 interface CRMTemplates {
-	mergeArrays<T extends Array<T> | Array<U>, U>(this: CRMTemplates, mainArray: T, additionArray: T): T;
+	mergeArrays<T extends T[] | U[], U>(this: CRMTemplates, mainArray: T, additionArray: T): T;
 	mergeObjects<T extends {
 		[key: string]: any;
 		[key: number]: any;
@@ -464,31 +464,31 @@ interface CRMTemplates {
 }
 
 interface BGConstants {
-	supportedHashes: Array<string>;
-	validSchemes: Array<string>; 
+	supportedHashes: string[];
+	validSchemes: string[]; 
 	templates: CRMTemplates;
 	specialJSON: SpecialJSON;
-	permissions: Array<CRM.Permission>;
-	contexts: Array<_browser.contextMenus.ContextType>;
-	tamperMonkeyExtensions: Array<string>;
+	permissions: CRM.Permission[];
+	contexts: _browser.contextMenus.ContextType[];
+	tamperMonkeyExtensions: string[];
 }
 
 interface BGListeners {
-	idVals: Array<{
+	idVals: {
 		id: number;
 		title: string;
-	}>;
-	tabVals: Array<TabData>;
-	ids: Array<(updatedIds: Array<{
+	}[];
+	tabVals: TabData[];
+	ids: ((updatedIds: {
 		id: number;
 		title: string;
-	}>) => void>;
-	tabs: Array<(updatedTabs: Array<TabData>) => void>;
-	log: Array<LogListenerObject>;
+	}[]) => void)[];
+	tabs: ((updatedTabs: TabData[]) => void)[]
+	log: LogListenerObject[];
 }
 
-type UpgradeErrorHandler = (oldScriptErrors: Array<CursorPosition>,
-	newScriptErrors: Array<CursorPosition>, parseError: boolean) => void;
+type UpgradeErrorHandler = (oldScriptErrors: CursorPosition[],
+	newScriptErrors: CursorPosition[], parseError: boolean) => void;
 
 interface GlobalObject extends Partial<Window> {
 	globals?: Globals;

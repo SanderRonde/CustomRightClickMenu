@@ -12,7 +12,7 @@ export namespace BrowserHandler.ChromeAPIs {
 		}
 		return false;
 	}
-	function _respondSuccess(message: ChromeAPIMessage|BrowserAPIMessage, params: Array<any>) {
+	function _respondSuccess(message: ChromeAPIMessage|BrowserAPIMessage, params: any[]) {
 		if (message.type === 'browser') {
 			modules.APIMessaging.createReturn(message, message.args[0].val)(params[0]);
 		} else {
@@ -47,8 +47,8 @@ export namespace BrowserHandler.ChromeAPIs {
 		return true;
 	}
 	export function getURL(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
-		const returns: Array<any> = [];
-		const args: Array<any> = [];
+		const returns: any[] = [];
+		const args: any[] = [];
 		for (let i = 0; i < message.args.length; i++) {
 			if (message.args[i].type === 'return') {
 				returns.push(message.args[i].val);
@@ -84,8 +84,8 @@ export namespace BrowserHandler.ChromeAPIs {
 		return true;
 	}
 	export function restartAfterDelay(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
-		const fns: Array<() => void> = [];
-		const args: Array<any> = [];
+		const fns: (() => void)[] = [];
+		const args: any[] = [];
 		if (!('restartAfterDelay' in browserAPI.runtime)) {
 			modules.APIMessaging.ChromeMessage.throwError(message,
 				'restartAfterDelay is not supported on this platform');
@@ -154,7 +154,7 @@ export namespace BrowserHandler.ChromeAPIs {
 			];
 			const listenerTarget = api.split('.')[0];
 			if (allowedTargets.indexOf(listenerTarget) > -1 && listenerTarget in browserAPI.runtime) {
-				(browserAPI.runtime as any)[listenerTarget].addListener((...listenerArgs: Array<any>) => {
+				(browserAPI.runtime as any)[listenerTarget].addListener((...listenerArgs: any[]) => {
 					const params = Array.prototype.slice.apply(listenerArgs);
 					modules.APIMessaging.CRMMessage.respond(message, 'success', {
 						callbackId: message.args[0].val,
@@ -224,7 +224,7 @@ export namespace BrowserHandler.ForbiddenCalls {
 	function getTargetId(message: ChromeAPIMessage|BrowserAPIMessage) {
 		return message.args[0].val;
 	}
-	function _respondSuccess(message: ChromeAPIMessage|BrowserAPIMessage, cbIndex: number, params: Array<any>) {
+	function _respondSuccess(message: ChromeAPIMessage|BrowserAPIMessage, cbIndex: number, params: any[]) {
 		if (!message.args[cbIndex]) {
 			return;
 		}
@@ -344,21 +344,21 @@ export namespace BrowserHandler {
 
 	export interface ChromeAPIMessage extends CRMAPIMessageInstance<'chrome', void> {
 		api: string;
-		args: Array<{
+		args: {
 			type: 'fn' | 'return' | 'arg';
 			isPersistent?: boolean;
 			val: any;
-		}>;
+		}[];
 		requestType: CRM.Permission;
 	}
 	
 	export interface BrowserAPIMessage extends CRMAPIMessageInstance<'browser', void> {
 		api: string;
-		args: Array<{
+		args: {
 			type: 'fn' | 'return' | 'arg';
 			isPersistent?: boolean;
 			val: any;
-		}>;
+		}[];
 		requestType: CRM.Permission;
 	}
 
@@ -387,8 +387,8 @@ export namespace BrowserHandler {
 			return false;
 		}
 
-		const params: Array<any> = [];
-		const returnFunctions: Array<(result: any) => void> = [];
+		const params: any[] = [];
+		const returnFunctions: ((result: any) => void)[] = [];
 		for (let i = 0; i < message.args.length; i++) {
 			switch (message.args[i].type) {
 				case 'arg':
@@ -462,7 +462,7 @@ export namespace BrowserHandler {
 	}
 	function _createChromeFnCallbackHandler(message: ChromeAPIMessage|BrowserAPIMessage,
 		callbackIndex: number) {
-		return (...params: Array<any>) => {
+		return (...params: any[]) => {
 			modules.APIMessaging.CRMMessage.respond(message, 'success', {
 				callbackId: callbackIndex,
 				params: params

@@ -10,20 +10,20 @@ export namespace CRMFunction {
 	}
 
 	interface CRMParent<T> {
-		children?: Array<T> | void;
+		children?: T[] | void;
 	}
 
 	type TypeCheckTypes = 'string' | 'function' | 'number' | 'object' | 'array' | 'boolean';
 
 	interface TypeCheckConfig {
 		val: string;
-		type: TypeCheckTypes | Array<TypeCheckTypes>;
+		type: TypeCheckTypes | TypeCheckTypes[];
 		optional?: boolean;
-		forChildren?: Array<{
+		forChildren?: {
 			val: string;
-			type: TypeCheckTypes | Array<TypeCheckTypes>;
+			type: TypeCheckTypes | TypeCheckTypes[];
 			optional?: boolean;
-		}>;
+		}[];
 		dependency?: string;
 		min?: number;
 		max?: number;
@@ -47,7 +47,7 @@ export namespace CRMFunction {
 				CRMFunctions[action](this);
 			}
 
-		respondSuccess(...args: Array<any>) {
+		respondSuccess(...args: any[]) {
 			modules.APIMessaging.CRMMessage.respond(this.message, 'success', args);
 			return true;
 		}
@@ -56,13 +56,13 @@ export namespace CRMFunction {
 			modules.APIMessaging.CRMMessage.respond(this.message, 'error', error);
 		}
 
-		lookup<T>(path: Array<number>,
-			data: Array<CRMParent<T>>): CRMParent<T> | boolean;
-		lookup<T>(path: Array<number>, data: Array<CRMParent<T>>, hold: boolean):
-			Array<CRMParent<T>> | CRMParent<T> | boolean | void;
-		lookup<T>(path: Array<number>, data: Array<CRMParent<T>>,
+		lookup<T>(path: number[],
+			data: CRMParent<T>[]): CRMParent<T> | boolean;
+		lookup<T>(path: number[], data: CRMParent<T>[], hold: boolean):
+			CRMParent<T>[] | CRMParent<T> | boolean | void;
+		lookup<T>(path: number[], data: CRMParent<T>[],
 			hold: boolean = false):
-			Array<CRMParent<T>> | CRMParent<T> | boolean | void {
+			CRMParent<T>[] | CRMParent<T> | boolean | void {
 			if (path === null || typeof path !== 'object' || !Array.isArray(path)) {
 				this.respondError('Supplied path is not of type array');
 				return true;
@@ -139,7 +139,7 @@ export namespace CRMFunction {
 						}
 					} else {
 						const parentChildren = __this.lookup(relativeNode.path, 
-							modules.crm.crmTree, true) as Array<CRM.Node>;
+							modules.crm.crmTree, true) as CRM.Node[];
 						modules.Util.pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
 						if (removeOld && parentChildren === removeOld.children) {
 							removeOld.index++;
@@ -156,7 +156,7 @@ export namespace CRMFunction {
 						}
 					} else {
 						const parentChildren = __this.lookup((relativeNode as any).path, 
-							modules.crm.crmTree, true) as Array<CRM.Node>;
+							modules.crm.crmTree, true) as CRM.Node[];
 						modules.Util.pushIntoArray(node, 0, parentChildren);
 						if (removeOld && parentChildren === removeOld.children) {
 							removeOld.index++;
@@ -169,7 +169,7 @@ export namespace CRMFunction {
 						modules.crm.crmTree);
 				} else {
 					const parentChildren = __this.lookup(relativeNode.path, 
-						modules.crm.crmTree, true) as Array<CRM.Node>;
+						modules.crm.crmTree, true) as CRM.Node[];
 					if (relativeNode.path.length > 0) {
 						modules.Util.pushIntoArray(node, 
 							relativeNode.path[relativeNode.path.length - 1] + 1,
@@ -183,7 +183,7 @@ export namespace CRMFunction {
 						modules.crm.crmTree);
 				} else {
 					const parentChildren = __this.lookup((relativeNode as any).path, 
-						modules.crm.crmTree, true) as Array<CRM.Node>;
+						modules.crm.crmTree, true) as CRM.Node[];
 					modules.Util.pushIntoArray(node, parentChildren.length, parentChildren);
 				}
 			}
@@ -231,7 +231,7 @@ export namespace CRMFunction {
 			const oldCrmTree = JSON.parse(JSON.stringify(modules.crm.crmTree));
 
 			//Put the node in the tree
-			let relativeNode: Array<CRM.Node> | CRM.Node | false;
+			let relativeNode: CRM.Node[] | CRM.Node | false;
 			position = position || {};
 
 			if (!this.checkType(position, 'object', 'position')) {
@@ -419,7 +419,7 @@ export namespace CRMFunction {
 
 		private _checkArrayChildType(data: TypeCheckConfig, value: any, forChild: {
 			val: string;
-			type: TypeCheckTypes | Array<TypeCheckTypes>;
+			type: TypeCheckTypes | TypeCheckTypes[];
 			optional?: boolean;
 		}): boolean {
 			const types = Array.isArray(forChild.type) ? forChild.type : [forChild.type]
@@ -440,7 +440,7 @@ export namespace CRMFunction {
 
 		private _checkArrayChildrenConstraints<T extends {
 			[key: string]: any;
-		}>(data: TypeCheckConfig, values: Array<T>): boolean {
+		}>(data: TypeCheckConfig, values: T[]): boolean {
 			for (const value of values) {
 				for (const forChild of data.forChildren) {
 					const childValue = value[forChild.val];
@@ -480,7 +480,7 @@ export namespace CRMFunction {
 			return isBackground;
 		}
 
-		typeCheck(toCheck: Array<TypeCheckConfig>, callback: (optionals?: {
+		typeCheck(toCheck: TypeCheckConfig[], callback: (optionals?: {
 			[key: string]: any;
 		}) => void) {
 			const optionals: {
@@ -512,9 +512,9 @@ export namespace CRMFunction {
 			return true;
 		};
 
-		checkPermissions(toCheck: Array<CRM.Permission>,
+		checkPermissions(toCheck: CRM.Permission[],
 			callback?: (optional: any) => void) {
-				const optional: Array<any> = [];
+				const optional: any[] = [];
 				let permitted = true;
 				let node: CRM.Node;
 				if (!(node = modules.crm.crmById[this.message.id])) {
@@ -525,7 +525,7 @@ export namespace CRMFunction {
 				if (node.isLocal) {
 					callback && callback(optional);
 				} else {
-					let notPermitted: Array<CRM.Permission> = [];
+					let notPermitted: CRM.Permission[] = [];
 					if (!node.permissions || modules.Util.compareArray(node.permissions, [])) {
 						if (toCheck.length > 0) {
 							permitted = false;

@@ -4,35 +4,35 @@ interface SandboxWorkerMessage {
 	data: {
 		type: 'log';
 		lineNo: number;
-		data: EncodedString<Array<any>>
+		data: EncodedString<any[]>
 	}|{
 		type: 'handshake';
-		key: Array<number>;
+		key: number[];
 		data: EncodedString<{
 			id: number;
-			key: Array<number>;
+			key: number[];
 			tabId: number;
 		}>;
 	}|{
 		type: 'crmapi';
-		key: Array<number>;
+		key: number[];
 		data: EncodedString<CRMAPIMessage>;
 	}
 }
 
 export class SandboxWorker implements SandboxWorkerInterface {
 	worker: Worker = new Worker('/js/sandbox.js');
-	_callbacks: Array<Function> = [];
+	_callbacks: Function[] = [];
 	_verified: boolean = false;
 	_handler = window.createHandlerFunction({
 		postMessage: this._postMessage.bind(this)
 	});
 
-	constructor(public id: number, public script: string, libraries: Array<string>,
-		public secretKey: Array<number>, private _getInstances: () => Array<{
+	constructor(public id: number, public script: string, libraries: string[],
+		public secretKey: number[], private _getInstances: () => {
 			id: string;
 			tabIndex: number;
-		}>) {
+		}[]) {
 			this.worker.addEventListener('message', (e: SandboxWorkerMessage) => {
 				this._onMessage(e);
 			}, false);
@@ -97,10 +97,10 @@ export class SandboxWorker implements SandboxWorkerInterface {
 	};
 
 	private _verifyKey(message: {
-		key: Array<number>;
+		key: number[];
 		data: EncodedString<{
 			id: number;
-			key: Array<number>;
+			key: number[];
 			tabId: number;
 		}>|EncodedString<CRMAPIMessage>;
 	}, callback: (data: any, port?: any) => void) {
@@ -114,20 +114,20 @@ export class SandboxWorker implements SandboxWorkerInterface {
 }
 
 export namespace Sandbox {
-	export function sandbox(id: number, script: string, libraries: Array<string>,
-		secretKey: Array<number>, getInstances: () => Array<{
+	export function sandbox(id: number, script: string, libraries: string[],
+		secretKey: number[], getInstances: () => {
 			id: string;
 			tabIndex: number;
-		}>,
+		}[],
 		callback: (worker: SandboxWorker) => void) {
 			callback(new SandboxWorker(id, script, libraries, secretKey, getInstances));
 		}
 
-	function _sandboxChromeFunction(window: void, sandboxes: void, chrome: void, browser: void, fn: Function, context: any, args: Array<any>) {
+	function _sandboxChromeFunction(window: void, sandboxes: void, chrome: void, browser: void, fn: Function, context: any, args: any[]) {
 		return fn.apply(context, args);
 	}
 
-	export function sandboxChrome(api: string, base: 'chrome'|'browser', args: Array<any>) {
+	export function sandboxChrome(api: string, base: 'chrome'|'browser', args: any[]) {
 		let context = {};
 		let fn = (window as any)[base];
 		const apiSplit = api.split('.');

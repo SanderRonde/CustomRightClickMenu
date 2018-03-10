@@ -59,7 +59,7 @@ export namespace Util {
 			});
 		}
 	};
-	export function compareArray(firstArray: Array<any>, secondArray: Array<any>): boolean {
+	export function compareArray(firstArray: any[], secondArray: any[]): boolean {
 		if (!firstArray && !secondArray) {
 			return false;
 		} else if (!firstArray || !secondArray) {
@@ -99,8 +99,8 @@ export namespace Util {
 	export function safe(node: CRM.Node): CRM.SafeNode {
 		return modules.crm.crmByIdSafe[node.id];
 	}
-	export function createSecretKey(): Array<number> {
-		const key: Array<number> = [];
+	export function createSecretKey(): number[] {
+		const key: number[] = [];
 		for (let i = 0; i < 25; i++) {
 			key[i] = Math.round(Math.random() * 100);
 		}
@@ -182,7 +182,7 @@ export namespace Util {
 		}
 		return false;
 	}
-	export function pushIntoArray<T, U>(toPush: T, position: number, target: Array<T | U>): Array<T | U> {
+	export function pushIntoArray<T, U>(toPush: T, position: number, target: (T|U)[]): (T|U)[] {
 		if (position === target.length) {
 			target[position] = toPush;
 		} else {
@@ -197,7 +197,7 @@ export namespace Util {
 		}
 		return target;
 	}
-	export function flattenCrm(searchScope: Array<CRM.Node>, obj: CRM.Node) {
+	export function flattenCrm(searchScope: CRM.Node[], obj: CRM.Node) {
 		searchScope.push(obj);
 		if (obj.type === 'menu' && obj.children) {
 			for (const child of obj.children) {
@@ -222,7 +222,7 @@ export namespace Util {
 		}
 		return res;
 	}
-	export function getLastItem<T>(arr: Array<T>): T {
+	export function getLastItem<T>(arr: T[]): T {
 		return arr[arr.length - 1];
 	}
 	export function endsWith(haystack: string, needle: string): boolean {
@@ -231,10 +231,10 @@ export namespace Util {
 	}
 	export function isTamperMonkeyEnabled(callback: (result: boolean) => void) {
 		if ((window as any).chrome && (window as any).chrome.management) {
-			(window as any).chrome.management.getAll((installedExtensions: Array<{
+			(window as any).chrome.management.getAll((installedExtensions: {
 				id: string;
 				enabled: boolean;
-			}>) => {
+			}[]) => {
 				const TMExtensions = installedExtensions.filter((extension) => {
 					return modules.constants.tamperMonkeyExtensions
 						.indexOf(extension.id) > -1 && extension.enabled;
@@ -276,7 +276,7 @@ export namespace Util {
 		}
 		return url.indexOf('file://') !== -1;
 	}
-	export async function xhr(url: string, msg?: Array<any>): Promise<string> {
+	export async function xhr(url: string, msg?: any[]): Promise<string> {
 		return new Promise<string>((resolve, reject) => {
 			const xhr: XMLHttpRequest = new window.XMLHttpRequest();
 			xhr.open('GET', url);
@@ -317,14 +317,14 @@ export namespace Util {
 	export function iipe<T>(fn: () => Promise<T>): Promise<T> {
 		return fn();
 	}
-	export function createArray(length: number): Array<void> {
+	export function createArray(length: number): void[] {
 		const arr = [];
 		for (let i = 0; i < length; i++) {
 			arr[i] = undefined;
 		}
 		return arr;
 	}
-	export function promiseChain<T>(initializers: Array<() => Promise<any>>) {
+	export function promiseChain<T>(initializers: (() => Promise<any>)[]) {
 		return new Promise<T>((resolve) => {
 			if (!initializers[0]) {
 				return resolve(null);
@@ -344,8 +344,8 @@ export namespace Util {
 		port.postMessage(message);
 	}
 	export function climbTree<T extends {
-		children: Array<T>;
-	}>(tree: Array<T>, shouldContinue: (item: T) => boolean) {
+		children: T[];
+	}>(tree: T[], shouldContinue: (item: T) => boolean) {
 		for (const item of tree) {
 			if (shouldContinue(item)) {
 				climbTree(item.children, shouldContinue);
@@ -355,7 +355,7 @@ export namespace Util {
 	export function isThennable(value: any): value is Promise<any> {
 		return value && typeof value === "object" && typeof value.then === "function";
 	}
-	export async function filter<T>(tree: Array<T>, fn: (item: T) => boolean|Promise<boolean>) {
+	export async function filter<T>(tree: T[], fn: (item: T) => boolean|Promise<boolean>) {
 		for (let i = 0; i < tree.length; i++) {
 			let res = fn(tree[i]);
 			if (isThennable(res)) {
@@ -384,8 +384,8 @@ export namespace Util {
 		}
 	}
 
-	const _requiredFiles: Array<string> = [];
-	function _loadFile(path: string, ...msg: Array<any>): Promise<string> {
+	const _requiredFiles: string[] = [];
+	function _loadFile(path: string, ...msg: any[]): Promise<string> {
 		return xhr(browserAPI.runtime.getURL(path), msg);
 	}
 	function _compareObj(firstObj: {

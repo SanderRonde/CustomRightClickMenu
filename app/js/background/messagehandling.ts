@@ -133,7 +133,7 @@ export namespace MessageHandling {
 
 	export interface CRMFunctionDataBase {
 		action: string;
-		crmPath: Array<number>;
+		crmPath: number[];
 		[key: string]: any;
 	}
 	
@@ -160,7 +160,7 @@ export namespace MessageHandling {
 					break;
 				case 'displayHints':
 					modules.Logging.LogExecution.displayHints(message as CRMAPIMessageInstance<'displayHints', {
-						hints: Array<string>;
+						hints: string[];
 						id: number;
 						callbackIndex: number;
 						tabId: number;

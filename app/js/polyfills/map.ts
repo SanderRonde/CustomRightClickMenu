@@ -1,6 +1,6 @@
 class MapIterator<T> implements Iterator<T> {
 	private _index = 0;
-	constructor(private _data: Array<T>) { }
+	constructor(private _data: T[]) { }
 	next() {
 		const val = this._data[this._index];
 		this._index++;
@@ -9,7 +9,7 @@ class MapIterator<T> implements Iterator<T> {
 }
 
 class MapPolyfill<K, V> {
-	private _data: Array<[K, V]> = [];
+	private _data: [K, V][] = [];
 
 	length: 0;
 	constructor(iterable?: Iterable<[K, V]>) {

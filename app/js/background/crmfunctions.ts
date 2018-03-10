@@ -102,7 +102,7 @@ export namespace CRMFunctions {
 				if (optionals['query.inSubTree']) {
 					const searchScopeObj = __this.getNodeFromId(query.inSubTree,
 						true, true);
-					let searchScopeObjChildren: Array<CRM.Node> = [];
+					let searchScopeObjChildren: CRM.Node[] = [];
 					if (searchScopeObj) {
 						const menuSearchScopeObj = searchScopeObj as CRM.MenuNode;
 						searchScopeObjChildren = menuSearchScopeObj.children;
@@ -113,8 +113,8 @@ export namespace CRMFunctions {
 						modules.Util.flattenCrm(searchScope, child);
 					});
 				}
-				searchScope = searchScope as Array<any> | void || crmArray;
-				let searchScopeArr = searchScope as Array<any>;
+				searchScope = searchScope as any[] | void || crmArray;
+				let searchScopeArr = searchScope as any[];
 
 				if (optionals['query.type']) {
 					searchScopeArr = searchScopeArr.filter((candidate) => {
@@ -131,7 +131,7 @@ export namespace CRMFunctions {
 				//Filter out all nulls
 				searchScopeArr = searchScopeArr.filter((result) => {
 					return result !== null;
-				}) as Array<any>;
+				}) as any[];
 
 				__this.respondSuccess(searchScopeArr);
 			});
@@ -371,7 +371,7 @@ export namespace CRMFunctions {
 	export function deleteNode(__this: CRMFunction.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
-				const parentChildren = __this.lookup(node.path, modules.crm.crmTree, true) as Array<CRM.Node>;
+				const parentChildren = __this.lookup(node.path, modules.crm.crmTree, true) as CRM.Node[];
 				parentChildren.splice(node.path[node.path.length - 1], 1);
 				if (modules.crmValues.contextMenuIds[node.id] !== undefined) {
 					await browserAPI.contextMenus.remove(modules.crmValues.contextMenuIds[node.id]);
@@ -466,15 +466,15 @@ export namespace CRMFunctions {
 			], () => {
 				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 					const msg = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-						triggers: Array<{
+						triggers: {
 							url: string;
 							not: boolean;
-						}>;
+						}[];
 					};
 					const { triggers } = msg;
 					node.showOnSpecified = true;
 					await modules.CRMNodes.updateCrm();
-					const matchPatterns: Array<string> = [];
+					const matchPatterns: string[] = [];
 					modules.crmValues.hideNodesOnPagesData[node.id] = [];
 					if ((node.type === 'script' || node.type === 'stylesheet') &&
 						node.value.launchMode === CRMLaunchModes.RUN_ON_SPECIFIED) {
@@ -608,7 +608,7 @@ export namespace CRMFunctions {
 			}], () => {
 				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 					const msg = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-						contentTypes: Array<string>;
+						contentTypes: string[];
 					};
 
 					for (const contentType of msg.contentTypes) {
@@ -623,7 +623,7 @@ export namespace CRMFunctions {
 					let contentTypes: [
 						boolean, boolean, boolean, boolean, boolean, boolean
 					] = [] as any;
-					const contentTypeStrings: Array<string> = [
+					const contentTypeStrings: string[] = [
 						'page', 'link', 'selection', 'image', 'video', 'audio'
 					];
 					for (const i in msg.contentTypes) {
@@ -679,10 +679,10 @@ export namespace CRMFunctions {
 			}], () => {
 				__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 					const msg = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-						items: Array<{
+						items: {
 							newTab: boolean;
 							url: string;
-						}> | {
+						}[] | {
 							newTab: boolean;
 							url: string;
 						};
@@ -746,10 +746,10 @@ export namespace CRMFunctions {
 			}], () => {
 				__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 					const msg = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-						items: Array<{
+						items: {
 							newTab: boolean;
 							url: string;
-						}> | {
+						}[] | {
 							newTab: boolean;
 							url: string;
 						};
@@ -812,7 +812,7 @@ export namespace CRMFunctions {
 						amount: number;
 					};
 
-					let spliced: Array<CRM.LinkNodeLink>;
+					let spliced: CRM.LinkNodeLink[];
 					if (node.type === 'link') {
 						spliced = node.value.splice(msg['start'], msg['amount']);
 						await modules.CRMNodes.updateCrm();
@@ -990,7 +990,7 @@ export namespace CRMFunctions {
 				optional: true
 			}], async () => {
 				const msg = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-					libraries: Array<CRM.Library> | CRM.Library;
+					libraries: CRM.Library[] | CRM.Library;
 				};
 				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 					if (node.type !== 'script') {
@@ -1074,7 +1074,7 @@ export namespace CRMFunctions {
 			}], () => {
 				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 					const msg = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-						libraries: Array<CRM.Library> | CRM.Library
+						libraries: CRM.Library[] | CRM.Library
 					};
 
 					if (node.type !== 'script') {
@@ -1127,7 +1127,7 @@ export namespace CRMFunctions {
 				};
 
 				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
-					let spliced: Array<CRM.Library>;
+					let spliced: CRM.Library[];
 					if (node.type === 'script') {
 						const backgroundLibs = modules.Util.safe(node).value.backgroundLibraries;
 						spliced = backgroundLibs.splice(start, amount);
@@ -1282,7 +1282,7 @@ export namespace CRMFunctions {
 			}], () => {
 				__this.getNodeFromId(__this.message.data.nodeId, true).run(async (node) => {
 					const { childrenIds } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-						childrenIds: Array<number>;
+						childrenIds: number[];
 					};
 
 					if (node.type !== 'menu') {
@@ -1332,7 +1332,7 @@ export namespace CRMFunctions {
 				type: 'array'
 			}], () => {
 				const { childrenIds } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-					childrenIds: Array<number>;
+					childrenIds: number[];
 				};
 
 				__this.getNodeFromId(__this.message.data.nodeId, true).run(async (node) => {
@@ -1405,7 +1405,7 @@ export namespace CRMFunctions {
 
 	async function _queryTabs(options: BrowserTabsQueryInfo & {
 		all?: boolean;
-	}): Promise<Array<_browser.tabs.Tab>> {
+	}): Promise<_browser.tabs.Tab[]> {
 		if (Object.getOwnPropertyNames(options).length === 0) {
 			return [];
 		} else if (options.all) {
@@ -1417,9 +1417,9 @@ export namespace CRMFunctions {
 			return await browserAPI.tabs.query(options);
 		}
 	}
-	function _removeDuplicateTabs(tabs: Array<_browser.tabs.Tab>): Array<_browser.tabs.Tab> {
-		const nonDuplicates: Array<_browser.tabs.Tab> = [];
-		const ids: Array<number> = [];
+	function _removeDuplicateTabs(tabs: _browser.tabs.Tab[]): _browser.tabs.Tab[] {
+		const nonDuplicates: _browser.tabs.Tab[] = [];
+		const ids: number[] = [];
 		for (const tab of tabs) {
 			const { id } = tab;
 			if (ids.indexOf(id) > -1) {
@@ -1433,7 +1433,7 @@ export namespace CRMFunctions {
 		return nonDuplicates;
 	}
 
-	type MaybeArray<T> = T | Array<T>;
+	type MaybeArray<T> = T | T[];
 
 	async function _runScript(__this: CRMFunction.Instance, id: number, options: BrowserTabsQueryInfo & {
 		tabId?: MaybeArray<number>;
@@ -1442,7 +1442,7 @@ export namespace CRMFunctions {
 			options.tabId = [options.tabId];
 		}
 
-		const tabIds: Array<number> = options.tabId;
+		const tabIds: number[] = options.tabId;
 		delete options.tabId;
 
 		//Get results from tab query
@@ -1623,7 +1623,7 @@ export namespace CRMFunctions {
 			}], async () => {
 				const { options }  = __this.message.data as MessageHandling.CRMFunctionDataBase & {
 					options: {
-						tabId?: Array<number> | number;
+						tabId?: number[] | number;
 						url?: string;
 					}
 				};

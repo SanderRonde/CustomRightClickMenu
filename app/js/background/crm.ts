@@ -13,7 +13,7 @@ export namespace CRMNodes.Script.Handler {
 		safeNode,
 	}: {
 		tab: _browser.tabs.Tab;
-		key: Array<number>;
+		key: number[];
 		info: _browser.contextMenus.OnClickData;
 		node: CRM.ScriptNode;
 		safeNode: CRM.SafeNode;
@@ -68,11 +68,11 @@ export namespace CRMNodes.Script.Handler {
 			].join('\n') : ''}`		
 		].join('\n');		
 	}		
-	function _getScriptsToRun(code: string, runAt: _browser.extensionTypes.RunAt, node: CRM.ScriptNode, usesUnsafeWindow: boolean): Array<{		
+	function _getScriptsToRun(code: string, runAt: _browser.extensionTypes.RunAt, node: CRM.ScriptNode, usesUnsafeWindow: boolean): {		
 		code?: string;		
 		file?: string;		
 		runAt: _browser.extensionTypes.RunAt;		
-	}> {		
+	}[] {		
 		const scripts = [];		
 		const globalLibraries = modules.storages.storageLocal.libraries;
 		const urlDataPairs = modules.storages.urlDataPairs;
@@ -140,7 +140,7 @@ export namespace CRMNodes.Script.Handler {
 			return undefined;
 		};
 	}
-	function _getResourcesArrayForScript(scriptId: number): Array<{
+	function _getResourcesArrayForScript(scriptId: number): {
 		name: string;
 		sourceUrl: string;
 		matchesHashes: boolean;
@@ -151,7 +151,7 @@ export namespace CRMNodes.Script.Handler {
 			algorithm: string;
 			hash: string;
 		}[];
-	}> {
+	}[] {
 		const resourcesArray = [];
 		const scriptResources = modules.storages.resources[scriptId];
 		if (!scriptResources) {
@@ -197,11 +197,11 @@ export namespace CRMNodes.Script.Handler {
 
 		return newScript;
 	}
-	function _executeScripts(nodeId: number, tabId: number, scripts: Array<{		
+	function _executeScripts(nodeId: number, tabId: number, scripts: {		
 		code?: string;		
 		file?: string;		
 		runAt: _browser.extensionTypes.RunAt;		
-	}>, usesUnsafeWindow: boolean) {		
+	}[], usesUnsafeWindow: boolean) {		
 		if (usesUnsafeWindow) {		
 			//Send it to the content script and run it there		
 			browserAPI.tabs.sendMessage(tabId, {		
@@ -230,7 +230,7 @@ export namespace CRMNodes.Script.Handler {
 
 	export async function generateGreaseMonkeyData(metaData: {
 		[key: string]: any;
-	}, node: CRM.ScriptNode, includes: Array<string>, excludes: Array<string>, tab: {
+	}, node: CRM.ScriptNode, includes: string[], excludes: string[], tab: {
 		incognito: boolean
 	}): Promise<GreaseMonkeyData> {
 		const metaString = (MetaTags.getMetaLines(node.value
@@ -288,9 +288,9 @@ export namespace CRMNodes.Script.Handler {
 			resources: modules.storages.resources[node.id] || {}
 		};
 	}
-	export function getInExcludes(node: CRM.ScriptNode): { excludes: Array<string>, includes: Array<string> } {
-		const excludes: Array<string> = [];
-		const includes: Array<string> = [];
+	export function getInExcludes(node: CRM.ScriptNode): { excludes: string[], includes: string[] } {
+		const excludes: string[] = [];
+		const includes: string[] = [];
 		if (node.triggers) {
 			for (let i = 0; i < node.triggers.length; i++) {
 				if (node.triggers[i].not) {
@@ -305,7 +305,7 @@ export namespace CRMNodes.Script.Handler {
 			includes
 		}
 	}
-	export function genTabData(tabId: number, key: Array<number>, nodeId: number, script: string) {
+	export function genTabData(tabId: number, key: number[], nodeId: number, script: string) {
 		modules.crmValues.tabData[tabId] =
 			modules.crmValues.tabData[tabId] || {
 				libraries: {},
@@ -320,7 +320,7 @@ export namespace CRMNodes.Script.Handler {
 	}
 	export function createHandler(node: CRM.ScriptNode): ClickHandler {
 		return (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab, isAutoActivate: boolean = false) => {
-			let key: Array<number> = [];
+			let key: number[] = [];
 			let err = false;
 			try {
 				key = modules.Util.createSecretKey();
@@ -393,8 +393,8 @@ export namespace CRMNodes.Script.Handler {
 
 export namespace CRMNodes.Script.Background {
 	function _loadBackgroundPageLibs(node: CRM.ScriptNode): {
-		libraries: Array<string>;
-		code: Array<string>;
+		libraries: string[];
+		code: string[];
 	} {
 		const libraries = [];
 		const code = [];
@@ -449,7 +449,7 @@ export namespace CRMNodes.Script.Background {
 			code: code
 		};
 	}
-	async function _genCodeBackground(code: Array<string>, {
+	async function _genCodeBackground(code: string[], {
 		key,
 		node,
 		script,
@@ -458,7 +458,7 @@ export namespace CRMNodes.Script.Background {
 		nodeStorage,
 		greaseMonkeyData
 	}: {
-		key: Array<number>;
+		key: number[];
 		node: CRM.ScriptNode;
 		script: string;
 		safeNode: CRM.SafeNode;
@@ -534,7 +534,7 @@ export namespace CRMNodes.Script.Background {
 		const backgroundPageCode = result.code;
 		const libraries = result.libraries;
 
-		let key: Array<number> = [];
+		let key: number[] = [];
 		let err = false;
 		try {
 			key = modules.Util.createSecretKey();
@@ -577,10 +577,10 @@ export namespace CRMNodes.Script.Background {
 			});
 
 			modules.Sandbox.sandbox(node.id, code, libraries, key, () => {
-				const instancesArr: Array<{
+				const instancesArr: {
 					id: string;
 					tabIndex: number;
-				}> = [];
+				}[] = [];
 				const nodeInstances = modules.crmValues.nodeInstances[node.id];
 				for (let instance in nodeInstances) {
 					if (nodeInstances.hasOwnProperty(instance) &&
@@ -657,7 +657,7 @@ export namespace CRMNodes.Script.MetaTags {
 			end: metaEnd
 		};
 	}
-	export function getMetaLines(script: string, fromCache: any = true): Array<string> {
+	export function getMetaLines(script: string, fromCache: any = true): string[] {
 		if (fromCache) {
 			return modules.Caches.cacheCall(getMetaLines, arguments, true);
 		}
@@ -719,7 +719,7 @@ export namespace CRMNodes.Script.Updating {
 			await modules.Util.proxyPromise(browserAPI.contextMenus.remove(contextMenuId));
 		}
 	}
-	function _registerNode(node: CRM.Node, oldPath?: Array<number>) {
+	function _registerNode(node: CRM.Node, oldPath?: number[]) {
 		//Update it in CRM tree
 		if (oldPath !== undefined && oldPath !== null) {
 			let currentTree = modules.storages.settingsStorage.crm;
@@ -756,21 +756,21 @@ export namespace CRMNodes.Script.Updating {
 		launchMode: CRMLaunchModes
 	} {
 		let triggers: CRM.Triggers = [];
-		const includes: Array<string> = (metaTags['includes'] || []).concat(metaTags['include']);
+		const includes: string[] = (metaTags['includes'] || []).concat(metaTags['include']);
 		if (includes) {
 			triggers = triggers.concat(includes.map(include => ({
 				url: include,
 				not: false
 			})).filter(include => (!!include.url)));
 		}
-		const matches: Array<string> = metaTags['match'];
+		const matches: string[] = metaTags['match'];
 		if (matches) {
 			triggers = triggers.concat(matches.map(match => ({
 				url: match,
 				not: false
 			})).filter(match => (!!match.url)));
 		}
-		const excludes: Array<string> = metaTags['exclude'];
+		const excludes: string[] = metaTags['exclude'];
 		if (excludes) {
 			triggers = triggers.concat(excludes.map(exclude => ({
 				url: exclude,
@@ -792,15 +792,15 @@ export namespace CRMNodes.Script.Updating {
 		node = node as CRM.ScriptNode;
 
 		//Libraries
-		let libs: Array<{
+		let libs: {
 			url: string;
 			name: string;
-		}> = [];
+		}[] = [];
 		if (metaTags['CRM_libraries']) {
-			(metaTags['CRM_libraries'] as Array<EncodedString<{
+			(metaTags['CRM_libraries'] as EncodedString<{
 				url: string;
 				name: string;
-			}>>).forEach(item => {
+			}>[]).forEach(item => {
 				try {
 					libs.push(JSON.parse(item));
 				} catch (e) {
@@ -809,8 +809,8 @@ export namespace CRMNodes.Script.Updating {
 		}
 		metaTags['CRM_libraries'] = libs;
 
-		const requires: Array<string> = metaTags['require'] || [];
-		const anonymousLibs: Array<CRM.Library> = [];
+		const requires: string[] = metaTags['require'] || [];
+		const anonymousLibs: CRM.Library[] = [];
 		for (let i = 0; i < requires.length; i++) {
 			let skip = false;
 			for (let j = 0; j < libs.length; j++) {
@@ -828,10 +828,10 @@ export namespace CRMNodes.Script.Updating {
 			});
 		}
 
-		(anonymousLibs as Array<{
+		(anonymousLibs as {
 			url: string;
 			name: null;
-		}>).forEach(anonymousLib => {
+		}[]).forEach(anonymousLib => {
 			modules.Resources.Anonymous.handle({
 				type: 'register',
 				name: anonymousLib.url,
@@ -879,7 +879,7 @@ export namespace CRMNodes.Script.Updating {
 	export async function install(message: {
 		script: string;
 		downloadURL: string;
-		allowedPermissions: Array<CRM.Permission>;
+		allowedPermissions: CRM.Permission[];
 		metaTags: {
 			[key: string]: any;
 		};
@@ -890,7 +890,7 @@ export namespace CRMNodes.Script.Updating {
 			message.downloadURL, message.allowedPermissions);
 
 		if (newScript.path) { //Has old node
-			const nodePath = newScript.path as Array<number>;
+			const nodePath = newScript.path as number[];
 			await _removeOldNode(newScript.oldNodeId);
 			_registerNode(newScript.node, nodePath);
 		} else {
@@ -905,10 +905,10 @@ export namespace CRMNodes.Script.Updating {
 	}
 	export async function installUserscript(metaTags: {
 		[key: string]: any;
-	}, code: string, downloadURL: string, allowedPermissions: Array<CRM.Permission>,
+	}, code: string, downloadURL: string, allowedPermissions: CRM.Permission[],
 		oldNodeId?: number): Promise<{
 			node: CRM.ScriptNode | CRM.StylesheetNode,
-			path?: Array<number>,
+			path?: number[],
 			oldNodeId?: number,
 		}> {
 			let node: Partial<CRM.ScriptNode | CRM.StylesheetNode> = {};
@@ -976,7 +976,7 @@ export namespace CRMNodes.Script.Updating {
 			//Resources
 			if (metaTags['resource']) {
 				//Register resources
-				const resources: Array<string> = metaTags['resource'];
+				const resources: string[] = metaTags['resource'];
 				resources.forEach(resource => {
 					const resourceSplit = resource.split(/(\s*)/);
 					const [resourceName, resourceUrl] = resourceSplit;
@@ -1030,11 +1030,11 @@ export namespace CRMNodes.Script.Updating {
 		}
 	export function updateScripts(callback?: (data: any) => void) {
 		const checking = [];
-		const updated: Array<{
+		const updated: {
 			oldNodeId: number;
 			node: CRM.Node;
-			path: Array<number>;
-		}> = [];
+			path: number[];
+		}[] = [];
 		const oldTree = JSON.parse(JSON.stringify(
 			modules.storages.settingsStorage.crm));
 		window.info('Looking for updated scripts...');
@@ -1061,11 +1061,11 @@ export namespace CRMNodes.Script.Updating {
 			}
 		}
 	}
-	function _genNodeUpdateOnDone(updated: Array<{
+	function _genNodeUpdateOnDone(updated: {
 		oldNodeId: number;
 		node: CRM.Node;
-		path: Array<number>;
-	}>, oldTree: CRM.Tree, callback?: (data: any) => void) {
+		path: number[];
+	}[], oldTree: CRM.Tree, callback?: (data: any) => void) {
 		return async () => {
 			const updatedData = updated.map((updatedScript) => {
 				const oldNode = modules.crm.crmById[updatedScript.oldNodeId];
@@ -1107,13 +1107,13 @@ export namespace CRMNodes.Script.Updating {
 		}
 	}
 
-	function _checkNodeForUpdate(node: CRM.Node, checking: Array<boolean>,
+	function _checkNodeForUpdate(node: CRM.Node, checking: boolean[],
 		checkingId: number, downloadURL: string, onDone: () => void,
-		updatedScripts: Array<{
+		updatedScripts: {
 			node: CRM.Node;
-			path?: Array<number>;
+			path?: number[];
 			oldNodeId?: number;
-		}>) {
+		}[]) {
 			if (node.type === 'script' || node.type === 'stylesheet') {
 				//Do a request to get that script from its download URL
 				if (downloadURL && modules.Util.endsWith(downloadURL, '.user.js')) {
@@ -1216,10 +1216,10 @@ export namespace CRMNodes.Script.Running {
 				};
 				modules.Logging.Listeners.updateTabAndIdLists();
 				if (!_urlIsGlobalExcluded(tab.url)) {
-					const toExecute: Array<{
+					const toExecute: {
 						node: CRM.Node;
 						tab: _browser.tabs.Tab;
-					}> = [];
+					}[] = [];
 					const { toExecuteNodes } = modules;
 					for (let nodeId in toExecuteNodes.onUrl) {
 						if (toExecuteNodes.onUrl[nodeId]) {
@@ -1285,14 +1285,14 @@ export namespace CRMNodes.Link {
 }
 
 export namespace CRMNodes.Stylesheet.Options {
-	function _splitComments(stylesheet: string): Array<{
+	function _splitComments(stylesheet: string): {
 		isComment: boolean;
 		line: string;
-	}> {
-		const lines: Array<{
+	}[] {
+		const lines: {
 			isComment: boolean;
 			line: string;
-		}> = [{
+		}[] = [{
 			isComment: false,
 			line: ''
 		}];
@@ -1404,10 +1404,10 @@ export namespace CRMNodes.Stylesheet.Options {
 		return _evaluateBoolExpr(statement, options);
 	}
 	function _replaceVariableInstances(line: string, options: CRM.Options): string {
-		const parts: Array<{
+		const parts: {
 			isVariable: boolean;
 			content: string;
-		}> = [{
+		}[] = [{
 			isVariable: false,
 			content: ''
 		}];
@@ -1447,11 +1447,11 @@ export namespace CRMNodes.Stylesheet.Options {
 			return options[part.content] && _getOptionValue(options[part.content]);
 		}).join('');
 	}
-	function _getLastIf(ifs: Array<{
+	function _getLastIf(ifs: {
 		skip: boolean;
 		isElse: boolean;
 		ignore: boolean;
-	}>): {
+	}[]): {
 			skip: boolean;
 			isElse: boolean;
 			ignore: boolean;
@@ -1471,13 +1471,13 @@ export namespace CRMNodes.Stylesheet.Options {
 	const _variableRegex = /^(\n|\r|\s)*(\w|-)+:(\n|\r|\s)*(.*)\{\{\w(\w|\d)*\}\}(.*)((\n|\r|\s)*,(\n|\r|\s)*(.*)\{\{\w(\w|\d)*\}\}(.*))*$/;
 	function _convertStylesheet(stylesheet: string, options: CRM.Options): string {
 		const splitComments = _splitComments(stylesheet);
-		const lines: Array<string> = [];
+		const lines: string[] = [];
 
-		const ifs: Array<{
+		const ifs: {
 			skip: boolean;
 			isElse: boolean;
 			ignore: boolean;
-		}> = [];
+		}[] = [];
 		for (let i = 0; i < splitComments.length; i++) {
 			if (_ifRegex.exec(splitComments[i].line)) {
 				ifs.push({
@@ -1540,10 +1540,10 @@ export namespace CRMNodes.Stylesheet.Installing {
 		].join('');
 	}
 	function _extractStylesheetData(data: {
-		domains: Array<string>;
-		regexps: Array<string>;
-		urlPrefixes: Array<string>;
-		urls: Array<string>;
+		domains: string[];
+		regexps: string[];
+		urlPrefixes: string[];
+		urls: string[];
 		code: string;
 	}) {
 		//Get the @document declaration
@@ -1558,7 +1558,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 			};
 		}
 
-		const triggers: Array<string> = [];
+		const triggers: string[] = [];
 		data.domains.forEach((domainRule) => {
 			triggers.push(`*://${domainRule}/*`);
 		});
@@ -1607,13 +1607,13 @@ export namespace CRMNodes.Stylesheet.Installing {
 
 	export function installStylesheet(data: {
 		code: EncodedString<{
-			sections: Array<{
-				domains: Array<string>;
-				regexps: Array<string>;
-				urlPrefixes: Array<string>;
-				urls: Array<string>;
+			sections: {
+				domains: string[];
+				regexps: string[];
+				urlPrefixes: string[];
+				urls: string[];
 				code: string;
-			}>;
+			}[];
 			name: string;
 			updateUrl: string;
 			url: string;
@@ -1707,12 +1707,12 @@ export namespace CRMNodes.Stylesheet {
 }
 
 export namespace CRMNodes.NodeCreation {
-	function _getStylesheetReplacementTabs(node: CRM.Node): Array<{
+	function _getStylesheetReplacementTabs(node: CRM.Node): {
 		id: number;
-	}> {
-		const replaceOnTabs: Array<{
+	}[] {
+		const replaceOnTabs: {
 			id: number;
-		}> = [];
+		}[] = [];
 		const crmNode = modules.crm.crmById[node.id];
 		if (modules.crmValues.contextMenuIds[node.id] && //Node already exists
 			crmNode.type === 'stylesheet' &&
@@ -1926,7 +1926,7 @@ export namespace CRMNodes.TS {
 		}
 		return library;
 	}
-	export async function compileAllLibraries(libraries: Array<CRM.InstalledLibrary>): Promise<Array<CRM.InstalledLibrary>> {
+	export async function compileAllLibraries(libraries: CRM.InstalledLibrary[]): Promise<CRM.InstalledLibrary[]> {
 		for (const library of libraries) {
 			await compileLibrary(library);
 		}				
@@ -1993,7 +1993,7 @@ export namespace CRMNodes {
 	export type ClickHandler = (clickData: _browser.contextMenus.OnClickData,
 		tabInfo: _browser.tabs.Tab, isAutoActivate?: boolean) => void;
 
-	export async function updateCrm(toUpdate?: Array<number>) {
+	export async function updateCrm(toUpdate?: number[]) {
 		await modules.Storages.uploadChanges('settings', [{
 			key: 'crm',
 			newValue: JSON.parse(JSON.stringify(modules.crm.crmTree)),
@@ -2066,7 +2066,7 @@ export namespace CRMNodes {
 			}
 		}
 	}
-	async function _createUserContextMenuTree(tree: Array<UserAddedContextMenu>) {
+	async function _createUserContextMenuTree(tree: UserAddedContextMenu[]) {
 		const menus = modules.crmValues.userAddedContextMenus;
 		const byId = modules.crmValues.userAddedContextMenusById;
 		for (const menu of menus) {
@@ -2158,8 +2158,8 @@ export namespace CRMNodes {
 			});
 		});
 	}
-	export function getContexts(contexts: CRM.ContentTypes): Array<_browser.contextMenus.ContextType> {
-		const newContexts: Array<_browser.contextMenus.ContextType> = ['browser_action'];
+	export function getContexts(contexts: CRM.ContentTypes): _browser.contextMenus.ContextType[] {
+		const newContexts: _browser.contextMenus.ContextType[] = ['browser_action'];
 		const textContexts = modules.constants.contexts;
 		for (let i = 0; i < 6; i++) {
 			if (contexts[i]) {
@@ -2256,7 +2256,7 @@ export namespace CRMNodes {
 		}
 	}
 	function _walkCRM(crm: CRM.Tree, state: {
-		arr: Array<CRM.Node>;
+		arr: CRM.Node[];
 	}) {
 		for (let i = 0; i < crm.length; i++) {
 			const node = crm[i];
@@ -2268,8 +2268,8 @@ export namespace CRMNodes {
 		return state;
 	}
 	function _createCopyFunction(obj: CRM.Node,
-		target: CRM.SafeNode): (props: Array<string>) => void {
-			return (props: Array<string>) => {
+		target: CRM.SafeNode): (props: string[]) => void {
+			return (props: string[]) => {
 				props.forEach((prop) => {
 					if (prop in obj) {
 						if (typeof obj[prop as keyof CRM.Node] === 'object') {
@@ -2281,7 +2281,7 @@ export namespace CRMNodes {
 				});
 			};
 		}
-	function _buildNodePaths(tree: Array<CRM.Node>, currentPath: Array<number>) {
+	function _buildNodePaths(tree: CRM.Node[], currentPath: number[]) {
 		for (let i = 0; i < tree.length; i++) {
 			const childPath = currentPath.concat([i]);
 			const child = tree[i];
@@ -2297,16 +2297,16 @@ export namespace CRMNodes {
 		};
 	}
 	async function _buildPageCRMTree(node: CRM.Node, parentId: string|number,
-		path: Array<number>,
-		parentTree: Array<ContextMenuItemTreeItem>): Promise<{
+		path: number[],
+		parentTree: ContextMenuItemTreeItem[]): Promise<{
 			id: string|number;
-			path: Array<number>;
+			path: number[];
 			enabled: boolean;
-			children: Array<ContextMenuItemTreeItem>;
+			children: ContextMenuItemTreeItem[];
 			index?: number;
 			parentId?: string|number;
 			node?: CRM.Node;
-			parentTree?: Array<ContextMenuItemTreeItem>;
+			parentTree?: ContextMenuItemTreeItem[];
 		}> {
 		const id = await NodeCreation.createNode(node, parentId);
 		modules.crmValues.contextMenuIds[node.id] = id;
@@ -2371,7 +2371,7 @@ export namespace CRMNodes {
 		return makeSafe(node);
 	}
 
-	function _buildSafeTree(crm: Array<CRM.Node>): Array<CRM.SafeNode> {
+	function _buildSafeTree(crm: CRM.Node[]): CRM.SafeNode[] {
 		const treeCopy = JSON.parse(JSON.stringify(crm));
 		const safeBranch = [];
 		for (let i = 0; i < treeCopy.length; i++) {

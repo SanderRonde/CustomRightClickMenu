@@ -10,7 +10,7 @@ export namespace Caches {
 	}
 
 	type CachedData = {
-		args: Array<any>;
+		args: any[];
 		result: UnlinkedValue<any>;
 	}
 
@@ -34,9 +34,9 @@ export namespace Caches {
 		val: any;
 	}
 
-	const cachedData = new window.WeakMap<Function, Array<CachedData>>();
+	const cachedData = new window.WeakMap<Function, CachedData[]>();
 
-	function _isArraySame(first: Array<any>, second: Array<any>): boolean {
+	function _isArraySame(first: any[], second: any[]): boolean {
 		for (const i in first) {
 			if (first[i] !== second[i]) {
 				return false;
@@ -44,7 +44,7 @@ export namespace Caches {
 		}
 		return true;
 	}
-	function _encodeUnlinked<T extends Function|number|boolean|string|undefined|null|Array<any>|{
+	function _encodeUnlinked<T extends Function|number|boolean|string|undefined|null|any[]|{
 		[key: string]: any;
 		[key: number]: any;
 	}>(val: T): UnlinkedValue<T> {
@@ -66,7 +66,7 @@ export namespace Caches {
 				}
 		}
 	}
-	function _decodeUnlinked<T extends Function|number|boolean|string|undefined|null|Array<any>|{
+	function _decodeUnlinked<T extends Function|number|boolean|string|undefined|null|any[]|{
 		[key: string]: any;
 		[key: number]: any;
 	}>(unlinkedEncoded: UnlinkedValue<T>): T {
@@ -76,7 +76,7 @@ export namespace Caches {
 			return unlinkedEncoded.val as T;
 		}
 	}
-	function _getFromCache<R, A>(toCacheFn: (...args: Array<A>) => R, toCacheArgs: Array<A>): {
+	function _getFromCache<R, A>(toCacheFn: (...args: A[]) => R, toCacheArgs: A[]): {
 		found: boolean;
 		result: R;
 	} {
@@ -104,7 +104,7 @@ export namespace Caches {
 			result: null
 		}
 	}
-	function _doCache<R, A>(toCacheFn: (...args: Array<A|boolean>) => R, toCacheArgs: Array<A>, unlink: boolean): R {
+	function _doCache<R, A>(toCacheFn: (...args: (A|boolean)[]) => R, toCacheArgs: A[], unlink: boolean): R {
 		const result = toCacheFn(...[...toCacheArgs, false]);
 		const instance: CachedData = {
 			args: toCacheArgs,
@@ -121,9 +121,9 @@ export namespace Caches {
 		}
 		return result;
 	}
-	export function cacheCall<R, A>(toCacheFn: (...args: Array<A>) => R, toCacheArgs: IArguments, unlink: boolean = true): R {
+	export function cacheCall<R, A>(toCacheFn: (...args: A[]) => R, toCacheArgs: IArguments, unlink: boolean = true): R {
 		//Slice off the fromCache argument
-		const argsArr = (Array.prototype.slice.apply(toCacheArgs) as Array<A>).slice(0, -1);
+		const argsArr = (Array.prototype.slice.apply(toCacheArgs) as A[]).slice(0, -1);
 		const { found, result } = _getFromCache(toCacheFn, argsArr);
 		if (found) {
 			return result;

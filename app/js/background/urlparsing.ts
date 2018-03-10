@@ -88,10 +88,10 @@ export namespace URLParsing {
 
 		return matchPattern;
 	}
-	export function matchesUrlSchemes(matchPatterns: Array<{
+	export function matchesUrlSchemes(matchPatterns: {
 		not: boolean;
 		url: string;
-	}>, url: string) {
+	}[], url: string) {
 		let matches = false;
 		for (let i = 0; i < matchPatterns.length; i++) {
 			const not = matchPatterns[i].not;

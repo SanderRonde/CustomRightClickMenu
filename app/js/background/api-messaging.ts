@@ -79,13 +79,13 @@ export namespace APIMessaging {
 	}
 	export function sendThroughComm(message: BrowserHandler.ChromeAPIMessage|BrowserHandler.BrowserAPIMessage) {
 		const instancesObj = modules.crmValues.nodeInstances[message.id];
-		const instancesArr: Array<{
+		const instancesArr: {
 			id: number;
 			tabIndex: number;
 			instance: {
 				hasHandler: boolean;
 			}
-		}> = [];
+		}[] = [];
 		for (let tabInstance in instancesObj) {
 			if (instancesObj.hasOwnProperty(tabInstance)) {
 				instancesObj[tabInstance].forEach((tabIndexInstance, index) => {
@@ -98,9 +98,9 @@ export namespace APIMessaging {
 			}
 		}
 
-		let args: Array<{
+		let args: {
 			type: string;
-		}> = [];
+		}[] = [];
 		const fns = [];
 		for (let i = 0; i < message.args.length; i++) {
 			if (message.args[i].type === 'fn') {

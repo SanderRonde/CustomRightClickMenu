@@ -1,11 +1,11 @@
 class Promise<T> implements Promise<T> {
-	_listeners: Array<(result: T) => void> = [];
-	_async: Array<{
+	_listeners:((result: T) => void)[] = [];
+	_async:{
 		fn: Function;
-		args: Array<any>
-	}> = [];
+		args: any[]
+	}[] = [];
 	_caught: boolean = false;
-	_rejectListeners: Array<(reason: any) => void> = [];
+	_rejectListeners: ((reason: any) => void)[] = [];
 	_status: 'pending' | 'rejected' | 'fulfilled' = 'pending';
 	_result: T;
 	_rejectReason: any;
@@ -18,14 +18,14 @@ class Promise<T> implements Promise<T> {
 	catch(onrejected: (reason: any) => void): Promise<T> {
 		return this;
 	}
-	static all<T>(values: Array<Promise<T>>): Promise<Array<T>> {
+	static all<T>(values: Promise<T>[]): Promise<T[]> {
 		let rejected: boolean = false;
-		return new Promise<Array<T>>((resolve, reject) => {
-			const promises: Array<{
+		return new Promise<T[]>((resolve, reject) => {
+			const promises: {
 				done: boolean;
 				result?: any;
 				promise: Promise<any>
-			}> = Array.prototype.slice.apply(values).map((promise: Promise<any>) => {
+			}[] = Array.prototype.slice.apply(values).map((promise: Promise<any>) => {
 				return {
 					done: false,
 					promise: promise
@@ -55,7 +55,7 @@ class Promise<T> implements Promise<T> {
 			}
 		});
 	}
-	static race<T>(values: Array<Promise<T>>): Promise<T> {
+	static race<T>(values: Promise<T>[]): Promise<T> {
 		return new Promise((resolve, reject) => {
 			Array.prototype.slice.apply(values).map((promise: Promise<any>) => {
 				promise.then((result) => {

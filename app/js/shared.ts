@@ -4,8 +4,8 @@ interface PromiseConstructor<T = {}> {
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => Promise<T>): Promise<T>;
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void): Promise<T>;
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void|Promise<T>): Promise<T>;
-	all<T>(values: Array<Promise<T>>): Promise<Array<T>>;
-	race<T>(values: Array<Promise<T>>): Promise<T>;
+	all<T>(values: Promise<T>[]): Promise<T[]>;
+	race<T>(values: Promise<T>[]): Promise<T>;
 	resolve<T>(value?: T): Promise<T>;
 	reject<T>(reason?: Error): Promise<T>;
 }
@@ -119,8 +119,8 @@ type SharedWindow = {
 		private _val: T = null;
 		private _state: 'pending'|'resolved'|'rejected' = 'pending';
 		private _done: boolean = false;
-		private _resolveListeners: Array<(value: T) => void> = [];
-		private _rejectListeners: Array<(value: T) => void> = [];
+		private _resolveListeners: ((value: T) => void)[] = [];
+		private _rejectListeners: ((value: T) => void)[] = [];
 		constructor(initializer: (resolve: (value: T) => void, reject: (err: any) => void) => void) {
 			initializer((val: T) => {
 				if (this._done) {
@@ -164,7 +164,7 @@ type SharedWindow = {
 			return this as any;
 		}
 
-		static chain<T>(initializers: Array<() => RoughPromise<any>>) {
+		static chain<T>(initializers: (() => RoughPromise<any>)[]) {
 			return new RoughPromise<T>((resolve) => {
 				initializers[0]().then((result) => {
 					if (initializers[1]) {

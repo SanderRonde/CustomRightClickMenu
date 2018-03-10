@@ -15,10 +15,10 @@ export namespace GlobalDeclarations {
 	export function initGlobalFunctions() {
 		window.getID = (searchedName: string) => {
 			searchedName = searchedName.toLowerCase();
-			const matches: Array<{
+			const matches: {
 				id: number;
 				node: CRM.ScriptNode;
-			}> = [];
+			}[] = [];
 			for (let id in modules.crm.crmById) {
 				const node = modules.crm.crmById[id];
 				const { name } = node;
@@ -53,31 +53,31 @@ export namespace GlobalDeclarations {
 			};
 		};
 
-		window._listenIds = (listener: (ids: Array<{
+		window._listenIds = (listener: (ids: {
 			id: number;
 			title: string;
-		}>) => void) => {
+		}[]) => void) => {
 			modules.Logging.Listeners.updateTabAndIdLists().then(({ids}) => {
 				listener(ids);
 				modules.listeners.ids.push(listener);
 			});
 		};
 
-		window._listenTabs = (listener: (tabs: Array<TabData>) => void) => {
+		window._listenTabs = (listener: (tabs: TabData[]) => void) => {
 			modules.Logging.Listeners.updateTabAndIdLists().then(({tabs}) => {
 				listener(tabs);
 				modules.listeners.tabs.push(listener);
 			});
 		};
 
-		function sortMessages(messages: Array<LogListenerLine>): Array<LogListenerLine> {
+		function sortMessages(messages: LogListenerLine[]): LogListenerLine[] {
 			return messages.sort((a, b) => {
 				return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
 			});
 		}
 
-		function filterMessageText(messages: Array<LogListenerLine>,
-			filter: string): Array<LogListenerLine> {
+		function filterMessageText(messages: LogListenerLine[],
+			filter: string): LogListenerLine[] {
 				if (filter === '') {
 					return messages;
 				}
@@ -96,8 +96,8 @@ export namespace GlobalDeclarations {
 				});
 			}
 
-		function getLog(id: string | number, tab: string | number, text: string): Array<LogListenerLine> {
-			let messages: Array<LogListenerLine> = [];
+		function getLog(id: string | number, tab: string | number, text: string): LogListenerLine[] {
+			let messages: LogListenerLine[] = [];
 			const logging = modules.globalObject.globals.logging;
 			if (id === 'all') {
 				for (let nodeId in logging) {
@@ -122,7 +122,7 @@ export namespace GlobalDeclarations {
 
 		function updateLog (this: LogListenerObject, id: number | 'ALL', 
 			tab: number | 'ALL' | 'background', 
-			textFilter: string): Array<LogListenerLine> {
+			textFilter: string): LogListenerLine[] {
 				if (id === 'ALL' || id === 0) {
 					this.id = 'all';
 				} else {
@@ -145,7 +145,7 @@ export namespace GlobalDeclarations {
 			}
 
 		window._listenLog = (listener: LogListener, 
-			callback: (filterObj: LogListenerObject) => void): Array<LogListenerLine> => {
+			callback: (filterObj: LogListenerObject) => void): LogListenerLine[] => {
 				const filterObj: LogListenerObject = {
 					id: 'all',
 					tab: 'all',
@@ -165,18 +165,18 @@ export namespace GlobalDeclarations {
 			};
 
 		window._getIdsAndTabs = async (selectedId: number, selectedTab: number|'background', callback: (result: {
-			ids: Array<{
+			ids: {
 				id: string|number;
 				title: string;
-			}>;
-			tabs: Array<TabData>;
+			}[];
+			tabs: TabData[];
 		}) => void) => {
 			callback({
 				ids: modules.Logging.Listeners.getIds(selectedTab === 'background' ? 0 : selectedTab),
 				tabs: await modules.Logging.Listeners.getTabs(selectedId)
 			});
 		}
-		window._getCurrentTabIndex = (id: number, currentTab: number|'background', listener: (newTabIndexes: Array<number>) => void) => {
+		window._getCurrentTabIndex = (id: number, currentTab: number|'background', listener: (newTabIndexes: number[]) => void) => {
 			if (currentTab === 'background') {
 				listener([0]);
 			} else {
@@ -205,7 +205,7 @@ export namespace GlobalDeclarations {
 	}
 	export function setHandlerFunction() {
 		interface HandshakeMessage extends CRMAPIMessageInstance<string, any> {
-			key?: Array<number>;
+			key?: number[];
 		}
 
 		window.createHandlerFunction = (port) => {
@@ -225,10 +225,10 @@ export namespace GlobalDeclarations {
 							nodeInstances[message.id] = {};
 						}
 
-						const instancesArr: Array<{
+						const instancesArr: {
 							id: number;
 							tabIndex: number;
-						}> = [];
+						}[] = [];
 						for (let instance in nodeInstances[message.id]) {
 							if (nodeInstances[message.id].hasOwnProperty(instance) &&
 								nodeInstances[message.id][instance]) {
@@ -281,7 +281,7 @@ export namespace GlobalDeclarations {
 			await browserAPI.contextMenus.remove(id).catch(() => { });
 		}
 
-		function setStatusForTree(tree: Array<ContextMenuItemTreeItem>, enabled: boolean) {
+		function setStatusForTree(tree: ContextMenuItemTreeItem[], enabled: boolean) {
 			for (const item of tree) {
 				item.enabled = enabled;
 				if (item.children) {
@@ -290,7 +290,7 @@ export namespace GlobalDeclarations {
 			}
 		}
 
-		function getFirstRowChange(row: Array<ContextMenuItemTreeItem>, changes: {
+		function getFirstRowChange(row: ContextMenuItemTreeItem[], changes: {
 			[contextMenuId: string]: {
 				node: CRM.Node;
 				type: 'hide' | 'show';
@@ -344,7 +344,7 @@ export namespace GlobalDeclarations {
 		}
 
 		async function buildSubTreeFromNothing(parentId: string|number,
-			tree: Array<ContextMenuItemTreeItem>, changes: {
+			tree: ContextMenuItemTreeItem[], changes: {
 				[contextMenuId: string]: {
 					node: CRM.Node;
 					type: 'hide' | 'show';
@@ -366,7 +366,7 @@ export namespace GlobalDeclarations {
 			}
 
 		async function applyNodeChangesOntree(parentId: string|number,
-			tree: Array<ContextMenuItemTreeItem>, changes: {
+			tree: ContextMenuItemTreeItem[], changes: {
 				[contextMenuId: string]: {
 					node: CRM.Node;
 					type: 'hide' | 'show';
@@ -452,9 +452,9 @@ export namespace GlobalDeclarations {
 			}
 		}
 
-		function getNodeStatusses(subtree: Array<ContextMenuItemTreeItem>,
-			hiddenNodes: Array<ContextMenuItemTreeItem> = [],
-			shownNodes: Array<ContextMenuItemTreeItem> = []) {
+		function getNodeStatusses(subtree: ContextMenuItemTreeItem[],
+			hiddenNodes: ContextMenuItemTreeItem[] = [],
+			shownNodes: ContextMenuItemTreeItem[] = []) {
 				for (let i = 0; i < subtree.length; i++) {
 					if (subtree[i]) {
 						(subtree[i].enabled ? shownNodes : hiddenNodes).push(subtree[i]);
@@ -467,11 +467,11 @@ export namespace GlobalDeclarations {
 				}
 			}
 
-		function getToHide(tab: _browser.tabs.Tab, shown: Array<ContextMenuItemTreeItem>): Array<{
+		function getToHide(tab: _browser.tabs.Tab, shown: ContextMenuItemTreeItem[]): {
 			node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
 			id: string | number;
 			type: 'hide'|'show';
-		}> {
+		}[] {
 			return shown.map(({node, id}) => {
 				const hideOn = modules.crmValues.hideNodesOnPagesData[node.id];
 				if (hideOn && modules.URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
@@ -490,11 +490,11 @@ export namespace GlobalDeclarations {
 			}).filter(val => !!val)
 		}
 
-		function getToEnable(tab: _browser.tabs.Tab, hidden: Array<ContextMenuItemTreeItem>): Array<{
+		function getToEnable(tab: _browser.tabs.Tab, hidden: ContextMenuItemTreeItem[]): {
 			node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
 			id: string | number;
 			type: 'show'|'hide';
-		}> {
+		}[] {
 			return hidden.map(({node, id}) => {
 				const hideOn = modules.crmValues.hideNodesOnPagesData[node.id];
 				if (!hideOn || !modules.URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
@@ -517,7 +517,7 @@ export namespace GlobalDeclarations {
 		}
 
 		async function tabChangeListener(changeInfo: {
-			tabIds: Array<number>;
+			tabIds: number[];
 			windowId?: number;
 		}) {
 			//Horrible workaround that allows the hiding of nodes on certain url's that
@@ -602,7 +602,7 @@ export namespace GlobalDeclarations {
 			}
 
 			//Delete this instance if it exists
-			const deleted: Array<number> = [];
+			const deleted: number[] = [];
 			for (let node in modules.crmValues.nodeInstances) {
 				if (modules.crmValues.nodeInstances[node]) {
 					if (modules.crmValues.nodeInstances[node][tabId]) {
@@ -687,7 +687,7 @@ export namespace GlobalDeclarations {
 			return [];
 		}
 
-		function permute<T>(arr: Array<T>, prefix: Array<T> = []): Array<Array<T>> {
+		function permute<T>(arr: T[], prefix: T[] = []): T[][] {
 			if (arr.length === 0) {
 				return [prefix];
 			}
