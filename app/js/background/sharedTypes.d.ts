@@ -1,4 +1,5 @@
 /// <reference path="../../../tools/definitions/typescript.d.ts" />
+/// <reference path="../../../tools/definitions/specialJSON.d.ts" />
 interface CRMAPIMessageInstance<T, TD> {
 	id: number;
 	tabId: number;
