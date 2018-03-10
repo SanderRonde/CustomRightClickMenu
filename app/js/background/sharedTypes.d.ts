@@ -1,3 +1,4 @@
+/// <reference path="../../../tools/definitions/typescript.d.ts" />
 interface CRMAPIMessageInstance<T, TD> {
 	id: number;
 	tabId: number;
