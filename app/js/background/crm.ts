@@ -2082,15 +2082,33 @@ export namespace CRMNodes {
 					}
 				})).then(() => {
 					if (modules.storages.storageLocal.showOptions) {
-						browserAPI.contextMenus.create({
+							const tree = modules.crmValues.contextMenuItemTree;
+							const index = tree.length;
+							tree[index] = {
+								index,
+								id: browserAPI.contextMenus.create({
 							type: 'separator',
 							parentId: modules.crmValues.rootId
-						});
-						browserAPI.contextMenus.create({
+								}),
+								enabled: true,
+								node: null,
+								parentId: modules.crmValues.rootId,
+								children: [],
+								parentTree: tree
+							};
+							tree[index + 1] = {
+								index: index + 1,
+								id: browserAPI.contextMenus.create({
 							title: 'Options',
 							onclick: _createOptionsPageHandler(),
 							parentId: modules.crmValues.rootId
-						});
+								}),
+								enabled: true,
+								node: null,
+								parentId: modules.crmValues.rootId,
+								children: [],
+								parentTree: tree
+							};
 					}
 					resolve(null);
 				});
