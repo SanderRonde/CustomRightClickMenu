@@ -1,5 +1,4 @@
 /// <reference path="../../tools/definitions/specialJSON.d.ts" />
-/// <reference path="../../tools/definitions/chrome.d.ts" />
 /// <reference path="../../tools/definitions/webExtensions.d.ts" />
 /// <reference path="../../tools/definitions/crm.d.ts" />
 /// <reference path="../../tools/definitions/tern.d.ts" />

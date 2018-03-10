@@ -1,8 +1,8 @@
 /// <reference path="../tools/definitions/selenium-webdriver.d.ts" />
 /// <reference path="../tools/definitions/webExtensions.d.ts" />
 /// <reference path="../tools/definitions/crm.d.ts" />
-/// <reference path="../app/js/background.ts" />
 /// <reference path="../app/elements/edit-crm-item/edit-crm-item.ts" />
+/// <reference path="../tools/definitions/chrome.d.ts" />
 
 const PORT: number = 1250;
 //Set to false to test remotely even when running it locally

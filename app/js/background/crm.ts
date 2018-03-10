@@ -1,3 +1,4 @@
+/// <reference path="../../../tools/definitions/chrome.d.ts" />
 /// <reference path="../background/sharedTypes.d.ts"/>
 import { MatchPattern } from "./urlparsing.js";
 import { ModuleData } from "./moduleTypes";
