@@ -232,7 +232,7 @@ test/UITest.js
 .tscache
 
 app/elements/fileIdMaps.d.ts
-buildBeforePolymer/
+temp/
 
 app/bower_components
 

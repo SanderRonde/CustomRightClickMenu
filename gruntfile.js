@@ -20,12 +20,12 @@ module.exports = function(grunt) {
 					}
 				},
 				files: {
-					'buildBeforePolymer/html/background.html': ['buildBeforePolymer/html/background.html'],
-					'buildBeforePolymer/elements/crm-app/crm-app.html': [
-						'buildBeforePolymer/elements/crm-app/crm-app.html'],
-					'buildBeforePolymer/html/options.html': ['buildBeforePolymer/html/options.html'],
-					'buildBeforePolymer/html/optionsPrefix.html': ['app/html/optionsPrefix.html'],
-					'buildBeforePolymer/elements/installing/install-confirm/install-confirm.html': [
+					'temp/html/background.html': ['temp/html/background.html'],
+					'temp/elements/crm-app/crm-app.html': [
+						'temp/elements/crm-app/crm-app.html'],
+					'temp/html/options.html': ['temp/html/options.html'],
+					'temp/html/optionsPrefix.html': ['app/html/optionsPrefix.html'],
+					'temp/elements/installing/install-confirm/install-confirm.html': [
 						'app/elements/installing/install-confirm/install-confirm.html'
 					]
 				}
@@ -39,7 +39,7 @@ module.exports = function(grunt) {
 					}
 				},
 				files: {
-					'buildBeforePolymer/website/index.html': ['app/html/crmAPIDocsUI.html']
+					'temp/website/index.html': ['app/html/crmAPIDocsUI.html']
 				}
 			},
 			inlineElementImports: {
@@ -50,7 +50,7 @@ module.exports = function(grunt) {
 					expand: true,
 					cwd: 'app/elements',
 					src: ['**/*.html'],
-					dest: 'buildBeforePolymer/elements'
+					dest: 'temp/elements'
 				}]
 			}
 		},
@@ -74,7 +74,7 @@ module.exports = function(grunt) {
 							'installStylesheet.js',
 							'calcPolyfill.js'
 						],
-						dest: 'buildBeforePolymer/js/'
+						dest: 'temp/js/'
 					}
 				]
 			},
@@ -82,12 +82,12 @@ module.exports = function(grunt) {
 				options: {
 					banner: '/*\n * Original can be found at https://github.com/SanderRonde/CustomRightClickMenu \n * This code may only be used under the MIT style license found in the LICENSE.txt file \n**/\n'
 				},
-				files: [ { expand: true, src: ['buildBeforePolymer/elements/**/*.js'] } ]
+				files: [ { expand: true, src: ['temp/elements/**/*.js'] } ]
 			},
 			bower_components: {
 				files: [{
 					expand: true,
-					src: ['buildBeforePolymer/bower_components/**/*.js']
+					src: ['temp/bower_components/**/*.js']
 				}]
 			},
 			finalMinify: {
@@ -128,12 +128,12 @@ module.exports = function(grunt) {
 		copy: {
 			build: {
 				files: [
-					{ expand: true, cwd: 'app/', src: ['fonts/*'], dest: 'buildBeforePolymer/' }, //Fonts
-					{ expand: true, cwd: 'app/', src: ['css/*'], dest: 'buildBeforePolymer/' }, //CSS
-					{ expand: true, cwd: 'app/', src: ['js/**/*'], dest: 'buildBeforePolymer/' }, //JS
-					{ expand: true, cwd: 'app/', src: ['html/install.html', 'html/logging.html', 'html/options.html', 'html/base.html', 'html/background.html'], dest: 'buildBeforePolymer/' }, //HTML files
-					{ expand: true, cwd: 'app/', src: ['js/defaultLibraries/*'], dest: 'buildBeforePolymer/' }, //Default libraries
-					{ expand: true, cwd: 'app/', src: ['bower_components/**/*'], dest: 'buildBeforePolymer/' }, //Webanimations
+					{ expand: true, cwd: 'app/', src: ['fonts/*'], dest: 'temp/' }, //Fonts
+					{ expand: true, cwd: 'app/', src: ['css/*'], dest: 'temp/' }, //CSS
+					{ expand: true, cwd: 'app/', src: ['js/**/*'], dest: 'temp/' }, //JS
+					{ expand: true, cwd: 'app/', src: ['html/install.html', 'html/logging.html', 'html/options.html', 'html/base.html', 'html/background.html'], dest: 'temp/' }, //HTML files
+					{ expand: true, cwd: 'app/', src: ['js/defaultLibraries/*'], dest: 'temp/' }, //Default libraries
+					{ expand: true, cwd: 'app/', src: ['bower_components/**/*'], dest: 'temp/' }, //Webanimations
 					{
 						expand: true,
 						cwd: 'app/',
@@ -144,17 +144,17 @@ module.exports = function(grunt) {
 							'images/stylesheet.gif',
 							'images/whitearrow.png'
 						],
-						dest: 'buildBeforePolymer/' //Images
+						dest: 'temp/' //Images
 					},
-					{ expand: true, cwd: 'app/', src: ['js/libraries/jsonfn.js', 'js/libraries/md5.js', 'js/libraries/jquery/jquery-2.0.3.js'], dest: 'buildBeforePolymer/' }, //JS libs
-					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json', 'elements/change-log/changelog.js'], dest: 'buildBeforePolymer/' } //Misc files
+					{ expand: true, cwd: 'app/', src: ['js/libraries/jsonfn.js', 'js/libraries/md5.js', 'js/libraries/jquery/jquery-2.0.3.js'], dest: 'temp/' }, //JS libs
+					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json', 'elements/change-log/changelog.js'], dest: 'temp/' } //Misc files
 				]
 			},
 			moveDocumentationWebsite: {
 				files: [{
 					expand: true,
-					cwd: 'buildBeforePolymer/website',
-					src: ['**/*.*', '!buildBeforePolymer/website/'],
+					cwd: 'temp/website',
+					src: ['**/*.*', '!temp/website/'],
 					dest: './documentation/'
 				}]
 			},
@@ -199,7 +199,7 @@ module.exports = function(grunt) {
 							'installStylesheet.js',
 							'calcPolyfill.js'
 						],
-						dest: 'buildBeforePolymer/js/'
+						dest: 'temp/js/'
 					}
 				]
 			},
@@ -218,13 +218,13 @@ module.exports = function(grunt) {
 						'install-page/install-page.css',
 						'install-page/install-page.js',
 					],
-					dest: 'buildBeforePolymer/elements/installing'
+					dest: 'temp/elements/installing'
 				}]
 			},
 			webcomponentsLibs: {
 				files: [{ 
 					expand: true, 
-					cwd: 'buildBeforePolymer/bower_components',
+					cwd: 'temp/bower_components',
 					src: [
 						'webcomponentsjs/**/*.js'
 					], 
@@ -234,7 +234,7 @@ module.exports = function(grunt) {
 			moveUpDirectory: {
 				files: [{
 					expand: true,
-					cwd: 'build/buildBeforePolymer',
+					cwd: 'build/temp',
 					src: ['**/*'],
 					dest: 'build/'
 				}]
@@ -248,7 +248,7 @@ module.exports = function(grunt) {
 						'!basic-languages/src/**',
 						'basic-languages/src/css.js'
 					],
-					dest: 'buildBeforePolymer/elements/edit-pages/monaco-editor/src/min/'
+					dest: 'temp/elements/edit-pages/monaco-editor/src/min/'
 				}]
 			},
 			monacoPost: {
@@ -292,7 +292,7 @@ module.exports = function(grunt) {
 					src: [
 						'typescript.js'
 					],
-					dest: 'buildBeforePolymer/js/libraries/'
+					dest: 'temp/js/libraries/'
 				}]
 			},
 			crmapiLibDev: {
@@ -312,13 +312,13 @@ module.exports = function(grunt) {
 					src: [
 						'crmapi.d.ts'
 					],
-					dest: 'buildBeforePolymer/js/libraries/'
+					dest: 'temp/js/libraries/'
 				}]
 			},
 			prefixJs: {
 				files: [{
 					expand: true,
-					cwd: 'buildBeforePolymer/',
+					cwd: 'temp/',
 					src: ['html/optionsPrefix.js'],
 					dest: 'build/'
 				}]
@@ -434,7 +434,7 @@ module.exports = function(grunt) {
 					minifyCSS: true
 				},
 				files: [
-					{ expand: true, src: ['buildBeforePolymer/html/*'], filter: 'isFile' }
+					{ expand: true, src: ['temp/html/*'], filter: 'isFile' }
 				]
 			}
 		},
@@ -447,10 +447,10 @@ module.exports = function(grunt) {
 		},
 		clean: {
 			build: ['build/'],
-			buildBeforePolymer: ['buildBeforePolymer/'],
-			unzipped: ['buildBeforePolymer/**/*', '!buildBeforePolymer/*.zip'],
+			temp: ['temp/'],
+			unzipped: ['temp/**/*', '!temp/*.zip'],
 			tsFiles: ['build/elements/**/*.ts'],
-			removeBuildBeforePolymer: ['build/buildBeforePolymer/'],
+			removetemp: ['build/temp/'],
 			tempMonaco: ['app/elements/edit-pages/monaco-editor/src/min/']
 		},
 		'string-replace': {
@@ -466,7 +466,7 @@ module.exports = function(grunt) {
 					]
 				},
 				files: {
-					'buildBeforePolymer/manifest.json': 'app/manifest.json'
+					'temp/manifest.json': 'app/manifest.json'
 				}
 			},
 			removeCharacter: {
@@ -481,9 +481,9 @@ module.exports = function(grunt) {
 				},
 				files: [{
 					expand: true,
-					cwd: 'buildBeforePolymer/elements',
+					cwd: 'temp/elements',
 					src: ['**/*.html'],
-					dest: 'buildBeforePolymer/elements'
+					dest: 'temp/elements'
 				}]
 			},
 			patchMonaco: {
@@ -541,11 +541,11 @@ module.exports = function(grunt) {
 				},
 				files: [{
 					expand: true,
-					cwd: 'buildBeforePolymer/bower_components/webcomponentsjs/',
+					cwd: 'temp/bower_components/webcomponentsjs/',
 					src: [
 						'webcomponents-lite.js'
 					],
-					dest: 'buildBeforePolymer/bower_components/webcomponentsjs/'
+					dest: 'temp/bower_components/webcomponentsjs/'
 				}]
 			},
 			fixBugs: {
@@ -618,7 +618,7 @@ module.exports = function(grunt) {
 					rootFolder: 'app/'
 				},
 				files: [
-					{ expand: true, cwd: 'app/elements/', src: 'elements.html', dest: 'buildBeforePolymer/' }
+					{ expand: true, cwd: 'app/elements/', src: 'elements.html', dest: 'temp/' }
 				]
 			},
 			installing: {
@@ -634,7 +634,7 @@ module.exports = function(grunt) {
 					rootFolder: 'app/'
 				},
 				files: [
-					{ expand: true, cwd: 'app/elements/installing/', src: 'install-imports.html', dest: 'buildBeforePolymer/' }
+					{ expand: true, cwd: 'app/elements/installing/', src: 'install-imports.html', dest: 'temp/' }
 				]
 			},
 			documentationWebsite: {
@@ -650,7 +650,7 @@ module.exports = function(grunt) {
 					rootFolder: 'app/html/'
 				},
 				files: [
-					{ expand: true, cwd: 'app/html/', src: 'crmAPIDocsElements.html', dest: 'buildBeforePolymer/website/' }
+					{ expand: true, cwd: 'app/html/', src: 'crmAPIDocsElements.html', dest: 'temp/website/' }
 				]
 			}
 		},
@@ -659,20 +659,20 @@ module.exports = function(grunt) {
 				prefix: '../'
 			},
 			files: [
-				{ expand: true, cwd: 'buildBeforePolymer/website/', src: ['index.html', 'crmAPIDocsElements.html'] }
+				{ expand: true, cwd: 'temp/website/', src: ['index.html', 'crmAPIDocsElements.html'] }
 			]
 		},
 		vulcanize: {
 			documentationWebsite: {
 				options: {
-					abspath: 'buildBeforePolymer/website/',
+					abspath: 'temp/website/',
 					inlineScripts: true,
 					inlineCss: true,
 					stripComments: true,
 					targetUrl: 'crmAPIDocsElements.html'
 				},
 				files: {
-					'buildBeforePolymer/website/crmAPIDocsElements.html': 'crmAPIDocsElements.html'
+					'temp/website/crmAPIDocsElements.html': 'crmAPIDocsElements.html'
 				}
 			}
 		},
@@ -749,7 +749,7 @@ module.exports = function(grunt) {
 					scriptInHead: true
 				},
 				files: {
-					'buildBeforePolymer/html/optionsPrefix.html': ['buildBeforePolymer/html/optionsPrefix.html'],
+					'temp/html/optionsPrefix.html': ['temp/html/optionsPrefix.html'],
 				}
 			}
 		},
@@ -775,7 +775,7 @@ module.exports = function(grunt) {
 							"html/options.html"
 						],
 						sources: ['elements/**'],
-						root: "buildBeforePolymer/",
+						root: "temp/",
 						extraDependencies: [
 							"html/background.html",
 							"fonts/**/*",
@@ -812,7 +812,7 @@ module.exports = function(grunt) {
 						entrypoint: [
 							"html/options.html"
 						],
-						root: "buildBeforePolymer/",
+						root: "temp/",
 						extraDependencies: [
 							"html/background.html",
 							"fonts/**/*",
@@ -891,7 +891,7 @@ module.exports = function(grunt) {
 			build: {
 				options: {
 					parts: [
-						'buildBeforePolymer/html/optionsPrefix.html',
+						'temp/html/optionsPrefix.html',
 						'build/html/options.html'
 					],
 					dest: 'build/html/options.html'
@@ -916,7 +916,7 @@ module.exports = function(grunt) {
 					format: 'iife'
 				},
 				files: {
-					'buildBeforePolymer/js/background.js': ['app/js/background.js']
+					'temp/js/background.js': ['app/js/background.js']
 				}
 			}
 		}
@@ -1005,12 +1005,12 @@ module.exports = function(grunt) {
 
 	//Runs all of the build steps after polymerBuild is invoked
 	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 
-		'clean:removeBuildBeforePolymer', 'crispify', 
+		'clean:removetemp', 'crispify', 
 		'copy:webcomponentsLibs', 'string-replace:removeOptionsJs', 
 		'babel:build', 'joinPages:build', 'string-replace:fixBugs', 
 		'string-replace:noDefer', 'usebanner:htmlBanners',
 		'usebanner:jsBanners','copy:prefixJs',
-		'clean:buildBeforePolymer', 'copy:monacoPost', 
+		'clean:temp', 'copy:monacoPost', 
 		'string-replace:patchMonaco']);
 
 	//Minifies various files, skipped when compiling for development
