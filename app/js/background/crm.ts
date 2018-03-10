@@ -716,8 +716,15 @@ export namespace CRMNodes.Script.Updating {
 	function _registerNode(node: CRM.Node, oldPath?: Array<number>) {
 		//Update it in CRM tree
 		if (oldPath !== undefined && oldPath !== null) {
-			eval(`globalObject.globals.storages.settingsStorage.crm[${oldPath
-				.join('][')}] = node`);
+			let currentTree = modules.storages.settingsStorage.crm;
+			for (const index of oldPath.slice(0, -1)) {
+				const { children } = currentTree[index];
+				if (!children) {
+					return;
+				}
+				currentTree = children;
+			}
+			currentTree[modules.Util.getLastItem(oldPath)] = node;
 		} else {
 			modules.storages.settingsStorage.crm.push(node);
 		}
