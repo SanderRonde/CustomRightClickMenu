@@ -1,4 +1,4 @@
-import {ModuleData, GlobalObject, StorageModules, Modules } from "./moduleTypes";
+import {ModuleData, StorageModules, Modules } from "./moduleTypes";
 import { GlobalDeclarations } from "./global-declarations.js";
 import { MessageHandling } from "./messagehandling.js";
 import { BrowserHandler } from "./browserhandler.js";
