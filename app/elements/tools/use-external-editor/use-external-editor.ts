@@ -461,6 +461,12 @@ namespace UseExternalEditorElement {
 			//Send a message to the app to create the item with its current script and name
 			const _this = this;
 
+			if (BrowserAPI.getBrowser() !== 'chrome') {
+				window.app.util.showToast('This feature is only available in chrome' + 
+					' (until google removes chrome apps)');
+				return;
+			}
+
 			const manager = window.codeEditBehavior.getEditor();
 			if (manager.isTextarea(manager.getEditorAsMonaco())) {
 				window.app.util.showToast('Please update your chrome (at least chrome 30) to use this feature');
