@@ -2886,6 +2886,16 @@ declare namespace CRM {
 			 */
 			crm: {
 				/**
+				 * Gets the root contextmenu ID (used by browser.contextMenus).
+				 * Keep in mind that this is not a node id. See:
+				 * https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/menus
+				 * 
+				 * @param {function} callback - A function that is called with
+				 * 	the contextmenu ID as an argument
+				 */
+				getRootContextMenuId(callback: (contextMenuId: string|number) => void): void;
+
+				/**
 				 * Gets the CRM tree from the tree's root
 				 *
 				 * @permission crmGet

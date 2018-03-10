@@ -3581,6 +3581,17 @@ type CRMAPIMessage = {
 		 */
 		crm = {
 			/**
+			 * Gets the root contextmenu ID (used by browser.contextMenus).
+			 * Keep in mind that this is not a node id. See:
+			 * https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/menus
+			 * 
+			 * @param {function} callback - A function that is called with
+			 * 	the contextmenu ID as an argument
+			 */
+			getRootContextMenuId(this: CrmAPIInstance, callback: (contextMenuId: string|number) => void) {
+				this.__privates._sendCrmMessage('getRootContextMenu', callback);
+			},
+			/**
 			 * Gets the CRM tree from the tree's root
 			 *
 			 * @permission crmGet
