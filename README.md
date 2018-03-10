@@ -55,7 +55,7 @@ you clicked on (page, link, selection, image, video or audio).
 
 ### Installing from repo
 
-Clone the repo, run `[yarn](https://yarnpkg.com)` to install dependencies and run `yarn build` to build. Load the extension into chrome from the "build/" folder.
+Clone the repo, run `[yarn](https://yarnpkg.com)` to install dependencies and run `yarn build` to build. Load the dist that matches your browser from dist/{browser}.
 
 ## Developing Scripts
 
