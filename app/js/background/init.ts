@@ -12,6 +12,7 @@ import { Logging } from "./logging.js";
 import { Sandbox } from "./sandbox.js";
 import { Global } from "./global.js";
 import { CRMNodes } from "./crm.js";
+import { Caches } from "./cache";
 import { Info } from "./info.js";
 import { Util } from "./util.js";
 
@@ -57,6 +58,7 @@ export namespace Init {
 		return {
 			APIMessaging,
 			BrowserHandler,
+			Caches,
 			CRMNodes,
 			CRMFunction,
 			CRMFunctions,
@@ -80,6 +82,7 @@ export namespace Init {
 		
 		APIMessaging.initModule(moduleData);
 		BrowserHandler.initModule(moduleData);
+		Caches.initModule(moduleData);
 		CRMNodes.initModule(moduleData);
 		CRMFunction.initModule(moduleData);
 		CRMFunctions.initModule(null, moduleData);

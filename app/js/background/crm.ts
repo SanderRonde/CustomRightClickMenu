@@ -6,17 +6,17 @@ declare const window: BackgroundpageWindow;
 
 export namespace CRMNodes.Script.Handler {
 	async function _genCodeOnPage({		
-		tab,		
-		key,		
-		info,		
-		node,		
-		safeNode,		
-	}: {		
-		tab: _browser.tabs.Tab;		
-		key: Array<number>;		
-		info: _browser.contextMenus.OnClickData;		
-		node: CRM.ScriptNode;		
-		safeNode: CRM.SafeNode;		
+		tab,
+		key,
+		info,
+		node,
+		safeNode,
+	}: {
+		tab: _browser.tabs.Tab;
+		key: Array<number>;
+		info: _browser.contextMenus.OnClickData;
+		node: CRM.ScriptNode;
+		safeNode: CRM.SafeNode;
 	}, [contextData, [nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]]: [EncodedContextData,		
 		[any, GreaseMonkeyData, string, string, string, number]]): Promise<string> {		
 
@@ -657,7 +657,10 @@ export namespace CRMNodes.Script.MetaTags {
 			end: metaEnd
 		};
 	}
-	export function getMetaLines(script: string): Array<string> {
+	export function getMetaLines(script: string, fromCache: any = true): Array<string> {
+		if (fromCache) {
+			return modules.Caches.cacheCall(getMetaLines, arguments, true);
+		}
 		const metaIndexes = getMetaIndexes(script);
 		const metaStart = metaIndexes.start;
 		const metaEnd = metaIndexes.end;
@@ -665,9 +668,12 @@ export namespace CRMNodes.Script.MetaTags {
 		const lines = script.split('\n');
 		return lines.splice(startPlusOne, (metaEnd - startPlusOne));
 	}
-	export function getMetaTags(script: string): {
+	export function getMetaTags(script: string, fromCache: any = true): {
 		[key: string]: any
 	} {
+		if (fromCache) {
+			return modules.Caches.cacheCall(getMetaTags, arguments, true);
+		}
 		const metaLines = getMetaLines(script);
 
 		const metaTags: {

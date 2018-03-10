@@ -250,86 +250,68 @@ export namespace Global {
 				getDefaultMenuNode(this: CRMTemplates, options: Partial<CRM.MenuNode> = {}): CRM.MenuNode {
 					return this.getDefaultDividerOrMenuNode(options, 'menu') as CRM.MenuNode;
 				},
-				_globalObjectWrapperCache: [],
-				globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string, browserVal: string): string {
-					for (const { 
-						cacheName, 
-						cacheWrapperName, 
-						cacheChromeVal,
-						cacheBrowserVal,
-						cached 
-					} of this._globalObjectWrapperCache) {
-						if (name === cacheName && wrapperName === cacheWrapperName && 
-							chromeVal === cacheChromeVal && browserVal === cacheBrowserVal) {
-								return cached;
-							}
-					}
-
-					const result = `var ${wrapperName} = (${((REPLACE: {
-						REPLACEWrapperName: any;
-						REPLACEName: {
-							[key: string]: any;
-						};
-						REPLACECrmAPI: any;
-						REPLACEBrowserVal: string;
-						REPLACEChromeVal: string;
-					}) => {
-						let REPLACEWrapperName: {
-							[key: string]: any;
-						};
-						return (REPLACEWrapperName = (() => {
-							const tempWrapper: {
+				globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string, browserVal: string, 
+					fromCache: any = true): string {
+						if (fromCache) {
+							return modules.Caches.cacheCall(this.globalObjectWrapperCode, arguments)
+						}
+						return `var ${wrapperName} = (${((REPLACE: {
+							REPLACEWrapperName: any;
+							REPLACEName: {
 								[key: string]: any;
-							} = {};
-							const original = REPLACE.REPLACEName;
-							for (var prop in original) {
-								((prop) => {
-								if (prop !== 'webkitStorageInfo' && typeof original[prop] === 'function') {
-									tempWrapper[prop] = function() {
-										return original[prop].apply(original, arguments);
-									}
-								} else {
-									Object.defineProperty(tempWrapper, prop, {
-										get: function() {
-											if (original === original) {
-												return tempWrapper;
-											} else if (prop === 'crmAPI') {
-													return REPLACE.REPLACECrmAPI;
-											} else if (prop === 'browser') {
-													return REPLACE.REPLACEBrowserVal;
-											} else if (prop === 'chrome') {
-													return REPLACE.REPLACEChromeVal;
-											} else {
-												return original[prop];
-											}
-										},
-										set: function(value) {
-											tempWrapper[prop] = value;
+							};
+							REPLACECrmAPI: any;
+							REPLACEBrowserVal: string;
+							REPLACEChromeVal: string;
+						}) => {
+							let REPLACEWrapperName: {
+								[key: string]: any;
+							};
+							return (REPLACEWrapperName = (() => {
+								const tempWrapper: {
+									[key: string]: any;
+								} = {};
+								const original = REPLACE.REPLACEName;
+								for (var prop in original) {
+									((prop) => {
+									if (prop !== 'webkitStorageInfo' && typeof original[prop] === 'function') {
+										tempWrapper[prop] = function() {
+											return original[prop].apply(original, arguments);
 										}
-									});
+									} else {
+										Object.defineProperty(tempWrapper, prop, {
+											get: function() {
+												if (original === original) {
+													return tempWrapper;
+												} else if (prop === 'crmAPI') {
+														return REPLACE.REPLACECrmAPI;
+												} else if (prop === 'browser') {
+														return REPLACE.REPLACEBrowserVal;
+												} else if (prop === 'chrome') {
+														return REPLACE.REPLACEChromeVal;
+												} else {
+													return original[prop];
+												}
+											},
+											set: function(value) {
+												tempWrapper[prop] = value;
+											}
+										});
+									}
+									})(prop);
 								}
-								})(prop);
-							}
-							return tempWrapper;
-						})());
-					}).toString()	
-						.replace(/\w+.REPLACEName/g, name)
-						.replace(/\w+.REPLACEChromeVal/g, chromeVal)
-						.replace(/\w+.REPLACEBrowserVal/g, browserVal)
-						.replace(/\w+.REPLACECrmAPI/g, 'crmAPI')
-						.replace(/\var\s\w+;/g, `var ${wrapperName};`)
-						.replace(/return \(\w+ = \(/g, `return (${wrapperName} = (`)})()`
-						.replace(/\n/g, '');
-					this._globalObjectWrapperCache.push({
-						cacheName: name,
-						cacheWrapperName: wrapperName,
-						cacheChromeVal: chromeVal,
-						cacheBrowserVal: browserVal,
-						cached: result
-					});
-					return result;
-				}
-			},
+								return tempWrapper;
+							})());
+						}).toString()	
+							.replace(/\w+.REPLACEName/g, name)
+							.replace(/\w+.REPLACEChromeVal/g, chromeVal)
+							.replace(/\w+.REPLACEBrowserVal/g, browserVal)
+							.replace(/\w+.REPLACECrmAPI/g, 'crmAPI')
+							.replace(/\var\s\w+;/g, `var ${wrapperName};`)
+							.replace(/return \(\w+ = \(/g, `return (${wrapperName} = (`)})()`
+							.replace(/\n/g, '');
+					}
+				},
 			specialJSON: {
 				_regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'],
 				_getRegexFlags(this: SpecialJSON, expr: RegExp): Array<string> {

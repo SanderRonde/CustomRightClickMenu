@@ -460,13 +460,6 @@ interface CRMTemplates {
 	getDefaultDividerOrMenuNode(options: Partial<CRM.DividerNode> | Partial<CRM.MenuNode>, type: 'menu' | 'divider'): CRM.DividerNode | CRM.MenuNode;
 	getDefaultDividerNode(options?: Partial<CRM.DividerNode>): CRM.DividerNode;
 	getDefaultMenuNode(options?: Partial<CRM.MenuNode>): CRM.MenuNode;
-	_globalObjectWrapperCache: Array<{
-		cacheName: string;
-		cacheWrapperName: string;
-		cacheChromeVal: string;
-		cacheBrowserVal: string;
-		cached: string;
-	}>;
 	globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string, browserVal: string): string;
 }
 

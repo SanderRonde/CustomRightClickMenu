@@ -12,6 +12,7 @@ import { Resources } from "./resources.js";
 import { Storages } from "./storages.js";
 import { Logging } from "./logging.js";
 import { CRMNodes } from "./crm.js";
+import { Caches } from "./cache.js";
 import { Util } from "./util.js";
 
 export interface StorageModules {
@@ -28,6 +29,7 @@ export interface StorageModules {
 export interface Modules {
 	APIMessaging: typeof APIMessaging;
 	BrowserHandler: typeof BrowserHandler;
+	Caches: typeof Caches;
 	CRMNodes: typeof CRMNodes;
 	CRMFunction: typeof CRMFunction;
 	CRMFunctions: typeof CRMFunctions;

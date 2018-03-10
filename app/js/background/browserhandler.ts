@@ -266,7 +266,7 @@ export namespace BrowserHandler.ForbiddenCalls {
 		if (fn === 'removeAll') {
 			//Remove all nodes created by this id
 			const ownId = message.id;
-			await modules.Util.filter(modules.crmValues.userAddedContextMenus, async (item) => {
+			await modules.Util.filter(modules.crmValues.userAddedContextMenus, async(item) => {
 				const shouldBeRemoved = item.sourceNodeId === ownId;
 				await _removeContextMenuItem(item);
 				return !shouldBeRemoved;
