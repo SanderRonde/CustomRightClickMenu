@@ -747,6 +747,11 @@ paper-toast {
 	        justify-content: flex-end;
 }
 
+#showHideToolsRibbonCont {
+	-webkit-transform: translateX(200px);
+	transform: translateX(200px);
+}
+
 #shrinkTitleRibbonButton {
 	cursor: pointer;
 }
