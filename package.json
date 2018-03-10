@@ -91,6 +91,7 @@
     "grunt-jsbeautifier": "^0.2.13",
     "grunt-mocha-test": "^0.12.7",
     "grunt-processhtml": "^0.3.8",
+    "grunt-rollup": "^9.0.0",
     "grunt-string-replace": "^1.2.1",
     "grunt-ts": "^6.0.0-beta.16",
     "grunt-typedoc": "^0.2.4",

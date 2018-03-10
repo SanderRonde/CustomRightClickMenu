@@ -1,4 +1,4 @@
-var codeMirrorLicense = '// CodeMirror, copyright (c) by Marijn Haverbeke and others\n// Distributed under an MIT license: http://codemirror.net/LICENSE';
+﻿var codeMirrorLicense = '// CodeMirror, copyright (c) by Marijn Haverbeke and others\n// Distributed under an MIT license: http://codemirror.net/LICENSE';
 var jsLintLicense = '// jslint.js\n// 2015-08-20\n// Copyright (c) 2015 Douglas Crockford  (www.JSLint.com)\n\n// Permission is hereby granted, free of charge, to any person obtaining a copy\n// of this software and associated documentation files (the "Software"), to deal\n// in the Software without restriction, including without limitation the rights\n// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n// copies of the Software, and to permit persons to whom the Software is\n// furnished to do so, subject to the following conditions:\n\n// The above copyright notice and this permission notice shall be included in\n// all copies or substantial portions of the Software.\n\n// The Software shall be used for Good, not Evil.\n\n// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n// SOFTWARE.';
 var cssLintLicense = '/*!\nCSSLint\nCopyright (c) 2015 Nicole Sullivan and Nicholas C. Zakas. All rights reserved.\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \'Software\'), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\nTHE SOFTWARE IS PROVIDED \'AS IS\', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n*/';
 var parserLibLicense = '/*!\nParser-Lib\nCopyright (c) 2009-2011 Nicholas C. Zakas. All rights reserved.\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the "Software"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\nTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n*/';
@@ -20,7 +20,7 @@ module.exports = function(grunt) {
 					}
 				},
 				files: {
-					'buildBeforePolymer/html/background.html': ['app/html/background.html'],
+					'buildBeforePolymer/html/background.html': ['buildBeforePolymer/html/background.html'],
 					'buildBeforePolymer/elements/crm-app/crm-app.html': [
 						'buildBeforePolymer/elements/crm-app/crm-app.html'],
 					'buildBeforePolymer/html/options.html': ['buildBeforePolymer/html/options.html'],
@@ -66,7 +66,6 @@ module.exports = function(grunt) {
 						expand: true,
 						cwd: 'app/js',
 						src: [
-							'background.js',
 							'crmapi.js', 
 							'crmAPIDefs.js',
 							'crmAPIDocs.js', 
@@ -95,6 +94,12 @@ module.exports = function(grunt) {
 				files: [{
 					expand: true,
 					src: ['build/html/optionsPrefix.js']
+				}]
+			},
+			minifyBackground: {
+				files: [{
+					expand: true,
+					src: ['html/js/background.js']
 				}]
 			}
 		},
@@ -126,7 +131,7 @@ module.exports = function(grunt) {
 					{ expand: true, cwd: 'app/', src: ['fonts/*'], dest: 'buildBeforePolymer/' }, //Fonts
 					{ expand: true, cwd: 'app/', src: ['css/*'], dest: 'buildBeforePolymer/' }, //CSS
 					{ expand: true, cwd: 'app/', src: ['js/**/*'], dest: 'buildBeforePolymer/' }, //JS
-					{ expand: true, cwd: 'app/', src: ['html/install.html', 'html/logging.html', 'html/options.html', 'html/base.html'], dest: 'buildBeforePolymer/' }, //HTML files
+					{ expand: true, cwd: 'app/', src: ['html/install.html', 'html/logging.html', 'html/options.html', 'html/base.html', 'html/background.html'], dest: 'buildBeforePolymer/' }, //HTML files
 					{ expand: true, cwd: 'app/', src: ['js/defaultLibraries/*'], dest: 'buildBeforePolymer/' }, //Default libraries
 					{ expand: true, cwd: 'app/', src: ['bower_components/**/*'], dest: 'buildBeforePolymer/' }, //Webanimations
 					{
@@ -186,7 +191,6 @@ module.exports = function(grunt) {
 						expand: true,
 						cwd: 'app/js',
 						src: [
-							'background.js',
 							'crmapi.js', 
 							'crmAPIDefs.js',
 							'crmAPIDocs.js', 
@@ -905,6 +909,16 @@ module.exports = function(grunt) {
 					'build/html/background.js': 'build/html/background.js'
 				}
 			}
+		},
+		rollup: {
+			background: {
+				options: {
+					format: 'iife'
+				},
+				files: {
+					'buildBeforePolymer/js/background.js': ['app/js/background.js']
+				}
+			}
 		}
 	});
 
@@ -920,10 +934,11 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-crisper');
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-jsbeautifier');
-	grunt.loadNpmTasks('grunt-string-replace');
-	grunt.loadNpmTasks('grunt-ts');
 	grunt.loadNpmTasks('grunt-mocha-test');
 	grunt.loadNpmTasks('grunt-processhtml');
+	grunt.loadNpmTasks('grunt-rollup');
+	grunt.loadNpmTasks('grunt-string-replace');
+	grunt.loadNpmTasks('grunt-ts');
 	grunt.loadNpmTasks('grunt-vulcanize');
 	grunt.loadNpmTasks('grunt-zip');
 	grunt.loadNpmTasks('html-typings');
@@ -980,8 +995,9 @@ module.exports = function(grunt) {
 
 	//Runs all of the build steps before polymerBuild is invoked
 	grunt.registerTask('_buildPrePolymer', ['cleanBuild',
-		'copy:build', 'copy:installing', 'string-replace:manifestReplace', 
-		'copy:monacoPre', 'copy:monacoTemp', 'processhtml:build', 
+		'copy:build', 'rollup:background', 'copy:installing',
+		'string-replace:manifestReplace', 'copy:monacoPre', 
+		'copy:monacoTemp', 'processhtml:build',
 		'crisper:optionsPrefix', 'processhtml:inlineElementImports', 
 		'string-replace:removeCharacter', 'copy:jsFiles', 
 		'string-replace:changeThis', 'copy:tsEmbedBuild', 
@@ -991,10 +1007,15 @@ module.exports = function(grunt) {
 	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 
 		'clean:removeBuildBeforePolymer', 'crispify', 
 		'copy:webcomponentsLibs', 'string-replace:removeOptionsJs', 
-		'babel', 'joinPages:build', 'string-replace:fixBugs', 
-		'string-replace:noDefer','usebanner','copy:prefixJs', 
-		'uglify:finalMinify','clean:buildBeforePolymer', 
-		'copy:monacoPost', 'string-replace:patchMonaco']);
+		'babel:build', 'joinPages:build', 'string-replace:fixBugs', 
+		'string-replace:noDefer', 'usebanner:htmlBanners',
+		'usebanner:jsBanners','copy:prefixJs',
+		'clean:buildBeforePolymer', 'copy:monacoPost', 
+		'string-replace:patchMonaco']);
+
+	//Minifies various files, skipped when compiling for development
+	grunt.registerTask('_minify', ['uglify:finalMinify', 
+		'uglify:minifyBackground']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc), skips the compile step
@@ -1007,7 +1028,7 @@ module.exports = function(grunt) {
 	// This can be ahdny if you're running a typescript compiler
 	// already or don't care about compilation errors
 	grunt.registerTask('buildNoCompile', ['_buildPrePolymer',
-		'polymerBuild:prod', '_buildPostPolymer']);
+		'polymerBuild:prod', '_buildPostPolymer', '_minify']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
