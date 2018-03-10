@@ -136,6 +136,203 @@ export namespace BrowserHandler.ChromeAPIs {
 		});
 		return true;
 	}
+
+	function _handlePossibleChromeEvent(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
+		if (api.split('.').length > 1) {
+			if (!message.args[0] || message.args[0].type !== 'fn') {
+				modules.APIMessaging.ChromeMessage.throwError(message,
+					'First argument should be a function');
+			}
+
+			const allowedTargets = [
+				'onStartup',
+				'onInstalled',
+				'onSuspend',
+				'onSuspendCanceled',
+				'onUpdateAvailable',
+				'onRestartRequired'
+			];
+			const listenerTarget = api.split('.')[0];
+			if (allowedTargets.indexOf(listenerTarget) > -1 && listenerTarget in browserAPI.runtime) {
+				(browserAPI.runtime as any)[listenerTarget].addListener((...listenerArgs: Array<any>) => {
+					const params = Array.prototype.slice.apply(listenerArgs);
+					modules.APIMessaging.CRMMessage.respond(message, 'success', {
+						callbackId: message.args[0].val,
+						params: params
+					});
+				});
+				return true;
+			} else if (listenerTarget === 'onMessage') {
+				modules.APIMessaging.ChromeMessage.throwError(message,
+					'This method of listening to messages is not allowed,' +
+					' use crmAPI.comm instead');
+				return true;
+			} else if (!(listenerTarget in browserAPI.runtime)) {
+				modules.APIMessaging.ChromeMessage.throwError(message,
+					'Given event is not supported on this platform');
+				return true;
+			} else {
+				modules.APIMessaging.ChromeMessage.throwError(message,
+					'You are not allowed to listen to given event');
+				return true;
+			}
+		}
+		return false;
+	}
+
+	export async function check(message: ChromeAPIMessage|BrowserAPIMessage) {
+		const [ api, fn ] = message.api.split('.');
+		if (api !== 'runtime') {
+			return false;
+		}
+		switch (fn) {
+			case 'getBackgroundPage':
+				return ChromeAPIs.getBackgroundPage(message, fn);
+			case 'openOptionsPage':
+				return await ChromeAPIs.openOptionsPage(message, fn);
+			case 'getManifest':
+				return ChromeAPIs.getManifest(message, fn);
+			case 'getURL':
+				return ChromeAPIs.getURL(message, fn);
+			case 'connect':
+			case 'connectNative':
+			case 'setUninstallURL':
+			case 'sendNativeMessage':
+			case 'requestUpdateCheck':
+				return ChromeAPIs.unaccessibleAPI(message);
+			case 'reload':
+				return ChromeAPIs.reload(message, fn);
+			case 'restart':
+				return ChromeAPIs.restart(message, fn);
+			case 'restartAfterDelay':
+				return ChromeAPIs.restartAfterDelay(message, fn);
+			case 'getPlatformInfo':
+				return await ChromeAPIs.getPlatformInfo(message, fn);
+			case 'getPackageDirectoryEntry':
+				return ChromeAPIs.getPackageDirectoryEntry(message, fn);
+		}
+		return _handlePossibleChromeEvent(message, fn);
+	}
+}
+
+export namespace BrowserHandler.ForbiddenCalls {
+	function isCreatedByCurrentNode(message: ChromeAPIMessage|BrowserAPIMessage) {
+		const id = getTargetId(message);
+		const byId = modules.crmValues.userAddedContextMenusById;
+		return byId[id] && byId[id].sourceNodeId === message.id;
+	}
+	function getTargetId(message: ChromeAPIMessage|BrowserAPIMessage) {
+		return message.args[0].val;
+	}
+	function _respondSuccess(message: ChromeAPIMessage|BrowserAPIMessage, cbIndex: number, params: Array<any>) {
+		if (!message.args[cbIndex]) {
+			return;
+		}
+		if (message.type === 'browser') {
+			modules.APIMessaging.createReturn(message, message.args[cbIndex].val)(params[0]);
+		} else {
+			modules.APIMessaging.CRMMessage.respond(message, 'success', {
+				callbackId: message.args[cbIndex].val,
+				params: params
+			});
+		}
+	}
+	function _respondError(message: ChromeAPIMessage|BrowserAPIMessage, error: string) {
+		modules.APIMessaging.ChromeMessage.throwError(message, 
+			error, '');
+	}
+	async function _removeContextMenuItem(descriptor: UserAddedContextMenu) {
+		const { actualId, children, parent, generatedId } = descriptor;
+		//Remove from parent
+		parent.children.splice(parent.children.indexOf(descriptor), 1);
+
+		//Remove from ById
+		delete modules.crmValues.userAddedContextMenusById[generatedId];
+
+		//Remove children
+		for (const child of children) {
+			await _removeContextMenuItem(child);
+		}
+
+		//Remove from contextmenu
+		await browserAPI.contextMenus.remove(actualId);
+	}
+	async function checkContextMenu(message: ChromeAPIMessage|BrowserAPIMessage) {
+		const [ api, fn ] = message.api.split('.');
+		if (api !== 'contextMenus' && api !== 'menus') {
+			return false;
+		}
+
+		if (fn === 'removeAll') {
+			//Remove all nodes created by this id
+			const ownId = message.id;
+			await modules.Util.filter(modules.crmValues.userAddedContextMenus, async (item) => {
+				const shouldBeRemoved = item.sourceNodeId === ownId;
+				await _removeContextMenuItem(item);
+				return !shouldBeRemoved;
+			});
+			_respondSuccess(message, 0, []);
+		} else if (fn === 'remove') {
+			//Only allow if the target is something created by this node
+			if (isCreatedByCurrentNode(message)) {
+				const id = getTargetId(message);
+				await _removeContextMenuItem(
+					modules.crmValues.userAddedContextMenusById[id])
+				_respondSuccess(message, 1, []);
+			} else {
+				_respondError(message, 
+					'Attempted to modify contextMenu item that was not' + 
+					' created by this node')
+			}
+		} else if (fn === 'update') {
+			if (isCreatedByCurrentNode(message)) {
+				const id = getTargetId(message);
+				await browserAPI.contextMenus.update(id, message.args[1].val);
+				_respondSuccess(message, 2, []);
+			} else {
+				_respondError(message, 
+					'Attempted to modify contextMenu item that was not' + 
+					' created by this node')
+			}
+		} else if (fn === 'create') {
+			const byId = modules.crmValues.userAddedContextMenusById;
+			const createProperties = message.args[0].val;
+			const { parentId } = createProperties;
+			if (parentId && byId[parentId]) {
+				//Map mapped value to actual value
+				createProperties.parentId = byId[parentId].actualId;
+			}
+			const actualId = browserAPI.contextMenus.create(createProperties, 
+				modules.CRMNodes._handleUserAddedContextMenuErrors);
+			
+			//Create a fake id
+			const fakeId = modules.Util.createUniqueNumber();
+			const descriptor: UserAddedContextMenu = {
+				sourceNodeId: message.id,
+				actualId,
+				generatedId: fakeId,
+				createProperties,
+				children: [],
+				parent: parentId ? byId[parentId] : null
+			};
+			modules.crmValues.userAddedContextMenus.push(descriptor);
+			byId[fakeId] = descriptor;
+			if (parentId) {
+				byId[parentId].children.push(descriptor);
+			}
+		} else {
+			//Let it be handled normally
+			return true;
+		}
+		return false;
+	}
+
+	export async function check(message: ChromeAPIMessage|BrowserAPIMessage) {
+		if (await checkContextMenu(message)) {
+			return true;
+		}
+		return false;
+	}
 }
 
 export namespace BrowserHandler {
@@ -208,7 +405,7 @@ export namespace BrowserHandler {
 
 		try {
 			let result = modules.Sandbox.sandboxChrome(message.api, message.type, params);
-			if (_isThennable(result)) {
+			if (modules.Util.isThennable(result)) {
 				result = await result;	
 			}
 			for (let i = 0; i < returnFunctions.length; i++) {
@@ -221,9 +418,6 @@ export namespace BrowserHandler {
 		return true;
 	}
 
-	function _isThennable(value: any): value is Promise<any> {
-		return value && typeof value === "object" && typeof value.then === "function";
-	}
 	function _hasPermission(message: ChromeAPIMessage|BrowserAPIMessage, apiPermission: CRM.Permission) {
 		const node = modules.crm.crmById[message.id];
 		if (!node.isLocal) {
@@ -254,7 +448,9 @@ export namespace BrowserHandler {
 				message.api
 			}" is not alphanumeric.`);
 			return false;
-		} else if (await _checkForRuntimeMessages(message)) {
+		} else if (await ForbiddenCalls.check(message)) {
+			return false;
+		} else if (await ChromeAPIs.check(message)) {
 			return false;
 		} else if (message.api === 'runtime.sendMessage') {
 			console.warn(`The ${message.type}.runtime.sendMessage API is not meant to be used, use ` +
@@ -263,81 +459,6 @@ export namespace BrowserHandler {
 			return false;
 		}
 		return true;
-	}
-	function _handlePossibleChromeEvent(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
-		if (api.split('.').length > 1) {
-			if (!message.args[0] || message.args[0].type !== 'fn') {
-				modules.APIMessaging.ChromeMessage.throwError(message,
-					'First argument should be a function');
-			}
-
-			const allowedTargets = [
-				'onStartup',
-				'onInstalled',
-				'onSuspend',
-				'onSuspendCanceled',
-				'onUpdateAvailable',
-				'onRestartRequired'
-			];
-			const listenerTarget = api.split('.')[0];
-			if (allowedTargets.indexOf(listenerTarget) > -1 && listenerTarget in browserAPI.runtime) {
-				(browserAPI.runtime as any)[listenerTarget].addListener((...listenerArgs: Array<any>) => {
-					const params = Array.prototype.slice.apply(listenerArgs);
-					modules.APIMessaging.CRMMessage.respond(message, 'success', {
-						callbackId: message.args[0].val,
-						params: params
-					});
-				});
-				return true;
-			} else if (listenerTarget === 'onMessage') {
-				modules.APIMessaging.ChromeMessage.throwError(message,
-					'This method of listening to messages is not allowed,' +
-					' use crmAPI.comm instead');
-				return true;
-			} else if (!(listenerTarget in browserAPI.runtime)) {
-				modules.APIMessaging.ChromeMessage.throwError(message,
-					'Given event is not supported on this platform');
-				return true;
-			} else {
-				modules.APIMessaging.ChromeMessage.throwError(message,
-					'You are not allowed to listen to given event');
-				return true;
-			}
-		}
-		return false;
-	}
-	async function _checkForRuntimeMessages(message: ChromeAPIMessage|BrowserAPIMessage) {
-		const api = message.api.split('.').slice(1).join('.');
-		if (message.api.split('.')[0] !== 'runtime') {
-			return false;
-		}
-		switch (api) {
-			case 'getBackgroundPage':
-				return ChromeAPIs.getBackgroundPage(message, api);
-			case 'openOptionsPage':
-				return await ChromeAPIs.openOptionsPage(message, api);
-			case 'getManifest':
-				return ChromeAPIs.getManifest(message, api);
-			case 'getURL':
-				return ChromeAPIs.getURL(message, api);
-			case 'connect':
-			case 'connectNative':
-			case 'setUninstallURL':
-			case 'sendNativeMessage':
-			case 'requestUpdateCheck':
-				return ChromeAPIs.unaccessibleAPI(message);
-			case 'reload':
-				return ChromeAPIs.reload(message, api);
-			case 'restart':
-				return ChromeAPIs.restart(message, api);
-			case 'restartAfterDelay':
-				return ChromeAPIs.restartAfterDelay(message, api);
-			case 'getPlatformInfo':
-				return await ChromeAPIs.getPlatformInfo(message, api);
-			case 'getPackageDirectoryEntry':
-				return ChromeAPIs.getPackageDirectoryEntry(message, api);
-		}
-		return _handlePossibleChromeEvent(message, api);
 	}
 	function _createChromeFnCallbackHandler(message: ChromeAPIMessage|BrowserAPIMessage,
 		callbackIndex: number) {

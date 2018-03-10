@@ -111,6 +111,13 @@ export namespace Util {
 			return createSecretKey();
 		}
 	}
+	let _lastNumber: number = Math.round(Math.random() * 100);
+	export function createUniqueNumber(): number {
+		//Make it somewhat unpredictable
+		const addition = Math.round(Math.random() * 100);
+		_lastNumber += addition;
+		return _lastNumber;
+	}
 	export function generateItemId(): number {
 		modules.globalObject.globals.latestId = 
 			modules.globalObject.globals.latestId || 0;
@@ -335,6 +342,30 @@ export namespace Util {
 		postMessage(message: any): void;
 	}, message: any) {
 		port.postMessage(message);
+	}
+	export function climbTree<T extends {
+		children: Array<T>;
+	}>(tree: Array<T>, shouldContinue: (item: T) => boolean) {
+		for (const item of tree) {
+			if (shouldContinue(item)) {
+				climbTree(item.children, shouldContinue);
+			}
+		}
+	}
+	export function isThennable(value: any): value is Promise<any> {
+		return value && typeof value === "object" && typeof value.then === "function";
+	}
+	export async function filter<T>(tree: Array<T>, fn: (item: T) => boolean|Promise<boolean>) {
+		for (let i = 0; i < tree.length; i++) {
+			let res = fn(tree[i]);
+			if (isThennable(res)) {
+				res = await res;
+			}
+			if (!res) {
+				//Remove
+				tree.splice(i, 1);
+			}
+		}
 	}
 	export function crmForEach(crm: CRM.Tree, fn: (node: CRM.Node) => void) {
 		for (const node of crm) {

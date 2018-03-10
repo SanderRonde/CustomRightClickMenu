@@ -43,6 +43,8 @@ export namespace Global {
 			nodeInstances: {},
 			contextMenuInfoById: {},
 			contextMenuItemTree: [],
+			userAddedContextMenus: [],
+			userAddedContextMenusById: {},
 			hideNodesOnPagesData: {},
 			stylesheetNodeStatusses: {}
 		},

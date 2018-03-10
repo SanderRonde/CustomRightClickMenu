@@ -2045,6 +2045,41 @@ export namespace CRMNodes {
 		]);
 		return newNode as CRM.SafeNode;
 	}
+	export function _handleUserAddedContextMenuErrors() {
+		const __window = window as any;
+		if (__window.chrome && __window.chrome.runtime) {
+			const __chrome: typeof _chrome = __window.chrome;
+			if (__chrome && __chrome.runtime && __chrome.runtime.lastError) {
+				window.log('Error recreating user contextmenu',
+					__chrome.runtime.lastError)
+			}
+		} else {
+			if (browserAPI.runtime.lastError) {
+				window.log('Error recreating user contextmenu',
+					browserAPI.runtime.lastError)
+			}
+		}
+	}
+	async function _createUserContextMenuTree(tree: Array<UserAddedContextMenu>) {
+		const menus = modules.crmValues.userAddedContextMenus;
+		const byId = modules.crmValues.userAddedContextMenusById;
+		for (const menu of menus) {
+			const { children, createProperties } = menu;
+			const { parentId } = createProperties;
+			if (parentId && byId[parentId]) {
+				//Map mapped value to actual value
+				createProperties.parentId = byId[parentId].actualId;
+			}
+			const actualId = browserAPI.contextMenus.create(createProperties, 
+				_handleUserAddedContextMenuErrors);
+			menu.actualId = actualId;
+
+			_createUserContextMenuTree(children);
+		}
+	}
+	export async function addUserAddedContextMenuItems() {
+		_createUserContextMenuTree(modules.crmValues.userAddedContextMenus);
+	}
 	export function buildPageCRM() {
 		return new Promise<void>((resolve) => {
 			const length = modules.crm.crmTree.length;
@@ -2081,14 +2116,15 @@ export namespace CRMNodes {
 						});
 					}
 				})).then(() => {
-					if (modules.storages.storageLocal.showOptions) {
+					addUserAddedContextMenuItems().then(() => {
+						if (modules.storages.storageLocal.showOptions) {
 							const tree = modules.crmValues.contextMenuItemTree;
 							const index = tree.length;
 							tree[index] = {
 								index,
 								id: browserAPI.contextMenus.create({
-							type: 'separator',
-							parentId: modules.crmValues.rootId
+									type: 'separator',
+									parentId: modules.crmValues.rootId
 								}),
 								enabled: true,
 								node: null,
@@ -2099,9 +2135,9 @@ export namespace CRMNodes {
 							tree[index + 1] = {
 								index: index + 1,
 								id: browserAPI.contextMenus.create({
-							title: 'Options',
-							onclick: _createOptionsPageHandler(),
-							parentId: modules.crmValues.rootId
+									title: 'Options',
+									onclick: _createOptionsPageHandler(),
+									parentId: modules.crmValues.rootId
 								}),
 								enabled: true,
 								node: null,
@@ -2109,8 +2145,9 @@ export namespace CRMNodes {
 								children: [],
 								parentTree: tree
 							};
-					}
-					resolve(null);
+						}
+						resolve(null);
+					});
 				});
 			});
 		});

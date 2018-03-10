@@ -326,6 +326,15 @@ interface ContextMenuSettings extends ContextMenusCreateProperties {
 	generatedId?: number;
 }
 
+interface UserAddedContextMenu {
+	sourceNodeId: number;
+	createProperties: ContextMenuSettings;
+	generatedId: string|number;
+	actualId: string|number;
+	parent: UserAddedContextMenu;
+	children: Array<UserAddedContextMenu>;
+}
+
 interface BGCRMValues {
 	tabData: {
 		[tabId: number]: {
@@ -367,6 +376,11 @@ interface BGCRMValues {
 		};
 	};
 	contextMenuItemTree: Array<ContextMenuItemTreeItem>;
+	userAddedContextMenus: Array<UserAddedContextMenu>;
+	userAddedContextMenusById: {
+		[mappedId: string]: UserAddedContextMenu;
+		[mappedId: number]: UserAddedContextMenu;
+	}
 	hideNodesOnPagesData: {
 		[nodeId: number]: Array<{
 			not: boolean;
