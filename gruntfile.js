@@ -1001,23 +1001,26 @@ module.exports = function(grunt) {
 	// for if you're running a typescript compiler on watch mode
 	grunt.registerTask('buildDevNoCompile', ['_buildPrePolymer', 
 		'polymerBuild:dev', '_buildPostPolymer', 
-		'jsbeautifier:beautifyBuilt', 'zip']);
+		'jsbeautifier:beautifyBuilt']);
 
 	//Builds the extension without compiling typescript
 	// This can be ahdny if you're running a typescript compiler
 	// already or don't care about compilation errors
 	grunt.registerTask('buildNoCompile', ['_buildPrePolymer',
-		'polymerBuild:prod', '_buildPostPolymer', 'zip']);
+		'polymerBuild:prod', '_buildPostPolymer']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
 	grunt.registerTask('buildDev', ['compile', 'buildDevNoCompile']);
 
-	//Builds the extension and places the zip and all other files in build/
+	//Builds the extension and writes output to /build
 	grunt.registerTask('build', ['compile', 'buildNoCompile']);
 
-	//Builds the extension and places only the zip in build/
-	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
+	//Builds the extension and writes the output as well as a zip to /build
+	grunt.registerTask('buildZip', ['build', 'zip']);
+
+	//Builds the extension and writes only the zip to /build
+	grunt.registerTask('buildZipOnly', ['build', 'zip', 'clean:unzipped']);
 
 	//Tests whether the extension can be built properly without errors
 	grunt.registerTask('testBuild', ['cleanBuild', 'build', 'cleanBuild',
