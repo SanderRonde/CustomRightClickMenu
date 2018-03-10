@@ -1,6 +1,5 @@
 /// <reference path="../../../tools/definitions/chrome.d.ts" />
 /// <reference path="../background/sharedTypes.d.ts"/>
-import { MatchPattern } from "./urlparsing.js";
 import { ModuleData } from "./moduleTypes";
 
 declare const window: BackgroundpageWindow;
@@ -1702,20 +1701,6 @@ export namespace CRMNodes.Stylesheet {
 }
 
 export namespace CRMNodes.NodeCreation {
-	export interface ContextMenusCreateProperties {
-		type?: _browser.contextMenus.ItemType,
-		id?: string,
-		title?: string,
-		checked?: boolean,
-		command?: "_execute_browser_action" | "_execute_page_action" | "_execute_sidebar_action",
-		contexts?: _browser.contextMenus.ContextType[],
-		onclick?: (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => void,
-		parentId?: number|string,
-		documentUrlPatterns?: string[],
-		targetUrlPatterns?: string[],
-		enabled?: boolean,
-	}
-
 	function _getStylesheetReplacementTabs(node: CRM.Node): Array<{
 		id: number;
 	}> {

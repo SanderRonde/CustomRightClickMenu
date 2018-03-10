@@ -20,7 +20,7 @@ interface SandboxWorkerMessage {
 	}
 }
 
-export class SandboxWorker {
+export class SandboxWorker implements SandboxWorkerInterface {
 	worker: Worker = new Worker('/js/sandbox.js');
 	_callbacks: Array<Function> = [];
 	_verified: boolean = false;

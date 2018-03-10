@@ -1,4 +1,3 @@
-import { MatchPattern } from "./urlparsing.js";
 import { ModuleData } from "./moduleTypes";
 
 declare const window: BackgroundpageWindow;
@@ -778,9 +777,6 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace {
 
 		constructor(public name: string) { }
 	}
-	
-	export type UpgradeErrorHandler = (oldScriptErrors: Array<CursorPosition>,
-		newScriptErrors: Array<CursorPosition>, parseError: boolean) => void;
 
 	export function generateScriptUpgradeErrorHandler(id: number): UpgradeErrorHandler {
 		return async (oldScriptErrors, newScriptErrors, parseError) => {

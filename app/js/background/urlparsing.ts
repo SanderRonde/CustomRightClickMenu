@@ -1,12 +1,5 @@
 import { ModuleData } from "./moduleTypes";
 
-export interface MatchPattern {
-	scheme: string;
-	host: string;
-	path: string;
-	invalid?: boolean;
-}
-
 export namespace URLParsing {
 	export let modules: ModuleData;
 
