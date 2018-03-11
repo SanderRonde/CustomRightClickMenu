@@ -2,14 +2,13 @@ const fs = require('fs');
 const path = require('path');
 const htmlParser = require('htmlparser');
 
-function readFile(grunt, done, path) {
+function readFile(path) {
 	return new Promise((resolve) => {
 		fs.readFile(path, {
 			encoding: 'utf8'
 		}, (err, data) => {
 			if (err) {
-				grunt.log.error('Error reading file', path);
-				done(false);
+				throw err;
 			} else {
 				resolve(data);
 			}
@@ -17,11 +16,10 @@ function readFile(grunt, done, path) {
 	});
 }
 
-function htmlParseFile(grunt, done, content) {
+function htmlParseFile(content) {
 	const handler = new htmlParser.DefaultHandler((error, dom) => {
 		if (error) {
-			grunt.log.error('Error merging HTML');
-			done(false);
+			throw error;
 		}
 	});
 	const parser = new htmlParser.Parser(handler);
@@ -62,59 +60,60 @@ function filterTitle(content) {
 	return content.replace(/<title>\w*<\/title>/g, '');
 }
 
-module.exports = function (grunt) {
-	grunt.registerMultiTask('joinPages', 'Joines the given html pages', async function() {
-		const options = this.options({});
-		const done = this.async();
-		if (!options.dest) {
-			grunt.log.error('Destination missing');
+/**
+ * @param {Object} options - Options for this config
+ * @param {string[]} options.parts - The parts of the pages
+ * @param {string} options.dest - The destination to write to
+ */
+module.exports = async function (options) {
+	if (!options.dest) {
+		throw new Error('Destination missing');
+	}
+
+	const locations = options.parts.map((part) => {
+		return path.join(__dirname, '../', part);
+	});
+	const files = await Promise.all(locations.map((location) => {
+		return readFile(location);
+	}));
+	const parsed = files.map((file) => {
+		return htmlParseFile(file);
+	});
+	const contents = parsed.map((parsedPart, index) => {
+		let headContent = getHeadContent(files[index], parsedPart);
+		if (index !== 0) {
+			headContent = filterTitle(headContent);
 		}
+		return {
+			head: headContent,
+			body: getBodyContent(files[index], parsedPart)
+		}
+	});
 
-		const locations = options.parts.map((part) => {
-			return path.join(__dirname, '../', part);
-		});
-		const files = await Promise.all(locations.map((location) => {
-			return readFile(grunt, done, location);
-		}));
-		const parsed = files.map((file) => {
-			return htmlParseFile(grunt, done, file);
-		});
-		const contents = parsed.map((parsedPart, index) => {
-			let headContent = getHeadContent(files[index], parsedPart);
-			if (index !== 0) {
-				headContent = filterTitle(headContent);
-			}
-			return {
-				head: headContent,
-				body: getBodyContent(files[index], parsedPart)
-			}
-		});
+	const destination = path.join(__dirname, '../', options.dest);
 
-		const destination = path.join(__dirname, '../', options.dest);
+	const joinedFile = `<!DOCTYPE html>
+	<html>
+		<head>
+			${contents.map((content) => {
+				return content.head;
+			}).join('\n')}
+		</head>
+		<body>
+			${contents.map((content) => {
+				return content.body;
+			}).join('\n')}
+		</body>
+	</html>`;
 
-		const joinedFile = `<!DOCTYPE html>
-		<html>
-			<head>
-				${contents.map((content) => {
-					return content.head;
-				}).join('\n')}
-			</head>
-			<body>
-				${contents.map((content) => {
-					return content.body;
-				}).join('\n')}
-			</body>
-		</html>`;
-
+	await new Promise((resolve, reject) => {
 		fs.writeFile(destination, joinedFile, {
 			encoding: 'utf8'
 		}, (err) => {
 			if (err) {
-				grunt.log.error('Error writing to output file');
-				done(false);
+				reject(err);
 			} else {
-				grunt.log.ok(`Output written to ${destination}`);
-				done(true);
+				resolve();
 			}
 		});
 	});

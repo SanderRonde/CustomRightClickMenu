@@ -1,23 +1,21 @@
-const externalHelpers = require('babel-plugin-external-helpers');
-const polymerBuild = require('polymer-build');
-const mergeStream = require('merge-stream');
-const gulpif = require('gulp-if');
-const forkStream = polymerBuild.forkStream;
-const HtmlSplitter = polymerBuild.HtmlSplitter;
-const stream = require('stream');
-const babelCore = require('babel-core');
-const babelTransform = babelCore.transform;
-const presetEs3 = require('babel-preset-es3');
-const minifyPreset = require('babel-preset-minify');
-const babelPreset2015 = require('babel-preset-es2015');
 const babelPresetEs5 = require('babel-plugin-transform-es5-property-mutators');
-const es2015Preset = babelPreset2015.buildPreset({}, {
+const { HtmlSplitter, forkStream, PolymerProject } = require('polymer-build');
+const externalHelpers = require('babel-plugin-external-helpers');
+const babelPreset2015 = require('babel-preset-es2015');
+const minifyPreset = require('babel-preset-minify');
+const presetEs3 = require('babel-preset-es3');
+const htmlMinifier = require('html-minifier');
+const mergeStream = require('merge-stream');
+const babelCore = require('babel-core');
+const dest = require('vinyl-fs').dest;
+const cssSlam = require('css-slam');
+const gulpif = require('gulp-if');
+const stream = require('stream');
+const path = require('path');
+const babelTransform = babelCore.transform;
+	const es2015Preset = babelPreset2015.buildPreset({}, {
 	modules: false
 });
-const htmlMinifier = require('html-minifier');
-const cssSlam = require('css-slam');
-const dest = require('vinyl-fs').dest;
-const path = require('path');
 
 
 function pipeStreams(streams) {
@@ -26,19 +24,6 @@ function pipeStreams(streams) {
 		.reduce((a, b) => {
 			return a.pipe(b);
 		});
-}
-
-function genLabeler(grunt, containerName) {
-	return (stream, streamName) => {
-		return labelStream(stream, streamName, grunt, containerName);
-	};
-}
-
-function labelStream(stream, name, grunt, containerName) {
-	stream.on && stream.on('end', () => {
-		grunt.log.writeln('Stream', name, 'done', 'in entrypoint', containerName);
-	});
-	return stream;
 }
 
 class GenericOptimizeTransform extends stream.Transform {
@@ -167,59 +152,64 @@ function getOptimizeStreams(options) {
 	return streams;
 }
 
-module.exports = function(grunt) {
-	grunt.registerMultiTask('polymerBuild', 'Builds a polymer project', function() {
-		const done = this.async();
+/**
+ * @param {Object} options - The options for this project
+ * @param {Object} options.project - The project
+ * @param {string[]} options.project.entrypoint - The entrypoints
+ * @param {string[]} [options.project.sources] - The sources to read from
+ * @param {string} options.project.root - The root of the files (cwd)
+ * @param {string[]} options.project.extraDependencies - Any other files to copy along
+ * @param {string[]} [options.project.nonPolymerEntrypoints] - Entrypoints that don't use polymer
+ * @param {Object} options.optimization - Options related to optimizing the resulting code
+ * @param {boolean} [options.optimization.bundle] - Whether to bundle the files
+ * @param {Object} [options.optimization.js] - Config related to JS
+ * @param {boolean} [options.optimization.js.compile] - Whether to compile the JS
+ * @param {boolean} [options.optimization.js.minify] - Whether to minify the JS
+ * @param {Object} [options.optimization.css] - Config related to CSS
+ * @param {boolean} [options.optimization.css.compile] - Whether to compile the CSS
+ * @param {boolean} [options.optimization.css.minify] - Whether to minify the CSS
+ * @param {Object} [options.optimization.html] - Config related to HTML
+ * @param {boolean} [options.optimization.html.compile] - Whether to compile the HTML
+ * @param {boolean} [options.optimization.html.minify] - Whether to minify the HTML
+ * @param {string} options.dest - Where to write the files to
+ */
+module.exports = async function(options) {
+	const entrypoints = Array.isArray(options.project.entrypoint) ?
+		options.project.entrypoint : [options.project.entrypoint];
 
-		var options = this.options({});
-		const PolymerProject = polymerBuild.PolymerProject;
-		const entrypoints = Array.isArray(options.project.entrypoint) ?
-			options.project.entrypoint : [options.project.entrypoint];
+	const projectConfigBase = Object.assign(options.project);
+	delete projectConfigBase.entrypoint;
+	await Promise.all(entrypoints.map((entryPoint) => {
+		return new Promise((resolve, reject) => {
+			const project = new PolymerProject(Object.assign(projectConfigBase, {
+				entrypoint: entryPoint
+			}));
 
-		const projectConfigBase = Object.assign(options.project);
-		delete projectConfigBase.entrypoint;
-		Promise.all(entrypoints.map((entryPoint) => {
-			return new Promise((resolve, reject) => {
-				const project = new PolymerProject(Object.assign(projectConfigBase, {
-					entrypoint: entryPoint
-				}));
+			const sourcesStream = forkStream(project.sources());
+			const depsStream = forkStream(project.dependencies());
+			const splitter = new HtmlSplitter();
 
-				const labeler = genLabeler(grunt, entryPoint);
+			let buildStream = pipeStreams([
+				mergeStream(sourcesStream, depsStream),
+				splitter.split(),
+				getOptimizeStreams(options.optimization),
+				splitter.rejoin(),
+				project.addBabelHelpersInEntrypoint(),
+				pipeStreams((options.project.nonPolymerEntrypoints || []).map((point) => {
+					return project.addBabelHelpersInEntrypoint(path.join(project.config.root, point));
+				})) || null,
+				options.optimization.bundle ? project.bundler({
+					rewriteUrlsInTemplates: false
+				}) : null,
+				dest(options.dest)
+			]);
 
-				grunt.log.writeln('Reading sources...');
-				const sourcesStream = labeler(forkStream(project.sources()), 'sources');
-				const depsStream = labeler(forkStream(project.dependencies()), 'deps');
-				const splitter = new HtmlSplitter();
-
-				let buildStream = pipeStreams([
-					labeler(mergeStream(sourcesStream, depsStream), 'merger'),
-					labeler(splitter.split(), 'splitter'),
-					labeler(getOptimizeStreams(options.optimization), 'optimizer'),
-					labeler(splitter.rejoin(), 'rejoiner'),
-					labeler(project.addBabelHelpersInEntrypoint(), 'babelHelpersOptions'),
-					pipeStreams((options.project.nonPolymerEntrypoints || []).map((point) => {
-						return labeler(project.addBabelHelpersInEntrypoint(path.join(project.config.root, point)), 'babel helpers');
-					})) || null,
-					options.optimization.bundle ? labeler(project.bundler({
-						rewriteUrlsInTemplates: false
-					}), 'bundler') : null,
-					labeler(dest(options.dest), 'dest')
-				]);
-
-				buildStream.on('end', () => {
-					grunt.log.ok('Done with entrypoint', entryPoint);
-					resolve();
-				});
-				buildStream.on('error', (err) => {
-					reject();
-				});
+			buildStream.on('end', () => {
+				resolve();
 			});
-		})).then(() => {
-			grunt.log.ok('Done building polymer project');
-			done();
-		}).catch((err) => {
-			grunt.log.error(err);
-			done(false);
+			buildStream.on('error', (err) => {
+				reject();
+			});
 		});
-	});
+	}));
 }
