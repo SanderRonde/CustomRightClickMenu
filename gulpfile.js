@@ -454,7 +454,7 @@ function readFile(filePath, options) {
 					const { html, js } = crisper({
 						jsFileName: './optionsPrefix.js',
 						source: optionsPrefix,
-						scriptInHead: false,
+						scriptInHead: true,
 						cleanup: false
 					});
 					await Promise.all([
