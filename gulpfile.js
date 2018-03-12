@@ -933,15 +933,4 @@ function readFile(filePath, options) {
 		}));
 })();
 
-gulp.task('test', async function beautifyJs() {
-	return gulp
-		.src('build/**/*.js')
-		.pipe(through.obj((file, enc, cb) => {
-			const content = beautify(file.contents.toString('utf8'));
-			file.contents = new Buffer(content);
-			cb(null, file);
-		}))
-		.pipe(gulp.dest('./build/'));
-})
-
 gulp.task('default', gulp.series('build'));
