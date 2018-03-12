@@ -535,7 +535,7 @@ function readFile(filePath, options) {
 						const optionsRemoved = html.replace(
 							/<script src="options.js"><\/script>/g, '');
 						await Promise.all([
-							writeFile('./build/html/options.html', html, {
+							writeFile('./build/html/options.html', optionsRemoved, {
 								encoding: 'utf8'
 							}),
 							writeFile('./build/html/options.js', js, {
