@@ -782,8 +782,7 @@ function readFile(filePath, options) {
 		function uglifyFiles() {
 			return gulp
 				.src([
-					'./build/html/optionsPrefix.js', 
-					'./build/html/background.js'
+					'./build/html/optionsPrefix.js'
 				])
 				.pipe(uglify())
 				.pipe(gulp.dest('./build/html/'));
