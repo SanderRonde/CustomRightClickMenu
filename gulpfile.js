@@ -532,6 +532,8 @@ function readFile(filePath, options) {
 							scriptInHead: false,
 							cleanup: false
 						});
+						const optionsRemoved = html.replace(
+							/<script src="options.js"><\/script>/g, '');
 						await Promise.all([
 							writeFile('./build/html/options.html', html, {
 								encoding: 'utf8'
@@ -566,7 +568,6 @@ function readFile(filePath, options) {
 					function babelOptions() {
 						return gulp
 							.src('./build/html/options.js')
-							.pipe(replace(/<script src="options.js"><\/script>/g, ''))
 							.pipe(babel({
 								compact: false,
 								presets: ['es3', 'es2015']
