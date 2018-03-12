@@ -120,7 +120,7 @@ function readFile(filePath, options) {
 									});
 									const { name, dir } = path.parse(file);
 									const { html, js } = crisper({
-										jsFileName: `./${name}.js`,
+										jsFileName: `${name}.js`,
 										source: content,
 										scriptInHead: false,
 										cleanup: false
@@ -452,7 +452,7 @@ function readFile(filePath, options) {
 						encoding: 'utf8'
 					});
 					const { html, js } = crisper({
-						jsFileName: './optionsPrefix.js',
+						jsFileName: 'optionsPrefix.js',
 						source: optionsPrefix,
 						scriptInHead: true,
 						cleanup: false
@@ -501,7 +501,10 @@ function readFile(filePath, options) {
 		gulp.parallel(
 			function copyWebcomponentsLibs() {
 				return gulp
-					.src('webcomponentsjs/**/*.js', { 
+					.src([
+						'webcomponentsjs/**/*.js',
+						'!webcomponentsjs/webcomponents-lite.js'
+					], { 
 						cwd: './temp/bower_components', 
 						base: './temp/bower_components'
 					})
@@ -524,7 +527,7 @@ function readFile(filePath, options) {
 							encoding: 'utf8'
 						});
 						const { html, js } = crisper({
-							jsFileName: './options.js',
+							jsFileName: 'options.js',
 							source: options,
 							scriptInHead: false,
 							cleanup: false
@@ -543,7 +546,7 @@ function readFile(filePath, options) {
 							encoding: 'utf8'
 						});
 						const { html, js } = crisper({
-							jsFileName: './background.js',
+							jsFileName: 'background.js',
 							source: background,
 							scriptInHead: false,
 							cleanup: false
@@ -592,12 +595,12 @@ function readFile(filePath, options) {
 				),
 				//Changing of the files created in the last step
 				gulp.parallel(
-					function fixBugs() {
+					function fixBugsBackgroundOptions() {
 						return gulp
 							.src([
 								'./build/html/background.js',
 								'./build/html/options.js',
-								'./build/html/options.es3.js'
+								'./build/html/options.es3.js',
 							])
 							.pipe(replace(
 								/Object.setPrototypeOf\(((\w|\.)+),(\s*)((\w|\.)*)\)/g,
@@ -618,6 +621,34 @@ function readFile(filePath, options) {
 									` } catch (e) { }`
 							))
 							.pipe(gulp.dest('./build/html/'));
+					},
+					function fixBugsWebcomponentsOptions() {
+						return gulp
+							.src([
+								'./bower_components/webcomponentsjs/webcomponents-lite.js'
+							], {
+								cwd: './temp/',
+								base: './temp/'
+							})
+							.pipe(replace(
+								/Object.setPrototypeOf\(((\w|\.)+),(\s*)((\w|\.)*)\)/g,
+								'typeof Object[\'setPrototype\' + \'Of\'] === \'function\'' + 
+									'?Object[\'setPrototype\' + \'Of\']($1,$4):$1.__proto__ = $4'
+							))
+							.pipe(replace(
+								/typeof l\.global\.define/g,
+								'typeof (l.global = l.global || {}).define'
+							))
+							.pipe(replace(
+								/use strict/g,
+								'use notstrict'
+							))
+							.pipe(replace(
+								/\s\(\(\)\=\>\{'use notstrict';if\(!window.customElements\)(.*)\s/g,
+								`try { eval('class foo {}'); eval("(()=>{if(!window.customElements)$1")` + 
+									` } catch (e) { }`
+							))
+							.pipe(gulp.dest('./build/'));
 					},
 					function noDefer() {
 						return gulp
