@@ -32,9 +32,9 @@ export namespace Init {
 	}
 
 	function genStorageModules(): StorageModules {
-		const globalObject: GlobalObject =
-			typeof module !== 'undefined' || window.isDev ?
-				window : {};
+		const isDev = browserAPI.runtime.getManifest().short_name.indexOf('dev') > -1;
+		const globalObject: GlobalObject = typeof module !== 'undefined' || isDev ?
+			window : {};
 		const globals = Global.globals;
 		globalObject.globals = globals;
 

@@ -18,7 +18,6 @@ export namespace Info {
 			window.Promise = Promise;
 		}
 
-		window.isDev = browserAPI.runtime.getManifest().short_name.indexOf('dev') > -1;
 		if (typeof module === 'undefined') {
 			window.log('If you\'re here to check out your background script,' +
 				' get its ID (you can type getID("name") to find the ID),' +
