@@ -504,5 +504,5 @@ interface GlobalObject extends Partial<Window> {
 
 	HTMLElement?: any;
 	JSON?: JSON;
-	md5: (input: any) => string;
+	md5?: (input: any) => string;
 }
