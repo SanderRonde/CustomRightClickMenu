@@ -293,10 +293,14 @@ before('Driver connect', async function() {
 		LOCAL_URL : 'http://hub-cloud.browserstack.com/wd/hub';
 
 	this.timeout(600000 * TIME_MODIFIER);
-	driver = new webdriver.Builder()
+	const unBuilt = new webdriver.Builder()
 		.usingServer(url)
-		.withCapabilities(capabilities)
-		.build();
+		.withCapabilities(capabilities);
+	if (TEST_LOCAL) {
+		driver = unBuilt.forBrowser('Chrome').build();
+	} else {
+		driver = unBuilt.build();
+	}
 
 	if (SKIP_OPTIONS_PAGE || SKIP_OPTIONS_PAGE_NON_DIALOGS ||
 		SKIP_OPTIONS_PAGE_DIALOGS || SKIP_CONTEXTMENU ||
