@@ -1203,11 +1203,11 @@ var chrome = {
 	}
 };
 /**
- * @type {GlobalObject & {crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}} & {chrome: typeof chrome}}
+ * @type {GlobalObject & {XMLHttpRequest: any; crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}} & {chrome: typeof chrome}}
  */
 var window;
 /**
- * @type {GlobalObject & {crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}} & {chrome: typeof chrome}}
+ * @type {GlobalObject & {XMLHttpRequest: any; crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}} & {chrome: typeof chrome}}
  */
 // @ts-ignore
 var backgroundPageWindow = window = {
@@ -1362,7 +1362,7 @@ describe('Conversion', () => {
 		});
 		step('generateScriptUpgradeErrorHandler should be overwritable', () => {
 			assert.doesNotThrow(run(() => {
-				backgroundPageWindow.TransferFromOld.legacyScriptReplace.generateScriptUpgradeErrorHandler = () => {
+				backgroundPageWindow.TransferFromOld.LegacyScriptReplace.generateScriptUpgradeErrorHandler = () => {
 					return (oldScriptErrs, newScriptErrs, parseErrors, errors) => {
 						if (Array.isArray(errors)) {
 							if (Array.isArray(errors[0])) {
