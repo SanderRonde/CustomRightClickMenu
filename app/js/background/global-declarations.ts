@@ -321,7 +321,7 @@ export namespace GlobalDeclarations {
 			const oldId = node.id;
 			node.enabled = true;
 			const settings = modules.crmValues.contextMenuInfoById[node.id].settings;
-			if (node.node.type === 'stylesheet' && node.node.value.toggle) {
+			if (node.node && node.node.type === 'stylesheet' && node.node.value.toggle) {
 				settings.checked = node.node.value.defaultOn;
 			}
 			settings.parentId = parentId;
@@ -332,7 +332,9 @@ export namespace GlobalDeclarations {
 
 			//Update ID
 			node.id = id;
-			modules.crmValues.contextMenuIds[node.node.id] = id;
+			if (node.node) {
+				modules.crmValues.contextMenuIds[node.node.id] = id;
+			}
 			modules.crmValues.contextMenuInfoById[id] = 
 				modules.crmValues.contextMenuInfoById[oldId];
 			modules.crmValues.contextMenuInfoById[oldId] = undefined;
@@ -473,6 +475,10 @@ export namespace GlobalDeclarations {
 			type: 'hide'|'show';
 		}[] {
 			return shown.map(({node, id}) => {
+				if (node === null) {
+					//It's one of the options contextmenu items
+					return null;
+				}
 				const hideOn = modules.crmValues.hideNodesOnPagesData[node.id];
 				if (hideOn && modules.URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
 					//Don't hide on current url
@@ -496,6 +502,10 @@ export namespace GlobalDeclarations {
 			type: 'show'|'hide';
 		}[] {
 			return hidden.map(({node, id}) => {
+				if (node === null) {
+					//It's one of the options contextmenu items
+					return null;
+				}
 				const hideOn = modules.crmValues.hideNodesOnPagesData[node.id];
 				if (!hideOn || !modules.URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
 					//Don't hide on current url
