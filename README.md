@@ -1,24 +1,24 @@
 # Custom Right-Click Menu
 Custom Right-Click Menu for Chrome
 
-#Installing from repo
+# Installing from repo
 Clone the repo, run npm install and run the grunt "build" task, load the extension into chrome from the "build" folder. Do not run bower install. Due to crisper's new method of crisping and it using the defer property, this makes all imports run in some random order which crashes everything. There is a flag available on the original crisper but this does not exist on grunt-crisper. And it's also horrible to crispify every single component and list out its name. Vulcanize will take care of the optimization.
 
-#Installing from the chrome web store
+# Installing from the chrome web store
 The extension can be found here https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj
 Keep in mind this version is version 1.1 and this is the repo containg version 2.0
 It's probably going to take a while to complete this version since i'm doing this on the side next to university and all its projects.
 
-#Description
+# Description
 Create your own entry in the right-click menu. Add custom scripts, links, submenus or custom CSS in your right-click menu and
 do anything you want all from your right-click menu. 
 
-#Custom CSS
+# Custom CSS
 Apply custom CSS styles on the current page based on the page you're visiting. Make them always apply or only when you toggle them on.
 Create comprehensive changes using a CSS editor with lots of features in the application or simply use your editor by using the 
 CRM External App (https://github.com/SanderRonde/CRM-External-Editor-App).
 
-#Custom Javascript
+# Custom Javascript
 Run your own javscript snippets on the current page or simply use ones that someone else wrote by sharing them. You can also write 
 the javascript in the extension itself or use your own editor with (https://github.com/SanderRonde/CRM-External-Editor-App).
 Apart from using standard javascript you can also access the Custom Right-Click Menu's own APIs allowing you to extend the menu
@@ -30,13 +30,13 @@ this becomes even better since then you can even change things like your wallpap
 Apart from creating your own javascript snippets you can use other people's snippets and share your own. Using a very secure system
 that allows you to manage a snippet's permissions no harm can be done. 
 
-#Custom Menus
+# Custom Menus
 Create your own menus that are relevant for their own situations. For example, create a menu that lists all frequently used search
 engines and allows you to add one using a javascript snippet. Making menus and changing where they are visible allows you to make
 a specific right-click menu for every page and re-use other menus, even being able to show different menu items based on the content
 you clicked on (page, link, selection, image, video or audio).
 
-#License
+# License
 ```
 The MIT License (MIT)
 
