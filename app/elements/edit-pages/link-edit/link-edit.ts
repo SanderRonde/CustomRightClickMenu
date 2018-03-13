@@ -39,7 +39,6 @@ namespace LinkEditElement {
 
 		static checkboxStateChange(this: NodeEditBehaviorLinkInstance, e: Polymer.ClickEvent) {
 			//Get this checkbox
-			console.log(e);
 			const checkbox = window.app.util.findElementWithTagname(e, 'paper-checkbox');
 			$(this.$.linksContainer).find('paper-checkbox').each(function (this: HTMLPaperCheckboxElement) {
 				if (this !== checkbox) {
