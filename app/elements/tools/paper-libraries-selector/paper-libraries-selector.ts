@@ -331,8 +331,39 @@ namespace PaperLibrariesSelectorElement {
 			this.init(true);
 		};
 
+		private static _getStatusCodeDescr(this: PaperLibrariesSelector, code: number) {
+			switch ((code + '')[0]) {
+				case '2':
+					return 'Success';
+				case '3':
+					return 'Redirect';
+				case '4':
+					switch (code) {
+						case 400:
+							return 'Bad request';
+						case 401: 
+							return 'Unauthorized';
+						case 403:
+							return 'Forbidden';
+						case 404:
+							return 'Not ound';
+						case 408:
+							return 'Timeout';
+						default:
+							return null;
+					}
+				case '5':
+					return 'Server error';
+				case '0':
+				case '1':
+				default:
+					return null;
+			}
+		}
+
 		private static _addLibraryHandler(this: PaperLibrariesSelector) {
-			const name = window.doc.addedLibraryName.$$('input').value;
+			const input = window.doc.addedLibraryName;
+			const name = input.$$('input').value;
 			let taken = false;
 			for (let i = 0; i < this.installedLibraries.length; i++) {
 				if (this.installedLibraries[i].name === name) {
@@ -340,19 +371,22 @@ namespace PaperLibrariesSelectorElement {
 				}
 			}
 			if (name !== '' && !taken) {
-				window.doc.addedLibraryName.invalid = false;
+				input.invalid = false;
 				if (window.doc.addLibraryRadios.selected === 'url') {
 					const libraryInput = window.doc.addLibraryUrlInput;
 					let url = libraryInput.$$('input').value;
 					if (url[0] === '/' && url[1] === '/') {
 						url = 'http:' + url;
 					}
-					$.ajax({
-						url: url,
-						dataType: 'html'
-					}).done((data) => {
-						this.confirmLibraryFile(name, window.doc.addLibraryIsTS.checked, data, url);
-					}).fail(function() {
+					window.app.util.loadFile(url).then((data) => {
+						this.confirmLibraryFile(name, window.doc.addLibraryIsTS.checked, 
+							data, url);
+					}).catch((statusCode) => {
+						const statusMsg = this._getStatusCodeDescr(statusCode);
+						const msg = statusMsg ? 
+							`Failed with status code ${statusCode} "${statusMsg}"` :
+							`Failed with status code ${statusCode}";`
+						window.app.util.showToast(msg);
 						libraryInput.setAttribute('invalid', 'true');
 					});
 				} else {
@@ -363,11 +397,11 @@ namespace PaperLibrariesSelectorElement {
 				}
 			} else {
 				if (taken) {
-					window.doc.addedLibraryName.errorMessage = 'That name is already taken';
+					input.errorMessage = 'That name is already taken';
 				} else {
-					window.doc.addedLibraryName.errorMessage = 'Please enter a name';
+					input.errorMessage = 'Please enter a name';
 				}
-				window.doc.addedLibraryName.invalid = true;
+				input.invalid = true;
 			}
 		}
 
