@@ -215,7 +215,7 @@ export namespace CRMNodes.Script.Handler {
 			modules.Util.promiseChain(scripts.map((script) => {
 				return async () => {
 					try {
-						await modules.Util.proxyPromise(browserAPI.tabs.executeScript(tabId, _ensureRunAt(nodeId, script)), (err) => {
+						await browserAPI.tabs.executeScript(tabId, _ensureRunAt(nodeId, script)).catch((err) => {
 							if (err.message.indexOf('Could not establish connection') === -1 &&
 								err.message.indexOf('closed') === -1) {
 								window.log('Couldn\'t execute on tab with id', tabId, 'for node', nodeId, err);
@@ -717,7 +717,7 @@ export namespace CRMNodes.Script.Updating {
 
 		const contextMenuId = modules.crmValues.contextMenuIds[id];
 		if (contextMenuId !== undefined && contextMenuId !== null) {
-			await modules.Util.proxyPromise(browserAPI.contextMenus.remove(contextMenuId));
+			await browserAPI.contextMenus.remove(contextMenuId).catch(() => {});
 		}
 	}
 	function _registerNode(node: CRM.Node, oldPath?: number[]) {

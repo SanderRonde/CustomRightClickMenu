@@ -97,10 +97,9 @@ export namespace Logging.Listeners {
 					} as TabData));
 				} else {
 					tabs.push(modules.Util.iipe(async () => {
-						const tab = await modules.Util.proxyPromise(
-							browserAPI.tabs.get(tabId), () => {
-								modules.Util.removeTab(tabId);
-							});
+						const tab = await browserAPI.tabs.get(tabId).catch(() => {
+							modules.Util.removeTab(tabId);
+						});
 						if (!tab) {
 							return null;
 						}

@@ -533,7 +533,7 @@ export namespace GlobalDeclarations {
 			//Horrible workaround that allows the hiding of nodes on certain url's that
 			//	surprisingly only takes ~1-2ms per tab switch.
 			const currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
-			const tab = await modules.Util.proxyPromise(browserAPI.tabs.get(currentTabId), (err) => {
+			const tab = await browserAPI.tabs.get(currentTabId).catch((err) => {
 				if (err.message.indexOf('No tab with id:') > -1) {
 					modules.storages.failedLookups.push(currentTabId);
 				} else {
@@ -573,10 +573,10 @@ export namespace GlobalDeclarations {
 			for (let nodeId in statuses) {
 				const status = statuses[nodeId];
 				const currentValue = status[currentTabId];
-				await modules.Util.proxyPromise(browserAPI.contextMenus.update(ids[nodeId], {
+				await browserAPI.contextMenus.update(ids[nodeId], {
 					checked: typeof currentValue === 'boolean' ?
 						currentValue : status.defaultValue
-				}), (err) => {
+				}).catch((err) => {
 					window.log(err.message);
 				});
 			}

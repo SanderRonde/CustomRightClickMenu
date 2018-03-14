@@ -306,16 +306,6 @@ export namespace Util {
 			xhr.send();
 		});
 	}
-	export function proxyPromise<T>(promise: Promise<T>, rejectHandler?: (error: Error) => void): Promise<T|void> {
-		return new Promise<T|void>((resolve) => {
-			promise.then((result) => {
-				resolve(result);
-			}).catch((err) => {
-				rejectHandler && rejectHandler(err);
-				resolve(null);
-			});
-		});
-	}
 	export function wait(duration: number): Promise<void> {
 		return new Promise<void>((resolve) => {
 			window.setTimeout(() => {
