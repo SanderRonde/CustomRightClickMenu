@@ -94,6 +94,7 @@ declare const window: AppWindow;
 
 import * as chai from 'chai';
 import * as webdriver from 'selenium-webdriver';
+import { writeFile } from 'fs';
 require('mocha-steps');
 const secrets = require('./UI/secrets');
 const request = require('request');
@@ -2950,6 +2951,15 @@ describe('Options Page', function() {
 								window.chrome._clearExecutedScripts();
 								return str;
 							}))).map(scr => JSON.stringify(scr));
+
+							const a = activatedScripts.map(scr => JSON.parse(scr));
+							const b = {
+								id: tabId,
+								code: jqCode
+							};
+							writeFile('./x.json', JSON.stringify({
+								a, b
+							}), { encoding: 'utf8'}, (err) => {console.log(err);})
 
 							assert.include(activatedScripts, JSON.stringify({
 								id: tabId,
