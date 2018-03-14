@@ -123,11 +123,13 @@ export namespace Caches {
 	}
 	export function cacheCall<R, A>(toCacheFn: (...args: A[]) => R, toCacheArgs: IArguments, unlink: boolean = true): R {
 		//Slice off the fromCache argument
-		const argsArr = (Array.prototype.slice.apply(toCacheArgs) as A[]).slice(0, -1);
-		const { found, result } = _getFromCache(toCacheFn, argsArr);
+		const regularArgsLength = toCacheFn.length - 1;
+		const allArgs = (Array.prototype.slice.apply(toCacheArgs) as A[]);
+		const regularArgs = allArgs.slice(0, regularArgsLength);
+		const { found, result } = _getFromCache(toCacheFn, regularArgs);
 		if (found) {
 			return result;
 		}
-		return _doCache(toCacheFn, argsArr, unlink);
+		return _doCache(toCacheFn, regularArgs, unlink);
 	}
 }
