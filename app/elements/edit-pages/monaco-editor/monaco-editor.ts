@@ -2283,7 +2283,11 @@ namespace MonacoEditorElement {
 
 		static async reset(this: MonacoEditor) {			
 			const createInfo = this._createInfo;
-			const editorType = this.getCurrentModel().editorType;
+			const currentModel = this.getCurrentModel();
+			if (!currentModel) {
+				return null;
+			}
+			const editorType = currentModel.editorType;
 
 			this.destroy();
 
