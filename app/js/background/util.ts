@@ -266,6 +266,16 @@ export namespace Util {
 		}
 		return getScriptNodeJS(script, type);
 	}
+	export async function getLibraryCode(library: CRM.InstalledLibrary) {
+		if (library.ts && library.ts.enabled) {
+			if (library.ts.code) {
+				return library.ts.code.compiled;
+			}
+			const { ts } = await (await modules.CRMNodes.TS.compileLibrary(library));
+			return ts.code.compiled;
+		}
+		return library.code;
+	}
 	export async function canRunOnUrl(url: string): Promise<boolean> {
 		if (!url || url.indexOf('chrome://') !== -1) {
 			return false;

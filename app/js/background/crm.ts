@@ -68,68 +68,69 @@ export namespace CRMNodes.Script.Handler {
 			].join('\n') : ''}`		
 		].join('\n');		
 	}		
-	function _getScriptsToRun(code: string, runAt: _browser.extensionTypes.RunAt, node: CRM.ScriptNode, usesUnsafeWindow: boolean): {		
-		code?: string;		
-		file?: string;		
-		runAt: _browser.extensionTypes.RunAt;		
-	}[] {		
-		const scripts = [];		
-		const globalLibraries = modules.storages.storageLocal.libraries;
-		const urlDataPairs = modules.storages.urlDataPairs;
-		for (let i = 0; i < node.value.libraries.length; i++) {		
-			let lib: {		
-				name: string;		
-				url?: string;		
-				code?: string;		
-			} | {		
-				code: string;		
-			};		
-			if (globalLibraries) {		
-				for (let j = 0; j < globalLibraries.length; j++) {		
-					if (globalLibraries[j].name === node.value.libraries[i].name) {		
-						const currentLib = globalLibraries[j];
-						if (currentLib.ts && currentLib.ts.enabled) {
-							lib = {
-								code: currentLib.ts.code.compiled
+	async function _getScriptsToRun(code: string, runAt: _browser.extensionTypes.RunAt, 
+		node: CRM.ScriptNode, usesUnsafeWindow: boolean): Promise<{		
+			code?: string;		
+			file?: string;		
+			runAt: _browser.extensionTypes.RunAt;		
+		}[]> {		
+			const scripts = [];		
+			const globalLibraries = modules.storages.storageLocal.libraries;
+			const urlDataPairs = modules.storages.urlDataPairs;
+			for (let i = 0; i < node.value.libraries.length; i++) {		
+				let lib: {		
+					name: string;		
+					url?: string;		
+					code?: string;		
+				} | {		
+					code: string;		
+				};		
+				if (globalLibraries) {		
+					for (let j = 0; j < globalLibraries.length; j++) {		
+						if (globalLibraries[j].name === node.value.libraries[i].name) {		
+							const currentLib = globalLibraries[j];
+							if (currentLib.ts && currentLib.ts.enabled) {
+								lib = {
+									code: await modules.Util.getLibraryCode(currentLib)
+								}
+							} else {
+								lib = currentLib;
 							}
-						} else {
-							lib = currentLib;
+							break;
 						}
-						break;
-					}
+					}	
 				}	
-			}	
-			if (!lib) {		
-				//Resource hasn't been registered with its name, try if it's an anonymous one		
-				if (!node.value.libraries[i].name) {		
-					//Check if the value has been registered as a resource		
-					if (urlDataPairs[node.value.libraries[i].url]) {		
-						lib = {		
-							code: urlDataPairs[node.value.libraries[i].url].dataString		
-						};		
+				if (!lib) {		
+					//Resource hasn't been registered with its name, try if it's an anonymous one		
+					if (!node.value.libraries[i].name) {		
+						//Check if the value has been registered as a resource		
+						if (urlDataPairs[node.value.libraries[i].url]) {		
+							lib = {		
+								code: urlDataPairs[node.value.libraries[i].url].dataString		
+							};		
+						}		
 					}		
 				}		
+				if (lib) {		
+					scripts.push({		
+						code: lib.code,		
+						runAt: runAt		
+					});		
+				}		
 			}		
-			if (lib) {		
+			if (!usesUnsafeWindow) {		
+				//Let the content script determine whether to run this		
 				scripts.push({		
-					code: lib.code,		
-					runAt: runAt		
+					file: '/js/crmapi.js',		
+					runAt: runAt			
 				});		
 			}		
-		}		
-		if (!usesUnsafeWindow) {		
-			//Let the content script determine whether to run this		
 			scripts.push({		
-				file: '/js/crmapi.js',		
-				runAt: runAt			
+				code: code,		
+				runAt: runAt		
 			});		
-		}		
-		scripts.push({		
-			code: code,		
-			runAt: runAt		
-		});		
-		return scripts;		
-	}
+			return scripts;		
+		}
 	function _generateMetaAccessFunction(metaData: {
 		[key: string]: any;
 	}): (key: string) => any {
@@ -383,7 +384,7 @@ export namespace CRMNodes.Script.Handler {
 						}, args);
 
 						const usesUnsafeWindow = (await modules.Util.getScriptNodeScript(node)).indexOf('unsafeWindow') > -1;
-						const scripts = _getScriptsToRun(code, args[1][4], node, usesUnsafeWindow);
+						const scripts = await _getScriptsToRun(code, args[1][4], node, usesUnsafeWindow);
 						_executeScripts(node.id, tab.id, scripts, usesUnsafeWindow);
 					});
 			}
@@ -392,10 +393,10 @@ export namespace CRMNodes.Script.Handler {
 }
 
 export namespace CRMNodes.Script.Background {
-	function _loadBackgroundPageLibs(node: CRM.ScriptNode): {
+	async function _loadBackgroundPageLibs(node: CRM.ScriptNode): Promise<{
 		libraries: string[];
 		code: string[];
-	} {
+	}> {
 		const libraries = [];
 		const code = [];
 		const globalLibraries = modules.storages.storageLocal.libraries;
@@ -416,7 +417,7 @@ export namespace CRMNodes.Script.Background {
 						const currentLib = globalLibraries[j];
 						if (currentLib.ts && currentLib.ts.enabled) {
 							lib = {
-								code: currentLib.ts.code.compiled
+								code: await modules.Util.getLibraryCode(currentLib)
 							}
 						} else {
 							lib = currentLib;
@@ -530,7 +531,7 @@ export namespace CRMNodes.Script.Background {
 				'Terminated background page...');
 		}
 
-		const result = _loadBackgroundPageLibs(node);
+		const result = await _loadBackgroundPageLibs(node);
 		const backgroundPageCode = result.code;
 		const libraries = result.libraries;
 
