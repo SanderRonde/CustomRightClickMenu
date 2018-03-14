@@ -1760,23 +1760,8 @@ namespace CRMAppElement {
 					});
 				});
 			}
-			private static _loadFile(path: string): Promise<string> {
-				return new Promise<string>((resolve, reject) => {
-					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
-					xhr.open('GET', browserAPI.runtime.getURL(path));
-					xhr.onreadystatechange = () => {
-						if (xhr.readyState === XMLHttpRequest.DONE) {
-							if (xhr.status === 200) {
-								resolve(xhr.responseText);
-							} else {
-								reject(new Error('Failed XHR'));
-							}
-						}
-					}
-				});
-			}
 			private static async _execFile(path: string): Promise<void> {
-				const fileContent = await this._loadFile(path);
+				const fileContent = await window.app.util.loadFile(path);
 				eval(fileContent);
 			}
 			private static _loadTernFiles(): Promise<void> {
@@ -4481,6 +4466,22 @@ namespace CRMAppElement {
 		static util = class CRMAppUtil {
 			static getChromeVersion() {
 				return this.parent().getChromeVersion();
+			}
+
+			static loadFile(path: string): Promise<string> {
+				return new Promise<string>((resolve, reject) => {
+					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
+					xhr.open('GET', browserAPI.runtime.getURL(path));
+					xhr.onreadystatechange = () => {
+						if (xhr.readyState === XMLHttpRequest.DONE) {
+							if (xhr.status === 200) {
+								resolve(xhr.responseText);
+							} else {
+								reject(new Error('Failed XHR'));
+							}
+						}
+					}
+				});
 			}
 
 			static showToast(text: string) {
