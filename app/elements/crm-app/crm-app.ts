@@ -4477,7 +4477,7 @@ namespace CRMAppElement {
 							if (xhr.status === 200) {
 								resolve(xhr.responseText);
 							} else {
-								reject(new Error('Failed XHR'));
+								reject(xhr.status);
 							}
 						}
 					}
