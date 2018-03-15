@@ -7,21 +7,33 @@
 const PORT: number = 1250;
 //Set to false to test remotely even when running it locally
 const TEST_LOCAL_DEFAULT = true;
-const TEST_LOCAL: boolean = process.argv.indexOf('--remote') > -1 ? false : TEST_LOCAL_DEFAULT;
+const TEST_LOCAL: boolean = hasSetting('remote') ? false : TEST_LOCAL_DEFAULT;
 const TIME_MODIFIER = 1.2;
 const LOCAL_URL = 'http://localhost:9515';
 
-const SKIP_OPTIONS_PAGE = process.argv.indexOf('--skip-options') > -1;
-const SKIP_OPTIONS_PAGE_NON_DIALOGS = process.argv.indexOf('--skip-non-dialogs') > -1;
-const SKIP_OPTIONS_PAGE_DIALOGS = process.argv.indexOf('--skip-dialogs') > -1;
-const SKIP_CONTEXTMENU = process.argv.indexOf('--skip-contextmenu') > -1;
-const SKIP_DIALOG_TYPES_EXCEPT: CRM.NodeType|false = 
-	process.argv.indexOf('--skip-types-except-stylesheet') > -1 ? 'stylesheet' :
-		process.argv.indexOf('--skip-types-except-divider') > -1 ? 'divider' : 
-			process.argv.indexOf('--skip-types-except-script') > -1 ? 'script' : 
-				process.argv.indexOf('--skip-types-except-link') > -1 ? 'link' : 
-					process.argv.indexOf('--skip-types-except-menu') > -1 ? 'menu' : false;
-const WAIT_ON_DONE = process.argv.indexOf('--wait-on-done') > -1;
+const SKIP_OPTIONS_PAGE = hasSetting('skip-options');
+const SKIP_OPTIONS_PAGE_NON_DIALOGS = hasSetting('skip-non-dialogs');
+const SKIP_OPTIONS_PAGE_DIALOGS = hasSetting('skip-dialogs');
+const SKIP_CONTEXTMENU = hasSetting('skip-contextmenu');
+const SKIP_DIALOG_TYPES_EXCEPT = getSkipDialogSetting();
+const WAIT_ON_DONE = hasSetting('wait-on-done');;
+
+function hasSetting(setting: string) {
+	return process.argv.indexOf(`--${setting}`) > -1;
+}
+
+type SkipOption = 'stylesheet'|'divider'|'script'|
+	'menu'|'link'|'script-fullscreen';
+function getSkipDialogSetting(): SkipOption|false {
+	const options: SkipOption[] = ['stylesheet', 'divider', 
+		'script', 'menu', 'link', 'script-fullscreen'];
+	for (const option of options) {
+		if (hasSetting(`skip-types-except-${option}`)) {
+			return option;
+		}
+	}
+	return false;
+}
 
 interface ChromeLastCall {
 	api: string;
@@ -2812,7 +2824,9 @@ describe('Options Page', function() {
 		});
 		describe('Script Dialog', function() {
 			const type: CRM.NodeType = 'script';
-			if (SKIP_DIALOG_TYPES_EXCEPT && SKIP_DIALOG_TYPES_EXCEPT !== type) {
+			if (SKIP_DIALOG_TYPES_EXCEPT && 
+				SKIP_DIALOG_TYPES_EXCEPT !== 'script' &&
+				SKIP_DIALOG_TYPES_EXCEPT !== 'script-fullscreen') {
 				return;
 			}
 
@@ -2820,14 +2834,22 @@ describe('Options Page', function() {
 				return resetSettings(this);
 			});
 
-			testNameInput(type);
-			testContentTypes(type);
-			testClickTriggers(type);
+			if (!SKIP_DIALOG_TYPES_EXCEPT ||
+				SKIP_DIALOG_TYPES_EXCEPT !== 'script-fullscreen') {
+					testNameInput(type);
+					testContentTypes(type);
+					testClickTriggers(type);
+				}
 
 			describe('Editor', function() {
 				describe('Settings', function() {
+					if (SKIP_DIALOG_TYPES_EXCEPT && 
+						SKIP_DIALOG_TYPES_EXCEPT === 'script-fullscreen') {
+							return;
+						}
 					testEditorSettings(type);
 				});
+				
 				describe('Fullscreen Tools', function() {
 					this.slow(70000 * TIME_MODIFIER);
 					this.timeout(100000 * TIME_MODIFIER);
