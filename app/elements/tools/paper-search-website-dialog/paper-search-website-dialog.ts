@@ -305,6 +305,9 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 			while (node.tagName !== 'PAPER-RADIO-BUTTON') {
 				node = node.parentElement;
 			}
+			if (!node) {
+				return;
+			}
 			(node as HTMLPaperRadioButtonElement).checked = true;
 			this.disableManualButton = false;
 		};
