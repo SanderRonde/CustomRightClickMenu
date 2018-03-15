@@ -1761,7 +1761,7 @@ namespace CRMAppElement {
 				});
 			}
 			private static async _execFile(path: string): Promise<void> {
-				const fileContent = await window.app.util.loadFile(path, true);
+				const fileContent = await window.app.util.xhr(path, true);
 				eval(fileContent);
 			}
 			private static _loadTernFiles(): Promise<void> {
@@ -4468,7 +4468,7 @@ namespace CRMAppElement {
 				return this.parent().getChromeVersion();
 			}
 
-			static loadFile(path: string, local: boolean): Promise<string> {
+			static xhr(path: string, local: boolean): Promise<string> {
 				return new Promise<string>((resolve, reject) => {
 					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
 					xhr.open('GET', local ? 
