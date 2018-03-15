@@ -2974,15 +2974,6 @@ describe('Options Page', function() {
 								return str;
 							}))).map(scr => JSON.stringify(scr));
 
-							const a = activatedScripts.map(scr => JSON.parse(scr));
-							const b = {
-								id: tabId,
-								code: jqCode
-							};
-							writeFile('./x.json', JSON.stringify({
-								a, b
-							}), { encoding: 'utf8'}, (err) => {console.log(err);})
-
 							assert.include(activatedScripts, JSON.stringify({
 								id: tabId,
 								code: jqCode
