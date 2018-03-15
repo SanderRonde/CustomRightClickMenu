@@ -439,8 +439,10 @@ namespace CodeEditBehaviorNamespace {
 
 				if (this.item.type === 'script') {
 					const __this = this as CodeEditBehavior<NodeEditBehaviorScriptInstance>;
-					window.app.$.paperLibrariesSelector.updateLibraries((__this.editorMode === 'main' ?
-					__this.newSettings.value.libraries : __this.newSettings.value.backgroundLibraries || [])), this.editorMode;
+					const libsArr = __this.editorMode === 'main' ?
+					__this.newSettings.value.libraries : __this.newSettings.value.backgroundLibraries || [];
+					window.app.$.paperLibrariesSelector.updateLibraries(libsArr, 
+						this.newSettings as CRM.ScriptNode, this.editorMode as 'main'|'background');
 					if (__this.newSettings.value.ts && __this.newSettings.value.ts.enabled) {
 						window.app.$.editorTypescript.classList.add('active');
 					} else {

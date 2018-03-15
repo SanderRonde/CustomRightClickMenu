@@ -29,10 +29,10 @@ namespace ScriptEditElement {
 				const backgroundEnabled = this.$.paperLibrariesShowbackground.checked;
 				if (backgroundEnabled) {
 					this.$.paperLibrariesSelector.updateLibraries(this.item.value.backgroundLibraries,
-						'background');
+						this.newSettings as CRM.ScriptNode, 'background');
 				} else {
 					this.$.paperLibrariesSelector.updateLibraries(this.item.value.libraries,
-						'main');
+						this.newSettings as CRM.ScriptNode, 'main');
 				}
 			}, 0);
 		}
@@ -198,7 +198,9 @@ namespace ScriptEditElement {
 				this.editorMode = 'options';
 			} else if (isLibraries && this.editorMode !== 'libraries') {
 				this.$.codeTabContentContainer.classList.add('showLibs');
-				this.$.paperLibrariesSelector.updateLibraries(this.newSettings.value.libraries);
+				this.$.paperLibrariesSelector.updateLibraries(
+					this.newSettings.value.libraries, this.newSettings as CRM.ScriptNode,
+					'main');
 				this.editorMode = 'libraries';
 			}
 

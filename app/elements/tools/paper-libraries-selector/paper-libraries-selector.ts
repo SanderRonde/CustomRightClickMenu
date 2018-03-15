@@ -78,6 +78,8 @@ namespace PaperLibrariesSelectorElement {
 			listener: Function;
 		}> = [];
 
+		private static _srcNode: CRM.ScriptNode = null;
+
 		static ready(this: PaperLibrariesSelector) {
 			browserAPI.storage.local.get<CRM.StorageLocal>().then((keys) => {
 				if (keys.libraries) {
@@ -241,7 +243,18 @@ namespace PaperLibrariesSelectorElement {
 					code: {}
 				}
 			});
-			this.usedlibraries.push({
+			const srcLibraries = 
+				this.mode === 'main' ?
+					this._srcNode.value.libraries :
+					this._srcNode.value.backgroundLibraries;
+			if (!srcLibraries) {
+				if (this.mode === 'main') {
+					this._srcNode.value.libraries = [];
+				} else {
+					this._srcNode.value.backgroundLibraries = [];
+				}
+			}
+			srcLibraries.push({
 				name,
 				url
 			});
@@ -644,11 +657,13 @@ namespace PaperLibrariesSelectorElement {
 			contentEl.style.height = (~~contentEl.style.height.split('px')[0] - 48) + 'px';
 		}
 
-		static updateLibraries(this: PaperLibrariesSelector, libraries: Array<LibrarySelectorLibrary>, mode: 'main'|'background' = 'main') {
-			this.set('usedlibraries', libraries);
-			this.mode = mode;
-			this.init();
-		};
+		static updateLibraries(this: PaperLibrariesSelector, libraries: Array<LibrarySelectorLibrary>,
+			srcNode: CRM.ScriptNode, mode: 'main'|'background' = 'main') {
+				this.set('usedlibraries', libraries);
+				this._srcNode = srcNode
+				this.mode = mode;
+				this.init();
+			};
 
 		static _getMenu(this: PaperLibrariesSelector) {
 			return this.$.dropdown;
