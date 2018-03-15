@@ -4481,6 +4481,7 @@ namespace CRMAppElement {
 							}
 						}
 					}
+					xhr.send();
 				});
 			}
 
