@@ -3050,7 +3050,7 @@ describe('Options Page', function() {
 						});
 						it('should be possible to add your own library through code', async () => {
 							const libName = getRandomString(25);
-							const testCode = getRandomString(100);
+							const testCode = `'${getRandomString(100)}'`;
 							const tabId = getRandomId();
 
 							const dialog = await enterEditorFullscreen(this, type);
