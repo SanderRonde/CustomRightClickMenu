@@ -106,7 +106,6 @@ declare const window: AppWindow;
 
 import * as chai from 'chai';
 import * as webdriver from 'selenium-webdriver';
-import { writeFile } from 'fs';
 require('mocha-steps');
 const secrets = require('./UI/secrets');
 const request = require('request');
