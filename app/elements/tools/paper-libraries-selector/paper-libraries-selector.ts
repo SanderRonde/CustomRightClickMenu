@@ -391,7 +391,7 @@ namespace PaperLibrariesSelectorElement {
 					if (url[0] === '/' && url[1] === '/') {
 						url = 'http:' + url;
 					}
-					window.app.util.loadFile(url).then((data) => {
+					window.app.util.loadFile(url, false).then((data) => {
 						this.confirmLibraryFile(name, window.doc.addLibraryIsTS.checked, 
 							data, url);
 					}).catch((statusCode) => {

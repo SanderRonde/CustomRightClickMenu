@@ -1761,7 +1761,7 @@ namespace CRMAppElement {
 				});
 			}
 			private static async _execFile(path: string): Promise<void> {
-				const fileContent = await window.app.util.loadFile(path);
+				const fileContent = await window.app.util.loadFile(path, true);
 				eval(fileContent);
 			}
 			private static _loadTernFiles(): Promise<void> {
@@ -4468,10 +4468,11 @@ namespace CRMAppElement {
 				return this.parent().getChromeVersion();
 			}
 
-			static loadFile(path: string): Promise<string> {
+			static loadFile(path: string, local: boolean): Promise<string> {
 				return new Promise<string>((resolve, reject) => {
 					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
-					xhr.open('GET', browserAPI.runtime.getURL(path));
+					xhr.open('GET', local ? 
+						browserAPI.runtime.getURL(path) : path);
 					xhr.onreadystatechange = () => {
 						if (xhr.readyState === XMLHttpRequest.DONE) {
 							if (xhr.status === 200) {
