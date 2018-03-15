@@ -74,7 +74,6 @@ namespace StylesheetEditElement {
 						this.newSettings.value.options = this.editorManager.editor.getValue();
 					}
 				}
-				this.editorManager.destroy();
 			}
 
 			let value: string;
