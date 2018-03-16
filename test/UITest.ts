@@ -66,7 +66,7 @@ type DeepPartial<T> = {
 	[P in keyof T]?: DeepPartial<T[P]>;
 }
 
-export interface AppChrome extends DeepPartial<Chrome> {
+interface AppChrome extends DeepPartial<Chrome> {
 	_lastSpecialCall: ChromeLastCall;
 	_currentContextMenu: ContextMenu;
 	_activeTabs: ActiveTabs;

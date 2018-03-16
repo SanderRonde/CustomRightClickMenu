@@ -1,6 +1,5 @@
 /// <reference path="../../tools/definitions/chrome.d.ts" />
 
-import { AppChrome } from "../UITest";
 
 type StorageContainer = {
 	[key: string]: any;
@@ -320,6 +319,58 @@ interface WebWorker {
     new(stringUrl: string): Worker;
 };
 
+interface ChromeLastCall {
+	api: string;
+	args: any[];
+}
+
+interface ContextMenuItem {
+	id: number;
+	createProperties: ContextMenusCreateProperties;
+	currentProperties: ContextMenusCreateProperties;
+	children: ContextMenuItem[];
+}
+
+type ContextMenu = ContextMenuItem[];
+
+type ActiveTabs = {
+	type: 'create'|'update';
+	data: any;
+	id?: number;
+}[];
+
+interface ExecutedScript {
+	id: number;
+	code: string;
+}
+
+type ExecutedScripts = ExecutedScript[];
+
+type DeepPartial<T> = {
+	[P in keyof T]?: DeepPartial<T[P]>;
+}
+
+interface AppChrome extends DeepPartial<Chrome> {
+	_lastSpecialCall: ChromeLastCall;
+	_currentContextMenu: ContextMenu;
+	_activeTabs: ActiveTabs;
+	_executedScripts: ExecutedScripts;
+	_activatedBackgroundPages: number[];
+	_clearExecutedScripts: () => void;
+	_fakeTabs: {
+		[id: number]: {
+			id: number;
+			title: string;
+			url: string;
+		};
+		[id: string]: {
+			id: number;
+			title: string;
+			url: string;
+		};
+	};
+}
+
 interface TestWindow extends Window {
 	chrome: AppChrome;
 	_crmAPIRegistry: (typeof FakeCRMAPI)[];
@@ -329,9 +380,8 @@ interface TestWindow extends Window {
 	dummyContainer: HTMLDivElement;
 }
 
-declare const window: TestWindow;
-
-window.chrome = {
+const testWindow = window as TestWindow;
+testWindow.chrome = {
 	_lastSpecialCall: null,
 	_currentContextMenu: [],
 	_activeTabs: [],
@@ -339,7 +389,7 @@ window.chrome = {
 	_fakeTabs: {},
 	_activatedBackgroundPages: [],
 	_clearExecutedScripts: function() {
-		while (window.chrome._executedScripts.pop()) { }
+		while (testWindow.chrome._executedScripts.pop()) { }
 	},
 	commands: {
 		onCommand: {
@@ -423,7 +473,7 @@ window.chrome = {
 
 			usedIds.push(id);
 			if (data.parentId) {
-				findItemWithId(window.chrome._currentContextMenu, data.parentId, function(parent) {
+				findItemWithId(testWindow.chrome._currentContextMenu, data.parentId, function(parent) {
 					parent.children.push({
 						id: id,
 						createProperties: data as any,
@@ -432,7 +482,7 @@ window.chrome = {
 					});
 				});
 			} else {
-				window.chrome._currentContextMenu.push({
+				testWindow.chrome._currentContextMenu.push({
 					id: id,
 					createProperties: data as any,
 					currentProperties: data as any,
@@ -506,21 +556,21 @@ window.chrome = {
 				}
 
 				var index = null;
-				for (var i = 0; i < window.chrome._currentContextMenu.length; i++) {
-					if (areStringsEqual(window.chrome._currentContextMenu[i].id, id)) {
+				for (var i = 0; i < testWindow.chrome._currentContextMenu.length; i++) {
+					if (areStringsEqual(testWindow.chrome._currentContextMenu[i].id, id)) {
 						index = i;
 					}
 				}
 				if (index === null) {
-					window.chrome.runtime.lastError = new Error('No contextMenu with id ' + id + ' exists');
+					testWindow.chrome.runtime.lastError = new Error('No contextMenu with id ' + id + ' exists');
 				} else {
-					var currentProperties = window.chrome._currentContextMenu[index].currentProperties
+					var currentProperties = testWindow.chrome._currentContextMenu[index].currentProperties
 					for (var key in data) {
 						(currentProperties as any)[key] = data[key as keyof typeof data];
 					}
 				}
 				callback && callback();
-				window.chrome.runtime.lastError = undefined;
+				testWindow.chrome.runtime.lastError = undefined;
 			},
 		remove: function(id: string|number, callback?: () => void) {
 			TypeChecking.typeCheck({
@@ -536,22 +586,22 @@ window.chrome = {
 			}]);
 
 			var index = null;
-			for (var i = 0; i < window.chrome._currentContextMenu.length; i++) {
-				if (areStringsEqual(window.chrome._currentContextMenu[i].id, id)) {
+			for (var i = 0; i < testWindow.chrome._currentContextMenu.length; i++) {
+				if (areStringsEqual(testWindow.chrome._currentContextMenu[i].id, id)) {
 					index = i;
 				}
 			}
 			if (index === null) {
-				window.chrome.runtime.lastError = new Error('No contextMenu with id ' + id + ' exists');
+				testWindow.chrome.runtime.lastError = new Error('No contextMenu with id ' + id + ' exists');
 			}
-			window.chrome._currentContextMenu.slice(index, 1);
+			testWindow.chrome._currentContextMenu.slice(index, 1);
 			callback && callback();
 		},
 		removeAll: function(callback?: () => void) {
 			checkOnlyCallback(callback, true);
 
-			while (window.chrome._currentContextMenu.length > 0) {
-				window.chrome._currentContextMenu.pop();
+			while (testWindow.chrome._currentContextMenu.length > 0) {
+				testWindow.chrome._currentContextMenu.pop();
 			}
 			callback && callback();
 		}
@@ -607,7 +657,7 @@ window.chrome = {
 					optional: true
 				}]);
 
-				window.chrome._lastSpecialCall = {
+				testWindow.chrome._lastSpecialCall = {
 					api: 'downloads.download',
 					args: [settings]
 				}
@@ -794,11 +844,11 @@ window.chrome = {
 				val: 'callback',
 				type: 'function'
 			}]);
-			if (!window.chrome._fakeTabs[id]) {
-				window.chrome.runtime.lastError = new Error('No tab with id ' + id);
+			if (!testWindow.chrome._fakeTabs[id]) {
+				testWindow.chrome.runtime.lastError = new Error('No tab with id ' + id);
 			}
-			callback(window.chrome._fakeTabs[id] as _chrome.tabs.Tab);
-			window.chrome.runtime.lastError = undefined;
+			callback(testWindow.chrome._fakeTabs[id] as _chrome.tabs.Tab);
+			testWindow.chrome.runtime.lastError = undefined;
 		},
 		getCurrent: function(callback: (currentTab: _chrome.tabs.Tab) =>  void) {
 			checkOnlyCallback(callback, false);
@@ -869,14 +919,14 @@ window.chrome = {
 					}
 
 				if (scriptSettings.code) {
-					window.chrome._executedScripts.push({
+					testWindow.chrome._executedScripts.push({
 						id: tabId,
 						code: scriptSettings.code
 					});
 					eval(scriptSettings.code);
 				} else if (scriptSettings.file === '/js/crmapi.js') {
-					window._crmAPIRegistry = window._crmAPIRegistry || [];
-					window._crmAPIRegistry.push(FakeCRMAPI);
+					testWindow._crmAPIRegistry = testWindow._crmAPIRegistry || [];
+					testWindow._crmAPIRegistry.push(FakeCRMAPI);
 				}
 				callback && callback([]);
 			},
@@ -932,7 +982,7 @@ window.chrome = {
 					optional: true
 				}]);
 
-				window.chrome._activeTabs.push({
+				testWindow.chrome._activeTabs.push({
 					type: 'create',
 					data: data
 				});
@@ -994,7 +1044,7 @@ window.chrome = {
 					optional: true
 				}]);
 
-				window.chrome._activeTabs.push({
+				testWindow.chrome._activeTabs.push({
 					type: 'update',
 					id: id as number,
 					data: data
@@ -1110,8 +1160,8 @@ window.chrome = {
 				optional: true
 			}]);
 
-			callback(Object.getOwnPropertyNames(window.chrome._fakeTabs).map(function(fakeTabId) {
-				return window.chrome._fakeTabs[fakeTabId] as _chrome.tabs.Tab;
+			callback(Object.getOwnPropertyNames(testWindow.chrome._fakeTabs).map(function(fakeTabId) {
+				return testWindow.chrome._fakeTabs[fakeTabId] as _chrome.tabs.Tab;
 			}).filter(function(tab) {
 				if (options.tabId !== undefined) {
 					if (typeof options.tabId === 'number') {
@@ -1255,12 +1305,12 @@ window.chrome = {
 		}
 	}
 };
-if ('StyleMedia' in window) {
-	window.browser = window.chrome;
+if ('StyleMedia' in testWindow) {
+	testWindow.browser = testWindow.chrome;
 }
 
-const originalWorker = window.Worker;
-window.Worker = class FakeWorker {
+const originalWorker = testWindow.Worker;
+testWindow.Worker = class FakeWorker {
 	constructor(url: string) {
 		if (url.indexOf('/js/sandbox.js') === -1) {
 			//Not a call by the extension but by monaco
@@ -1269,7 +1319,7 @@ window.Worker = class FakeWorker {
 	}
 
 	postMessage(data: any) {
-		window.chrome._activatedBackgroundPages.push(data.id);
+		testWindow.chrome._activatedBackgroundPages.push(data.id);
 	}
 	addEventListener(event: string, callback: () => void) {
 		TypeChecking.typeCheck({
@@ -1293,7 +1343,7 @@ function addStyleString(str: string) {
 }
 
 window.onload = function() {
-	var dummyContainer = window.dummyContainer = document.createElement('div');
+	var dummyContainer = testWindow.dummyContainer = document.createElement('div');
 	dummyContainer.id = 'dummyContainer';
 	dummyContainer.style.width = '100vw';
 	dummyContainer.style.position = 'fixed';
