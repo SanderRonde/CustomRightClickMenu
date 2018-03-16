@@ -211,10 +211,12 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
-	if (process.argv.indexOf('--edge-16') > -1) {
+	if (arrContains<string>(process.argv, str => str.indexOf('--edge-') > -1)) {
+		const edgeStr = arrContains<string>(process.argv, str => str.indexOf('--edge-') > -1);
+		const edgeVersion = edgeStr.split('--edge-')[1];
 		return {
 			'browserName' : 'Edge',
-			'browser_version': '16.0',
+			'browser_version': `${edgeVersion}.0`,
 			'os' : 'Windows',
 			'os_version' : '10',
 			'resolution' : '1920x1080',
@@ -238,10 +240,12 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
-	if (process.argv.indexOf('--opera-51') > -1) {
+	if (arrContains<string>(process.argv, str => str.indexOf('--opera-') > -1)) {
+		const operaStr = arrContains<string>(process.argv, str => str.indexOf('--opera-') > -1);
+		const operaVersion = operaStr.split('--opera-')[1];
 		return {
 			'browserName' : 'Opera',
-			'browser_version': '51.0',
+			'browser_version': `${operaVersion}.0`,
 			'os' : 'Windows',
 			'os_version' : '10',
 			'resolution' : '1920x1080',
