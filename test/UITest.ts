@@ -4014,7 +4014,7 @@ describe('On-Page CRM', function() {
 			}, {
 				fakeTabId: fakeTabId
 			}));
-			await wait(50);
+			await wait(500);
 			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
 				return JSON.stringify(window.chrome._executedScripts);
 			})));
@@ -4058,6 +4058,7 @@ describe('On-Page CRM', function() {
 					incognito: false
 				}
 			}));
+			await wait(500);
 			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
 				return JSON.stringify(window.chrome._executedScripts);
 			})));
@@ -4087,7 +4088,7 @@ describe('On-Page CRM', function() {
 			}, {
 				fakeTabId: fakeTabId
 			}));
-			await wait(50);
+			await wait(500);
 			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
 				return JSON.stringify(window.chrome._executedScripts);
 			})));
@@ -4163,15 +4164,15 @@ describe('On-Page CRM', function() {
 				'script was executed on the right tab');
 		});
 		it('should have activated the backgroundscript', async function() {
-					const activatedBackgroundScripts = JSON.parse(await driver
-						.executeScript(inlineFn(() => {
-							return JSON.stringify(window.chrome._activatedBackgroundPages);
-						})));
-					assert.lengthOf(activatedBackgroundScripts, 1,
-						'one backgroundscript was activated');
-					assert.strictEqual(activatedBackgroundScripts[0], 
-						CRMNodes[ScriptOnPageTests.BACKGROUNDSCRIPT].id,
-						'correct backgroundscript was executed');
+			const activatedBackgroundScripts = JSON.parse(await driver
+				.executeScript(inlineFn(() => {
+					return JSON.stringify(window.chrome._activatedBackgroundPages);
+				})));
+			assert.lengthOf(activatedBackgroundScripts, 1,
+				'one backgroundscript was activated');
+			assert.strictEqual(activatedBackgroundScripts[0], 
+				CRMNodes[ScriptOnPageTests.BACKGROUNDSCRIPT].id,
+				'correct backgroundscript was executed');
 		});
 		it('should not show the disabled node', async () => {
 			const contextMenu = await getContextMenu();
@@ -4213,6 +4214,7 @@ describe('On-Page CRM', function() {
 					incognito: false
 				}
 			}));
+			await wait(500);
 			const activatedScripts = JSON.parse(await driver
 				.executeScript(inlineFn(() => {
 					return JSON.stringify(window.chrome._executedScripts);
@@ -4840,8 +4842,8 @@ describe('On-Page CRM', function() {
 						'dummy element is not 50px wide');
 				});
 				it('should be on when clicked', async function() {
-					this.slow(1000 * TIME_MODIFIER);
-					this.timeout(2000 * TIME_MODIFIER);
+					this.slow(2000 * TIME_MODIFIER);
+					this.timeout(4000 * TIME_MODIFIER);
 					const contextMenu = await getContextMenu();
 					await driver.executeScript(inlineFn((REPLACE) => {
 						return window.chrome._currentContextMenu[0]
@@ -4878,7 +4880,9 @@ describe('On-Page CRM', function() {
 					assert.strictEqual(dimensions.width, 50,
 						'dummy element is 50px wide');
 				});
-				it('should be off when clicked again', async () => {
+				it('should be off when clicked again', async function() {
+					this.slow(2000 * TIME_MODIFIER);
+					this.timeout(4000 * TIME_MODIFIER);
 					const contextMenu = await getContextMenu();
 					await driver.executeScript(inlineFn((REPLACE) => {
 						return window.chrome._currentContextMenu[0]
