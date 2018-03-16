@@ -1443,7 +1443,7 @@ export namespace CRMFunctions {
 		}
 
 		const tabIds: number[] = options.tabId;
-		delete options.tabId;
+	delete options.tabId;
 
 		//Get results from tab query
 		const queriedTabs = await _queryTabs(options) || [];

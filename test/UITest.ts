@@ -62,18 +62,29 @@ interface ExecutedScript {
 
 type ExecutedScripts = Array<ExecutedScript>;
 
-interface AppChrome extends Chrome {
-	_lastCall: ChromeLastCall;
+type DeepPartial<T> = {
+	[P in keyof T]?: DeepPartial<T[P]>;
+}
+
+export interface AppChrome extends DeepPartial<Chrome> {
+	_lastSpecialCall: ChromeLastCall;
 	_currentContextMenu: ContextMenu;
 	_activeTabs: ActiveTabs;
 	_executedScripts: ExecutedScripts;
 	_activatedBackgroundPages: Array<number>;
 	_clearExecutedScripts: () => void;
-	_fakeTabs: Array<{
-		id: number;
-		title: string;
-		url: string;
-	}>;
+	_fakeTabs: {
+		[id: number]: {
+			id: number;
+			title: string;
+			url: string;
+		};
+		[id: string]: {
+			id: number;
+			title: string;
+			url: string;
+		};
+	};
 }
 
 type AsyncStates<T> = {
@@ -1888,7 +1899,7 @@ describe('Options Page', function() {
 				.click()
 				
 			const lastCall = JSON.parse(await driver.executeScript(inlineFn(() => {
-				return JSON.stringify(window.chrome._lastCall);
+				return JSON.stringify(window.chrome._lastSpecialCall);
 			})));
 			assert.isDefined(lastCall, 'a call to the browser API was made');
 			assert.strictEqual(lastCall.api, 'downloads.download',
