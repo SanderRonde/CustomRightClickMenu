@@ -3038,7 +3038,8 @@ describe('Options Page', function() {
 								url: libUrl
 							}, 'Library was added');
 						});
-						it('should be possible to add your own library through code', async () => {
+						it('should be possible to add your own library through code', async function() {
+							this.retries(3); 
 							const libName = getRandomString(25);
 							const testCode = `'${getRandomString(100)}'`;
 							const tabId = getRandomId();
