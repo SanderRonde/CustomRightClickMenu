@@ -37,30 +37,30 @@ function getSkipDialogSetting(): SkipOption|false {
 
 interface ChromeLastCall {
 	api: string;
-	args: Array<any>;
+	args: any[];
 }
 
 interface ContextMenuItem {
 	id: number;
 	createProperties: ContextMenusCreateProperties;
 	currentProperties: ContextMenusCreateProperties;
-	children: Array<ContextMenuItem>;
+	children: ContextMenuItem[];
 }
 
-type ContextMenu = Array<ContextMenuItem>;
+type ContextMenu = ContextMenuItem[];
 
-type ActiveTabs = Array<{
+type ActiveTabs = {
 	type: 'create'|'update';
 	data: any;
 	id?: number;
-}>;
+}[];
 
 interface ExecutedScript {
 	id: number;
 	code: string;
 }
 
-type ExecutedScripts = Array<ExecutedScript>;
+type ExecutedScripts = ExecutedScript[];
 
 type DeepPartial<T> = {
 	[P in keyof T]?: DeepPartial<T[P]>;
@@ -71,7 +71,7 @@ export interface AppChrome extends DeepPartial<Chrome> {
 	_currentContextMenu: ContextMenu;
 	_activeTabs: ActiveTabs;
 	_executedScripts: ExecutedScripts;
-	_activatedBackgroundPages: Array<number>;
+	_activatedBackgroundPages: number[];
 	_clearExecutedScripts: () => void;
 	_fakeTabs: {
 		[id: number]: {
@@ -99,14 +99,14 @@ type AsyncStates<T> = {
 }
 
 interface AppWindow extends Window {
-	logs: Array<any>;
+	logs: any[];
 	lastError: any|void;
 	chrome: AppChrome;
 	dummyContainer: HTMLDivElement;
 	polymerElementsLoaded: boolean;
 	globals: GlobalObject['globals'];
 
-	_log: Array<any>;
+	_log: any[];
 	__asyncs: {
 		[index: number]: AsyncStates<any>;
 	}
@@ -341,7 +341,7 @@ before('Driver connect', async function() {
 	});
 });
 
-const sentIds: Array<number> = [];
+const sentIds: number[] = [];
 function getRandomId(): number {
 	let id;
 	do {
@@ -352,7 +352,7 @@ function getRandomId(): number {
 }
 
 const templates = {
-	mergeArrays(mainArray: Array<any>, additionArray: Array<any>): Array<any> {
+	mergeArrays(mainArray: any[], additionArray: any[]): any[] {
 		for (let i = 0; i < additionArray.length; i++) {
 			if (mainArray[i] &&
 				typeof additionArray[i] === 'object' &&
@@ -504,7 +504,7 @@ const templates = {
 };
 
 function findElementOnPage(selector: string): HTMLElement {
-	const list = JSON.parse(selector as EncodedString<Array<[string, number]>>);
+	const list = JSON.parse(selector as EncodedString<[string, number][]>);
 	let el: Element = document.body;
 	for (let i = 0; i < list.length; i++) {
 		if (!el) {
@@ -523,7 +523,7 @@ function findElementOnPage(selector: string): HTMLElement {
 }
 
 function checkIfListContainsElement<T extends HTMLElement|Element>(element: T): string {
-	const keys: Array<keyof T> = Object.getOwnPropertyNames(element) as Array<keyof T>;
+	const keys: (keyof T)[] = Object.getOwnPropertyNames(element) as (keyof T)[];
 	for (let i = 0; i < keys.length; i++) {
 		if (keys[i].slice(0, 2) === '__' && element[keys[i]] !== null) {
 			return keys[i];
@@ -556,7 +556,7 @@ function es3IfyFunction(str: string): string {
 function inlineFn<T extends {
 	[key: string]: any;
 }, U>(fn: (REPLACE: T) => U|void, args?: T,
-	...insertedFunctions: Array<Function>): StringifedFunction<U> {
+	...insertedFunctions: Function[]): StringifedFunction<U> {
 		args = args || {} as T;
 		let str = `${insertedFunctions.map(inserted => inserted.toString()).join('\n')}
 			try { return (${es3IfyFunction(fn.toString())})(arguments) } catch(err) { throw new Error(err.name + '-' + err.stack); }`;
@@ -582,7 +582,7 @@ function inlineAsyncFn<T extends {
 	[key: string]: any;
 }, U>(fn: (resolve: (result: U) => void, reject: (err: Error) => void, 
 	REPLACE: T) => void|void, args?: T,
-	...insertedFunctions: Array<Function>): StringifiedCallbackFunction<number, U> {
+	...insertedFunctions: Function[]): StringifiedCallbackFunction<number, U> {
 		args = args || {} as T;
 		let str = `${insertedFunctions.map(inserted => inserted.toString()).join('\n')}
 			window.__asyncs = window.__asyncs || {};
@@ -662,7 +662,7 @@ function getSyncSettings(): webdriver.promise.Promise<CRM.SettingsStorage> {
 	}); 
 }
 
-function getCRM<T extends Array<CRM.Node> = CRM.Tree>(): webdriver.promise.Promise<T> {
+function getCRM<T extends CRM.Node[] = CRM.Tree>(): webdriver.promise.Promise<T> {
 	return new webdriver.promise.Promise<T>((resolve) => { 
 		driver.executeScript(inlineFn(() => {
 			return JSON.stringify(window.app.settings.crm);
@@ -730,7 +730,7 @@ function getDialog(type: DialogType): webdriver.promise.Promise<FoundElement> {
 	});
 }
 
-function generatePromiseChain<T>(data: Array<T>,
+function generatePromiseChain<T>(data: T[],
 	fn: (data: T) => webdriver.promise.Promise<any>,
 	index: number,
 	resolve: webdriver.promise.IFulfilledCallback<{}>) {
@@ -743,7 +743,7 @@ function generatePromiseChain<T>(data: Array<T>,
 		}
 	}
 
-function forEachPromise<T>(data: Array<T>,
+function forEachPromise<T>(data: T[],
 	fn: (data: T) => webdriver.promise.Promise<any>): 
 	webdriver.promise.Promise<any> {
 		return new webdriver.promise.Promise((resolve) => {
@@ -764,9 +764,9 @@ function getRandomString(length: number): string {
 	}).join('');
 }
 
-function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done: (...args: Array<any>) => void): void;
+function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done: (...args: any[]) => void): void;
 function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext): webdriver.promise.Promise<void>; 
-function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
+function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done?: (...args: any[]) => void): webdriver.promise.Promise<any>|void {
 	__this.timeout(30000 * TIME_MODIFIER);
 	const promise = new webdriver.promise.Promise<void>(async (resolve) => {
 		const result = await executeAsyncScript(inlineAsyncFn((done) => {
@@ -800,9 +800,9 @@ function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackCo
 	}
 }
 
-function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done: (...args: Array<any>) => void): void;
+function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done: (...args: any[]) => void): void;
 function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext): webdriver.promise.Promise<void>; 
-function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
+function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done?: (...args: any[]) => void): webdriver.promise.Promise<any>|void {
 	__this.timeout(60000 * TIME_MODIFIER);
 	const promise = new webdriver.promise.Promise<void>((resolve) => {
 		wait(500).then(() => {
@@ -899,7 +899,7 @@ interface FoundElement {
 	click(): webdriver.promise.Promise<void>;
 	findElement(by: webdriver.Locator): FoundElementPromise;
 	findElements(by: webdriver.Locator): FoundElementsPromise;
-	sendKeys(...args: Array<string|webdriver.promise.Promise<string>|InputKeys>
+	sendKeys(...args: (string|webdriver.promise.Promise<string>|InputKeys)[]
 			): webdriver.promise.Promise<void>;
 	getAttribute(attr: string): webdriver.promise.Promise<string>;
 	getProperty(prop: string): webdriver.promise.Promise<any>;
@@ -944,17 +944,17 @@ class PromiseContainer<T> implements webdriver.promise.IThenable<T> {
 	}
 }
 
-class FoundElementsPromise extends PromiseContainer<Array<FoundElement>> {
-	private _items: Array<FoundElement>;
+class FoundElementsPromise extends PromiseContainer<FoundElement[]> {
+	private _items: FoundElement[];
 	private _err: any;
-	private _gotItems: Array<{
+	private _gotItems: {
 		index: number;
 		resolve: webdriver.promise.IFulfilledCallback<FoundElement>;
 		reject: webdriver.promise.IRejectedCallback;
-	}>;
+	}[];
 	private _done: boolean;
 
-	constructor(resolver?: Resolver<Array<FoundElement>>, opt_flow?: webdriver.promise.ControlFlow) {
+	constructor(resolver?: Resolver<FoundElement[]>, opt_flow?: webdriver.promise.ControlFlow) {
 		//Wait until this is initialized before running the resolver
 		let readyResolve: webdriver.promise.IFulfilledCallback<void> = null;
 		const ready = new webdriver.promise.Promise<void>((resolve) => {
@@ -982,7 +982,7 @@ class FoundElementsPromise extends PromiseContainer<Array<FoundElement>> {
 		this._err = null;
 	}
 
-	private _onFulfill(res: Array<FoundElement>) {
+	private _onFulfill(res: FoundElement[]) {
 		this._done = true;
 		this._items = res;
 		this._handlePreviousRequests();
@@ -1057,18 +1057,18 @@ class FoundElementsPromise extends PromiseContainer<Array<FoundElement>> {
 		});
 	}
 
-	public map<T>(fn: (element: FoundElement) => T): webdriver.promise.Promise<Array<T>>;
-	public map<T>(fn: (element: FoundElement) => T, isElements?: false): webdriver.promise.Promise<Array<T>>;
+	public map<T>(fn: (element: FoundElement) => T): webdriver.promise.Promise<T[]>;
+	public map<T>(fn: (element: FoundElement) => T, isElements?: false): webdriver.promise.Promise<T[]>;
 	public map<T>(fn: (element: FoundElement) => T, isElements?: true): FoundElementsPromise;
 	public map<T>(fn: (element: FoundElement) => T, isElements: boolean = false) {
 		if (isElements) {
 			return new FoundElementsPromise((resolve) => {
 				this.then((items) => {
-					resolve(items.map(fn) as Array<any>);
+					resolve(items.map(fn) as any[]);
 				});	
 			});
 		}
-		return new webdriver.promise.Promise<Array<T>>((resolve) => {
+		return new webdriver.promise.Promise<T[]>((resolve) => {
 			this.then((items) => {
 				resolve(items.map(fn));
 			});
@@ -1100,7 +1100,7 @@ class FoundElementsPromise extends PromiseContainer<Array<FoundElement>> {
 			const [ elements ] = await webdriver.promise.all([
 				this._promise,
 				awaitable
-			]) as [ Array<FoundElement>, any ];
+			]) as [ FoundElement[], any ];
 			resolve(elements);
 		});
 }
@@ -1140,7 +1140,7 @@ class FoundElementPromise extends PromiseContainer<FoundElement> {
 			});
 		});
 	}
-	sendKeys(...args: Array<string|webdriver.promise.Promise<string>|InputKeys>) {
+	sendKeys(...args: (string|webdriver.promise.Promise<string>|InputKeys)[]) {
 		return new webdriver.promise.Promise<void>((resolve) => {
 			this.then((element) => {
 				element.sendKeys(...args).then(() => {
@@ -1186,13 +1186,13 @@ class FoundElementPromise extends PromiseContainer<FoundElement> {
 		});
 	}
 
-	static all(promises: Array<FoundElementPromise>): webdriver.promise.Promise<Array<FoundElement>> {
-		return new webdriver.promise.Promise<Array<FoundElement>>((resolve) => {
-			const states: Array<{
+	static all(promises: FoundElementPromise[]): webdriver.promise.Promise<FoundElement[]> {
+		return new webdriver.promise.Promise<FoundElement[]>((resolve) => {
+			const states: {
 				promise: FoundElementPromise;
 				done: boolean;
 				result?: FoundElement;
-			}> = promises.map((promise, index) => {
+			}[] = promises.map((promise, index) => {
 				promise.then((result) => {
 					states[index].done = true;
 					states[index].result = result;
@@ -1281,7 +1281,7 @@ class FoundElement implements FoundElement {
 			driver.executeScript(inlineFn(() => {
 				const baseEl = findElementOnPage('REPLACE.selector') as Element;
 				if (!baseEl) {
-					return JSON.stringify([] as Array<'null'|'exists'>);
+					return JSON.stringify([] as ('null'|'exists')[]);
 				}
 				let elList = baseEl.querySelectorAll('REPLACE.css');
 				if (baseEl.shadowRoot) {
@@ -1295,7 +1295,7 @@ class FoundElement implements FoundElement {
 						return 'null';
 					}
 					return 'exists';
-				}) as Array<'null'|'exists'>);
+				}) as ('null'|'exists')[]);
 			}, {
 				css: css,
 				selector: JSON.stringify(selectorList.reverse())
@@ -1309,7 +1309,7 @@ class FoundElement implements FoundElement {
 			});
 		});
 	}
-	sendKeys(...args: Array<string|webdriver.promise.Promise<string>|InputKeys>): webdriver.promise.Promise<void> {
+	sendKeys(...args: (string|webdriver.promise.Promise<string>|InputKeys)[]): webdriver.promise.Promise<void> {
 		return new webdriver.promise.Promise<void>((resolve) => {
 			return webdriver.promise.all(args.map((arg) => {
 				if (webdriver.promise.isPromise(arg)) {
@@ -1318,7 +1318,7 @@ class FoundElement implements FoundElement {
 				return new webdriver.promise.Promise((instantResolve) => {
 					instantResolve(arg);
 				});
-			})).then((keys: Array<string|InputKeys>) => {
+			})).then((keys: (string|InputKeys)[]) => {
 				const selectorList = [[this.selector, this.index]];
 				let currentElement: FoundElement = this;
 				while (currentElement.parent) {
@@ -1328,7 +1328,7 @@ class FoundElement implements FoundElement {
 				return new webdriver.promise.Promise((sentKeysResolve) => {
 					driver.executeScript(inlineFn((REPLACE) => {
 						const el = findElementOnPage('REPLACE.selector') as HTMLInputElement;
-						const keyPresses = REPLACE.keypresses as Array<string|InputKeys>;
+						const keyPresses = REPLACE.keypresses as (string|InputKeys)[];
 						let currentValue = el.value || '';
 						for (let i = 0; i < keyPresses.length; i++) {
 							switch (keyPresses[i]) {
@@ -1525,10 +1525,10 @@ function getEditorValue(type: DialogType): webdriver.promise.Promise<string> {
 
 interface NameCheckingCRM {
 	name: string;
-	children?: Array<NameCheckingCRM>;
+	children?: NameCheckingCRM[];
 }
 
-function getCRMNames(crm: CRM.Tree): Array<NameCheckingCRM> {
+function getCRMNames(crm: CRM.Tree): NameCheckingCRM[] {
 	return crm.map((node) => {
 		return {
 			name: node.name,
@@ -1538,7 +1538,7 @@ function getCRMNames(crm: CRM.Tree): Array<NameCheckingCRM> {
 	});
 }
 
-function getContextMenuNames(contextMenu: ContextMenu): Array<NameCheckingCRM> {
+function getContextMenuNames(contextMenu: ContextMenu): NameCheckingCRM[] {
 	return contextMenu.map((item) => {
 		return {
 			name: item.currentProperties.title,
@@ -1675,7 +1675,7 @@ describe('Options Page', function() {
 			await firstElement.findElement(webdriver.By.tagName('paper-button')).click();
 			const name = await firstElement.findElement(webdriver.By.tagName('paper-input')).getProperty('value');
 			const link = await firstElement.findElement(webdriver.By.tagName('a')).getAttribute('href');
-			const crm = await getCRM<Array<CRM.LinkNode>>();
+			const crm = await getCRM<CRM.LinkNode[]>();
 
 			searchEngineLink = link;
 			defaultLinkName = name;
@@ -1703,7 +1703,7 @@ describe('Options Page', function() {
 				.sendKeys(InputKeys.CLEAR_ALL, renameName);
 			await firstElement.findElement(webdriver.By.tagName('paper-button')).click();
 			const link = await firstElement.findElement(webdriver.By.tagName('a')).getAttribute('href');
-			const crm = await getCRM<Array<CRM.LinkNode>>();
+			const crm = await getCRM<CRM.LinkNode[]>();
 			const element = crm[crm.length - 1];
 
 			assert.strictEqual(element.name, renameName,
@@ -1720,7 +1720,7 @@ describe('Options Page', function() {
 		});
 		it('should be saved', async function() {
 			await reloadPage(this);
-			const crm = await getCRM<Array<CRM.LinkNode>>();
+			const crm = await getCRM<CRM.LinkNode[]>();
 
 			const element = crm[crm.length - 2];
 
@@ -1772,7 +1772,7 @@ describe('Options Page', function() {
 			await elements[index].findElement(webdriver.By.tagName('paper-button')).click();
 			const name = await elements[index].findElement(webdriver.By.tagName('paper-input')).getProperty('value');
 			const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
-			const crm = await getCRM<Array<CRM.ScriptNode>>();
+			const crm = await getCRM<CRM.ScriptNode[]>();
 			const element = crm[crm.length - 1];
 
 			searchEngineLink = link;
@@ -1808,7 +1808,7 @@ describe('Options Page', function() {
 				.sendKeys(InputKeys.CLEAR_ALL, renameName);
 			await elements[index].findElement(webdriver.By.tagName('paper-button')).click();
 			const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
-			const crm = await getCRM<Array<CRM.ScriptNode>>();
+			const crm = await getCRM<CRM.ScriptNode[]>();
 			const element = crm[crm.length - 1];
 			
 			assert.strictEqual(renameName, element.name, 
@@ -1833,7 +1833,7 @@ describe('Options Page', function() {
 		});
 		it('should be saved', async function() {
 			await reloadPage(this);
-			const crm = await getCRM<Array<CRM.ScriptNode>>();
+			const crm = await getCRM<CRM.ScriptNode[]>();
 			await (async () => {
 				const element = crm[crm.length - 2];
 
@@ -2241,14 +2241,14 @@ describe('Options Page', function() {
 							.click();
 						await wait(5000);
 						await saveDialog(dialog);
-						const crm = await getCRM<Array<CRM.StylesheetNode|CRM.ScriptNode>>();
+						const crm = await getCRM<(CRM.StylesheetNode|CRM.ScriptNode)[]>();
 
 						assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex,
 							'launchmode is the same as expected');
 					});
 					it('should be saved on page reload', async function() {
 						await reloadPage(this);
-						const crm = await getCRM<Array<CRM.StylesheetNode|CRM.ScriptNode>>();
+						const crm = await getCRM<(CRM.StylesheetNode|CRM.ScriptNode)[]>();
 
 						assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex,
 							'launchmode is the same as expected');
@@ -2265,7 +2265,7 @@ describe('Options Page', function() {
 							.click();
 						await wait(1500);
 						await cancelDialog(dialog);
-						const crm = await getCRM<Array<CRM.StylesheetNode|CRM.ScriptNode>>();
+						const crm = await getCRM<(CRM.StylesheetNode|CRM.ScriptNode)[]>();
 
 						assert.strictEqual(crm[0].value.launchMode, 0,
 							'launchmode is the same as before');
@@ -2312,7 +2312,7 @@ describe('Options Page', function() {
 							'second trigger url changed');
 					});
 					it('should be saved on page reload', async () => {
-						const crm = await getCRM<Array<CRM.StylesheetNode|CRM.ScriptNode>>();
+						const crm = await getCRM<(CRM.StylesheetNode|CRM.ScriptNode)[]>();
 						assert.lengthOf(crm[0].triggers, 3, 
 							'trigger has been added');
 						assert.isTrue(crm[0].triggers[0].not, 
@@ -2547,7 +2547,7 @@ describe('Options Page', function() {
 						.findElement(webdriver.By.tagName('paper-checkbox'))
 						.click();
 					await saveDialog(dialog);
-					const crm = await getCRM<Array<CRM.LinkNode>>();
+					const crm = await getCRM<CRM.LinkNode[]>();
 
 					assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
 					assert.isFalse(crm[0].value[0].newTab, 'newTab has been switched off');
@@ -2561,7 +2561,7 @@ describe('Options Page', function() {
 						.findElement(webdriver.By.tagName('paper-input'))
 						.sendKeys(InputKeys.CLEAR_ALL, newUrl);
 					await saveDialog(dialog);
-					const crm = await getCRM<Array<CRM.LinkNode>>();
+					const crm = await getCRM<CRM.LinkNode[]>();
 
 					assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
 					assert.strictEqual(crm[0].value[0].url, newUrl,
@@ -2582,7 +2582,7 @@ describe('Options Page', function() {
 						.click()
 						.click()
 					await saveDialog(dialog);
-					const crm = await getCRM<Array<CRM.LinkNode>>();
+					const crm = await getCRM<CRM.LinkNode[]>();
 
 					assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
 					assert.deepEqual(crm[0].value,
@@ -2619,7 +2619,7 @@ describe('Options Page', function() {
 					});
 					await wait(500);
 					await saveDialog(dialog);
-					const crm = await getCRM<Array<CRM.LinkNode>>();
+					const crm = await getCRM<CRM.LinkNode[]>();
 
 					assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
 
@@ -2639,9 +2639,9 @@ describe('Options Page', function() {
 					};
 
 					await reloadPage(this);
-					const crm = await getCRM<Array<CRM.LinkNode>>();
+					const crm = await getCRM<CRM.LinkNode[]>();
 
-					assert.lengthOf(crm[0].value as Array<CRM.LinkNodeLink>, 4, 'node has 4 links now');
+					assert.lengthOf(crm[0].value as CRM.LinkNodeLink[], 4, 'node has 4 links now');
 
 					//Only one newTab can be false at a time
 					const newLinks = Array.apply(null, Array(4))
@@ -2676,7 +2676,7 @@ describe('Options Page', function() {
 							});
 					});
 					await cancelDialog(dialog);
-					const crm = await getCRM<Array<CRM.LinkNode>>();
+					const crm = await getCRM<CRM.LinkNode[]>();
 
 					assert.lengthOf(crm[0].value, 1, 'node still has 1 link');
 					assert.deepEqual(crm[0].value, [defaultLink],
@@ -2738,13 +2738,13 @@ describe('Options Page', function() {
 					await dialog.findElement(webdriver.By.id('isTogglableButton'))
 						.click();
 					await saveDialog(dialog);
-					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+					const crm = await getCRM<CRM.StylesheetNode[]>();
 
 					assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
 				});
 				it('should be saved on page reload', async function() {
 					await reloadPage(this);
-					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+					const crm = await getCRM<CRM.StylesheetNode[]>();
 
 					assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
 				});
@@ -2756,7 +2756,7 @@ describe('Options Page', function() {
 						.click()
 						.click()
 					await saveDialog(dialog);
-					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+					const crm = await getCRM<CRM.StylesheetNode[]>();
 
 					assert.isFalse(crm[0].value.toggle, 'toggle option is set to off');
 				});
@@ -2767,7 +2767,7 @@ describe('Options Page', function() {
 					await dialog.findElement(webdriver.By.id('isTogglableButton'))
 						.click();
 					await cancelDialog(dialog);
-					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+					const crm = await getCRM<CRM.StylesheetNode[]>();
 
 					assert.isNotTrue(crm[0].value.toggle, 'toggle option is unchanged');
 				});
@@ -2784,14 +2784,14 @@ describe('Options Page', function() {
 					await dialog.findElement(webdriver.By.id('isDefaultOnButton'))
 						.click();
 					await saveDialog(dialog);
-					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+					const crm = await getCRM<CRM.StylesheetNode[]>();
 
 					assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
 					assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
 				});
 				it('should be saved on page reset', async function() {
 					await reloadPage(this);
-					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+					const crm = await getCRM<CRM.StylesheetNode[]>();
 
 					assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
 					assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to false');
@@ -2806,7 +2806,7 @@ describe('Options Page', function() {
 						.click()
 						.click();
 					await saveDialog(dialog);
-					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+					const crm = await getCRM<CRM.StylesheetNode[]>();
 
 					assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
 					assert.isFalse(crm[0].value.defaultOn, 'defaultOn is set to false');
@@ -2820,7 +2820,7 @@ describe('Options Page', function() {
 					await dialog.findElement(webdriver.By.id('isDefaultOnButton'))
 						.click();
 					await cancelDialog(dialog);
-					const crm = await getCRM<Array<CRM.StylesheetNode>>();
+					const crm = await getCRM<CRM.StylesheetNode[]>();
 
 					assert.isNotTrue(crm[0].value.toggle, 'toggle option is set to false');
 					assert.isNotTrue(crm[0].value.defaultOn, 'defaultOn is set to false');
@@ -3397,11 +3397,11 @@ describe('Options Page', function() {
 									'Script should match expected value');
 							});
 							it('should be able to add one from your visited websites', async () => {
-								const exampleVisitedWebsites: Array<{
+								const exampleVisitedWebsites: {
 									name: string;
 									url: string;
 									searchUrl: string;
-								}> = [{
+								}[] = [{
 									name: getRandomString(20),
 									url: `http://www.${getRandomString(20)}.com`,
 									searchUrl: `${getRandomString(20)}%s${getRandomString(10)}`
@@ -4546,7 +4546,7 @@ describe('On-Page CRM', function() {
 			done();
 		}
 
-		function genContainsRegex(...contains: Array<string>): RegExp {
+		function genContainsRegex(...contains: string[]): RegExp {
 			const whitespace = '(\\\\t|\\\\s|\\\\n)*';
 			return new RegExp(`.*\\("${whitespace + contains.join(whitespace) + whitespace}"\\).*`);
 		}
