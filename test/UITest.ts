@@ -117,6 +117,8 @@ declare const window: AppWindow;
 
 import * as chai from 'chai';
 import * as webdriver from 'selenium-webdriver';
+import { readFile } from 'fs';
+import { join } from 'path';
 require('mocha-steps');
 const secrets = require('./UI/secrets');
 const request = require('request');
@@ -280,7 +282,21 @@ function getCapabilities(): BrowserstackCapabilities {
 	return {} as any;
 }
 
-const capabilities = getCapabilities();
+function tryReadManifest(filePath: string): Promise<_chrome.runtime.Manifest> {
+	return new Promise<_chrome.runtime.Manifest>((resolve) => {
+		readFile(join(__dirname, '../', filePath), {
+			encoding: 'utf8'
+		}, (err, data) => {
+			if (err) {
+				resolve(null);
+			} else {
+				resolve(JSON.parse(data));
+			}
+		});
+	});
+}
+
+const browserCapabilities = getCapabilities();
 
 function isThennable(value: any): value is Promise<any> {
 	return value && typeof value === "object" && typeof value.then === "function";
@@ -322,7 +338,18 @@ before('Driver connect', async function() {
 	this.timeout(600000 * TIME_MODIFIER);
 	const unBuilt = new webdriver.Builder()
 		.usingServer(url)
-		.withCapabilities(capabilities);
+		.withCapabilities({...browserCapabilities, ...{
+			project: 'Custom Right-Click Menu',
+			build: (
+				await tryReadManifest('app/manifest.json') ||
+				await tryReadManifest('app/manifest.chrome.json')
+			).version,
+			name: `${
+				browserCapabilities.browserName
+			} ${
+				browserCapabilities.browser_version
+			}`
+		}});
 	if (TEST_LOCAL) {
 		driver = unBuilt.forBrowser('Chrome').build();
 	} else {
