@@ -175,7 +175,7 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserName' : 'Chrome',
 			'browser_version': `${chromeVersion}.0`,
 			'os' : 'Windows',
-			'os_version' : '8',
+			'os_version' : '8.1',
 			'resolution' : '1920x1080',
 			'browserstack.user' : secrets.user,
 			'browserstack.key' : secrets.key,
