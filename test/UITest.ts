@@ -2941,7 +2941,7 @@ describe('Options Page', function() {
 						it('should be possible to add your own library through a URL', async () => {
 							const tabId = getRandomId();
 							const libName = getRandomString(25);
-							const libUrl = 'https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js';
+							const libUrl = 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js';
 
 							const dialog = await enterEditorFullscreen(this, type);
 							const crmApp = await findElement(webdriver.By.tagName('crm-app'));
@@ -3059,7 +3059,7 @@ describe('Options Page', function() {
 						});
 						it('should not add a library through url when not saved', async () => {
 							const libName = getRandomString(25);
-							const libUrl = 'https://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.js';
+							const libUrl = 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js';
 
 							const dialog = await enterEditorFullscreen(this, type);
 							const crmApp = await findElement(webdriver.By.tagName('crm-app'));
