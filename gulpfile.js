@@ -939,7 +939,7 @@ function readFile(filePath, options) {
 	gulp.task(genTask('Undo any overrides since the last stashing of the manifest',
 	 	function unstashBrowser() {
 			return gulp
-				.src('./app/manifest.temp.json')
+				.src('./app/manifest.temp.json', { allowEmpty: true })
 				.pipe(rename('manifest.json'))
 				.pipe(gulp.dest('./app'));
 		}));
