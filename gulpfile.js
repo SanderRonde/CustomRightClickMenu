@@ -931,7 +931,7 @@ function readFile(filePath, options) {
 	gulp.task(genTask('Copy the current manifest and store it to undo overrides later',
 		function stashBrowser() {
 			return gulp
-				.src('./app/manifest.json')
+				.src('./app/manifest.json', { allowEmpty: true})
 				.pipe(rename('manifest.temp.json'))
 				.pipe(gulp.dest('./app'));
 		}));
