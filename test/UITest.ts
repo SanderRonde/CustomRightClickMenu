@@ -2042,8 +2042,8 @@ describe('Options Page', function() {
 	function testNameInput(type: CRM.NodeType) {
 		const defaultName = 'name';
 		describe('Name Input', function() {
-			this.timeout(10000 * TIME_MODIFIER);
-			this.slow(10000 * TIME_MODIFIER);
+			this.timeout(20000 * TIME_MODIFIER);
+			this.slow(20000 * TIME_MODIFIER);
 
 			it('should not change when not saved', async function() {
 				before('Reset settings', function() {
@@ -2098,8 +2098,8 @@ describe('Options Page', function() {
 
 	function testVisibilityTriggers(type: CRM.NodeType) {
 		describe('Triggers', function() {
-			this.timeout(15000 * TIME_MODIFIER);
-			this.slow(12000 * TIME_MODIFIER);
+			this.timeout(20000 * TIME_MODIFIER);
+			this.slow(20000 * TIME_MODIFIER);
 
 			it('should not change when not saved', async function()  {
 				await resetSettings(this);
@@ -2535,7 +2535,7 @@ describe('Options Page', function() {
 			this.slow(5000 * TIME_MODIFIER);
 			
 			it('should be able to switch to a script', async function()  {
-				this.slow(6000 * TIME_MODIFIER);
+				this.slow(10000 * TIME_MODIFIER);
 				await resetSettings(this);
 				await testTypeSwitch('script');
 			});
@@ -2546,7 +2546,7 @@ describe('Options Page', function() {
 				assert.strictEqual(crm[0].type, 'script', 'type has stayed the same');
 			});
 			it('should be able to switch to a menu', async function()  {
-				this.slow(6000 * TIME_MODIFIER);
+				this.slow(10000 * TIME_MODIFIER);
 				await resetSettings(this);
 				await testTypeSwitch('menu');
 			});
@@ -2557,7 +2557,7 @@ describe('Options Page', function() {
 				assert.strictEqual(crm[0].type, 'menu', 'type has stayed the same');
 			});
 			it('should be able to switch to a divider', async function()  {
-				this.slow(6000 * TIME_MODIFIER);
+				this.slow(10000 * TIME_MODIFIER);
 				await resetSettings(this);
 				await testTypeSwitch('divider');
 			});
@@ -2568,7 +2568,7 @@ describe('Options Page', function() {
 				assert.strictEqual(crm[0].type, 'divider', 'type has stayed the same');
 			});
 			it('should be able to switch to a stylesheet', async function()  {
-				this.slow(6000 * TIME_MODIFIER);
+				this.slow(10000 * TIME_MODIFIER);
 				await resetSettings(this);
 				await testTypeSwitch('stylesheet');
 			});
