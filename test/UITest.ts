@@ -2942,7 +2942,7 @@ describe('Options Page', function() {
 				return;
 			}
 
-			before('Reset settings', async function() {
+			before('Reload page and reset settings', async function() {
 				return doFullRefresh(this).then(() => {
 					return wait(10000).then(() => {
 						return resetSettings(this);
@@ -2969,6 +2969,11 @@ describe('Options Page', function() {
 				describe('Fullscreen Tools', function() {
 					this.slow(70000 * TIME_MODIFIER);
 					this.timeout(100000 * TIME_MODIFIER);
+					before('Reload page', async function() {
+						return doFullRefresh(this).then(() => {
+							return wait(10000);
+						});
+					});
 					describe('Libraries', function() {
 						afterEach('Close dialog', async () => {
 							await driver.executeScript(inlineFn(() => {
@@ -3164,6 +3169,8 @@ describe('Options Page', function() {
 							const testCode = `'${getRandomString(100)}'`;
 							const tabId = getRandomId();
 
+							await doFullRefresh(this);
+							await wait(10000);
 							const dialog = await enterEditorFullscreen(this, type);
 							const crmApp = await findElement(webdriver.By.tagName('crm-app'));
 							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
