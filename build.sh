@@ -5,15 +5,6 @@ http-server -p 1250 . -s &
 
 npm install -g typescript@latest
 
-echo "Typescript Compiling App" && echo -en "travis_fold:start:ts_app\\r"
-tsc
-echo -en "travis_fold:end:ts_app\\r"
-cd test
-echo "Typescript Compiling Test" && echo -en "travis_fold:start:ts_test\\r"
-tsc
-echo -en "travis_fold:end:ts_test\\r"
-cd ../
-
 echo "Testing if it can build" && echo -en "travis_fold:start:build_tests\\r"
 yarn run build
 echo -en "travis_fold:end:build_tests\\r"
