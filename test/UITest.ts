@@ -119,6 +119,7 @@ import * as chai from 'chai';
 import * as webdriver from 'selenium-webdriver';
 import { readFile } from 'fs';
 import { join } from 'path';
+import { exec } from 'child_process';
 require('mocha-steps');
 const secrets = require('./UI/secrets');
 const request = require('request');
@@ -331,6 +332,24 @@ function waitFor<T>(condition: () => webdriver.promise.Promise<false|T>|Promise<
 		});
 	}
 
+function getGitHash() {
+	return new Promise<string>((resolve) => {
+		if (process.env.TRAVIS) {
+			resolve(process.env.TRAVIS_COMMIT);
+		} else {
+			exec('git rev-parse --short HEAD', (err, stdout, stderr) => {
+				if (err) {
+					resolve('?');
+				} else {
+					resolve(stdout
+						.replace(/\n/, '')
+						.replace(/\r/, ''));
+				}
+			});
+		}
+	});
+}
+
 before('Driver connect', async function() {
 	const url = TEST_LOCAL ?
 		LOCAL_URL : 'http://hub-cloud.browserstack.com/wd/hub';
@@ -340,10 +359,10 @@ before('Driver connect', async function() {
 		.usingServer(url)
 		.withCapabilities({...browserCapabilities, ...{
 			project: 'Custom Right-Click Menu',
-			build: (
+			build: `${(
 				await tryReadManifest('app/manifest.json') ||
 				await tryReadManifest('app/manifest.chrome.json')
-			).version,
+			).version} - ${await getGitHash()}`,
 			name: `${
 				browserCapabilities.browserName
 			} ${
