@@ -850,6 +850,20 @@ function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackCo
 	}
 }
 
+async function doFullRefresh(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext) {
+	__this.timeout(120000 * TIME_MODIFIER);
+
+	await driver.navigate().refresh();
+	await waitFor(() => {
+		return driver.executeScript(inlineFn(() => {
+			return window.polymerElementsLoaded;
+		}));
+	}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
+		//About to time out
+		throw new Error('Failed to reload page');
+	});
+}
+
 function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done: (...args: any[]) => void): void;
 function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext): webdriver.promise.Promise<void>; 
 function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done?: (...args: any[]) => void): webdriver.promise.Promise<any>|void {
@@ -2890,8 +2904,12 @@ describe('Options Page', function() {
 				return;
 			}
 
-			before('Reset settings', function() {
-				return resetSettings(this);
+			before('Reset settings', async function() {
+				return doFullRefresh(this).then(() => {
+					return wait(10000).then(() => {
+						return resetSettings(this);
+					});
+				});
 			});
 
 			if (!SKIP_DIALOG_TYPES_EXCEPT ||
@@ -3951,6 +3969,7 @@ describe('On-Page CRM', function() {
 			}, 'setting up the CRM does not throw');
 		});
 		it('should have the correct structure', async function() {
+			this.retries(2);
 			this.slow(400 * TIME_MODIFIER);
 			this.timeout(1400 * TIME_MODIFIER);
 			const contextMenu = await getContextMenu();
