@@ -336,7 +336,10 @@ namespace CodeEditBehaviorNamespace {
 
 			setTimeout(() => {
 				window.setDisplayFlex(window.doc.editorToolsRibbonContainer);
-				if (!window.app.storageLocal.hideToolsRibbon) {
+				const hideToolsRibbon = 
+					(window.app.storageLocal && 
+					window.app.storageLocal.hideToolsRibbon) || false;
+				if (!hideToolsRibbon) {
 					$(window.doc.editorToolsRibbonContainer).animate({
 						marginLeft: '-200px'
 					}, {
