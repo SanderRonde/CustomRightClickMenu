@@ -4,7 +4,7 @@ Create your own entry in the right-click menu. Add custom scripts, links, sub-me
 do anything you want all from your right-click menu. Featuring full GreaseMonkey compatibility for userscripts and Stylish compatibility for userstyles.
 
 [![Join the chat at https://gitter.im/SanderRonde/CustomRightClickMenu](https://badges.gitter.im/SanderRonde/CustomRightClickMenu.svg)](https://gitter.im/SanderRonde/CustomRightClickMenu?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/SanderRonde/CustomRightClickMenu.svg?branch=master)](https://travis-ci.org/SanderRonde/CustomRightClickMenu)
+[![Build Status](https://travis-ci.org/SanderRonde/CustomRightClickMenu.svg?branch=polymer-2)](https://travis-ci.org/SanderRonde/CustomRightClickMenu)
 [![Tested with BrowserStack](http://i.imgur.com/3Mi2Fja.png)](https://www.browserstack.com/)
 
 ## Demo
@@ -67,7 +67,7 @@ There is a typescript definition file available for the CRM API over [here](http
 
 Entering fullscreen mode brings up a hamburger menu on the left (see the image below) that allows access to the tools ribbon, containing features like using the external editor, adding (your own) libraries, easy search script generation or JSLint.
 
-![fullscreen editor](https://github.com/SanderRonde/CustomRightClickMenu/blob/master/store_images/screenshot3.png)
+![fullscreen editor](https://github.com/SanderRonde/CustomRightClickMenu/blob/polymer-2/store_images/screenshot3.png)
 
 ## Contributing
 
