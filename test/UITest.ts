@@ -815,10 +815,10 @@ function getRandomString(length: number): string {
 }
 
 function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done: (...args: any[]) => void): void;
-function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext): webdriver.promise.Promise<void>; 
-function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, 
+function resetSettings(__this?: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext): webdriver.promise.Promise<void>; 
+function resetSettings(__this?: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, 
 	done?: (...args: any[]) => void): webdriver.promise.Promise<any>|void {
-		__this.timeout(30000 * TIME_MODIFIER);
+		__this && __this.timeout(30000 * TIME_MODIFIER);
 		const promise = new webdriver.promise.Promise<void>(async (resolve) => {
 			const result = await executeAsyncScript(inlineAsyncFn((done) => {
 				try {
@@ -1654,8 +1654,15 @@ function assertContextMenuEquality(contextMenu: ContextMenu, CRMNodes: CRM.Tree)
 // 	});
 // }
 
-function enterEditorFullscreen(__this: Mocha.ISuiteCallbackContext,
-	type: DialogType): webdriver.promise.Promise<FoundElement> {
+function enterEditorFullscreen(__thisOrType: Mocha.ISuiteCallbackContext|DialogType,
+	type?: DialogType): webdriver.promise.Promise<FoundElement> {
+		let __this: Mocha.ISuiteCallbackContext;
+		if (typeof __thisOrType === 'string') {
+			type = __thisOrType;
+			__this = void 0;
+		} else {
+			__this = __thisOrType
+		}
 		return new webdriver.promise.Promise<FoundElement>((resolve) => {
 			resetSettings(__this).then(() => {
 				return openDialog(type);
@@ -3172,7 +3179,7 @@ describe('Options Page', function() {
 							await doFullRefresh();
 							this.timeout(60000 * TIME_MODIFIER);
 							await wait(10000);
-							const dialog = await enterEditorFullscreen(this, type);
+							const dialog = await enterEditorFullscreen(type);
 							const crmApp = await findElement(webdriver.By.tagName('crm-app'));
 							await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
 								.findElement(webdriver.By.id('dropdownSelectedCont'))
