@@ -366,7 +366,7 @@ before('Driver connect', async function() {
 			name: `${
 				browserCapabilities.browserName
 			} ${
-				browserCapabilities.browser_version
+				browserCapabilities.browser_version || 'latest'
 			}`
 		}});
 	if (TEST_LOCAL) {
