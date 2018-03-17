@@ -3226,6 +3226,8 @@ describe('Options Page', function() {
 								url: null
 							}, 'Library was added');
 
+							await wait(1000);
+
 							const contextMenu = await getContextMenu();
 							await driver.executeScript(inlineFn((REPLACE) => {
 								window.chrome._clearExecutedScripts();
