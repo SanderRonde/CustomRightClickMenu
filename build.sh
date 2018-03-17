@@ -19,35 +19,35 @@ echo -en "travis_fold:end:unit_tests\\r"
 
 echo "UI Tests for chrome" && echo -en "travis_fold:start:chrome\\r"
 echo "UI Tests for chrome 26" && echo -en "travis_fold:start:chrome.1\\r"
-yarn run test:chrome:26
+travis_retry yarn run test:chrome:26
 echo -en "travis_fold:end:chrome.1\\r"
 
 echo "UI Tests for chrome 30" && echo -en "travis_fold:start:chrome.2\\r"
-yarn run test:chrome:30
+travis_retry yarn run test:chrome:30
 echo -en "travis_fold:end:chrome.2\\r"
 
 echo "UI Tests for latest chrome" && echo -en "travis_fold:start:chrome.3\\r"
-yarn run test:chrome:latest
+travis_retry yarn run test:chrome:latest
 echo -en "travis_fold:end:chrome.3\\r"
 echo -en "travis_fold:end:chrome\\r"
 
 echo "UI Tests for firefox" && echo -en "travis_fold:start:firefox\\r"
 echo "UI Tests for firefox quantum" && echo -en "travis_fold:start:firefox.1\\r"
-yarn run test:firefox:quantum
+travis_retry yarn run test:firefox:quantum
 echo -en "travis_fold:end:firefox.1\\r"
 
 echo "UI Tests for latest firefox" && echo -en "travis_fold:start:firefox.2\\r"
-yarn run test:firefox:latest
+travis_retry yarn run test:firefox:latest
 echo -en "travis_fold:end:firefox.2\\r"
 echo -en "travis_fold:end:firefox\\r"
 
 echo "UI Tests for edge" && echo -en "travis_fold:start:edge\\r"
 echo "UI Tests for edge 16" && echo -en "travis_fold:start:edge.1\\r"
-yarn run test:edge:16
+travis_retry yarn run test:edge:16
 echo -en "travis_fold:end:edge.1\\r"
 
 echo "UI Tests for latest edge" && echo -en "travis_fold:start:edge.2\\r"
-yarn run test:edge:latest
+travis_retry yarn run test:edge:latest
 echo -en "travis_fold:end:edge.2\\r"
 echo -en "travis_fold:end:edge\\r"
 
