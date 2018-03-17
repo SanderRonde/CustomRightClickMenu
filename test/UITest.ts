@@ -851,8 +851,8 @@ function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackCo
 		}
 	}
 
-async function doFullRefresh(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext) {
-	__this.timeout(120000 * TIME_MODIFIER);
+async function doFullRefresh(__this?: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext) {
+	__this && __this.timeout(120000 * TIME_MODIFIER);
 
 	await driver.navigate().refresh();
 	await waitFor(() => {
@@ -3169,7 +3169,8 @@ describe('Options Page', function() {
 							const testCode = `'${getRandomString(100)}'`;
 							const tabId = getRandomId();
 
-							await doFullRefresh(this);
+							await doFullRefresh();
+							this.timeout(60000 * TIME_MODIFIER);
 							await wait(10000);
 							const dialog = await enterEditorFullscreen(this, type);
 							const crmApp = await findElement(webdriver.By.tagName('crm-app'));
