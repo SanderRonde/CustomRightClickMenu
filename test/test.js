@@ -3,6 +3,7 @@
 /// <reference path="../app/js/background.ts" />
 
 'use strict';
+// @ts-ignore
 var mochaSteps = require('mocha-steps');
 var step = mochaSteps.step;
 var assert = require('chai').assert;
