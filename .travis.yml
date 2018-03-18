@@ -7,12 +7,13 @@ branches:
   - beta
   - polymer-2
 stages:
-  - build
   - test
   - name: deploy
     if: branch = master
 
 env:
+  - TEST=test-build
+  - TEST=test-local
   - TEST=test:chrome:26
   - TEST=test:chrome:30
   - TEST=test:chrome:latest
@@ -31,10 +32,6 @@ script: sh ./scripts/pretest.sh && yarn run $TEST || yarn run $TEST
 
 jobs:
   include:
-    - stage: build
-      script: sh ./scripts/build.sh
-      env: TEST=none
-    - stage: test
     - stage: deploy
       script: sh ./scripts/deploy.sh
       env: TEST=none

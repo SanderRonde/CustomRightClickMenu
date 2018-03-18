@@ -151,6 +151,7 @@
     "build-edge": "gulp stashBrowser && gulp browserEdge && gulp build && gulp copy:buildToEdge",
     "build-opera": "gulp stashBrowser && gulp browserOpera && gulp build && gulp copy:buildToOpera",
     "test-local": "yarn test:global && mocha test/UITest.js",
+    "test-build": "gulp stashBrowser && gulp browserChrome && gulp testBuild",
     "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'app/bower_components', 'junction') } catch (e) { }\""
   },
   "version": "2.0.16",
