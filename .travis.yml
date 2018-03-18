@@ -1,17 +1,44 @@
 language: node_js
 node_js: node
+
 branches:
   only:
   - master
   - beta
   - polymer-2
+stages:
+  - build
+  - test
+  - name: deploy
+    if: branch = master
+
+env:
+  - TEST=test:chrome:26
+  - TEST=test:chrome:30
+  - TEST=test:chrome:latest
+  - TEST=test:firefox:quantum
+  - TEST=test:firefox:latest
+  - TEST=test:edge:16
+  - TEST=test:edge:latest
+
 before_install:
 - openssl aes-256-cbc -K $encrypted_f2a12e06bc88_key -iv $encrypted_f2a12e06bc88_iv
   -in test/UI/secrets.js.enc -out test/UI/secrets.js -d
-- npm install grunt -g
+- npm install gulp -g
 install:
 - yarn
-script: sh ./build.sh
+script: sh ./scripts/pretest.sh && yarn run $TEST || yarn run $TEST
+
+jobs:
+  include:
+    - stage: build
+      script: sh ./scripts/build.sh
+      env: TEST=none
+    - stage: test
+    - stage: deploy
+      script: sh ./scripts/deploy.sh
+      env: TEST=none
+
 notifications:
   email:
     on_success: change
