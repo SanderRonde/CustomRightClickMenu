@@ -3,4 +3,6 @@ set -e
 
 http-server -p 1250 . -s &
 
-gulp testBuild
+gulp stashBrowser
+gulp browserChrome
+gulp buildTest
