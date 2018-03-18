@@ -8,7 +8,7 @@ branches:
   - polymer-2
 stages:
   - test
-  - name: deploy
+  - name: deploy website
     if: branch = master
 
 env:
@@ -32,8 +32,8 @@ script: sh ./scripts/pretest.sh && yarn run $TEST || yarn run $TEST
 
 jobs:
   include:
-    - stage: deploy
-      script: sh ./scripts/deploy.sh
+    - stage: deploy website
+      script: sh ./scripts/deploy-website.sh
       env: TEST=none
 
 notifications:
