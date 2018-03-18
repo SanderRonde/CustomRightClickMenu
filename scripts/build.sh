@@ -4,7 +4,7 @@ set -e
 http-server -p 1250 . -s &
 
 echo "Testing if it can build" && echo -en "travis_fold:start:build_tests\\r"
-yarn testBuild
+gulp testBuild
 echo -en "travis_fold:end:build_tests\\r"
 
 echo "Building for tests" && echo -en "travis_fold:start:build\\r"
