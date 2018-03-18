@@ -4,6 +4,8 @@ set -e
 http-server -p 1250 . -s &
 
 echo "Testing if it can build" && echo -en "travis_fold:start:build_tests\\r"
+gulp stashBrowser
+gulp browserChrome
 gulp testBuild
 echo -en "travis_fold:end:build_tests\\r"
 
