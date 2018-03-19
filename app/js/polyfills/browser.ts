@@ -204,12 +204,26 @@ namespace BrowserAPI {
 				enabled?: boolean,
 			}) {
 				return createPromise<void>((handler) => {
-					__srcBrowser.contextMenus.update(id + '', updateProperties, handler);
+					__srcBrowser.contextMenus.update(id + '', updateProperties, () => {
+						if (__srcBrowser.runtime.lastError) {
+							//Try the other method
+							__srcBrowser.contextMenus.update(~~id, updateProperties, handler);
+						} else {
+							handler();
+						}
+					});
 				});
 			},
 			remove(id: string|number) {
 				return createPromise<void>((handler) => {
-					__srcBrowser.contextMenus.remove(~~id, handler);
+					__srcBrowser.contextMenus.remove(id + '', () => {
+						if (__srcBrowser.runtime.lastError) {
+							//Try the other method
+							__srcBrowser.contextMenus.remove(~~id, handler);
+						} else {
+							handler();
+						}
+					});
 				});
 			},
 			removeAll() {
