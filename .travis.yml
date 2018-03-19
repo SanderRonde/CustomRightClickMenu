@@ -15,7 +15,6 @@ env:
   - TEST=test-build
   - TEST=test-local
   - TEST=test:chrome:26
-  - TEST=test:chrome:30
   - TEST=test:chrome:latest
   - TEST=test:firefox:quantum
   - TEST=test:firefox:latest

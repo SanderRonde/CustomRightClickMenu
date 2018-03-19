@@ -131,7 +131,6 @@
     "test:global": "mocha test/test.js",
     "test:chrome": "yarn test:chrome:26 && yarn test:chrome:30 && yarn test:chrome:latest",
     "test:chrome:26": "mocha test/UITest.js --remote --chrome-26",
-    "test:chrome:30": "mocha test/UITest.js --remote --chrome-30",
     "test:chrome:latest": "mocha test/UITest.js --remote --chrome-latest",
     "test:firefox": "yarn test:firefox:quantum && yarn test:firefox:latest",
     "test:firefox:quantum": "mocha test/UITest.js --remote --firefox-quantum",
