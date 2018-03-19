@@ -95,11 +95,6 @@ namespace CrmEditPageElement {
 		 */
 		private static _backdropEl: HTMLElement;
 
-		/**
-		 * The overlayEl animation
-		 */
-		private static _overlayAnimation: Animation = null;
-
 		static properties = crmEditPageProperties;
 
 		static listeners = {
@@ -151,21 +146,17 @@ namespace CrmEditPageElement {
 
 		private static _animateIn(this: CrmEditPage) {
 			this._backdropEl.style.display = 'block';
-			if (this._overlayAnimation && this._overlayAnimation.play) {
-				this._overlayAnimation.play()
-			} else {
-				this._overlayAnimation = this._backdropEl.animate([
-					{
-						opacity: 0
-					}, {
-						opacity: 0.3
-					}
-				], {
-					duration: 300,
-					fill: 'both',
-					easing: 'bez'
-				});
-			}
+			this._backdropEl.animate([
+				{
+					opacity: 0
+				}, {
+					opacity: 0.3
+				}
+			], {
+				duration: 300,
+				fill: 'both',
+				easing: 'bez'
+			});
 				
 			document.body.style.overflow = 'hidden';
 			document.body.style.marginRight = '17px';
@@ -185,21 +176,17 @@ namespace CrmEditPageElement {
 		};
 		
 		static animateOut(this: CrmEditPage) {
-			if (this._overlayAnimation && this._overlayAnimation.reverse) {
-				this._overlayAnimation.reverse();
-			} else {
-				this._backdropEl.animate([
-					{
-						opacity: 0.3
-					}, {
-						opacity: 0
-					}
-				], {
-					duration: 300,
-					fill: 'both',
-					easing: 'bez'
-				});
-			}
+			this._backdropEl.animate([
+				{
+					opacity: 0.3
+				}, {
+					opacity: 0
+				}
+			], {
+				duration: 300,
+				fill: 'both',
+				easing: 'bez'
+			});
 			
 			const animation = window.animateTransform(this.$.overlayCont, {
 				propName: 'scale',
