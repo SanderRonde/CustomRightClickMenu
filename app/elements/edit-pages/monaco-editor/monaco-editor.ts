@@ -759,7 +759,7 @@ namespace MonacoEditorElement {
 
 			this._disposables.push(MonacoEditorEventHandler._genDisposable(() => {
 				return window.setInterval(() => {
-					if (!this._underlineDisabled) {
+					if (!this._underlineDisabled && window.app.item) {
 						this._markUnderlines();
 					}
 				}, 50);
