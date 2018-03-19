@@ -214,12 +214,12 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
-	if (arrContains<string>(process.argv, str => str.indexOf('--edge-') > -1)) {
-		const edgeStr = arrContains<string>(process.argv, str => str.indexOf('--edge-') > -1);
-		const edgeVersion = edgeStr.split('--edge-')[1];
+	if (arrContains<string>(process.argv, str => str.indexOf('--firefox-') > -1)) {
+		const firefoxStr = arrContains<string>(process.argv, str => str.indexOf('--firefox-') > -1);
+		const firefoxVersion = firefoxStr.split('--firefox-')[1];
 		return {
-			'browserName' : 'Edge',
-			'browser_version': `${edgeVersion}.0`,
+			'browserName' : 'Firefox',
+			'browser_version': `${firefoxVersion}.0`,
 			'os' : 'Windows',
 			'os_version' : '10',
 			'resolution' : '1920x1080',
@@ -243,12 +243,12 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
-	if (arrContains<string>(process.argv, str => str.indexOf('--opera-') > -1)) {
-		const operaStr = arrContains<string>(process.argv, str => str.indexOf('--opera-') > -1);
-		const operaVersion = operaStr.split('--opera-')[1];
+	if (arrContains<string>(process.argv, str => str.indexOf('--edge-') > -1)) {
+		const edgeStr = arrContains<string>(process.argv, str => str.indexOf('--edge-') > -1);
+		const edgeVersion = edgeStr.split('--edge-')[1];
 		return {
-			'browserName' : 'Opera',
-			'browser_version': `${operaVersion}.0`,
+			'browserName' : 'Edge',
+			'browser_version': `${edgeVersion}.0`,
 			'os' : 'Windows',
 			'os_version' : '10',
 			'resolution' : '1920x1080',
@@ -262,6 +262,22 @@ function getCapabilities(): BrowserstackCapabilities {
 	if (process.argv.indexOf('--opera-latest') > -1) {
 		return {
 			'browserName' : 'Opera',
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
+			'browserstack.local': true,
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
+	}
+	if (arrContains<string>(process.argv, str => str.indexOf('--opera-') > -1)) {
+		const operaStr = arrContains<string>(process.argv, str => str.indexOf('--opera-') > -1);
+		const operaVersion = operaStr.split('--opera-')[1];
+		return {
+			'browserName' : 'Opera',
+			'browser_version': `${operaVersion}.0`,
 			'os' : 'Windows',
 			'os_version' : '10',
 			'resolution' : '1920x1080',
