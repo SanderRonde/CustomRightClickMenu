@@ -21,6 +21,11 @@ env:
   - TEST=test:edge:16
   - TEST=test:edge:latest
 
+-before_install:	
+  - npm install gulp -g	
+-install:	
+  - yarn
+
 script: sh ./scripts/pretest.sh && yarn run $TEST || yarn run $TEST
 
 jobs:
