@@ -780,6 +780,9 @@ export namespace GlobalDeclarations {
 					if (modules.Util.canRunOnUrl(tab.url)) {
 						try {
 							await browserAPI.tabs.executeScript(tab.id, {
+								file: '/js/polyfills/browser.js'
+							});
+							await browserAPI.tabs.executeScript(tab.id, {
 								file: '/js/contentscript.js'
 							});
 							return RestoreTabStatus.SUCCESS;
