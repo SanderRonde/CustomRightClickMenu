@@ -1091,7 +1091,7 @@ export namespace CRMNodes.Script.Updating {
 			newValue: modules.storages.settingsStorage.crm
 		}]);
 
-		const { updatedScripts } = await browserAPI.storage.local.get<CRM.StorageLocal>();
+		const { updatedScripts = [] } = await browserAPI.storage.local.get<CRM.StorageLocal>();
 		const joinedData = [...updatedScripts, ...updatedData];
 		browserAPI.storage.local.set({
 			updatedScripts: joinedData
