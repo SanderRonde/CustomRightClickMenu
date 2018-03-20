@@ -928,7 +928,7 @@ function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackConte
 		}
 	}
 
-async function waitForCRM(timeRemaining: number): webdriver.promise.Promise<void> {
+async function waitForCRM(timeRemaining: number) {
 	await waitFor(() => {
 		return driver.executeScript(inlineFn(() => {
 			const crmItem = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])')[0];
