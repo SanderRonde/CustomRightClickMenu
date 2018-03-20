@@ -851,8 +851,8 @@ function readFile(filePath, options) {
 		gulp.series('build', function createZip() {
 			return gulp
 				.src([
-					'build/**', 
-					'!build/Custom Right-Click Menu.zip',
+					'**', 
+					'!Custom Right-Click Menu.zip',
 				], {
 					cwd: './build/',
 					base: './build/'
