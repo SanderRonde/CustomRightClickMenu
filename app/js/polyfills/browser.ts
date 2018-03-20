@@ -49,14 +49,23 @@ namespace BrowserAPI {
 		__reject(err: any): void;
 	}
 
-	function createCallback<T>(prom: {
+	class CustomError extends Error {
+		constructor({ message }: _chrome.runtime.LastError, { stack }: Error) {
+			super(message);
+			this.stack = stack;
+			this.message = message;
+		}
+	}
+
+	function createCallback<T>(stackSrc: Error, prom: {
 		resolve: (result: T) => void;
 		reject: (reason: any) => void;
 	}): ChromeCallbackHandler<T> {
 		const { resolve, reject } = prom;
 		const fn = ((...args: any[]) => {
 			if (__srcBrowser.runtime.lastError) {
-				reject(__srcBrowser.runtime.lastError);
+				reject(new CustomError(__srcBrowser.runtime.lastError,
+					stackSrc));
 			} else {
 				resolve(args[0]);
 			}
@@ -68,7 +77,7 @@ namespace BrowserAPI {
 
 	function createPromise<T>(callback: (handler: ChromeCallbackHandler<T>) => void) {
 		return new Promise<T>((resolve, reject) => {
-			callback(createCallback({
+			callback(createCallback(new Error(), {
 				resolve, reject
 			}));
 		});
