@@ -1047,7 +1047,7 @@ namespace CRMAppElement {
 			//Reset storages
 			window.app.settings = window.app.storageLocal = null;
 			window.app._settingsCopy = window.app._storageLocalCopy = null;
-			window.Storages.clearStorages();
+			window.Storages && window.Storages.clearStorages();
 
 			//On a demo or test page right now, use background page to init settings
 			await window.Storages.loadStorages();
