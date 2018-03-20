@@ -115,7 +115,7 @@ export namespace Init {
 				browserAPI.runtime.onConnect.addListener((port) => {
 					port.onMessage.addListener(window.createHandlerFunction(port));
 				});
-				browserAPI.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
+				browserAPI.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessageInitial);
 				window.info('Building Custom Right-Click Menu');
 				await CRMNodes.buildPageCRM();
 				window.info('Compiling typescript');

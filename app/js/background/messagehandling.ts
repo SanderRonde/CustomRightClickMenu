@@ -148,7 +148,7 @@ export namespace MessageHandling {
 		action: string;
 	}
 
-	export async function handleRuntimeMessage(message: CRMAPIMessageInstance<string, any>,
+	async function handleRuntimeMessage(message: CRMAPIMessageInstance<string, any>,
 		messageSender?: _browser.runtime.MessageSender,
 		respond?: (message: any) => void) {
 			let response: any = null;
@@ -217,7 +217,19 @@ export namespace MessageHandling {
 					localStorage.setItem(message.data.key, message.data.value);
 					break;
 			}
-			respond(response);
+			respond && respond(response);
+		}
+
+	export function handleRuntimeMessageInitial(message: CRMAPIMessageInstance<string, any>,
+		messageSender?: _browser.runtime.MessageSender,
+		respond?: (message: any) => void,
+		done?: (result: any) => void) {
+			//Not async because true has to be returned for a response to be
+			//	sent after initial execution
+			handleRuntimeMessage(message, messageSender, respond).then(() => {
+				done && done(null);
+			});
+			return true;
 		}
 	export async function handleCrmAPIMessage(message: CRMFunctionMessage|
 		BrowserHandler.ChromeAPIMessage|BrowserHandler.BrowserAPIMessage|
@@ -231,7 +243,9 @@ export namespace MessageHandling {
 					await modules.BrowserHandler.handle(message);
 					break;
 				default:
-					await handleRuntimeMessage(message);
+					await new Promise((resolve) => {
+						handleRuntimeMessageInitial(message, null, null, resolve);
+					});
 					break;
 			}
 		}
