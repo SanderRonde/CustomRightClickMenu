@@ -723,14 +723,11 @@ function readFile(filePath, options) {
 						"html/background.html",
 						"fonts/**/*",
 						"images/**/*",
-						"js/crmapi.js",
 						"js/libraries/csslint.js",
 						"js/libraries/jslint.js",
 						"js/libraries/crmapi.d.ts",
 						"js/contentscript.js",
-						"js/installStylesheet.js",
 						"js/libraries/tern/*.*",
-						"js/polyfills/browser.js",
 						"icon-large.png",
 						"icon-small.png",
 						"icon-supersmall.png",
@@ -749,6 +746,19 @@ function readFile(filePath, options) {
 				},
 				dest: './build/'
 			})
+		},
+		function copyExtraDependencies() {
+			return gulp
+				.src([
+					'./js/crmapi.js',
+					'./js/installStylesheet.js',
+					'./js/contentscript.js',
+					'./js/polyfills/browser.js'
+				], { 
+					cwd: './temp', 
+					base: './temp' 
+				})
+				.pipe(gulp.dest('./build'));
 		},
 		buildPostPolymer,
 		async function beautifyJs() {
@@ -776,14 +786,11 @@ function readFile(filePath, options) {
 						"html/background.html",
 						"fonts/**/*",
 						"images/**/*",
-						"js/crmapi.js",
 						"js/libraries/csslint.js",
 						"js/libraries/jslint.js",
 						"js/libraries/crmapi.d.ts",
 						"js/contentscript.js",
-						"js/installStylesheet.js",
 						"js/libraries/tern/*.*",
-						"js/polyfills/browser.js",
 						"icon-large.png",
 						"icon-small.png",
 						"icon-supersmall.png",
@@ -809,6 +816,19 @@ function readFile(filePath, options) {
 				},
 				dest: './build/'
 			});
+		},
+		function copyExtraDependencies() {
+			return gulp
+				.src([
+					'./js/crmapi.js',
+					'./js/installStylesheet.js',
+					'./js/contentscript.js',
+					'./js/polyfills/browser.js'
+				], { 
+					cwd: './temp', 
+					base: './temp' 
+				})
+				.pipe(gulp.dest('./build'));
 		},
 		buildPostPolymer,
 		function uglifyFiles() {
