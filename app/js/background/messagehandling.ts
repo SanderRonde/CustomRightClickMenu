@@ -151,6 +151,7 @@ export namespace MessageHandling {
 	export async function handleRuntimeMessage(message: CRMAPIMessageInstance<string, any>,
 		messageSender?: _browser.runtime.MessageSender,
 		respond?: (message: any) => void) {
+			let response: any = null;
 			switch (message.type) {
 				case 'executeCRMCode':
 				case 'getCRMHints':
@@ -200,16 +201,14 @@ export namespace MessageHandling {
 					break;
 				case 'newTabCreated':
 					if (messageSender && respond) {
-						await modules.CRMNodes.Script.Running.executeScriptsForTab(messageSender.tab.id, respond);
+						response = await modules.CRMNodes.Script.Running.executeScriptsForTab(messageSender.tab.id, respond);
 					}
 					break;
 				case 'styleInstall':
 					modules.CRMNodes.Stylesheet.Installing.installStylesheet(message.data);
 					break;
 				case 'updateScripts':
-					modules.CRMNodes.Script.Updating.updateScripts((updated) => {
-						respond && respond(updated);
-					});
+					response = await modules.CRMNodes.Script.Updating.updateScripts();
 					break;
 				case 'installUserScript':
 					await modules.CRMNodes.Script.Updating.install(message.data);
@@ -218,6 +217,7 @@ export namespace MessageHandling {
 					localStorage.setItem(message.data.key, message.data.value);
 					break;
 			}
+			respond(response);
 		}
 	export async function handleCrmAPIMessage(message: CRMFunctionMessage|
 		BrowserHandler.ChromeAPIMessage|BrowserHandler.BrowserAPIMessage|

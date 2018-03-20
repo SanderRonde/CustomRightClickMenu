@@ -1582,11 +1582,14 @@ namespace CRMAppElement {
 
 			if (typeof localStorage === 'undefined') {
 				//Running a test
-				browserAPI.runtime.onMessage.addListener((message: any) => {
-					if (message.type === 'idUpdate') {
-						this._latestId = message.latestId;
-					}
-				});
+				browserAPI.runtime.onMessage.addListener((message: any, 
+					_sender: _browser.runtime.MessageSender, 
+					respond: (response: object) => any) => {
+						if (message.type === 'idUpdate') {
+							this._latestId = message.latestId;
+						}
+						respond(null);
+					});
 			}
 
 			let controlPresses = 0;

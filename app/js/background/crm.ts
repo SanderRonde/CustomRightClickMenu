@@ -1029,8 +1029,14 @@ export namespace CRMNodes.Script.Updating {
 				};
 			}
 		}
-	export function updateScripts(callback?: (data: any) => void) {
-		const checking = [];
+	function getDownloadURL({ nodeInfo }: CRM.Node) {
+		return nodeInfo && nodeInfo.source &&
+			typeof nodeInfo.source !== 'string' &&
+				(nodeInfo.source.downloadURL ||
+				nodeInfo.source.updateURL ||
+				nodeInfo.source.url);
+	}
+	export async function updateScripts() {
 		const updated: {
 			oldNodeId: number;
 			node: CRM.Node;
@@ -1039,133 +1045,115 @@ export namespace CRMNodes.Script.Updating {
 		const oldTree = JSON.parse(JSON.stringify(
 			modules.storages.settingsStorage.crm));
 		window.info('Looking for updated scripts...');
-		for (let id in modules.crm.crmById) {
-			if (modules.crm.crmById.hasOwnProperty(id)) {
-				const node = modules.crm.crmById[id];
+		await Promise.all(Object.getOwnPropertyNames(modules.crm.crmById).map((id) => {
+			return new Promise<void>(async (resolve) => {
+				const node = modules.crm.crmById[~~id];
 				const isRoot = node.nodeInfo && node.nodeInfo.isRoot;
-				const downloadURL = node.nodeInfo &&
-					node.nodeInfo.source &&
-					typeof node.nodeInfo.source !== 'string' &&
-					(node.nodeInfo.source.downloadURL ||
-						node.nodeInfo.source.updateURL ||
-						node.nodeInfo.source.url);
+				const downloadURL = getDownloadURL(node);
 				if (downloadURL && isRoot) {
-					const checkingId: number = checking.length;
-					checking[checkingId] = true;
-					_checkNodeForUpdate(node,
-						checking, 
-						checkingId,
-						downloadURL,
-						_genNodeUpdateOnDone(updated, oldTree, callback),
-						updated);
+					await _checkNodeForUpdate(node, downloadURL, updated);
 				}
-			}
-		}
+				resolve(null);
+			});
+		}));
+		await _onNodeUpdateDone(updated, oldTree)
 	}
-	function _genNodeUpdateOnDone(updated: {
+	async function _onNodeUpdateDone(updated: {
 		oldNodeId: number;
 		node: CRM.Node;
 		path: number[];
-	}[], oldTree: CRM.Tree, callback?: (data: any) => void) {
-		return async () => {
-			const updatedData = updated.map((updatedScript) => {
-				const oldNode = modules.crm.crmById[updatedScript.oldNodeId];
-				return {
-					name: updatedScript.node.name,
-					id: updatedScript.node.id,
-					oldVersion: (oldNode && oldNode.nodeInfo && oldNode.nodeInfo.version) ||
-						undefined,
-					newVersion: updatedScript.node.nodeInfo.version
-				};
+	}[], oldTree: CRM.Tree) {
+		const updatedData = updated.map((updatedScript) => {
+			const oldNode = modules.crm.crmById[updatedScript.oldNodeId];
+			return {
+				name: updatedScript.node.name,
+				id: updatedScript.node.id,
+				oldVersion: (oldNode && oldNode.nodeInfo && oldNode.nodeInfo.version) ||
+					undefined,
+				newVersion: updatedScript.node.nodeInfo.version
+			};
+		});
+
+		await Promise.all(updated.map((updatedScript) => {
+			return modules.Util.iipe(async () => {
+				if (updatedScript.path) { //Has old node
+					await _removeOldNode(updatedScript.oldNodeId);
+					_registerNode(updatedScript.node, updatedScript.path);
+				} else {
+					_registerNode(updatedScript.node);
+				}
 			});
+		}));
 
-			await Promise.all(updated.map((updatedScript) => {
-				return modules.Util.iipe(async () => {
-					if (updatedScript.path) { //Has old node
-						await _removeOldNode(updatedScript.oldNodeId);
-						_registerNode(updatedScript.node, updatedScript.path);
-					} else {
-						_registerNode(updatedScript.node);
-					}
-				});
-			}));
+		await modules.Storages.uploadChanges('settings', [{
+			key: 'crm',
+			oldValue: oldTree,
+			newValue: modules.storages.settingsStorage.crm
+		}]);
 
-			await modules.Storages.uploadChanges('settings', [{
-				key: 'crm',
-				oldValue: oldTree,
-				newValue: modules.storages.settingsStorage.crm
-			}]);
+		const { updatedScripts } = await browserAPI.storage.local.get<CRM.StorageLocal>();
+		const joinedData = [...updatedScripts, ...updatedData];
+		browserAPI.storage.local.set({
+			updatedScripts: joinedData
+		});
 
-			const { updatedScripts } = await browserAPI.storage.local.get<CRM.StorageLocal>();
-			const joinedData = [...updatedScripts, ...updatedData];
-			browserAPI.storage.local.set({
-				updatedScripts: joinedData
-			});
-
-			if (callback) {
-				callback(joinedData);
-			}
-		}
+		return joinedData;
 	}
 
-	function _checkNodeForUpdate(node: CRM.Node, checking: boolean[],
-		checkingId: number, downloadURL: string, onDone: () => void,
+	function _checkNodeForUpdate(node: CRM.Node, downloadURL: string,
 		updatedScripts: {
 			node: CRM.Node;
 			path?: number[];
 			oldNodeId?: number;
 		}[]) {
-			if (node.type === 'script' || node.type === 'stylesheet') {
-				//Do a request to get that script from its download URL
-				if (downloadURL && modules.Util.endsWith(downloadURL, '.user.js')) {
-					try {
-						modules.Util.convertFileToDataURI(downloadURL, async (dataURI, dataString) => {
-							//Get the meta tags
-							try {
-								const metaTags = MetaTags.getMetaTags(dataString);
-								if (modules.Util.isNewer(metaTags['version'][0], node.nodeInfo.version)) {
-									if (!modules.Util.compareArray(node.nodeInfo.permissions,
-										metaTags['grant']) &&
-										!(metaTags['grant'].length === 0 &&
-											metaTags['grant'][0] === 'none')) {
-										//New permissions were added, notify user
-										const { addedPermissions = [] } = await browserAPI.storage.local.get<CRM.StorageLocal>();
-										addedPermissions.push({
-											node: node.id,
-											permissions: metaTags['grant'].filter((newPermission: CRM.Permission) => {
-												return node.nodeInfo.permissions.indexOf(newPermission) === -1;
-											})
-										});
-										await browserAPI.storage.local.set({
-											addedPermissions: addedPermissions
-										});
-										browserAPI.runtime.openOptionsPage();
+			return new Promise<void>((resolve) => {
+				if (node.type === 'script' || node.type === 'stylesheet') {
+					//Do a request to get that script from its download URL
+					if (downloadURL && modules.Util.endsWith(downloadURL, '.user.js')) {
+						try {
+							modules.Util.convertFileToDataURI(downloadURL, async (dataURI, dataString) => {
+								//Get the meta tags
+								try {
+									const metaTags = MetaTags.getMetaTags(dataString);
+									if (modules.Util.isNewer(metaTags['version'][0], node.nodeInfo.version)) {
+										if (!modules.Util.compareArray(node.nodeInfo.permissions,
+											metaTags['grant']) &&
+											!(metaTags['grant'].length === 0 &&
+												metaTags['grant'][0] === 'none')) {
+											//New permissions were added, notify user
+											const { addedPermissions = [] } = await browserAPI.storage.local.get<CRM.StorageLocal>();
+											addedPermissions.push({
+												node: node.id,
+												permissions: metaTags['grant'].filter((newPermission: CRM.Permission) => {
+													return node.nodeInfo.permissions.indexOf(newPermission) === -1;
+												})
+											});
+											await browserAPI.storage.local.set({
+												addedPermissions: addedPermissions
+											});
+											browserAPI.runtime.openOptionsPage();
+										}
+
+										updatedScripts.push(await installUserscript(metaTags,
+											dataString, downloadURL, node.permissions, node.id));
 									}
 
-									updatedScripts.push(await installUserscript(metaTags,
-										dataString, downloadURL, node.permissions, node.id));
+								} catch (err) {
+									window.log('Tried to update script ', node.id, ' ', node.name,
+										' but could not reach download URL');
 								}
-
-								checking[checkingId] = false;
-								if (checking.filter((c) => { return c; }).length === 0) {
-									onDone();
-								}
-							} catch (err) {
-								window.log('Tried to update script ', node.id, ' ', node.name,
-									' but could not reach download URL');
-							}
-						}, () => {
-							checking[checkingId] = false;
-							if (checking.filter((c) => { return c; }).length === 0) {
-								onDone();
-							}
-						});
-					} catch (e) {
-						window.log('Tried to update script ', node.id, ' ', node.name,
-							' but could not reach download URL');
+								resolve(null);
+							}, () => {
+								resolve(null);
+							});
+						} catch (e) {
+							window.log('Tried to update script ', node.id, ' ', node.name,
+								' but could not reach download URL');
+							resolve(null);
+						}
 					}
 				}
-			}
+			});
 	}
 }
 
@@ -1239,14 +1227,15 @@ export namespace CRMNodes.Script.Running {
 					for (let i = 0; i < toExecute.length; i++) {
 						executeNode(toExecute[i].node, toExecute[i].tab);
 					}
-					respond({
+					return {
 						matched: toExecute.length > 0
-					});
+					};
 				}
 			}
-		} catch(e) {
-			return;
-		}
+		} catch(e) { }
+		return {
+			matched: false
+		};
 	}
 
 };
