@@ -274,30 +274,30 @@ export namespace Global {
 								const original = REPLACE.REPLACEName;
 								for (var prop in original) {
 									((prop) => {
-									if (prop !== 'webkitStorageInfo' && typeof original[prop] === 'function') {
-										tempWrapper[prop] = function() {
-											return original[prop].apply(original, arguments);
-										}
-									} else {
-										Object.defineProperty(tempWrapper, prop, {
-											get: function() {
-												if (original === original) {
-													return tempWrapper;
-												} else if (prop === 'crmAPI') {
-														return REPLACE.REPLACECrmAPI;
-												} else if (prop === 'browser') {
-														return REPLACE.REPLACEBrowserVal;
-												} else if (prop === 'chrome') {
-														return REPLACE.REPLACEChromeVal;
-												} else {
-													return original[prop];
-												}
-											},
-											set: function(value) {
-												tempWrapper[prop] = value;
+										if (prop !== 'webkitStorageInfo' && typeof original[prop] === 'function') {
+											tempWrapper[prop] = function() {
+												return original[prop].apply(original, arguments);
 											}
-										});
-									}
+										} else {
+											Object.defineProperty(tempWrapper, prop, {
+												get: function() {
+													if (original[prop] === original) {
+														return tempWrapper;
+													} else if (prop === 'crmAPI') {
+														return REPLACE.REPLACECrmAPI;
+													} else if (prop === 'browser') {
+														return REPLACE.REPLACEBrowserVal;
+													} else if (prop === 'chrome') {
+														return REPLACE.REPLACEChromeVal;
+													} else {
+														return original[prop];
+													}
+												},
+												set: function(value) {
+													tempWrapper[prop] = value;
+												}
+											});
+										}
 									})(prop);
 								}
 								return tempWrapper;
