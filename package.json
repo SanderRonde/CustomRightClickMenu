@@ -58,6 +58,7 @@
     "@types/chai": "^4.0.4",
     "@types/mocha": "^2.2.43",
     "@types/node": "^8.0.34",
+    "@types/selenium-webdriver": "^3.0.8",
     "argparse": "^1.0.9",
     "async": "^0.9.0",
     "babel-cli": "^6.14.0",

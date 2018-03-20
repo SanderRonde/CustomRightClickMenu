@@ -1,4 +1,3 @@
-/// <reference path="../tools/definitions/selenium-webdriver.d.ts" />
 /// <reference path="../tools/definitions/webExtensions.d.ts" />
 /// <reference path="../tools/definitions/crm.d.ts" />
 /// <reference path="../app/elements/edit-crm-item/edit-crm-item.ts" />
@@ -1016,14 +1015,6 @@ class PromiseContainer<T> implements webdriver.promise.IThenable<T> {
 		this._promise = new webdriver.promise.Promise<T>(resolver, opt_flow);
 	}
 
-	cancel(opt_reason?: string) {
-		this._promise.cancel(opt_reason);
-	}
-
-	isPending() {
-		return this._promise.isPending();
-	}
-
 	then<R>(opt_callback?: (value: T) => Promise<R>, 
 		opt_errback?: (error: any) => any): webdriver.promise.Promise<R>;
 	then<R>(opt_callback?: (value: T) => R, 
@@ -1033,14 +1024,10 @@ class PromiseContainer<T> implements webdriver.promise.IThenable<T> {
 			return this._promise.then(opt_callback, opt_errback) as any;
 		}
 
-	thenCatch<R>(errback: (error: any) => any): webdriver.promise.Promise<R> {
-		return this._promise.thenCatch(errback);
+	catch<R>(errback: (error: any) => any): webdriver.promise.Promise<R> {
+		return this._promise.catch(errback);
 	}
-
-	thenFinally<R>(callback: () => any): webdriver.promise.Promise<R> {
-		return this._promise.thenFinally(callback);
 	}
-}
 
 class FoundElementsPromise extends PromiseContainer<FoundElement[]> {
 	private _items: FoundElement[];
@@ -1532,25 +1519,41 @@ class FoundElement implements FoundElement {
 }
 }
 
-function locatorToCss(by: webdriver.Locator): string {
-	switch (by.using) {
+function getValueForType(type: string, value: string) {
+	switch (type) {
 		case 'className':
-			return `.${by.value}`;
+			return `.${value}`;
 		case 'css selector':
-			return by.value;
+			return value;
 		case 'id':
-			return `#${by.value}`;
+			return `#${value}`;
 		case 'linkText':
-			return `*[href=${by.value}]`;
+			return `*[href=${value}]`;
 		case 'name':
-			return  `*[name="${by.value}"]`;
+			return  `*[name="${value}"]`;
 		case 'tagName':
-			return by.value;
+			return value;
 		default:
 		case 'js':
 		case 'xpath':
 		case 'partialLinkText':
 			throw new Error('Not implemented');
+	}
+}
+
+function locatorToCss(by: webdriver.Locator): string {
+	if (by instanceof webdriver.By) {
+		const byObj = by as  {
+			using: string;
+			value: string;
+		}
+		return getValueForType(byObj.using, byObj.value);
+	} else if (typeof by === 'function') {
+		throw new Error('Unrecognized locator used');
+	} else {
+		const keys = Object.getOwnPropertyNames(by);
+		const key = keys[0] as keyof typeof by;
+		return getValueForType(key, (by as any)[key] as string);
 	}
 }
 
