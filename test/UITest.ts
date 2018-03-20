@@ -121,7 +121,6 @@ import { readFile } from 'fs';
 import { join } from 'path';
 import { exec } from 'child_process';
 require('mocha-steps');
-const secrets = require('./UI/secrets');
 const request = require('request');
 const btoa = require('btoa');
 
@@ -158,6 +157,18 @@ function arrContains<T>(arr: ArrayLike<T>, fn: (item: T) => boolean): T {
 }
 
 function getCapabilities(): BrowserstackCapabilities {
+	let secrets: {
+		user: string;
+		key: string;
+	};
+	if (TEST_LOCAL) {
+		secrets = require('./UI/secrets');
+	} else {
+		secrets = {
+			user: '',
+			key: ''
+		}
+	}
 	if (process.argv.indexOf('--chrome-latest') > -1) {
 		return {
 			'browserName' : 'Chrome',
