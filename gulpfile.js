@@ -11,6 +11,7 @@ const ts = require('gulp-typescript');
 const through = require('through2');
 const uglify = require('gulp-uglify');
 const babel = require('gulp-babel');
+const xpi = require('firefox-xpi');
 const typedoc = require('typedoc');
 const crisper = require('crisper');
 const rollup = require('rollup');
@@ -983,6 +984,26 @@ function readFile(filePath, options) {
 		function operaToDist() {
 			return moveToDist('opera');
 		}));
+
+	gulp.task(genTask('Generates a crx file and places it in the /dist/packed folder',
+		function genCRX() {
+			return gulp
+				.src([
+					'**',
+					'!Custom Right-Click Menu.zip'
+				], {
+					cwd: './build/',
+					base: './build'
+				})
+				.pipe(zip('Custom Right-Click Menu.zip'))
+				.pipe(rename('Custom Right-Click Menu.crx'))
+				.pipe(gulp.dest('./dist/packed/'));
+		}));
+
+		gulp.task(genTask('Generates an xpi file and places it in the /dist/packed folder',
+			async function genXPI() {
+				await xpi('./dist/packed/Custom Right-Click Menu.xpi', './build');
+			}));
 })();
 
 gulp.task('default', gulp.series('build'));
