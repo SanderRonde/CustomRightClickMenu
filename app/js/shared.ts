@@ -166,6 +166,9 @@ type SharedWindow = {
 
 		static chain<T>(initializers: (() => RoughPromise<any>)[]) {
 			return new RoughPromise<T>((resolve) => {
+				if (!initializers[0]) {
+					resolve(null);
+				}
 				initializers[0]().then((result) => {
 					if (initializers[1]) {
 						RoughPromise.chain<T>(initializers.slice(1)).then((result) => {
