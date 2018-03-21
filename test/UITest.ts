@@ -160,7 +160,7 @@ function getCapabilities(): BrowserstackCapabilities {
 		user: string;
 		key: string;
 	};
-	if (TEST_LOCAL) {
+	if (!TEST_LOCAL) {
 		secrets = require('./UI/secrets');
 	} else {
 		secrets = {
