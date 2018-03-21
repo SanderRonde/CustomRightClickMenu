@@ -116,7 +116,7 @@ type SharedWindow = {
 	}
 
 	function isUndefined(val: any): val is void {
-		return typeof val === 'undefined' || typeof val === null;
+		return typeof val === 'undefined' || val === null;
 	}
 
 	class RoughPromise<T> implements PromiseLike<T> {
