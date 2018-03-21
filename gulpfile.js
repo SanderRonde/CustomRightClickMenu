@@ -992,8 +992,8 @@ function readFile(filePath, options) {
 					'**',
 					'!Custom Right-Click Menu.zip'
 				], {
-					cwd: './build/',
-					base: './build'
+					cwd: './dist/chrome/',
+					base: './dist/chrome'
 				})
 				.pipe(zip('Custom Right-Click Menu.zip'))
 				.pipe(rename('Custom Right-Click Menu.crx'))
@@ -1002,7 +1002,7 @@ function readFile(filePath, options) {
 
 		gulp.task(genTask('Generates an xpi file and places it in the /dist/packed folder',
 			async function genXPI() {
-				await xpi('./dist/packed/Custom Right-Click Menu.xpi', './build');
+				await xpi('./dist/packed/Custom Right-Click Menu.xpi', './dist/firefox');
 			}));
 })();
 
