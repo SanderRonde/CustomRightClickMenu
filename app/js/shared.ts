@@ -115,6 +115,10 @@ type SharedWindow = {
 		return;
 	}
 
+	function isUndefined(val: any): val is void {
+		return typeof val === 'undefined' || typeof val === null;
+	}
+
 	class RoughPromise<T> implements PromiseLike<T> {
 		private _val: T = null;
 		private _state: 'pending'|'resolved'|'rejected' = 'pending';
@@ -188,12 +192,12 @@ type SharedWindow = {
 		}
 		const prom = (window.Promise || RoughPromise) as any;
 		return new prom((resolve: (result: C[T]) => void) => {
-			if (key in container) {
+			if (key in container && !isUndefined(container[key])) {
 				resolve(container[key]);
 				return;
 			}
 			const interval = window.setInterval(() => {
-				if (key in container) {
+				if (key in container && !isUndefined(container[key])) {
 					window.clearInterval(interval);
 					resolve(container[key]);
 				}
