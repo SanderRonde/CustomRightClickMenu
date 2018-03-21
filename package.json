@@ -128,6 +128,7 @@
   "scripts": {
     "pretest": "yarn pretest:main && yarn pretest:post",
     "pretest:main": "gulp stashBrowser && gulp browserChrome && gulp buildTest && yarn package",
+    "pretest:dist": "yarn build:chrome-copy && yarn build:firefox-copy && yarn build:edge-copy && yarn build:opera-copy",
     "pretest:post": "gulp unstashBrowser",
     "test": "yarn test:global && yarn test:chrome && yarn test:firefox && yarn test:edge",
     "test:global": "mocha test/test.js",
