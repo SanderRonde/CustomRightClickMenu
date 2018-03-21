@@ -3,8 +3,8 @@ import * as webdriver from 'selenium-webdriver';
 import { TypedWebdriver } from '../../UITest';
 
 export function getCapabilities() {
-	const profile = new firefoxDriver.Profile()
-		.addExtension('dist/packed/Custom Right-Click Menu.xpi');
+	const profile = new firefoxDriver.Profile();
+	profile.addExtension('dist/packed/Custom Right-Click Menu.xpi');
 	return new firefoxDriver.Options()
 		.setProfile(profile)
 		.toCapabilities();
