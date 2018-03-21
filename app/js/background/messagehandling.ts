@@ -216,6 +216,10 @@ export namespace MessageHandling {
 				case 'applyLocalStorage':
 					localStorage.setItem(message.data.key, message.data.value);
 					break;
+				case '_resetSettings':
+					modules.Storages.clearStorages();
+					await modules.Storages.loadStorages();
+					break;
 			}
 			respond && respond(response);
 		}

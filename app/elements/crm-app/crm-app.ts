@@ -1047,10 +1047,16 @@ namespace CRMAppElement {
 			//Reset storages
 			window.app.settings = window.app.storageLocal = null;
 			window.app._settingsCopy = window.app._storageLocalCopy = null;
-			window.Storages && window.Storages.clearStorages();
+			if (window.Storages) {
+				window.Storages.clearStorages();
+				await window.Storages.loadStorages();
+			} else {
+				await browserAPI.runtime.sendMessage({
+					type: '_resetSettings'
+				});
+			}
 
 			//On a demo or test page right now, use background page to init settings
-			await window.Storages.loadStorages();
 			await this._setup.setupStorages();
 
 			//Reset checkboxes
