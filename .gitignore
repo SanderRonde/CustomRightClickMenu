@@ -259,3 +259,4 @@ app/manifest.temp.json
 dist/
 
 app/js/background/*.js
+test/UI/drivers/*.js

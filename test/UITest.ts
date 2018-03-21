@@ -7,6 +7,7 @@ const PORT: number = 1250;
 //Set to false to test remotely even when running it locally
 const TEST_LOCAL_DEFAULT = true;
 const TEST_LOCAL: boolean = hasSetting('remote') ? false : TEST_LOCAL_DEFAULT;
+const TEST_EXTENSION = hasSetting('extension');
 const TIME_MODIFIER = 1.2;
 const LOCAL_URL = 'http://localhost:9515';
 
@@ -114,11 +115,16 @@ interface AppWindow extends Window {
 declare const require: any;
 declare const window: AppWindow;
 
-import * as chai from 'chai';
+import * as firefoxExtensionData from './UI/drivers/firefox-extension';
+import * as chromeExtensionData from './UI/drivers/chrome-extension';
+import * as operaExtensionData from './UI/drivers/opera-extension';
+import * as edgeExtensionData from './UI/drivers/edge-extension';
+import * as defaultExtensionData from './UI/drivers/default';
 import * as webdriver from 'selenium-webdriver';
-import { readFile } from 'fs';
-import { join } from 'path';
 import { exec } from 'child_process';
+import { readFile } from 'fs';
+import * as chai from 'chai';
+import { join } from 'path';
 require('mocha-steps');
 const request = require('request');
 const btoa = require('btoa');
@@ -126,7 +132,7 @@ const btoa = require('btoa');
 global.Promise = webdriver.promise.Promise;
 const assert = chai.assert;
 
-declare class TypedWebdriver extends webdriver.WebDriver {
+export declare class TypedWebdriver extends webdriver.WebDriver {
 	executeScript<T>(script: StringifedFunction<T>): webdriver.promise.Promise<T>;
 	executeScript<T>(script: string, ...var_args: any[]): webdriver.promise.Promise<T>;
 	executeScript<T>(script: Function, ...var_args: any[]): webdriver.promise.Promise<T>;
@@ -376,14 +382,65 @@ function getGitHash() {
 	});
 }
 
+function getBrowser(): 'Chrome'|'Firefox'|'Edge'|'Opera' {
+	return browserCapabilities.browserName || 'Chrome' as any
+}
+
+function getExtensionDataOnly() {
+	const browser = getBrowser();
+	if (TEST_EXTENSION) {
+		switch (browser) {
+			case 'Chrome':
+				return chromeExtensionData;
+			case 'Firefox':
+				return firefoxExtensionData;
+			case 'Edge':
+				return edgeExtensionData;
+			case 'Opera':
+				return operaExtensionData;
+		}
+	}
+	return null;
+}
+
+function getBrowserExtensionData() {
+	const browser = getBrowser();
+	if (TEST_EXTENSION) {
+		switch (browser) {
+			case 'Chrome':
+				return chromeExtensionData;
+			case 'Firefox':
+				return firefoxExtensionData;
+			case 'Edge':
+				return edgeExtensionData;
+			case 'Opera':
+				return operaExtensionData;
+		}
+	}
+	return defaultExtensionData;
+}
+
+function getAdditionalCapabilities() {
+	return getBrowserExtensionData().getCapabilities();
+}
+
+async function openTestPageURL() {
+	if (TEST_EXTENSION) {
+		await getExtensionDataOnly().openOptionsPage(driver);
+	} else {
+		await driver.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`);
+	}
+}
+
 before('Driver connect', async function() {
 	const url = TEST_LOCAL ?
 		LOCAL_URL : 'http://hub-cloud.browserstack.com/wd/hub';
 
 	this.timeout(600000 * TIME_MODIFIER);
+	const additionalCapabilities = getAdditionalCapabilities();
 	const unBuilt = new webdriver.Builder()
 		.usingServer(url)
-		.withCapabilities({...browserCapabilities, ...{
+		.withCapabilities(new webdriver.Capabilities({...browserCapabilities, ...{
 			project: 'Custom Right-Click Menu',
 			build: `${(
 				await tryReadManifest('app/manifest.json') ||
@@ -394,7 +451,7 @@ before('Driver connect', async function() {
 			} ${
 				browserCapabilities.browser_version || 'latest'
 			}`
-		}});
+		}}).merge(additionalCapabilities));
 	if (TEST_LOCAL) {
 		driver = unBuilt.forBrowser('Chrome').build();
 	} else {
@@ -406,7 +463,7 @@ before('Driver connect', async function() {
 		SKIP_DIALOG_TYPES_EXCEPT) {
 			console.warn('Skipping is enabled, make sure this isn\'t in a production build')
 		}
-	await driver.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`);
+	await openTestPageURL();
 	await waitFor(() => {
 		return driver.executeScript(inlineFn(() => {
 			return window.polymerElementsLoaded;
@@ -629,7 +686,7 @@ function es3IfyFunction(str: string): string {
 	return `function ${args} ${body}`;
 }
 
-function inlineFn<T extends {
+export function inlineFn<T extends {
 	[key: string]: any;
 }, U>(fn: (REPLACE: T) => U|void, args?: T,
 	...insertedFunctions: Function[]): StringifedFunction<U> {
@@ -1027,7 +1084,7 @@ class PromiseContainer<T> implements webdriver.promise.IThenable<T> {
 	catch<R>(errback: (error: any) => any): webdriver.promise.Promise<R> {
 		return this._promise.catch(errback);
 	}
-	}
+}
 
 class FoundElementsPromise extends PromiseContainer<FoundElement[]> {
 	private _items: FoundElement[];
@@ -1516,7 +1573,7 @@ class FoundElement implements FoundElement {
 			await awaitable;
 			resolve(this);
 		});
-}
+	}
 }
 
 function getValueForType(type: string, value: string) {
@@ -2020,6 +2077,10 @@ describe('Options Page', function() {
 				.findElement(webdriver.By.className('URISchemeGenerator'))
 				.findElement(webdriver.By.tagName('paper-button'))
 				.click()
+
+			if (TEST_EXTENSION) {
+				return;
+			}
 				
 			const lastCall = JSON.parse(await driver.executeScript(inlineFn(() => {
 				return JSON.stringify(window.chrome._lastSpecialCall);
@@ -3080,6 +3141,10 @@ describe('Options Page', function() {
 								url: libUrl
 							}, 'Library was added');
 
+							if (TEST_EXTENSION) {
+								return;
+							}
+
 							await wait(200);
 							//Get the code that is stored at given test URL
 							const jqCode = await new webdriver.promise.Promise<string>((resolve) => {
@@ -3263,6 +3328,10 @@ describe('Options Page', function() {
 								name: libName,
 								url: null
 							}, 'Library was added');
+
+							if (TEST_EXTENSION) {
+								return;
+							}
 
 							await wait(1000);
 
@@ -3637,7 +3706,7 @@ describe('Options Page', function() {
 
 
 describe('On-Page CRM', function() {
-	if (SKIP_CONTEXTMENU) {
+	if (SKIP_CONTEXTMENU || TEST_EXTENSION) {
 		return;
 	}
 	describe('Redraws on new CRM', function() {

@@ -14,10 +14,14 @@ stages:
 env:
   - TEST=test-build
   - TEST=test-local
-  - TEST=test:chrome:26
-  - TEST=test:chrome:latest
-  - TEST=test:firefox:quantum
-  - TEST=test:firefox:latest
+  - TEST=test:chrome:26:page
+  - TEST=test:chrome:26:extension
+  - TEST=test:chrome:latest:page
+  - TEST=test:chrome:latest:extension
+  - TEST=test:firefox:quantum:page
+  - TEST=test:firefox:quantum:extension
+  - TEST=test:firefox:latest:page
+  - TEST=test:firefox:latest:extension
   - TEST=test:edge:16
   - TEST=test:edge:latest
 
