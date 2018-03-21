@@ -127,7 +127,7 @@
   },
   "scripts": {
     "pretest": "yarn pretest:main && yarn pretest:post",
-    "pretest:main": "gulp stashBrowser && gulp browserChrome && gulp buildTest",
+    "pretest:main": "gulp stashBrowser && gulp browserChrome && gulp buildTest && yarn package",
     "pretest:post": "gulp unstashBrowser",
     "test": "yarn test:global && yarn test:chrome && yarn test:firefox && yarn test:edge",
     "test:global": "mocha test/test.js",
@@ -153,6 +153,7 @@
     "build-opera": "gulp stashBrowser && gulp browserOpera && gulp build && gulp copy:buildToOpera",
     "test-local": "yarn test:global",
     "test-build": "gulp stashBrowser && gulp browserChrome && gulp testBuild",
+    "package": "gulp genCRX && gulp genXPI",
     "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'app/bower_components', 'junction') } catch (e) { }\""
   },
   "version": "2.0.16",
