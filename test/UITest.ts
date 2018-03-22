@@ -5182,13 +5182,16 @@ after('quit driver', function() {
 				resolve(null);
 			}, 15000);
 		
+			if (!driver) {
+				resolve(null);
+			}
 			driver.quit().then(() => {
 				resolve(null);
 			});
 		} else {
 			resolve(null);
 			setTimeout(() => {
-				driver.quit();
+				driver && driver.quit();
 			}, 600000);
 		}
 	});
