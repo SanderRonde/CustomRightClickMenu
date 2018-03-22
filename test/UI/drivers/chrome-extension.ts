@@ -19,7 +19,13 @@ function getVersion({ browser_version }: BrowserstackCapabilities) {
 export async function openOptionsPage(driver: TypedWebdriver, capabilities: BrowserstackCapabilities) {
 	const version = getVersion(capabilities);
 	
-	if (version < 61) {
+	if (version < 36) {
+		console.error('Chrome extension testing before chrome 36 won\'t work,'
+			+ ' please try a higher chrome version or remove the --extension flag');
+		process.exit(1);
+		throw new Error('Chrome extension testing before chrome 36 won\'t work,'
+			+ ' please try a higher chrome version or remove the --extension flag');
+	} else if (version < 61) {
 		await driver.get('chrome://extensions-frame/frame');
 	} else {
 		await driver.get('chrome://extensions');
