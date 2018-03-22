@@ -126,7 +126,7 @@
     "url": "https://github.com/SanderRonde/CustomRightClickMenu.git"
   },
   "scripts": {
-    "pretest": "yarn pretest:main && yarn pretest:post",
+    "pretest": "yarn pretest:main && yarn pretest:dist && yarn pretest:post",
     "pretest:main": "gulp stashBrowser && gulp browserChrome && gulp buildTest",
     "pretest:dist": "yarn build:chrome-copy && yarn build:firefox-copy && yarn build:edge-copy && yarn build:opera-copy",
     "pretest:post": "yarn package && gulp unstashBrowser",
