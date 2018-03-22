@@ -129,6 +129,7 @@ require('mocha-steps');
 const request = require('request');
 const btoa = require('btoa');
 
+const _promise = global.Promise;
 global.Promise = webdriver.promise.Promise;
 const assert = chai.assert;
 
@@ -436,6 +437,8 @@ before('Driver connect', async function() {
 	const url = TEST_LOCAL ?
 		LOCAL_URL : 'http://hub-cloud.browserstack.com/wd/hub';
 
+	global.Promise = _promise;
+
 	this.timeout(600000 * TIME_MODIFIER);
 	const additionalCapabilities = getAdditionalCapabilities();
 	const unBuilt = new webdriver.Builder()
@@ -457,6 +460,8 @@ before('Driver connect', async function() {
 	} else {
 		driver = unBuilt.build();
 	}
+
+	global.Promise = webdriver.promise.Promise;
 
 	if (SKIP_OPTIONS_PAGE || SKIP_OPTIONS_PAGE_NON_DIALOGS ||
 		SKIP_OPTIONS_PAGE_DIALOGS || SKIP_CONTEXTMENU ||
