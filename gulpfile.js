@@ -954,6 +954,13 @@ function readFile(filePath, options) {
 			return moveBrowser('opera', './build');
 		}));
 
+	gulp.task(genTask('Copies the unstashed manifest to /build',
+ 		function copyUnstashed() {
+			return gulp
+				.src('./app/manifest.json')
+				.pipe(gulp.dest('./build'));
+		 }))
+
 	gulp.task(genTask('Copy the current manifest and store it to undo overrides later',
 		function stashBrowser() {
 			return gulp
