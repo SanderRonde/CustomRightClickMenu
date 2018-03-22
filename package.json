@@ -146,7 +146,7 @@
     "test:edge:16": "mocha test/UITest.js --remote --edge-16",
     "test:edge:latest": "mocha test/UITest.js --remote --edge-latest",
     "build": "yarn build:main && yarn build:chrome-copy && yarn build:firefox-copy && yarn build:edge-copy && yarn build:opera-copy && yarn build:post",
-    "build:main": "gulp stashBrowser && gulp browserChrome && gulp clearDist && gulp build",
+    "build:main": "gulp stashBrowser && gulp browserChrome && gulp cleanDist && gulp build",
     "build:chrome-copy": "gulp browserChromeBuild && gulp chromeToDist",
     "build:firefox-copy": "gulp browserFirefoxBuild && gulp firefoxToDist",
     "build:edge-copy": "gulp browserEdgeBuild && gulp edgeToDist",
