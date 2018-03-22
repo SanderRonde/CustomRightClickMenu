@@ -14,8 +14,8 @@ stages:
 env:
   - TEST=test-build
   - TEST=test-local
-  - TEST=test:chrome:26:page
-  - TEST=test:chrome:26:extension
+  - TEST=test:chrome:old:page
+  - TEST=test:chrome:old:extension
   - TEST=test:chrome:latest:page
   - TEST=test:chrome:latest:extension
   - TEST=test:firefox:quantum:page
