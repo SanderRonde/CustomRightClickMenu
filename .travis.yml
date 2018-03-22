@@ -18,10 +18,8 @@ env:
   - TEST=test:chrome:old:extension
   - TEST=test:chrome:latest:page
   - TEST=test:chrome:latest:extension
-  - TEST=test:firefox:quantum:page
-  - TEST=test:firefox:quantum:extension
-  - TEST=test:firefox:latest:page
-  - TEST=test:firefox:latest:extension
+  - TEST=test:firefox:quantum
+  - TEST=test:firefox:latest
   - TEST=test:edge:16
   - TEST=test:edge:latest
 
