@@ -135,7 +135,7 @@
     "test:chrome": "yarn test:chrome:26 && yarn test:chrome:30 && yarn test:chrome:latest",
     "test:chrome:old": "yarn test:chrome:26:page && yarn test:chrome:26:extension",
     "test:chrome:old:page": "mocha test/UITest.js --remote --chrome-26",
-    "test:chrome:old:extension": "mocha test/UITest.js --remote --chrome-36 --extension",
+    "test:chrome:old:extension": "mocha test/UITest.js --remote --chrome-40 --extension",
     "test:chrome:latest:page": "mocha test/UITest.js --remote --chrome-latest",
     "test:chrome:latest": "yarn test:chrome:latest:page && yarn test:chrome:latest:extension",
     "test:chrome:latest:extension": "mocha test/UITest.js --remote --chrome-latest --extension",
