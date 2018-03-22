@@ -140,7 +140,7 @@ export declare class TypedWebdriver extends webdriver.WebDriver {
 }
 
 let driver: TypedWebdriver;
-interface BrowserstackCapabilities {
+export interface BrowserstackCapabilities {
 	browserName: string;
 	browser_version?: string;
 	os: string;
@@ -425,9 +425,9 @@ function getAdditionalCapabilities() {
 	return getBrowserExtensionData().getCapabilities();
 }
 
-async function openTestPageURL() {
+async function openTestPageURL(capabilities: BrowserstackCapabilities) {
 	if (TEST_EXTENSION) {
-		await getExtensionDataOnly().openOptionsPage(driver);
+		await getExtensionDataOnly().openOptionsPage(driver, capabilities);
 	} else {
 		await driver.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`);
 	}
@@ -468,7 +468,7 @@ before('Driver connect', async function() {
 		SKIP_DIALOG_TYPES_EXCEPT) {
 			console.warn('Skipping is enabled, make sure this isn\'t in a production build')
 		}
-	await openTestPageURL();
+	await openTestPageURL(browserCapabilities);
 	await waitFor(() => {
 		return driver.executeScript(inlineFn(() => {
 			return window.polymerElementsLoaded;

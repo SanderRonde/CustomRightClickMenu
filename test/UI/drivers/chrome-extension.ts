@@ -1,6 +1,6 @@
+import { TypedWebdriver, BrowserstackCapabilities } from '../../UITest';
 import * as chromeDriver from 'selenium-webdriver/chrome';
 import * as webdriver from 'selenium-webdriver';
-import { TypedWebdriver } from '../../UITest';
 
 export function getCapabilities() {
 	return new chromeDriver.Options()
@@ -8,8 +8,22 @@ export function getCapabilities() {
 		.toCapabilities();
 }
 
-export async function openOptionsPage(driver: TypedWebdriver) {
-	await driver.get('chrome://extensions');
+function getVersion({ browser_version }: BrowserstackCapabilities) {
+	if (!browser_version || browser_version === 'latest') {
+		//Latest
+		return Infinity;
+	} 
+	return Math.round(parseFloat(browser_version));
+}
+
+export async function openOptionsPage(driver: TypedWebdriver, capabilities: BrowserstackCapabilities) {
+	const version = getVersion(capabilities);
+	
+	if (version < 61) {
+		await driver.get('chrome://extensions-frame/frame');
+	} else {
+		await driver.get('chrome://extensions');
+	}
 	const extensions = await driver.findElements(
 		webdriver.By.className('extension-list-item-wrapper'));
 	for (const extension of extensions) {
