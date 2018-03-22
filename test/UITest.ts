@@ -453,7 +453,8 @@ before('Driver connect', async function() {
 				browserCapabilities.browserName
 			} ${
 				browserCapabilities.browser_version || 'latest'
-			}`
+			}`,
+			'browserstack.local': !TEST_EXTENSION
 		}}).merge(additionalCapabilities));
 	if (TEST_LOCAL) {
 		driver = unBuilt.forBrowser('Chrome').build();
