@@ -12,7 +12,6 @@
 	"short_name": "CRM-dev",
 	"applications": {
 		"gecko": {
-			"id": "crm@sanderronde.com",
 			"strict_min_version": "57.0"
 		}
 	},
