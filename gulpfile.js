@@ -107,6 +107,11 @@ function readFile(filePath, options) {
 			await del('./build');
 		}));
 
+	gulp.task(genTask('Cleans the /dist directory',
+		async function cleanDist() {
+			await del('./dist');
+		}));
+
 	gulp.task('prepareForHotReload', genTask('Prepares the extension for hot reloading, ' + 
 		'developing through the app/ directory instead and not having to build ' +
 		'make sure to run `yarn install --force` before this',
