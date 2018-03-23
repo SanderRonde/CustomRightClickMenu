@@ -102,6 +102,7 @@ interface AppWindow extends Window {
 	logs: any[];
 	lastError: any|void;
 	chrome: AppChrome;
+	BrowserAPI: typeof BrowserAPI;
 	dummyContainer: HTMLDivElement;
 	polymerElementsLoaded: boolean;
 	globals: GlobalObject['globals'];
@@ -708,10 +709,13 @@ export function inlineFn<T extends {
 			try { return (${es3IfyFunction(fn.toString())})(arguments) } catch(err) { throw new Error(err.name + '-' + err.stack); }`;
 		Object.getOwnPropertyNames(args).forEach((key) => {
 			let arg = args[key];
-			if (typeof arg === 'object' || typeof arg === 'function') {
+			if (typeof arg === 'object') {
 				arg = JSON.stringify(arg);
 			}
-
+			if (typeof arg === 'function') {
+				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'),
+					`(${arg.toString()})`);
+			}
 			if (typeof arg === 'string' && arg.split('\n').length > 1) {
 				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), 
 					`' + ${JSON.stringify(arg.split('\n'))}.join('\\n') + '`);
@@ -820,8 +824,10 @@ function getCRM<T extends CRM.Node[] = CRM.Tree>(): webdriver.promise.Promise<T>
 
 function getContextMenu(): webdriver.promise.Promise<ContextMenu> {
 	return new webdriver.promise.Promise<ContextMenu>((resolve) => {
-		driver.executeScript(inlineFn(() => {
-			return JSON.stringify(window.chrome._currentContextMenu[0].children);
+		driver.executeScript(inlineFn((REPLACE) => {
+			return JSON.stringify(REPLACE.getTestData()._currentContextMenu[0].children);
+		}, {
+			getTestData
 		})).then((str) => {
 			resolve(JSON.parse(str));
 		});
@@ -1741,6 +1747,13 @@ function assertContextMenuEquality(contextMenu: ContextMenu, CRMNodes: CRM.Tree)
 	}
 }
 
+function getTestData() {
+	if (window.BrowserAPI) {
+		return window.BrowserAPI.getTestData();
+	}
+	return window.chrome;
+}
+
 // function getLog(): webdriver.promise.Promise<string> {
 // 	return new webdriver.promise.Promise<string>((resolve) => {
 // 		driver.executeScript(inlineFn(() => {
@@ -2106,8 +2119,10 @@ describe('Options Page', function() {
 				return;
 			}
 				
-			const lastCall = JSON.parse(await driver.executeScript(inlineFn(() => {
-				return JSON.stringify(window.chrome._lastSpecialCall);
+			const lastCall = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
+				return JSON.stringify(REPLACE.getTestData()._lastSpecialCall);
+			}, {
+				getTestData
 			})));
 			assert.isDefined(lastCall, 'a call to the browser API was made');
 			assert.strictEqual(lastCall.api, 'downloads.download',
@@ -3187,13 +3202,14 @@ describe('Options Page', function() {
 							});
 							const contextMenu = await getContextMenu();
 							await driver.executeScript(inlineFn((REPLACE) => {
-								window.chrome._clearExecutedScripts();
-								return window.chrome._currentContextMenu[0]
+								REPLACE.getTestData()._clearExecutedScripts();
+								return REPLACE.getTestData()._currentContextMenu[0]
 									.children[0]
 									.currentProperties.onclick(
 										REPLACE.page, REPLACE.tab
 									);
 							}, {
+								getTestData,
 								page: {
 									menuItemId: contextMenu[0].id,
 									editable: false,
@@ -3217,10 +3233,12 @@ describe('Options Page', function() {
 								}
 							}));
 							await wait(1000);
-							const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
-								const str = JSON.stringify(window.chrome._executedScripts);
-								window.chrome._clearExecutedScripts();
+							const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
+								const str = JSON.stringify(REPLACE.getTestData()._executedScripts);
+								REPLACE.getTestData()._clearExecutedScripts();
 								return str;
+							}, {
+								getTestData,
 							}))).map(scr => JSON.stringify(scr));
 
 							assert.include(activatedScripts, JSON.stringify({
@@ -3361,13 +3379,14 @@ describe('Options Page', function() {
 
 							const contextMenu = await getContextMenu();
 							await driver.executeScript(inlineFn((REPLACE) => {
-								window.chrome._clearExecutedScripts();
-								return window.chrome._currentContextMenu[0]
+								REPLACE.getTestData()._clearExecutedScripts();
+								return REPLACE.getTestData()._currentContextMenu[0]
 									.children[0]
 									.currentProperties.onclick(
 										REPLACE.page, REPLACE.tab
 									);
 							}, {
+								getTestData,
 								page: {
 									menuItemId: contextMenu[0].id,
 									editable: false,
@@ -3391,8 +3410,10 @@ describe('Options Page', function() {
 								}
 							}));
 							await wait(1000);
-							const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
-								return JSON.stringify(window.chrome._executedScripts);
+							const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
+								return JSON.stringify(REPLACE.getTestData()._executedScripts);
+							}, {
+								getTestData
 							})));
 
 							assert.include(activatedScripts, {
@@ -3950,12 +3971,13 @@ describe('On-Page CRM', function() {
 			const windowId = ~~(Math.random() * 100);
 			const contextMenu = await getContextMenu();
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._currentContextMenu[0].children[LinkOnPageTest.DEFAULT_LINKS]
+				REPLACE.getTestData()._currentContextMenu[0].children[LinkOnPageTest.DEFAULT_LINKS]
 					.currentProperties.onclick(
 						REPLACE.page, REPLACE.tab
 					);
 				return true;
 			}, {
+				getTestData,
 				page: {
 					menuItemId: contextMenu[LinkOnPageTest.DEFAULT_LINKS].id,
 					editable: false,
@@ -3977,8 +3999,10 @@ describe('On-Page CRM', function() {
 					incognito: false
 				}
 			}));
-			const activeTabs = JSON.parse(await driver.executeScript(inlineFn(() => {
-				return JSON.stringify(window.chrome._activeTabs);
+			const activeTabs = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
+				return JSON.stringify(REPLACE.getTestData()._activeTabs);
+			}, {
+				getTestData,
 			})));
 			const expectedTabs = CRMNodes[LinkOnPageTest.DEFAULT_LINKS].value.map((link) => {
 				if (!link.newTab) {
@@ -4010,14 +4034,15 @@ describe('On-Page CRM', function() {
 			const contextMenu = await getContextMenu();
 			await driver.executeScript(inlineFn((REPLACE) => {
 				//Clear it without removing object-array-magic-address-linking
-				while (window.chrome._activeTabs.length > 0) {
-					window.chrome._activeTabs.pop();
+				while (REPLACE.getTestData()._activeTabs.length > 0) {
+					REPLACE.getTestData()._activeTabs.pop();
 				}
-				return window.chrome._currentContextMenu[0].children[LinkOnPageTest.PRESET_LINKS]
+				return REPLACE.getTestData()._currentContextMenu[0].children[LinkOnPageTest.PRESET_LINKS]
 					.currentProperties.onclick(
 						REPLACE.page, REPLACE.tab
 					);
 			}, {
+				getTestData,
 				page: {
 					menuItemId: contextMenu[LinkOnPageTest.PRESET_LINKS].id,
 					editable: false,
@@ -4040,8 +4065,10 @@ describe('On-Page CRM', function() {
 					incognito: false
 				}
 			}));
-			const activeTabs = JSON.parse(await driver.executeScript(inlineFn(() => {
-				return JSON.stringify(window.chrome._activeTabs);
+			const activeTabs = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
+				return JSON.stringify(REPLACE.getTestData()._activeTabs);
+			}, {
+				getTestData
 			})));
 			const expectedTabs = CRMNodes[LinkOnPageTest.PRESET_LINKS].value.map((link) => {
 				if (!link.newTab) {
@@ -4273,8 +4300,8 @@ describe('On-Page CRM', function() {
 		it('should always run when launchMode is set to ALWAYS_RUN', async () => {
 			const fakeTabId = getRandomId();
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._clearExecutedScripts();
-				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+				REPLACE.getTestData()._clearExecutedScripts();
+				REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
 					id: REPLACE.fakeTabId,
 					title: 'notexample',
 					url: 'http://www.notexample.com'
@@ -4287,11 +4314,14 @@ describe('On-Page CRM', function() {
 					}
 				} as any);
 			}, {
+				getTestData,
 				fakeTabId: fakeTabId
 			}));
 			await wait(500);
-			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
-				return JSON.stringify(window.chrome._executedScripts);
+			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
+				return JSON.stringify(REPLACE.getTestData()._executedScripts);
+			}, {
+				getTestData
 			})));
 
 			assert.lengthOf(activatedScripts, 1, 'one script activated');
@@ -4304,13 +4334,14 @@ describe('On-Page CRM', function() {
 			const fakeTabId = getRandomId();
 			const contextMenu = await getContextMenu();
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._clearExecutedScripts();
-				return window.chrome._currentContextMenu[0]
+				REPLACE.getTestData()._clearExecutedScripts();
+				return REPLACE.getTestData()._currentContextMenu[0]
 					.children[ScriptOnPageTests.RUN_ON_CLICKING]
 					.currentProperties.onclick(
 						REPLACE.page, REPLACE.tab
 					);
 			}, {
+				getTestData,
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -4334,8 +4365,10 @@ describe('On-Page CRM', function() {
 				}
 			}));
 			await wait(500);
-			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
-				return JSON.stringify(window.chrome._executedScripts);
+			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
+				return JSON.stringify(REPLACE.getTestData()._executedScripts);
+			}, {
+				getTestData
 			})));
 
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
@@ -4347,8 +4380,8 @@ describe('On-Page CRM', function() {
 			this.slow(2500 * TIME_MODIFIER);
 			const fakeTabId = getRandomId();
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._clearExecutedScripts();
-				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+				REPLACE.getTestData()._clearExecutedScripts();
+				REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
 					id: REPLACE.fakeTabId,
 					title: 'example',
 					url: 'http://www.example.com'
@@ -4361,11 +4394,14 @@ describe('On-Page CRM', function() {
 					}
 				} as any);
 			}, {
+				getTestData,
 				fakeTabId: fakeTabId
 			}));
 			await wait(500);
-			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
-				return JSON.stringify(window.chrome._executedScripts);
+			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
+				return JSON.stringify(REPLACE.getTestData()._executedScripts);
+			}, {
+				getTestData
 			})));
 
 			//First one is the ALWAYS_RUN script, ignore that
@@ -4378,8 +4414,8 @@ describe('On-Page CRM', function() {
 			this.slow(2500 * TIME_MODIFIER);
 			const fakeTabId = getRandomId();
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._clearExecutedScripts();
-				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+				REPLACE.getTestData()._clearExecutedScripts();
+				REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
 					id: REPLACE.fakeTabId,
 					title: 'example',
 					url: 'http://www.example2.com'
@@ -4392,6 +4428,7 @@ describe('On-Page CRM', function() {
 					}
 				} as any);
 			}, {
+				getTestData,
 				fakeTabId: fakeTabId
 			}));
 			await wait(500);
@@ -4400,13 +4437,14 @@ describe('On-Page CRM', function() {
 			assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
 
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._clearExecutedScripts();
-				return window.chrome._currentContextMenu[0]
+				REPLACE.getTestData()._clearExecutedScripts();
+				return REPLACE.getTestData()._currentContextMenu[0]
 					.children[1]
 					.currentProperties.onclick(
 					REPLACE.page, REPLACE.tab
 				);
 			}, {
+				getTestData,
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -4430,8 +4468,10 @@ describe('On-Page CRM', function() {
 				}
 			}));
 			await wait(500);
-			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn(() => {
-				return JSON.stringify(window.chrome._executedScripts);
+			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
+				return JSON.stringify(REPLACE.getTestData()._executedScripts);
+			}, {
+				getTestData
 			})));
 
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
@@ -4441,8 +4481,10 @@ describe('On-Page CRM', function() {
 		if (!TEST_EXTENSION) {
 			it('should have activated the backgroundscript', async function() {
 				const activatedBackgroundScripts = JSON.parse(await driver
-					.executeScript(inlineFn(() => {
-						return JSON.stringify(window.chrome._activatedBackgroundPages);
+					.executeScript(inlineFn((REPLACE) => {
+						return JSON.stringify(REPLACE.getTestData()._activatedBackgroundPages);
+					}, {
+						getTestData
 					})));
 				assert.lengthOf(activatedBackgroundScripts, 1,
 					'one backgroundscript was activated');
@@ -4462,13 +4504,14 @@ describe('On-Page CRM', function() {
 			const fakeTabId = getRandomId();
 			const contextMenu = await getContextMenu();
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._clearExecutedScripts();
-				return window.chrome._currentContextMenu[0]
+				REPLACE.getTestData()._clearExecutedScripts();
+				return REPLACE.getTestData()._currentContextMenu[0]
 					.children[ScriptOnPageTests.RUN_ON_CLICKING]
 					.currentProperties.onclick(
 						REPLACE.page, REPLACE.tab
 					);
 			}, {
+				getTestData,
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -4493,8 +4536,10 @@ describe('On-Page CRM', function() {
 			}));
 			await wait(500);
 			const activatedScripts = JSON.parse(await driver
-				.executeScript(inlineFn(() => {
-					return JSON.stringify(window.chrome._executedScripts);
+				.executeScript(inlineFn((REPLACE) => {
+					return JSON.stringify(REPLACE.getTestData()._executedScripts);
+				}, {
+					getTestData
 				})));
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
 			assert.strictEqual(activatedScripts[0].id, fakeTabId,
@@ -4771,13 +4816,14 @@ describe('On-Page CRM', function() {
 			const fakeTabId = getRandomId();
 			const contextMenu = await getContextMenu();
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._clearExecutedScripts();
-				return window.chrome._currentContextMenu[0]
+				REPLACE.getTestData()._clearExecutedScripts();
+				return REPLACE.getTestData()._currentContextMenu[0]
 					.children[REPLACE.index - 3]
 					.currentProperties.onclick(
 						REPLACE.page, REPLACE.tab
 					);
 			}, {
+				getTestData,
 				index: index,
 				page: {
 					menuItemId: contextMenu[0].id,
@@ -4802,8 +4848,10 @@ describe('On-Page CRM', function() {
 				}
 			}))
 			const executedScripts = JSON.parse(await driver
-				.executeScript(inlineFn(() => {
-					return JSON.stringify(window.chrome._executedScripts);
+				.executeScript(inlineFn((REPLACE) => {
+					return JSON.stringify(REPLACE.getTestData()._executedScripts);
+				}, {
+					getTestData
 				})));
 			assert.lengthOf(executedScripts, 1, 'one stylesheet was activated');
 			assert.strictEqual(executedScripts[0].id, fakeTabId,
@@ -4839,8 +4887,8 @@ describe('On-Page CRM', function() {
 			this.slow(1000 * TIME_MODIFIER);
 			const fakeTabId = getRandomId();
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._clearExecutedScripts();
-				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+				REPLACE.getTestData()._clearExecutedScripts();
+				REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
 					id: REPLACE.fakeTabId,
 					title: 'example',
 					url: 'http://www.notexample.com'
@@ -4854,12 +4902,15 @@ describe('On-Page CRM', function() {
 					}
 				} as any);
 			}, {
+				getTestData,
 				fakeTabId: fakeTabId
 			}));
 			await wait(50);
 			const activatedScripts = JSON.parse(await driver
-				.executeScript(inlineFn(() => {
-					return JSON.stringify(window.chrome._executedScripts);
+				.executeScript(inlineFn((REPLACE) => {
+					return JSON.stringify(REPLACE.getTestData()._executedScripts);
+				}, {
+					getTestData
 				})));
 
 			//First one is the default on stylesheet, ignore that
@@ -4871,13 +4922,14 @@ describe('On-Page CRM', function() {
 			const fakeTabId = getRandomId();
 			const contextMenu = await getContextMenu();
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._clearExecutedScripts();
-				return window.chrome._currentContextMenu[0]
+				REPLACE.getTestData()._clearExecutedScripts();
+				return REPLACE.getTestData()._currentContextMenu[0]
 					.children[2]
 					.currentProperties.onclick(
 						REPLACE.page, REPLACE.tab
 					);
 			}, {
+				getTestData,
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -4901,8 +4953,10 @@ describe('On-Page CRM', function() {
 				}
 			}));
 			const activatedScripts = JSON.parse(await driver
-				.executeScript(inlineFn(() => {
-					return JSON.stringify(window.chrome._executedScripts);
+				.executeScript(inlineFn((REPLACE) => {
+					return JSON.stringify(REPLACE.getTestData()._executedScripts);
+				}, {
+					getTestData
 				})));
 
 			assert.lengthOf(activatedScripts, 1, 'one stylesheet was activated');
@@ -4912,8 +4966,8 @@ describe('On-Page CRM', function() {
 		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', async () => {
 			const fakeTabId = getRandomId();
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._clearExecutedScripts();
-				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+				REPLACE.getTestData()._clearExecutedScripts();
+				REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
 					id: REPLACE.fakeTabId,
 					title: 'example',
 					url: 'http://www.example.com'
@@ -4926,12 +4980,15 @@ describe('On-Page CRM', function() {
 					}
 				} as any);
 			}, {
+				getTestData,
 				fakeTabId: fakeTabId
 			}));
 			await wait(50);
 			const activatedScripts = JSON.parse(await driver
-				.executeScript(inlineFn(() => {
-					return JSON.stringify(window.chrome._executedScripts);
+				.executeScript(inlineFn((REPLACE) => {
+					return JSON.stringify(REPLACE.getTestData()._executedScripts);
+				}, {
+					getTestData
 				})));
 
 			//First one is the ALWAYS_RUN stylesheet, second one is the default on one ignore that
@@ -4942,8 +4999,8 @@ describe('On-Page CRM', function() {
 		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', async function() {
 			const fakeTabId = getRandomId();
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._clearExecutedScripts();
-				window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+				REPLACE.getTestData()._clearExecutedScripts();
+				REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
 					id: REPLACE.fakeTabId,
 					title: 'example',
 					url: 'http://www.example2.com'
@@ -4956,19 +5013,21 @@ describe('On-Page CRM', function() {
 					}
 				} as any);
 			}, {
+				getTestData,
 				fakeTabId: fakeTabId
 			}));
 			const contextMenu = await getContextMenu();
 			assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
 
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._clearExecutedScripts();
-				return window.chrome._currentContextMenu[0]
+				REPLACE.getTestData()._clearExecutedScripts();
+				return REPLACE.getTestData()._currentContextMenu[0]
 					.children[3]
 					.currentProperties.onclick(
 					REPLACE.page, REPLACE.tab
 				);
 			}, {
+				getTestData,
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -4992,8 +5051,10 @@ describe('On-Page CRM', function() {
 				}
 			}));
 			const activatedScripts = JSON.parse(await driver
-				.executeScript(inlineFn(() => {
-					return JSON.stringify(window.chrome._executedScripts);
+				.executeScript(inlineFn((REPLACE) => {
+					return JSON.stringify(REPLACE.getTestData()._executedScripts);
+				}, {
+					getTestData
 				})));
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
 			assert.strictEqual(activatedScripts[0].id, fakeTabId,
@@ -5010,13 +5071,14 @@ describe('On-Page CRM', function() {
 			const fakeTabId = getRandomId();
 			const contextMenu = await getContextMenu();
 			await driver.executeScript(inlineFn((REPLACE) => {
-				window.chrome._clearExecutedScripts();
-				return window.chrome._currentContextMenu[0]
+				REPLACE.getTestData()._clearExecutedScripts();
+				return REPLACE.getTestData()._currentContextMenu[0]
 					.children[2]
 					.currentProperties.onclick(
 						REPLACE.page, REPLACE.tab
 					);
 			}, {
+				getTestData,
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -5040,8 +5102,10 @@ describe('On-Page CRM', function() {
 				}
 			}));
 			const executedScripts = JSON.parse(await driver
-				.executeScript(inlineFn(() => {
-					return JSON.stringify(window.chrome._executedScripts);
+				.executeScript(inlineFn((REPLACE) => {
+					return JSON.stringify(REPLACE.getTestData()._executedScripts);
+				}, {
+					getTestData
 				})));
 			assert.lengthOf(executedScripts, 1, 'one script was activated');
 			assert.strictEqual(executedScripts[0].id, fakeTabId,
@@ -5123,12 +5187,13 @@ describe('On-Page CRM', function() {
 					this.timeout(4000 * TIME_MODIFIER);
 					const contextMenu = await getContextMenu();
 					await driver.executeScript(inlineFn((REPLACE) => {
-						return window.chrome._currentContextMenu[0]
+						return REPLACE.getTestData()._currentContextMenu[0]
 							.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
 							.currentProperties.onclick(
 								REPLACE.page, REPLACE.tab
 							);
 					}, {
+						getTestData,
 						page: {
 							menuItemId: contextMenu[0].id,
 							editable: false,
@@ -5162,12 +5227,13 @@ describe('On-Page CRM', function() {
 					this.timeout(4000 * TIME_MODIFIER);
 					const contextMenu = await getContextMenu();
 					await driver.executeScript(inlineFn((REPLACE) => {
-						return window.chrome._currentContextMenu[0]
+						return REPLACE.getTestData()._currentContextMenu[0]
 							.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
 							.currentProperties.onclick(
 								REPLACE.page, REPLACE.tab
 							);
 					}, {
+						getTestData,
 						page: {
 							menuItemId: contextMenu[0].id,
 							editable: false,
@@ -5177,8 +5243,8 @@ describe('On-Page CRM', function() {
 						},
 						tab: {
 							isArticle: false,
-					isInReaderMode: false,
-					lastAccessed: 0,
+							isInReaderMode: false,
+							lastAccessed: 0,
 							id: tabId,
 							index: 1,
 							windowId: getRandomId(),

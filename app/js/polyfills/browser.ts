@@ -165,6 +165,98 @@ namespace BrowserAPI {
 		return (_browserUserAgent = getBrowserUserAgent());
 	}
 
+	function isOptionsPage() {
+		return location.href.indexOf('backgroun') === -1;
+	}
+
+	function areStringsEqual(a: string|number, b: string|number): boolean {
+		return (a + '') === (b + '');
+	}
+
+	function findItemWithId<T extends {
+		id: string|number;
+		children?: T[];	
+	}>(arr: T[], idToFind: number|string, fn: (item: T, index: number, parent: T[]) => void) {
+		for (let i = 0; i < arr.length; i++) {
+			const item = arr[i];
+			const { id, children } = item;
+			if (areStringsEqual(id, idToFind)) {
+				fn(item, i, arr);
+				return true;	
+			}
+			if (children && findItemWithId(children, idToFind, fn)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	interface ChromeLastCall {
+		api: string;
+		args: any[];
+	}
+	
+	interface ContextMenuItem {
+		id: number;
+		createProperties: ContextMenusCreateProperties;
+		currentProperties: ContextMenusCreateProperties;
+		children: ContextMenuItem[];
+	}
+	
+	type ContextMenu = ContextMenuItem[];
+	
+	type ActiveTabs = {
+		type: 'create'|'update';
+		data: any;
+		id?: number;
+	}[];
+	
+	interface ExecutedScript {
+		id: number;
+		code: string;
+	}
+	
+	type ExecutedScripts = ExecutedScript[];
+	
+
+	const testData: {
+		_lastSpecialCall: ChromeLastCall;
+		_currentContextMenu: ContextMenu;
+		_activeTabs: ActiveTabs;
+		_executedScripts: ExecutedScripts;
+		_activatedBackgroundPages: number[];
+		_clearExecutedScripts: () => void;
+		_fakeTabs: {
+			[id: number]: {
+				id: number;
+				title: string;
+				url: string;
+			};
+			[id: string]: {
+				id: number;
+				title: string;
+				url: string;
+			};
+		};
+	} = {
+		_lastSpecialCall: null,
+		_currentContextMenu: [],
+		_activeTabs: [],
+		_executedScripts: [],
+		_fakeTabs: {},
+		_activatedBackgroundPages: [],
+		_clearExecutedScripts: function() {
+			while (testData._executedScripts.pop()) { }
+		}
+	}
+
+	export function getTestData() {
+		if (!isOptionsPage()) {
+			return undefined;
+		}
+		return testData;
+	}
+
 	export const polyfill = !__srcBrowser ? {} : {
 		commands: __srcBrowser.commands ? {
 			getAll() {
@@ -188,7 +280,7 @@ namespace BrowserAPI {
 				targetUrlPatterns?: string[],
 				enabled?: boolean,
 			}, callback?: () => void): number|string {
-				return __srcBrowser.contextMenus.create(createProperties as any, () => {
+				const id = __srcBrowser.contextMenus.create(createProperties as any, () => {
 					if (!callback) {
 						return;
 					}
@@ -200,6 +292,22 @@ namespace BrowserAPI {
 						callback();
 					}
 				});
+
+				const testNode: ContextMenuItem = {
+					id,
+					createProperties,
+					currentProperties: createProperties,
+					children: []
+				};
+				if (createProperties.parentId) {
+					findItemWithId(testData._currentContextMenu,
+						createProperties.parentId, (parent) => {
+							parent.children.push(testNode);
+						});
+				} else {
+					testData._currentContextMenu.push(testNode)
+				}
+				return id;
 			},
 			update(id: number|string, updateProperties: {
 				type?: _browser.contextMenus.ItemType,
@@ -212,6 +320,15 @@ namespace BrowserAPI {
 				targetUrlPatterns?: string[],
 				enabled?: boolean,
 			}) {
+				findItemWithId(testData._currentContextMenu,
+					id, (item) => {
+						var currentProperties = item.currentProperties
+						for (var key in updateProperties) {
+							(currentProperties as any)[key] = 
+								updateProperties[key as keyof typeof updateProperties];
+						}
+					});
+
 				return createPromise<void>((handler) => {
 					__srcBrowser.contextMenus.update(id + '', updateProperties, () => {
 						if (__srcBrowser.runtime.lastError) {
@@ -224,6 +341,11 @@ namespace BrowserAPI {
 				});
 			},
 			remove(id: string|number) {
+				findItemWithId(testData._currentContextMenu,
+					id, (item, index, parent) => {
+						parent.splice(index, 1);
+					})
+
 				return createPromise<void>((handler) => {
 					__srcBrowser.contextMenus.remove(id + '', () => {
 						if (__srcBrowser.runtime.lastError) {
@@ -236,6 +358,10 @@ namespace BrowserAPI {
 				});
 			},
 			removeAll() {
+				while (testData._currentContextMenu.length) {
+					testData._currentContextMenu.pop();
+				}
+
 				return createPromise<void>((handler) => {
 					__srcBrowser.contextMenus.removeAll(handler);
 				});
@@ -251,6 +377,10 @@ namespace BrowserAPI {
 				headers?: { [key: string]: string },
 				body?: string,
 			}) {
+				testData._lastSpecialCall = {
+					api: 'downloads.download',
+					args: [options]
+				}
 				return createPromise<number>((handler) => {
 					__srcBrowser.downloads.download(options as any, handler);
 				});
@@ -392,6 +522,11 @@ namespace BrowserAPI {
 				url?: string,
 				windowId?: number,
 			}) {
+				testData._activeTabs.push({
+					type: 'create',
+					data: createProperties
+				});
+
 				return createPromise<_browser.tabs.Tab>((handler) => {
 					__srcBrowser.tabs.create(createProperties, handler);
 				});
@@ -418,7 +553,7 @@ namespace BrowserAPI {
 						}
 					});
 				},
-			update(tabIdOrOptions: number|{
+			async update(tabIdOrOptions: number|{
 				active?: boolean,
 				// unsupported: autoDiscardable?: boolean,
 				// unsupported: highlighted?: boolean,
@@ -439,22 +574,30 @@ namespace BrowserAPI {
 				// deprecated: selected?: boolean,
 				url?: string,
 			}) {
-				return createPromise<_browser.tabs.Tab>((handler) => {
+				return createPromise<_browser.tabs.Tab>(async (handler) => {
 					if (!options) {
 						__srcBrowser.tabs.update(tabIdOrOptions as {
-								active?: boolean,
-								// unsupported: autoDiscardable?: boolean,
-								// unsupported: highlighted?: boolean,
-								loadReplace?: boolean,
-								muted?: boolean,
-								openerTabId?: number,
-								pinned?: boolean,
-								// deprecated: selected?: boolean,
-								url?: string,
-							}, handler);
+							active?: boolean,
+							// unsupported: autoDiscardable?: boolean,
+							// unsupported: highlighted?: boolean,
+							loadReplace?: boolean,
+							muted?: boolean,
+							openerTabId?: number,
+							pinned?: boolean,
+							// deprecated: selected?: boolean,
+							url?: string,
+						}, handler);
 					} else {
 						__srcBrowser.tabs.update(tabIdOrOptions as number, options, handler);
 					}
+
+					testData._activeTabs.push({
+						type: 'create',
+						data: typeof tabIdOrOptions === 'number' ?
+							options : tabIdOrOptions,
+						id: typeof tabIdOrOptions === 'number' ?
+							tabIdOrOptions : (await browserAPI.tabs.getCurrent()).id
+					});
 				});
 			},
 			query(queryInfo: BrowserTabsQueryInfo) {
@@ -464,11 +607,21 @@ namespace BrowserAPI {
 			},
 			executeScript(tabIdOrDetails: number|_browser.extensionTypes.InjectDetails, 
 				details?: _browser.extensionTypes.InjectDetails) {
-					return createPromise<any[]>((handler) => {
+					return createPromise<any[]>(async (handler) => {
 						if (!details) {
 							__srcBrowser.tabs.executeScript(tabIdOrDetails as _browser.extensionTypes.InjectDetails, handler);
 						} else {
 							__srcBrowser.tabs.executeScript(tabIdOrDetails as number, details, handler);
+						}
+
+						const settings = typeof tabIdOrDetails === 'number' ?
+							details : tabIdOrDetails;
+						if (settings.code) {
+							testData._executedScripts.push({
+								id: typeof tabIdOrDetails === 'number' ? 
+									tabIdOrDetails : (await browserAPI.tabs.getCurrent()).id,
+								code: settings.code
+							})
 						}
 					});
 				},
