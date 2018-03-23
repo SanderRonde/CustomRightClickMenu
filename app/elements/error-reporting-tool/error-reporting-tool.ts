@@ -478,9 +478,28 @@ namespace ErrorReportingToolElement {
 			};
 		};
 
+		private static _registerOnError(this: ErrorReportingTool) {
+			const handlers: ErrorEventHandler[] = [];
+			if (window.onerror) {
+				handlers.push(window.onerror);
+			}
+			window.onerror = (message: string, source: any, lineno: number, colno: number, error: Error) => {
+				handlers.forEach((handler) => {
+					handler(message, source, lineno, colno, error);
+				});
+				this._onError(message, source, lineno, colno, error);
+			}
+
+			Object.defineProperty(window, 'onerror', {
+				set(handler: ErrorEventHandler) {
+					handlers.push(handler);
+				}
+			});
+		}
+
 		static ready(this: ErrorReportingTool) {
 			window.errorReportingTool = this;
-			window.onerror = this._onError;
+			this._registerOnError();
 		}
 	}
 
