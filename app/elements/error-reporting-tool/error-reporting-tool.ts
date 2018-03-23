@@ -67,13 +67,13 @@ namespace ErrorReportingToolElement {
 		/**
 		 * The last error that occurred in the console
 		 */
-		private static _lastError: {
+		private static _lastErrors: {
 			message: string;
 			source: any;
 			lineno: number;
 			colno: number;
 			error: Error;
-		};
+		}[] = [];
 
 		static properties = errorReportingTool;
 
@@ -390,7 +390,7 @@ namespace ErrorReportingToolElement {
 				const { local, sync } = await this._getStorages();
 				const dataCont = {
 					local, sync,
-					lastError: this._lastError
+					lastErrors: this._lastErrors
 				};
 				await browserAPI.downloads.download({
 					url: 'data:text/plain;base64,' + window.btoa(JSON.stringify(dataCont)),
@@ -469,13 +469,9 @@ namespace ErrorReportingToolElement {
 		};
 
 		private static _onError(this: ErrorReportingTool, message: string, source: any, lineno: number, colno: number, error: Error) {
-			this._lastError = {
-				message: message,
-				source: source,
-				lineno: lineno,
-				colno: colno,
-				error: error
-			};
+			this._lastErrors.push({
+				message, source, lineno, colno, error
+			});
 		};
 
 		private static _registerOnError(this: ErrorReportingTool) {
