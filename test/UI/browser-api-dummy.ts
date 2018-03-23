@@ -94,11 +94,12 @@ const usedIds: number[] = [];
 function findItemWithId<T extends {
 	id: string|number;
 	children?: T[];	
-}>(arr: T[], idToFind: number|string, fn: (item: T) => void) {
-	for (const item of arr) {
+}>(arr: T[], idToFind: number|string, fn: (item: T, index: number, parent: T[]) => void) {
+	for (let i = 0; i < arr.length; i++) {
+		const item = arr[i];
 		const { id, children } = item;
 		if (areStringsEqual(id, idToFind)) {
-			fn(item);
+			fn(item, i, arr);
 			return true;	
 		}
 		if (children && findItemWithId(children, idToFind, fn)) {
@@ -555,20 +556,16 @@ testWindow.chrome = {
 					throw new Error('Not all context values are in the enum');
 				}
 
-				var index = null;
-				for (var i = 0; i < testWindow.chrome._currentContextMenu.length; i++) {
-					if (areStringsEqual(testWindow.chrome._currentContextMenu[i].id, id)) {
-						index = i;
+				if (!findItemWithId(testWindow.chrome._currentContextMenu,
+					id, (item) => {
+						var currentProperties = item.currentProperties
+						for (var key in data) {
+							(currentProperties as any)[key] = data[key as keyof typeof data];
+						}
+					})) {
+						//None found
+						testWindow.chrome.runtime.lastError = new Error('No contextMenu with id ' + id + ' exists');
 					}
-				}
-				if (index === null) {
-					testWindow.chrome.runtime.lastError = new Error('No contextMenu with id ' + id + ' exists');
-				} else {
-					var currentProperties = testWindow.chrome._currentContextMenu[index].currentProperties
-					for (var key in data) {
-						(currentProperties as any)[key] = data[key as keyof typeof data];
-					}
-				}
 				callback && callback();
 				testWindow.chrome.runtime.lastError = undefined;
 			},
@@ -585,16 +582,13 @@ testWindow.chrome = {
 				optional: true
 			}]);
 
-			var index = null;
-			for (var i = 0; i < testWindow.chrome._currentContextMenu.length; i++) {
-				if (areStringsEqual(testWindow.chrome._currentContextMenu[i].id, id)) {
-					index = i;
+			if (!findItemWithId(testWindow.chrome._currentContextMenu,
+				id, (item, index, parent) => {
+					parent.splice(index, 1);
+				})) {
+					//None found
+					testWindow.chrome.runtime.lastError = new Error('No contextMenu with id ' + id + ' exists');
 				}
-			}
-			if (index === null) {
-				testWindow.chrome.runtime.lastError = new Error('No contextMenu with id ' + id + ' exists');
-			}
-			testWindow.chrome._currentContextMenu.slice(index, 1);
 			callback && callback();
 		},
 		removeAll: function(callback?: () => void) {
