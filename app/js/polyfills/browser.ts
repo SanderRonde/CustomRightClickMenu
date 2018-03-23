@@ -441,9 +441,7 @@ namespace BrowserAPI {
 			}) {
 				return createPromise<_browser.tabs.Tab>((handler) => {
 					if (!options) {
-						//No tab id passed, get current
-						__srcBrowser.tabs.getCurrent(({id}) => {
-							__srcBrowser.tabs.update(id, tabIdOrOptions as {
+						__srcBrowser.tabs.update(tabIdOrOptions as {
 								active?: boolean,
 								// unsupported: autoDiscardable?: boolean,
 								// unsupported: highlighted?: boolean,
@@ -454,7 +452,6 @@ namespace BrowserAPI {
 								// deprecated: selected?: boolean,
 								url?: string,
 							}, handler);
-						});
 					} else {
 						__srcBrowser.tabs.update(tabIdOrOptions as number, options, handler);
 					}
