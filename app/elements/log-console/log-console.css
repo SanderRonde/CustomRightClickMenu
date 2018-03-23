@@ -4,7 +4,6 @@
 }
 
 #consoleCont {
-	margin: 10px;
 	width: -webkit-calc(100vw - 20px);
 	width: calc(100vw - 20px);
 	height: -webkit-calc(100vh - 84px);

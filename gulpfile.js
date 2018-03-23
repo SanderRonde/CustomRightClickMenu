@@ -425,7 +425,7 @@ function readFile(filePath, options) {
 					.pipe(gulp.dest('temp/elements/edit-pages/monaco-editor/src/min/'));
 			},
 			gulp.series(
-				//optionsPrefix.html specific stuff
+				//entrypointPrefix.html specific stuff
 				function copyMonaco() {
 					return gulp
 						.src([
@@ -441,7 +441,7 @@ function readFile(filePath, options) {
 				function processHTMLApp() {
 					return gulp
 						.src([
-							'html/optionsPrefix.html',
+							'html/entrypointPrefix.html',
 							'elements/installing/install-confirm/install-confirm.html'
 						], { cwd: './app/', base: './app/' })
 						.pipe(processhtml({
@@ -454,20 +454,20 @@ function readFile(filePath, options) {
 						.pipe(gulp.dest('./temp/'));
 				},
 				async function crisp() {
-					const optionsPrefix = await readFile('./temp/html/optionsPrefix.html', {
+					const entrypointPrefix = await readFile('./temp/html/entrypointPrefix.html', {
 						encoding: 'utf8'
 					});
 					const { html, js } = crisper({
-						jsFileName: 'optionsPrefix.js',
-						source: optionsPrefix,
+						jsFileName: 'entrypointPrefix.js',
+						source: entrypointPrefix,
 						scriptInHead: true,
 						cleanup: false
 					});
 					await Promise.all([
-						writeFile('./temp/html/optionsPrefix.html', html, {
+						writeFile('./temp/html/entrypointPrefix.html', html, {
 							encoding: 'utf8'
 						}),
-						writeFile('./temp/html/optionsPrefix.js', js, {
+						writeFile('./temp/html/entrypointPrefix.js', js, {
 							encoding: 'utf8'
 						}),
 					]);
@@ -479,6 +479,8 @@ function readFile(filePath, options) {
 			return gulp
 				.src([
 					'./temp/html/background.html',
+					'./temp/html/logging.html',
+					'./temp/html/install.html',
 					'./temp/html/options.html'
 				])
 				.pipe(processhtml({
@@ -518,13 +520,13 @@ function readFile(filePath, options) {
 			},
 			function copyPrefixJs() {
 				return gulp
-					.src('html/optionsPrefix.js', { 
+					.src('html/entrypointPrefix.js', { 
 						cwd: './temp/', 
 						base: './temp/'
 					})
 					.pipe(gulp.dest('./build/'));
 			},
-			//The options.js and background.js files
+			//The entrypoint JS files
 			gulp.series(
 				//Crisping them
 				gulp.parallel(
@@ -545,6 +547,48 @@ function readFile(filePath, options) {
 								encoding: 'utf8'
 							}),
 							writeFile('./build/html/options.js', js, {
+								encoding: 'utf8'
+							})
+						]);
+					},
+					async function crispLogging() {
+						const content = await readFile('./build/html/logging.html', {
+							encoding: 'utf8'
+						});
+						const { html, js } = crisper({
+							jsFileName: 'logging.js',
+							source: content,
+							scriptInHead: false,
+							cleanup: false
+						});
+						const tagRemoved = html.replace(
+							/<script src="logging.js"><\/script>/g, '');
+						await Promise.all([
+							writeFile('./build/html/logging.html', tagRemoved, {
+								encoding: 'utf8'
+							}),
+							writeFile('./build/html/logging.js', js, {
+								encoding: 'utf8'
+							}),
+						]);
+					},
+					async function crispInstall() {
+						const content = await readFile('./build/html/install.html', {
+							encoding: 'utf8'
+						});
+						const { html, js } = crisper({
+							jsFileName: 'install.js',
+							source: content,
+							scriptInHead: false,
+							cleanup: false
+						});
+						const tagRemoved = html.replace(
+							/<script src="install.js"><\/script>/g, '');
+						await Promise.all([
+							writeFile('./build/html/install.html', tagRemoved, {
+								encoding: 'utf8'
+							}),
+							writeFile('./build/html/install.js', js, {
 								encoding: 'utf8'
 							}),
 						]);
@@ -581,6 +625,26 @@ function readFile(filePath, options) {
 							.pipe(rename('options.es3.js'))
 							.pipe(gulp.dest('./build/html/'));
 					},
+					function babelLogging() {
+						return gulp
+							.src('./build/html/logging.js')
+							.pipe(babel({
+								compact: false,
+								presets: ['es3', 'es2015']
+							}))
+							.pipe(rename('logging.es3.js'))
+							.pipe(gulp.dest('./build/html/'));
+					},
+					function babelInstall() {
+						return gulp
+							.src('./build/html/install.js')
+							.pipe(babel({
+								compact: false,
+								presets: ['es3', 'es2015']
+							}))
+							.pipe(rename('install.es3.js'))
+							.pipe(gulp.dest('./build/html/'));
+					},
 					function babelBackground() {
 						return gulp
 							.src('./build/html/background.js')
@@ -593,10 +657,28 @@ function readFile(filePath, options) {
 					async function joinOptionsPage() {
 						await joinPages({
 							parts: [
-								'temp/html/optionsPrefix.html',
+								'temp/html/entrypointPrefix.html',
 								'build/html/options.html'
 							],
 							dest: 'build/html/options.html'
+						});
+					},
+					async function joinLoggingPage() {
+						await joinPages({
+							parts: [
+								'temp/html/entrypointPrefix.html',
+								'build/html/logging.html'
+							],
+							dest: 'build/html/logging.html'
+						});
+					},
+					async function joinInstallPage() {
+						await joinPages({
+							parts: [
+								'temp/html/entrypointPrefix.html',
+								'build/html/install.html'
+							],
+							dest: 'build/html/install.html'
 						});
 					}
 				),
@@ -608,6 +690,10 @@ function readFile(filePath, options) {
 								'./build/html/background.js',
 								'./build/html/options.js',
 								'./build/html/options.es3.js',
+								'./build/html/install.js',
+								'./build/html/install.es3.js',
+								'./build/html/logging.js',
+								'./build/html/logging.es3.js'
 							])
 							.pipe(replace(
 								/Object.setPrototypeOf\(((\w|\.)+),(\s*)((\w|\.)*)\)/g,
@@ -659,7 +745,11 @@ function readFile(filePath, options) {
 					},
 					function noDefer() {
 						return gulp
-							.src('./build/html/options.html')
+							.src([
+								'./build/html/options.html',
+								'./build/html/install.html',
+								'./build/html/logging.html',
+							])
 							.pipe(replace(/\sdefer/g, ''))
 							.pipe(gulp.dest('./build/html/'));
 					}
@@ -721,7 +811,9 @@ function readFile(filePath, options) {
 			await polymerBuild({
 				project: {
 					entrypoint: [
-						"html/options.html"
+						"html/options.html",
+						"html/logging.html",
+						"html/install.html"
 					],
 					sources: ['elements/**'],
 					root: "temp/",
@@ -785,7 +877,9 @@ function readFile(filePath, options) {
 			await polymerBuild({
 				project: {
 					entrypoint: [
-						"html/options.html"
+						"html/options.html",
+						"html/logging.html",
+						"html/install.html"
 					],
 					root: "temp/",
 					extraDependencies: [
@@ -840,7 +934,7 @@ function readFile(filePath, options) {
 		function uglifyFiles() {
 			return gulp
 				.src([
-					'./build/html/optionsPrefix.js'
+					'./build/html/entrypointPrefix.js'
 				])
 				.pipe(uglify())
 				.pipe(gulp.dest('./build/html/'));

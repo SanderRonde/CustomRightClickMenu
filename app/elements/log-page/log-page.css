@@ -3,6 +3,7 @@ body {
 }
 
 app-header {
+	left: 0!important;
 	background-color: rgb(255, 87, 34)!important;
 	color: white;
 }

@@ -57,7 +57,12 @@ function getHeadContent(file, parsed) {
 }
 
 function filterTitle(content) {
-	return content.replace(/<title>\w*<\/title>/g, '');
+	const regex = /<title>\w*<\/title>/g;
+	const title = regex.exec(content);
+	return {
+		title: (title && title[0]) || '',
+		content: content.replace(regex, '')
+	};
 }
 
 /**
@@ -81,11 +86,15 @@ module.exports = async function (options) {
 	});
 	const contents = parsed.map((parsedPart, index) => {
 		let headContent = getHeadContent(files[index], parsedPart);
+		let lastTitle = '';
 		if (index !== 0) {
-			headContent = filterTitle(headContent);
+			const { content, title } = filterTitle(headContent);
+			lastTitle = title;
+			headContent = content;
 		}
 		return {
 			head: headContent,
+			title: lastTitle,
 			body: getBodyContent(files[index], parsedPart)
 		}
 	});
@@ -95,13 +104,16 @@ module.exports = async function (options) {
 	const joinedFile = `<!DOCTYPE html>
 	<html>
 		<head>
-			${contents.map((content) => {
-				return content.head;
+			${contents.map(({ title }) => {
+				return title;
+			}).join('\n')}
+			${contents.map(({ head }) => {
+				return head;
 			}).join('\n')}
 		</head>
 		<body>
-			${contents.map((content) => {
-				return content.body;
+			${contents.map(({ body }) => {
+				return body;
 			}).join('\n')}
 		</body>
 	</html>`;
