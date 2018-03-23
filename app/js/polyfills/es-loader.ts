@@ -8,7 +8,7 @@
         } else if (path.indexOf('install') > -1) {
             return 'install';
         }
-        return '?';
+        return 'options';
     }
 
     function supportsClasses() {
