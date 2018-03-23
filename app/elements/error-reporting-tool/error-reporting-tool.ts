@@ -73,6 +73,7 @@ namespace ErrorReportingToolElement {
 			lineno: number;
 			colno: number;
 			error: Error;
+			handled: boolean;
 		}[] = [];
 
 		static properties = errorReportingTool;
@@ -468,11 +469,13 @@ namespace ErrorReportingToolElement {
 			window.open('https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=' + title + '&body=' + messageBody, '_blank');
 		};
 
-		private static _onError(this: ErrorReportingTool, message: string, source: any, lineno: number, colno: number, error: Error) {
-			this.lastErrors.push({
-				message, source, lineno, colno, error
-			});
-		};
+		private static _onError(this: ErrorReportingTool, message: string, 
+			source: any, lineno: number, colno: number, error: 
+			Error, handled: boolean) {
+				this.lastErrors.push({
+					message, source, lineno, colno, error, handled
+				});
+			};
 
 		private static _registerOnError(this: ErrorReportingTool) {
 			const handlers: ErrorEventHandler[] = [];
@@ -486,7 +489,7 @@ namespace ErrorReportingToolElement {
 						handled = true;
 					}
 				});
-				this._onError(message, source, lineno, colno, error);
+				this._onError(message, source, lineno, colno, error, handled);
 				if (handled) {
 					return true;
 				}

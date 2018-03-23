@@ -1776,21 +1776,19 @@ function enterEditorFullscreen(__thisOrType: Mocha.ISuiteCallbackContext|DialogT
 		});
 	}
 
-
 describe('Options Page', function() {
 	if (SKIP_OPTIONS_PAGE) {
 		return;
 	}
 	describe('Loading', function() {
 		it('should happen without errors', async function(done)  {
-			const result = await driver.executeScript(inlineFn(() => {
-				return window.errorReportingTool.lastErrors.length ? 
-					window.errorReportingTool.lastErrors : false;
-			}));
-			if (result) {
+			const result = (await driver.executeScript(inlineFn(() => {
+				return window.errorReportingTool.lastErrors;
+			}))).filter(err => !err.handled);
+			if (result.length) {
 				console.log(result);
 			}
-			assert.isFalse(result, 'no errors should be thrown when loading');
+			assert.isEmpty(result, 'no errors should be thrown when loading');
 			done();
 		});
 	});
@@ -3723,14 +3721,13 @@ describe('Options Page', function() {
 	});
 	describe('Errors', function() {
 		it('should not have been thrown during testing', async function(done)  {
-			const result = await driver.executeScript(inlineFn(() => {
-				return window.errorReportingTool.lastErrors.length ? 
-					window.errorReportingTool.lastErrors : false;
-			}));
-			if (result) {
+			const result = (await driver.executeScript(inlineFn(() => {
+				return window.errorReportingTool.lastErrors;
+			}))).filter(err => !err.handled);
+			if (result.length) {
 				console.log(result);
 			}
-			assert.isFalse(result, 'no errors should be thrown when testing page');
+			assert.isEmpty(result, 'no errors should be thrown when testing page');
 			done();
 		});
 	});
@@ -4434,17 +4431,19 @@ describe('On-Page CRM', function() {
 			assert.strictEqual(activatedScripts[0].id, fakeTabId,
 				'script was executed on the right tab');
 		});
-		it('should have activated the backgroundscript', async function() {
-			const activatedBackgroundScripts = JSON.parse(await driver
-				.executeScript(inlineFn(() => {
-					return JSON.stringify(window.chrome._activatedBackgroundPages);
-				})));
-			assert.lengthOf(activatedBackgroundScripts, 1,
-				'one backgroundscript was activated');
-			assert.strictEqual(activatedBackgroundScripts[0], 
-				CRMNodes[ScriptOnPageTests.BACKGROUNDSCRIPT].id,
-				'correct backgroundscript was executed');
-		});
+		if (!TEST_EXTENSION) {
+			it('should have activated the backgroundscript', async function() {
+				const activatedBackgroundScripts = JSON.parse(await driver
+					.executeScript(inlineFn(() => {
+						return JSON.stringify(window.chrome._activatedBackgroundPages);
+					})));
+				assert.lengthOf(activatedBackgroundScripts, 1,
+					'one backgroundscript was activated');
+				assert.strictEqual(activatedBackgroundScripts[0], 
+					CRMNodes[ScriptOnPageTests.BACKGROUNDSCRIPT].id,
+					'correct backgroundscript was executed');
+			});
+		}
 		it('should not show the disabled node', async () => {
 			const contextMenu = await getContextMenu();
 			assert.notInclude(contextMenu.map((item) => {
@@ -5204,14 +5203,13 @@ describe('On-Page CRM', function() {
 	});
 	describe('Errors', function() {
 		it('should not have been thrown during testing contextmenu', async function(done)  {
-			const result = await driver.executeScript(inlineFn(() => {
-				return window.errorReportingTool.lastErrors.length ? 
-					window.errorReportingTool.lastErrors : false;
-			}));
-			if (result) {
+			const result = (await driver.executeScript(inlineFn(() => {
+				return window.errorReportingTool.lastErrors;
+			}))).filter(err => !err.handled);
+			if (result.length) {
 				console.log(result);
 			}
-			assert.isFalse(result, 'no errors should be thrown when testing contextmenu');
+			assert.isEmpty(result, 'no errors should be thrown when testing contextmenu');
 			done();
 		});
 	});
