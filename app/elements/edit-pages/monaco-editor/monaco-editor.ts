@@ -2940,12 +2940,10 @@ namespace MonacoEditorElement {
 
 		private static _captureMonacoErrors() {
 			window.onerror = (msg, filename) => {
-				const firstLine = msg.split('\n')[0];
-				if (firstLine.indexOf(`Uncaught Error: Cannot read property 'kind' of undefined`) > -1 &&
-					filename.indexOf('vs/editor/editor.main.js') > -1) {
-						console.log('Caught monaco editor error (ignore these)');
-						return true;
-					}
+				if (filename.indexOf('vs/editor/editor.main.js') > -1) {
+					console.log('Caught monaco editor error (ignore these)');
+					return true;
+				}
 				return undefined;
 			}
 		}
