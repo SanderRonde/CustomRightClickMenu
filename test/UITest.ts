@@ -332,6 +332,13 @@ function tryReadManifest(filePath: string): Promise<_chrome.runtime.Manifest> {
 
 const browserCapabilities = getCapabilities();
 
+//Can only do browser API tests if the API was overridden
+const CAN_DO_BROWSER_API_TESTS = 
+	!TEST_EXTENSION || 
+		browserCapabilities.browserName === 'Chrome' ||
+		browserCapabilities.browserName === 'Opera' || 
+		browserCapabilities.browserName === 'Edge';
+
 function isThennable(value: any): value is Promise<any> {
 	return value && typeof value === "object" && typeof value.then === "function";
 }
@@ -2095,7 +2102,7 @@ describe('Options Page', function() {
 				.findElement(webdriver.By.tagName('paper-button'))
 				.click()
 
-			if (TEST_EXTENSION) {
+			if (!CAN_DO_BROWSER_API_TESTS) {
 				return;
 			}
 				
@@ -3158,7 +3165,7 @@ describe('Options Page', function() {
 								url: libUrl
 							}, 'Library was added');
 
-							if (TEST_EXTENSION) {
+							if (!TEST_EXTENSION) {
 								return;
 							}
 
@@ -3346,7 +3353,7 @@ describe('Options Page', function() {
 								url: null
 							}, 'Library was added');
 
-							if (TEST_EXTENSION) {
+							if (!TEST_EXTENSION) {
 								return;
 							}
 
@@ -3735,7 +3742,7 @@ describe('Options Page', function() {
 
 
 describe('On-Page CRM', function() {
-	if (SKIP_CONTEXTMENU || TEST_EXTENSION) {
+	if (SKIP_CONTEXTMENU || !TEST_EXTENSION) {
 		return;
 	}
 	describe('Redraws on new CRM', function() {
