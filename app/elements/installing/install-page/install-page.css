@@ -36,6 +36,7 @@
 app-header {
 	background-color: rgb(255, 87, 34)!important;
 	color: white;
+	left: 0!important;
 }
 
 .title {
