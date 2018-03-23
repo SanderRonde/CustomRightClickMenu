@@ -519,10 +519,6 @@ namespace BrowserAPI {
 			}, "blocking"|"requestBody">
 		} : void 0
 	};
-
-	export const test = {
-		'a': 'b'
-	}
 }
 
 interface Window {
