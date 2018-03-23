@@ -5067,7 +5067,7 @@ namespace CRMAppElement {
 				this._active = false;
 			}
 
-			static create() {
+			static async create() {
 				if (this._active) {
 					this._disable();
 				}
@@ -5075,6 +5075,8 @@ namespace CRMAppElement {
 				if (!window.app.storageLocal.CRMOnPage) {
 					return;
 				}
+
+				await window.onExistsChain(window, 'app', 'settings', 'crm');
 
 				this._active = true;
 				this._enable();
