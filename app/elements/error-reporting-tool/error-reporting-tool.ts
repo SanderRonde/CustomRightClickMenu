@@ -480,10 +480,17 @@ namespace ErrorReportingToolElement {
 				handlers.push(window.onerror);
 			}
 			window.onerror = (message: string, source: any, lineno: number, colno: number, error: Error) => {
+				let handled: boolean = false;
 				handlers.forEach((handler) => {
-					handler(message, source, lineno, colno, error);
+					if (handler(message, source, lineno, colno, error)) {
+						handled = true;
+					}
 				});
 				this._onError(message, source, lineno, colno, error);
+				if (handled) {
+					return true;
+				}
+				return undefined;
 			}
 
 			Object.defineProperty(window, 'onerror', {
