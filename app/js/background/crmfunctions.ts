@@ -816,12 +816,18 @@ export namespace CRMFunctions {
 					if (node.type === 'link') {
 						spliced = node.value.splice(msg['start'], msg['amount']);
 						await modules.CRMNodes.updateCrm();
-						__this.respondSuccess(spliced, modules.Util.safe(node).value);
+						__this.respondSuccess({
+							spliced: spliced, 
+							newArr: modules.Util.safe(node).value
+						});
 					} else {
 						node.linkVal = node.linkVal || [];
 						spliced = node.linkVal.splice(msg['start'], msg['amount']);
 						await modules.CRMNodes.updateCrm();
-						__this.respondSuccess(spliced, modules.Util.safe(node).linkVal);
+						__this.respondSuccess({
+							spliced: spliced, 
+							newArr: modules.Util.safe(node).linkVal
+						});
 					}
 				}
 				);
@@ -1049,7 +1055,10 @@ export namespace CRMFunctions {
 						const libs = modules.Util.safe(node).value.libraries
 						const spliced = libs.splice(start, amount);
 						await modules.CRMNodes.updateCrm();
-						__this.respondSuccess(spliced, libs);
+						__this.respondSuccess({
+							spliced: spliced, 
+							newArr: libs
+						});
 					} else {
 						__this.respondError('Node is not of type script');
 					}
