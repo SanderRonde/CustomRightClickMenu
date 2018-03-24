@@ -16,6 +16,38 @@ function getVersion({ browser_version }: BrowserstackCapabilities) {
 	return Math.round(parseFloat(browser_version));
 }
 
+export async function getExtensionURLPrefix(driver: TypedWebdriver, capabilities: BrowserstackCapabilities) {
+	const version = getVersion(capabilities);
+	
+	if (version < 36) {
+		console.error('Chrome extension testing before chrome 36 won\'t work,'
+			+ ' please try a higher chrome version or remove the --extension flag');
+		process.exit(1);
+		throw new Error('Chrome extension testing before chrome 36 won\'t work,'
+			+ ' please try a higher chrome version or remove the --extension flag');
+	} else if (version < 61) {
+		await driver.get('chrome://extensions-frame/frame');
+	} else {
+		await driver.get('chrome://extensions');
+	}
+	const extensions = await driver.findElements(
+		webdriver.By.className('extension-list-item-wrapper'));
+	for (const extension of extensions) {
+		const title = await extension.findElement(
+			webdriver.By.className('extension-title'));
+		if ((await title.getText()).indexOf('Custom Right-Click Menu') > -1) {
+			const href = await extension
+				.findElement(webdriver.By.className('options-link'))
+				.getAttribute('href');
+			
+			return href.split('/options.html')[0];
+		}
+	}
+	console.error('Failed to find extension options page');
+	process.exit(1);
+	return null;
+}
+
 export async function openOptionsPage(driver: TypedWebdriver, capabilities: BrowserstackCapabilities) {
 	const version = getVersion(capabilities);
 	
