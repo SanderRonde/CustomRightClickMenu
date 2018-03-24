@@ -2783,15 +2783,15 @@ declare namespace CRM {
 				/**
 				 * Gets the value at given key, if no key is given returns the entire storage object
 				 *
-				 * @param {string} keyPath - The path at which to look, a string separated with dots
+				 * @param {string} [keyPath] - The path at which to look, a string separated with dots
 				 */
-				get(keyPath: string): any,
+				get(keyPath?: string): any,
 				/**
 				 * Gets the value at given key, if no key is given returns the entire storage object
 				 *
-				 * @param {array} keyPath - The path at which to look, an array of strings and numbers representing keys
+				 * @param {array} [keyPath] - The path at which to look, an array of strings and numbers representing keys
 				 */
-				get(keyPath: (string|number)[]): any,
+				get(keyPath?: (string|number)[]): any,
 				/**
 				 * Sets the data at given key given value
 				 *

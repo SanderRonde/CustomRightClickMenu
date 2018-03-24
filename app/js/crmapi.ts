@@ -3286,7 +3286,7 @@ type CRMAPIMessage = {
 			 *		can also hold nothing to return the entire storage
 			 * @returns {any} - The data you are looking for
 			 */
-			get(this: CrmAPIInstance, keyPath: string|string[]|number[]): any {
+			get(this: CrmAPIInstance, keyPath?: string|string[]|number[]): any {
 				if (!keyPath) {
 					return this.__privates._nodeStorage;
 				}
