@@ -3318,7 +3318,7 @@ type CRMAPIMessage = {
 			set(this: CrmAPIInstance, keyPath: string|string[]|number[]|{
 				[key: string]: any;
 				[key: number]: any;
-			}, value: any): void {
+			}, value?: any): void {
 				if (CrmAPIInstance._helpers.checkType(keyPath, 'string', true)) {
 					const keyPathStr = keyPath;
 					if (typeof keyPathStr === 'string') {

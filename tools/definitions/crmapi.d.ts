@@ -2779,7 +2779,7 @@ declare namespace CRM {
 			/**
 			 * The storage API used to store and retrieve data for this script
 			 */
-			storage : {
+			storage: {
 				/**
 				 * Gets the value at given key, if no key is given returns the entire storage object
 				 *
@@ -2796,14 +2796,16 @@ declare namespace CRM {
 				 * Sets the data at given key given value
 				 *
 				 * @param {string} keyPath - The path at which to look, a string separated with dots
+				 * @param {any} [value] - The value to set it to, optional if keyPath is an object
 				 */
-				set(keyPath: string): void,
+				set(keyPath: string, value?: any): void,
 				/**
 				 * Sets the data at given key given value
 				 *
 				 * @param {array} keyPath - The path at which to look, an array of strings and numbers representing keys
+				 * @param {any} [value] - The value to set it to, optional if keyPath is an object
 				 */
-				set(keyPath: (string|number)[]): void,
+				set(keyPath: (string|number)[], value?: any): void,
 				/**
 				 * Deletes the data at given key given value
 				 *
