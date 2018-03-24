@@ -183,7 +183,7 @@ declare namespace CRM {
 			/**
 			 * The values of which to choose
 			 */
-			values: Array<string|number>;
+			values: (string|number)[];
 		}
 
 		/**
@@ -478,7 +478,7 @@ declare namespace CRM {
 		/**
 		 * The values of which to choose
 		 */
-		values: Array<string|number>;
+		values: (string|number)[];
 	}
 
 	/**
@@ -631,7 +631,7 @@ declare namespace CRM {
 	/**
 	 * The metatags for a script node
 	 */
-	type MetaTags = { [key: string]: Array<string|number> };
+	type MetaTags = { [key: string]: (string|number)[] };
 
 	/**
 	 * The type of a node
@@ -1342,7 +1342,7 @@ declare namespace CRM {
 		/**
 		 * The CRM tree
 		 */
-		crm: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
+		crm: (DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode)[];
 		/**
 		 * The last ID to be generated
 		 */
@@ -1410,7 +1410,7 @@ declare namespace CRM {
 		/**
 		 * Any installed libraries
 		 */
-		libraries: Array<{
+		libraries: {
 			/**
 			 * The name of the library
 			 */
@@ -1423,7 +1423,7 @@ declare namespace CRM {
 			 * The code of the library
 			 */
 			code: string;
-		}>;
+		}[];
 		/**
 		 * The permissions to be requested
 		 */
@@ -1491,7 +1491,7 @@ declare namespace CRM {
 		/**
 		 * Permissions that were added
 		 */
-		addedPermissions?: Array<{
+		addedPermissions?: {
 			/**
 			 * The ID of the node
 			 */
@@ -1500,11 +1500,11 @@ declare namespace CRM {
 			 * The permissions that were added
 			 */
 			permissions: string[];
-		}>;
+		};
 		/**
 		 * The scripts that were updated
 		 */
-		updatedScripts?: Array<{
+		updatedScripts?: {
 			/**
 			 * The name of the script
 			 */
@@ -1517,7 +1517,7 @@ declare namespace CRM {
 			 * The new version
 			 */
 			newVersion: string;
-		}>;
+		}[];
 		/**
 		 * Whether this is a transfer
 		 */
@@ -1988,7 +1988,7 @@ declare namespace CRM {
 			/**
 			 * Arguments passed to the request
 			 */
-			chromeAPIArguments: Array<{
+			chromeAPIArguments: {
 				/**
 				 * The type of argument
 				 */
@@ -1997,7 +1997,7 @@ declare namespace CRM {
 				 * The value of the argument
 				 */
 				val: any;
-			}>,
+			}[],
 			/**
 			 * The type of this chrome request (if a special one
 			 * that can not be made by the user themselves)
@@ -2666,7 +2666,7 @@ declare namespace CRM {
 			/**
 			 * All permissions that are allowed on this script
 			 */
-			permissions: Array<CRM.Permission>;
+			permissions: CRM.Permission[];
 	
 			/**
 			 * If set, calls this function when an error occurs
@@ -2777,7 +2777,7 @@ declare namespace CRM {
 				 *
 				 * @param {array} keyPath - The path at which to look, an array of strings and numbers representing keys
 				 */
-				get(keyPath: Array<string|number>): any,
+				get(keyPath: (string|number)[]): any,
 				/**
 				 * Sets the data at given key given value
 				 *
@@ -2789,7 +2789,7 @@ declare namespace CRM {
 				 *
 				 * @param {array} keyPath - The path at which to look, an array of strings and numbers representing keys
 				 */
-				set(keyPath: Array<string|number>): void,
+				set(keyPath: (string|number)[]): void,
 				/**
 				 * Deletes the data at given key given value
 				 *
@@ -2801,7 +2801,7 @@ declare namespace CRM {
 				 *
 				 * @param {array} keyPath - The path at which to look, an array of strings and numbers representing keys
 				 */
-				remove(keyPath: Array<string|number>): void,
+				remove(keyPath: (string|number)[]): void,
 				/**
 				 * Functions related to the onChange event of the storage API
 				 */
@@ -2893,7 +2893,7 @@ declare namespace CRM {
 				 * @param {function} callback - A function that is called with
 				 * 	the contextmenu ID as an argument
 				 */
-				getRootContextMenuId(callback: (contextMenuId: string|number) => void): void;
+				getRootContextMenuId(callback?: (contextMenuId: string|number) => void): void;
 
 				/**
 				 * Gets the CRM tree from the tree's root
@@ -2901,7 +2901,7 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @param {function} callback - A function that is called when done with the data as an argument
 				 */
-				getTree(callback: (data: Array<CRM.SafeNode>) => void): void,
+				getTree(callback: (data: CRM.SafeNode[]) => void): void,
 	
 				/**
 				 * Gets the CRM's tree from either the root or from the node with ID nodeId
@@ -2910,7 +2910,7 @@ declare namespace CRM {
 				 * @param {number} nodeId - The ID of the subtree's root node
 				 * @param {function} callback - A function that is called when done with the data as an argument
 				 */
-				getSubTree(nodeId: number, callback: (data: Array<CRM.SafeNode>) => void): void,
+				getSubTree(nodeId: number, callback: (data: CRM.SafeNode[]) => void): void,
 	
 				/**
 				 * Gets the node with ID nodeId
@@ -2941,7 +2941,7 @@ declare namespace CRM {
 				 * @param {number} [query.inSubTree] - The subtree in which this item is located (the number given is the id of the root item)
 				 * @param {Instance~crmCallback} callback - A callback with the resulting nodes in an array
 				 */
-				queryCrm(query: CRMQuery, callback: (results: Array<CRM.SafeNode>) => void): void,
+				queryCrm(query: CRMQuery, callback: (results: CRM.SafeNode[]) => void): void,
 	
 				/**
 				 * Gets the parent of the node with ID nodeId
@@ -2959,7 +2959,7 @@ declare namespace CRM {
 				 * @param {number} nodeId - The id of the node whose children to get
 				 * @param {function} callback - A callback with an array of CrmAPIInstance~crmNode nodes as the parameter
 				 */
-				getChildren(nodeId: number, callback: (result: Array<CRM.SafeNode>) => void): void,
+				getChildren(nodeId: number, callback: (result: CRM.SafeNode[]) => void): void,
 	
 				/**
 				 * Gets the type of node with ID nodeId
@@ -3132,7 +3132,7 @@ declare namespace CRM {
 				 * @param {number} nodeId - The node of which to get the triggers
 				 * @param {Instance~crmCallback} callback - A function to run when done, with the triggers as an argument
 				 */
-				getTriggers(nodeId: number, callback: (triggers: Array<CRM.Trigger>) => void): void,
+				getTriggers(nodeId: number, callback: (triggers: CRM.Trigger[]) => void): void,
 	
 				/**
 				 * Sets the triggers for given node
@@ -3149,7 +3149,7 @@ declare namespace CRM {
 				 * @param {boolean} triggers.not - If true does NOT show the node on that URL
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
 				 */
-				setTriggers(nodeId: number, triggers: Array<CRM.Trigger>, callback?: (node: CRM.SafeNode) => void): void,
+				setTriggers(nodeId: number, triggers: CRM.Trigger[], callback?: (node: CRM.SafeNode) => void): void,
 	
 				/**
 				 * Gets the content types for given node
@@ -3272,7 +3272,7 @@ declare namespace CRM {
 					 *		newTab: Whether the link should open in a new tab or the current tab
 					 *		url: The URL of the link
 					 */
-					getLinks(nodeId: number, callback: (result: Array<CRM.LinkNodeLink>) => void): void,
+					getLinks(nodeId: number, callback: (result: CRM.LinkNodeLink[]) => void): void,
 	
 					/**
 					 * Gets the links of the node with ID nodeId
@@ -3286,7 +3286,7 @@ declare namespace CRM {
 					 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
 					 */
 					setLinks(nodeId: number, item: CRM.LinkNodeLink, 
-						callback?: (arr: Array<CRM.LinkNodeLink>) => void): void;
+						callback?: (arr: CRM.LinkNodeLink[]) => void): void;
 					/**
 					 * Gets the links of the node with ID nodeId
 					 *
@@ -3298,8 +3298,8 @@ declare namespace CRM {
 					 * @param {string} [items.url] - The URL to open on clicking the link
 					 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
 					 */
-					setLinks(nodeId: number, items: Array<CRM.LinkNodeLink>, 
-						callback?: (arr: Array<CRM.LinkNodeLink>) => void): void;
+					setLinks(nodeId: number, items: CRM.LinkNodeLink[], 
+						callback?: (arr: CRM.LinkNodeLink[]) => void): void;
 	
 					/**
 					 * Pushes given items into the array of URLs of node with ID nodeId
@@ -3313,7 +3313,7 @@ declare namespace CRM {
 					 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
 					 */
 					push(nodeId: number, items: CRM.LinkNodeLink,
-						callback?: (arr: Array<CRM.LinkNodeLink>) => void): void,
+						callback?: (arr: CRM.LinkNodeLink[]) => void): void,
 					/**
 					 * Pushes given items into the array of URLs of node with ID nodeId
 					 *
@@ -3325,8 +3325,8 @@ declare namespace CRM {
 					 * @param {string} [items.url] - The URL to open on clicking the link
 					 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
 					 */
-					push(nodeId: number, items: Array<CRM.LinkNodeLink>,
-						callback?: (arr: Array<CRM.LinkNodeLink>) => void): void
+					push(nodeId: number, items: CRM.LinkNodeLink[],
+						callback?: (arr: CRM.LinkNodeLink[]) => void): void
 	
 					/**
 					 * Splices the array of URLs of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)
@@ -3340,7 +3340,7 @@ declare namespace CRM {
 					 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 					 */
 					splice(nodeId: number, start: number, amount: number,
-						callback: (spliced: Array<CRM.LinkNodeLink>, newArr: Array<CRM.LinkNodeLink>) => void): void
+						callback: (spliced: CRM.LinkNodeLink[], newArr: CRM.LinkNodeLink[]) => void): void
 				},
 	
 				script: {
@@ -3396,7 +3396,7 @@ declare namespace CRM {
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback with the new array as an argument
 						 */
-						push(nodeId: number, libraries: CRM.Library, callback?: (libs: Array<CRM.Library>) => void): void,
+						push(nodeId: number, libraries: CRM.Library, callback?: (libs: CRM.Library[]) => void): void,
 						/**
 						 * Pushes given libraries to the node with ID nodeId's libraries array,
 						 * make sure to register them first or an error is thrown, only works on script nodes
@@ -3408,7 +3408,7 @@ declare namespace CRM {
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback with the new array as an argument
 						 */
-						push(nodeId: number, libraries: Array<CRM.Library>, callback?: (libs: Array<CRM.Library>) => void): void,
+						push(nodeId: number, libraries: CRM.Library[], callback?: (libs: CRM.Library[]) => void): void,
 	
 						/**
 						 * Splices the array of libraries of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)
@@ -3422,7 +3422,7 @@ declare namespace CRM {
 						 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 						 */
 						splice(nodeId: number, start: number, amount: number,
-							callback?: (spliced: Array<CRM.Library>, newArr: Array<CRM.Library>) => void): void
+							callback?: (spliced: CRM.Library[], newArr: CRM.Library[]) => void): void
 					},
 	
 					/**
@@ -3440,7 +3440,7 @@ declare namespace CRM {
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback with the new array as an argument
 						 */
-						push(nodeId: number, libraries: CRM.Library, callback?: (libs: Array<CRM.Library>) => void): void,
+						push(nodeId: number, libraries: CRM.Library, callback?: (libs: CRM.Library[]) => void): void,
 						/**
 						 * Pushes given libraries to the node with ID nodeId's libraries array,
 						 * make sure to register them first or an error is thrown, only works on script nodes
@@ -3452,7 +3452,7 @@ declare namespace CRM {
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback with the new array as an argument
 						 */
-						push(nodeId: number, libraries: Array<CRM.Library>, callback?: (libs: Array<CRM.Library>) => void): void,
+						push(nodeId: number, libraries: CRM.Library[], callback?: (libs: CRM.Library[]) => void): void,
 	
 						/**
 						 * Splices the array of libraries of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)
@@ -3466,7 +3466,7 @@ declare namespace CRM {
 						 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 						 */
 						splice(nodeId: number, start: number, amount: number,
-								callback?: (spliced: Array<CRM.Library>, newArr: Array<CRM.Library>) => void): void
+								callback?: (spliced: CRM.Library[], newArr: CRM.Library[]) => void): void
 					}
 				},
 	
@@ -3481,7 +3481,7 @@ declare namespace CRM {
 					 * @param {number} nodeId - The id of the node of which to get the children
 					 * @param {Instance~crmCallback} callback - A callback with the node as an argument
 					 */
-					getChildren(nodeId: number, callback: (nodes: Array<CRM.SafeNode>) => void): void,
+					getChildren(nodeId: number, callback: (nodes: CRM.SafeNode[]) => void): void,
 	
 					/**
 					 * Sets the children of node with ID nodeId to the nodes with IDs childrenIds
@@ -3520,7 +3520,7 @@ declare namespace CRM {
 					 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 					 */
 					splice(nodeId: number, start: number, amount: number,
-						callback?: (spliced: Array<CRM.SafeNode>, newArr: Array<CRM.SafeNode>) => void): void,
+						callback?: (spliced: CRM.SafeNode[], newArr: CRM.SafeNode[]) => void): void,
 				},
 	
 				/**
@@ -3741,7 +3741,7 @@ declare namespace CRM {
  * you can also use jQuery if you have that included as a library
  */
 type ElementMaps = HTMLElementTagNameMap & ElementTagNameMap;
-type crmAPIQuerySelector = <T extends keyof ElementMaps>(selector: T, context?: HTMLElement|Element|Document) => Array<ElementMaps[T]>;
+type crmAPIQuerySelector = <T extends keyof ElementMaps>(selector: T, context?: HTMLElement|Element|Document) => ElementMaps[T][];
 
 type CRMAPI = CRM.CRMAPI.Instance;
 
