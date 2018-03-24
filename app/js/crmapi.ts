@@ -3628,22 +3628,21 @@ type CRMAPIMessage = {
 			 * Gets the CRM tree from the tree's root
 			 *
 			 * @permission crmGet
-			 * @param {function} callback - A function that is called when done with the data as an argument
+			 * @param {function} [callback] - A function that is called when done with the data as an argument
 			 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the tree
 			 */
-			getTree(this: CrmAPIInstance, callback: (data: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]> {
+			getTree(this: CrmAPIInstance, callback?: (data: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]> {
 				return this.__privates._sendCrmMessage('getTree', callback);
 			},
-			//TODO: here
 			/**
 			 * Gets the CRM's tree from either the root or from the node with ID nodeId
 			 *
 			 * @permission crmGet
 			 * @param {number} nodeId - The ID of the subtree's root node
-			 * @param {function} callback - A function that is called when done with the data as an argument
+			 * @param {function} [callback] - A function that is called when done with the data as an argument
 			 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the subtree
 			 */
-			getSubTree(this: CrmAPIInstance, nodeId: number, callback: (data: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]> {
+			getSubTree(this: CrmAPIInstance, nodeId: number, callback?: (data: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]> {
 				return this.__privates._sendCrmMessage('getSubTree', callback, {
 					nodeId: nodeId
 				});
@@ -3652,10 +3651,10 @@ type CRMAPIMessage = {
 			 * Gets the node with ID nodeId
 			 *
 			 * @permission crmGet
-			 * @param {CrmCallback} callback - A function that is called when done
+			 * @param {CrmCallback} [callback] - A function that is called when done
 			 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 			 */
-			getNode(this: CrmAPIInstance, nodeId: number, callback: CRMNodeCallback): Promise<CRM.SafeNode> {
+			getNode(this: CrmAPIInstance, nodeId: number, callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
 				return this.__privates._sendCrmMessage('getNode', callback, {
 					nodeId: nodeId
 				});
@@ -3666,10 +3665,10 @@ type CRMAPIMessage = {
 			 * @permission crmGet
 			 * @param {number[]} path - An array of numbers representing the path, each number
 			 *		represents the n-th child of the current node, so [1,2] represents the 2nd item(0,>1<,2)'s third child (0,1,>2<,3)
-			 * @param {function} callback - The function that is called with the ID as an argument
+			 * @param {function} [callback] - The function that is called with the ID as an argument
 			 * @returns {Promise<number>} A promise that resolves with the ID
 			 */
-			getNodeIdFromPath(this: CrmAPIInstance, path: number[], callback: (id: number) => void): Promise<number> {
+			getNodeIdFromPath(this: CrmAPIInstance, path: number[], callback?: (id: number) => void): Promise<number> {
 				return this.__privates._sendCrmMessage('getNodeIdFromPath', callback, {
 					path: path
 				});
@@ -3683,11 +3682,11 @@ type CRMAPIMessage = {
 			 * @param {string} [query.name] - The name of the item
 			 * @param {string} [query.type] - The type of the item (link, script, stylesheet, divider or menu)
 			 * @param {number} [query.inSubTree] - The subtree in which this item is located (the number given is the id of the root item)
-			 * @param {CrmCallback} callback - A callback with the resulting nodes in an array
+			 * @param {CrmCallback} [callback] - A callback with the resulting nodes in an array
 			 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the resulting nodes
 			 */
 			queryCrm(this: CrmAPIInstance, query: { name?: string, type?: CRM.NodeType, inSubTree?: number}, 
-				callback: (results: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]> {
+				callback?: (results: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]> {
 					return this.__privates._sendCrmMessage('queryCrm', callback, {
 						query: query
 					});
@@ -3697,10 +3696,10 @@ type CRMAPIMessage = {
 			 *
 			 * @permission crmGet
 			 * @param {number} nodeId - The node of which to get the parent
-			 * @param {(node: CRM.SafeNode|CRM.SafeNode[]) => void} callback - A callback with the parent of the given node as an argument
+			 * @param {(node: CRM.SafeNode|CRM.SafeNode[]) => void} [callback] - A callback with the parent of the given node as an argument
 			 * @returns {Promise<CRM.SafeNode|CRM.SafeNode[]>} A promise that resolves with the parent of given node
 			 */
-			getParentNode(this: CrmAPIInstance, nodeId: number, callback: (node: CRM.SafeNode|CRM.SafeNode[]) => void): Promise<CRM.SafeNode|CRM.SafeNode[]> {
+			getParentNode(this: CrmAPIInstance, nodeId: number, callback?: (node: CRM.SafeNode|CRM.SafeNode[]) => void): Promise<CRM.SafeNode|CRM.SafeNode[]> {
 				return this.__privates._sendCrmMessage('getParentNode', callback, {
 					nodeId: nodeId
 				});
@@ -3710,10 +3709,10 @@ type CRMAPIMessage = {
 			 *
 			 * @permission crmGet
 			 * @param {number} nodeId - The id of the node whose type to get
-			 * @param {function} callback - A callback with the type of the node as the parameter (link, script, menu or divider)
+			 * @param {function} [callback] - A callback with the type of the node as the parameter (link, script, menu or divider)
 			 * @returns {Promise<CRM.NodeType>} A promise that resolves with the type of the node
 			 */
-			getNodeType(this: CrmAPIInstance, nodeId: number, callback: CRMNodeCallback): Promise<CRM.NodeType> {
+			getNodeType(this: CrmAPIInstance, nodeId: number, callback?: CRMNodeCallback): Promise<CRM.NodeType> {
 				return this.__privates._sendCrmMessage('getNodeType', callback, {
 					nodeId: nodeId
 				});
@@ -3723,10 +3722,10 @@ type CRMAPIMessage = {
 			 *
 			 * @permission crmGet
 			 * @param {number} nodeId - The id of the node whose value to get
-			 * @param {function} callback - A callback with parameter LinkVal, ScriptVal, StylesheetVal or an empty object depending on type
+			 * @param {function} [callback] - A callback with parameter LinkVal, ScriptVal, StylesheetVal or an empty object depending on type
 			 * @returns {Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null>} A promise that resolves with the value of the node
 			 */
-			getNodeValue(this: CrmAPIInstance, nodeId: number, callback: CRMNodeCallback): Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null> {
+			getNodeValue(this: CrmAPIInstance, nodeId: number, callback?: CRMNodeCallback): Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null> {
 				return this.__privates._sendCrmMessage('getNodeValue', callback, {
 					nodeId: nodeId
 				});
@@ -3892,7 +3891,7 @@ type CRMAPIMessage = {
 			editNode(this: CrmAPIInstance, nodeId: number, options: {
 				name?: string;
 				type?: CRM.NodeType;
-			}, callback: CRMNodeCallback): Promise<CRM.SafeNode> {
+			}, callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
 				options = options || {};
 				//To prevent the user's stuff from being disturbed if they re-use the object
 				const optionsCopy = JSON.parse(JSON.stringify(options));
@@ -3906,10 +3905,10 @@ type CRMAPIMessage = {
 			 *
 			 * @permission crmGet
 			 * @param {number} nodeId - The node of which to get the triggers
-			 * @param {CrmCallback} callback - A function to run when done, with the triggers as an argument
+			 * @param {CrmCallback} [callback] - A function to run when done, with the triggers as an argument
 			 * @returns {Promise<CRM.Trigger[]>} A promise that resolves with the triggers
 			 */
-			getTriggers(this: CrmAPIInstance, nodeId: number, callback: (triggers: CRM.Trigger[]) => void): Promise<CRM.Trigger[]> {
+			getTriggers(this: CrmAPIInstance, nodeId: number, callback?: (triggers: CRM.Trigger[]) => void): Promise<CRM.Trigger[]> {
 				return this.__privates._sendCrmMessage('getTriggers', callback, {
 					nodeId: nodeId
 				});
@@ -3942,10 +3941,10 @@ type CRMAPIMessage = {
 			 *
 			 * @permission crmGet
 			 * @param {number} nodeId - The node of which to get the triggers
-			 * @param {CrmCallback} callback - A function to run when done, with the triggers' usage as an argument
+			 * @param {CrmCallback} [callback] - A function to run when done, with the triggers' usage as an argument
 			 * @returns {Promise<boolean>} A promise that resolves with a boolean indicating whether triggers are used
 			 */
-			getTriggerUsage(this: CrmAPIInstance, nodeId: number, callback: CRMNodeCallback): Promise<boolean> {
+			getTriggerUsage(this: CrmAPIInstance, nodeId: number, callback?: CRMNodeCallback): Promise<boolean> {
 				return this.__privates._sendCrmMessage('getTriggerUsage', callback, {
 					nodeId: nodeId
 				});
@@ -3972,10 +3971,10 @@ type CRMAPIMessage = {
 			 * @permission crmGet
 			 * @permission crmWrite
 			 * @param {number} nodeId - The node of which to get the content types
-			 * @param {CrmCallback} callback - A function to run when done, with the content types array as an argument
+			 * @param {CrmCallback} [callback] - A function to run when done, with the content types array as an argument
 			 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the content types
 			 */
-			getContentTypes(this: CrmAPIInstance, nodeId: number, callback: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes> {
+			getContentTypes(this: CrmAPIInstance, nodeId: number, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes> {
 				return this.__privates._sendCrmMessage('getContentTypes', callback, {
 					nodeId: nodeId
 				});
@@ -4046,10 +4045,10 @@ type CRMAPIMessage = {
 			 *
 			 * @permission crmGet
 			 * @param {number} nodeId - The id of the node to get the launchMode of
-			 * @param {function} callback - A callback with the launchMode as an argument
+			 * @param {function} [callback] - A callback with the launchMode as an argument
 			 * @returns {Promise<CRMLaunchModes>} A promise that resolves with the launchMode
 			 */
-			getLaunchMode(this: CrmAPIInstance, nodeId: number, callback: (launchMode: CRMLaunchModes) => void): Promise<CRMLaunchModes> {
+			getLaunchMode(this: CrmAPIInstance, nodeId: number, callback?: (launchMode: CRMLaunchModes) => void): Promise<CRMLaunchModes> {
 				return this.__privates._sendCrmMessage('getLaunchMode', callback, {
 					nodeId: nodeId
 				});
@@ -4081,10 +4080,10 @@ type CRMAPIMessage = {
 				 *
 				 * @permission crmGet
 				 * @param {number} nodeId - The id of the node of which to get the stylesheet
-				 * @param {function} callback - A callback with the stylesheet's value as an argument
+				 * @param {function} [callback] - A callback with the stylesheet's value as an argument
 				 * @returns {Promise<string>} A promise that resolves with the stylesheet
 				 */
-				getStylesheet(this: CrmAPIInstance, nodeId: number, callback: CRMNodeCallback): Promise<string> {
+				getStylesheet(this: CrmAPIInstance, nodeId: number, callback?: CRMNodeCallback): Promise<string> {
 					return this.__privates._sendCrmMessage('getStylesheetValue', callback, {
 						nodeId: nodeId
 					});
@@ -4101,12 +4100,12 @@ type CRMAPIMessage = {
 				 *
 				 * @permission crmGet
 				 * @param {number} nodeId - The id of the node to get the links from
-				 * @param {function} callback - A callback with an array of objects as parameters, all containing two keys:
+				 * @param {function} [callback] - A callback with an array of objects as parameters, all containing two keys:
 				 *		newTab: Whether the link should open in a new tab or the current tab
 				 *		url: The URL of the link
 				 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
 				 */
-				getLinks(this: CrmAPIInstance, nodeId: number, callback: (result: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]> {
+				getLinks(this: CrmAPIInstance, nodeId: number, callback?: (result: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]> {
 					return this.__privates._sendCrmMessage('linkGetLinks', callback, {
 						nodeId: nodeId
 					});
@@ -4141,7 +4140,7 @@ type CRMAPIMessage = {
 				 * @param {function} [callback] - A function that gets called when done with the new array as an argument
 				 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the new links array
 				 */
-				push(this: CrmAPIInstance, nodeId: number, items: MaybeArray<CRM.LinkNodeLink>, callback: (result: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]> {
+				push(this: CrmAPIInstance, nodeId: number, items: MaybeArray<CRM.LinkNodeLink>, callback?: (result: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]> {
 					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'linkPush', callback, {
 						items: items,
 						nodeId: nodeId
@@ -4161,7 +4160,7 @@ type CRMAPIMessage = {
 				 * 		containing a `spliced` property, which holds the spliced items, and a `newArr` property, holding the new array
 				 */
 				splice(this: CrmAPIInstance, nodeId: number, start: number, amount: number, 
-					callback: (spliced: CRM.LinkNodeLink[], newArr: CRM.LinkNodeLink[]) => void): Promise<{
+					callback?: (spliced: CRM.LinkNodeLink[], newArr: CRM.LinkNodeLink[]) => void): Promise<{
 						spliced: CRM.LinkNodeLink[];
 						newArr: CRM.LinkNodeLink[];
 					}> {
@@ -4206,10 +4205,10 @@ type CRMAPIMessage = {
 				 *
 				 * @permission crmGet
 				 * @param {number} nodeId - The id of the node of which to get the script
-				 * @param {function} callback - A callback with the script's value as an argument
+				 * @param {function} [callback] - A callback with the script's value as an argument
 				 * @returns {Promise<string>} A promise that resolves with the script
 				 */
-				getScript(this: CrmAPIInstance, nodeId: number, callback: (script: string) => void): Promise<string> {
+				getScript(this: CrmAPIInstance, nodeId: number, callback?: (script: string) => void): Promise<string> {
 					return this.__privates._sendCrmMessage('getScriptValue', callback, {
 						nodeId: nodeId
 					});
@@ -4235,10 +4234,10 @@ type CRMAPIMessage = {
 				 *
 				 * @permission crmGet
 				 * @param {number} nodeId - The id of the node of which to get the backgroundScript
-				 * @param {function} callback - A callback with the backgroundScript's value as an argument
+				 * @param {function} [callback] - A callback with the backgroundScript's value as an argument
 				 * @returns {Promise<string>} A promise that resolves with the backgroundScript
 				 */
-				getBackgroundScript(this: CrmAPIInstance, nodeId: number, callback: (backgroundScript: string) => void): Promise<string> {
+				getBackgroundScript(this: CrmAPIInstance, nodeId: number, callback?: (backgroundScript: string) => void): Promise<string> {
 					return this.__privates._sendCrmMessage('getBackgroundScriptValue', callback, {
 						nodeId: nodeId
 					});
@@ -4353,10 +4352,10 @@ type CRMAPIMessage = {
 				 *
 				 * @permission crmGet
 				 * @param {number} nodeId - The id of the node of which to get the children
-				 * @param {CrmCallback} callback - A callback with the nodes as an argument
+				 * @param {CrmCallback} [callback] - A callback with the nodes as an argument
 				 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the children
 				 */
-				getChildren(this: CrmAPIInstance, nodeId: number, callback: (children: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]> {
+				getChildren(this: CrmAPIInstance, nodeId: number, callback?: (children: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]> {
 					return this.__privates._sendCrmMessage('getMenuChildren', callback, {
 						nodeId: nodeId
 					});
@@ -4373,7 +4372,7 @@ type CRMAPIMessage = {
 				 * @param {CrmCallback} [callback] - A callback with the node as an argument
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the menu node
 				 */
-				setChildren(this: CrmAPIInstance, nodeId: number, childrenIds: number[], callback: CRMNodeCallback): Promise<CRM.SafeNode> {
+				setChildren(this: CrmAPIInstance, nodeId: number, childrenIds: number[], callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
 					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setMenuChildren', callback, {
 						nodeId: nodeId,
 						childrenIds: childrenIds

@@ -2945,8 +2945,8 @@ declare namespace CRM {
 				 * @param {Instance~crmCallback} [callback] - A function that is called when done
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
-				getNode<T extends CRM.SafeNode>(nodeId: NodeId<T>, callback: (node: T) => void): Promise<T>,
-				getNode(nodeId: number, callback: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+				getNode<T extends CRM.SafeNode>(nodeId: NodeId<T>, callback?: (node: T) => void): Promise<T>,
+				getNode(nodeId: number, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
 				 * Gets a node's ID from a path to the node
