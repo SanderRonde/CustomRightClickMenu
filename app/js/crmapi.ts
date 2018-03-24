@@ -112,7 +112,7 @@ type CRMAPIMessage = {
 	action: string;
 	crmPath: number[];
 	data: any[];
-	onFInish: {
+	onFinish: {
 		persistent: boolean;
 		maxCalls: number;
 		fn: number;
@@ -225,7 +225,7 @@ type CRMAPIMessage = {
 
 	interface CallbackMessage {
 		callbackId: number;
-		type: 'success'|'error'|'chromeErrror';
+		type: 'success'|'error'|'chromeError';
 		data: string|any[];
 		messageType: 'callback';
 	}
@@ -614,7 +614,7 @@ type CRMAPIMessage = {
 	 * @param {Object} tabData - Any data about the tab the script is currently running on
 	 * @param {Object} clickData - Any data associated with clicking this item in the
 	 *		context menu, only available if launchMode is equal to 0 (on click)
-	 * @param {number[]} secretyKey - An array of integers, generated to keep downloaded
+	 * @param {number[]} secretKey - An array of integers, generated to keep downloaded
 	 *		scripts from finding local scripts with more privilege and act as if they
 	 *		are those scripts to run stuff you don't want it to.
 	 * @param {Object} nodeStorage - The storage data for the node
@@ -1025,7 +1025,7 @@ type CRMAPIMessage = {
 			 * Creates a callback function that gets executed here instead of in the background page
 			 *
 			 * @param {function} callback - A handler for the callback function that gets passed
-			 *		the status of the call (error or succes), some data (error message or function params)
+			 *		the status of the call (error or success), some data (error message or function params)
 			 *		and a stacktrace.
 			 * @param {Error} error - The "new Error" value to formulate a useful stack trace
 			 * @param {Object} [options] - An options object containing the persistent and 
@@ -2002,7 +2002,7 @@ type CRMAPIMessage = {
 				}
 				/**
 				 * 	A function that is a persistent callback that will not be removed when called.
-				 * 	This can be used on APIs like chrome.tabs.onCreated where multiple calls can occuring
+				 * 	This can be used on APIs like chrome.tabs.onCreated where multiple calls can occurring
 				 * 	contrary to chrome.tabs.get where only one callback will occur.
 				 */
 				persistent(...fns: any[]): BrowserRequestInterface {
@@ -2229,7 +2229,7 @@ type CRMAPIMessage = {
 				}
 				/**
 				 * 	A function that is a persistent callback that will not be removed when called.
-				 * 	This can be used on APIs like chrome.tabs.onCreated where multiple calls can occuring
+				 * 	This can be used on APIs like chrome.tabs.onCreated where multiple calls can occurring
 				 * 	contrary to chrome.tabs.get where only one callback will occur.
 				 */
 				persistent(...fns: any[]): ChromeRequestInterface {
@@ -2468,7 +2468,7 @@ type CRMAPIMessage = {
 		 * @param {Object} tabData - Any data about the tab the script is currently running on
 		 * @param {Object} clickData - Any data associated with clicking this item in the
 		 *		context menu, only available if launchMode is equal to 0 (on click)
-		 * @param {number[]} secretyKey - An array of integers, generated to keep downloaded
+		 * @param {number[]} secretKey - An array of integers, generated to keep downloaded
 		 *		scripts from finding local scripts with more privilege and act as if they
 		 *		are those scripts to run stuff you don't want it to.
 		 * @param {Object} nodeStorage - The storage data for the node
@@ -3281,7 +3281,7 @@ type CRMAPIMessage = {
 			 * Gets the value at given key, if no key is given returns the entire storage object
 			 *
 			 * @param {string|array} [keyPath] - The path at which to look, can be either
-			 *		a string with dots seperating the path, an array with each entry holding
+			 *		a string with dots separating the path, an array with each entry holding
 			 *		one section of the path, or just a plain string without dots as the key,
 			 *		can also hold nothing to return the entire storage
 			 * @returns {any} - The data you are looking for
@@ -3310,7 +3310,7 @@ type CRMAPIMessage = {
 			 * Sets the data at given key to given value
 			 *
 			 * @param {string|array|Object} keyPath - The path at which to look, can be either
-			 *		a string with dots seperating the path, an array with each entry holding
+			 *		a string with dots separating the path, an array with each entry holding
 			 *		one section of the path, a plain string without dots as the key or
 			 * 		an object. This object will be written on top of the storage object
 			 * @param {any} [value] - The value to set it to, optional if keyPath is an object
@@ -3370,7 +3370,7 @@ type CRMAPIMessage = {
 			 * Deletes the data at given key given value
 			 *
 			 * @param {string|array} keyPath - The path at which to look, can be either
-			 *		a string with dots seperating the path, an array with each entry holding
+			 *		a string with dots separating the path, an array with each entry holding
 			 *		one section of the path, or just a plain string without dots as the key
 			 */
 			remove(this: CrmAPIInstance, keyPath: string|string[]|number[]): void {
@@ -3414,7 +3414,7 @@ type CRMAPIMessage = {
 				 *		gets called with the first argument being the key, the second being
 				 *		the old value, the third being the new value and the fourth
 				 *		a boolean indicating if the change was on a remote tab
-				 * @param {string} [key] - The key to listen for, if it's nested seperate it by dots
+				 * @param {string} [key] - The key to listen for, if it's nested separate it by dots
 				 * 		like a.b.c
 				 * @returns {number} A number that can be used to remove the listener
 				 */
@@ -3505,7 +3505,7 @@ type CRMAPIMessage = {
 		 * @property {Number} index - The index of the node in its parent's children
 		 * @property {string} name - The name of the node
 		 * @property {string} type - The type of the node (link, script, menu or divider)
-		 * @property {CrmNode[]} children - The children of the object, only possible if type is menu and permision "CRM" is present
+		 * @property {CrmNode[]} children - The children of the object, only possible if type is menu and permission "CRM" is present
 		 * @property {Object} nodeInfo - Any info about the node, it's author and where it's downloaded from
 		 * @property {string} nodeInfo.installDate - The date on which the node was installed or created
 		 * @property {boolean} nodeInfo.isRoot - Whether the node is downloaded (false) or created locally (true)
@@ -3579,7 +3579,7 @@ type CRMAPIMessage = {
 		 *		3 = only show on specified pages
 		 * 		4 = disabled
 		 * @property {string} value.stylesheet - The script that is ran itself
-		 * @property {boolean} value.toggle - Whether the stylesheet is always on or toggleable by clicking (true = toggleable)
+		 * @property {boolean} value.toggle - Whether the stylesheet is always on or toggle-able by clicking (true = toggle-able)
 		 * @property {boolean} value.defaultOn - Whether the stylesheet is on by default or off, only used if toggle is true
 		 */
 
@@ -3724,7 +3724,7 @@ type CRMAPIMessage = {
 			 * @permission crmGet
 			 * @param {number} nodeId - The id of the node whose value to get
 			 * @param {function} callback - A callback with parameter LinkVal, ScriptVal, StylesheetVal or an empty object depending on type
-			 * @returns {Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null>} A promise that resolves witht he value of the node
+			 * @returns {Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null>} A promise that resolves with the value of the node
 			 */
 			getNodeValue(this: CrmAPIInstance, nodeId: number, callback: CRMNodeCallback): Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null> {
 				return this.__privates._sendCrmMessage('getNodeValue', callback, {
@@ -3742,7 +3742,7 @@ type CRMAPIMessage = {
 			 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
 			 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
 			 *		firstSibling: first of the subtree that given node is in
-			 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+			 *		lastChild: becomes the last child of given node, throws an error if given node is not of type menu
 			 *		lastSibling: last of the subtree that given node is in
 			 *		before: before given node
 			 *		after: after the given node
@@ -3758,7 +3758,7 @@ type CRMAPIMessage = {
 			 * 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
 			 * 		https://developer.chrome.com/extensions/match_patterns
 			 * @param {Object[]} [options.linkData] - The links to which the node of type "link" should... link (defaults to example.com in a new tab),
-			 *		consists of an array of objects each containg a URL property and a newTab property, the url being the link they open and the
+			 *		consists of an array of objects each containing a URL property and a newTab property, the url being the link they open and the
 			 *		newTab boolean being whether or not it opens in a new tab.
 			 * @param {string} [options.linkData.url] - The url to open when clicking the link, this value is required.
 			 * @param {boolean} [options.linkData.newTab] - Whether or not to open the link in a new tab, not required, defaults to true
@@ -3784,7 +3784,7 @@ type CRMAPIMessage = {
 			 *		3 = only show on specified 
 			 * 		4 = disabled
 			 * @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
-			 * @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
+			 * @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggle-able by clicking (true = toggle-able), not required, defaults to true
 			 * @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
 			 * @param {CrmCallback} [callback] - A callback given the new node as an argument
 			 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the created node
@@ -3798,7 +3798,7 @@ type CRMAPIMessage = {
 			},
 			/**
 			 * Copies given node,
-			 * WARNNG: following properties are not copied:
+			 * WARNING: following properties are not copied:
 			 *		file, storage, id, permissions, nodeInfo
 			 *		Full permissions rights only if both the to be cloned and the script executing this have full rights
 			 *
@@ -3812,7 +3812,7 @@ type CRMAPIMessage = {
 			 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
 			 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
 			 *		firstSibling: first of the subtree that given node is in
-			 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+			 *		lastChild: becomes the last child of given node, throws an error if given node is not of type menu
 			 *		lastSibling: last of the subtree that given node is in
 			 *		before: before given node
 			 *		after: after the given node
@@ -3841,7 +3841,7 @@ type CRMAPIMessage = {
 			 * @param {string} [position.relation] - The position relative to the other node, possibilities are:
 			 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
 			 *		firstSibling: first of the subtree that given node is in
-			 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+			 *		lastChild: becomes the last child of given node, throws an error if given node is not of type menu
 			 *		lastSibling: last of the subtree that given node is in
 			 *		before: before given node
 			 *		after: after the given node
@@ -3990,7 +3990,7 @@ type CRMAPIMessage = {
 			 *		page, link, selection, image, video, audio
 			 * @param {boolean} value - The new value at index "index"
 			 * @param {CrmCallback} [callback] - A function to run when done, with the new array as an argument
-			 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the new content ypes
+			 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the new content types
 			 */
 			setContentType(this: CrmAPIInstance, nodeId: number, index: number, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes> {
 				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setContentType', callback, {
@@ -4101,7 +4101,7 @@ type CRMAPIMessage = {
 				 *
 				 * @permission crmGet
 				 * @param {number} nodeId - The id of the node to get the links from
-				 * @param {function} callback - A callback with an array of objects as parameters, all containg two keys:
+				 * @param {function} callback - A callback with an array of objects as parameters, all containing two keys:
 				 *		newTab: Whether the link should open in a new tab or the current tab
 				 *		url: The URL of the link
 				 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
@@ -4120,7 +4120,7 @@ type CRMAPIMessage = {
 				 * @param {Object[]|Object} items - The items to push
 				 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 				 * @param {string} [items.url] - The URL to open on clicking the link
-				 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
+				 * @param {function} [callback] - A function that gets called when done with the new array as an argument
 				 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
 				 */
 				setLinks(this: CrmAPIInstance, nodeId: number, items: MaybeArray<CRM.LinkNodeLink>, callback?: (result: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]> {
@@ -4138,7 +4138,7 @@ type CRMAPIMessage = {
 				 * @param {Object[]|Object} items - An array of items or just one item to push
 				 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 				 * @param {string} [items.url] - The URL to open on clicking the link
-				 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
+				 * @param {function} [callback] - A function that gets called when done with the new array as an argument
 				 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the new links array
 				 */
 				push(this: CrmAPIInstance, nodeId: number, items: MaybeArray<CRM.LinkNodeLink>, callback: (result: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]> {
@@ -4154,8 +4154,8 @@ type CRMAPIMessage = {
 				 * @permission crmGet
 				 * @permission crmWrite
 				 * @param {number} nodeId - The node to splice
-				 * @param {nunber} start - The index of the array at which to start splicing
-				 * @param {nunber} amount - The amount of items to splice
+				 * @param {number} start - The index of the array at which to start splicing
+				 * @param {number} amount - The amount of items to splice
 				 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 				 * @returns {Promise<{spliced: CRM.LinkNodeLink[], newArr: CRM.LinkNodeLink[]}>} A promise that resolves with an object
 				 * 		containing a `spliced` property, which holds the spliced items, and a `newArr` property, holding the new array
@@ -4274,8 +4274,8 @@ type CRMAPIMessage = {
 					 * @permission crmGet
 					 * @permission crmWrite
 					 * @param {number} nodeId - The node to splice
-					 * @param {nunber} start - The index of the array at which to start splicing
-					 * @param {nunber} amount - The amount of items to splice
+					 * @param {number} start - The index of the array at which to start splicing
+					 * @param {number} amount - The amount of items to splice
 					 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 					 * @returns {Promise<{spliced: CRM.Library[], newArr: CRM.Library[]}>} A promise that resolves with an object
 					 * 		that contains a `spliced` property, which contains the spliced items and a `newArr` property containing the new array
@@ -4323,8 +4323,8 @@ type CRMAPIMessage = {
 					 * @permission crmGet
 					 * @permission crmWrite
 					 * @param {number} nodeId - The node to splice
-					 * @param {nunber} start - The index of the array at which to start splicing
-					 * @param {nunber} amount - The amount of items to splice
+					 * @param {number} start - The index of the array at which to start splicing
+					 * @param {number} amount - The amount of items to splice
 					 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 					 * @returns {Promise<{spliced: CRM.Library[], newArr: CRM.Library[]}>} A promise that resolves with an object
 					 * 		that contains a `spliced` property, which contains the spliced items and a `newArr` property containing the new array
@@ -4445,7 +4445,7 @@ type CRMAPIMessage = {
 			 * @param {boolean} [options.lastFocusedWindow] - Whether the tabs are in the last focused window.
 			 * @param {number} [options.windowId] - The ID of the parent window, or windows.WINDOW_ID_CURRENT for the current window
 			 * @param {string} [options.windowType] - The type of window the tabs are in (normal, popup, panel, app or devtools)
-			 * @param {boolean} [options.active] - Whether the tabs are active in their windwos
+			 * @param {boolean} [options.active] - Whether the tabs are active in their windows
 			 * @param {number} [options.index] - The position of the tabs within their windows
 			 * @param {string} [options.title] - The title of the page
 			 * @param {string|string[]} [options.url] - The URL of the page, can use chrome match patterns
@@ -4479,7 +4479,7 @@ type CRMAPIMessage = {
 			 * @param {boolean} [options.lastFocusedWindow] - Whether the tabs are in the last focused window.
 			 * @param {number} [options.windowId] - The ID of the parent window, or windows.WINDOW_ID_CURRENT for the current window
 			 * @param {string} [options.windowType] - The type of window the tabs are in (normal, popup, panel, app or devtools)
-			 * @param {boolean} [options.active] - Whether the tabs are active in their windwos
+			 * @param {boolean} [options.active] - Whether the tabs are active in their windows
 			 * @param {number} [options.index] - The position of the tabs within their windows
 			 * @param {string} [options.title] - The title of the page
 			 * @param {string|string[]} [options.url] - The URL of the page, can use chrome match patterns
@@ -4576,7 +4576,7 @@ type CRMAPIMessage = {
 		 *				be used for APIs that don't use callbacks and instead just return values such as
 		 *				chrome.runtime.getURL().
 		 * 			p or persistent: a function that is a persistent callback that will not be removed when called.
-		 * 				This can be used on APIs like chrome.tabs.onCreated where multiple calls can occuring
+		 * 				This can be used on APIs like chrome.tabs.onCreated where multiple calls can occurring
 		 * 				contrary to chrome.tabs.get where only one callback will occur.
 		 *			s or send: executes the request
 		 * Examples:
@@ -4735,7 +4735,7 @@ type CRMAPIMessage = {
 				window.open(url, '_blank');
 			},
 			/**
-			 * This is only here to prevent errors from occuring when calling any of these functions,
+			 * This is only here to prevent errors from occurring when calling any of these functions,
 			 * this function does nothing
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_registerMenuCommand}
@@ -4743,7 +4743,7 @@ type CRMAPIMessage = {
 			 */
 			GM_registerMenuCommand: CrmAPIInstance._helpers.emptyFn,
 			/**
-			 * This is only here to prevent errors from occuring when calling any of these functions,
+			 * This is only here to prevent errors from occurring when calling any of these functions,
 			 * this function does nothing
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_unregisterMenuCommand}
@@ -4751,7 +4751,7 @@ type CRMAPIMessage = {
 			 */
 			GM_unregisterMenuCommand: CrmAPIInstance._helpers.emptyFn,
 			/**
-			 * This is only here to prevent errors from occuring when calling any of these functions,
+			 * This is only here to prevent errors from occurring when calling any of these functions,
 			 * this function does nothing
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_setClipboard}
@@ -4770,7 +4770,7 @@ type CRMAPIMessage = {
 			 * @param {boolean} [options.binary] - Whether the data should be sent in binary mode
 			 * @param {number} [options.timeout] - The time to wait in ms
 			 * @param {Object} [options.context] - A property which will be applied to the response object
-			 * @param {string} [options.responseType] - The type of resposne, arraybuffer, blob or json
+			 * @param {string} [options.responseType] - The type of response, arraybuffer, blob or json
 			 * @param {string} [options.overrideMimeType] - The MIME type to use
 			 * @param {boolean} [options.anonymous] - If true, sends no cookies along with the request
 			 * @param {boolean} [options.fetch] - Use a fetch instead of an xhr

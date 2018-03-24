@@ -222,7 +222,7 @@ declare namespace CRM {
 			descr?: string;
 		}
 		/**
-		 * An option for inputing arrays of strings
+		 * An option for inputting arrays of strings
 		 */
 		interface OptionArrayString extends OptionArrayBase {
 			/**
@@ -517,7 +517,7 @@ declare namespace CRM {
 		descr?: string;
 	}
 	/**
-	 * An option for inputing arrays of strings
+	 * An option for inputting arrays of strings
 	 */
 	interface OptionArrayString extends OptionArrayBase {
 		/**
@@ -928,7 +928,7 @@ declare namespace CRM {
 		 */
 		stylesheet: string;
 		/**
-		 * Whether this stylesheet is togglable
+		 * Whether this stylesheet is toggle-able
 		 */
 		toggle: boolean;
 		/**
@@ -1546,7 +1546,7 @@ declare namespace CRM {
 			 */
 			offsetY: number;
 			/**
-			 * The X-position of the click relative to the (embedded) page topleft point
+			 * The X-position of the click relative to the (embedded) page top left point
 			 * with scrolling added
 			 */
 			pageX: number;
@@ -1637,7 +1637,7 @@ declare namespace CRM {
 			 */
 			selected?: boolean;
 			/**
-			 * Whether the tab is hilighted
+			 * Whether the tab is highlighted
 			 */
 			highlighted: boolean;
 			/**
@@ -1750,12 +1750,12 @@ declare namespace CRM {
 			 */
 			editable: boolean;
 			/**
-			 * Whether a radiobutton or checkbox was checked,
+			 * Whether a radio button or checkbox was checked,
 			 * before it was clicked on. (since chrome 35)
 			 */
 			wasChecked?: boolean;
 			/**
-			 * Whether a radiobutton or checkbox was checked,
+			 * Whether a radio button or checkbox was checked,
 			 * after it was clicked on. (since chrome 35)
 			 */
 			checked?: boolean;
@@ -2346,7 +2346,7 @@ declare namespace CRM {
 			GM_openInTab(url: string): void,
 
 			/**
-			 * This is only here to prevent errors from occuring when calling any of these functions,
+			 * This is only here to prevent errors from occurring when calling any of these functions,
 			 * this function does nothing
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_registerMenuCommand}
@@ -2355,7 +2355,7 @@ declare namespace CRM {
 			GM_registerMenuCommand: EmptyFn,
 
 			/**
-			 * This is only here to prevent errors from occuring when calling any of these functions,
+			 * This is only here to prevent errors from occurring when calling any of these functions,
 			 * this function does nothing
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_unregisterMenuCommand}
@@ -2364,7 +2364,7 @@ declare namespace CRM {
 			GM_unregisterMenuCommand: EmptyFn;
 
 			/**
-			 * This is only here to prevent errors from occuring when calling any of these functions,
+			 * This is only here to prevent errors from occurring when calling any of these functions,
 			 * this function does nothing
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_setClipboard}
@@ -2827,7 +2827,7 @@ declare namespace CRM {
 					 *		gets called with the first argument being the key, the second being
 					 *		the old value, the third being the new value and the fourth
 					 *		a boolean indicating if the change was on a remote tab
-					 * @param {string} [key] - The key to listen for, if it's nested seperate it by dots
+					 * @param {string} [key] - The key to listen for, if it's nested separate it by dots
 					 * 		like a.b.c
 					 * @returns {number} A number that can be used to remove the listener
 					 */
@@ -2989,7 +2989,7 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @param {number} nodeId - The id of the node whose value to get
 				 * @param {function} [callback] - A callback that is called with parameter linkVal, scriptVal, stylesheetVal or an empty object depending on type
-				 * @returns {Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null>} A promise that resolves witht he value of the node
+				 * @returns {Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null>} A promise that resolves with the value of the node
 				 */
 				getNodeValue(nodeId: number, callback?: (value: CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null) => void): Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null>,
 	
@@ -3004,7 +3004,7 @@ declare namespace CRM {
 				 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
 				 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
 				 *		firstSibling: first of the subtree that given node is in
-				 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+				 *		lastChild: becomes the last child of given node, throws an error if given node is not of type menu
 				 *		lastSibling: last of the subtree that given node is in
 				 *		before: before given node
 				 *		after: after the given node
@@ -3020,7 +3020,7 @@ declare namespace CRM {
 				 * 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
 				 * 		https://developer.chrome.com/extensions/match_patterns
 				 * @param {Object[]} [options.linkData] - The links to which the node of type "link" should... link (defaults to example.com in a new tab),
-				 *		consists of an array of objects each containg a URL property and a newTab property, the url being the link they open and the
+				 *		consists of an array of objects each containing a URL property and a newTab property, the url being the link they open and the
 				 *		newTab boolean being whether or not it opens in a new tab.
 				 * @param {string} [options.linkData.url] - The url to open when clicking the link, this value is required.
 				 * @param {boolean} [options.linkData.newTab] - Whether or not to open the link in a new tab, not required, defaults to true
@@ -3046,7 +3046,7 @@ declare namespace CRM {
 				 *		3 = only show on specified pages
 				 *  		4 = disabled
 				 * @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
-				 * @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
+				 * @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggle-able by clicking (true = toggle-able), not required, defaults to true
 				 * @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
 				 * @param {Instance~crmCallback} [callback] - A callback given the new node as an argument
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the created node
@@ -3057,7 +3057,7 @@ declare namespace CRM {
 	
 				/**
 				 * Copies given node,
-				 * WARNNG: following properties are not copied:
+				 * WARNING: following properties are not copied:
 				 *		file, storage, id, permissions, nodeInfo
 				 *		Full permissions rights only if both the to be cloned and the script executing this have full rights
 				 *
@@ -3071,7 +3071,7 @@ declare namespace CRM {
 				 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
 				 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
 				 *		firstSibling: first of the subtree that given node is in
-				 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+				 *		lastChild: becomes the last child of given node, throws an error if given node is not of type menu
 				 *		lastSibling: last of the subtree that given node is in
 				 *		before: before given node
 				 *		after: after the given node
@@ -3100,7 +3100,7 @@ declare namespace CRM {
 				 * @param {string} [position.relation] - The position relative to the other node, possibilities are:
 				 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
 				 *		firstSibling: first of the subtree that given node is in
-				 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+				 *		lastChild: becomes the last child of given node, throws an error if given node is not of type menu
 				 *		lastSibling: last of the subtree that given node is in
 				 *		before: before given node
 				 *		after: after the given node
@@ -3217,7 +3217,7 @@ declare namespace CRM {
 				 *		page, link, selection, image, video, audio
 				 * @param {boolean} value - The new value at index `index`
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the new array as an argument
-				 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the new content ypes
+				 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the new content types
 				 */
 				setContentType(nodeId: number, index: CRM.ContentTypes, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes>,
 	
@@ -3299,7 +3299,7 @@ declare namespace CRM {
 					 *
 					 * @permission crmGet
 					 * @param {number} nodeId - The id of the node to get the links from
-					 * @param {function} [callback] - A callback that is called with an array of objects as parameters, all containg two keys:
+					 * @param {function} [callback] - A callback that is called with an array of objects as parameters, all containing two keys:
 					 *		newTab: Whether the link should open in a new tab or the current tab
 					 *		url: The URL of the link
 					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
@@ -3315,7 +3315,7 @@ declare namespace CRM {
 					 * @param {Object} item - The item to push
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
-					 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
+					 * @param {function} [callback] - A function that gets called when done with the new array as an argument
 					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
 					 */
 					setLinks(nodeId: number, item: CRM.LinkNodeLink, 
@@ -3329,7 +3329,7 @@ declare namespace CRM {
 					 * @param {Object[]} items - The items to push
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
-					 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
+					 * @param {function} [callback] - A function that gets called when done with the new array as an argument
 					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
 					 */
 					setLinks(nodeId: number, items: CRM.LinkNodeLink[], 
@@ -3344,7 +3344,7 @@ declare namespace CRM {
 					 * @param {Object} items - One item to push
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
-					 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
+					 * @param {function} [callback] - A function that gets called when done with the new array as an argument
 					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the new links array
 					 */
 					push(nodeId: number, items: CRM.LinkNodeLink,
@@ -3358,7 +3358,7 @@ declare namespace CRM {
 					 * @param {Object[]} items - An array of items to push
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
-					 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
+					 * @param {function} [callback] - A function that gets called when done with the new array as an argument
 					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the new links array
 					 */
 					push(nodeId: number, items: CRM.LinkNodeLink[],
@@ -3371,8 +3371,8 @@ declare namespace CRM {
 					 * @permission crmGet
 					 * @permission crmWrite
 					 * @param {number} nodeId - The node to splice
-					 * @param {nunber} start - The index of the array at which to start splicing
-					 * @param {nunber} amount - The amount of items to splice
+					 * @param {number} start - The index of the array at which to start splicing
+					 * @param {number} amount - The amount of items to splice
 					 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 					 * @returns {Promise<{spliced: CRM.LinkNodeLink[], newArr: CRM.LinkNodeLink[]}>} A promise that resolves with an object
 					 * 		containing a `spliced` property, which holds the spliced items, and a `newArr` property, holding the new array
@@ -3464,8 +3464,8 @@ declare namespace CRM {
 						 * @permission crmGet
 						 * @permission crmWrite
 						 * @param {number} nodeId - The node to splice
-						 * @param {nunber} start - The index of the array at which to start splicing
-						 * @param {nunber} amount - The amount of items to splice
+						 * @param {number} start - The index of the array at which to start splicing
+						 * @param {number} amount - The amount of items to splice
 						 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 						 * @returns {Promise<{spliced: CRM.Library[], newArr: CRM.Library[]}>} A promise that resolves with an object
 						 * 		that contains a `spliced` property, which contains the spliced items and a `newArr` property containing the new array
@@ -3515,8 +3515,8 @@ declare namespace CRM {
 						 * @permission crmGet
 						 * @permission crmWrite
 						 * @param {number} nodeId - The node to splice
-						 * @param {nunber} start - The index of the array at which to start splicing
-						 * @param {nunber} amount - The amount of items to splice
+						 * @param {number} start - The index of the array at which to start splicing
+						 * @param {number} amount - The amount of items to splice
 						 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 						 * @returns {Promise<{spliced: CRM.Library[], newArr: CRM.Library[]}>} A promise that resolves with an object
 						 * 		that contains a `spliced` property, which contains the spliced items and a `newArr` property containing the new array
@@ -3609,7 +3609,7 @@ declare namespace CRM {
 				 * @param {boolean} [options.lastFocusedWindow] - Whether the tabs are in the last focused window.
 				 * @param {number} [options.windowId] - The ID of the parent window, or windows.WINDOW_ID_CURRENT for the current window
 				 * @param {string} [options.windowType] - The type of window the tabs are in (normal, popup, panel, app or devtools)
-				 * @param {boolean} [options.active] - Whether the tabs are active in their windwos
+				 * @param {boolean} [options.active] - Whether the tabs are active in their windows
 				 * @param {number} [options.index] - The position of the tabs within their windows
 				 * @param {string} [options.title] - The title of the page
 				 * @param {string|string[]} [options.url] - The URL of the page, can use chrome match patterns
@@ -3635,7 +3635,7 @@ declare namespace CRM {
 				 * @param {boolean} [options.lastFocusedWindow] - Whether the tabs are in the last focused window.
 				 * @param {number} [options.windowId] - The ID of the parent window, or windows.WINDOW_ID_CURRENT for the current window
 				 * @param {string} [options.windowType] - The type of window the tabs are in (normal, popup, panel, app or devtools)
-				 * @param {boolean} [options.active] - Whether the tabs are active in their windwos
+				 * @param {boolean} [options.active] - Whether the tabs are active in their windows
 				 * @param {number} [options.index] - The position of the tabs within their windows
 				 * @param {string} [options.title] - The title of the page
 				 * @param {string|string[]} [options.url] - The URL of the page, can use chrome match patterns
@@ -3716,7 +3716,7 @@ declare namespace CRM {
 			 *
 			 *
 			 * p or persistent: a function that is a persistent callback that will not be removed when called.
-			 *	This can be used on APIs like chrome.tabs.onCreated where multiple calls can occuring
+			 *	This can be used on APIs like chrome.tabs.onCreated where multiple calls can occurring
 			 *	contrary to chrome.tabs.get where only one callback will occur.
 			 *
 			 *
