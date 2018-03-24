@@ -281,7 +281,7 @@ type CRMAPIMessage = {
 	}
 
 	interface Relation {
-		node: number;
+		node?: number;
 		relation?: 'firstChild'|'firstSibling'|'lastChild'|'lastSibling'|'before'|'after';
 	}
 

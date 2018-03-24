@@ -1968,9 +1968,9 @@ declare namespace CRM {
 		 */
 		interface Relation {
 			/**
-			 * The ID of the node that it's relative to
+			 * The ID of the node that it's relative to (defaults to tree root)
 			 */
-			node: number;
+			node?: number;
 			/**
 			 * The relation between them
 			 */
