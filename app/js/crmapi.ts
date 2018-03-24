@@ -1879,10 +1879,6 @@ type CRMAPIMessage = {
 				[key: number]: any;
 			} = {}) {
 				return new Promise<any>((resolve, reject) => {
-					if (!callback) {
-						reject('CrmAPIError: No callback was supplied');
-						return;
-					}
 					const prom = this.__privates._sendOptionalCallbackCrmMessage
 						.call(this, action, callback, params);
 					prom.then(resolve, reject);
