@@ -639,13 +639,20 @@ declare namespace CRM {
 	type NodeType = 'script'|'link'|'divider'|'menu'|'stylesheet';
 
 	/**
+	 * The id of a node, has the source node encoded in typing to keep association
+	 */
+	type NodeId<T extends CRM.SafeNode = CRM.SafeNode> = number & {
+		__srcNode?: T;
+	}
+
+	/**
 	 * A safe CRM node
 	 */
 	interface MadeSafeNode {
 		/**
 		 * The unique ID for the node
 		 */
-		id: number;
+		id: NodeId<this>;
 		/**
 		 * The path to this node
 		 */
@@ -737,7 +744,7 @@ declare namespace CRM {
 		/**
 		 * The unique ID of this node
 		 */
-		id: number;
+		id: NodeId<this>;
 		/**
 		 * The path to this node
 		 */
@@ -1360,7 +1367,7 @@ declare namespace CRM {
 		/**
 		 * The ID of the node that was being edited
 		 */
-		id: number;
+		id: NodeId;
 		/**
 		 * The mode the editor was in
 		 */
@@ -2604,7 +2611,7 @@ declare namespace CRM {
 		 * @class
 		 */
 		export class Instance {
-			constructor(node: CRM.SafeNode, id: number, tabData: TabData, 
+			constructor(node: CRM.SafeNode, id: NodeId, tabData: TabData, 
 				clickData: ClickData, secretKey: number[],
 				nodeStorage: NodeStorage, contextData: ContextData,
 				greasemonkeyData: GreaseMonkeyData, isBackground: boolean,
@@ -2938,6 +2945,7 @@ declare namespace CRM {
 				 * @param {Instance~crmCallback} [callback] - A function that is called when done
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
+				getNode<T extends CRM.SafeNode>(nodeId: NodeId<T>, callback: (node: T) => void): Promise<T>,
 				getNode(nodeId: number, callback: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
@@ -2983,6 +2991,7 @@ declare namespace CRM {
 				 * @param {function} [callback] - A callback that is called with the type of the node as the parameter (link, script, menu or divider)
 				 * @returns {Promise<CRM.NodeType>} A promise that resolves with the type of the node
 				 */
+				getNodeType<T extends CRM.SafeNode>(nodeId: NodeId<T>, callback?: (type: T['type']) => void): Promise<T['type']>,
 				getNodeType(nodeId: number, callback?: (type: CRM.NodeType) => void): Promise<CRM.NodeType>,
 	
 				/**
@@ -2993,6 +3002,7 @@ declare namespace CRM {
 				 * @param {function} [callback] - A callback that is called with parameter linkVal, scriptVal, stylesheetVal or an empty object depending on type
 				 * @returns {Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null>} A promise that resolves with the value of the node
 				 */
+				getNodeValue<T extends CRM.SafeNode>(nodeId: NodeId<T>, callback?: (value: T['value']) => void): Promise<T['value']>,
 				getNodeValue(nodeId: number, callback?: (value: CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null) => void): Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null>,
 	
 				/**
@@ -3080,6 +3090,39 @@ declare namespace CRM {
 				 * @param {Instance~crmCallback} [callback] - A callback given the new node as an argument
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the copied node
 				 */
+				copyNode<T extends CRM.SafeNode, U extends string = 'name'>(nodeId: NodeId<T>, options: {
+					/**
+					 * The name of the new node (defaults to "name")
+					 */
+					name?: U;
+					/**
+					 * The position to copy it to
+					 */
+					position?: Relation
+				}, callback?: (node: T & { name: U }) => void): Promise<T & { name: U }>,
+				/**
+				 * Copies given node including children,
+				 * WARNING: following properties are not copied:
+				 *		file, storage, id, permissions, nodeInfo
+				 *		Full permissions rights only if both the to be cloned and the script executing this have full rights
+				 *
+				 * @permission crmGet
+				 * @permission crmWrite
+				 * @param {number} nodeId - The id of the node to copy
+				 * @param {Object} options - An object containing all the options for the node
+				 * @param {string} [options.name] - The new name of the object (same as the old one if none given)
+				 * @param {Object} [options.position] - An object containing info about where to place the item, defaults to last if not given
+				 * @param {number} [options.position.node] - The other node's id, if not given, "relates" to the root
+				 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
+				 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
+				 *		firstSibling: first of the subtree that given node is in
+				 *		lastChild: becomes the last child of given node, throws an error if given node is not of type menu
+				 *		lastSibling: last of the subtree that given node is in
+				 *		before: before given node
+				 *		after: after the given node
+				 * @param {Instance~crmCallback} [callback] - A callback given the new node as an argument
+				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the copied node
+				 */
 				copyNode(nodeId: number, options: {
 					/**
 					 * The name of the new node (defaults to "name")
@@ -3109,6 +3152,7 @@ declare namespace CRM {
 				 * @param {Instance~crmCallback} [callback] - A function that gets called with the new node as an argument
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the moved node
 				 */
+				moveNode<T extends CRM.SafeNode>(nodeId: NodeId<T>, position: Relation, callback?: (node: T) => void): Promise<T>,
 				moveNode(nodeId: number, position: Relation, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
@@ -3124,6 +3168,28 @@ declare namespace CRM {
 				deleteNode(nodeId: number, callback?: (errorMessage: string) => void): Promise<string>,
 				deleteNode(nodeId: number, callback?: (successStatus: boolean) => void): Promise<boolean>,
 	
+				/**
+				 * Edits given settings of the node
+				 *
+				 * @permission crmGet
+				 * @permission crmWrite
+				 * @param {number} nodeId - The id of the node to edit
+				 * @param {Object} options - An object containing the settings for what to edit
+				 * @param {string} [options.name] - Changes the name to given string
+				 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
+				 * @param {Instance~crmCallback} [callback] - A function to run when done, contains the new node as an argument
+				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the edited node
+				 */
+				editNode<T extends CRM.SafeNode, U extends string = T['name'], NT extends CRM.NodeType = T['type']>(nodeId: NodeId<T>, options: { 
+					/**
+					 * The new name of the node
+					 */
+					name?: U, 
+					/**
+					 * The new type of the node
+					 */
+					type?: NT;
+				}, callback?: (node: T & { name: U, type: NT }) => void): Promise<T & { name: U, type: NT }>,
 				/**
 				 * Edits given settings of the node
 				 *
@@ -3173,6 +3239,7 @@ declare namespace CRM {
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
+				setTriggers<T extends CRM.SafeNode>(nodeId: NodeId<T>, triggers: CRM.Trigger[], callback?: (node: T) => void): Promise<T>,
 				setTriggers(nodeId: number, triggers: CRM.Trigger[], callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
@@ -3196,6 +3263,7 @@ declare namespace CRM {
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
+				setTriggerUsage<T extends CRM.SafeNode>(nodeId: NodeId<T>, useTriggers: boolean, callback?: (node: T) => void): Promise<T>
 				setTriggerUsage(nodeId: number, useTriggers: boolean, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>
 
 				/**
@@ -3236,6 +3304,7 @@ declare namespace CRM {
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
+				setContentTypes<T extends CRM.SafeNode>(nodeId: NodeId<T>, contentTypes: CRM.ContentTypes, callback?: (node: T) => void): Promise<T>,
 				setContentTypes(nodeId: number, contentTypes: CRM.ContentTypes, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
@@ -3253,6 +3322,7 @@ declare namespace CRM {
 				 * @param {Instance~crmCallback} [callback] - A function that is ran when done with the new node as an argument
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
+				setLaunchMode<T extends CRM.SafeNode>(nodeId: NodeId<T>, launchMode: CRMLaunchModes, callback?: (node: T) => void): Promise<T>,
 				setLaunchMode(nodeId: number, launchMode: CRMLaunchModes, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
@@ -3279,6 +3349,7 @@ declare namespace CRM {
 					 * @param {Instance~crmCallback} [callback] - A function with the node as an argument
 					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 					 */
+					setStylesheet<T extends CRM.SafeNode>(nodeId: NodeId<T>, stylesheet: string, callback?: (node: T) => void): Promise<T>
 					setStylesheet(nodeId: number, stylesheet: string, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>
 	
 					/**
@@ -3397,6 +3468,7 @@ declare namespace CRM {
 					 * @param {Instance~crmCallback} [callback] - A function with the node as an argument
 					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the new node
 					 */
+					setScript<T extends CRM.SafeNode>(nodeId: NodeId<T>, script: string, callback?: (node: T) => void): Promise<T>,
 					setScript(nodeId: number, script: string, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 					/**
@@ -3419,6 +3491,7 @@ declare namespace CRM {
 					 * @param {Instance~crmCallback} [callback] - A function with the node as an argument
 					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 					 */
+					setBackgroundScript<T extends CRM.SafeNode>(nodeId: NodeId<T>, script: string, callback?: (node: T) => void): Promise<T>,
 					setBackgroundScript(nodeId: number, script: string, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 					/**
@@ -3556,6 +3629,7 @@ declare namespace CRM {
 					 * @param {Instance~crmCallback} [callback] - A callback that is called with the node as an argument
 					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the menu node
 					 */
+					setChildren<T extends CRM.SafeNode>(nodeId: NodeId<T>, childrenIds: number[], callback?: (node: T) => void): Promise<T>,
 					setChildren(nodeId: number, childrenIds: number[], callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 					/**
@@ -3569,6 +3643,7 @@ declare namespace CRM {
 					 * @param {Instance~crmCallback} [callback] - A callback that is called with the node as an argument
 					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the menu
 					 */
+					push<T extends CRM.SafeNode>(nodeId: NodeId<T>, childrenIds: number[], callback?: (node: T) => void): Promise<T>,
 					push(nodeId: number, childrenIds: number[], callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 					/**

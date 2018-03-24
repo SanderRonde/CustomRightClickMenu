@@ -418,13 +418,20 @@ declare namespace CRM {
 	type NodeType = 'script'|'link'|'divider'|'menu'|'stylesheet';
 
 	/**
+	 * The id of a node, has the source node encoded in typing to keep association
+	 */
+	type NodeId<T = CRM.Node> = number & {
+		__srcNode?: T;
+	}
+
+	/**
 	 * A safe CRM node
 	 */
 	interface MadeSafeNode {
 		/**
 		 * The unique ID for the node
 		 */
-		id: number;
+		id: NodeId<this>;
 		/**
 		 * The path to this node
 		 */
@@ -524,7 +531,7 @@ declare namespace CRM {
 		/**
 		 * The unique ID of this node
 		 */
-		id: number;
+		id: NodeId<this>;
 		/**
 		 * The path to this node
 		 */
