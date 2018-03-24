@@ -325,9 +325,23 @@ export namespace CRMFunctions {
 					let newNode = JSON.parse(JSON.stringify(copiedNode));
 					newNode.id = modules.Util.generateItemId();
 
+					//Generate new IDs for all children
+					modules.Util.crmForEach(newNode.children || [], (node) => {
+						node.id = modules.Util.generateItemId();
+						delete node.storage;
+						delete (node as any).file;
+					});
+
 					const executingNode = __this.getNodeFromId(__this.message.id, false, true, true);
 					if (executingNode.isLocal === true && copiedNode.isLocal === true) {
 						newNode.isLocal = true;
+						modules.Util.crmForEach(newNode.children || [], (node) => {
+							node.isLocal = true;
+						});
+					} else {
+						modules.Util.crmForEach(newNode.children || [], (node) => {
+							node.isLocal = false;
+						});
 					}
 					newNode.nodeInfo = executingNode.nodeInfo;
 					delete newNode.storage;

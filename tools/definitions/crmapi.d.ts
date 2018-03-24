@@ -3058,7 +3058,7 @@ declare namespace CRM {
 				}, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
-				 * Copies given node,
+				 * Copies given node including children,
 				 * WARNING: following properties are not copied:
 				 *		file, storage, id, permissions, nodeInfo
 				 *		Full permissions rights only if both the to be cloned and the script executing this have full rights
