@@ -1,4 +1,4 @@
-type MaybeArray<T> = T|Array<T>;
+type MaybeArray<T> = T|T[];
 
 /**
  * The launch modes for scripts and stylesheets
@@ -232,7 +232,7 @@ declare namespace CRM {
 			/**
 			 * The array's value
 			 */
-			value: null|Array<string>;
+			value: null|string[];
 		}
 		/**
 		 * An option for inputting arrays of numbers
@@ -245,7 +245,7 @@ declare namespace CRM {
 			/**
 			 * The array's value
 			 */
-			value: null|Array<number>;
+			value: null|number[];
 		}
 		/**
 		 * An option for inputting arrays of numbers or strings
@@ -392,7 +392,7 @@ declare namespace CRM {
 		/**
 		 * All permissions asked for by this node
 		 */
-		permissions: Array<Permission>;
+		permissions: Permission[];
 		/**
 		 * Info related to the source of a node's installation
 		 */
@@ -527,7 +527,7 @@ declare namespace CRM {
 		/**
 		 * The array's value
 		 */
-		value: null|Array<string>;
+		value: null|string[];
 	}
 	/**
 	 * An option for inputting arrays of numbers
@@ -540,7 +540,7 @@ declare namespace CRM {
 		/**
 		 * The array's value
 		 */
-		value: null|Array<number>;
+		value: null|number[];
 	}
 	/**
 	 * An option for inputting arrays of numbers or strings
@@ -594,7 +594,7 @@ declare namespace CRM {
 	/**
 	 * The triggers for a node on which to or to not show a node
 	 */
-	type Triggers = Array<Trigger>;
+	type Triggers = Trigger[];
 
 	/**
 	 * A library for a script node
@@ -649,7 +649,7 @@ declare namespace CRM {
 		/**
 		 * The path to this node
 		 */
-		path: Array<number>;
+		path: number[];
 		/**
 		 * The type of this node
 		 */
@@ -729,7 +729,7 @@ declare namespace CRM {
 		/**
 		 * The permissions that are currently allowed for this node
 		 */
-		permissions: Array<Permission>;
+		permissions: Permission[];
 		/**
 		 * The children of this node (if a menu)
 		 */
@@ -741,7 +741,7 @@ declare namespace CRM {
 		/**
 		 * The path to this node
 		 */
-		path: Array<number>;
+		path: number[];
 		/**
 		 * The type of this node
 		 */
@@ -874,11 +874,11 @@ declare namespace CRM {
 		/**
 		 * The libraries to run with this node
 		 */
-		libraries: Array<Library>;
+		libraries: Library[];
 		/**
 		 * The libraries to run with this node's backgroundscript
 		 */
-		backgroundLibraries: Array<Library>;
+		backgroundLibraries: Library[];
 		/**
 		 * Whether to show an update notice for this node
 		 */
@@ -966,7 +966,7 @@ declare namespace CRM {
 	/**
 	 * The value of a link node
 	 */
-	type LinkVal = Array<LinkNodeLink>
+	type LinkVal = LinkNodeLink[]
 
 	/**
 	 * A passive CRM node
@@ -1235,7 +1235,7 @@ declare namespace CRM {
 	/**
 	 * A tree of CRM nodes
 	 */
-	type Tree = Array<Node>;
+	type Tree = Node[];
 
 	/**
 	 * A safe script node
@@ -1265,7 +1265,7 @@ declare namespace CRM {
 	/**
 	 * A CRM tree consisting of safe nodes
 	 */
-	type SafeTree = Array<SafeNode>;
+	type SafeTree = SafeNode[];
 
 	/**
 	 * Keybindings for the editor
@@ -1427,7 +1427,7 @@ declare namespace CRM {
 		/**
 		 * The permissions to be requested
 		 */
-		requestPermissions: Array<string>;
+		requestPermissions: string[];
 		/**
 		 * The node that was being edited before an unexpected quit
 		 */
@@ -1439,11 +1439,11 @@ declare namespace CRM {
 		/**
 		 * Global variables for jslint
 		 */
-		jsLintGlobals: Array<string>;
+		jsLintGlobals: string[];
 		/**
 		 * Urls on which to never run any scripts
 		 */
-		globalExcludes: Array<string>;
+		globalExcludes: string[];
 		/**
 		 * Whether this is not the first time the extension was launched
 		 */
@@ -1499,7 +1499,7 @@ declare namespace CRM {
 			/**
 			 * The permissions that were added
 			 */
-			permissions: Array<string>;
+			permissions: string[];
 		}>;
 		/**
 		 * The scripts that were updated
@@ -1808,10 +1808,10 @@ declare namespace CRM {
 			override: {
 				excludes: boolean;
 				includes: boolean;
-				orig_excludes?: Array<string>;
-				orig_includes?: Array<string>;
-				use_excludes: Array<string>;
-				use_includes: Array<string>;
+				orig_excludes?: string[];
+				orig_includes?: string[];
+				use_excludes: string[];
+				use_includes: string[];
 			}
 		}
 	
@@ -1834,7 +1834,7 @@ declare namespace CRM {
 			/**
 			 * URLs not to run this script on
 			 */
-			excludes?: Array<string>;
+			excludes?: string[];
 			/**
 			 * A homepage for this script
 			 */
@@ -1850,7 +1850,7 @@ declare namespace CRM {
 			/**
 			 * URLs on which to run this script (can use globs)
 			 */
-			includes?: Array<string>;
+			includes?: string[];
 			/**
 			 * The last time this script was updated
 			 */
@@ -1858,7 +1858,7 @@ declare namespace CRM {
 			/**
 			 * URLs on which this script is ran
 			 */
-			matches?: Array<string>;
+			matches?: string[];
 			/**
 			 * Whether the user is incognito
 			 */
@@ -1886,7 +1886,7 @@ declare namespace CRM {
 			/**
 			 * The resources loaded for this script
 			 */
-			resources: Array<Resource>;
+			resources: Resource[];
 			/**
 			 * When to run this script in the page-load cycle
 			 */
@@ -2013,17 +2013,17 @@ declare namespace CRM {
 			 * A regular call with given arguments (functions can only be called once
 			 * unless you use .persistent)
 			 */
-			(...params: Array<any>): ChromeRequestReturn;
+			(...params: any[]): ChromeRequestReturn;
 			/**
 			 * A regular call with given arguments (functions can only be called once
 			 * unless you use .persistent)
 			 */
-			args: (...params: Array<any>) => ChromeRequestReturn;
+			args: (...params: any[]) => ChromeRequestReturn;
 			/**
 			 * A regular call with given arguments (functions can only be called once
 			 * unless you use .persistent)
 			 */
-			a: (...params: Array<any>) => ChromeRequestReturn;
+			a: (...params: any[]) => ChromeRequestReturn;
 			/**
 			 * A function to call when a value is returned by the call
 			 */
@@ -2035,11 +2035,11 @@ declare namespace CRM {
 			/**
 			 * A persistent callback (that can be called multiple times)
 			 */
-			persistent: (...functions: Array<Function>) => ChromeRequestReturn;
+			persistent: (...functions: Function[]) => ChromeRequestReturn;
 			/**
 			 * A persistent callback (that can be called multiple times)
 			 */
-			p: (...functions: Array<Function>) => ChromeRequestReturn;
+			p: (...functions: Function[]) => ChromeRequestReturn;
 			/**
 			 * Sends the function and runs it
 			 */
@@ -2063,25 +2063,25 @@ declare namespace CRM {
 			 * A regular call with given arguments (functions can only be called once
 			 * unless you use .persistent)
 			 */
-			(...params: Array<any>): BrowserRequestReturn;
+			(...params: any[]): BrowserRequestReturn;
 			/**
 			 * A regular call with given arguments (functions can only be called once
 			 * unless you use .persistent)
 			 */
-			args: (...params: Array<any>) => BrowserRequestReturn;
+			args: (...params: any[]) => BrowserRequestReturn;
 			/**
 			 * A regular call with given arguments (functions can only be called once
 			 * unless you use .persistent)
 			 */
-			a: (...params: Array<any>) => BrowserRequestReturn;
+			a: (...params: any[]) => BrowserRequestReturn;
 			/**
 			 * A persistent callback (that can be called multiple times)
 			 */
-			persistent: (...functions: Array<Function>) => BrowserRequestReturn;
+			persistent: (...functions: Function[]) => BrowserRequestReturn;
 			/**
 			 * A persistent callback (that can be called multiple times)
 			 */
-			p: (...functions: Array<Function>) => BrowserRequestReturn;
+			p: (...functions: Function[]) => BrowserRequestReturn;
 			/**
 			 * Sends the function and returns a promise that resolves with its result
 			 */
@@ -2299,7 +2299,7 @@ declare namespace CRM {
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_listValues}
 			 * @returns {String[]} All keys of the storage
 			 */
-			GM_listValues(): Array<string>,
+			GM_listValues(): string[],
 
 			/**
 			 * Gets the resource URL for given resource name
@@ -2334,7 +2334,7 @@ declare namespace CRM {
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_log}
 			 * @param {any} any - The data to log
 			 */
-			GM_log(...params: Array<any>): void,
+			GM_log(...params: any[]): void,
 
 			/**
 			 * Open specified URL in a new tab, open_in_background is not available here since that
@@ -2605,7 +2605,7 @@ declare namespace CRM {
 		 */
 		export class Instance {
 			constructor(node: CRM.SafeNode, id: number, tabData: TabData, 
-				clickData: ClickData, secretKey: Array<number>,
+				clickData: ClickData, secretKey: number[],
 				nodeStorage: NodeStorage, contextData: ContextData,
 				greasemonkeyData: GreaseMonkeyData, isBackground: boolean,
 				options: CRM.Options, enableBackwardsCompatibility: boolean,
@@ -2692,7 +2692,7 @@ declare namespace CRM {
 				 *
 				 * @param {function} callback - A function to call with the instances
 				 */
-				getInstances(callback: (instances: Array<Instance>) => void): void,
+				getInstances(callback: (instances: Instance[]) => void): void,
 				/**
 				 * Sends a message to given instance
 				 *
@@ -2928,7 +2928,7 @@ declare namespace CRM {
 				 *		represents the n-th child of the current node, so [1,2] represents the 2nd item(0,>1<,2)'s third child (0,1,>2<,3)
 				 * @param {function} callback - The function that is called with the ID as an argument
 				 */
-				getNodeIdFromPath(path: Array<number>, callback: (id: number) => void): void,
+				getNodeIdFromPath(path: number[], callback: (id: number) => void): void,
 	
 				/**
 				 * Queries the CRM for any items matching your query
@@ -3493,7 +3493,7 @@ declare namespace CRM {
 					 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
 					 * @param {Instance~crmCallback} [callback] - A callback with the node as an argument
 					 */
-					setChildren(nodeId: number, childrenIds: Array<number>, callback?: (node: CRM.SafeNode) => void): void,
+					setChildren(nodeId: number, childrenIds: number[], callback?: (node: CRM.SafeNode) => void): void,
 	
 					/**
 					 * Pushes the nodes with IDs childrenIds to the node with ID nodeId
@@ -3505,7 +3505,7 @@ declare namespace CRM {
 					 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
 					 * @param {Instance~crmCallback} [callback] - A callback with the node as an argument
 					 */
-					push(nodeId: number, childrenIds: Array<number>, callback?: (node: CRM.SafeNode) => void): void,
+					push(nodeId: number, childrenIds: number[], callback?: (node: CRM.SafeNode) => void): void,
 	
 					/**
 					 * Splices the children of the node with ID nodeId, starting at `start` and splicing `amount` items,
@@ -3585,7 +3585,7 @@ declare namespace CRM {
 				 * @param {number|number[]} [options.tabId] - The IDs of the tabs
 				 */
 				runScript(id: number, options: QueryInfo & {
-					tabId?: MaybeArray<number>;
+					tabId?: Maybenumber[];
 					all?: boolean;
 				}): void;
 				/**
@@ -3611,7 +3611,7 @@ declare namespace CRM {
 				 * @param {number|number[]} [options.tabId] - The IDs of the tabs
 				 */
 				runSelf(options: QueryInfo & {
-					tabId?: MaybeArray<number>;
+					tabId?: Maybenumber[];
 					all?: boolean;
 				}): void;
 				/**
@@ -3711,12 +3711,12 @@ declare namespace CRM {
 			 * @param {Object} [context] - The context of the search (the node from which to start, default is document)
 			 * @returns {Element[]} An array of the matching HTML elements
 			 */
-			$crmAPI(selector: string): Array<HTMLElement>;
-			$crmAPI(selector: string): Array<void>;
-			$crmAPI(selector: string, context: HTMLElement): Array<HTMLElement>;
-			$crmAPI(selector: string, context: HTMLElement): Array<void>;
-			$crmAPI(selector: string, context: Document): Array<HTMLElement>;
-			$crmAPI(selector: string, context: Document): Array<void>;
+			$crmAPI(selector: string): HTMLElement[];
+			$crmAPI(selector: string): void[];
+			$crmAPI(selector: string, context: HTMLElement): HTMLElement[];
+			$crmAPI(selector: string, context: HTMLElement): void[];
+			$crmAPI(selector: string, context: Document): HTMLElement[];
+			$crmAPI(selector: string, context: Document): void[];
 	
 			/**
 			 * Returns the elements matching given selector within given context
@@ -3725,12 +3725,12 @@ declare namespace CRM {
 			 * @param {Object} [context] - The context of the search (the node from which to start, default is document)
 			 * @returns {Element[]} An array of the matching HTML elements
 			 */
-			$(selector: string): Array<HTMLElement>;
-			$(selector: string): Array<void>;
-			$(selector: string, context: HTMLElement): Array<HTMLElement>;
-			$(selector: string, context: HTMLElement): Array<void>;
-			$(selector: string, context: Document): Array<HTMLElement>;
-			$(selector: string, context: Document): Array<void>;
+			$(selector: string): HTMLElement[];
+			$(selector: string): void[];
+			$(selector: string, context: HTMLElement): HTMLElement[];
+			$(selector: string, context: HTMLElement): void[];
+			$(selector: string, context: Document): HTMLElement[];
+			$(selector: string, context: Document): void[];
 		}
 	}
 }
