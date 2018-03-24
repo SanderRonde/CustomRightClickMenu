@@ -3697,10 +3697,10 @@ type CRMAPIMessage = {
 			 *
 			 * @permission crmGet
 			 * @param {number} nodeId - The node of which to get the parent
-			 * @param {CrmCallback} callback - A callback with the parent of the given node as an argument
-			 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the parent of given node
+			 * @param {(node: CRM.SafeNode|CRM.SafeNode[]) => void} callback - A callback with the parent of the given node as an argument
+			 * @returns {Promise<CRM.SafeNode|CRM.SafeNode[]>} A promise that resolves with the parent of given node
 			 */
-			getParentNode(this: CrmAPIInstance, nodeId: number, callback: CRMNodeCallback): Promise<CRM.SafeNode> {
+			getParentNode(this: CrmAPIInstance, nodeId: number, callback: (node: CRM.SafeNode|CRM.SafeNode[]) => void): Promise<CRM.SafeNode|CRM.SafeNode[]> {
 				return this.__privates._sendCrmMessage('getParentNode', callback, {
 					nodeId: nodeId
 				});
