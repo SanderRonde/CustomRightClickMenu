@@ -727,10 +727,7 @@ type CRMAPIMessage = {
 			}[]): void;
 
 			_instancesReady: boolean,
-			_instancesReadyListeners: ((instances: {
-				id: number;
-				tabIndex: number;
-			}[]) => void)[],
+			_instancesReadyListeners: ((instances: Instance[]) => void)[],
 			_instances: CallbackStorageInterface<Instance>;
 
 			_instancesChange(change: {
@@ -1593,10 +1590,7 @@ type CRMAPIMessage = {
 						});
 					}
 
-					const instancesArr: {
-						id: number;
-						tabIndex: number;
-					}[] = [];
+					const instancesArr: Instance[] = [];
 					this.__privates._instances.forEach((instance) => {
 						instancesArr.push(instance);
 					});
@@ -3134,20 +3128,23 @@ type CRMAPIMessage = {
 			 * to the .comm.sendMessage function to send a message to them, you can also
 			 * call instance.sendMessage on them
 			 *
-			 * @param {function} callback - A function to call with the instances
+			 * @param {function} [callback] - A function to call with the instances
 			 * @returns {Promise<Instance[]>} A promise that resolves with the instances
 			 */
-			getInstances(this: CrmAPIInstance, callback: (instances: Instance[]) => void): Promise<Instance[]> {
+			getInstances(this: CrmAPIInstance, callback?: (instances: Instance[]) => void): Promise<Instance[]> {
 				return new Promise<Instance[]>((resolve) => {
 					if (this.__privates._instancesReady) {
 						const instancesArr: Instance[] = [];
 						this.__privates._instances.forEach((instance) => {
 							instancesArr.push(instance);
 						});
-						callback(instancesArr);
-						return Promise.resolve(instancesArr);
+						callback && callback(instancesArr);
+						resolve(instancesArr);
 					} else {
-						return this.__privates._instancesReadyListeners.push(callback);
+						this.__privates._instancesReadyListeners.push((instances) => {
+							callback && callback(instances);
+							resolve(instances);
+						});
 					}
 				});
 			},
