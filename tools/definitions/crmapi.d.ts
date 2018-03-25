@@ -3613,10 +3613,10 @@ declare namespace CRM {
 					 *
 					 * @permission crmGet
 					 * @param {number} nodeId - The id of the node of which to get the children
-					 * @param {Instance~crmCallback} callback - A callback that is called with the node as an argument
+					 * @param {Instance~crmCallback} [callback] - A callback that is called with the node as an argument
 					 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the children
 					 */
-					getChildren(nodeId: number, callback: (nodes: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]>,
+					getChildren(nodeId: number, callback?: (nodes: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]>,
 	
 					/**
 					 * Sets the children of node with ID nodeId to the nodes with IDs childrenIds
