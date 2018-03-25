@@ -4160,7 +4160,7 @@ type CRMAPIMessage = {
 							spliced: CRM.LinkNodeLink[];
 							newArr: CRM.LinkNodeLink[];
 						}) => {
-							callback(spliced, newArr);
+							callback && callback(spliced, newArr);
 						}, {
 							nodeId: nodeId,
 							start: start,
@@ -4274,11 +4274,18 @@ type CRMAPIMessage = {
 							spliced: CRM.Library[];
 							newArr: CRM.Library[];
 						}> {
-							return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptLibrarySplice', callback, {
-							nodeId: nodeId,
-							start: start,
-							amount: amount
-						});
+							return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptLibrarySplice', ({
+								spliced, newArr
+							}: {
+								spliced: CRM.Library[];
+								newArr: CRM.Library[];
+							}) => {
+								callback && callback(spliced, newArr);
+							}, {
+								nodeId: nodeId,
+								start: start,
+								amount: amount
+							});
 					}
 				},
 				/**
@@ -4323,11 +4330,18 @@ type CRMAPIMessage = {
 							spliced: CRM.Library[];
 							newArr: CRM.Library[];
 						}> {
-							return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptBackgroundLibrarySplice', callback, {
-							nodeId: nodeId,
-							start: start,
-							amount: amount
-						});
+							return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptBackgroundLibrarySplice', ({
+								spliced, newArr
+							}: {
+								spliced: CRM.Library[];
+								newArr: CRM.Library[];
+							}) => {
+								callback && callback(spliced, newArr);
+							}, {
+								nodeId: nodeId,
+								start: start,
+								amount: amount
+							});
 						}
 				}
 			},
@@ -4407,7 +4421,14 @@ type CRMAPIMessage = {
 						spliced: CRM.SafeNode[];
 						newArr: CRM.SafeNode[];
 					}> {
-					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'spliceMenuChildren', callback, {
+					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'spliceMenuChildren', ({
+						spliced, newArr
+					}: {
+						spliced: CRM.SafeNode[];
+						newArr: CRM.SafeNode[];
+					}) => {
+						callback && callback(spliced, newArr);
+					}, {
 						nodeId: nodeId,
 						start: start,
 						amount: amount
