@@ -500,8 +500,8 @@ type CRMAPIMessage = {
 	}
 
 	function removePrivateValues<T>(target: T, privateKeys: (keyof T)[]) {
-		for (let i = 0; i < privateKeys.length; i++) {
-			(target as any)[privateKeys[i]] = undefined;
+		for (const privateKey of privateKeys) {
+			(target as any)[privateKey] = undefined;
 		}
 	}
 
@@ -513,9 +513,9 @@ type CRMAPIMessage = {
 		}
 
 		get(key: K): V {
-			for (let i = 0; i < this._store.length; i++) {
-				if (this._store[i][0] === key) {
-					return this._store[i][1];
+			for (const [storeKey, storeData] of this._store) {
+				if (key === storeKey) {
+					return storeData;
 				}
 			}
 			return null;
