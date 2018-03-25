@@ -3476,10 +3476,10 @@ declare namespace CRM {
 					 *
 					 * @permission crmGet
 					 * @param {number} nodeId - The id of the node of which to get the script
-					 * @param {function} callback - A callback that is called with the script's value as an argument
+					 * @param {function} [callback] - A callback that is called with the script's value as an argument
 					 * @returns {Promise<string>} A promise that resolves with the script
 					 */
-					getScript(nodeId: number, callback: (script: string) => void): Promise<string>,
+					getScript(nodeId: number, callback?: (script: string) => void): Promise<string>,
 	
 					/**
 					 * Sets the backgroundScript of node with ID nodeId to value `script`
@@ -3499,10 +3499,10 @@ declare namespace CRM {
 					 *
 					 * @permission crmGet
 					 * @param {number} nodeId - The id of the node of which to get the backgroundScript
-					 * @param {function} callback - A callback that is called with the backgroundScript's value as an argument
+					 * @param {function} [callback] - A callback that is called with the backgroundScript's value as an argument
 					 * @returns {Promise<string>} A promise that resolves with the backgroundScript
 					 */
-					getBackgroundScript(nodeId: number, callback: (backgroundScript: string) => void): Promise<string>,
+					getBackgroundScript(nodeId: number, callback?: (backgroundScript: string) => void): Promise<string>,
 	
 					libraries: {
 						/**
