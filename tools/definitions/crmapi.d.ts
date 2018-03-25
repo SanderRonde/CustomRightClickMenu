@@ -3451,7 +3451,7 @@ declare namespace CRM {
 					 * 		containing a `spliced` property, which holds the spliced items, and a `newArr` property, holding the new array
 					 */
 					splice(nodeId: number, start: number, amount: number,
-						callback: (spliced: CRM.LinkNodeLink[], newArr: CRM.LinkNodeLink[]) => void): Promise<{
+						callback?: (spliced: CRM.LinkNodeLink[], newArr: CRM.LinkNodeLink[]) => void): Promise<{
 							spliced: CRM.LinkNodeLink[];
 							newArr: CRM.LinkNodeLink[];
 						}>;
@@ -3546,7 +3546,7 @@ declare namespace CRM {
 						 * 		that contains a `spliced` property, which contains the spliced items and a `newArr` property containing the new array
 						 */
 						splice(nodeId: number, start: number, amount: number,
-							callback: (spliced: CRM.Library[], newArr: CRM.Library[]) => void): Promise<{
+							callback?: (spliced: CRM.Library[], newArr: CRM.Library[]) => void): Promise<{
 								spliced: CRM.Library[];
 								newArr: CRM.Library[];
 							}>;
@@ -3597,7 +3597,7 @@ declare namespace CRM {
 						 * 		that contains a `spliced` property, which contains the spliced items and a `newArr` property containing the new array
 						 */
 						splice(nodeId: number, start: number, amount: number,
-							callback: (spliced: CRM.Library[], newArr: CRM.Library[]) => void): Promise<{
+							callback?: (spliced: CRM.Library[], newArr: CRM.Library[]) => void): Promise<{
 								spliced: CRM.Library[];
 								newArr: CRM.Library[];
 							}>;
@@ -3661,7 +3661,7 @@ declare namespace CRM {
 					 * 		that contains a `spliced` property, which contains the spliced children and a `newArr` property containing the new children array
 					 */
 					splice(nodeId: number, start: number, amount: number,
-						callback: (spliced: CRM.SafeNode[], newArr: CRM.SafeNode[]) => void): Promise<{
+						callback?: (spliced: CRM.SafeNode[], newArr: CRM.SafeNode[]) => void): Promise<{
 							spliced: CRM.SafeNode[];
 							newArr: CRM.SafeNode[];
 						}>;
