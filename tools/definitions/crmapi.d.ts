@@ -3777,8 +3777,8 @@ declare namespace CRM {
 			 *		functions you can chain-call on the crmAPI.chrome(API) object:
 			 *
 			 *
-			  * a or args or (): uses given arguments as arguments for the API in order specified. When passing a function,
-			  *	it will be converted to a placeholder function that will be called on return with the
+			 * a or args or (): uses given arguments as arguments for the API in order specified. When passing a function,
+		  	 *	it will be converted to a placeholder function that will be called on return with the
 			 *	arguments chrome passed to it. This means the function is never executed on the background
 			 *	page and is always executed here to preserve scope. The arguments are however passed on as they should.
 			 *	You can call this function by calling .args or by just using the parentheses as below.
