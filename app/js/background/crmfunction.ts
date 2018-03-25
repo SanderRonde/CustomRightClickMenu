@@ -244,10 +244,6 @@ export namespace CRMFunction {
 				return false;
 			}
 
-			if (!relativeNode) {
-				return false;
-			}
-
 			if (!this.checkType(position.relation, 'string', 'relation',
 				TypecheckOptional.OPTIONAL)) {
 				return false;
