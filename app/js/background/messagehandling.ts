@@ -177,7 +177,7 @@ export namespace MessageHandling {
 					modules.Resources.Anonymous.handle(message.data);
 					break;
 				case 'updateStorage':
-					modules.Storages.applyChanges(message.data);
+					await modules.Storages.applyChanges(message.data);
 					break;
 				case 'sendInstanceMessage':
 					Instances.sendMessage(message);
@@ -197,7 +197,7 @@ export namespace MessageHandling {
 					Instances.changeStatus(message);
 					break;
 				case 'addNotificationListener':
-					NotificationListener.listen(message);
+					await NotificationListener.listen(message);
 					break;
 				case 'newTabCreated':
 					if (messageSender && respond) {
