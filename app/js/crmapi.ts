@@ -3177,10 +3177,12 @@ type CRMAPIMessage = {
 					instanceObj = instance;
 				}
 				return new Promise<any>((resolve) => {
-					CrmAPIInstance._helpers.isFn(instanceObj.sendMessage) && instanceObj.sendMessage(message, (response: any) => {
-						callback(response);
-						resolve(response);
-					});
+					if (CrmAPIInstance._helpers.isFn(instanceObj.sendMessage)) {
+						instanceObj.sendMessage(message, (response: any) => {
+							callback && callback(response);
+							resolve(response);
+						});
+					}
 				});
 			},
 			/**
