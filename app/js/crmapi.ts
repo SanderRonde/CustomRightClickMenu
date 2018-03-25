@@ -1824,11 +1824,6 @@ type CRMAPIMessage = {
 						stackTrace: string;
 						lineNumber: number;
 					}, stackTrace: string[]) => {
-						if (!callback) {
-							resolve(undefined);
-							return;
-						}
-
 						if (status === 'error') {
 							this.onError && this.onError(messageOrParams);
 							if (this.stackTraces) {
@@ -1845,7 +1840,7 @@ type CRMAPIMessage = {
 								console.warn('CrmAPIError: ' + messageOrParams.error);
 							}
 						} else {
-							callback.apply(this, messageOrParams);
+							callback && callback.apply(this, messageOrParams);
 							resolve((messageOrParams as any)[0]);
 						}
 					}
