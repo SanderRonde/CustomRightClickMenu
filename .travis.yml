@@ -7,9 +7,9 @@ branches:
   - beta
   - polymer-2
 stages:
-  - test
-  - name: deploy website
-    if: branch = master
+- test
+- name: deploy website
+  if: branch = master
 
 env:
   - TEST=test-build
@@ -24,8 +24,8 @@ env:
   - TEST=test:edge:latest
 
 before_install:
-- openssl aes-256-cbc -K $encrypted_f2a12e06bc88_key -iv $encrypted_f2a12e06bc88_iv
-  -in test/UI/secrets.js.enc -out test/UI/secrets.js -d
+- openssl aes-256-cbc -K $encrypted_2f49f885e77e_key -iv $encrypted_2f49f885e77e_iv 
+  -in secrets.js.enc -out test/UI/secrets.js -d
 - npm install gulp -g
 install:
 - yarn
@@ -33,9 +33,9 @@ script: sh ./scripts/pretest.sh && yarn run $TEST || yarn run $TEST
 
 jobs:
   include:
-    - stage: deploy website
-      script: sh ./scripts/deploy-website.sh
-      env: TEST=none
+  - stage: deploy website
+    script: sh ./scripts/deploy-website.sh
+    env: TEST=none
 
 notifications:
   email:
@@ -45,4 +45,4 @@ addons:
   browserstack:
     username: "sanderronde1"
     access_key:
-      secure: uKeeDZKoavvWTT7CcuHfodSItQKf7ot/TLtkhP9HWXhN2ad45ELjZ4p4b+U766vsML7TH/vUypFj9egguOlTG1OXx2jMBrT2vqz+nMWNEVFj8zZ6Lfj6bPaJD4eqAqrKby9HWX8ZweDG9+WgDlABKZ4kw08yVK98KrVHhgpgTLYVj066LOlzTG5XcvNj3nu/+Ld3LetNuKBw4/s6y+n+dBsYm0v7PWERQOWDb4vpD4Gg/J+lZXjJCbZg6OQV2F2Fzg8pH+17d8r3do4/TavI/VgdM0vdbvFHTISlaoh7qv2BKinhTvQTUXhjzxZApnUwtXY+XzM3LPuD0Y8/tWqUxVKu2CEbTDXHk8rbkxdeSmGjhdWsnkNyRg8U30MYUtS+WS+jz8n9IKxe5QOXy6cY0l0YlWobzT+xHBlpKPktur8r3Q9h0lVEr6BYaWe0r2Zz34hqQwkQj8bivheOSBoRXTqRlz3HYJAuetstNj1U96Xov0+ydJQK3CPqLliI1bCboQ05a7vBEOQ5M65BHNQ/ZUUDxZKRmj9dAIsEgqYAguX+dB3vebVeZGAvqtxFsEX0Z0YUbkHGDMHf1948hucot4ACuXQIXgPzgYI6347M3JxGyjrkFFbi9M7Qo7/ffp8vA3cHRtuqWecJj7tkD6Cb/I7cgyMAQDx1rUZmfZr0W9I=
+      secure: KWJzC2NH/w16xV/U5TXuQJZfSVdEJwsFR16uaSJRExtayAxpWWjR9WDHnnHskFJxlPgMSvL5++QoiKajWp1djUAUlElPFlNGeRrpQs19me+SqYkTmmsgn2T6JCo8ThyQRBWMC9k6tkrul7kOthPbEMrKcxsDckQGLIl9nc7LHxiT+iZ0ZV8oBdLELgqjFwsoCfZE9TeZlZybvFA7iUMIX6GxVTSDS3m6/ZN8CsosCIjboP96V7ZuAC2Yxb8klxUiEtqSBdyE6UqA8UMWoqERKp/b5V1BL69PT82TQBVpnrWgQzEw8dK1Lnr98w1a65xvx81VqQIqKx99HC4fYq54X1ajZXkYn6XpNM6UfQlSj2+mSGnzquiYwQrdvZ72HUo/oUfmE+wWIFPRlQYAPRCNjUViQLRPP3CH06Je4U+W0TOHHyQ4Cnd8DyX1HS0qEO3hmoptZMvpcFg+WZOpMhtKWrh6wNwZTxAndhe4vf974/JtoJBHaSqt4Nkllf9BisIUZqnj7I0HMyeJxlUc5m27wsf+NEKM6Qu3jybyBzCvic+D4jZOIzHbLZujKUNHpQmtvfllpBAAwcqjOa56gGgNo/n9CcdvQZqy0QhBMpThXBxW2vOYhVc21zJsa2BnNtZXrliWxrN/hJoIiqZdPdU8gDdLG2YiVOgKURALQSwDwuk=
