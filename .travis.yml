@@ -5,8 +5,8 @@ branches:
   - master
   - beta
 before_install:
-- openssl aes-256-cbc -K $encrypted_f2a12e06bc88_key -iv $encrypted_f2a12e06bc88_iv
-  -in test/UI/secrets.js.enc -out test/UI/secrets.js -d
+- openssl aes-256-cbc -K $encrypted_2f49f885e77e_key -iv $encrypted_2f49f885e77e_iv
+  -in secrets.js.enc -out test/UI/secrets.js -d
 - npm install grunt -g
 install:
 - npm install
@@ -17,6 +17,6 @@ notifications:
     on_failure: change
 addons:
   browserstack:
-    username: "sanderronde1"
+    username: sanderronde1
     access_key:
-      secure: uKeeDZKoavvWTT7CcuHfodSItQKf7ot/TLtkhP9HWXhN2ad45ELjZ4p4b+U766vsML7TH/vUypFj9egguOlTG1OXx2jMBrT2vqz+nMWNEVFj8zZ6Lfj6bPaJD4eqAqrKby9HWX8ZweDG9+WgDlABKZ4kw08yVK98KrVHhgpgTLYVj066LOlzTG5XcvNj3nu/+Ld3LetNuKBw4/s6y+n+dBsYm0v7PWERQOWDb4vpD4Gg/J+lZXjJCbZg6OQV2F2Fzg8pH+17d8r3do4/TavI/VgdM0vdbvFHTISlaoh7qv2BKinhTvQTUXhjzxZApnUwtXY+XzM3LPuD0Y8/tWqUxVKu2CEbTDXHk8rbkxdeSmGjhdWsnkNyRg8U30MYUtS+WS+jz8n9IKxe5QOXy6cY0l0YlWobzT+xHBlpKPktur8r3Q9h0lVEr6BYaWe0r2Zz34hqQwkQj8bivheOSBoRXTqRlz3HYJAuetstNj1U96Xov0+ydJQK3CPqLliI1bCboQ05a7vBEOQ5M65BHNQ/ZUUDxZKRmj9dAIsEgqYAguX+dB3vebVeZGAvqtxFsEX0Z0YUbkHGDMHf1948hucot4ACuXQIXgPzgYI6347M3JxGyjrkFFbi9M7Qo7/ffp8vA3cHRtuqWecJj7tkD6Cb/I7cgyMAQDx1rUZmfZr0W9I=
+      secure: secure: L8GIXKNcj4i5LJyvgLI3xRmupxt5bFRKbkYZacfh6rPeRAZ62FqvXCTyvpRoCN+KDP8q6ib+13ejL9kF4YyPXN1a54esv3ivKWs5QPFL8aKcKaSfkFQ/DjKamIb+r8+TB4gh02ST0IwtV46YYHEQfT8YXjmB1l/gTKS0CX8l6xgf8sCZhLEeCxf3+LQ7SoG3RAdDWhgHdHa2eJoACsj7ZfZf18BKcH3Nf4GmgosLKGYGZhkClUriun7KfGzU5z5nOpWW45ZnnFKAPsMxFk7KfWsAOL+TmoYx4PypRgCDlRz7M3ciWrrkCMkZ4tFezYwzUYFd0YXm1YwaEqe4KLLnorswRaCDfAIFISIp/IlaR1V5Rp7Hje0eTyVggmCr5UFMpy9B0UXJb9kpK9r2mUIo5D4rurH8VwpAwysU+Aya2R/H92uuUVWVH423UxGqaU//vSqXG6wuD/xxivJ7uvllmpAI9ylNF93dd4dNMT3Fft4RTCkw75U5c7lHAOYl6b+Xk7+RiUxZkvF/k5wFBw3V4KuoeofeJGiBoqnTOuix4oEdJp83MvfmDfK0+B60lWRdUFiu8VuuFHmRrWbz+uNkbxxTAZZOXtdyJ+m+Y+WrKa4l8nX/YbkXpF9ohhsfcbhFT4OKHb4JDUVMZxIsol2zij28wG5ZP8eIt1rTNUCYGLs=
