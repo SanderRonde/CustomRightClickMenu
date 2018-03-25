@@ -25,7 +25,7 @@ env:
 
 before_install:
 - openssl aes-256-cbc -K $encrypted_2f49f885e77e_key -iv $encrypted_2f49f885e77e_iv 
-  -in secrets.js.enc -out test/UI/secrets.js -d
+  -in test/UI/secrets.js.enc -out test/UI/secrets.js -d
 - npm install gulp -g
 install:
 - yarn
