@@ -2621,7 +2621,9 @@ describe('CRMAPI', () => {
 		step('exists', () => {
 			assert.isObject(crmAPI.comm, 'comm API is an object');
 		});
-		step('should be able to set up other instances', async () => {
+		step('should be able to set up other instances', async function () {
+			this.timeout(150);
+			this.slow(100);
 			function setupInstance(tabId) {
 				return new Promise((resolve) => {
 					//First run crmapi.js
@@ -3278,7 +3280,9 @@ describe('CRMAPI', () => {
 			window.XMLHttpRequest = XHRWrapper;
 		});
 		describe('#register()', () => {
-			it('should correctly register a library solely by its url and fetch it', async () => {
+			it('should correctly register a library solely by its url and fetch it', async function () {
+				this.timeout(500);
+				this.slow(400);
 				const library = await crmAPI.libraries.register('someLibrary', {
 					url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
 				});
@@ -3945,7 +3949,9 @@ describe('CRMAPI', () => {
 				assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
 				assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
 			});
-			it('should work on all valid urls', async () => {
+			it('should work on all valid urls', async function () {
+				this.timeout(500);
+				this.slow(300);
 				var triggerUrls = ['<all_urls>', 'http://google.com', '*://*/*', '*://google.com/*',
 					'http://*/*', 'https://*/*', 'file://*', 'ftp://*'];
 				for (const triggerUrl of triggerUrls) {
