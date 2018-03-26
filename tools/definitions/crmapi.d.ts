@@ -3751,7 +3751,7 @@ declare namespace CRM {
 				 * @param {string} [options.code] - The code to use
 				 * @param {boolean} [options.ts] - Whether the library uses the typescript language
 				 * @param {function} [callback] - A callback that is called with the library object as an argument
-				 * @returns {Promise<CRM.Library>} A promise that resolves with the new library
+				 * @returns {Promise<CRM.InstalledLibrary>} A promise that resolves with the new library
 				 */
 				register(name: string, options: {
 					/**
@@ -3766,7 +3766,7 @@ declare namespace CRM {
 					 * Whether the library uses the typescript language
 					 */
 					ts?: boolean;
-				}, callback?: (lib: CRM.Library) => void): Promise<CRM.Library>,
+				}, callback?: (lib: CRM.InstalledLibrary) => void): Promise<CRM.InstalledLibrary>,
 			}
 	
 			/**
