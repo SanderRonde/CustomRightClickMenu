@@ -4360,10 +4360,9 @@ describe('CRMAPI', () => {
 						safeTestCRMTree[1].id,
 						safeTestCRMTree[2].id
 					]);
-					console.log('First is', safeTestCRMTree[1]);
 					var firstNodeCopy = {...JSON.parse(JSON.stringify(safeTestCRMTree[1])), 
 						path: newNode.children[0].path,
-						children: [],
+						children: null,
 						index: 1,
 						isLocal: true,
 						permissions: []
@@ -4372,8 +4371,8 @@ describe('CRMAPI', () => {
 
 					var secondNodeCopy = {...JSON.parse(JSON.stringify(safeTestCRMTree[2])),
 						path: newNode.children[1].path,
-						children: [],
-						index: 1,
+						children: null,
+						index: 2,
 						isLocal: true,
 						permissions: []
 					}
