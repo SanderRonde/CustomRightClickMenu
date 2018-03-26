@@ -133,8 +133,7 @@ export namespace CRMFunction {
 				__this: Instance) {
 					if (isRoot) {
 						modules.Util.pushIntoArray(node, 0, modules.crm.crmTree);
-						if (removeOld && modules.crm.crmTree === removeOld.children
-						) {
+						if (removeOld && modules.crm.crmTree === removeOld.children) {
 							removeOld.index++;
 						}
 					} else {
