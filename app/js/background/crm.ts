@@ -2078,7 +2078,6 @@ export namespace CRMNodes {
 	}
 	export function buildPageCRM() {
 		return new Promise<void>((resolve) => {
-			const length = modules.crm.crmTree.length;
 			modules.crmValues.stylesheetNodeStatusses = {};
 			browserAPI.contextMenus.removeAll().then(() => {
 				modules.crmValues.rootId = browserAPI.contextMenus.create({
@@ -2090,18 +2089,16 @@ export namespace CRMNodes {
 					always: [],
 					documentStart: []
 				};
-				modules.Util.promiseChain(modules.Util.createArray(length).map((_item: any, i: number) => {
+				modules.Util.promiseChain(modules.crm.crmTree.map((node, index) => {
 					return () => {
 						return new Promise<void>((resolveInner) => {
-							_buildPageCRMTree(modules.crm.crmTree[i],
-								modules.crmValues.rootId, [i], 
+							_buildPageCRMTree(node, modules.crmValues.rootId, [index], 
 								modules.crmValues.contextMenuItemTree).then((result) => {
 									if (result) {
-										modules.crmValues.contextMenuItemTree[i] = {
-											index: i,
+										modules.crmValues.contextMenuItemTree[index] = {
+											index, node,
 											id: result.id,
 											enabled: true,
-											node: modules.crm.crmTree[i],
 											parentId: modules.crmValues.rootId,
 											children: result.children,
 											parentTree: modules.crmValues.contextMenuItemTree
@@ -2298,6 +2295,9 @@ export namespace CRMNodes {
 			node?: CRM.Node;
 			parentTree?: ContextMenuItemTreeItem[];
 		}> {
+		if (!node) {
+			debugger;
+		}
 		const id = await NodeCreation.createNode(node, parentId);
 		modules.crmValues.contextMenuIds[node.id] = id;
 		if (id !== null) {
