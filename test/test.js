@@ -872,7 +872,7 @@ var chrome = {
 		},
 		getManifest: function() {
 			return JSON.parse(fs
-				.readFileSync('./build/manifest.json', {
+				.readFileSync(path.join(__dirname, '../', './build/manifest.json'), {
 					encoding: 'utf8'
 				})
 				.replace(/\/\*.+\*\//g, ''))
@@ -1354,7 +1354,8 @@ describe('Meta', () => {
 	var changelogCode;
 	step('should be able to read changelog.js', () => {
 		assert.doesNotThrow(() => {
-			changelogCode = fs.readFileSync('./app/elements/change-log/changelog.js', {
+			const filePath = path.join(__dirname, '../', './app/elements/change-log/changelog.js');
+			changelogCode = fs.readFileSync(filePath, {
 				encoding: 'utf8'
 			});
 		}, 'File changelog.js is readable');
@@ -1402,9 +1403,10 @@ describe('Conversion', () => {
 				}
 			};
 			assert.doesNotThrow(() => {
-				backgroundCode = fs.readFileSync('./build/html/background.js', {
-					encoding: 'utf8'
-				});
+				backgroundCode = fs.readFileSync(
+					path.join(__dirname, '../', './build/html/background.js'), {
+						encoding: 'utf8'
+					});
 			}, 'File background.js is readable');
 		});
 		var location = {
@@ -2153,9 +2155,10 @@ describe('CRMAPI', () => {
 			useAsUserscriptInstaller: true,
 			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
 			globalExcludes: [''],
-			lastUpdatedAt: JSON.parse(fs.readFileSync('./build/manifest.json', {
-				encoding: 'utf8'
-			}).replace(/\/\*.+\*\//g, '')).version,
+			lastUpdatedAt: JSON.parse(fs.readFileSync(
+				path.join(__dirname, '../', './build/manifest.json'), {
+					encoding: 'utf8'
+				}).replace(/\/\*.+\*\//g, '')).version,
 			catchErrors: true,
 			notFirstTime: true,
 			authorName: 'anonymous',
@@ -2455,9 +2458,10 @@ describe('CRMAPI', () => {
 	var crmAPICode;
 	step('should be able to read crmapi.js', () => {
 		assert.doesNotThrow(() => {
-			crmAPICode = fs.readFileSync('./build/js/crmapi.js', {
-				encoding: 'utf8'
-			});
+			crmAPICode = fs.readFileSync(
+				path.join(__dirname, '../', './build/js/crmapi.js'), {
+					encoding: 'utf8'
+				});
 		}, 'File crmapi.js is readable');
 	});
 	var crmAPIResult;
