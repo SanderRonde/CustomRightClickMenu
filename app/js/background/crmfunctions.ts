@@ -932,9 +932,9 @@ export namespace CRMFunctions {
 							__this.respondError(`Request failed with status code ${res}`);
 						} else {
 							newLibrary = {
-								name: name,
+								name,
 								code: res,
-								url: url,
+								url,
 								ts: {
 									enabled: !!ts,
 									code: {}
@@ -945,7 +945,7 @@ export namespace CRMFunctions {
 							await browserAPI.storage.local.set({
 								libraries: modules.storages.storageLocal.libraries
 							});
-							__this.respondSuccess(newLibrary);
+							__this.respondSuccess(compiled);
 						}
 					} else {
 						__this.respondError('No valid URL given');
@@ -956,7 +956,7 @@ export namespace CRMFunctions {
 						name,
 						code,
 						ts: {
-							enabled: ts,
+							enabled: !!ts,
 							code: {}
 						}
 					};
@@ -965,7 +965,7 @@ export namespace CRMFunctions {
 					await browserAPI.storage.local.set({
 						libraries: modules.storages.storageLocal.libraries
 					});
-					__this.respondSuccess(newLibrary);
+					__this.respondSuccess(compiled);
 				} else {
 					__this.respondError('No URL or code given');
 					return false;
@@ -1304,6 +1304,7 @@ export namespace CRMFunctions {
 				type: 'array'
 			}], () => {
 				__this.getNodeFromId(__this.message.data.nodeId, true).run(async (node) => {
+					debugger;
 					const { childrenIds } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
 						childrenIds: number[];
 					};
@@ -1323,8 +1324,8 @@ export namespace CRMFunctions {
 
 					const oldLength = node.children.length;
 
-					for (const childIf of childrenIds) {
-						const toMove = __this.getNodeFromId(childIf, false, true);
+					for (const childId of childrenIds) {
+						const toMove = __this.getNodeFromId(childId, false, true);
 						if (!toMove) {
 							return false;
 						}
