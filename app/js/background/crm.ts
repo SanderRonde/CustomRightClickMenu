@@ -2010,7 +2010,7 @@ export namespace CRMNodes {
 
 		modules.crm.crmTree = modules.storages.settingsStorage.crm;
 		modules.crm.safeTree = _buildSafeTree(modules.storages.settingsStorage.crm);
-		_buildNodePaths(modules.crm.crmTree, []);
+		buildNodePaths(modules.crm.crmTree);
 		_buildByIdObjects();
 
 		if (!match) {
@@ -2268,13 +2268,13 @@ export namespace CRMNodes {
 				});
 			};
 		}
-	function _buildNodePaths(tree: CRM.Node[], currentPath: number[]) {
+	export function buildNodePaths(tree: CRM.Node[], currentPath: number[] = []) {
 		for (let i = 0; i < tree.length; i++) {
 			const childPath = currentPath.concat([i]);
 			const child = tree[i];
 			child.path = childPath;
 			if (child.children) {
-				_buildNodePaths(child.children, childPath);
+				buildNodePaths(child.children, childPath);
 			}
 		}
 	}

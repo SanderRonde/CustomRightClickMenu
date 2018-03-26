@@ -3235,1193 +3235,1205 @@ describe('CRMAPI', () => {
 			}, 'calling chrome function does not throw');
 		});
 	});
-	// describe('Libraries', () => {
-	// 	before(() => {
-	// 		function XHRWrapper() {
-	// 			var _this = this;
+	describe('Libraries', () => {
+		before(() => {
+			class XHRWrapper {
+				constructor() {
+					this.onreadystatechange = undefined;
+					this.onload = undefined;
+					this.readyState = XHRWrapper.UNSENT;
+				}
+				open(method, url) {
+					this.method = method;
+					this.url = url;
+					this.readyState = XHRWrapper.OPENED;
+				}
+				send() {
+					this.readyState = XHRWrapper.LOADING;
+					request(this.url, (err, res, body) => {
+						this.status = err ? 600 : res.statusCode;
+						this.readyState = XHRWrapper.DONE;
+						this.responseText = body;
+						this.onreadystatechange && this.onreadystatechange();
+						this.onload && this.onload();
+					});
+				}
 
-	// 			this.method = 'GET';
-	// 			this.url = 'https://www.example.com';
-	// 			this.responseType = 'idunno';
-
-	// 			this.onload = null;
-	// 			this.open = function(method, url) {
-	// 				_this.method = method;
-	// 				_this.url = url;
-	// 			}
-	// 			this.send = function() {
-	// 				//Simple get
-	// 				request(_this.url, (err, res, body) => {
-	// 					if (err) {
-	// 						throw err;
-	// 					}
-	// 					_this.status = res.statusCode;
-	// 					_this.readyState = (!err ? 4 : 'not4');
-	// 					_this.responseText = body;
-	// 					_this.onreadystatechange && _this.onreadystatechange();
-	// 					_this.onload && _this.onload();
-	// 				});
-	// 			}
-	// 		}
-	// 		window.XMLHttpRequest = XHRWrapper;
-	// 	});
-	// 	describe('#register()', () => {
-	// 		it('should correctly register a library solely by its url and fetch it', async () => {
-	// 			const library = await crmAPI.libraries.register('someLibrary', {
-	// 				url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
-	// 			});
-	// 			assert.isDefined(library, 'library is defined');
-	// 			assert.isObject(library, 'library is an object');
-	// 			assert.strictEqual(library.name, 'someLibrary', 'name matches expected');
-	// 		}).timeout(10000);
-	// 		it('should register a library by its code', async () => {
-	// 			const library = await crmAPI.libraries.register('someOtherLibrary', {
-	// 				code: 'some code'
-	// 			});
-	// 			assert.isDefined(library, 'library is defined');
-	// 			assert.deepEqual(library, {
-	// 				name: 'someOtherLibrary'
-	// 			});
-	// 		});
-	// 	});
-	// });
-	// describe('CRM', () => {
-	// 	describe('#getTree()', () => {
-	// 		it('should return the crm subtree', async () => {
-	// 			const tree = await crmAPI.crm.getTree();
-	// 			assert.isDefined(tree, 'result is defined');
-	// 			assert.isArray(tree, 'tree has the form of an array');
-	// 			assert.deepEqual(tree, safeTestCRMTree, 'tree matches the expected CRM tree');
-	// 		});
-	// 	});
-	// 	describe('#getSubTree()', () => {
-	// 		it('should return a subtree when given a correct id', async () => {
-	// 			const subTree = await crmAPI.crm.getSubTree(testCRMTree[5].id);
-	// 			assert.isDefined(subTree, 'resulting subtree is defined');
-	// 			assert.isArray(subTree, 'subTree is an array');
-	// 			assert.deepEqual(subTree, [safeTestCRMTree[5]], 'tree matches expected subtree');
-	// 		});
-	// 		it('should throw an error when given a non-existing id', async () => {
-	// 			crmAPI.stackTraces = false;
-	// 			await asyncThrows(() => {
-	// 				return crmAPI.crm.getSubTree(999);
-	// 			}, /There is no node with id ([0-9]+)/);
-	// 		});
-	// 		it('should throw an error when given a non-number parameter', async () => {
-	// 			crmAPI.stackTraces = false;
-	// 			await asyncThrows(() => {
-	// 				// @ts-ignore
-	// 				return crmAPI.crm.getSubTree('string');
-	// 			}, /No nodeId supplied/);
+				static get UNSENT() { 
+					return 0;
+				}
+				static get OPENED() { 
+					return 1;
+				}
+				static get HEADERS_RECEIVED() { 
+					return 2;
+				}
+				static get LOADING() { 
+					return 3;
+				}
+				static get DONE() { 
+					return 4;
+				}
+			}
+			window.XMLHttpRequest = XHRWrapper;
+		});
+		describe('#register()', () => {
+			it('should correctly register a library solely by its url and fetch it', async () => {
+				const library = await crmAPI.libraries.register('someLibrary', {
+					url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
+				});
+				assert.isDefined(library, 'library is defined');
+				assert.isObject(library, 'library is an object');
+				assert.strictEqual(library.name, 'someLibrary', 'name matches expected');
+			}).timeout(10000);
+			it('should register a library by its code', async () => {
+				const library = await crmAPI.libraries.register('someOtherLibrary', {
+					code: 'some code'
+				});
+				assert.isDefined(library, 'library is defined');
+				assert.deepEqual(library, {
+					name: 'someOtherLibrary',
+					code: 'some code',
+					ts: {
+						enabled: false,
+						code: {}
+					}
+				});
+			});
+		});
+	});
+	describe('CRM', () => {
+		describe('#getTree()', () => {
+			it('should return the crm subtree', async () => {
+				const tree = await crmAPI.crm.getTree();
+				assert.isDefined(tree, 'result is defined');
+				assert.isArray(tree, 'tree has the form of an array');
+				assert.deepEqual(tree, safeTestCRMTree, 'tree matches the expected CRM tree');
+			});
+		});
+		describe('#getSubTree()', () => {
+			it('should return a subtree when given a correct id', async () => {
+				const subTree = await crmAPI.crm.getSubTree(testCRMTree[5].id);
+				assert.isDefined(subTree, 'resulting subtree is defined');
+				assert.isArray(subTree, 'subTree is an array');
+				assert.deepEqual(subTree, [safeTestCRMTree[5]], 'tree matches expected subtree');
+			});
+			it('should throw an error when given a non-existing id', async () => {
+				crmAPI.stackTraces = false;
+				await asyncThrows(() => {
+					return crmAPI.crm.getSubTree(999);
+				}, /There is no node with id ([0-9]+)/);
+			});
+			it('should throw an error when given a non-number parameter', async () => {
+				crmAPI.stackTraces = false;
+				await asyncThrows(() => {
+					// @ts-ignore
+					return crmAPI.crm.getSubTree('string');
+				}, /No nodeId supplied/);
 				
-	// 		})
-	// 	});
-	// 	describe('#getNode()', () => {
-	// 		it('should return a node when given a correct id', async () => {
-	// 			for (const testNode of safeTestCRMTree) {
-	// 				const node = await crmAPI.crm.getNode(testNode.id);
-	// 				assert.isDefined(node, 'resulting node is defined');
-	// 				assert.isObject(node, 'resulting node is an object');
-	// 				assert.deepEqual(node, testNode, 'node is equal to expected node');
-	// 			}
-	// 		});
-	// 		it('should throw an error when giving a non-existing node id', async () => {
-	// 			await asyncThrows(() => {
-	// 				return crmAPI.crm.getNode(999);
-	// 			}, /There is no node with id ([0-9]+)/);
-	// 		});
-	// 	});
-	// 	describe('#getNodeIdFromPath()', () => {
-	// 		it('should return the correct path when given a correct id', async () => {
-	// 			for (const safeNode of safeNodes) {
-	// 				const nodeId = await crmAPI.crm.getNodeIdFromPath(safeNode.path);
-	// 				assert.isDefined(nodeId, 'resulting nodeId is defined');
-	// 				assert.isNumber(nodeId, 'resulting nodeId is an object');
-	// 				assert.strictEqual(nodeId, safeNode.id, 'nodeId matches expected nodeId');
-	// 			}
-	// 		});
-	// 		it('should return an error when given a non-existing path', async () => {
-	// 			await asyncThrows(() => {
-	// 				return crmAPI.crm.getNodeIdFromPath([999,999,999]);
-	// 			}, /Path does not return a valid value/);
-	// 		});
-	// 	});
-	// 	describe('#queryCrm()', () => {
-	// 		it('should return everything when query is empty', async () => {
-	// 			const results = await crmAPI.crm.queryCrm({});
-	// 			assert.isDefined(results, 'results is defined');
-	// 			assert.isArray(results, 'query result is an array');
-	// 			assert.sameDeepMembers(results, safeNodes, 'both arrays have the same members');
-	// 		});
-	// 		it('should return all nodes matching queried name', async () => {
-	// 			for (const safeNode of safeNodes) {
-	// 				const results = await crmAPI.crm.queryCrm({
-	// 					name: safeNode.name
-	// 				});
-	// 				assert.isDefined(results, 'results are defined');
-	// 				assert.isArray(results, 'results are in an array');
-	// 				var found = false;
-	// 				for (var i = 0; i < results.length; i++) {
-	// 					var errorred = false;
-	// 					try {
-	// 						assert.deepEqual(results[i], safeNode);
-	// 					} catch(e) {
-	// 						errorred = true;
-	// 					}
-	// 					if (!errorred) {
-	// 						found = true;
-	// 					}
-	// 				}
-	// 				assert.isTrue(found, 'expected node is in the results array');
-	// 			}
-	// 		});
-	// 		it('should return all nodes matching type', async () => {
-	// 			/**
-	// 			 * @type CRM.NodeType[]
-	// 			 */
-	// 			var types = ['link','script','menu','stylesheet','divider'];
-	// 			for (const type of types) {
-	// 				const results = await crmAPI.crm.queryCrm({
-	// 					type: type
-	// 				});
-	// 				assert.isDefined(results, 'results are defined');
-	// 				assert.isArray(results, 'results are in an array');
-	// 				assert.deepEqual(results, safeNodes.filter((node) => {
-	// 					return node.type === type;
-	// 				}), 'results match results of given type');
-	// 			};
-	// 		});
-	// 		it('should return all nodes in given subtree', async () => {
-	// 			const results = await crmAPI.crm.queryCrm({
-	// 				inSubTree: safeTestCRMTree[5].id
-	// 			});
-	// 			assert.isDefined(results, 'results are defined');
-	// 			assert.isArray(results, 'results are in an array');
+			})
+		});
+		describe('#getNode()', () => {
+			it('should return a node when given a correct id', async () => {
+				for (const testNode of safeTestCRMTree) {
+					const node = await crmAPI.crm.getNode(testNode.id);
+					assert.isDefined(node, 'resulting node is defined');
+					assert.isObject(node, 'resulting node is an object');
+					assert.deepEqual(node, testNode, 'node is equal to expected node');
+				}
+			});
+			it('should throw an error when giving a non-existing node id', async () => {
+				await asyncThrows(() => {
+					return crmAPI.crm.getNode(999);
+				}, /There is no node with id ([0-9]+)/);
+			});
+		});
+		describe('#getNodeIdFromPath()', () => {
+			it('should return the correct path when given a correct id', async () => {
+				for (const safeNode of safeNodes) {
+					const nodeId = await crmAPI.crm.getNodeIdFromPath(safeNode.path);
+					assert.isDefined(nodeId, 'resulting nodeId is defined');
+					assert.isNumber(nodeId, 'resulting nodeId is an object');
+					assert.strictEqual(nodeId, safeNode.id, 'nodeId matches expected nodeId');
+				}
+			});
+			it('should return an error when given a non-existing path', async () => {
+				await asyncThrows(() => {
+					return crmAPI.crm.getNodeIdFromPath([999,999,999]);
+				}, /Path does not return a valid value/);
+			});
+		});
+		describe('#queryCrm()', () => {
+			it('should return everything when query is empty', async () => {
+				const results = await crmAPI.crm.queryCrm({});
+				assert.isDefined(results, 'results is defined');
+				assert.isArray(results, 'query result is an array');
+				assert.sameDeepMembers(results, safeNodes, 'both arrays have the same members');
+			});
+			it('should return all nodes matching queried name', async () => {
+				for (const safeNode of safeNodes) {
+					const results = await crmAPI.crm.queryCrm({
+						name: safeNode.name
+					});
+					assert.isDefined(results, 'results are defined');
+					assert.isArray(results, 'results are in an array');
+					var found = false;
+					for (var i = 0; i < results.length; i++) {
+						var errorred = false;
+						try {
+							assert.deepEqual(results[i], safeNode);
+						} catch(e) {
+							errorred = true;
+						}
+						if (!errorred) {
+							found = true;
+						}
+					}
+					assert.isTrue(found, 'expected node is in the results array');
+				}
+			});
+			it('should return all nodes matching type', async () => {
+				/**
+				 * @type CRM.NodeType[]
+				 */
+				var types = ['link','script','menu','stylesheet','divider'];
+				for (const type of types) {
+					const results = await crmAPI.crm.queryCrm({
+						type: type
+					});
+					assert.isDefined(results, 'results are defined');
+					assert.isArray(results, 'results are in an array');
+					assert.deepEqual(results, safeNodes.filter((node) => {
+						return node.type === type;
+					}), 'results match results of given type');
+				};
+			});
+			it('should return all nodes in given subtree', async () => {
+				const results = await crmAPI.crm.queryCrm({
+					inSubTree: safeTestCRMTree[5].id
+				});
+				assert.isDefined(results, 'results are defined');
+				assert.isArray(results, 'results are in an array');
 
-	// 			var expected = [];
+				var expected = [];
 
-	// 			function flattenCrm(obj) {
-	// 				expected.push(obj);
-	// 				if (obj.children) {
-	// 					obj.children.forEach(function(child) {
-	// 						flattenCrm(child);
-	// 					});
-	// 				}
-	// 			}
+				function flattenCrm(obj) {
+					expected.push(obj);
+					if (obj.children) {
+						obj.children.forEach(function(child) {
+							flattenCrm(child);
+						});
+					}
+				}
 
-	// 			safeTestCRMTree[5].children.forEach(flattenCrm);
-	// 			assert.deepEqual(results, expected, 'results match results of given type');
-	// 		});
-	// 	});
-	// 	describe('#getParentNode()', () => {
-	// 		it('should return the parent when given a valid node', async () => {
-	// 			const parent = await crmAPI.crm.getParentNode(safeTestCRMTree[5].children[0].id);
-	// 			assert.isDefined(parent, 'parent is defined');
-	// 			assert.isObject(parent, 'parent is an object');
-	// 			assert.deepEqual(parent, safeTestCRMTree[5], 'parent result matches expected parent');
-	// 		});
-	// 		it('should return the root when given a top-level node', async () => {
-	// 			const parent = await crmAPI.crm.getParentNode(safeTestCRMTree[5].id);
-	// 			assert.isDefined(parent, 'parent is defined');
-	// 			assert.isArray(parent, 'parent is an array');
-	// 			assert.deepEqual(parent, safeTestCRMTree, 'parent result matches full tree');
-	// 		});
-	// 		it('should throw an error when given a node that doesn\'t exist', async () => {
-	// 			await asyncThrows(() => {
-	// 				return crmAPI.crm.getParentNode(999);
-	// 			}, /There is no node with the id you supplied \(([0-9]+)\)/);
-	// 		});
-	// 	});
-	// 	describe('#getNodeType()', () => {
-	// 		it('should return the type of all nodes correctly', async () => {
-	// 			for (const safeNode of safeNodes) {
-	// 				const type = await crmAPI.crm.getNodeType(safeNode.id);
-	// 				assert.isDefined(type, 'type is defined');
-	// 				assert.isString(type, 'type is a string');
-	// 				assert.strictEqual(type, safeNode.type, 'type matches expected type');
-	// 			}
-	// 		});
-	// 	});
-	// 	describe('#getNodeValue()', () => {
-	// 		it('should return the value of all nodes correctly', async () => {
-	// 			for (const safeNode of safeNodes) {
-	// 				const value = await crmAPI.crm.getNodeValue(safeNode.id);
-	// 				assert.isDefined(value, 'value is defined');
-	// 				assert.strictEqual(typeof value, typeof safeNode.value, 'value types match');
-	// 				if (typeof value === 'object') {
-	// 					assert.deepEqual(value, safeNode.value, 'value matches expected value');
-	// 				} else {
-	// 					assert.strictEqual(value, safeNode.value, 'value matches expected value');
-	// 				}
-	// 			}
-	// 		});
-	// 	});
-	// 	describe('#createNode()', () => {
-	// 		it('should correctly return the to-create node', async () => {
-	// 			window.globals.latestId = 6;
-	// 			/**
-	// 			 * @type {any}
-	// 			 */
-	// 			var nodeSettings = {
-	// 				name: 'testName',
-	// 				type: 'link',
-	// 				value: [{
-	// 					newTab: true,
-	// 					url: 'http://www.somesite.com'
-	// 				}],
-	// 				someBadSettings: {
-	// 					illegalStuf: 123
-	// 				}
-	// 			}
-	// 			var expected = JSON.parse(JSON.stringify(nodeSettings));
-	// 			expected.id = 7;
-	// 			expected.onContentTypes = [true, true, true, false, false, false];
-	// 			expected.showOnSpecified = false;
-	// 			expected.triggers = [{
-	// 				url: '*://*.example.com/*',
-	// 				not: false
-	// 			}];
-	// 			expected.nodeInfo = {
-	// 				isRoot: false,
-	// 				version: '1.0',
-	// 				permissions: [],
-	// 				source: 'local'
-	// 			};
-	// 			expected.isLocal = true;
-	// 			expected.path = [6];
-	// 			delete expected.someBadSettings;
-	// 			delete expected.isLocal;
+				safeTestCRMTree[5].children.forEach(flattenCrm);
+				assert.deepEqual(results, expected, 'results match results of given type');
+			});
+		});
+		describe('#getParentNode()', () => {
+			it('should return the parent when given a valid node', async () => {
+				const parent = await crmAPI.crm.getParentNode(safeTestCRMTree[5].children[0].id);
+				assert.isDefined(parent, 'parent is defined');
+				assert.isObject(parent, 'parent is an object');
+				assert.deepEqual(parent, safeTestCRMTree[5], 'parent result matches expected parent');
+			});
+			it('should return the root when given a top-level node', async () => {
+				const parent = await crmAPI.crm.getParentNode(safeTestCRMTree[5].id);
+				assert.isDefined(parent, 'parent is defined');
+				assert.isArray(parent, 'parent is an array');
+				assert.deepEqual(parent, safeTestCRMTree, 'parent result matches full tree');
+			});
+			it('should throw an error when given a node that doesn\'t exist', async () => {
+				await asyncThrows(() => {
+					return crmAPI.crm.getParentNode(999);
+				}, /There is no node with the id you supplied \(([0-9]+)\)/);
+			});
+		});
+		describe('#getNodeType()', () => {
+			it('should return the type of all nodes correctly', async () => {
+				for (const safeNode of safeNodes) {
+					const type = await crmAPI.crm.getNodeType(safeNode.id);
+					assert.isDefined(type, 'type is defined');
+					assert.isString(type, 'type is a string');
+					assert.strictEqual(type, safeNode.type, 'type matches expected type');
+				}
+			});
+		});
+		describe('#getNodeValue()', () => {
+			it('should return the value of all nodes correctly', async () => {
+				for (const safeNode of safeNodes) {
+					const value = await crmAPI.crm.getNodeValue(safeNode.id);
+					assert.isDefined(value, 'value is defined');
+					assert.strictEqual(typeof value, typeof safeNode.value, 'value types match');
+					if (typeof value === 'object') {
+						assert.deepEqual(value, safeNode.value, 'value matches expected value');
+					} else {
+						assert.strictEqual(value, safeNode.value, 'value matches expected value');
+					}
+				}
+			});
+		});
+		describe('#createNode()', () => {
+			it('should correctly return the to-create node', async () => {
+				window.globals.latestId = 6;
+				/**
+				 * @type {any}
+				 */
+				var nodeSettings = {
+					name: 'testName',
+					type: 'link',
+					value: [{
+						newTab: true,
+						url: 'http://www.somesite.com'
+					}],
+					someBadSettings: {
+						illegalStuf: 123
+					}
+				}
+				var expected = JSON.parse(JSON.stringify(nodeSettings));
+				expected.id = 7;
+				expected.onContentTypes = [true, true, true, false, false, false];
+				expected.showOnSpecified = false;
+				expected.triggers = [{
+					url: '*://*.example.com/*',
+					not: false
+				}];
+				expected.nodeInfo = {
+					isRoot: false,
+					version: '1.0',
+					permissions: [],
+					source: 'local'
+				};
+				expected.isLocal = true;
+				expected.path = [6];
+				delete expected.someBadSettings;
+				delete expected.isLocal;
 
-	// 			const node = await crmAPI.crm.createNode({
-	// 				name: 'testName',
-	// 				type: 'link',
-	// 				value: [{
-	// 					newTab: true,
-	// 					url: 'http://www.somesite.com'
-	// 				}],
-	// 				//@ts-ignore
-	// 				someBadSettings: {
-	// 					illegalStuf: 123
-	// 				}
-	// 			});
-	// 			expected.nodeInfo.installDate = node.nodeInfo.installDate;
-	// 			expected.nodeInfo.lastUpdatedAt = node.nodeInfo.lastUpdatedAt;
+				const node = await crmAPI.crm.createNode({
+					name: 'testName',
+					type: 'link',
+					value: [{
+						newTab: true,
+						url: 'http://www.somesite.com'
+					}],
+					//@ts-ignore
+					someBadSettings: {
+						illegalStuf: 123
+					}
+				});
+				expected.nodeInfo.installDate = node.nodeInfo.installDate;
+				expected.nodeInfo.lastUpdatedAt = node.nodeInfo.lastUpdatedAt;
 
-	// 			assert.isDefined(node, 'created node is defined');
-	// 			assert.isObject(node, 'created node is an object');
-	// 			assert.deepEqual(node, expected, 'created node matches expected node');
-	// 		});
-	// 		it('should correctly place the node and store it', async () => {
-	// 			const node = await crmAPI.crm.createNode({
-	// 				name: 'testName',
-	// 				type: 'link',
-	// 				value: [{
-	// 					newTab: true,
-	// 					url: 'http://www.somesite.com'
-	// 				}]
-	// 			});
-	// 			assert.isDefined(window.globals.crm.crmById[node.id], 'node exists in crmById');
-	// 			assert.isDefined(window.globals.crm.crmByIdSafe[node.id], 'node exists in crmByIdSafe');
-	// 			assert.isDefined(window.globals.crm.crmTree[node.path[0]], 'node is in the crm tree');
-	// 			assert.isDefined(window.globals.crm.safeTree[node.path[0]], 'node is in the safe crm tree');
-	// 		});
-	// 	});
-	// 	describe('#copyNode()', () => {
-	// 		it('should match the copied node', async () => {
-	// 			var expected = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
-	// 			expected.id = 9;
-	// 			expected.path = [8];
-	// 			expected.nodeInfo = {
-	// 				permissions: []
-	// 			}
-	// 			const copiedNode = await crmAPI.crm.copyNode(safeTestCRMTree[0].id, {});
-	// 			assert.isDefined(copiedNode, 'copied node is defined');
-	// 			assert.isObject(copiedNode, 'copied node is an object');
-	// 			assert.deepEqual(copiedNode, expected, 'copied node matches original');
-	// 		});
-	// 		it('should make the changes correctly', async () => {
-	// 			const copiedNode = await crmAPI.crm.copyNode(safeTestCRMTree[0].id, {
-	// 				name: 'otherName'
-	// 			});
-	// 			assert.isDefined(copiedNode, 'copied node is defined');
-	// 			assert.isObject(copiedNode, 'copied node is an object');
-	// 			assert.strictEqual(copiedNode.name, 'otherName', 'name matches changed name');
-	// 		});
-	// 	});
-	// 	describe('#moveNode()', () => {
-	// 		function assertMovedNode(newNode, originalPosition, expectedIndex) {
-	// 			if (!Array.isArray(expectedIndex)) {
-	// 				expectedIndex = [expectedIndex];
-	// 			}
+				assert.isDefined(node, 'created node is defined');
+				assert.isObject(node, 'created node is an object');
+				assert.deepEqual(node, expected, 'created node matches expected node');
+			});
+			it('should correctly place the node and store it', async () => {
+				const node = await crmAPI.crm.createNode({
+					name: 'testName',
+					type: 'link',
+					value: [{
+						newTab: true,
+						url: 'http://www.somesite.com'
+					}]
+				});
+				assert.isDefined(window.globals.crm.crmById[node.id], 'node exists in crmById');
+				assert.isDefined(window.globals.crm.crmByIdSafe[node.id], 'node exists in crmByIdSafe');
+				assert.isDefined(window.globals.crm.crmTree[node.path[0]], 'node is in the crm tree');
+				assert.isDefined(window.globals.crm.safeTree[node.path[0]], 'node is in the safe crm tree');
+			});
+		});
+		describe('#copyNode()', () => {
+			it('should match the copied node', async () => {
+				var expected = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+				expected.id = 9;
+				expected.path = [8];
+				expected.nodeInfo = {
+					permissions: []
+				}
+				const copiedNode = await crmAPI.crm.copyNode(safeTestCRMTree[0].id, {});
+				assert.isDefined(copiedNode, 'copied node is defined');
+				assert.isObject(copiedNode, 'copied node is an object');
+				assert.deepEqual(copiedNode, expected, 'copied node matches original');
+			});
+			it('should make the changes correctly', async () => {
+				const copiedNode = await crmAPI.crm.copyNode(safeTestCRMTree[0].id, {
+					name: 'otherName'
+				});
+				assert.isDefined(copiedNode, 'copied node is defined');
+				assert.isObject(copiedNode, 'copied node is an object');
+				assert.strictEqual(copiedNode.name, 'otherName', 'name matches changed name');
+			});
+		});
+		describe('#moveNode()', () => {
+			function assertMovedNode(newNode, originalPosition, expectedIndex) {
+				if (!Array.isArray(expectedIndex)) {
+					expectedIndex = [expectedIndex];
+				}
 
-	// 			var expectedTreeSize = safeTestCRMTree.length;
-	// 			if (expectedIndex.length > 1) {
-	// 				expectedTreeSize--;
-	// 			}
+				var expectedTreeSize = safeTestCRMTree.length;
+				if (expectedIndex.length > 1) {
+					expectedTreeSize--;
+				}
 
-	// 			assert.isDefined(newNode, 'new node is defined');
-	// 			assert.strictEqual(window.globals.crm.crmTree.length, expectedTreeSize, 'tree size is the same as expected');
-	// 			assert.deepEqual(newNode.path, expectedIndex, 'node has the wanted position');
-	// 			assert.deepEqual(newNode, 
-	// 				eval(`window.globals.crm.safeTree[${expectedIndex.join('].children[')}]`),
-	// 						`newNode is node at path ${expectedIndex}`);
+				assert.isDefined(newNode, 'new node is defined');
+				assert.strictEqual(window.globals.crm.crmTree.length, expectedTreeSize, 'tree size is the same as expected');
+				assert.deepEqual(newNode.path, expectedIndex, 'node has the wanted position');
+				assert.deepEqual(newNode, 
+					eval(`window.globals.crm.safeTree[${expectedIndex.join('].children[')}]`),
+							`newNode is node at path ${expectedIndex}`);
 
-	// 			//Set path to expected node as to "exclude" that property
-	// 			newNode.path = safeTestCRMTree[originalPosition].path;
-	// 			assert.deepEqual(newNode, safeTestCRMTree[originalPosition], 'node is the same node as before');
-	// 		}
-	// 		describe('No Parameters', () => {
-	// 			it('should move the node to the end if no relation is given', async () => {
-	// 				await resetTree();
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[0].id, {});
-	// 				assertMovedNode(newNode, 0, window.globals.crm.safeTree.length - 1);
-	// 			});
-	// 		});
-	// 		describe('firstChild', () => {
-	// 			beforeEach(async () => {
-	// 				await resetTree();	
-	// 			});
+				//Set path to expected node as to "exclude" that property
+				newNode.path = safeTestCRMTree[originalPosition].path;
+				assert.deepEqual(newNode, safeTestCRMTree[originalPosition], 'node is the same node as before');
+			}
+			describe('No Parameters', () => {
+				it('should move the node to the end if no relation is given', async () => {
+					await resetTree();
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[0].id, {});
+					assertMovedNode(newNode, 0, window.globals.crm.safeTree.length - 1);
+				});
+			});
+			describe('firstChild', () => {
+				beforeEach(async () => {
+					await resetTree();	
+				});
 
-	// 			it('should use root when given no other node', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'firstChild'
-	// 				});
-	// 				assertMovedNode(newNode, 2, 0);
-	// 			});
-	// 			it('should use passed node when passed a different node', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'firstChild',
-	// 					node: safeTestCRMTree[0].id
-	// 				});
-	// 				assertMovedNode(newNode, 2, [0, 0]);
-	// 			});
-	// 			it('should throw an error when passed a non-menu node', async () => {
-	// 				await asyncThrows(() => {
-	// 					return crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 						relation: 'firstChild',
-	// 						node: safeTestCRMTree[2].id
-	// 					});
-	// 				}, /Supplied node is not of type "menu"/);
-	// 			});
-	// 		});
-	// 		describe('firstSibling', () => {
-	// 			beforeEach(async () => {
-	// 				await resetTree();	
-	// 			});
+				it('should use root when given no other node', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'firstChild'
+					});
+					assertMovedNode(newNode, 2, 0);
+				});
+				it('should use passed node when passed a different node', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'firstChild',
+						node: safeTestCRMTree[0].id
+					});
+					assertMovedNode(newNode, 2, [0, 0]);
+				});
+				it('should throw an error when passed a non-menu node', async () => {
+					await asyncThrows(() => {
+						return crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+							relation: 'firstChild',
+							node: safeTestCRMTree[2].id
+						});
+					}, /Supplied node is not of type "menu"/);
+				});
+			});
+			describe('firstSibling', () => {
+				beforeEach(async () => {
+					await resetTree();	
+				});
 
-	// 			it('should position it as root\'s first child when given no relative', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'firstSibling',
-	// 				});
-	// 				assertMovedNode(newNode, 2, 0);
-	// 			});
-	// 			it('should position it as given node\'s first sibling (root)', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'firstSibling',
-	// 					node: safeTestCRMTree[3].id
-	// 				});
-	// 				assertMovedNode(newNode, 2, 0);
-	// 			});
-	// 			it('should position it as given node\'s first sibling (menu)', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'firstSibling',
-	// 					node: safeTestCRMTree[5].children[0].id
-	// 				});
-	// 				assertMovedNode(newNode, 2, [4, 0]);
-	// 			});
-	// 		});
-	// 		describe('lastChild', () => {
-	// 			beforeEach(async () => {
-	// 				await resetTree();	
-	// 			});
+				it('should position it as root\'s first child when given no relative', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'firstSibling',
+					});
+					assertMovedNode(newNode, 2, 0);
+				});
+				it('should position it as given node\'s first sibling (root)', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'firstSibling',
+						node: safeTestCRMTree[3].id
+					});
+					assertMovedNode(newNode, 2, 0);
+				});
+				it('should position it as given node\'s first sibling (menu)', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'firstSibling',
+						node: safeTestCRMTree[5].children[0].id
+					});
+					assertMovedNode(newNode, 2, [4, 0]);
+				});
+			});
+			describe('lastChild', () => {
+				beforeEach(async () => {
+					await resetTree();	
+				});
 
-	// 			it('should position it as the root\'s last child when given no relative', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'lastChild'
-	// 				});
-	// 				assertMovedNode(newNode, 2, safeTestCRMTree.length - 1);
-	// 			});
-	// 			it('should position it as given node\'s last child', async (done) => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'lastChild',
-	// 					node: safeTestCRMTree[5].id
-	// 				});
-	// 				assertMovedNode(newNode, 2, [4, 1]);
-	// 			});
-	// 			it('should thrown an error when given a non-menu node', async () => {
-	// 				await asyncThrows(() => {
-	// 					return crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 						relation: 'lastChild',
-	// 						node: safeTestCRMTree[2].id
-	// 					});
-	// 				}, /Supplied node is not of type "menu"/);
-	// 			});
-	// 		});
-	// 		describe('lastSibling', () => {
-	// 			beforeEach(async () => {
-	// 				await resetTree();	
-	// 			});
+				it('should position it as the root\'s last child when given no relative', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'lastChild'
+					});
+					assertMovedNode(newNode, 2, safeTestCRMTree.length - 1);
+				});
+				it('should position it as given node\'s last child', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'lastChild',
+						node: safeTestCRMTree[5].id
+					});
+					assertMovedNode(newNode, 2, [4, 1]);
+				});
+				it('should thrown an error when given a non-menu node', async () => {
+					await asyncThrows(() => {
+						return crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+							relation: 'lastChild',
+							node: safeTestCRMTree[2].id
+						});
+					}, /Supplied node is not of type "menu"/);
+				});
+			});
+			describe('lastSibling', () => {
+				beforeEach(async () => {
+					await resetTree();	
+				});
 
-	// 			it('should position it as the root\'s last child when given no relative', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'lastSibling'
-	// 				});
-	// 				assertMovedNode(newNode, 2, safeTestCRMTree.length - 1);
-	// 			});
-	// 			it('should position it as given node\'s last sibling (root)', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'lastSibling',
-	// 					node: safeTestCRMTree[3].id
-	// 				});
-	// 				assertMovedNode(newNode, 2, safeTestCRMTree.length - 1);
-	// 			});
-	// 			it('should position it as given node\'s last sibling (menu)', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'lastSibling',
-	// 					node: safeTestCRMTree[5].children[0].id
-	// 				});
-	// 				assertMovedNode(newNode, 2, [4, 1]);
-	// 			});
-	// 		});
-	// 		describe('before', () => {
-	// 			beforeEach(async () => {
-	// 				await resetTree();	
-	// 			});
+				it('should position it as the root\'s last child when given no relative', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'lastSibling'
+					});
+					assertMovedNode(newNode, 2, safeTestCRMTree.length - 1);
+				});
+				it('should position it as given node\'s last sibling (root)', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'lastSibling',
+						node: safeTestCRMTree[3].id
+					});
+					assertMovedNode(newNode, 2, safeTestCRMTree.length - 1);
+				});
+				it('should position it as given node\'s last sibling (menu)', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'lastSibling',
+						node: safeTestCRMTree[5].children[0].id
+					});
+					assertMovedNode(newNode, 2, [4, 1]);
+				});
+			});
+			describe('before', () => {
+				beforeEach(async () => {
+					await resetTree();	
+				});
 
-	// 			it('should position it as the root\'s first child when given no relative', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'before'
-	// 				});
-	// 				assertMovedNode(newNode, 2, 0);
-	// 			});
-	// 			it('should position it before given node (root)', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'before',
-	// 					node: safeTestCRMTree[4].id
-	// 				});
-	// 				assertMovedNode(newNode, 2, 3);
-	// 			});
-	// 			it('should position it before given node (menu)', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'before',
-	// 					node: safeTestCRMTree[5].children[0].id
-	// 				});
-	// 				assertMovedNode(newNode, 2, [4, 0]);	
-	// 			});
-	// 		});
-	// 		describe('after', () => {
-	// 			beforeEach(async () => {
-	// 				await resetTree();	
-	// 			});
+				it('should position it as the root\'s first child when given no relative', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'before'
+					});
+					assertMovedNode(newNode, 2, 0);
+				});
+				it('should position it before given node (root)', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'before',
+						node: safeTestCRMTree[4].id
+					});
+					assertMovedNode(newNode, 2, 3);
+				});
+				it('should position it before given node (menu)', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'before',
+						node: safeTestCRMTree[5].children[0].id
+					});
+					assertMovedNode(newNode, 2, [4, 0]);	
+				});
+			});
+			describe('after', () => {
+				beforeEach(async () => {
+					await resetTree();	
+				});
 
-	// 			it('should position it as the root\'s last child when given no relative', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'after'
-	// 				});
-	// 				assertMovedNode(newNode, 2, safeTestCRMTree.length - 1);	
-	// 			});
-	// 			it('should position it after given node (root)', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'after',
-	// 					node: safeTestCRMTree[4].id
-	// 				});
-	// 				assertMovedNode(newNode, 2, 4);	
-	// 			});
-	// 			it('should position it before given node (menu)', async () => {
-	// 				const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
-	// 					relation: 'after',
-	// 					node: safeTestCRMTree[5].children[0].id
-	// 				});
-	// 				assertMovedNode(newNode, 2, [4, 1]);	
-	// 			});
-	// 		});
-	// 	});
-	// 	describe('#deleteNode()', () => {
-	// 		beforeEach(async () => {
-	// 			await resetTree();	
-	// 		});
+				it('should position it as the root\'s last child when given no relative', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'after'
+					});
+					assertMovedNode(newNode, 2, safeTestCRMTree.length - 1);	
+				});
+				it('should position it after given node (root)', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'after',
+						node: safeTestCRMTree[4].id
+					});
+					assertMovedNode(newNode, 2, 4);	
+				});
+				it('should position it before given node (menu)', async () => {
+					const newNode = await crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'after',
+						node: safeTestCRMTree[5].children[0].id
+					});
+					assertMovedNode(newNode, 2, [4, 1]);	
+				});
+			});
+		});
+		describe('#deleteNode()', () => {
+			beforeEach(async () => {
+				await resetTree();	
+			});
 
-	// 		it('should remove passed node when it\'s a valid node id (root)', async () => {
-	// 			await safeTestCRMTree.map((node, i) => {
-	// 				return new Promise((resolve, reject) => {
-	// 					//Don't remove the current script
-	// 					if (i !== 2) {
-	// 						crmAPI.crm.deleteNode(node.id).then(() => {
-	// 							resolve();
-	// 						}).catch((err) => {
-	// 							reject(err);
-	// 						});
-	// 					} else {
-	// 						resolve();
-	// 					}
-	// 				});
-	// 			});
-	// 			assert.lengthOf(window.globals.crm.crmTree, 1, 'crmTree is almost empty');
-	// 			var crmByIdEntries = 0;
-	// 			for (var id in window.globals.crm.crmById) {
-	// 				crmByIdEntries++;
-	// 			}
-	// 			assert.strictEqual(crmByIdEntries, 1, 'crmById is almost empty');
-	// 			assert.isDefined(window.globals.crm.crmById[2], 'current node is still defined');
-	// 			assert.isObject(window.globals.crm.crmById[2], 'current node is object');
+			it('should remove passed node when it\'s a valid node id (root)', async () => {
+				await Promise.all(safeTestCRMTree.map((node, i) => {
+					return new Promise((resolve, reject) => {
+						debugger;
+						//Don't remove the current script
+						if (i !== 2) {
+							crmAPI.crm.deleteNode(node.id).then(() => {
+								resolve();
+							}).catch((err) => {
+								reject(err);
+							});
+						} else {
+							resolve();
+						}
+					});
+				}));
+				assert.lengthOf(window.globals.crm.crmTree, 1, 'crmTree is almost empty');
+				var crmByIdEntries = 0;
+				for (var id in window.globals.crm.crmById) {
+					crmByIdEntries++;
+				}
+				assert.strictEqual(crmByIdEntries, 1, 'crmById is almost empty');
+				assert.isDefined(window.globals.crm.crmById[2], 'current node is still defined');
+				assert.isObject(window.globals.crm.crmById[2], 'current node is object');
 
-	// 			var comparisonCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
-	// 			comparisonCopy.path = [0];
-	// 			assert.deepEqual(window.globals.crm.crmByIdSafe[2], comparisonCopy, 
-	// 					'remaining node matches expected');
-	// 		});
-	// 		it('should remove passed node when it\'s a valid node id (menu)', async () => {
-	// 			await crmAPI.crm.deleteNode(safeTestCRMTree[5].children[0].id);
-	// 			assert.isUndefined(window.globals.crm.crmById[safeTestCRMTree[5].children[0].id], 
-	// 				'removed node is removed from crmById');
-	// 			assert.isUndefined(window.globals.crm.crmTree[5].children[0], 
-	// 				'removed node is removed from crmTree');
-	// 			// @ts-ignore
-	// 			assert.lengthOf(window.globals.crm.crmTree[5].children, 0,
-	// 				'previous container has no more children');
-	// 		});
-	// 		it('should throw an error when an invalid node id was passed', async () => {
-	// 			await asyncThrows(() => {
-	// 				return crmAPI.crm.deleteNode(999);
-	// 			}, /There is no node with the id you supplied \(([0-9]+)\)/);
-	// 		});
-	// 	});
-	// 	describe('#editNode()', () => {
-	// 		beforeEach(async () => {
-	// 			await resetTree();	
-	// 		});
+				var comparisonCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
+				comparisonCopy.path = [0];
+				assert.deepEqual(window.globals.crm.crmByIdSafe[2], comparisonCopy, 
+						'remaining node matches expected');
+			});
+			it('should remove passed node when it\'s a valid node id (menu)', async () => {
+				await crmAPI.crm.deleteNode(safeTestCRMTree[5].children[0].id);
+				assert.isUndefined(window.globals.crm.crmById[safeTestCRMTree[5].children[0].id], 
+					'removed node is removed from crmById');
+				assert.isUndefined(window.globals.crm.crmTree[5].children[0], 
+					'removed node is removed from crmTree');
+				// @ts-ignore
+				assert.lengthOf(window.globals.crm.crmTree[5].children, 0,
+					'previous container has no more children');
+			});
+			it('should throw an error when an invalid node id was passed', async () => {
+				await asyncThrows(() => {
+					return crmAPI.crm.deleteNode(999);
+				}, /There is no node with the id you supplied \(([0-9]+)\)/);
+			});
+		});
+		describe('#editNode()', () => {
+			beforeEach(async () => {
+				await resetTree();	
+			});
 
-	// 		it('should edit nothing when passed an empty objects argument', async () => {
-	// 			const newNode = await crmAPI.crm.editNode(safeTestCRMTree[0].id, {});
-	// 			assert.isDefined(newNode, 'new node is defined');
-	// 			assert.deepEqual(newNode, safeTestCRMTree[0], 'node matches old node');
-	// 		});
-	// 		it('should edit the name when given just the name change option', async () => {
-	// 			const newNode = await crmAPI.crm.editNode(safeTestCRMTree[0].id, {
-	// 				name: 'someNewName'
-	// 			});
-	// 			assert.isDefined(newNode, 'new node is defined');
+			it('should edit nothing when passed an empty objects argument', async () => {
+				const newNode = await crmAPI.crm.editNode(safeTestCRMTree[0].id, {});
+				assert.isDefined(newNode, 'new node is defined');
+				assert.deepEqual(newNode, safeTestCRMTree[0], 'node matches old node');
+			});
+			it('should edit the name when given just the name change option', async () => {
+				const newNode = await crmAPI.crm.editNode(safeTestCRMTree[0].id, {
+					name: 'someNewName'
+				});
+				assert.isDefined(newNode, 'new node is defined');
 
-	// 			var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
-	// 			localCopy.name = 'someNewName';
-	// 			assert.deepEqual(newNode, localCopy, 'node matches old node');
-	// 		});
-	// 		it('should edit the type when given just the type change option (no-menu)', async () => {
-	// 			const newNode = await crmAPI.crm.editNode(safeTestCRMTree[0].id, {
-	// 				type: 'link'
-	// 			});
-	// 			assert.isDefined(newNode, 'new node is defined');
+				var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+				localCopy.name = 'someNewName';
+				assert.deepEqual(newNode, localCopy, 'node matches old node');
+			});
+			it('should edit the type when given just the type change option (no-menu)', async () => {
+				const newNode = await crmAPI.crm.editNode(safeTestCRMTree[0].id, {
+					type: 'link'
+				});
+				assert.isDefined(newNode, 'new node is defined');
 
-	// 			var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
-	// 			localCopy.type = 'link';
-	// 			localCopy.menuVal = [];
-	// 			localCopy.value = [{
-	// 				"newTab": true,
-	// 				"url": "https://www.example.com"
-	// 			}];
-	// 			assert.deepEqual(newNode, localCopy, 'node matches expected node');
-	// 		});
-	// 		it('should edit the type when given just the type change option (menu)', async () => {
-	// 			const newNode = await crmAPI.crm.editNode(safeTestCRMTree[3].id, {
-	// 				type: 'menu'
-	// 			});
-	// 			assert.isDefined(newNode, 'new node is defined');
+				var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+				localCopy.type = 'link';
+				localCopy.menuVal = [];
+				localCopy.value = [{
+					"newTab": true,
+					"url": "https://www.example.com"
+				}];
+				assert.deepEqual(newNode, localCopy, 'node matches expected node');
+			});
+			it('should edit the type when given just the type change option (menu)', async () => {
+				const newNode = await crmAPI.crm.editNode(safeTestCRMTree[3].id, {
+					type: 'menu'
+				});
+				assert.isDefined(newNode, 'new node is defined');
 
-	// 			var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[3]));
-	// 			localCopy.type = 'menu';
-	// 			localCopy.stylesheetVal = {
-	// 				"stylesheet": "/* ==UserScript==\n// @name\tstylesheet\n// @CRM_contentTypes\t[true, true, true, false, false, false]\n// @CRM_launchMode\t3\n// @CRM_stylesheet\ttrue\n// @grant\tnone\n// @match\t*://*.example.com/*\n// ==/UserScript== */\nbody {\n\tbackground-color: red;\n}",
-	// 				"launchMode": 0,
-	// 				"triggers": [{
-	// 					"url": "*://*.example.com/*",
-	// 					"not": false
-	// 				}, {
-	// 					"url": ["*://*.example.com/*"],
-	// 					"not": false
-	// 				}, {
-	// 					"url": ["*://*.example.com/*"],
-	// 					"not": false
-	// 				}, {
-	// 					"url": ["*://*.example.com/*"],
-	// 					"not": false
-	// 				}],
-	// 				"toggle": true,
-	// 				"defaultOn": true,
-	// 				"metaTags": {
-	// 					"name": ["stylesheet"],
-	// 					"CRM_contentTypes": ["[true, true, true, false, false, false]"],
-	// 					"CRM_launchMode": ["3"],
-	// 					"CRM_stylesheet": ["true"],
-	// 					"grant": ["none"],
-	// 					"match": ["*://*.example.com/*"]
-	// 				},
-	// 				"options": {}
-	// 			};
-	// 			localCopy.value = null;
-	// 			localCopy.children = [];
-	// 			assert.deepEqual(newNode, localCopy, 'node matches expected node');
-	// 		});
-	// 		it('should be able to change both at the same time', async () => {
-	// 			const newNode = await crmAPI.crm.editNode(safeTestCRMTree[0].id, {
-	// 				type: 'link',
-	// 				name: 'someNewName'
-	// 			});
-	// 			assert.isDefined(newNode, 'new node is defined');
+				var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[3]));
+				localCopy.type = 'menu';
+				localCopy.stylesheetVal = {
+					"stylesheet": "/* ==UserScript==\n// @name\tstylesheet\n// @CRM_contentTypes\t[true, true, true, false, false, false]\n// @CRM_launchMode\t3\n// @CRM_stylesheet\ttrue\n// @grant\tnone\n// @match\t*://*.example.com/*\n// ==/UserScript== */\nbody {\n\tbackground-color: red;\n}",
+					"launchMode": 0,
+					"toggle": true,
+					"defaultOn": true,
+					"convertedStylesheet": {
+						"options": "",
+						"stylesheet": ""
+					},
+					"options": {}
+				};
+				localCopy.value = null;
+				localCopy.children = [];
+				assert.deepEqual(newNode, localCopy, 'node matches expected node');
+			});
+			it('should be able to change both at the same time', async () => {
+				const newNode = await crmAPI.crm.editNode(safeTestCRMTree[0].id, {
+					type: 'link',
+					name: 'someNewName'
+				});
+				assert.isDefined(newNode, 'new node is defined');
 
-	// 			var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
-	// 			localCopy.type = 'link';
-	// 			localCopy.name = 'someNewName';
-	// 			localCopy.menuVal = [];
-	// 			localCopy.value = [{
-	// 				"newTab": true,
-	// 				"url": "https://www.example.com"
-	// 			}];
-	// 			assert.deepEqual(newNode, localCopy, 'node matches expected node');
-	// 		});
-	// 		it('should throw an error when given an invalid node id', async () => {
-	// 			await asyncThrows(() => {
-	// 				return crmAPI.crm.editNode(999, {
-	// 					type: 'link',
-	// 					name: 'someNewName'
-	// 				});
-	// 			}, /There is no node with the id you supplied \(([0-9]+)\)/);
-	// 		});
-	// 		it('should throw an error when given an type', async () => {
-	// 			await asyncThrows(() => {
-	// 				// @ts-ignore
-	// 				return crmAPI.crm.editNode(safeTestCRMTree[0].id, {
-	// 					type: 'someInvalidType',
-	// 					name: 'someNewName'
-	// 				});
-	// 			}, /Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider/);
-	// 		});
-	// 	});
-	// 	describe('#getTriggers()', () => {
-	// 		before(async () => {
-	// 			await resetTree();	
-	// 		});
+				var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+				localCopy.type = 'link';
+				localCopy.name = 'someNewName';
+				localCopy.menuVal = [];
+				localCopy.value = [{
+					"newTab": true,
+					"url": "https://www.example.com"
+				}];
+				assert.deepEqual(newNode, localCopy, 'node matches expected node');
+			});
+			it('should throw an error when given an invalid node id', async () => {
+				await asyncThrows(() => {
+					return crmAPI.crm.editNode(999, {
+						type: 'link',
+						name: 'someNewName'
+					});
+				}, /There is no node with the id you supplied \(([0-9]+)\)/);
+			});
+			it('should throw an error when given an type', async () => {
+				await asyncThrows(() => {
+					// @ts-ignore
+					return crmAPI.crm.editNode(safeTestCRMTree[0].id, {
+						type: 'someInvalidType',
+						name: 'someNewName'
+					});
+				}, /Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider/);
+			});
+		});
+		describe('#getTriggers()', () => {
+			before(async () => {
+				await resetTree();	
+			});
 
-	// 		it('should correctly get the triggers for all nodes', async () => {
-	// 			for (const nodeId in window.globals.crm.crmByIdSafe) {
-	// 				const { id, triggers } = window.globals.crm.crmByIdSafe[nodeId];
-	// 				const callTriggers = await crmAPI.crm.getTriggers(id);
-	// 				assert.deepEqual(callTriggers, triggers,
-	// 					'triggers match expected');
-	// 			}
-	// 		});
-	// 		it('should throw an error when passed an invalid node id', async () => {
-	// 			await asyncThrows(() => {
-	// 				return crmAPI.crm.getTriggers(999);
-	// 			}, /There is no node with the id you supplied \(([0-9]+)\)/);
-	// 		});
-	// 	});
-	// 	describe('#setTriggers()', () => {
-	// 		before(async () => {
-	// 			await resetTree();	
-	// 		});
+			it('should correctly get the triggers for all nodes', async () => {
+				for (const nodeId in window.globals.crm.crmByIdSafe) {
+					const { id, triggers } = window.globals.crm.crmByIdSafe[nodeId];
+					const callTriggers = await crmAPI.crm.getTriggers(id);
+					assert.deepEqual(callTriggers, triggers,
+						'triggers match expected');
+				}
+			});
+			it('should throw an error when passed an invalid node id', async () => {
+				await asyncThrows(() => {
+					return crmAPI.crm.getTriggers(999);
+				}, /There is no node with the id you supplied \(([0-9]+)\)/);
+			});
+		});
+		describe('#setTriggers()', () => {
+			before(async () => {
+				await resetTree();	
+			});
 
-	// 		it('should set the triggers to passed triggers (empty)', async () => {
-	// 			var triggers = [];
-	// 			const newNode = await crmAPI.crm.setTriggers(safeTestCRMTree[1].id, triggers);
-	// 			assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
-	// 			assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
-	// 		});
-	// 		it('should set the triggers to passed triggers (non-empty)', async () => {
-	// 			var triggers = [{
-	// 				url: '<all_urls>',
-	// 				not: true
-	// 			}];
-	// 			const newNode = await crmAPI.crm.setTriggers(safeTestCRMTree[1].id, triggers);
-	// 			assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
-	// 			assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
-	// 		});
-	// 		it('should set the triggers and showOnSpecified to true', async () => {
-	// 			var triggers = [{
-	// 				url: 'http://somesite.com',
-	// 				not: true
-	// 			}];
-	// 			const newNode = await crmAPI.crm.setTriggers(safeTestCRMTree[0].id, triggers);
-	// 			assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
-	// 			assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
-	// 		});
-	// 		it('should work on all valid urls', async () => {
-	// 			var triggerUrls = ['<all_urls>', 'http://google.com', '*://*/*', '*://google.com/*',
-	// 				'http://*/*', 'https://*/*', 'file://*', 'ftp://*'];
-	// 			for (const triggerUrl of triggerUrls) {
-	// 				var trigger = [{
-	// 					url: triggerUrl,
-	// 					not: false
-	// 				}];
-	// 				const newNode = await crmAPI.crm.setTriggers(safeTestCRMTree[0].id, trigger);
-	// 				assert.deepEqual(newNode.triggers, trigger, 'triggers match expected');
-	// 				assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
-	// 			};
-	// 		});
-	// 		it('should throw an error when given an invalid url', async () => {
-	// 			var triggers = [{
-	// 				url: 'somesite.com',
-	// 				not: true
-	// 			}];
-	// 			await asyncThrows(async () => {
-	// 				const newNode = await crmAPI.crm.setTriggers(safeTestCRMTree[0].id, triggers);
-	// 				assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
-	// 				assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
-	// 			}, /Triggers don't match URL scheme/);
-	// 		});
-	// 	});
-	// 	describe('#getTriggersUsage()', () => {
-	// 		before(async () => {
-	// 			await resetTree();	
-	// 		});
-	// 		it('should return the triggers usage for given node', async () => {
-	// 			for (const node of safeTestCRMTree) {
-	// 				if (node.type === 'link' || node.type === 'menu' || node.type === 'divider') {
-	// 					const usage = await crmAPI.crm.getTriggerUsage(node.id);
-	// 					assert.strictEqual(usage, node.showOnSpecified, 'usage matches expected');
-	// 				}
-	// 			};
-	// 		});
-	// 		it('should throw an error when node is not of correct type', async () => {
-	// 			for (const node of safeTestCRMTree) {
-	// 				if (!(node.type === 'link' || node.type === 'menu' || node.type === 'divider')) {
-	// 					await asyncThrows(() => {
-	// 						return crmAPI.crm.getTriggerUsage(node.id);
-	// 					}, /Node is not of right type, can only be menu, link or divider/);
-	// 				}
-	// 			};
-	// 		});
-	// 	});
-	// 	describe('#setTriggerUsage()', () => {
-	// 		beforeEach(async () => {
-	// 			await resetTree();	
-	// 		});
-	// 		it('should correctly set the triggers usage on a node of the right type', async () => {
-	// 			await crmAPI.crm.setTriggerUsage(safeTestCRMTree[0].id, true);
-	// 			assert.isTrue(window.globals.crm.crmTree[0].showOnSpecified, 'correctly set to true');
-	// 			await crmAPI.crm.setTriggerUsage(safeTestCRMTree[0].id, false);
-	// 			assert.isFalse(window.globals.crm.crmTree[0].showOnSpecified, 'correctly set to false');
-	// 			await crmAPI.crm.setTriggerUsage(safeTestCRMTree[0].id, true);
-	// 			assert.isTrue(window.globals.crm.crmTree[0].showOnSpecified, 'correctly set to true');
-	// 		});
-	// 		it('should throw an error when the type of the node is not right', async () => {
-	// 			await asyncThrows(() => {
-	// 				return crmAPI.crm.setTriggerUsage(safeTestCRMTree[2].id, true);
-	// 			}, /Node is not of right type, can only be menu, link or divider/);
-	// 		});
-	// 	});
-	// 	describe('#setLaunchMode()', () => {
-	// 		before(async () => {
-	// 			await resetTree();	
-	// 		});
-	// 		it('should correctly set it when given a valid node and value', async () => {
-	// 			const newNode = await crmAPI.crm.setLaunchMode(safeTestCRMTree[3].id, 1);
-	// 			// @ts-ignore
-	// 			assert.strictEqual(newNode.value.launchMode, 1, 'launch modes match');
-	// 		});
-	// 		it('should throw an error when given a non-script or non-stylesheet node', async () => {
-	// 			await asyncThrows(() => {
-	// 				return crmAPI.crm.setLaunchMode(safeTestCRMTree[0].id, 1);
-	// 			}, /Node is not of type script or stylesheet/);
-	// 		});
-	// 		it('should throw an error when given an invalid launch mode', async () => {
-	// 			await asyncThrows(() => {
-	// 				return crmAPI.crm.setLaunchMode(safeTestCRMTree[3].id, -5);
-	// 			}, /Value for launchMode is smaller than 0/);
-	// 		});
-	// 		it('should throw an error when given an invalid launch mode', async () => {
-	// 			await asyncThrows(() => {
-	// 				return crmAPI.crm.setLaunchMode(safeTestCRMTree[3].id, 5);
-	// 			}, /Value for launchMode is bigger than 4/);
-	// 		});
-	// 	});
-	// 	describe('#getLaunchMode()', () => {
-	// 		beforeEach(async () => {
-	// 			await resetTree();	
-	// 		});
-	// 		it('should correctly get the launchMode for scripts or stylesheets', async () => {
-	// 			const launchMode = await crmAPI.crm.getLaunchMode(safeTestCRMTree[3].id);
-	// 			assert.strictEqual(launchMode, safeTestCRMTree[3].value.launchMode, 
-	// 				'launchMode matches expected');
-	// 		});
-	// 		it('should throw an error when given an invalid node type', async () => {
-	// 			await asyncThrows(() => {
-	// 				return crmAPI.crm.getLaunchMode(safeTestCRMTree[0].id);
-	// 			}, /Node is not of type script or stylesheet/);
-	// 		});
-	// 	});
-	// 	describe('Stylesheet', () => {
-	// 		describe('#setStylesheet()', () => {
-	// 			beforeEach(async () => {
-	// 				await resetTree();	
-	// 			});
-	// 			it('should correctly set the stylesheet on stylesheet nodes', async () => {
-	// 				const newNode = await crmAPI.crm.stylesheet.setStylesheet(safeTestCRMTree[3].id, 'testValue');
-	// 				assert.isDefined(newNode, 'node has been passed along');
-	// 				// @ts-ignore
-	// 				assert.strictEqual(newNode.value.stylesheet, 'testValue', 'stylesheet has been set');
-	// 				// @ts-ignore
-	// 				assert.strictEqual(window.globals.crm.crmTree[3].value.stylesheet, 'testValue',
-	// 					'stylesheet has been correctly updated in tree');
-	// 			});
-	// 			it('should correctly set the stylesheet on non-stylesheet nodes', async () => {
-	// 				const newNode = await crmAPI.crm.stylesheet.setStylesheet(safeTestCRMTree[2].id, 'testValue');
-	// 				assert.isDefined(newNode, 'node has been passed along');
-	// 				// @ts-ignore
-	// 				assert.strictEqual(newNode.stylesheetVal.stylesheet, 'testValue',
-	// 					'stylesheet has been set');
-	// 				// @ts-ignore
-	// 				assert.strictEqual(window.globals.crm.crmTree[2].stylesheetVal.stylesheet,
-	// 					'testValue', 'stylesheet has been correctly updated in tree');
-	// 			});
-	// 		});
-	// 		describe('#getStylesheet()', () => {
-	// 			before(async () => {
-	// 				await resetTree();	
-	// 			});
-	// 			it('should correctly get the value of stylesheet type nodes', async () => {
-	// 				const stylesheet = await crmAPI.crm.stylesheet.getStylesheet(safeTestCRMTree[3].id);
-	// 				assert.isDefined(stylesheet, 'stylesheet has been passed along');
-	// 				assert.strictEqual(stylesheet, safeTestCRMTree[3].value.stylesheet,
-	// 					'stylesheets match');
-	// 			});
-	// 			it('should correctly get the value of non-stylesheet type nodes', async () => {
-	// 				const stylesheet = await crmAPI.crm.stylesheet.getStylesheet(safeTestCRMTree[2].id);
-	// 				assert.strictEqual(stylesheet, (
-	// 					safeTestCRMTree[2].stylesheetVal ? 
-	// 						// @ts-ignore
-	// 						safeTestCRMTree[2].stylesheetVal.stylesheet :
-	// 						undefined
-	// 					), 'stylesheets match');
-	// 			});
-	// 		});
-	// 	});
-	// 	describe('Link', () => {
-	// 		describe('#getLinks()', () => {
-	// 			it('should correctly get the links of a link-type node', async () => {
-	// 				const linkValue = await crmAPI.crm.link.getLinks(safeTestCRMTree[5].children[0].id);
-	// 				assert.deepEqual(linkValue, safeTestCRMTree[5].children[0].value, 'link values match');
-	// 			});
-	// 			it('should correctly get the links of a non-link-type node', async () => {
-	// 				const linkValue = await crmAPI.crm.link.getLinks(safeTestCRMTree[3].id);
-	// 				if (linkValue) {
-	// 					assert.deepEqual(linkValue, safeTestCRMTree[3].linkVal, 'link values match');
-	// 				} else {
-	// 					assert.strictEqual(linkValue, safeTestCRMTree[3].linkVal, 'link values match');
-	// 				}
-	// 			});
-	// 		});
-	// 		describe('#setLinks()', () => {
-	// 			it('should correctly set it when passed an array of links', async () => {
-	// 				const newValue = await crmAPI.crm.link.setLinks(safeTestCRMTree[5].children[0].id, [{
-	// 					url: 'firstlink.com',
-	// 					newTab: true
-	// 				}, {
-	// 					url: 'secondlink.com',
-	// 					newTab: false
-	// 				}, {
-	// 					url: 'thirdlink.com',
-	// 					newTab: true
-	// 				}]);
-	// 				assert.sameDeepMembers(newValue, [{
-	// 					url: 'firstlink.com',
-	// 					newTab: false
-	// 				}, {
-	// 					url: 'secondlink.com',
-	// 					newTab: false
-	// 				}, {
-	// 					url: 'thirdlink.com',
-	// 					newTab: true
-	// 				}], 'link value matches expected');
-	// 			});
-	// 			it('should correctly set it when passed a link object', async () => {
-	// 				const newValue = await crmAPI.crm.link.setLinks(safeTestCRMTree[5].children[0].id, {
-	// 					url: 'firstlink.com',
-	// 					newTab: true
-	// 				});
-	// 				assert.sameDeepMembers(newValue, [{
-	// 					url: 'firstlink.com',
-	// 					newTab: false
-	// 				}], 'link value matches expected');
-	// 			});
-	// 			it('should throw an error when the link is missing (array)', async () => {
-	// 				await asyncThrows(() => {
-	// 					// @ts-ignore
-	// 					return crmAPI.crm.link.setLinks(safeTestCRMTree[5].children[0].id, [{}, {
-	// 						newTab: false
-	// 					}, {
-	// 						newTab: true
-	// 					}]);
-	// 				}, /For not all values in the array items is the property url defined/)
-	// 			});
-	// 			it('should throw an error when the link is missing (objec)', async () => {
-	// 				await asyncThrows(() => {
-	// 					// @ts-ignore
-	// 					return crmAPI.crm.link.setLinks(safeTestCRMTree[5].children[0].id, { });
-	// 				}, /For not all values in the array items is the property url defined/);
-	// 			})
-	// 		});
-	// 		describe('#push()', () => {
-	// 			beforeEach(async () => {
-	// 				await resetTree();	
-	// 			});
+			it('should set the triggers to passed triggers (empty)', async () => {
+				var triggers = [];
+				const newNode = await crmAPI.crm.setTriggers(safeTestCRMTree[1].id, triggers);
+				assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
+				assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
+			});
+			it('should set the triggers to passed triggers (non-empty)', async () => {
+				var triggers = [{
+					url: '<all_urls>',
+					not: true
+				}];
+				const newNode = await crmAPI.crm.setTriggers(safeTestCRMTree[1].id, triggers);
+				assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
+				assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
+			});
+			it('should set the triggers and showOnSpecified to true', async () => {
+				var triggers = [{
+					url: 'http://somesite.com',
+					not: true
+				}];
+				const newNode = await crmAPI.crm.setTriggers(safeTestCRMTree[0].id, triggers);
+				assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
+				assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
+			});
+			it('should work on all valid urls', async () => {
+				var triggerUrls = ['<all_urls>', 'http://google.com', '*://*/*', '*://google.com/*',
+					'http://*/*', 'https://*/*', 'file://*', 'ftp://*'];
+				for (const triggerUrl of triggerUrls) {
+					var trigger = [{
+						url: triggerUrl,
+						not: false
+					}];
+					const newNode = await crmAPI.crm.setTriggers(safeTestCRMTree[0].id, trigger);
+					assert.deepEqual(newNode.triggers, trigger, 'triggers match expected');
+					assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
+				};
+			});
+			it('should throw an error when given an invalid url', async () => {
+				var triggers = [{
+					url: 'somesite.com',
+					not: true
+				}];
+				await asyncThrows(async () => {
+					const newNode = await crmAPI.crm.setTriggers(safeTestCRMTree[0].id, triggers);
+					assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
+					assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
+				}, /Triggers don't match URL scheme/);
+			});
+		});
+		describe('#getTriggersUsage()', () => {
+			before(async () => {
+				await resetTree();	
+			});
+			it('should return the triggers usage for given node', async () => {
+				for (const node of safeTestCRMTree) {
+					if (node.type === 'link' || node.type === 'menu' || node.type === 'divider') {
+						const usage = await crmAPI.crm.getTriggerUsage(node.id);
+						assert.strictEqual(usage, node.showOnSpecified, 'usage matches expected');
+					}
+				};
+			});
+			it('should throw an error when node is not of correct type', async () => {
+				for (const node of safeTestCRMTree) {
+					if (!(node.type === 'link' || node.type === 'menu' || node.type === 'divider')) {
+						await asyncThrows(() => {
+							return crmAPI.crm.getTriggerUsage(node.id);
+						}, /Node is not of right type, can only be menu, link or divider/);
+					}
+				};
+			});
+		});
+		describe('#setTriggerUsage()', () => {
+			beforeEach(async () => {
+				await resetTree();	
+			});
+			it('should correctly set the triggers usage on a node of the right type', async () => {
+				await crmAPI.crm.setTriggerUsage(safeTestCRMTree[0].id, true);
+				assert.isTrue(window.globals.crm.crmTree[0].showOnSpecified, 'correctly set to true');
+				await crmAPI.crm.setTriggerUsage(safeTestCRMTree[0].id, false);
+				assert.isFalse(window.globals.crm.crmTree[0].showOnSpecified, 'correctly set to false');
+				await crmAPI.crm.setTriggerUsage(safeTestCRMTree[0].id, true);
+				assert.isTrue(window.globals.crm.crmTree[0].showOnSpecified, 'correctly set to true');
+			});
+			it('should throw an error when the type of the node is not right', async () => {
+				await asyncThrows(() => {
+					return crmAPI.crm.setTriggerUsage(safeTestCRMTree[2].id, true);
+				}, /Node is not of right type, can only be menu, link or divider/);
+			});
+		});
+		describe('#setLaunchMode()', () => {
+			before(async () => {
+				await resetTree();	
+			});
+			it('should correctly set it when given a valid node and value', async () => {
+				const newNode = await crmAPI.crm.setLaunchMode(safeTestCRMTree[3].id, 1);
+				// @ts-ignore
+				assert.strictEqual(newNode.value.launchMode, 1, 'launch modes match');
+			});
+			it('should throw an error when given a non-script or non-stylesheet node', async () => {
+				await asyncThrows(() => {
+					return crmAPI.crm.setLaunchMode(safeTestCRMTree[0].id, 1);
+				}, /Node is not of type script or stylesheet/);
+			});
+			it('should throw an error when given an invalid launch mode', async () => {
+				await asyncThrows(() => {
+					return crmAPI.crm.setLaunchMode(safeTestCRMTree[3].id, -5);
+				}, /Value for launchMode is smaller than 0/);
+			});
+			it('should throw an error when given an invalid launch mode', async () => {
+				await asyncThrows(() => {
+					return crmAPI.crm.setLaunchMode(safeTestCRMTree[3].id, 5);
+				}, /Value for launchMode is bigger than 4/);
+			});
+		});
+		describe('#getLaunchMode()', () => {
+			beforeEach(async () => {
+				await resetTree();	
+			});
+			it('should correctly get the launchMode for scripts or stylesheets', async () => {
+				const launchMode = await crmAPI.crm.getLaunchMode(safeTestCRMTree[3].id);
+				assert.strictEqual(launchMode, safeTestCRMTree[3].value.launchMode, 
+					'launchMode matches expected');
+			});
+			it('should throw an error when given an invalid node type', async () => {
+				await asyncThrows(() => {
+					return crmAPI.crm.getLaunchMode(safeTestCRMTree[0].id);
+				}, /Node is not of type script or stylesheet/);
+			});
+		});
+		describe('Stylesheet', () => {
+			describe('#setStylesheet()', () => {
+				beforeEach(async () => {
+					await resetTree();	
+				});
+				it('should correctly set the stylesheet on stylesheet nodes', async () => {
+					const newNode = await crmAPI.crm.stylesheet.setStylesheet(safeTestCRMTree[3].id, 'testValue');
+					assert.isDefined(newNode, 'node has been passed along');
+					// @ts-ignore
+					assert.strictEqual(newNode.value.stylesheet, 'testValue', 'stylesheet has been set');
+					// @ts-ignore
+					assert.strictEqual(window.globals.crm.crmTree[3].value.stylesheet, 'testValue',
+						'stylesheet has been correctly updated in tree');
+				});
+				it('should correctly set the stylesheet on non-stylesheet nodes', async () => {
+					const newNode = await crmAPI.crm.stylesheet.setStylesheet(safeTestCRMTree[2].id, 'testValue');
+					assert.isDefined(newNode, 'node has been passed along');
+					// @ts-ignore
+					assert.strictEqual(newNode.stylesheetVal.stylesheet, 'testValue',
+						'stylesheet has been set');
+					// @ts-ignore
+					assert.strictEqual(window.globals.crm.crmTree[2].stylesheetVal.stylesheet,
+						'testValue', 'stylesheet has been correctly updated in tree');
+				});
+			});
+			describe('#getStylesheet()', () => {
+				before(async () => {
+					await resetTree();	
+				});
+				it('should correctly get the value of stylesheet type nodes', async () => {
+					const stylesheet = await crmAPI.crm.stylesheet.getStylesheet(safeTestCRMTree[3].id);
+					assert.isDefined(stylesheet, 'stylesheet has been passed along');
+					assert.strictEqual(stylesheet, safeTestCRMTree[3].value.stylesheet,
+						'stylesheets match');
+				});
+				it('should correctly get the value of non-stylesheet type nodes', async () => {
+					const stylesheet = await crmAPI.crm.stylesheet.getStylesheet(safeTestCRMTree[2].id);
+					assert.strictEqual(stylesheet, (
+						safeTestCRMTree[2].stylesheetVal ? 
+							// @ts-ignore
+							safeTestCRMTree[2].stylesheetVal.stylesheet :
+							undefined
+						), 'stylesheets match');
+				});
+			});
+		});
+		describe('Link', () => {
+			describe('#getLinks()', () => {
+				it('should correctly get the links of a link-type node', async () => {
+					const linkValue = await crmAPI.crm.link.getLinks(safeTestCRMTree[5].children[0].id);
+					assert.deepEqual(linkValue, safeTestCRMTree[5].children[0].value, 'link values match');
+				});
+				it('should correctly get the links of a non-link-type node', async () => {
+					const linkValue = await crmAPI.crm.link.getLinks(safeTestCRMTree[3].id);
+					if (linkValue) {
+						assert.deepEqual(linkValue, safeTestCRMTree[3].linkVal, 'link values match');
+					} else {
+						assert.strictEqual(linkValue, safeTestCRMTree[3].linkVal, 'link values match');
+					}
+				});
+			});
+			describe('#setLinks()', () => {
+				it('should correctly set it when passed an array of links', async () => {
+					const newValue = await crmAPI.crm.link.setLinks(safeTestCRMTree[5].children[0].id, [{
+						url: 'firstlink.com',
+						newTab: true
+					}, {
+						url: 'secondlink.com',
+						newTab: false
+					}, {
+						url: 'thirdlink.com',
+						newTab: true
+					}]);
+					assert.sameDeepMembers(newValue, [{
+						url: 'firstlink.com',
+						newTab: true
+					}, {
+						url: 'secondlink.com',
+						newTab: false
+					}, {
+						url: 'thirdlink.com',
+						newTab: true
+					}], 'link value matches expected');
+				});
+				it('should correctly set it when passed a link object', async () => {
+					const newValue = await crmAPI.crm.link.setLinks(safeTestCRMTree[5].children[0].id, {
+						url: 'firstlink.com',
+						newTab: true
+					});
+					assert.sameDeepMembers(newValue, [{
+						url: 'firstlink.com',
+						newTab: true
+					}], 'link value matches expected');
+				});
+				it('should throw an error when the link is missing (array)', async () => {
+					await asyncThrows(() => {
+						// @ts-ignore
+						return crmAPI.crm.link.setLinks(safeTestCRMTree[5].children[0].id, [{}, {
+							newTab: false
+						}, {
+							newTab: true
+						}]);
+					}, /For not all values in the array items is the property url defined/)
+				});
+				it('should throw an error when the link is missing (objec)', async () => {
+					await asyncThrows(() => {
+						// @ts-ignore
+						return crmAPI.crm.link.setLinks(safeTestCRMTree[5].children[0].id, { });
+					}, /For not all values in the array items is the property url defined/);
+				})
+			});
+			describe('#push()', () => {
+				beforeEach(async () => {
+					await resetTree();	
+				});
 
-	// 			it('should correctly set it when passed an array of links', async () => {
-	// 				const newValue = await crmAPI.crm.link.push(safeTestCRMTree[5].children[0].id, [{
-	// 					url: 'firstlink.com',
-	// 					newTab: true
-	// 				}, {
-	// 					url: 'secondlink.com',
-	// 					newTab: false
-	// 				}, {
-	// 					url: 'thirdlink.com',
-	// 					newTab: true
-	// 				}]);
-	// 				// @ts-ignore
-	// 				assert.sameDeepMembers(newValue, safeTestCRMTree[5].children[0].value.concat([{
-	// 					url: 'firstlink.com',
-	// 					newTab: false
-	// 				}, {
-	// 					url: 'secondlink.com',
-	// 					newTab: false
-	// 				}, {
-	// 					url: 'thirdlink.com',
-	// 					newTab: true
-	// 				}]), 'link value matches expected');
-	// 			});
-	// 			it('should correctly set it when passed a link object', async () => {
-	// 				const newValue = await crmAPI.crm.link.push(safeTestCRMTree[5].children[0].id, {
-	// 					url: 'firstlink.com',
-	// 					newTab: true
-	// 				});
-	// 				// @ts-ignore
-	// 				assert.sameDeepMembers(newValue, safeTestCRMTree[5].children[0].value.concat([{
-	// 					url: 'firstlink.com',
-	// 					newTab: false
-	// 				}]), 'link value matches expected');
-	// 			});
-	// 			it('should throw an error when the link is missing (array)', async () => {
-	// 				await asyncThrows(() => {
-	// 					// @ts-ignore
-	// 					return crmAPI.crm.link.push(safeTestCRMTree[5].children[0].id, [{}, {
-	// 						newTab: false
-	// 					}, {
-	// 						newTab: true
-	// 					}]);
-	// 				}, /For not all values in the array items is the property url defined/)
-	// 			});
-	// 			it('should throw an error when the link is missing (objec)', async () => {
-	// 				await asyncThrows(() => {
-	// 					// @ts-ignore
-	// 					return crmAPI.crm.link.push(safeTestCRMTree[5].children[0].id, { });
-	// 				}, /For not all values in the array items is the property url defined/);
-	// 			})
-	// 		});
-	// 		describe('#splice()', () => {
-	// 			beforeEach(async () => {
-	// 				await resetTree();	
-	// 			});
-	// 			it('should correctly splice at index 0 and amount 1', async () => {
-	// 				const spliced = await crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 0, 1);
-	// 				var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
-	// 				var splicedExpected = linkCopy.splice(0, 1);
+				it('should correctly set it when passed an array of links', async () => {
+					const newValue = await crmAPI.crm.link.push(safeTestCRMTree[5].children[0].id, [{
+						url: 'firstlink.com',
+						newTab: true
+					}, {
+						url: 'secondlink.com',
+						newTab: false
+					}, {
+						url: 'thirdlink.com',
+						newTab: true
+					}]);
+					// @ts-ignore
+					assert.sameDeepMembers(newValue, safeTestCRMTree[5].children[0].value.concat([{
+						url: 'firstlink.com',
+						newTab: true
+					}, {
+						url: 'secondlink.com',
+						newTab: false
+					}, {
+						url: 'thirdlink.com',
+						newTab: true
+					}]), 'link value matches expected');
+				});
+				it('should correctly set it when passed a link object', async () => {
+					const newValue = await crmAPI.crm.link.push(safeTestCRMTree[5].children[0].id, {
+						url: 'firstlink.com',
+						newTab: true
+					});
+					// @ts-ignore
+					assert.sameDeepMembers(newValue, safeTestCRMTree[5].children[0].value.concat([{
+						url: 'firstlink.com',
+						newTab: true
+					}]), 'link value matches expected');
+				});
+				it('should throw an error when the link is missing (array)', async () => {
+					await asyncThrows(() => {
+						// @ts-ignore
+						return crmAPI.crm.link.push(safeTestCRMTree[5].children[0].id, [{}, {
+							newTab: false
+						}, {
+							newTab: true
+						}]);
+					}, /For not all values in the array items is the property url defined/)
+				});
+				it('should throw an error when the link is missing (objec)', async () => {
+					await asyncThrows(() => {
+						// @ts-ignore
+						return crmAPI.crm.link.push(safeTestCRMTree[5].children[0].id, { });
+					}, /For not all values in the array items is the property url defined/);
+				})
+			});
+			describe('#splice()', () => {
+				beforeEach(async () => {
+					await resetTree();	
+				});
+				it('should correctly splice at index 0 and amount 1', async () => {
+					const { spliced } = await crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 0, 1);
+					var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+					var splicedExpected = linkCopy.splice(0, 1);
 
-	// 				assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
-	// 					'new value matches expected');
-	// 				assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
-	// 			});
-	// 			it('should correctly splice at index not-0 and amount 1', async () => {
-	// 				const spliced = await crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 2, 1);
-	// 				var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
-	// 				var splicedExpected = linkCopy.splice(2, 1);
+					assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
+						'new value matches expected');
+					assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
+				});
+				it('should correctly splice at index not-0 and amount 1', async () => {
+					const { spliced } = await crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 2, 1);
+					var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+					var splicedExpected = linkCopy.splice(2, 1);
 
-	// 				assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
-	// 					'new value matches expected');
-	// 				assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
-	// 			});
-	// 			it('should correctly splice at index 0 and amount 2', async () => {
-	// 				const spliced = await crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 0, 2);
-	// 				var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
-	// 				var splicedExpected = linkCopy.splice(0, 2);
+					assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
+						'new value matches expected');
+					assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
+				});
+				it('should correctly splice at index 0 and amount 2', async () => {
+					const { spliced } = await crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 0, 2);
+					var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+					var splicedExpected = linkCopy.splice(0, 2);
 
-	// 				assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
-	// 					'new value matches expected');
-	// 				assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
-	// 			});
-	// 			it('should correctly splice at index non-0 and amount 2', async () => {
-	// 				const spliced = await crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 1, 2);
-	// 				var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
-	// 				var splicedExpected = linkCopy.splice(1, 2);
+					assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
+						'new value matches expected');
+					assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
+				});
+				it('should correctly splice at index non-0 and amount 2', async () => {
+					const { spliced } = await crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 1, 2);
+					var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+					var splicedExpected = linkCopy.splice(1, 2);
 
-	// 				assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
-	// 					'new value matches expected');
-	// 				assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
-	// 			});
-	// 		});
-	// 	});
-	// 	describe('Script', () => {
-	// 		describe('#setScript()', () => {
-	// 			beforeEach(async () => {
-	// 				await resetTree();	
-	// 			});
-	// 			it('should correctly set the script on script nodes', async () => {
-	// 				const newNode = await crmAPI.crm.script.setScript(safeTestCRMTree[2].id, 'testValue');
-	// 				assert.isDefined(newNode, 'node has been passed along');
-	// 				// @ts-ignore
-	// 				assert.strictEqual(newNode.value.script, 'testValue', 'script has been set');
-	// 				// @ts-ignore
-	// 				assert.strictEqual(window.globals.crm.crmTree[2].value.script, 'testValue',
-	// 					'script has been correctly updated in tree');
-	// 			});
-	// 			it('should correctly set the script on non-script nodes', async () => {
-	// 				const newNode = await crmAPI.crm.script.setScript(safeTestCRMTree[3].id, 'testValue');
-	// 				assert.isDefined(newNode, 'node has been passed along');
-	// 				// @ts-ignore
-	// 				assert.strictEqual(newNode.scriptVal.script, 'testValue',
-	// 					'script has been set');
-	// 				// @ts-ignore
-	// 				assert.strictEqual(window.globals.crm.crmTree[3].scriptVal.script,
-	// 					'testValue', 'script has been correctly updated in tree');
-	// 			});
-	// 		});
-	// 		describe('#getScript()', () => {
-	// 			before(async () => {
-	// 				await resetTree();	
-	// 			});
-	// 			it('should correctly get the value of script type nodes', async () => {
-	// 				const script = await crmAPI.crm.script.getScript(safeTestCRMTree[2].id);
-	// 				assert.isDefined(script, 'script has been passed along');
-	// 				assert.strictEqual(script, safeTestCRMTree[2].value.script,
-	// 					'scripts match');
-	// 			});
-	// 			it('should correctly get the value of non-script type nodes', async () => {
-	// 				const script = await crmAPI.crm.script.getScript(safeTestCRMTree[3].id);
-	// 				assert.strictEqual(script, (
-	// 					safeTestCRMTree[2].scriptVal ? 
-	// 						// @ts-ignore
-	// 						safeTestCRMTree[2].scriptVal.script : undefined
-	// 					), 'scripts match');
-	// 			});
-	// 		});
-	// 		describe('#setBackgroundScript()', () => {				
-	// 			//This has the exact same implementation as other script setting but
-	// 			//testing this is kinda hard because it starts the background script and a
-	// 			//lot of stuff happens as a result of that (web workers etc) that i can't 
-	// 			//really emulate
-	// 		});
-	// 		describe('#getBackgroundScript()', () => {
-	// 			before(async () => {
-	// 				await resetTree();	
-	// 			});
-	// 			it('should correctly get the value of backgroundScript type nodes', async () => {
-	// 				const backgroundScript = await crmAPI.crm.script.getBackgroundScript(safeTestCRMTree[2].id);
-	// 				assert.isDefined(backgroundScript, 'backgroundScript has been passed along');
-	// 				assert.strictEqual(backgroundScript, safeTestCRMTree[2].value.backgroundScript,
-	// 					'backgroundScripts match');
-	// 			});
-	// 			it('should correctly get the value of non-script type nodes', async () => {
-	// 				const backgroundScript = await crmAPI.crm.script.getScript(safeTestCRMTree[3].id);
-	// 				assert.strictEqual(backgroundScript, (
-	// 					safeTestCRMTree[2].scriptVal ?
-	// 						// @ts-ignore
-	// 						safeTestCRMTree[2].scriptVal.backgroundScript :
-	// 						undefined
-	// 					), 'backgroundScripts match');
-	// 			});
-	// 		});
-	// 	});
-	// 	describe('Menu', () => {
-	// 		describe('#getChildren()', () => {
-	// 			beforeEach(async () => {
-	// 				await resetTree();	
-	// 			});
-	// 			it('should return the node\'s children when passed a correct id', async () => {
-	// 				const children = await crmAPI.crm.menu.getChildren(safeTestCRMTree[5].id);
-	// 				assert.isDefined(children, 'children are defined');
-	// 				assert.isArray(children, 'children is an array');
-	// 				assert.deepEqual(children, safeTestCRMTree[5].children, 'children match expected children');
-	// 			});
-	// 			it('should throw an error when given a non-menu node', async () => {
-	// 				await asyncThrows(async () => {
-	// 					const children = await crmAPI.crm.menu.getChildren(safeTestCRMTree[1].id);
-	// 					assert.isDefined(children, 'children are defined');
-	// 					assert.isArray(children, 'children is an array');
-	// 					assert.lengthOf(children, 0, 'children is an empty array');
-	// 				}, /Node is not of type menu/);
-	// 			});
-	// 		});
-	// 		describe('#setChildren()', () => {
-	// 			beforeEach(async () => {
-	// 				await resetTree();	
-	// 			});
+					assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
+						'new value matches expected');
+					assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
+				});
+			});
+		});
+		describe('Script', () => {
+			describe('#setScript()', () => {
+				beforeEach(async () => {
+					await resetTree();	
+				});
+				it('should correctly set the script on script nodes', async () => {
+					const newNode = await crmAPI.crm.script.setScript(safeTestCRMTree[2].id, 'testValue');
+					assert.isDefined(newNode, 'node has been passed along');
+					// @ts-ignore
+					assert.strictEqual(newNode.value.script, 'testValue', 'script has been set');
+					// @ts-ignore
+					assert.strictEqual(window.globals.crm.crmTree[2].value.script, 'testValue',
+						'script has been correctly updated in tree');
+				});
+				it('should correctly set the script on non-script nodes', async () => {
+					const newNode = await crmAPI.crm.script.setScript(safeTestCRMTree[3].id, 'testValue');
+					assert.isDefined(newNode, 'node has been passed along');
+					// @ts-ignore
+					assert.strictEqual(newNode.scriptVal.script, 'testValue',
+						'script has been set');
+					// @ts-ignore
+					assert.strictEqual(window.globals.crm.crmTree[3].scriptVal.script,
+						'testValue', 'script has been correctly updated in tree');
+				});
+			});
+			describe('#getScript()', () => {
+				before(async () => {
+					await resetTree();	
+				});
+				it('should correctly get the value of script type nodes', async () => {
+					const script = await crmAPI.crm.script.getScript(safeTestCRMTree[2].id);
+					assert.isDefined(script, 'script has been passed along');
+					assert.strictEqual(script, safeTestCRMTree[2].value.script,
+						'scripts match');
+				});
+				it('should correctly get the value of non-script type nodes', async () => {
+					const script = await crmAPI.crm.script.getScript(safeTestCRMTree[3].id);
+					assert.strictEqual(script, (
+						safeTestCRMTree[2].scriptVal ? 
+							// @ts-ignore
+							safeTestCRMTree[2].scriptVal.script : undefined
+						), 'scripts match');
+				});
+			});
+			describe('#setBackgroundScript()', () => {				
+				//This has the exact same implementation as other script setting but
+				//testing this is kinda hard because it starts the background script and a
+				//lot of stuff happens as a result of that (web workers etc) that i can't 
+				//really emulate
+			});
+			describe('#getBackgroundScript()', () => {
+				before(async () => {
+					await resetTree();	
+				});
+				it('should correctly get the value of backgroundScript type nodes', async () => {
+					const backgroundScript = await crmAPI.crm.script.getBackgroundScript(safeTestCRMTree[2].id);
+					assert.isDefined(backgroundScript, 'backgroundScript has been passed along');
+					assert.strictEqual(backgroundScript, safeTestCRMTree[2].value.backgroundScript,
+						'backgroundScripts match');
+				});
+				it('should correctly get the value of non-script type nodes', async () => {
+					const backgroundScript = await crmAPI.crm.script.getScript(safeTestCRMTree[3].id);
+					assert.strictEqual(backgroundScript, (
+						safeTestCRMTree[2].scriptVal ?
+							// @ts-ignore
+							safeTestCRMTree[2].scriptVal.backgroundScript :
+							undefined
+						), 'backgroundScripts match');
+				});
+			});
+		});
+		describe('Menu', () => {
+			describe('#getChildren()', () => {
+				beforeEach(async () => {
+					await resetTree();	
+				});
+				it('should return the node\'s children when passed a correct id', async () => {
+					const children = await crmAPI.crm.menu.getChildren(safeTestCRMTree[5].id);
+					assert.isDefined(children, 'children are defined');
+					assert.isArray(children, 'children is an array');
+					assert.deepEqual(children, safeTestCRMTree[5].children, 'children match expected children');
+				});
+				it('should throw an error when given a non-menu node', async () => {
+					await asyncThrows(async () => {
+						const children = await crmAPI.crm.menu.getChildren(safeTestCRMTree[1].id);
+						assert.isDefined(children, 'children are defined');
+						assert.isArray(children, 'children is an array');
+						assert.lengthOf(children, 0, 'children is an empty array');
+					}, /Node is not of type menu/);
+				});
+			});
+			describe('#setChildren()', () => {
+				beforeEach(async () => {
+					await resetTree();	
+				});
 
-	// 			it('should set the children and remove the old ones', async () => {
-	// 				const newNode = await crmAPI.crm.menu.setChildren(safeTestCRMTree[5].id, [
-	// 					safeTestCRMTree[1].id,
-	// 					safeTestCRMTree[2].id
-	// 				]);
-	// 				var firstNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[1]));
-	// 				firstNodeCopy.path = newNode.children[0].path;
-	// 				assert.deepEqual(newNode.children[0], firstNodeCopy, 'first node was moved correctly');
+				it('should set the children and remove the old ones', async () => {
+					const newNode = await crmAPI.crm.menu.setChildren(safeTestCRMTree[5].id, [
+						safeTestCRMTree[1].id,
+						safeTestCRMTree[2].id
+					]);
+					console.log('First is', safeTestCRMTree[1]);
+					var firstNodeCopy = {...JSON.parse(JSON.stringify(safeTestCRMTree[1])), 
+						path: newNode.children[0].path,
+						children: [],
+						index: 1,
+						isLocal: true,
+						permissions: []
+					};
+					assert.deepEqual(newNode.children[0], firstNodeCopy, 'first node was moved correctly');
 
-	// 				var secondNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
-	// 				secondNodeCopy.path = newNode.children[1].path;
-	// 				assert.deepEqual(newNode.children[1], secondNodeCopy, 'second node was moved correctly');
+					var secondNodeCopy = {...JSON.parse(JSON.stringify(safeTestCRMTree[2])),
+						path: newNode.children[1].path,
+						children: [],
+						index: 1,
+						isLocal: true,
+						permissions: []
+					}
+					assert.deepEqual(newNode.children[1], secondNodeCopy, 'second node was moved correctly');
 
-	// 				assert.notDeepEqual(newNode.children[0], window.globals.crm.crmTree[1],
-	// 					'original node has been removed');
-	// 				assert.notDeepEqual(newNode.children[1], window.globals.crm.crmTree[2],
-	// 					'original node has been removed');
+					assert.notDeepEqual(newNode.children[0], window.globals.crm.crmTree[1],
+						'original node has been removed');
+					assert.notDeepEqual(newNode.children[1], window.globals.crm.crmTree[2],
+						'original node has been removed');
 
-	// 				// @ts-ignore
-	// 				assert.lengthOf(newNode.children, 2, 'new node has correct size children array');
-	// 			});
-	// 			it('should throw an error when trying to run this on a non-menu node', async () => {
-	// 				await asyncThrows(() => {
-	// 					return crmAPI.crm.menu.setChildren(safeTestCRMTree[1].id, []);
-	// 				}, /Node is not of type menu/);
-	// 			});
-	// 		});
-	// 		describe('#push()', () => {
-	// 			beforeEach(resetTree);
+					// @ts-ignore
+					assert.lengthOf(newNode.children, 2, 'new node has correct size children array');
+				});
+				it('should throw an error when trying to run this on a non-menu node', async () => {
+					await asyncThrows(() => {
+						return crmAPI.crm.menu.setChildren(safeTestCRMTree[1].id, []);
+					}, /Node is not of type menu/);
+				});
+			});
+			describe('#push()', () => {
+				beforeEach(resetTree);
 
-	// 			it('should set the children', async () => {
-	// 				const { children } = await crmAPI.crm.menu.push(safeTestCRMTree[5].id, [
-	// 					safeTestCRMTree[1].id,
-	// 					safeTestCRMTree[2].id
-	// 				]);
-	// 				var firstNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[1]));
-	// 				firstNodeCopy.path = children[1].path;
-	// 				assert.deepEqual(children[1], firstNodeCopy, 'first node was moved correctly');
+				it('should set the children', async () => {
+					const { children } = await crmAPI.crm.menu.push(safeTestCRMTree[5].id, [
+						safeTestCRMTree[1].id,
+						safeTestCRMTree[2].id
+					]);
+					var firstNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[1]));
+					firstNodeCopy.path = children[1].path;
+					assert.deepEqual(children[1], firstNodeCopy, 'first node was moved correctly');
 
-	// 				var secondNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
-	// 				secondNodeCopy.path = children[2].path;
-	// 				assert.deepEqual(children[2], secondNodeCopy, 'second node was moved correctly');
+					var secondNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
+					secondNodeCopy.path = children[2].path;
+					assert.deepEqual(children[2], secondNodeCopy, 'second node was moved correctly');
 
-	// 				assert.notDeepEqual(children[1], window.globals.crm.crmTree[1],
-	// 					'original node has been removed');
-	// 				assert.notDeepEqual(children[2], window.globals.crm.crmTree[2],
-	// 					'original node has been removed');
+					assert.notDeepEqual(children[1], window.globals.crm.crmTree[1],
+						'original node has been removed');
+					assert.notDeepEqual(children[2], window.globals.crm.crmTree[2],
+						'original node has been removed');
 
-	// 				// @ts-ignore
-	// 				assert.lengthOf(children, 3, 'new node has correct size children array');
-	// 			});
-	// 			it('should throw an error when trying to run this on a non-menu node', async () => {
-	// 				await asyncThrows(() => {
-	// 					return crmAPI.crm.menu.push(safeTestCRMTree[1].id, []);
-	// 				}, /Node is not of type menu/);
-	// 			});
-	// 		});
-	// 		describe('#splice()', () => {
-	// 			beforeEach(resetTree);
+					// @ts-ignore
+					assert.lengthOf(children, 3, 'new node has correct size children array');
+				});
+				it('should throw an error when trying to run this on a non-menu node', async () => {
+					await asyncThrows(() => {
+						return crmAPI.crm.menu.push(safeTestCRMTree[1].id, []);
+					}, /Node is not of type menu/);
+				});
+			});
+			describe('#splice()', () => {
+				beforeEach(resetTree);
 
-	// 			it('should correctly splice at index 0 and amount 1', async () => {
-	// 				const spliced = await crmAPI.crm.menu.splice(safeTestCRMTree[5].id, 0, 1);
-	// 				// @ts-ignore
-	// 				assert.lengthOf(window.globals.crm.crmTree[5].children, 0, 'new node has 0 children');
-	// 				assert.deepEqual(spliced[0], safeTestCRMTree[5].children[0],
-	// 					'spliced child matches expected child');
-	// 			});
-	// 		});
-	// 	});
-	// });
+				it('should correctly splice at index 0 and amount 1', async () => {
+					const spliced = await crmAPI.crm.menu.splice(safeTestCRMTree[5].id, 0, 1);
+					// @ts-ignore
+					assert.lengthOf(window.globals.crm.crmTree[5].children, 0, 'new node has 0 children');
+					assert.deepEqual(spliced[0], safeTestCRMTree[5].children[0],
+						'spliced child matches expected child');
+				});
+			});
+		});
+	});
 });

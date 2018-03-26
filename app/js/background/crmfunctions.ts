@@ -53,6 +53,9 @@ export namespace CRMFunctions {
 	}
 	export function getNodeIdFromPath(__this: CRMFunction.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
+			//Force path recalculation
+			modules.CRMNodes.buildNodePaths(modules.crm.crmTree);
+
 			const pathToSearch = __this.message.data.path;
 			const lookedUp = __this.lookup(pathToSearch, 
 				modules.crm.safeTree, false);
@@ -140,6 +143,9 @@ export namespace CRMFunctions {
 	export function getParentNode(__this: CRMFunction.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+				//Force path recalculation
+				modules.CRMNodes.buildNodePaths(modules.crm.crmTree);
+
 				const pathToSearch = JSON.parse(JSON.stringify(node.path));
 				pathToSearch.pop();
 				if (pathToSearch.length === 0) {
@@ -365,9 +371,11 @@ export namespace CRMFunctions {
 	export function moveNode(__this: CRMFunction.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+				//Force path recalculation
+				modules.CRMNodes.buildNodePaths(modules.crm.crmTree);
+
 				//Remove original from CRM
 				const parentChildren = __this.lookup(node.path, modules.crm.crmTree, true);
-				//parentChildren.splice(node.path[node.path.length - 1], 1);
 
 				if ((node = __this.moveNode(node, __this.message.data.position as {
 					node: number;
@@ -385,6 +393,9 @@ export namespace CRMFunctions {
 	export function deleteNode(__this: CRMFunction.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
+				//Force path recalculation
+				modules.CRMNodes.buildNodePaths(modules.crm.crmTree);
+
 				const parentChildren = __this.lookup(node.path, modules.crm.crmTree, true) as CRM.Node[];
 				parentChildren.splice(node.path[node.path.length - 1], 1);
 				if (modules.crmValues.contextMenuIds[node.id] !== undefined) {
@@ -1304,7 +1315,9 @@ export namespace CRMFunctions {
 				type: 'array'
 			}], () => {
 				__this.getNodeFromId(__this.message.data.nodeId, true).run(async (node) => {
-					debugger;
+					//Force path recalculation
+					modules.CRMNodes.buildNodePaths(modules.crm.crmTree);
+
 					const { childrenIds } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
 						childrenIds: number[];
 					};
@@ -1355,6 +1368,9 @@ export namespace CRMFunctions {
 				val: 'childrenIds',
 				type: 'array'
 			}], () => {
+				//Force path recalculation
+				modules.CRMNodes.buildNodePaths(modules.crm.crmTree);
+				
 				const { childrenIds } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
 					childrenIds: number[];
 				};
