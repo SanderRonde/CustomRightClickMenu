@@ -1,6 +1,5 @@
 language: node_js
 node_js: node
-
 branches:
   only:
   - master
@@ -12,19 +11,19 @@ stages:
   if: branch = master
 
 env:
-  - TEST=test-build
-  - TEST=test-local
-  - TEST=test:chrome:old:page
-  - TEST=test:chrome:old:extension
-  - TEST=test:chrome:latest:page
-  - TEST=test:chrome:latest:extension
-  - TEST=test:firefox:quantum
-  - TEST=test:firefox:latest
-  - TEST=test:edge:16
-  - TEST=test:edge:latest
+- TEST=test-build
+- TEST=test-local
+- TEST=test:chrome:old:page
+- TEST=test:chrome:old:extension
+- TEST=test:chrome:latest:page
+- TEST=test:chrome:latest:extension
+- TEST=test:firefox:quantum
+- TEST=test:firefox:latest
+- TEST=test:edge:16
+- TEST=test:edge:latest
 
 before_install:
-- openssl aes-256-cbc -K $encrypted_2f49f885e77e_key -iv $encrypted_2f49f885e77e_iv 
+- openssl aes-256-cbc -K $encrypted_f03a9f39318b_key -iv $encrypted_f03a9f39318b_iv
   -in test/UI/secrets.js.enc -out test/UI/secrets.js -d
 - npm install gulp -g
 install:
@@ -43,6 +42,6 @@ notifications:
     on_failure: change
 addons:
   browserstack:
-    username: "sanderronde1"
+    username: sanderronde1
     access_key:
       secure: KWJzC2NH/w16xV/U5TXuQJZfSVdEJwsFR16uaSJRExtayAxpWWjR9WDHnnHskFJxlPgMSvL5++QoiKajWp1djUAUlElPFlNGeRrpQs19me+SqYkTmmsgn2T6JCo8ThyQRBWMC9k6tkrul7kOthPbEMrKcxsDckQGLIl9nc7LHxiT+iZ0ZV8oBdLELgqjFwsoCfZE9TeZlZybvFA7iUMIX6GxVTSDS3m6/ZN8CsosCIjboP96V7ZuAC2Yxb8klxUiEtqSBdyE6UqA8UMWoqERKp/b5V1BL69PT82TQBVpnrWgQzEw8dK1Lnr98w1a65xvx81VqQIqKx99HC4fYq54X1ajZXkYn6XpNM6UfQlSj2+mSGnzquiYwQrdvZ72HUo/oUfmE+wWIFPRlQYAPRCNjUViQLRPP3CH06Je4U+W0TOHHyQ4Cnd8DyX1HS0qEO3hmoptZMvpcFg+WZOpMhtKWrh6wNwZTxAndhe4vf974/JtoJBHaSqt4Nkllf9BisIUZqnj7I0HMyeJxlUc5m27wsf+NEKM6Qu3jybyBzCvic+D4jZOIzHbLZujKUNHpQmtvfllpBAAwcqjOa56gGgNo/n9CcdvQZqy0QhBMpThXBxW2vOYhVc21zJsa2BnNtZXrliWxrN/hJoIiqZdPdU8gDdLG2YiVOgKURALQSwDwuk=
