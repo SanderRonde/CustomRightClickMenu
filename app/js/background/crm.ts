@@ -2295,9 +2295,6 @@ export namespace CRMNodes {
 			node?: CRM.Node;
 			parentTree?: ContextMenuItemTreeItem[];
 		}> {
-		if (!node) {
-			debugger;
-		}
 		const id = await NodeCreation.createNode(node, parentId);
 		modules.crmValues.contextMenuIds[node.id] = id;
 		if (id !== null) {
