@@ -3865,6 +3865,64 @@ declare namespace CRM {
 			chrome(api: string): ChromeRequestReturn;
 	
 			/**
+			 * Calls the browser API given in the "API" parameter. Due to some issues with the browser message passing
+			 *		API it is not possible to pass messages and preserve scope. This could be fixed in other ways but
+			 *		unfortunately browser.tabs.executeScript (what is used to execute scripts on the page) runs in a
+			 *		sandbox and does not allow you to access a lot. As a solution to this there are a few types of
+			 *		functions you can chain-call on the crmAPI.browser(API) object:
+			 *			a or args or (): uses given arguments as arguments for the API in order specified. When passing a function,
+			 *				it will be converted to a placeholder function that will be called on return with the
+			 *				arguments chrome passed to it. This means the function is never executed on the background
+			 *				page and is always executed here to preserve scope. The arguments are however passed on as they should.
+			 *				You can call this function by calling .args or by just using the parentheses as below.
+			 * 				Keep in mind that this function will not work after it has been called once, meaning that
+			 * 				if your API calls callbacks multiple times (like chrome.tabs.onCreated) you should use
+			 * 				persistent callbacks (see below).
+			 * 			p or persistent: a function that is a persistent callback that will not be removed when called.
+			 * 				This can be used on APIs like chrome.tabs.onCreated where multiple calls can occurring
+			 * 				contrary to chrome.tabs.get where only one callback will occur.
+			 *			s or send: executes the request
+ 			 * Examples:
+			 *		- For a function that returns a promise:
+			 * 		crmAPI.browser('alarms.get')('name').send().then((alarm) => {
+			 *			//Do something with the result here
+			 *		});
+			 * 		-
+			 *		- Or the async version
+			 * 		const alarm = await crmAPI.browser('alarms.get')('name').send();
+			 *		-
+			 *		- For a function that returns a value it works the same:
+			 *		crmAPI.chrome('runtime.getUrl')(path).send().then((result) => {
+			 *			//Do something with the result
+			 *		});
+			 *		-
+			 *		- For a function that uses neither:
+			 *		crmAPI.chrome('alarms.create')('name', {}).send();
+			 *		-
+			 * 		- Or you can still await it to know when it's done executing
+			 * 		crmAPI.chrome('alarms.create')('name', {}).send();		
+			 *		-
+			 *		- For a function that uses a persistent callback
+			 *		crmAPI.chrome('tabs.onCreated.addListener').persistent(function(tab) {
+			 * 			//Do something with the tab 
+			 *		}).send();
+			 *		-
+			 *		- A compacter version:
+			 *		const url = await crmAPI.chrome('alarms.get')('name').s();
+			 *		-
+			 * Requires permission "chrome" (or "browser", they're the same) and the permission
+			 * of the the API, so chrome.bookmarks requires permission "bookmarks", 
+			 * chrome.alarms requires "alarms"
+			 *
+			 * @permission chrome
+			 * @permission browser
+			 * @param {string} api - The API to use
+			 * @returns {Object} - An object on which you can call .args, .fn and .send
+			 * 		(and their first-letter-only versions)
+			 */
+			browser(api: string): BrowserRequestReturn;
+
+			/**
 			 * The GM API that fills in any APIs that GreaseMonkey uses and points them to their
 			 *		CRM counterparts
 			 * 		Documentation can be found here http://wiki.greasespot.net/Greasemonkey_Manual:API
