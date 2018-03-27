@@ -1834,16 +1834,6 @@ describe('User entrypoints', function() {
 					throw new Error('Failed to get elements loaded message, page load is failing');
 				});
 			});
-			it('should happen without errors', async function(done)  {
-				const result = (await driver.executeScript(inlineFn(() => {
-					return window.errorReportingTool.lastErrors;
-				}))).filter(err => !err.handled);
-				if (result.length) {
-					console.log(result);
-				}
-				assert.lengthOf(result, 0, 'no errors should be thrown when loading');
-				done();
-			});
 		});
 		describe('CheckboxOptions', function() {
 			if (SKIP_OPTIONS_PAGE_NON_DIALOGS) {
