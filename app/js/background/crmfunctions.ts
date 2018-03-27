@@ -1087,7 +1087,7 @@ export namespace CRMFunctions {
 					};
 
 					if (node.type === 'script') {
-						const libs = modules.Util.safe(node).value.libraries
+						const libs = node.value.libraries
 						const spliced = libs.splice(start, amount);
 						await modules.CRMNodes.updateCrm();
 						__this.respondSuccess({
@@ -1177,19 +1177,12 @@ export namespace CRMFunctions {
 				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 					let spliced: CRM.Library[];
 					if (node.type === 'script') {
-						const backgroundLibs = modules.Util.safe(node).value.backgroundLibraries;
+						const backgroundLibs = node.value.backgroundLibraries;
 						spliced = backgroundLibs.splice(start, amount);
 						await modules.CRMNodes.updateCrm([__this.message.data.nodeId]);
 						__this.respondSuccess(spliced, backgroundLibs);
 					} else {
-						if (!node.scriptVal) {
-							node.scriptVal = modules.constants.templates.getDefaultScriptValue();
-						}
-						const scriptVal = node.scriptVal as CRM.ScriptVal;;
-						scriptVal.backgroundLibraries = scriptVal.backgroundLibraries || [];
-						spliced = scriptVal.backgroundLibraries.splice(start, amount);
-						await modules.CRMNodes.updateCrm([__this.message.data.nodeId]);
-						__this.respondSuccess(spliced, scriptVal.backgroundLibraries);
+						__this.respondError('Node is not of type script');
 					}
 					return true;
 				});
