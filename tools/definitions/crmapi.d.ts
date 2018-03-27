@@ -604,7 +604,15 @@ declare namespace CRM {
 		 * The name of the library
 		 */
 		name: string;
+		/**
+		 * The url of the library
+		 */
+		url: void;
 	}|{
+		/**
+		 * The name of the library
+		 */
+		name: void;
 		/**
 		 * The url of the library
 		 */
@@ -3526,7 +3534,9 @@ declare namespace CRM {
 						 * @param {function} [callback] - A callback that is called with the new array as an argument
 						 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
 						 */
-						push(nodeId: number, libraries: CRM.Library, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
+						push(nodeId: number, libraries: {
+							name: string;
+						}, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
 						/**
 						 * Pushes given libraries to the node with ID nodeId's libraries array,
 						 * make sure to register them first or an error is thrown, only works on script nodes
@@ -3539,7 +3549,9 @@ declare namespace CRM {
 						 * @param {function} [callback] - A callback that is called with the new array as an argument
 						 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
 						 */
-						push(nodeId: number, libraries: CRM.Library[], callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
+						push(nodeId: number, libraries: {
+							name: string;
+						}[], callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
 	
 						/**
 						 * Splices the array of libraries of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)
@@ -3577,7 +3589,9 @@ declare namespace CRM {
 						 * @param {function} [callback] - A callback that is called with the new array as an argument
 						 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
 						 */
-						push(nodeId: number, libraries: CRM.Library, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
+						push(nodeId: number, libraries: {
+							name: string;
+						}, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
 						/**
 						 * Pushes given libraries to the node with ID nodeId's libraries array,
 						 * make sure to register them first or an error is thrown, only works on script nodes
@@ -3590,7 +3604,9 @@ declare namespace CRM {
 						 * @param {function} [callback] - A callback that is called with the new array as an argument
 						 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
 						 */
-						push(nodeId: number, libraries: CRM.Library[], callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
+						push(nodeId: number, libraries: {
+							name: string;
+						}[], callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
 	
 						/**
 						 * Splices the array of libraries of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)

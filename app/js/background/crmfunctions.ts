@@ -1000,12 +1000,13 @@ export namespace CRMFunctions {
 		}
 		return false;
 	}
-	function _isAlreadyUsed(script: CRM.ScriptNode, lib: CRM.Library): boolean {
-		for (const { name, url } of script.value.libraries) {
-			if (name === (lib.name || null) &&
-				url === (lib.url || null)) {
-					return true;
-				}
+	function _isAlreadyUsed(script: CRM.ScriptNode, lib: {
+		name: string;
+	}): boolean {
+		for (const { name } of script.value.libraries) {
+			if (name === (lib.name || null)) {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -1026,7 +1027,11 @@ export namespace CRMFunctions {
 				optional: true
 			}], async () => {
 				const msg = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-					libraries: CRM.Library[] | CRM.Library;
+					libraries: {
+						name: string;
+					}[] | {
+						name: string;
+					};
 				};
 				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 					if (node.type !== 'script') {
@@ -1043,7 +1048,7 @@ export namespace CRMFunctions {
 								return false;
 							}
 							if (!_isAlreadyUsed(node, library)) {
-								node.value.libraries.push(library);
+								node.value.libraries.push(library as CRM.Library);
 							}
 						}
 					} else {
@@ -1054,7 +1059,7 @@ export namespace CRMFunctions {
 							return false;
 						}
 						if (!_isAlreadyUsed(node, libraries)) {
-							node.value.libraries.push(libraries);
+							node.value.libraries.push(libraries as CRM.Library);
 						}
 					}
 					await modules.CRMNodes.updateCrm();
@@ -1113,7 +1118,11 @@ export namespace CRMFunctions {
 			}], () => {
 				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 					const msg = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-						libraries: CRM.Library[] | CRM.Library
+						libraries: {
+							name: string;
+						}[] | {
+							name: string;
+						}
 					};
 
 					if (node.type !== 'script') {
@@ -1130,7 +1139,7 @@ export namespace CRMFunctions {
 								return false;
 							}
 							if (!_isAlreadyUsed(node, library)) {
-								node.value.backgroundLibraries.push(library);
+								node.value.backgroundLibraries.push(library as CRM.Library);
 							}
 						}
 					} else { //Object

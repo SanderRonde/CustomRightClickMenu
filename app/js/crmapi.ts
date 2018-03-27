@@ -4250,7 +4250,9 @@ type CRMAPIMessage = {
 					 * @param {function} [callback] - A callback with the new array as an argument
 					 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
 					 */
-					push(this: CrmAPIInstance, nodeId: number, libraries: MaybeArray<CRM.Library>, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]> {
+					push(this: CrmAPIInstance, nodeId: number, libraries: MaybeArray<{
+						name: string;
+					}>, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]> {
 						return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptLibraryPush', callback, {
 							nodeId: nodeId,
 							libraries: libraries
@@ -4306,7 +4308,9 @@ type CRMAPIMessage = {
 					 * @param {function} [callback] - A callback with the new array as an argument
 					 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
 					 */
-					push(this: CrmAPIInstance, nodeId: number, libraries: MaybeArray<CRM.Library>, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]> {
+					push(this: CrmAPIInstance, nodeId: number, libraries: MaybeArray<{
+						name: string;
+					}>, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]> {
 						return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptBackgroundLibraryPush', callback, {
 							nodeId: nodeId,
 							libraries: libraries

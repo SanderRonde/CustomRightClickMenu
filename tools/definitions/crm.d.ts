@@ -388,7 +388,15 @@ declare namespace CRM {
 		 * The name of the library
 		 */
 		name: string;
+		/**
+		 * The url of the library
+		 */
+		url: void;
 	}|{
+		/**
+		 * The name of the library
+		 */
+		name: void;
 		/**
 		 * The url of the library
 		 */
