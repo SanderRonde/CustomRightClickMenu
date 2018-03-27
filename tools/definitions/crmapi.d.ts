@@ -646,7 +646,7 @@ declare namespace CRM {
 	/**
 	 * The id of a node, has the source node encoded in typing to keep association
 	 */
-	type NodeId<T = CRM.SafeNode> = number & {
+	type NodeId<T = SafeNode> = number & {
 		__srcNode?: T;
 	}
 
@@ -2250,7 +2250,7 @@ declare namespace CRM {
 			/**
 			 * The type of the item
 			 */
-			type?: CRM.NodeType;
+			type?: NodeType;
 			/**
 			 * The ID of the node whose subtree to search in (none for root)
 			 */
@@ -2634,11 +2634,11 @@ declare namespace CRM {
 		 * @class
 		 */
 		export class Instance {
-			constructor(node: CRM.SafeNode, id: NodeId, tabData: TabData, 
+			constructor(node: SafeNode, id: NodeId, tabData: TabData, 
 				clickData: ClickData, secretKey: number[],
 				nodeStorage: NodeStorage, contextData: ContextData,
 				greasemonkeyData: GreaseMonkeyData, isBackground: boolean,
-				options: CRM.Options, enableBackwardsCompatibility: boolean,
+				options: Options, enableBackwardsCompatibility: boolean,
 				tabIndex: number, extensionId: string, supportedAPIs: string);
 	
 			/**
@@ -2696,7 +2696,7 @@ declare namespace CRM {
 			/**
 			 * All permissions that are allowed on this script
 			 */
-			permissions: CRM.Permission[];
+			permissions: Permission[];
 	
 			/**
 			 * If set, calls this function when an error occurs
@@ -2923,7 +2923,7 @@ declare namespace CRM {
 			 *
 			 * @returns {Object} - The node that is being executed right now
 			 */
-			getNode(): CRM.Node;
+			getNode(): Node;
 	
 			/**
 			 * The crm API, used to make changes to the crm, some API calls may require permissions crmGet and crmWrite
@@ -2947,9 +2947,9 @@ declare namespace CRM {
 				 *
 				 * @permission crmGet
 				 * @param {function} [callback] - A function that is called when done with the data as an argument
-				 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the tree
+				 * @returns {Promise<SafeNode[]>} A promise that resolves with the tree
 				 */
-				getTree(callback?: (data: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]>,
+				getTree(callback?: (data: SafeNode[]) => void): Promise<SafeNode[]>,
 	
 				/**
 				 * Gets the CRM's tree from either the root or from the node with ID nodeId
@@ -2957,19 +2957,19 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @param {number} nodeId - The ID of the subtree's root node
 				 * @param {function} callback - A function that is called when done with the data as an argument
-				 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the subtree
+				 * @returns {Promise<SafeNode[]>} A promise that resolves with the subtree
 				 */
-				getSubTree(nodeId: number, callback?: (data: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]>,
+				getSubTree(nodeId: number, callback?: (data: SafeNode[]) => void): Promise<SafeNode[]>,
 	
 				/**
 				 * Gets the node with ID nodeId
 				 *
 				 * @permission crmGet
 				 * @param {Instance~crmCallback} [callback] - A function that is called when done
-				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
+				 * @returns {Promise<SafeNode>} A promise that resolves with the node
 				 */
-				getNode<T extends CRM.SafeNode>(nodeId: NodeId<T>, callback?: (node: T) => void): Promise<T>,
-				getNode(nodeId: number, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+				getNode<T extends SafeNode>(nodeId: NodeId<T>, callback?: (node: T) => void): Promise<T>,
+				getNode(nodeId: number, callback?: (node: SafeNode) => void): Promise<SafeNode>,
 	
 				/**
 				 * Gets a node's ID from a path to the node
@@ -2992,19 +2992,19 @@ declare namespace CRM {
 				 * @param {string} [query.type] - The type of the item (link, script, stylesheet, divider or menu)
 				 * @param {number} [query.inSubTree] - The subtree in which this item is located (the number given is the id of the root item)
 				 * @param {Instance~crmCallback} [callback] - A callback that is called with the resulting nodes in an array
-				 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the resulting nodes
+				 * @returns {Promise<SafeNode[]>} A promise that resolves with the resulting nodes
 				 */
-				queryCrm(query: CRMQuery, callback?: (results: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]>,
+				queryCrm(query: CRMQuery, callback?: (results: SafeNode[]) => void): Promise<SafeNode[]>,
 	
 				/**
 				 * Gets the parent of the node with ID nodeId
 				 *
 				 * @permission crmGet
 				 * @param {number} nodeId - The node of which to get the parent
-				 * @param {(node: CRM.SafeNode|CRM.SafeNode[]) => void} callback - A callback with the parent of the given node as an argument
-				 * @returns {Promise<CRM.SafeNode|CRM.SafeNode[]>} A promise that resolves with the parent of given node
+				 * @param {(node: SafeNode|SafeNode[]) => void} callback - A callback with the parent of the given node as an argument
+				 * @returns {Promise<SafeNode|SafeNode[]>} A promise that resolves with the parent of given node
 				 */
-				getParentNode(nodeId: number, callback?: (node: CRM.SafeNode|CRM.SafeNode[]) => void): Promise<CRM.SafeNode|CRM.SafeNode[]>,
+				getParentNode(nodeId: number, callback?: (node: SafeNode|SafeNode[]) => void): Promise<SafeNode|SafeNode[]>,
 	
 				/**
 				 * Gets the type of node with ID nodeId
@@ -3012,10 +3012,10 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @param {number} nodeId - The id of the node whose type to get
 				 * @param {function} [callback] - A callback that is called with the type of the node as the parameter (link, script, menu or divider)
-				 * @returns {Promise<CRM.NodeType>} A promise that resolves with the type of the node
+				 * @returns {Promise<NodeType>} A promise that resolves with the type of the node
 				 */
-				getNodeType<T extends CRM.SafeNode>(nodeId: NodeId<T>, callback?: (type: T['type']) => void): Promise<T['type']>,
-				getNodeType(nodeId: number, callback?: (type: CRM.NodeType) => void): Promise<CRM.NodeType>,
+				getNodeType<T extends SafeNode>(nodeId: NodeId<T>, callback?: (type: T['type']) => void): Promise<T['type']>,
+				getNodeType(nodeId: number, callback?: (type: NodeType) => void): Promise<NodeType>,
 	
 				/**
 				 * Gets the value of node with ID nodeId
@@ -3023,10 +3023,10 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @param {number} nodeId - The id of the node whose value to get
 				 * @param {function} [callback] - A callback that is called with parameter linkVal, scriptVal, stylesheetVal or an empty object depending on type
-				 * @returns {Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null>} A promise that resolves with the value of the node
+				 * @returns {Promise<LinkVal|ScriptVal|StylesheetVal|null>} A promise that resolves with the value of the node
 				 */
-				getNodeValue<T extends CRM.SafeNode>(nodeId: NodeId<T>, callback?: (value: T['value']) => void): Promise<T['value']>,
-				getNodeValue(nodeId: number, callback?: (value: CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null) => void): Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null>,
+				getNodeValue<T extends SafeNode>(nodeId: NodeId<T>, callback?: (value: T['value']) => void): Promise<T['value']>,
+				getNodeValue(nodeId: number, callback?: (value: LinkVal|ScriptVal|StylesheetVal|null) => void): Promise<LinkVal|ScriptVal|StylesheetVal|null>,
 	
 				/**
 				 * Creates a node with the given options
@@ -3084,11 +3084,11 @@ declare namespace CRM {
 				 * @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggle-able by clicking (true = toggle-able), not required, defaults to true
 				 * @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
 				 * @param {Instance~crmCallback} [callback] - A callback given the new node as an argument
-				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the created node
+				 * @returns {Promise<SafeNode>} A promise that resolves with the created node
 				 */
-				createNode(options: Partial<CRM.SafeNode> & {
+				createNode(options: Partial<SafeNode> & {
 					position?: Relation;
-				}, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+				}, callback?: (node: SafeNode) => void): Promise<SafeNode>,
 	
 				/**
 				 * Copies given node including children,
@@ -3111,9 +3111,9 @@ declare namespace CRM {
 				 *		before: before given node
 				 *		after: after the given node
 				 * @param {Instance~crmCallback} [callback] - A callback given the new node as an argument
-				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the copied node
+				 * @returns {Promise<SafeNode>} A promise that resolves with the copied node
 				 */
-				copyNode<T extends CRM.SafeNode, U extends string = 'name'>(nodeId: NodeId<T>, options: {
+				copyNode<T extends SafeNode, U extends string = 'name'>(nodeId: NodeId<T>, options: {
 					/**
 					 * The name of the new node (defaults to "name")
 					 */
@@ -3144,7 +3144,7 @@ declare namespace CRM {
 				 *		before: before given node
 				 *		after: after the given node
 				 * @param {Instance~crmCallback} [callback] - A callback given the new node as an argument
-				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the copied node
+				 * @returns {Promise<SafeNode>} A promise that resolves with the copied node
 				 */
 				copyNode(nodeId: number, options: {
 					/**
@@ -3155,7 +3155,7 @@ declare namespace CRM {
 					 * The position to copy it to
 					 */
 					position?: Relation
-				}, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+				}, callback?: (node: SafeNode) => void): Promise<SafeNode>,
 	
 				/**
 				 * Moves given node to position specified in `position`
@@ -3173,10 +3173,10 @@ declare namespace CRM {
 				 *		before: before given node
 				 *		after: after the given node
 				 * @param {Instance~crmCallback} [callback] - A function that gets called with the new node as an argument
-				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the moved node
+				 * @returns {Promise<SafeNode>} A promise that resolves with the moved node
 				 */
-				moveNode<T extends CRM.SafeNode>(nodeId: NodeId<T>, position: Relation, callback?: (node: T) => void): Promise<T>,
-				moveNode(nodeId: number, position: Relation, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+				moveNode<T extends SafeNode>(nodeId: NodeId<T>, position: Relation, callback?: (node: T) => void): Promise<T>,
+				moveNode(nodeId: number, position: Relation, callback?: (node: SafeNode) => void): Promise<SafeNode>,
 	
 				/**
 				 * Deletes given node
@@ -3201,9 +3201,9 @@ declare namespace CRM {
 				 * @param {string} [options.name] - Changes the name to given string
 				 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, contains the new node as an argument
-				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the edited node
+				 * @returns {Promise<SafeNode>} A promise that resolves with the edited node
 				 */
-				editNode<T extends CRM.SafeNode, U extends string = T['name'], NT extends CRM.NodeType = T['type']>(nodeId: NodeId<T>, options: { 
+				editNode<T extends SafeNode, U extends string = T['name'], NT extends NodeType = T['type']>(nodeId: NodeId<T>, options: { 
 					/**
 					 * The new name of the node
 					 */
@@ -3223,7 +3223,7 @@ declare namespace CRM {
 				 * @param {string} [options.name] - Changes the name to given string
 				 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, contains the new node as an argument
-				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the edited node
+				 * @returns {Promise<SafeNode>} A promise that resolves with the edited node
 				 */
 				editNode(nodeId: number, options: { 
 					/**
@@ -3233,8 +3233,8 @@ declare namespace CRM {
 					/**
 					 * The new type of the node
 					 */
-					type?: CRM.NodeType 
-				}, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+					type?: NodeType 
+				}, callback?: (node: SafeNode) => void): Promise<SafeNode>,
 	
 				/**
 				 * Gets the triggers for given node
@@ -3242,9 +3242,9 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @param {number} nodeId - The node of which to get the triggers
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the triggers as an argument
-				 * @returns {Promise<CRM.Trigger[]>} A promise that resolves with the triggers
+				 * @returns {Promise<Trigger[]>} A promise that resolves with the triggers
 				 */
-				getTriggers(nodeId: number, callback?: (triggers: CRM.Trigger[]) => void): Promise<CRM.Trigger[]>,
+				getTriggers(nodeId: number, callback?: (triggers: Trigger[]) => void): Promise<Trigger[]>,
 	
 				/**
 				 * Sets the triggers for given node
@@ -3260,10 +3260,10 @@ declare namespace CRM {
 				 * 		https://developer.chrome.com/extensions/match_patterns
 				 * @param {boolean} triggers.not - If true does NOT show the node on that URL
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
-				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
+				 * @returns {Promise<SafeNode>} A promise that resolves with the node
 				 */
-				setTriggers<T extends CRM.SafeNode>(nodeId: NodeId<T>, triggers: CRM.Trigger[], callback?: (node: T) => void): Promise<T>,
-				setTriggers(nodeId: number, triggers: CRM.Trigger[], callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+				setTriggers<T extends SafeNode>(nodeId: NodeId<T>, triggers: Trigger[], callback?: (node: T) => void): Promise<T>,
+				setTriggers(nodeId: number, triggers: Trigger[], callback?: (node: SafeNode) => void): Promise<SafeNode>,
 	
 				/**
 				 * Gets the trigger' usage for given node (true - it's being used, or false), only works on
@@ -3284,10 +3284,10 @@ declare namespace CRM {
 				 * @param {number} nodeId - The node of which to get the triggers
 				 * @param {boolean} useTriggers - Whether the triggers should be used or not
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
-				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
+				 * @returns {Promise<SafeNode>} A promise that resolves with the node
 				 */
-				setTriggerUsage<T extends CRM.SafeNode>(nodeId: NodeId<T>, useTriggers: boolean, callback?: (node: T) => void): Promise<T>
-				setTriggerUsage(nodeId: number, useTriggers: boolean, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>
+				setTriggerUsage<T extends SafeNode>(nodeId: NodeId<T>, useTriggers: boolean, callback?: (node: T) => void): Promise<T>
+				setTriggerUsage(nodeId: number, useTriggers: boolean, callback?: (node: SafeNode) => void): Promise<SafeNode>
 
 				/**
 				 * Gets the content types for given node
@@ -3296,9 +3296,9 @@ declare namespace CRM {
 				 * @permission crmWrite
 				 * @param {number} nodeId - The node of which to get the content types
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the content types array as an argument
-				 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the content types
+				 * @returns {Promise<ContentTypes>} A promise that resolves with the content types
 				 */
-				getContentTypes(nodeId: number, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes>,
+				getContentTypes(nodeId: number, callback?: (contentTypes: ContentTypes) => void): Promise<ContentTypes>,
 	
 				/**
 				 * Sets the content type at index `index` to given value `value`
@@ -3310,10 +3310,10 @@ declare namespace CRM {
 				 *		page, link, selection, image, video, audio. Can also be the name of the index (one of those words)
 				 * @param {boolean} value - The new value at index `index`
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the new array as an argument
-				 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the new content types
+				 * @returns {Promise<ContentTypes>} A promise that resolves with the new content types
 				 */
-				setContentType(nodeId: number, indexOrName: number, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes>,
-				setContentType(nodeId: number, indexOrName: ContentTypeString, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes>,
+				setContentType(nodeId: number, indexOrName: number, value: boolean, callback?: (contentTypes: ContentTypes) => void): Promise<ContentTypes>,
+				setContentType(nodeId: number, indexOrName: ContentTypeString, value: boolean, callback?: (contentTypes: ContentTypes) => void): Promise<ContentTypes>,
 	
 				/**
 				 * Sets the content types to given contentTypes array
@@ -3323,11 +3323,11 @@ declare namespace CRM {
 				 * @param {number} nodeId - The node whose content types to set
 				 * @param {number[]} contentTypes - An array of number, if an index is true, it's displayed at that index's value
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
-				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
+				 * @returns {Promise<SafeNode>} A promise that resolves with the node
 				 */
-				setContentTypes<T extends CRM.SafeNode>(nodeId: NodeId<T>, contentTypes: CRM.ContentTypes, callback?: (node: T) => void): Promise<T>,
-				setContentTypes(nodeId: number, contentTypes: CRM.ContentTypes, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
-				setContentTypes(nodeId: number, contentTypes: boolean[], callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+				setContentTypes<T extends SafeNode>(nodeId: NodeId<T>, contentTypes: ContentTypes, callback?: (node: T) => void): Promise<T>,
+				setContentTypes(nodeId: number, contentTypes: ContentTypes, callback?: (node: SafeNode) => void): Promise<SafeNode>,
+				setContentTypes(nodeId: number, contentTypes: boolean[], callback?: (node: SafeNode) => void): Promise<SafeNode>,
 	
 				/**
 				 * Sets the launch mode of node with ID nodeId to `launchMode`
@@ -3342,10 +3342,10 @@ declare namespace CRM {
 				 *		3 = only show on specified pages
 				 * 		4 = disabled
 				 * @param {Instance~crmCallback} [callback] - A function that is ran when done with the new node as an argument
-				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
+				 * @returns {Promise<SafeNode>} A promise that resolves with the node
 				 */
-				setLaunchMode<T extends CRM.SafeNode>(nodeId: NodeId<T>, launchMode: CRMLaunchModes, callback?: (node: T) => void): Promise<T>,
-				setLaunchMode(nodeId: number, launchMode: CRMLaunchModes, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+				setLaunchMode<T extends SafeNode>(nodeId: NodeId<T>, launchMode: CRMLaunchModes, callback?: (node: T) => void): Promise<T>,
+				setLaunchMode(nodeId: number, launchMode: CRMLaunchModes, callback?: (node: SafeNode) => void): Promise<SafeNode>,
 	
 				/**
 				 * Gets the launchMode of the node with ID nodeId
@@ -3369,10 +3369,10 @@ declare namespace CRM {
 					 * @param {number} nodeId - The node of which to change the stylesheet
 					 * @param {string} stylesheet - The code to change to
 					 * @param {Instance~crmCallback} [callback] - A function with the node as an argument
-					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
+					 * @returns {Promise<SafeNode>} A promise that resolves with the node
 					 */
-					setStylesheet<T extends CRM.SafeNode>(nodeId: NodeId<T>, stylesheet: string, callback?: (node: T) => void): Promise<T>
-					setStylesheet(nodeId: number, stylesheet: string, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>
+					setStylesheet<T extends SafeNode>(nodeId: NodeId<T>, stylesheet: string, callback?: (node: T) => void): Promise<T>
+					setStylesheet(nodeId: number, stylesheet: string, callback?: (node: SafeNode) => void): Promise<SafeNode>
 	
 					/**
 					 * Gets the value of the stylesheet
@@ -3397,9 +3397,9 @@ declare namespace CRM {
 					 * @param {function} [callback] - A callback that is called with an array of objects as parameters, all containing two keys:
 					 *		newTab: Whether the link should open in a new tab or the current tab
 					 *		url: The URL of the link
-					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
+					 * @returns {Promise<LinkNodeLink[]>} A promise that resolves with the links
 					 */
-					getLinks(nodeId: number, callback?: (result: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]>,
+					getLinks(nodeId: number, callback?: (result: LinkNodeLink[]) => void): Promise<LinkNodeLink[]>,
 	
 					/**
 					 * Gets the links of the node with ID nodeId
@@ -3411,10 +3411,10 @@ declare namespace CRM {
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
 					 * @param {function} [callback] - A function that gets called when done with the new array as an argument
-					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
+					 * @returns {Promise<LinkNodeLink[]>} A promise that resolves with the links
 					 */
-					setLinks(nodeId: number, item: CRM.LinkNodeLink, 
-						callback?: (arr: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]>;
+					setLinks(nodeId: number, item: LinkNodeLink, 
+						callback?: (arr: LinkNodeLink[]) => void): Promise<LinkNodeLink[]>;
 					/**
 					 * Gets the links of the node with ID nodeId
 					 *
@@ -3425,10 +3425,10 @@ declare namespace CRM {
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
 					 * @param {function} [callback] - A function that gets called when done with the new array as an argument
-					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
+					 * @returns {Promise<LinkNodeLink[]>} A promise that resolves with the links
 					 */
-					setLinks(nodeId: number, items: CRM.LinkNodeLink[], 
-						callback?: (arr: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]>;
+					setLinks(nodeId: number, items: LinkNodeLink[], 
+						callback?: (arr: LinkNodeLink[]) => void): Promise<LinkNodeLink[]>;
 	
 					/**
 					 * Pushes given items into the array of URLs of node with ID nodeId
@@ -3440,10 +3440,10 @@ declare namespace CRM {
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
 					 * @param {function} [callback] - A function that gets called when done with the new array as an argument
-					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the new links array
+					 * @returns {Promise<LinkNodeLink[]>} A promise that resolves with the new links array
 					 */
-					push(nodeId: number, items: CRM.LinkNodeLink,
-						callback?: (arr: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]>,
+					push(nodeId: number, items: LinkNodeLink,
+						callback?: (arr: LinkNodeLink[]) => void): Promise<LinkNodeLink[]>,
 					/**
 					 * Pushes given items into the array of URLs of node with ID nodeId
 					 *
@@ -3454,10 +3454,10 @@ declare namespace CRM {
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
 					 * @param {function} [callback] - A function that gets called when done with the new array as an argument
-					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the new links array
+					 * @returns {Promise<LinkNodeLink[]>} A promise that resolves with the new links array
 					 */
-					push(nodeId: number, items: CRM.LinkNodeLink[],
-						callback?: (arr: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]>
+					push(nodeId: number, items: LinkNodeLink[],
+						callback?: (arr: LinkNodeLink[]) => void): Promise<LinkNodeLink[]>
 	
 					/**
 					 * Splices the array of URLs of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)
@@ -3469,13 +3469,13 @@ declare namespace CRM {
 					 * @param {number} start - The index of the array at which to start splicing
 					 * @param {number} amount - The amount of items to splice
 					 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
-					 * @returns {Promise<{spliced: CRM.LinkNodeLink[], newArr: CRM.LinkNodeLink[]}>} A promise that resolves with an object
+					 * @returns {Promise<{spliced: LinkNodeLink[], newArr: LinkNodeLink[]}>} A promise that resolves with an object
 					 * 		containing a `spliced` property, which holds the spliced items, and a `newArr` property, holding the new array
 					 */
 					splice(nodeId: number, start: number, amount: number,
-						callback?: (spliced: CRM.LinkNodeLink[], newArr: CRM.LinkNodeLink[]) => void): Promise<{
-							spliced: CRM.LinkNodeLink[];
-							newArr: CRM.LinkNodeLink[];
+						callback?: (spliced: LinkNodeLink[], newArr: LinkNodeLink[]) => void): Promise<{
+							spliced: LinkNodeLink[];
+							newArr: LinkNodeLink[];
 						}>;
 				},
 	
@@ -3488,10 +3488,10 @@ declare namespace CRM {
 					 * @param {number} nodeId - The node of which to change the script
 					 * @param {string} script - The code to change to
 					 * @param {Instance~crmCallback} [callback] - A function with the node as an argument
-					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the new node
+					 * @returns {Promise<SafeNode>} A promise that resolves with the new node
 					 */
-					setScript<T extends CRM.SafeNode>(nodeId: NodeId<T>, script: string, callback?: (node: T) => void): Promise<T>,
-					setScript(nodeId: number, script: string, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+					setScript<T extends SafeNode>(nodeId: NodeId<T>, script: string, callback?: (node: T) => void): Promise<T>,
+					setScript(nodeId: number, script: string, callback?: (node: SafeNode) => void): Promise<SafeNode>,
 	
 					/**
 					 * Gets the value of the script
@@ -3511,10 +3511,10 @@ declare namespace CRM {
 					 * @param {number} nodeId - The node of which to change the script
 					 * @param {string} script - The code to change to
 					 * @param {Instance~crmCallback} [callback] - A function with the node as an argument
-					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
+					 * @returns {Promise<SafeNode>} A promise that resolves with the node
 					 */
-					setBackgroundScript<T extends CRM.SafeNode>(nodeId: NodeId<T>, script: string, callback?: (node: T) => void): Promise<T>,
-					setBackgroundScript(nodeId: number, script: string, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+					setBackgroundScript<T extends SafeNode>(nodeId: NodeId<T>, script: string, callback?: (node: T) => void): Promise<T>,
+					setBackgroundScript(nodeId: number, script: string, callback?: (node: SafeNode) => void): Promise<SafeNode>,
 	
 					/**
 					 * Gets the value of the backgroundScript
@@ -3537,11 +3537,11 @@ declare namespace CRM {
 						 * @param {Object} libraries - One library to push
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback that is called with the new array as an argument
-						 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
+						 * @returns {Promise<Library[]>} A promise that resolves with the new libraries
 						 */
 						push(nodeId: number, libraries: {
 							name: string;
-						}, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
+						}, callback?: (libs: Library[]) => void): Promise<Library[]>,
 						/**
 						 * Pushes given libraries to the node with ID nodeId's libraries array,
 						 * make sure to register them first or an error is thrown, only works on script nodes
@@ -3552,11 +3552,11 @@ declare namespace CRM {
 						 * @param {Object[]} libraries - An array of libraries to push
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback that is called with the new array as an argument
-						 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
+						 * @returns {Promise<Library[]>} A promise that resolves with the new libraries
 						 */
 						push(nodeId: number, libraries: {
 							name: string;
-						}[], callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
+						}[], callback?: (libs: Library[]) => void): Promise<Library[]>,
 	
 						/**
 						 * Splices the array of libraries of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)
@@ -3568,13 +3568,13 @@ declare namespace CRM {
 						 * @param {number} start - The index of the array at which to start splicing
 						 * @param {number} amount - The amount of items to splice
 						 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
-						 * @returns {Promise<{spliced: CRM.Library[], newArr: CRM.Library[]}>} A promise that resolves with an object
+						 * @returns {Promise<{spliced: Library[], newArr: Library[]}>} A promise that resolves with an object
 						 * 		that contains a `spliced` property, which contains the spliced items and a `newArr` property containing the new array
 						 */
 						splice(nodeId: number, start: number, amount: number,
-							callback?: (spliced: CRM.Library[], newArr: CRM.Library[]) => void): Promise<{
-								spliced: CRM.Library[];
-								newArr: CRM.Library[];
+							callback?: (spliced: Library[], newArr: Library[]) => void): Promise<{
+								spliced: Library[];
+								newArr: Library[];
 							}>;
 					},
 	
@@ -3592,11 +3592,11 @@ declare namespace CRM {
 						 * @param {Object} libraries - One library to push
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback that is called with the new array as an argument
-						 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
+						 * @returns {Promise<Library[]>} A promise that resolves with the new libraries
 						 */
 						push(nodeId: number, libraries: {
 							name: string;
-						}, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
+						}, callback?: (libs: Library[]) => void): Promise<Library[]>,
 						/**
 						 * Pushes given libraries to the node with ID nodeId's libraries array,
 						 * make sure to register them first or an error is thrown, only works on script nodes
@@ -3607,11 +3607,11 @@ declare namespace CRM {
 						 * @param {Object[]} libraries - An array of libraries to push
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback that is called with the new array as an argument
-						 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
+						 * @returns {Promise<Library[]>} A promise that resolves with the new libraries
 						 */
 						push(nodeId: number, libraries: {
 							name: string;
-						}[], callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
+						}[], callback?: (libs: Library[]) => void): Promise<Library[]>,
 	
 						/**
 						 * Splices the array of libraries of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)
@@ -3623,13 +3623,13 @@ declare namespace CRM {
 						 * @param {number} start - The index of the array at which to start splicing
 						 * @param {number} amount - The amount of items to splice
 						 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
-						 * @returns {Promise<{spliced: CRM.Library[], newArr: CRM.Library[]}>} A promise that resolves with an object
+						 * @returns {Promise<{spliced: Library[], newArr: Library[]}>} A promise that resolves with an object
 						 * 		that contains a `spliced` property, which contains the spliced items and a `newArr` property containing the new array
 						 */
 						splice(nodeId: number, start: number, amount: number,
-							callback?: (spliced: CRM.Library[], newArr: CRM.Library[]) => void): Promise<{
-								spliced: CRM.Library[];
-								newArr: CRM.Library[];
+							callback?: (spliced: Library[], newArr: Library[]) => void): Promise<{
+								spliced: Library[];
+								newArr: Library[];
 							}>;
 					}
 				},
@@ -3644,9 +3644,9 @@ declare namespace CRM {
 					 * @permission crmGet
 					 * @param {number} nodeId - The id of the node of which to get the children
 					 * @param {Instance~crmCallback} [callback] - A callback that is called with the node as an argument
-					 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the children
+					 * @returns {Promise<SafeNode[]>} A promise that resolves with the children
 					 */
-					getChildren(nodeId: number, callback?: (nodes: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]>,
+					getChildren(nodeId: number, callback?: (nodes: SafeNode[]) => void): Promise<SafeNode[]>,
 	
 					/**
 					 * Sets the children of node with ID nodeId to the nodes with IDs childrenIds
@@ -3657,10 +3657,10 @@ declare namespace CRM {
 					 * @param {number} nodeId - The id of the node of which to set the children
 					 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
 					 * @param {Instance~crmCallback} [callback] - A callback that is called with the node as an argument
-					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the menu node
+					 * @returns {Promise<SafeNode>} A promise that resolves with the menu node
 					 */
-					setChildren<T extends CRM.SafeNode>(nodeId: NodeId<T>, childrenIds: number[], callback?: (node: T) => void): Promise<T>,
-					setChildren(nodeId: number, childrenIds: number[], callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+					setChildren<T extends SafeNode>(nodeId: NodeId<T>, childrenIds: number[], callback?: (node: T) => void): Promise<T>,
+					setChildren(nodeId: number, childrenIds: number[], callback?: (node: SafeNode) => void): Promise<SafeNode>,
 	
 					/**
 					 * Pushes the nodes with IDs childrenIds to the node with ID nodeId
@@ -3671,10 +3671,10 @@ declare namespace CRM {
 					 * @param {number} nodeId - The id of the node of which to push the children
 					 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
 					 * @param {Instance~crmCallback} [callback] - A callback that is called with the node as an argument
-					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the menu
+					 * @returns {Promise<SafeNode>} A promise that resolves with the menu
 					 */
-					push<T extends CRM.SafeNode>(nodeId: NodeId<T>, childrenIds: number[], callback?: (node: T) => void): Promise<T>,
-					push(nodeId: number, childrenIds: number[], callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+					push<T extends SafeNode>(nodeId: NodeId<T>, childrenIds: number[], callback?: (node: T) => void): Promise<T>,
+					push(nodeId: number, childrenIds: number[], callback?: (node: SafeNode) => void): Promise<SafeNode>,
 	
 					/**
 					 * Splices the children of the node with ID nodeId, starting at `start` and splicing `amount` items,
@@ -3687,13 +3687,13 @@ declare namespace CRM {
 					 * @param {number} start - The index at which to start
 					 * @param {number} amount - The amount to splice
 					 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
-					 * @returns {Promise<{spliced: CRM.SafeNode[], newArr: CRM.SafeNode[]}>} A promise that resolves with an object
+					 * @returns {Promise<{spliced: SafeNode[], newArr: SafeNode[]}>} A promise that resolves with an object
 					 * 		that contains a `spliced` property, which contains the spliced children and a `newArr` property containing the new children array
 					 */
 					splice(nodeId: number, start: number, amount: number,
-						callback?: (spliced: CRM.SafeNode[], newArr: CRM.SafeNode[]) => void): Promise<{
-							spliced: CRM.SafeNode[];
-							newArr: CRM.SafeNode[];
+						callback?: (spliced: SafeNode[], newArr: SafeNode[]) => void): Promise<{
+							spliced: SafeNode[];
+							newArr: SafeNode[];
 						}>;
 				}
 			}
@@ -3781,7 +3781,7 @@ declare namespace CRM {
 				 * @param {string} [options.code] - The code to use
 				 * @param {boolean} [options.ts] - Whether the library uses the typescript language
 				 * @param {function} [callback] - A callback that is called with the library object as an argument
-				 * @returns {Promise<CRM.InstalledLibrary>} A promise that resolves with the new library
+				 * @returns {Promise<InstalledLibrary>} A promise that resolves with the new library
 				 */
 				register(name: string, options: {
 					/**
@@ -3796,7 +3796,7 @@ declare namespace CRM {
 					 * Whether the library uses the typescript language
 					 */
 					ts?: boolean;
-				}, callback?: (lib: CRM.InstalledLibrary) => void): Promise<CRM.InstalledLibrary>,
+				}, callback?: (lib: InstalledLibrary) => void): Promise<InstalledLibrary>,
 			}
 	
 			/**
