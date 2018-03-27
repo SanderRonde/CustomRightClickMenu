@@ -574,6 +574,11 @@ declare namespace CRM {
 	type ContentTypes = [boolean, boolean, boolean, boolean, boolean, boolean];
 
 	/**
+	 * The context type strings that the boolean array is translated into
+	 */
+	type ContentTypeString = 'page'|'link'|'selection'|'image'|'video'|'audio';
+
+	/**
 	 * A trigger on which to show or not show a node
 	 */
 	interface Trigger {
