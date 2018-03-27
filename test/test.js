@@ -5,8 +5,6 @@
 //TODO: .browser
 //TODO: .background.*
 
-//TODO:? script.libraries.* & script.backgroundLibraries.*
-
 'use strict';
 // @ts-ignore
 var mochaSteps = require('mocha-steps');
@@ -4442,6 +4440,344 @@ describe('CRMAPI', () => {
 							safeTestCRMTree[2].scriptVal.backgroundScript :
 							undefined
 						), 'backgroundScripts match');
+				});
+			});
+			describe('Libraries', () => {
+				describe('#push()', () => {
+					beforeEach(async () => {
+						await resetTree();
+						
+						//Add some test libraries
+						await crmAPI.libraries.register('jquery', {
+							url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
+						});
+						await crmAPI.libraries.register('lib2', {
+							code: 'some code 2'
+						});
+						await crmAPI.libraries.register('lib3', {
+							code: 'some code 3'
+						});
+						await crmAPI.libraries.register('lib4', {
+							code: 'some code 4'
+						});
+					});
+					it('should be possible to add a library by name', async () => {
+						const libraries = await crmAPI.crm.script.libraries.push(safeTestCRMTree[2].id, {
+							name: 'jquery'
+						});
+						//@ts-ignore
+						assert.deepEqual(libraries, window.globals.crm.crmTree[2].value.libraries,
+							'returned value is the same as in the tree');
+						//@ts-ignore
+						assert.includeDeepMembers(libraries, [{
+							name: 'jquery'
+						}], 'libraries array contains the registered library');
+					});
+					it('should be possible to add multiple libraries by name', async () => {
+						const registered = [{
+							name: 'jquery'
+						}, {
+							name: 'lib2'
+						}];
+						const libraries = await crmAPI.crm.script.libraries.push(safeTestCRMTree[2].id, registered);
+						//@ts-ignore
+						assert.deepEqual(libraries, window.globals.crm.crmTree[2].value.libraries,
+							'returned value is the same as in the tree');
+						//@ts-ignore
+						assert.includeDeepMembers(libraries, registered, 
+							'libraries array contains the registered library');
+					});
+					it('should throw an error when the node is not a script', async () => {
+						await asyncThrows(() => {
+							return crmAPI.crm.script.backgroundLibraries.push(safeTestCRMTree[0].id, {
+								name: 'lib2'
+							});
+						}, /Node is not of type script/, 'non-existent library can\'t be added');
+					});
+					it('should throw an error when a non-existent library is added', async () => {
+						await asyncThrows(() => {
+							return crmAPI.crm.script.libraries.push(safeTestCRMTree[2].id, {
+								name: 'lib5'
+							});
+						}, /Library lib5 is not registered/, 'non-existent library can\'t be added');
+					});
+				});
+				describe('#splice()', () => {
+					beforeEach(async () => {
+						await resetTree();
+						
+						//Add some test libraries
+						await crmAPI.libraries.register('jquery', {
+							url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
+						});
+						await crmAPI.libraries.register('lib2', {
+							code: 'some code 2'
+						});
+						await crmAPI.libraries.register('lib3', {
+							code: 'some code 3'
+						});
+						await crmAPI.libraries.register('lib4', {
+							code: 'some code 4'
+						});
+
+						//@ts-ignore
+						window.globals.crm.crmTree[2].value.libraries = [{
+							name: 'jquery'
+						}, {
+							name: 'lib2y'
+						}, {
+							name: 'lib3'
+						}, {
+							name: 'lib4'
+						}]
+					});
+
+					it('should correctly splice at index 0 and amount 1', async () => {
+						const { spliced } = await crmAPI.crm.script.libraries.splice(safeTestCRMTree[2].id, 0, 1);
+						const expectedArray = [{
+							name: 'jquery'
+						}, {
+							name: 'lib2y'
+						}, {
+							name: 'lib3'
+						}, {
+							name: 'lib4'
+						}];
+						var splicedExpected = expectedArray.splice(0, 1);
+	
+						//@ts-ignore
+						assert.deepEqual(window.globals.crm.crmTree[2].value.libraries, expectedArray, 
+							'new value matches expected');
+						//@ts-ignore
+						assert.deepEqual(spliced, splicedExpected, 'spliced library matches expected library');
+					});
+					it('should correctly splice at index not-0 and amount 1', async () => {
+						const { spliced } = await crmAPI.crm.script.libraries.splice(safeTestCRMTree[2].id, 2, 1);
+						const expectedArray = [{
+							name: 'jquery'
+						}, {
+							name: 'lib2y'
+						}, {
+							name: 'lib3'
+						}, {
+							name: 'lib4'
+						}];
+						var splicedExpected = expectedArray.splice(2, 1);
+	
+						//@ts-ignore
+						assert.deepEqual(window.globals.crm.crmTree[2].value.libraries, expectedArray, 
+							'new value matches expected');
+						//@ts-ignore
+						assert.deepEqual(spliced, splicedExpected, 'spliced library matches expected library');
+					});
+					it('should correctly splice at index 0 and amount 2', async () => {
+						const { spliced } = await crmAPI.crm.script.libraries.splice(safeTestCRMTree[2].id, 0, 2);
+						const expectedArray = [{
+							name: 'jquery'
+						}, {
+							name: 'lib2y'
+						}, {
+							name: 'lib3'
+						}, {
+							name: 'lib4'
+						}];
+						var splicedExpected = expectedArray.splice(0, 2);
+	
+						//@ts-ignore
+						assert.deepEqual(window.globals.crm.crmTree[2].value.libraries, expectedArray, 
+							'new value matches expected');
+						//@ts-ignore
+						assert.deepEqual(spliced, splicedExpected, 'spliced libraries matches expected libraries');
+					});
+					it('should correctly splice at index non-0 and amount 2', async () => {
+						const { spliced } = await crmAPI.crm.script.libraries.splice(safeTestCRMTree[2].id, 1, 2);
+						const expectedArray = [{
+							name: 'jquery'
+						}, {
+							name: 'lib2y'
+						}, {
+							name: 'lib3'
+						}, {
+							name: 'lib4'
+						}];
+						var splicedExpected = expectedArray.splice(1, 2);
+	
+						//@ts-ignore
+						assert.deepEqual(window.globals.crm.crmTree[2].value.libraries, expectedArray, 
+							'new value matches expected');
+						//@ts-ignore
+						assert.deepEqual(spliced, splicedExpected, 'spliced libraries matches expected libraries');
+					});
+				});
+			});
+			describe('BackgroundLibraries', () => {
+				describe('Libraries', () => {
+					describe('#push()', () => {
+						beforeEach(async () => {
+							await resetTree();
+							
+							//Add some test libraries
+							await crmAPI.libraries.register('jquery', {
+								url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
+							});
+							await crmAPI.libraries.register('lib2', {
+								code: 'some code 2'
+							});
+							await crmAPI.libraries.register('lib3', {
+								code: 'some code 3'
+							});
+							await crmAPI.libraries.register('lib4', {
+								code: 'some code 4'
+							});
+						});
+						it('should be possible to add a library by name', async () => {
+							const libraries = await crmAPI.crm.script.backgroundLibraries.push(safeTestCRMTree[2].id, {
+								name: 'jquery'
+							});
+							//@ts-ignore
+							assert.deepEqual(libraries, window.globals.crm.crmTree[2].value.backgroundLibraries,
+								'returned value is the same as in the tree');
+								//@ts-ignore
+							assert.includeDeepMembers(libraries, [{
+								name: 'jquery'
+							}], 'libraries array contains the registered library');
+						});
+						it('should be possible to add multiple libraries by name', async () => {
+							const registered = [{
+								name: 'jquery'
+							}, {
+								name: 'lib2'
+							}];
+							const libraries = await crmAPI.crm.script.backgroundLibraries.push(safeTestCRMTree[2].id, registered);
+							//@ts-ignore
+							assert.deepEqual(libraries, window.globals.crm.crmTree[2].value.backgroundLibraries,
+								'returned value is the same as in the tree');
+							//@ts-ignore
+							assert.includeDeepMembers(libraries, registered, 
+								'libraries array contains the registered library');
+						});
+						it('should throw an error when the node is not a script', async () => {
+							await asyncThrows(() => {
+								return crmAPI.crm.script.backgroundLibraries.push(safeTestCRMTree[0].id, {
+									name: 'lib2'
+								});
+							}, /Node is not of type script/, 'non-existent library can\'t be added');
+						});
+						it('should throw an error when a non-existent library is added', async () => {
+							await asyncThrows(() => {
+								return crmAPI.crm.script.backgroundLibraries.push(safeTestCRMTree[2].id, {
+									name: 'lib5'
+								});
+							}, /Library lib5 is not registered/, 'non-existent library can\'t be added');
+						});
+					});
+					describe('#splice()', () => {
+						beforeEach(async () => {
+							await resetTree();
+							
+							//Add some test libraries
+							await crmAPI.libraries.register('jquery', {
+								url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
+							});
+							await crmAPI.libraries.register('lib2', {
+								code: 'some code 2'
+							});
+							await crmAPI.libraries.register('lib3', {
+								code: 'some code 3'
+							});
+							await crmAPI.libraries.register('lib4', {
+								code: 'some code 4'
+							});
+	
+							//@ts-ignore
+							window.globals.crm.crmTree[2].value.backgroundLibraries = [{
+								name: 'jquery'
+							}, {
+								name: 'lib2y'
+							}, {
+								name: 'lib3'
+							}, {
+								name: 'lib4'
+							}]
+						});
+	
+						it('should correctly splice at index 0 and amount 1', async () => {
+							const { spliced } = await crmAPI.crm.script.backgroundLibraries.splice(safeTestCRMTree[2].id, 0, 1);
+							const expectedArray = [{
+								name: 'jquery'
+							}, {
+								name: 'lib2y'
+							}, {
+								name: 'lib3'
+							}, {
+								name: 'lib4'
+							}];
+							var splicedExpected = expectedArray.splice(0, 1);
+		
+							//@ts-ignore
+							assert.deepEqual(window.globals.crm.crmTree[2].value.backgroundLibraries, expectedArray, 
+								'new value matches expected');
+							//@ts-ignore
+							assert.deepEqual(spliced, splicedExpected, 'spliced library matches expected library');
+						});
+						it('should correctly splice at index not-0 and amount 1', async () => {
+							const { spliced } = await crmAPI.crm.script.backgroundLibraries.splice(safeTestCRMTree[2].id, 2, 1);
+							const expectedArray = [{
+								name: 'jquery'
+							}, {
+								name: 'lib2y'
+							}, {
+								name: 'lib3'
+							}, {
+								name: 'lib4'
+							}];
+							var splicedExpected = expectedArray.splice(2, 1);
+		
+							//@ts-ignore
+							assert.deepEqual(window.globals.crm.crmTree[2].value.backgroundLibraries, expectedArray, 
+								'new value matches expected');
+							//@ts-ignore
+							assert.deepEqual(spliced, splicedExpected, 'spliced library matches expected library');
+						});
+						it('should correctly splice at index 0 and amount 2', async () => {
+							const { spliced } = await crmAPI.crm.script.backgroundLibraries.splice(safeTestCRMTree[2].id, 0, 2);
+							const expectedArray = [{
+								name: 'jquery'
+							}, {
+								name: 'lib2y'
+							}, {
+								name: 'lib3'
+							}, {
+								name: 'lib4'
+							}];
+							var splicedExpected = expectedArray.splice(0, 2);
+		
+							//@ts-ignore
+							assert.deepEqual(window.globals.crm.crmTree[2].value.backgroundLibraries, expectedArray, 
+								'new value matches expected');
+							//@ts-ignore
+							assert.deepEqual(spliced, splicedExpected, 'spliced libraries matches expected libraries');
+						});
+						it('should correctly splice at index non-0 and amount 2', async () => {
+							const { spliced } = await crmAPI.crm.script.backgroundLibraries.splice(safeTestCRMTree[2].id, 1, 2);
+							const expectedArray = [{
+								name: 'jquery'
+							}, {
+								name: 'lib2y'
+							}, {
+								name: 'lib3'
+							}, {
+								name: 'lib4'
+							}];
+							var splicedExpected = expectedArray.splice(1, 2);
+		
+							//@ts-ignore
+							assert.deepEqual(window.globals.crm.crmTree[2].value.backgroundLibraries, expectedArray, 
+								'new value matches expected');
+							//@ts-ignore
+							assert.deepEqual(spliced, splicedExpected, 'spliced libraries matches expected libraries');
+						});
+					});
 				});
 			});
 		});
