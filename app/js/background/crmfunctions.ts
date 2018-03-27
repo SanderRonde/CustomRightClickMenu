@@ -13,7 +13,7 @@ export namespace CRMFunctions {
 		modules = _modules;
 	}
 
-	export function getRootContextMenuId(__this: CRMFunction.Instance) {
+	export function getRootContextMenu(__this: CRMFunction.Instance) {
 		__this.respondSuccess(modules.crmValues.rootId);
 	}
 	export function getTree(__this: CRMFunction.Instance) {
