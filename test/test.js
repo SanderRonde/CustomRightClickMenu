@@ -1025,7 +1025,7 @@ var chrome = {
 			}]);
 
 			if (data.contexts && data.contexts.filter(function(element) {
-				return contexts.indexOf(element) > -1;
+				return contexts.indexOf(element) === -1;
 			}).length !== 0) {
 				throw new Error('Not all context values are in the enum');
 			}
