@@ -3775,7 +3775,6 @@ describe('CRMAPI', () => {
 			it('should remove passed node when it\'s a valid node id (root)', async () => {
 				await Promise.all(safeTestCRMTree.map((node, i) => {
 					return new Promise((resolve, reject) => {
-						debugger;
 						//Don't remove the current script
 						if (i !== 2) {
 							crmAPI.crm.deleteNode(node.id).then(() => {
