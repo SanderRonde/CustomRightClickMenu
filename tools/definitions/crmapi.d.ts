@@ -3307,7 +3307,7 @@ declare namespace CRM {
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the new array as an argument
 				 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the new content types
 				 */
-				setContentType(nodeId: number, index: CRM.ContentTypes, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes>,
+				setContentType(nodeId: number, index: number, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes>,
 	
 				/**
 				 * Sets the content types to given contentTypes array
