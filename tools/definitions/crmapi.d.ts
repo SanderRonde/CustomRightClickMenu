@@ -2887,7 +2887,6 @@ declare namespace CRM {
 			/**
 			* General CRM API functions
 			*/
-			general: Instance;
 	
 			/**
 			 * Gets the current text selection
