@@ -643,7 +643,7 @@ export namespace CRMFunctions {
 			}], () => {
 				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 					const msg = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-						contentTypes: string[];
+						contentTypes: boolean[];
 					};
 
 					if (msg.contentTypes.length !== 6) {
@@ -652,31 +652,21 @@ export namespace CRMFunctions {
 					}
 
 					for (const contentType of msg.contentTypes) {
-						if (typeof contentType !== 'string') {
+						if (typeof contentType !== 'boolean') {
 							__this.respondError('Not all values in array contentTypes are of type string');
 							return false;
 						}
 					}
 
-					let matches = 0;
-					let hasContentType: boolean;
 					let contentTypes: [
 						boolean, boolean, boolean, boolean, boolean, boolean
-					] = [] as any;
-					const contentTypeStrings: string[] = [
-						'page', 'link', 'selection', 'image', 'video', 'audio'
-					];
+					] = [
+						false, false, false, false, false, false
+					] as any;
 					for (const i in msg.contentTypes) {
-						hasContentType = msg.contentTypes.indexOf(contentTypeStrings[i]) > -1;
-						if (hasContentType) {
-							matches++;
-						}
-						contentTypes[i] = hasContentType;
+						contentTypes[i] = msg.contentTypes[i];
 					}
 
-					if (!matches) {
-						contentTypes = [true, true, true, true, true, true];
-					}
 					node.onContentTypes = contentTypes;
 					await browserAPI.contextMenus.update(
 						modules.crmValues.contextMenuIds[node.id], {

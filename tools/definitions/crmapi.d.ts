@@ -3316,10 +3316,7 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @permission crmWrite
 				 * @param {number} nodeId - The node whose content types to set
-				 * @param {string[]} contentTypes - An array of strings, if a string is present it means that it is displayed
-				 *		on that content type. Requires at least one type to be active, otherwise all are activated.
-				 *		The options are:
-				 *		page, link, selection, image, video, audio
+				 * @param {number[]} contentTypes - An array of number, if an index is true, it's displayed at that index's value
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
