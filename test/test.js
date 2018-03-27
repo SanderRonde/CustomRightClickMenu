@@ -3,9 +3,6 @@
 /// <reference path="../app/js/background.ts" />
 
 //TODO: .browser
-//TODO: crm.getContentTypes
-//TODO: crm.setContentType
-//TODO: crm.setContentTypes
 //TODO: .background.*
 
 //TODO:? script.libraries.* & script.backgroundLibraries.*
@@ -4023,6 +4020,109 @@ describe('CRMAPI', () => {
 				await asyncThrows(() => {
 					return crmAPI.crm.setTriggerUsage(safeTestCRMTree[2].id, true);
 				}, /Node is not of right type, can only be menu, link or divider/);
+			});
+		});
+		describe('#getContentTypes()', () => {
+			it('should get the content types when given a valid node', async () => {
+				const actual = await crmAPI.crm.getContentTypes(safeTestCRMTree[0].id);
+				const expected = safeTestCRMTree[0].onContentTypes;
+				assert.deepEqual(actual, expected,
+					'context type arrays match');
+			});
+		});
+		describe('#setContentType()', () => {
+			beforeEach(async () => {
+				await resetTree();
+			});
+			it('should set a single content type by index when given valid input', async () => {
+				const currentContentTypes = JSON.parse(JSON.stringify(
+					safeTestCRMTree[0].onContentTypes));
+				for (let i = 0; i < currentContentTypes.length; i++) {
+					if (Math.random() > 0.5 || i === 5) {
+						const result = await crmAPI.crm.setContentType(safeTestCRMTree[0].id, i,
+							!currentContentTypes[i]);
+						assert.deepEqual(result, 
+							await crmAPI.crm.getContentTypes(safeTestCRMTree[0].id),
+							'array resulting from setContentType is the same as ' + 
+							'the one from getContentType');
+						currentContentTypes[i] = !currentContentTypes[i];
+					}
+				}
+
+				const current = window.globals.crm.crmTree[0].onContentTypes;
+				assert.deepEqual(current, currentContentTypes, 
+					'correct content types were flipped');
+			});
+			it('should set a single content type by name when given valid input', async () => {
+				/**
+				 * @type {CRM.ContentTypeString[]}
+				 */
+				const arr = ['page','link','selection','image','video','audio'];
+				const currentContentTypes = JSON.parse(JSON.stringify(
+					safeTestCRMTree[0].onContentTypes));
+				for (let i = 0; i < currentContentTypes.length; i++) {
+					if (Math.random() > 0.5 || i === 5) {
+						const result = await crmAPI.crm.setContentType(safeTestCRMTree[0].id, arr[i],
+							!currentContentTypes[i]);
+						assert.deepEqual(result, 
+							await crmAPI.crm.getContentTypes(safeTestCRMTree[0].id),
+							'array resulting from setContentType is the same as ' + 
+							'the one from getContentType');
+						currentContentTypes[i] = !currentContentTypes[i];
+					}
+				}
+
+				const current = window.globals.crm.crmTree[0].onContentTypes;
+				assert.deepEqual(current, currentContentTypes, 
+					'correct content types were flipped');
+			});
+			it('should throw an error when a non-existent name is used', async () => {
+				await asyncThrows(() => {
+					//@ts-ignore
+					return crmAPI.crm.setContentType(safeTestCRMTree[0].id, 'x', true);
+				}, /Index is not in index array/, 'should throw an error when given index -1');
+			});
+			it('should throw an error when a non-existent index is used', async () => {
+				await asyncThrows(() => {
+					return crmAPI.crm.setContentType(safeTestCRMTree[0].id, -1, true);
+				}, /Value for index is smaller than 0/, 'should throw an error when given index -1');
+				await asyncThrows(() => {
+					return crmAPI.crm.setContentType(safeTestCRMTree[0].id, 8, true);
+				}, /Value for index is bigger than 5/, 'should throw an error when given index 8');
+			});
+			it('should throw an error when given a non-boolean value to set', async () => {
+				await asyncThrows(() => {
+					//@ts-ignore
+					return crmAPI.crm.setContentType(safeTestCRMTree[0].id, 0, 'x');
+				}, /Value for value is not of type boolean/, 'should throw an error when given a non-boolean value');
+			});
+		});
+		describe('#setContentTypes()', () => {
+			it('should set the entire array when passed a correct one', async () => {
+				const testArr = [false, false, false, false, false, false].map((val) => {
+					return Math.random() > 0.5;
+				});
+				const { onContentTypes } = await crmAPI.crm.setContentTypes(safeTestCRMTree[0].id, testArr);
+
+				assert.deepEqual(onContentTypes, window.globals.crm.crmTree[0].onContentTypes,
+					'returned value matches actual tree value');
+				assert.deepEqual(onContentTypes, testArr, 
+					'returned value matches set value');
+			});
+			it('should throw an error when passed an array with incorrect length', async () => {
+				await asyncThrows(() => {
+					return crmAPI.crm.setContentTypes(safeTestCRMTree[0].id, []);
+				}, /Content type array is not of length 6/, 'should throw an error when given an array that is too short');
+				await asyncThrows(() => {
+					return crmAPI.crm.setContentTypes(safeTestCRMTree[0].id, 
+						[false, false, false, false, false, false, false]);
+				}, /Content type array is not of length 6/, 'should throw an error when given an array that is too long');
+			});
+			it('should throw an error when passed an array with non-boolean values', async () => {
+				await asyncThrows(() => {
+					//@ts-ignore
+					return crmAPI.crm.setContentTypes(safeTestCRMTree[0].id, [1, 2, 3, 4, 5, 6]);
+				}, /Not all values in array contentTypes are of type string/, 'should throw an error when given an array with incorrect values');
 			});
 		});
 		describe('#setLaunchMode()', () => {
