@@ -641,7 +641,7 @@ declare namespace CRM {
 	/**
 	 * The id of a node, has the source node encoded in typing to keep association
 	 */
-	type NodeId<T extends CRM.SafeNode = CRM.SafeNode> = number & {
+	type NodeId<T = CRM.SafeNode> = number & {
 		__srcNode?: T;
 	}
 
@@ -1411,26 +1411,44 @@ declare namespace CRM {
 	}
 
 	/**
+	 * A library added to this extension
+	 */
+	interface InstalledLibrary {
+		/**
+		 * The name of the library
+		 */
+		name?: string;
+		/**
+		 * The URL of the library
+		 */
+		url?: string;
+		/**
+		 * The code of the library
+		 */
+		code: string;
+		/**
+		 * Data about typescript usage in this library
+		 */
+		ts: {
+			/**
+			 * Whether typescript is enabled
+			 */
+			enabled: boolean;
+			/**
+			 * The code related to the library
+			 */
+			code: TypescriptCompilationData;
+		}
+	}
+
+	/**
 	 * Local Storage (not synced)
 	 */
 	interface StorageLocal {
 		/**
 		 * Any installed libraries
 		 */
-		libraries: {
-			/**
-			 * The name of the library
-			 */
-			name?: string;
-			/**
-			 * The URL of the library
-			 */
-			url?: string;
-			/**
-			 * The code of the library
-			 */
-			code: string;
-		}[];
+		libraries: InstalledLibrary[];
 		/**
 		 * The permissions to be requested
 		 */
