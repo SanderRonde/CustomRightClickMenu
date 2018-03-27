@@ -1848,7 +1848,7 @@ describe('User entrypoints', function() {
 				if (result.length) {
 					console.log(result);
 				}
-				assert.isEmpty(result, 'no errors should be thrown when loading');
+				assert.lengthOf(result, 0, 'no errors should be thrown when loading');
 				done();
 			});
 		});
@@ -3795,7 +3795,7 @@ describe('User entrypoints', function() {
 				if (result.length) {
 					console.log(result);
 				}
-				assert.isEmpty(result, 'no errors should be thrown when testing page');
+				assert.lengthOf(result, 0, 'no errors should be thrown when testing page');
 				done();
 			});
 		});
@@ -5323,7 +5323,7 @@ describe('On-Page CRM', function() {
 			if (result.length) {
 				console.log(result);
 			}
-			assert.isEmpty(result, 'no errors should be thrown when testing contextmenu');
+			assert.lengthOf(result, 0, 'no errors should be thrown when testing contextmenu');
 			done();
 		});
 	});
