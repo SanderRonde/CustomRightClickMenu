@@ -3,7 +3,6 @@
 /// <reference path="../app/js/background.ts" />
 
 //TODO: .browser
-//TODO: crm.getRootContextMenuId
 //TODO: crm.getContentTypes
 //TODO: crm.setContentType
 //TODO: crm.setContentTypes
@@ -3311,6 +3310,13 @@ describe('CRMAPI', () => {
 		});
 	});
 	describe('CRM', () => {
+		describe('#getRootContextMenuId()', () => {
+			it('should return the root context menu id', async () => {
+				const rootId = await crmAPI.crm.getRootContextMenuId();
+				assert.strictEqual(rootId, window.globals.crmValues.rootId,
+					'root id matches expected');
+			});
+		});
 		describe('#getTree()', () => {
 			it('should return the crm subtree', async () => {
 				const tree = await crmAPI.crm.getTree();
