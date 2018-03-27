@@ -333,13 +333,6 @@ function tryReadManifest(filePath: string): Promise<_chrome.runtime.Manifest> {
 
 const browserCapabilities = getCapabilities();
 
-//Can only do browser API tests if the API was overridden
-const CAN_DO_BROWSER_API_TESTS = 
-	!TEST_EXTENSION || 
-		browserCapabilities.browserName === 'Chrome' ||
-		browserCapabilities.browserName === 'Opera' || 
-		browserCapabilities.browserName === 'Edge';
-
 function isThennable(value: any): value is Promise<any> {
 	return value && typeof value === "object" && typeof value.then === "function";
 }
@@ -2155,7 +2148,7 @@ describe('User entrypoints', function() {
 					.findElement(webdriver.By.tagName('paper-button'))
 					.click()
 	
-				if (!CAN_DO_BROWSER_API_TESTS) {
+				if (!TEST_EXTENSION) {
 					return;
 				}
 					
