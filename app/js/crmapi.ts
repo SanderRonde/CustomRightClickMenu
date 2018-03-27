@@ -3975,15 +3975,15 @@ type CRMAPIMessage = {
 			 * @permission crmGet
 			 * @permission crmWrite
 			 * @param {number} nodeId - The node whose content types to set
-			 * @param {number} index - The index of the array to set, 0-5, ordered this way:
-			 *		page, link, selection, image, video, audio
+			 * @param {number|CRM.ContentTypeString} indexOrName - The index of the array to set, 0-5, ordered this way:
+			 *		page, link, selection, image, video, audio. Can also be the name of the index (one of those words)
 			 * @param {boolean} value - The new value at index "index"
 			 * @param {CrmCallback} [callback] - A function to run when done, with the new array as an argument
 			 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the new content types
 			 */
-			setContentType(this: CrmAPIInstance, nodeId: number, index: number, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes> {
+			setContentType(this: CrmAPIInstance, nodeId: number, indexOrName: number|CRM.ContentTypeString, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes> {
 				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setContentType', callback, {
-					index: index,
+					index: indexOrName,
 					value: value,
 					nodeId: nodeId
 				});

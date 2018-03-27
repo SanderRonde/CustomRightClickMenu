@@ -600,7 +600,7 @@ export namespace CRMFunctions {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'index',
-				type: 'number',
+				type: ['number', 'string'],
 				min: 0,
 				max: 5
 			}, {
@@ -608,12 +608,22 @@ export namespace CRMFunctions {
 				type: 'boolean'
 			}], () => {
 				const msg = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-					index: number;
+					index: number|CRM.ContentTypeString;
 					value: boolean;
 				};
 
+				const options = ['page','link','selection','image','video','audio'];
+				if (typeof msg.index === 'string') {
+					if (options.indexOf(msg.index) === -1) {
+						__this.respondError('Index is not in index array ([page, link, selection, image, video, audio])');
+						return;
+					} else {
+						msg.index = options.indexOf(msg.index);
+					}
+				}
+
 				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
-					node.onContentTypes[msg.index] = msg.value;
+					node.onContentTypes[msg.index as number] = msg.value;
 					await modules.CRMNodes.updateCrm();
 					await browserAPI.contextMenus.update(
 						modules.crmValues.contextMenuIds[node.id], {

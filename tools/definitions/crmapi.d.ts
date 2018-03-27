@@ -3301,13 +3301,14 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @permission crmWrite
 				 * @param {number} nodeId - The node whose content types to set
-				 * @param {number} index - The index of the array to set, 0-5, ordered this way:
-				 *		page, link, selection, image, video, audio
+				 * @param {number|ContentTypeString} indexOrName - The index of the array to set, 0-5, ordered this way:
+				 *		page, link, selection, image, video, audio. Can also be the name of the index (one of those words)
 				 * @param {boolean} value - The new value at index `index`
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the new array as an argument
 				 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the new content types
 				 */
-				setContentType(nodeId: number, index: number, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes>,
+				setContentType(nodeId: number, indexOrName: number, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes>,
+				setContentType(nodeId: number, indexOrName: ContentTypeString, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes>,
 	
 				/**
 				 * Sets the content types to given contentTypes array
@@ -3324,6 +3325,7 @@ declare namespace CRM {
 				 */
 				setContentTypes<T extends CRM.SafeNode>(nodeId: NodeId<T>, contentTypes: CRM.ContentTypes, callback?: (node: T) => void): Promise<T>,
 				setContentTypes(nodeId: number, contentTypes: CRM.ContentTypes, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+				setContentTypes(nodeId: number, contentTypes: boolean[], callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
 				 * Sets the launch mode of node with ID nodeId to `launchMode`
