@@ -1374,7 +1374,11 @@ namespace MonacoEditorElement {
 			return node.value.libraries;
 		}
 
-		private async _getLibrary(name: string): Promise<string|false> {
+		private async _getLibrary(name: string|void): Promise<string|false> {
+			if (!name) {
+				return false;
+			}
+
 			const data = await browserAPI.storage.local.get<CRM.StorageLocal>();
 			const libs = data.libraries;
 			for (const lib of libs) {

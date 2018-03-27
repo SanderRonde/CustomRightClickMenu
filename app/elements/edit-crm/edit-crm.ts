@@ -860,7 +860,7 @@ namespace EditCrmElement {
 				for (i = 0; i < node.value.libraries.length; i++) {
 					//Turn into requires
 					if (node.value.libraries[i].url) {
-						metaTags['require'].push(node.value.libraries[i].url);
+						metaTags['require'].push(node.value.libraries[i].url as string);
 					}
 				}
 			}

@@ -108,8 +108,8 @@ namespace PaperLibrariesSelectorElement {
 				[key: string]: boolean;
 			} = {};
 			this.usedlibraries.forEach(function (item) {
-				if (item.name ===  null) {
-					anonymous.push(item);
+				if (!item.name) {
+					anonymous.push(item as any);
 				} else {
 					selectedObj[item.name.toLowerCase()] = true;
 				}

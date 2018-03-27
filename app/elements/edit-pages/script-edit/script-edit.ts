@@ -28,10 +28,10 @@ namespace ScriptEditElement {
 			this.async(() => {
 				const backgroundEnabled = this.$.paperLibrariesShowbackground.checked;
 				if (backgroundEnabled) {
-					this.$.paperLibrariesSelector.updateLibraries(this.item.value.backgroundLibraries,
+					this.$.paperLibrariesSelector.updateLibraries(this.item.value.backgroundLibraries as any,
 						this.newSettings as CRM.ScriptNode, 'background');
 				} else {
-					this.$.paperLibrariesSelector.updateLibraries(this.item.value.libraries,
+					this.$.paperLibrariesSelector.updateLibraries(this.item.value.libraries as any,
 						this.newSettings as CRM.ScriptNode, 'main');
 				}
 			}, 0);
@@ -199,7 +199,7 @@ namespace ScriptEditElement {
 			} else if (isLibraries && this.editorMode !== 'libraries') {
 				this.$.codeTabContentContainer.classList.add('showLibs');
 				this.$.paperLibrariesSelector.updateLibraries(
-					this.newSettings.value.libraries, this.newSettings as CRM.ScriptNode,
+					this.newSettings.value.libraries as any, this.newSettings as CRM.ScriptNode,
 					'main');
 				this.editorMode = 'libraries';
 			}

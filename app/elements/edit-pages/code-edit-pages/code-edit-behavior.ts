@@ -444,7 +444,7 @@ namespace CodeEditBehaviorNamespace {
 					const __this = this as CodeEditBehavior<NodeEditBehaviorScriptInstance>;
 					const libsArr = __this.editorMode === 'main' ?
 					__this.newSettings.value.libraries : __this.newSettings.value.backgroundLibraries || [];
-					window.app.$.paperLibrariesSelector.updateLibraries(libsArr, 
+					window.app.$.paperLibrariesSelector.updateLibraries(libsArr as any, 
 						this.newSettings as CRM.ScriptNode, this.editorMode as 'main'|'background');
 					if (__this.newSettings.value.ts && __this.newSettings.value.ts.enabled) {
 						window.app.$.editorTypescript.classList.add('active');

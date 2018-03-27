@@ -104,9 +104,9 @@ export namespace CRMNodes.Script.Handler {
 					//Resource hasn't been registered with its name, try if it's an anonymous one		
 					if (!node.value.libraries[i].name) {		
 						//Check if the value has been registered as a resource		
-						if (urlDataPairs[node.value.libraries[i].url]) {		
+						if (urlDataPairs[node.value.libraries[i].url as any]) {		
 							lib = {		
-								code: urlDataPairs[node.value.libraries[i].url].dataString		
+								code: urlDataPairs[node.value.libraries[i].url as any].dataString		
 							};		
 						}		
 					}		
@@ -427,9 +427,9 @@ export namespace CRMNodes.Script.Background {
 						//Resource hasn't been registered with its name, try if it's an anonymous one
 						if (node.value.libraries[i].name === null) {
 							//Check if the value has been registered as a resource
-							if (urlDataPairs[node.value.libraries[i].url]) {
+							if (urlDataPairs[node.value.libraries[i].url as any]) {
 								lib = {
-									code: urlDataPairs[node.value.libraries[i].url].dataString
+									code: urlDataPairs[node.value.libraries[i].url as any].dataString
 								};
 							}
 						}
@@ -841,7 +841,7 @@ export namespace CRMNodes.Script.Updating {
 			});
 		});
 
-		libs = libs.concat(anonymousLibs);
+		libs = libs.concat(anonymousLibs as any);
 
 		node.value = modules.constants.templates.getDefaultScriptValue({
 			script: code,
