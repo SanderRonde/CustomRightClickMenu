@@ -636,6 +636,11 @@ export namespace CRMFunctions {
 						contentTypes: string[];
 					};
 
+					if (msg.contentTypes.length !== 6) {
+						__this.respondError('Content type array is not of length 6');
+						return false;
+					}
+
 					for (const contentType of msg.contentTypes) {
 						if (typeof contentType !== 'string') {
 							__this.respondError('Not all values in array contentTypes are of type string');
