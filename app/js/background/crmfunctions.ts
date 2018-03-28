@@ -1175,12 +1175,14 @@ export namespace CRMFunctions {
 				};
 
 				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
-					let spliced: CRM.Library[];
 					if (node.type === 'script') {
 						const backgroundLibs = node.value.backgroundLibraries;
-						spliced = backgroundLibs.splice(start, amount);
+						const spliced = backgroundLibs.splice(start, amount);
 						await modules.CRMNodes.updateCrm([__this.message.data.nodeId]);
-						__this.respondSuccess(spliced, backgroundLibs);
+						__this.respondSuccess({
+							spliced: spliced, 
+							newArr: backgroundLibs
+						});
 					} else {
 						__this.respondError('Node is not of type script');
 					}
