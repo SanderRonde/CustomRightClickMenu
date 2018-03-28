@@ -2858,576 +2858,6 @@ describe('CRMAPI', () => {
 			});
 		});
 	});
-	describe('Storage', function() {
-		this.slow(200);
-		step('API exists', () => {
-			assert.isObject(crmAPI.storage, 'storage API is an object');
-		});
-		var usedStrings = {};
-		function generateUniqueRandomString() {
-			var str;
-			while (usedStrings[(str = generateRandomString())]) {}
-			usedStrings[str] = true;
-			return str;
-		}
-		var storageTestData = [];
-		for (var i = 0; i < 50; i++) {
-			storageTestData.push({
-				key: generateUniqueRandomString(),
-				value: generateUniqueRandomString()
-			});
-		}
-		step('API works', () => {
-			var isClearing = false;
-
-			var listeners = [];
-			var listenerActivations = [];
-			for (var i = 0; i < storageTestData.length; i++) {
-				listenerActivations[i] = 0;
-			}
-			function createStorageOnChangeListener(index) {
-				var fn = function(key, oldVal, newVal) {
-					if (key !== storageTestData[index].key) {
-						throw new Error(`Storage keys do not match, ${key} does not match expected ${storageTestData[index].key}`);
-					}
-					if (!isClearing) {
-						if (newVal !== storageTestData[index].value) {
-							throw new Error(`Storage values do not match, ${newVal} does not match expected value ${storageTestData[index].value}`);
-						}
-					}
-					listenerActivations[index]++;
-				}
-				listeners.push(fn);
-				crmAPI.storage.onChange.addListener(fn, storageTestData[index].key);
-			}
-			assert.doesNotThrow(() => {
-				for (let i = 0; i < storageTestData.length; i++) {
-					createStorageOnChangeListener(i);
-				}
-			}, 'setting up listening for storage works');
-			assert.doesNotThrow(() => {
-				for (let i = 0; i < storageTestData.length; i++) {
-					if (Math.floor(Math.random() * 2)) {
-						listenerActivations[i] += 1;
-						crmAPI.storage.onChange.removeListener(listeners[i], storageTestData[i].key);
-					}
-				}
-			}, 'setting up listener removing for storage works');
-			assert.doesNotThrow(() => {
-				for (let i = 0; i < storageTestData.length; i++) {
-					crmAPI.storage.set(storageTestData[i].key, storageTestData[i].value);
-				}
-			}, 'setting storage works');
-
-			/**
-			 * @type {any}
-			 */
-			var storageTestExpected = {
-				testKey: nodeStorage.testKey
-			};
-			for (let i = 0; i < storageTestData.length; i++) {
-				var key = storageTestData[i].key;
-				if (key.indexOf('.') > -1) {
-					var storageCont = storageTestExpected;
-					var path = key.split('.');
-					var length = path.length - 1;
-					for (var j = 0; j < length; j++) {
-						if (storageCont[path[j]] === undefined) {
-							storageCont[path[j]] = {};
-						}
-						storageCont = storageCont[path[j]];
-					}
-					storageCont[path[length]] = storageTestData[i].value;
-				} else {
-					storageTestExpected[storageTestData[i].key] = storageTestData[i].value;
-				}
-			}
-			assert.deepEqual(crmAPI.storage.get(), storageTestExpected, 'storage is equal to expected');
-
-			//If all listeners are 2, that means they got called twice, or were removed
-			for (let i = 0; i < storageTestData.length; i++) {
-				assert.strictEqual(listenerActivations[i], 1, `listener ${i} has been called once or removed`);
-			}
-
-			//Fetch the data using get
-			for (let i = 0; i < storageTestData.length; i++) {
-				var val = crmAPI.storage.get(storageTestData[i].key);
-				assert.strictEqual(val, storageTestData[i].value, 
-					`getting value at index ${i}: ${val} is equal to expected value ${storageTestData[i].value}`);
-			}
-
-			isClearing = true;
-
-			//Remove all data at the lowest level
-			for (var i = 0; i < storageTestData.length; i++) {
-				assert.doesNotThrow(() => {
-					crmAPI.storage.remove(storageTestData[i].key);
-				}, 'calling crmAPI.storage.remove does not throw');
-				assert.isUndefined(crmAPI.storage.get(storageTestData[i].key), 'removed data is undefined');
-			}
-
-			//Reset it
-			for (let i = 0; i < storageTestData.length; i++) {
-				var key = storageTestData[i].key;
-				if (key.indexOf('.') > -1) {
-					key = key.split('.');
-				} else {
-					key = [key];
-				}
-
-				assert.doesNotThrow(() => {
-					crmAPI.storage.remove(key[0]);
-				}, 'removing top-level data does not throw');
-				assert.isUndefined(crmAPI.storage.get(key[0]), 'removed data is undefined');
-			}
-
-			//Set by object
-			assert.doesNotThrow(() => {
-				crmAPI.storage.set(storageTestExpected);
-			}, 'calling storage.set with an object does not throw');
-
-			//Check if they now match
-			assert.deepEqual(crmAPI.storage.get(), storageTestExpected, 'storage matches expected after object set');
-		});
-	});
-	describe('Chrome', () => {
-		before('Setup', () => {
-			// @ts-ignore
-			window.chrome = window.chrome || {};
-			window.chrome.sessions = {
-				testReturnSimple: function(a, b) {
-					return a + b;
-				},
-				testReturnObject: function(a, b) {
-					a.x = 3;
-					a.y = 4;
-					a.z = 5;
-
-					b.push(3);
-					b.push(4);
-					b.push(5);
-					return {a: a, b: b};
-				},
-				testCallbackSimple: function(a, b, callback) {
-					callback(a + b);
-				},
-				testCallbackObject: function(a, b, callback) {
-					a.x = 3;
-					a.y = 4;
-					a.z = 5;
-
-					b.push(3);
-					b.push(4);
-					b.push(5);
-					callback({ a: a, b: b });
-				},
-				testCombinedSimple: function(a, b, callback) {
-					callback(a + b);
-					return a + b;
-				},
-				testCombinedObject: function(a, b, callback) {
-					a.x = 3;
-					a.y = 4;
-					a.z = 5;
-
-					b.push(3);
-					b.push(4);
-					b.push(5);
-					callback({ a: a, b: b });
-					return {a: a, b: b};
-				},
-				testPersistentSimple: function(a, b, callback) {
-					callback(a + b);
-					callback(a - b);
-					callback(a * b);
-				},
-				testPersistentObject: function(a, b, callback) {
-					a.x = 3;
-					a.y = 4;
-					a.z = 5;
-
-					b.push(3);
-					b.push(4);
-					b.push(5);
-					callback({a: a, b: b});
-					callback({c: a, d: b});
-					callback(a.value + b[0]);
-				}
-			}
-		});
-		step('exists', () => {
-			assert.isFunction(crmAPI.chrome);
-		});
-		it('works with return values and non-object parameters', (done) => {
-			var val1 = Math.floor(Math.random() * 50);
-			var val2 = Math.floor(Math.random() * 50);
-			assert.doesNotThrow(() => {
-				crmAPI.chrome('sessions.testReturnSimple')(val1, val2).return((value) => {
-					assert.strictEqual(value, val1 + val2, 'returned value matches expected value');
-					done();
-				}).send();
-			}, 'calling chrome function does not throw');
-		});
-		it('works with return values and object-paremters', (done) => {
-			var val1 = {
-				value: Math.floor(Math.random() * 50)
-			};
-			var val2 = [Math.floor(Math.random() * 50)];
-			assert.doesNotThrow(() => {
-				crmAPI.chrome('sessions.testReturnObject')(val1, val2).return((value) => {
-					assert.deepEqual(value, {
-						a: {
-							value: val1.value,
-							x: 3,
-							y: 4,
-							z: 5
-						}, 
-						b: [val2[0], 3, 4, 5]
-					}, 'returned value matches expected');
-					done();
-				}).send();
-			}, 'calling chrome function does not throw');
-		});
-		it('works with callback values and non-object parameters', (done) => {
-			var val1 = Math.floor(Math.random() * 50);
-			var val2 = Math.floor(Math.random() * 50);
-			assert.doesNotThrow(() => {
-				crmAPI.chrome('sessions.testCallbackSimple')(val1, val2, (value) => {
-					assert.strictEqual(value, val1 + val2, 'returned value matches expected value');
-					done();
-				}).send();
-			}, 'calling chrome function does not throw');
-		});
-		it('works with callback values and object parameters', (done) => {
-			var val1 = {
-				value: Math.floor(Math.random() * 50)
-			};
-			var val2 = [Math.floor(Math.random() * 50)];
-			assert.doesNotThrow(() => {
-				crmAPI.chrome('sessions.testCallbackObject')(val1, val2, (value) => {
-					assert.deepEqual(value, {
-						a: {
-							value: val1.value,
-							x: 3,
-							y: 4,
-							z: 5
-						}, 
-						b: [val2[0], 3, 4, 5]
-					}, 'returned value matches expected');
-					done();
-				}).send();
-			}, 'calling chrome function does not throw');
-		});
-		it('works with combined functions and simple parameters', (done) => {
-			var val1 = Math.floor(Math.random() * 50);
-			var val2 = Math.floor(Math.random() * 50);
-			var promises = [];
-			
-			promises.push(new Promise((resolveCallback) => {
-				promises.push(new Promise((resolveReturn) => {
-					assert.doesNotThrow(() => {
-						crmAPI.chrome('sessions.testCombinedSimple')(val1, val2, (value) => {
-							assert.strictEqual(value, val1 + val2, 'returned value is equal to returned value');
-							resolveCallback();
-						}).return((value) => {
-							assert.strictEqual(value, val1 + val2, 'returned value is equal to returned value');
-							resolveReturn();
-						}).send();
-					}, 'calling chrome function does not throw');
-				}));
-			}));
-			Promise.all(promises).then(() => {
-				done();
-			}, (err) => {
-				throw err;
-			});
-		});
-		it('works with combined functions and object parameters', (done) => {
-			var val1 = {
-				value: Math.floor(Math.random() * 50)
-			};
-			var val2 = [Math.floor(Math.random() * 50)];
-			var promises = [];
-
-			promises.push(new Promise((resolveCallback) => {
-				promises.push(new Promise((resolveReturn) => {
-					assert.doesNotThrow(() => {
-						crmAPI.chrome('sessions.testCombinedObject')(val1, val2, (value) => {
-							assert.deepEqual(value, {
-								a: {
-									value: val1.value,
-									x: 3,
-									y: 4,
-									z: 5
-								}, 
-								b: [val2[0], 3, 4, 5]
-							}, 'returned value matches expected');
-							resolveCallback();
-						}).return((value) => {
-							assert.deepEqual(value, {
-								a: {
-									value: val1.value,
-									x: 3,
-									y: 4,
-									z: 5
-								}, 
-								b: [val2[0], 3, 4, 5]
-							}, 'returned value matches expected');
-							resolveReturn();
-						}).send();
-					}, 'calling chrome function does not throw');
-				}));
-			}));
-
-			Promise.all(promises).then(() => {
-				done();
-			}, (err) => {
-				throw err;
-			});
-		});
-		it('works with persistent callbacks and simple parameters', (done) => {
-			var val1 = Math.floor(Math.random() * 50);
-			var val2 = Math.floor(Math.random() * 50);
-
-			var called = 0;
-			assert.doesNotThrow(() => {
-				crmAPI.chrome('sessions.testPersistentSimple')(val1, val2).persistent((value) => {
-					switch (called) {
-						case 0:
-							assert.strictEqual(value, val1 + val2, 'returned value matches expected');
-							break;
-						case 1:
-							assert.strictEqual(value, val1 - val2, 'returned value matches expected');
-							break;
-						case 2:
-							assert.strictEqual(value, val1 * val2, 'returned value matches expected');
-							done();
-							break;
-					}
-					called++;
-				}).send();
-			}, 'calling chrome function does not throw');
-		});
-		it('works with persistent callbacks and object parameters', (done) => {
-			var val1 = {
-				value: Math.floor(Math.random() * 50)
-			};
-			var val2 = [Math.floor(Math.random() * 50)];
-
-			var called = 0;
-			assert.doesNotThrow(() => {
-				crmAPI.chrome('sessions.testCallbackObject')(val1, val2, (value) => {
-					switch (called) {
-						case 0:
-							assert.deepEqual(value, {
-								a: {
-									value: val1.value,
-									x: 3,
-									y: 4,
-									z: 5
-								}, 
-								b: [val2[0], 3, 4, 5]
-							}, 'returned value matches expected');
-							break;
-						case 1:
-							assert.deepEqual(value, {
-								c: {
-									value: val1.value,
-									x: 3,
-									y: 4,
-									z: 5
-								}, 
-								d: [val2[0], 3, 4, 5]
-							}, 'returned value matches expected');
-							break;
-						case 2:
-							assert.strictEqual(value, val1.value + val2[0], 
-								'returned value matches expected');
-							done();
-							break;
-					}
-					called++;
-					done();
-				}).send();
-			}, 'calling chrome function does not throw');
-		});
-	});
-	describe('Browser', () => {
-		before('Setup', () => {
-			// @ts-ignore
-			window.browser = window.browser || {};
-			//@ts-ignore
-			window.browser.alarms = {
-				create: function(a, b) {
-					return new Promise((resolve) => {
-						resolve(null);
-					});
-				},
-				get: function(a, b) {
-					return new Promise((resolve) => {
-						resolve(a + b);
-					});
-				},
-				getAll: function(a, b) {
-					return new Promise((resolve) => {
-						resolve([a, b]);
-					});
-				},
-				clear: function(callback) {
-					return new Promise((resolve) => {
-						//@ts-ignore
-						callback(1);
-						resolve();
-					});
-				},
-				onAlarm: {
-					addListener: function(callback) {
-						return new Promise((resolve) => {
-							// @ts-ignore
-							callback(1);
-							// @ts-ignore
-							callback(2);
-							// @ts-ignore
-							callback(3);
-							resolve();
-						});
-					},
-				},
-				//@ts-ignore
-				outside: function() {
-					return new Promise((resolve) => {
-						resolve(3);
-					});
-				}
-			}
-
-			window.globals.availablePermissions = ['alarms'];
-		});
-		step('exists', () => {
-			assert.isObject(crmAPI.browser);
-		});
-		it('works with functions whose promise resolves into nothing', async () => {
-			await asyncDoesNotThrow(() => {
-				return crmAPI.browser.alarms.create(1, 2).send();
-			});
-		});
-		it('works with functions whose promise resolves into something', async () => {
-			await asyncDoesNotThrow(async () => {
-				const result = await crmAPI.browser.alarms.get.args(1, 2).send();
-				assert.strictEqual(result, 1 + 2, 'resolved values matches expected');
-			});
-		});
-		it('works with functions whose promises resolves into an object', async () => {
-			await asyncDoesNotThrow(async () => {
-				const result = await crmAPI.browser.alarms.getAll(1, 2).send();
-				assert.deepEqual(result, [1, 2], 'resolved values matches expected');
-			});
-		});
-		it('works with functions with a callback', async () => {
-			await asyncDoesNotThrow(async () => {
-				await new Promise(async (resolve) => {
-					crmAPI.browser.alarms.clear((value) => {
-						assert.strictEqual(value, 1, 'resolved values matches expected');
-						resolve(null);
-					}).send();
-				});
-			});
-		});
-		it('works with functions with a persistent callback', async () => {
-			await asyncDoesNotThrow(async () => {
-				return new Promise(async (resolve) => {
-					let called = 0;
-					debugger;
-					await crmAPI.browser.alarms.onAlarm.addListener.p((value) => {
-						called += 1;
-						if (called === 3) {
-							resolve();
-						}
-					}).send();
-				});
-			});
-		});
-		it('works with functions with an "any" function', async () => {
-			await asyncDoesNotThrow(() => {
-				return crmAPI.browser.any('alarms.outside').send();
-			});
-		});
-		it('should throw an error when a non-existent "any" function is tried', async () => {
-			await asyncThrows(() => {
-				debugger;
-				return crmAPI.browser.any('alarms.doesnotexist').send();
-			}, /Passed API does not exist/, 'non-existent function throws');
-		});
-	});
-	describe('Libraries', () => {
-		before(() => {
-			class XHRWrapper {
-				constructor() {
-					this.onreadystatechange = undefined;
-					this.onload = undefined;
-					this.readyState = XHRWrapper.UNSENT;
-				}
-				open(method, url) {
-					this.method = method;
-					this.url = url;
-					this.readyState = XHRWrapper.OPENED;
-				}
-				send() {
-					this.readyState = XHRWrapper.LOADING;
-					request(this.url, (err, res, body) => {
-						this.status = err ? 600 : res.statusCode;
-						this.readyState = XHRWrapper.DONE;
-						this.responseText = body;
-						this.onreadystatechange && this.onreadystatechange();
-						this.onload && this.onload();
-					});
-				}
-
-				static get UNSENT() { 
-					return 0;
-				}
-				static get OPENED() { 
-					return 1;
-				}
-				static get HEADERS_RECEIVED() { 
-					return 2;
-				}
-				static get LOADING() { 
-					return 3;
-				}
-				static get DONE() { 
-					return 4;
-				}
-			}
-			window.XMLHttpRequest = XHRWrapper;
-		});
-		describe('#register()', () => {
-			it('should correctly register a library solely by its url and fetch it', async function () {
-				this.timeout(500);
-				this.slow(400);
-				const library = await crmAPI.libraries.register('someLibrary', {
-					url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
-				});
-				assert.isDefined(library, 'library is defined');
-				assert.isObject(library, 'library is an object');
-				assert.strictEqual(library.name, 'someLibrary', 'name matches expected');
-			}).timeout(10000);
-			it('should register a library by its code', async () => {
-				const library = await crmAPI.libraries.register('someOtherLibrary', {
-					code: 'some code'
-				});
-				assert.isDefined(library, 'library is defined');
-				assert.deepEqual(library, {
-					name: 'someOtherLibrary',
-					code: 'some code',
-					ts: {
-						enabled: false,
-						code: {}
-					}
-				});
-			});
-		});
-	});
 	describe('CRM', () => {
 		describe('#getRootContextMenuId()', () => {
 			it('should return the root context menu id', async () => {
@@ -5008,6 +4438,576 @@ describe('CRMAPI', () => {
 						'spliced child matches expected child');
 				});
 			});
+		});
+	});
+	describe('Storage', function() {
+		this.slow(200);
+		step('API exists', () => {
+			assert.isObject(crmAPI.storage, 'storage API is an object');
+		});
+		var usedStrings = {};
+		function generateUniqueRandomString() {
+			var str;
+			while (usedStrings[(str = generateRandomString())]) {}
+			usedStrings[str] = true;
+			return str;
+		}
+		var storageTestData = [];
+		for (var i = 0; i < 50; i++) {
+			storageTestData.push({
+				key: generateUniqueRandomString(),
+				value: generateUniqueRandomString()
+			});
+		}
+		step('API works', () => {
+			var isClearing = false;
+
+			var listeners = [];
+			var listenerActivations = [];
+			for (var i = 0; i < storageTestData.length; i++) {
+				listenerActivations[i] = 0;
+			}
+			function createStorageOnChangeListener(index) {
+				var fn = function(key, oldVal, newVal) {
+					if (key !== storageTestData[index].key) {
+						throw new Error(`Storage keys do not match, ${key} does not match expected ${storageTestData[index].key}`);
+					}
+					if (!isClearing) {
+						if (newVal !== storageTestData[index].value) {
+							throw new Error(`Storage values do not match, ${newVal} does not match expected value ${storageTestData[index].value}`);
+						}
+					}
+					listenerActivations[index]++;
+				}
+				listeners.push(fn);
+				crmAPI.storage.onChange.addListener(fn, storageTestData[index].key);
+			}
+			assert.doesNotThrow(() => {
+				for (let i = 0; i < storageTestData.length; i++) {
+					createStorageOnChangeListener(i);
+				}
+			}, 'setting up listening for storage works');
+			assert.doesNotThrow(() => {
+				for (let i = 0; i < storageTestData.length; i++) {
+					if (Math.floor(Math.random() * 2)) {
+						listenerActivations[i] += 1;
+						crmAPI.storage.onChange.removeListener(listeners[i], storageTestData[i].key);
+					}
+				}
+			}, 'setting up listener removing for storage works');
+			assert.doesNotThrow(() => {
+				for (let i = 0; i < storageTestData.length; i++) {
+					crmAPI.storage.set(storageTestData[i].key, storageTestData[i].value);
+				}
+			}, 'setting storage works');
+
+			/**
+			 * @type {any}
+			 */
+			var storageTestExpected = {
+				testKey: nodeStorage.testKey
+			};
+			for (let i = 0; i < storageTestData.length; i++) {
+				var key = storageTestData[i].key;
+				if (key.indexOf('.') > -1) {
+					var storageCont = storageTestExpected;
+					var path = key.split('.');
+					var length = path.length - 1;
+					for (var j = 0; j < length; j++) {
+						if (storageCont[path[j]] === undefined) {
+							storageCont[path[j]] = {};
+						}
+						storageCont = storageCont[path[j]];
+					}
+					storageCont[path[length]] = storageTestData[i].value;
+				} else {
+					storageTestExpected[storageTestData[i].key] = storageTestData[i].value;
+				}
+			}
+			assert.deepEqual(crmAPI.storage.get(), storageTestExpected, 'storage is equal to expected');
+
+			//If all listeners are 2, that means they got called twice, or were removed
+			for (let i = 0; i < storageTestData.length; i++) {
+				assert.strictEqual(listenerActivations[i], 1, `listener ${i} has been called once or removed`);
+			}
+
+			//Fetch the data using get
+			for (let i = 0; i < storageTestData.length; i++) {
+				var val = crmAPI.storage.get(storageTestData[i].key);
+				assert.strictEqual(val, storageTestData[i].value, 
+					`getting value at index ${i}: ${val} is equal to expected value ${storageTestData[i].value}`);
+			}
+
+			isClearing = true;
+
+			//Remove all data at the lowest level
+			for (var i = 0; i < storageTestData.length; i++) {
+				assert.doesNotThrow(() => {
+					crmAPI.storage.remove(storageTestData[i].key);
+				}, 'calling crmAPI.storage.remove does not throw');
+				assert.isUndefined(crmAPI.storage.get(storageTestData[i].key), 'removed data is undefined');
+			}
+
+			//Reset it
+			for (let i = 0; i < storageTestData.length; i++) {
+				var key = storageTestData[i].key;
+				if (key.indexOf('.') > -1) {
+					key = key.split('.');
+				} else {
+					key = [key];
+				}
+
+				assert.doesNotThrow(() => {
+					crmAPI.storage.remove(key[0]);
+				}, 'removing top-level data does not throw');
+				assert.isUndefined(crmAPI.storage.get(key[0]), 'removed data is undefined');
+			}
+
+			//Set by object
+			assert.doesNotThrow(() => {
+				crmAPI.storage.set(storageTestExpected);
+			}, 'calling storage.set with an object does not throw');
+
+			//Check if they now match
+			assert.deepEqual(crmAPI.storage.get(), storageTestExpected, 'storage matches expected after object set');
+		});
+	});
+	describe('Libraries', () => {
+		before(() => {
+			class XHRWrapper {
+				constructor() {
+					this.onreadystatechange = undefined;
+					this.onload = undefined;
+					this.readyState = XHRWrapper.UNSENT;
+				}
+				open(method, url) {
+					this.method = method;
+					this.url = url;
+					this.readyState = XHRWrapper.OPENED;
+				}
+				send() {
+					this.readyState = XHRWrapper.LOADING;
+					request(this.url, (err, res, body) => {
+						this.status = err ? 600 : res.statusCode;
+						this.readyState = XHRWrapper.DONE;
+						this.responseText = body;
+						this.onreadystatechange && this.onreadystatechange();
+						this.onload && this.onload();
+					});
+				}
+
+				static get UNSENT() { 
+					return 0;
+				}
+				static get OPENED() { 
+					return 1;
+				}
+				static get HEADERS_RECEIVED() { 
+					return 2;
+				}
+				static get LOADING() { 
+					return 3;
+				}
+				static get DONE() { 
+					return 4;
+				}
+			}
+			window.XMLHttpRequest = XHRWrapper;
+		});
+		describe('#register()', () => {
+			it('should correctly register a library solely by its url and fetch it', async function () {
+				this.timeout(500);
+				this.slow(400);
+				const library = await crmAPI.libraries.register('someLibrary', {
+					url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
+				});
+				assert.isDefined(library, 'library is defined');
+				assert.isObject(library, 'library is an object');
+				assert.strictEqual(library.name, 'someLibrary', 'name matches expected');
+			}).timeout(10000);
+			it('should register a library by its code', async () => {
+				const library = await crmAPI.libraries.register('someOtherLibrary', {
+					code: 'some code'
+				});
+				assert.isDefined(library, 'library is defined');
+				assert.deepEqual(library, {
+					name: 'someOtherLibrary',
+					code: 'some code',
+					ts: {
+						enabled: false,
+						code: {}
+					}
+				});
+			});
+		});
+	});
+	describe('Chrome', () => {
+		before('Setup', () => {
+			// @ts-ignore
+			window.chrome = window.chrome || {};
+			window.chrome.sessions = {
+				testReturnSimple: function(a, b) {
+					return a + b;
+				},
+				testReturnObject: function(a, b) {
+					a.x = 3;
+					a.y = 4;
+					a.z = 5;
+
+					b.push(3);
+					b.push(4);
+					b.push(5);
+					return {a: a, b: b};
+				},
+				testCallbackSimple: function(a, b, callback) {
+					callback(a + b);
+				},
+				testCallbackObject: function(a, b, callback) {
+					a.x = 3;
+					a.y = 4;
+					a.z = 5;
+
+					b.push(3);
+					b.push(4);
+					b.push(5);
+					callback({ a: a, b: b });
+				},
+				testCombinedSimple: function(a, b, callback) {
+					callback(a + b);
+					return a + b;
+				},
+				testCombinedObject: function(a, b, callback) {
+					a.x = 3;
+					a.y = 4;
+					a.z = 5;
+
+					b.push(3);
+					b.push(4);
+					b.push(5);
+					callback({ a: a, b: b });
+					return {a: a, b: b};
+				},
+				testPersistentSimple: function(a, b, callback) {
+					callback(a + b);
+					callback(a - b);
+					callback(a * b);
+				},
+				testPersistentObject: function(a, b, callback) {
+					a.x = 3;
+					a.y = 4;
+					a.z = 5;
+
+					b.push(3);
+					b.push(4);
+					b.push(5);
+					callback({a: a, b: b});
+					callback({c: a, d: b});
+					callback(a.value + b[0]);
+				}
+			}
+		});
+		step('exists', () => {
+			assert.isFunction(crmAPI.chrome);
+		});
+		it('works with return values and non-object parameters', (done) => {
+			var val1 = Math.floor(Math.random() * 50);
+			var val2 = Math.floor(Math.random() * 50);
+			assert.doesNotThrow(() => {
+				crmAPI.chrome('sessions.testReturnSimple')(val1, val2).return((value) => {
+					assert.strictEqual(value, val1 + val2, 'returned value matches expected value');
+					done();
+				}).send();
+			}, 'calling chrome function does not throw');
+		});
+		it('works with return values and object-paremters', (done) => {
+			var val1 = {
+				value: Math.floor(Math.random() * 50)
+			};
+			var val2 = [Math.floor(Math.random() * 50)];
+			assert.doesNotThrow(() => {
+				crmAPI.chrome('sessions.testReturnObject')(val1, val2).return((value) => {
+					assert.deepEqual(value, {
+						a: {
+							value: val1.value,
+							x: 3,
+							y: 4,
+							z: 5
+						}, 
+						b: [val2[0], 3, 4, 5]
+					}, 'returned value matches expected');
+					done();
+				}).send();
+			}, 'calling chrome function does not throw');
+		});
+		it('works with callback values and non-object parameters', (done) => {
+			var val1 = Math.floor(Math.random() * 50);
+			var val2 = Math.floor(Math.random() * 50);
+			assert.doesNotThrow(() => {
+				crmAPI.chrome('sessions.testCallbackSimple')(val1, val2, (value) => {
+					assert.strictEqual(value, val1 + val2, 'returned value matches expected value');
+					done();
+				}).send();
+			}, 'calling chrome function does not throw');
+		});
+		it('works with callback values and object parameters', (done) => {
+			var val1 = {
+				value: Math.floor(Math.random() * 50)
+			};
+			var val2 = [Math.floor(Math.random() * 50)];
+			assert.doesNotThrow(() => {
+				crmAPI.chrome('sessions.testCallbackObject')(val1, val2, (value) => {
+					assert.deepEqual(value, {
+						a: {
+							value: val1.value,
+							x: 3,
+							y: 4,
+							z: 5
+						}, 
+						b: [val2[0], 3, 4, 5]
+					}, 'returned value matches expected');
+					done();
+				}).send();
+			}, 'calling chrome function does not throw');
+		});
+		it('works with combined functions and simple parameters', (done) => {
+			var val1 = Math.floor(Math.random() * 50);
+			var val2 = Math.floor(Math.random() * 50);
+			var promises = [];
+			
+			promises.push(new Promise((resolveCallback) => {
+				promises.push(new Promise((resolveReturn) => {
+					assert.doesNotThrow(() => {
+						crmAPI.chrome('sessions.testCombinedSimple')(val1, val2, (value) => {
+							assert.strictEqual(value, val1 + val2, 'returned value is equal to returned value');
+							resolveCallback();
+						}).return((value) => {
+							assert.strictEqual(value, val1 + val2, 'returned value is equal to returned value');
+							resolveReturn();
+						}).send();
+					}, 'calling chrome function does not throw');
+				}));
+			}));
+			Promise.all(promises).then(() => {
+				done();
+			}, (err) => {
+				throw err;
+			});
+		});
+		it('works with combined functions and object parameters', (done) => {
+			var val1 = {
+				value: Math.floor(Math.random() * 50)
+			};
+			var val2 = [Math.floor(Math.random() * 50)];
+			var promises = [];
+
+			promises.push(new Promise((resolveCallback) => {
+				promises.push(new Promise((resolveReturn) => {
+					assert.doesNotThrow(() => {
+						crmAPI.chrome('sessions.testCombinedObject')(val1, val2, (value) => {
+							assert.deepEqual(value, {
+								a: {
+									value: val1.value,
+									x: 3,
+									y: 4,
+									z: 5
+								}, 
+								b: [val2[0], 3, 4, 5]
+							}, 'returned value matches expected');
+							resolveCallback();
+						}).return((value) => {
+							assert.deepEqual(value, {
+								a: {
+									value: val1.value,
+									x: 3,
+									y: 4,
+									z: 5
+								}, 
+								b: [val2[0], 3, 4, 5]
+							}, 'returned value matches expected');
+							resolveReturn();
+						}).send();
+					}, 'calling chrome function does not throw');
+				}));
+			}));
+
+			Promise.all(promises).then(() => {
+				done();
+			}, (err) => {
+				throw err;
+			});
+		});
+		it('works with persistent callbacks and simple parameters', (done) => {
+			var val1 = Math.floor(Math.random() * 50);
+			var val2 = Math.floor(Math.random() * 50);
+
+			var called = 0;
+			assert.doesNotThrow(() => {
+				crmAPI.chrome('sessions.testPersistentSimple')(val1, val2).persistent((value) => {
+					switch (called) {
+						case 0:
+							assert.strictEqual(value, val1 + val2, 'returned value matches expected');
+							break;
+						case 1:
+							assert.strictEqual(value, val1 - val2, 'returned value matches expected');
+							break;
+						case 2:
+							assert.strictEqual(value, val1 * val2, 'returned value matches expected');
+							done();
+							break;
+					}
+					called++;
+				}).send();
+			}, 'calling chrome function does not throw');
+		});
+		it('works with persistent callbacks and object parameters', (done) => {
+			var val1 = {
+				value: Math.floor(Math.random() * 50)
+			};
+			var val2 = [Math.floor(Math.random() * 50)];
+
+			var called = 0;
+			assert.doesNotThrow(() => {
+				crmAPI.chrome('sessions.testCallbackObject')(val1, val2, (value) => {
+					switch (called) {
+						case 0:
+							assert.deepEqual(value, {
+								a: {
+									value: val1.value,
+									x: 3,
+									y: 4,
+									z: 5
+								}, 
+								b: [val2[0], 3, 4, 5]
+							}, 'returned value matches expected');
+							break;
+						case 1:
+							assert.deepEqual(value, {
+								c: {
+									value: val1.value,
+									x: 3,
+									y: 4,
+									z: 5
+								}, 
+								d: [val2[0], 3, 4, 5]
+							}, 'returned value matches expected');
+							break;
+						case 2:
+							assert.strictEqual(value, val1.value + val2[0], 
+								'returned value matches expected');
+							done();
+							break;
+					}
+					called++;
+					done();
+				}).send();
+			}, 'calling chrome function does not throw');
+		});
+	});
+	describe('Browser', () => {
+		before('Setup', () => {
+			// @ts-ignore
+			window.browser = window.browser || {};
+			//@ts-ignore
+			window.browser.alarms = {
+				create: function(a, b) {
+					return new Promise((resolve) => {
+						resolve(null);
+					});
+				},
+				get: function(a, b) {
+					return new Promise((resolve) => {
+						resolve(a + b);
+					});
+				},
+				getAll: function(a, b) {
+					return new Promise((resolve) => {
+						resolve([a, b]);
+					});
+				},
+				clear: function(callback) {
+					return new Promise((resolve) => {
+						//@ts-ignore
+						callback(1);
+						resolve();
+					});
+				},
+				onAlarm: {
+					addListener: function(callback) {
+						return new Promise((resolve) => {
+							// @ts-ignore
+							callback(1);
+							// @ts-ignore
+							callback(2);
+							// @ts-ignore
+							callback(3);
+							resolve();
+						});
+					},
+				},
+				//@ts-ignore
+				outside: function() {
+					return new Promise((resolve) => {
+						resolve(3);
+					});
+				}
+			}
+
+			window.globals.availablePermissions = ['alarms'];
+		});
+		step('exists', () => {
+			assert.isObject(crmAPI.browser);
+		});
+		it('works with functions whose promise resolves into nothing', async () => {
+			await asyncDoesNotThrow(() => {
+				return crmAPI.browser.alarms.create(1, 2).send();
+			});
+		});
+		it('works with functions whose promise resolves into something', async () => {
+			await asyncDoesNotThrow(async () => {
+				const result = await crmAPI.browser.alarms.get.args(1, 2).send();
+				assert.strictEqual(result, 1 + 2, 'resolved values matches expected');
+			});
+		});
+		it('works with functions whose promises resolves into an object', async () => {
+			await asyncDoesNotThrow(async () => {
+				const result = await crmAPI.browser.alarms.getAll(1, 2).send();
+				assert.deepEqual(result, [1, 2], 'resolved values matches expected');
+			});
+		});
+		it('works with functions with a callback', async () => {
+			await asyncDoesNotThrow(async () => {
+				await new Promise(async (resolve) => {
+					crmAPI.browser.alarms.clear((value) => {
+						assert.strictEqual(value, 1, 'resolved values matches expected');
+						resolve(null);
+					}).send();
+				});
+			});
+		});
+		it('works with functions with a persistent callback', async () => {
+			await asyncDoesNotThrow(async () => {
+				return new Promise(async (resolve) => {
+					let called = 0;
+					debugger;
+					await crmAPI.browser.alarms.onAlarm.addListener.p((value) => {
+						called += 1;
+						if (called === 3) {
+							resolve();
+						}
+					}).send();
+				});
+			});
+		});
+		it('works with functions with an "any" function', async () => {
+			await asyncDoesNotThrow(() => {
+				return crmAPI.browser.any('alarms.outside').send();
+			});
+		});
+		it('should throw an error when a non-existent "any" function is tried', async () => {
+			await asyncThrows(() => {
+				debugger;
+				return crmAPI.browser.any('alarms.doesnotexist').send();
+			}, /Passed API does not exist/, 'non-existent function throws');
 		});
 	});
 });
