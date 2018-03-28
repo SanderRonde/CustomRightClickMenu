@@ -2598,7 +2598,7 @@ declare namespace CRM {
 			 * @returns {any} - Returns the value if the value is defined, if it's undefined, returns defaultValue
 			 *		when defaultValue is also undefined, returns undefined
 			 */
-			GM_getValue<T>(name: string, defaultValue: T): T,
+			GM_getValue<T>(name: string, defaultValue?: T): T,
 			/**
 			 * This method retrieves a value that was set with GM_setValue. See GM_setValue
 			 *		for details on the storage of these values.
@@ -2609,7 +2609,7 @@ declare namespace CRM {
 			 * @returns {void} - Returns the value if the value is defined, if it's undefined, returns defaultValue
 			 *		when defaultValue is also undefined, returns undefined
 			 */
-			GM_getValue<T>(name: string, defaultValue: T): void,
+			GM_getValue<T>(name: string, defaultValue?: T): void,
 			/**
 			 * This method retrieves a value that was set with GM_setValue. See GM_setValue
 			 *		for details on the storage of these values.
@@ -2620,7 +2620,7 @@ declare namespace CRM {
 			 * @returns {any} - Returns the value if the value is defined, if it's undefined, returns defaultValue
 			 *		when defaultValue is also undefined, returns undefined
 			 */
-			GM_getValue<T>(name: string, defaultValue: T): any,
+			GM_getValue<T>(name: string, defaultValue?: T): any,
 
 			/**
 			 * This method allows user script authors to persist simple values across page-loads.
