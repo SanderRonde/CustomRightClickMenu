@@ -131,10 +131,26 @@ export namespace Sandbox {
 		let context = {};
 		let fn = (window as any)[base];
 		const apiSplit = api.split('.');
-		for (let i = 0; i < apiSplit.length; i++) {
-			context = fn;
-			fn = (fn as any)[apiSplit[i]];
+		try {
+			for (let i = 0; i < apiSplit.length; i++) {
+				context = fn;
+				fn = (fn as any)[apiSplit[i]];
+			}
+		} catch(e) {
+			return {
+				success: false,
+				result: null
+			}
 		}
-		return _sandboxChromeFunction(null, null, null, null, (fn as any) as Function, context, args);
+		if (!fn || typeof fn !== 'function') {
+			return {
+				success: false,
+				result: null
+			}
+		}
+		return {
+			success: true,
+			result: _sandboxChromeFunction(null, null, null, null, (fn as any) as Function, context, args)
+		}
 	};
 }

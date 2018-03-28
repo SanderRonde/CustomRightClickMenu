@@ -368,6 +368,12 @@ export namespace BrowserHandler {
 		}
 		const apiPermission = message.requestType ||
 			message.api.split('.')[0] as CRM.Permission;
+
+		if (!_isAllowed(apiPermission)) {
+			modules.APIMessaging.ChromeMessage.throwError(message,
+				`Permission ${apiPermission} is not allowed for scripts, please use a CRM API replacemenet`);
+			return false;
+		}
 		if (!_hasPermission(message, apiPermission)) {
 			return false;
 		}
@@ -404,15 +410,32 @@ export namespace BrowserHandler {
 		}
 
 		try {
-			let result = modules.Sandbox.sandboxChrome(message.api, message.type, params);
+			let { success, result } = modules.Sandbox.sandboxChrome(message.api, message.type, params);
+			if (!success) {
+				modules.APIMessaging.ChromeMessage.throwError(message,
+					'Passed API does not exist');
+				return false;
+			}
+			
 			if (modules.Util.isThennable(result)) {
 				result = await result;	
 			}
 			for (let i = 0; i < returnFunctions.length; i++) {
 				returnFunctions[i](result);
 			}
+
+			if (message.type === 'browser') {
+				modules.APIMessaging.CRMMessage.respond(message, 'success', result);
+			}
 		} catch (e) {
 			modules.APIMessaging.ChromeMessage.throwError(message, e.message, e.stack);
+			return false;
+		}
+		return true;
+	}
+
+	function _isAllowed(apiPermission: CRM.Permission) {
+		if (apiPermission as any === 'storage') {
 			return false;
 		}
 		return true;

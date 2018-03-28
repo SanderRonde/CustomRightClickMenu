@@ -2,7 +2,6 @@
 /// <reference path="../tools/definitions/crmapi.d.ts" />
 /// <reference path="../app/js/background.ts" />
 
-//TODO: .browser
 //TODO: .background.*
 
 'use strict';
@@ -778,6 +777,24 @@ function asyncThrows(fn, regexp, message) {
 	});
 }
 
+/**
+ * @param {() => Promise<any>} fn - The fn to run
+ * @param {string} [message] - The asser.throws message
+ */
+function asyncDoesNotThrow(fn, message) {
+	return new Promise((resolve, reject) => {
+		fn().then((result) => {
+			assert.doesNotThrow(() => {}, message);
+			resolve(null);
+		}).catch((err) => {
+			assert.doesNotThrow(() => {
+				throw err;
+			}, message)
+			resolve(null);
+		});
+	});
+}
+
 var contexts = ['all', 'page', 'frame', 'selection', 'link',
 	'editable', 'image', 'video', 'audio', 'launcher',
 	'browser_action', 'page_action'];
@@ -1269,11 +1286,11 @@ var chrome = {
 	}
 };
 /**
- * @type {GlobalObject & {XMLHttpRequest: any; crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}} & {chrome: typeof chrome}}
+ * @type {GlobalObject & {XMLHttpRequest: any; crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}} & {chrome: typeof chrome, browser: typeof _browser}}
  */
 var window;
 /**
- * @type {GlobalObject & {XMLHttpRequest: any; crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}} & {chrome: typeof chrome}}
+ * @type {GlobalObject & {XMLHttpRequest: any; crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}} & {chrome: typeof chrome, browser: typeof _browser}}
  */
 // @ts-ignore
 var backgroundPageWindow = window = {
@@ -3233,6 +3250,113 @@ describe('CRMAPI', () => {
 					done();
 				}).send();
 			}, 'calling chrome function does not throw');
+		});
+	});
+	describe('Browser', () => {
+		before('Setup', () => {
+			// @ts-ignore
+			window.browser = window.browser || {};
+			//@ts-ignore
+			window.browser.alarms = {
+				create: function(a, b) {
+					return new Promise((resolve) => {
+						resolve(null);
+					});
+				},
+				get: function(a, b) {
+					return new Promise((resolve) => {
+						resolve(a + b);
+					});
+				},
+				getAll: function(a, b) {
+					return new Promise((resolve) => {
+						resolve([a, b]);
+					});
+				},
+				clear: function(callback) {
+					return new Promise((resolve) => {
+						//@ts-ignore
+						callback(1);
+						resolve();
+					});
+				},
+				onAlarm: {
+					addListener: function(callback) {
+						return new Promise((resolve) => {
+							// @ts-ignore
+							callback(1);
+							// @ts-ignore
+							callback(2);
+							// @ts-ignore
+							callback(3);
+							resolve();
+						});
+					},
+				},
+				//@ts-ignore
+				outside: function() {
+					return new Promise((resolve) => {
+						resolve(3);
+					});
+				}
+			}
+
+			window.globals.availablePermissions = ['alarms'];
+		});
+		step('exists', () => {
+			assert.isObject(crmAPI.browser);
+		});
+		it('works with functions whose promise resolves into nothing', async () => {
+			await asyncDoesNotThrow(() => {
+				return crmAPI.browser.alarms.create(1, 2).send();
+			});
+		});
+		it('works with functions whose promise resolves into something', async () => {
+			await asyncDoesNotThrow(async () => {
+				const result = await crmAPI.browser.alarms.get.args(1, 2).send();
+				assert.strictEqual(result, 1 + 2, 'resolved values matches expected');
+			});
+		});
+		it('works with functions whose promises resolves into an object', async () => {
+			await asyncDoesNotThrow(async () => {
+				const result = await crmAPI.browser.alarms.getAll(1, 2).send();
+				assert.deepEqual(result, [1, 2], 'resolved values matches expected');
+			});
+		});
+		it('works with functions with a callback', async () => {
+			await asyncDoesNotThrow(async () => {
+				await new Promise(async (resolve) => {
+					crmAPI.browser.alarms.clear((value) => {
+						assert.strictEqual(value, 1, 'resolved values matches expected');
+						resolve(null);
+					}).send();
+				});
+			});
+		});
+		it('works with functions with a persistent callback', async () => {
+			await asyncDoesNotThrow(async () => {
+				return new Promise(async (resolve) => {
+					let called = 0;
+					debugger;
+					await crmAPI.browser.alarms.onAlarm.addListener.p((value) => {
+						called += 1;
+						if (called === 3) {
+							resolve();
+						}
+					}).send();
+				});
+			});
+		});
+		it('works with functions with an "any" function', async () => {
+			await asyncDoesNotThrow(() => {
+				return crmAPI.browser.any('alarms.outside').send();
+			});
+		});
+		it('should throw an error when a non-existent "any" function is tried', async () => {
+			await asyncThrows(() => {
+				debugger;
+				return crmAPI.browser.any('alarms.doesnotexist').send();
+			}, /Passed API does not exist/, 'non-existent function throws');
 		});
 	});
 	describe('Libraries', () => {

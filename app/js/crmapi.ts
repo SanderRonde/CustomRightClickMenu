@@ -523,10 +523,23 @@ type CRMAPIMessage = {
 	}
 
 	function getFunctionThisMap(original: Function, 
-		thisMap: DataMap<Object, Object>): (this: any, ...args: any[]) => any|void {
+		thisMap: DataMap<Object, Object>, thisArgs: Object[]): (this: any, ...args: any[]) => any|void {
 			const newFn = function(this: any, ...args: any[]): any|void {
 				return original.apply(thisMap.get(this) || this, args);
 			};
+			for (const key in original) {
+				if (typeof (original as any)[key] === 'function') {
+					(newFn as any)[key] = function(this: any, ...args: any[]): any|void {
+						return (original as any)[key].apply(thisMap.get(this) || this, args);
+					}
+					if (thisArgs.indexOf(newFn) === -1) {
+						thisArgs.push(newFn);
+					}
+				} else {
+					(newFn as any)[key] = (original as any)[key];
+				}
+			}
+			newFn.prototype = original.prototype;
 			return newFn;
 		}
 
@@ -551,7 +564,7 @@ type CRMAPIMessage = {
 			}
 			switch (typeof value) {
 				case 'function':
-					target[key] = getFunctionThisMap(value, thisMap);
+					target[key] = getFunctionThisMap(value, thisMap, thisArgs);
 					break;
 				case 'object':
 					const htmlEl = (window as any).HTMLElement as any;
@@ -659,6 +672,7 @@ type CRMAPIMessage = {
 
 			_findElementsOnPage(contextData: EncodedContextData): void;
 			_setupStorages(): void;
+			_setupBrowserAPI(instance: CrmAPIInstance): void;
 			_callInfo: CallbackStorageInterface<{
 				callback(...args: any[]): void;
 				stackTrace: string[];
@@ -874,6 +888,17 @@ type CRMAPIMessage = {
 			_ensureBackground(): boolean;
 
 			/**
+			 * Wraps a browser object to keep track of each level's parents
+			 * 
+			 * @param {Object} toWrap - The object to wrap
+			 * @param {Object} instance - The CRM API instance that is the parent
+			 * @param {string[]} [parents] - The parents of this call
+			 */
+			_wrapBrowserObject<T extends {
+				[key: string]: Function|T;	
+			}>(toWrap: T, instance: CrmAPIInstance, parents?: string[]): T;
+
+			/**
 			 * Uses given arguments as arguments for the API in order specified. If the argument is
 			 * not a function, it is simply passed along, if it is, it's converted to a
 			 * function that will preserve scope but is not passed to the browser API itself.
@@ -986,6 +1011,328 @@ type CRMAPIMessage = {
 				this.contextData.target && this.contextData.target.classList.remove(targetClass);
 				this.contextData.toElement && this.contextData.toElement.classList.remove(toElementClass);
 				this.contextData.srcElement && this.contextData.srcElement.classList.remove(srcElementClass);
+			},
+
+			_setupBrowserAPI(instance: CrmAPIInstance) {
+				const __this = this;
+				const listener = {
+					addListener() {},
+					removeListener() {}
+				}
+
+				instance.browser = {...this._wrapBrowserObject({
+					alarms: {
+						create() {},
+						get() {},
+						getAll() {},
+						clear() {},
+						clearAll() {},
+						onAlarm: listener
+					},
+					bookmarks: {
+						create() {},
+						get() {},
+						getChildren() {},
+						getRecent() {},
+						getSubTree() {},
+						getTree() {},
+						move() {},
+						remove() {},
+						removeTree() {},
+						search() {},
+						update() {},
+						onCreated: listener,
+						onRemoved: listener,
+						onChanged: listener,
+						onMoved: listener
+					},
+					browserAction: {
+						setTitle() {},
+						getTitle() {},
+						setIcon() {},
+						setPopup() {},
+						getPopup() {},
+						openPopup() {},
+						setBadgeText() {},
+						getBadgeText() {},
+						setBadgeBackgroundColor() {},
+						getBadgeBackgroundColor() {},
+						enable() {},
+						disable() {},
+						onClicked: listener
+					},
+					browsingData: {
+						remove() {},
+						removeCache() {},
+						removeCookies() {},
+						removeDownloads() {},
+						removeFormData() {},
+						removeHistory() {},
+						removePasswords() {},
+						removePluginData() {},
+						settings() {}
+					},
+					commands: {
+						getAll() {},
+						onCommand: listener
+					},
+					contextMenus: {
+						create() {},
+						update() {},
+						remove() {},
+						removeAll() {},
+						onClicked: listener
+					},
+					contextualIdentities: {
+						create() {},
+						get() {},
+						query() {},
+						update() {},
+						remove() {}
+					},
+					cookies: {
+						get() {},
+						getAll() {},
+						set() {},
+						remove() {},
+						getAllCookieStores() {},
+						onChanged: listener
+					},
+					devtools: {
+						inspectedWindow: {
+							eval() {},
+							reload() {}
+						},
+						network: {
+							onNavigated: listener
+						},
+						panels: {
+							create() {},
+						}
+					},
+					downloads: {
+						download() {},
+						search() {},
+						pause() {},
+						resume() {},
+						cancel() {},
+						open() {},
+						show() {},
+						showDefaultFolder() {},
+						erase() {},
+						removeFile() {},
+						onCreated: listener,
+						onErased: listener,
+						onChanged: listener
+					},
+					extension: {
+						getURL() {},
+						getViews() {},
+						getBackgroundPage() {},
+						isAllowedIncognitoAccess() {},
+						isAllowedFileSchemeAccess() {},
+					},
+					history: {
+						search() {},
+						getVisits() {},
+						addUrl() {},
+						deleteUrl() {},
+						deleteRange() {},
+						deleteAll() {},
+						onVisited: listener,
+						onVisitRemoved: listener
+					},
+					i18n: {
+						getAcceptLanguage() {},
+						getMessage() {},
+						getUILanguage() {},
+						detectLanguage() {},
+					},
+					identity: {
+						getRedirectURL() {},
+						launchWebAuthFlow() {}
+					},
+					idle: {
+						queryState() {},
+						setDetectionInterval() {},
+						onStateChanged: listener
+					},
+					management: {
+						getSelf() {},
+						uninstallSelf() {},
+					},
+					notifications: {
+						create() {},
+						clear() {},
+						getAll() {},
+						onClicked: listener,
+						onClosed: listener
+					},
+					omnibox: {
+						setDefaultSuggestion() {},
+						onInputStarted: listener,
+						onInputChanged: listener,
+						onInputEntered: listener,
+						onInputCancelled: listener
+					},
+					pageAction: {
+						show() {},
+						hide() {},
+						setTitle() {},
+						getTitle() {},
+						setIcon() {},
+						setPopup() {},
+						getPopup() {},
+						onClicked: listener
+					},
+					permissions: {
+						contains() {},
+						getAll() {},
+						request() {},
+						remove() {}
+					},
+					runtime: {
+						setUninstallURL() {},
+						connectNative() {},
+						sendNativeMessage() {},
+						getBrowserInfo() {},
+						connect() {},
+						getBackgroundPage() {},
+						getManifest() {},
+						getURL() {},
+						getPlatformInfo() {},
+						openOptionsPage() {},
+						reload() {},
+						sendMessage() {},
+						onStartup: listener,
+						onUpdateAvailable: listener,
+						onInstalled: listener,
+						onConnectExternal: listener,
+						onConnect: listener,
+						onMessage: listener,
+						onMessageExternal: listener,
+						lastError: null,
+						id: null
+					},
+					sessions: {
+						getRecentlyClosed() {},
+						restore() {},
+						setTabValue() {},
+						getTabValue() {},
+						removeTabValue() {},
+						setWindowValue() {},
+						getWindowValue() {},
+						removeWindowValue() {},
+						onChanged: listener
+					},
+					sidebarAction: {
+						setPanel() {},
+						getPanel() {},
+						setTitle() {},
+						getTitle() {},
+						setIcon() {},
+						open() {},
+						close() {}
+					},
+					storage: {
+						local: {
+							get() {},
+							set() {},
+							remove() {},
+							clear() {}
+						},
+						sync: {
+							get() {},
+							set() {},
+							remove() {},
+							clear() {}
+						},
+						onChanged: listener
+					},
+					tabs: {
+						connect() {},
+						detectLanguage() {},
+						duplicate() {},
+						getZoom() {},
+						getZoomSettings() {},
+						insertCSS() {},
+						removeCSS() {},
+						move() {},
+						print() {},
+						printPreview() {},
+						reload() {},
+						remove() {},
+						saveAsPDF() {},
+						setZoom() {},
+						setZoomSettings() {},
+						create() {},
+						get() {},
+						getCurrent() {},
+						captureVisibleTab() {},
+						update() {},
+						query() {},
+						executeScript() {},
+						sendMessage() {},
+						onActivated: listener,
+						onAttached: listener,
+						onCreated: listener,
+						onDetached: listener,
+						onMoved: listener,
+						onReplaced: listener,
+						onZoomChanged: listener,
+						onUpdated: listener,
+						onRemoved: listener,
+						onHighlighted: listener
+					},
+					topSites: {
+						get() {},
+					},
+					webNavigation: {
+						getFrame() {},
+						getAllFrames() {},
+						onBeforeNavigate: listener,
+						onCommitted: listener,
+						onCreateNavigationTarget: listener,
+						onDOMContentLoaded: listener,
+						onCompleted: listener,
+						onErrorOccurred: listener,
+						onReferenceFragmentUpdated: listener,
+						onHistoryStateUpdated: listener
+					},
+					webRequest: {
+						onBeforeRequest: listener,
+						onBeforeSendHeaders: listener,
+						onSendHeaders: listener,
+						onHeadersReceived: listener,
+						onAuthRequired: listener,
+						onResponseStarted: listener,
+						onBeforeRedirect: listener,
+						onCompleted: listener,
+						onErrorOccurred: listener,
+						filterResponseData() {},
+					},
+					windows: {
+						get() {},
+						getCurrent() {},
+						getLastFocused() {},
+						getAll() {},
+						create() {},
+						update() {},
+						remove() {},
+						onCreated: listener,
+						onRemoved: listener,
+						onFocusChanged: listener
+					},
+					theme: {
+						getCurrent() {},
+						update() {},
+						reset() {}
+					}
+				}, instance), ...{
+					any(api: string) {
+						return new __this._browserRequest(this, api);
+					}
+				}}
 			},
 
 			_setupStorages(this: CrmAPIInstance) {
@@ -1881,6 +2228,57 @@ type CRMAPIMessage = {
 				return true;
 			},
 
+			_wrapBrowserObject<T extends {
+				[key: string]: Function|T;	
+			}>(toWrap: T, instance: CrmAPIInstance, parents: string[] = []): T {
+				const __this = this;
+				const wrapped: T = {} as T;
+				for (const key in toWrap) {
+					const value = toWrap[key];
+					if (typeof value === 'object') {
+						wrapped[key] = this._wrapBrowserObject(value as T, instance, [...parents, key])
+					} else if (typeof value === 'function') {
+						const obj = CrmAPIInstance._helpers.mergeObjects(function(this: any, ...args: any[]) {
+							return new __this._browserRequest(this, 
+								[...parents, key].join('.')).args(...args);
+						}, {
+							a(...args: any[]): BrowserRequestInterface {
+								return obj.args.apply(this, args);
+							},
+							args(...args: any[]): BrowserRequestInterface {
+								return new __this._browserRequest(this as any, 
+									[...parents, key].join('.')).args(...args);
+							},
+							p(...fns: any[]): BrowserRequestInterface {
+								return obj.persistent.apply(this, fns);
+							},
+							persistent(...fns: any[]): BrowserRequestInterface {
+								return new __this._browserRequest(this as any, 
+									[...parents, key].join('.')).persistent(...fns);
+							},
+							s(): Promise<any> {
+								return obj.send.apply(this, []);
+							},
+							send(): Promise<any> {
+								return new __this._browserRequest(this as any, 
+									[...parents, key].join('.')).send();
+							}
+						});
+						Object.defineProperty(obj, 'request', {
+							get() {
+								return new __this._browserRequest(this as any, 
+									[...parents, key].join('.')).request;
+							}
+						});
+
+						wrapped[key] = obj;
+					} else {
+						wrapped[key] = toWrap[key];
+					}
+				}
+				return wrapped;
+			},
+
 			_browserRequest: class BrowserRequest implements BrowserRequestInterface {
 				request: {
 					api: string;
@@ -2035,16 +2433,20 @@ type CRMAPIMessage = {
 							lineNumber: number;
 						}|any, stackTrace: string[]) => {
 							if (status === 'error' || status === 'chromeError') {
-								reject({...messageOrParams as {
-									error: string;
-									message: string;
-									stackTrace: string;
-									lineNumber: number;
-								}, ...{
-									localStackTrace: stackTrace }
-								});
+								reject(new Error(messageOrParams.error));
 							} else {
-								resolve(messageOrParams);
+								const successMessage = messageOrParams as {
+									callbackId: number;
+									params: any[];
+								};
+								if (successMessage && typeof successMessage.callbackId === 'number') {
+									this.__this.__privates._callInfo.get(successMessage.callbackId).callback.apply(window, successMessage.params);
+									if (!this.__this.__privates._callInfo.get(successMessage.callbackId).persistent) {
+										this.__this.__privates._callInfo.remove(successMessage.callbackId);
+									}
+								} else {
+									resolve(messageOrParams);
+								}
 							}
 						}
 
@@ -2298,7 +2700,7 @@ type CRMAPIMessage = {
 								console.warn('CrmAPIError: ' + errMessage.error);
 							}
 						} else {
-							const successMessage= messageOrParams as {
+							const successMessage = messageOrParams as {
 								callbackId: number;
 								params: any[];
 							};
@@ -2496,6 +2898,7 @@ type CRMAPIMessage = {
 				this.browserAPISupported = supportedAPIs.split(',').indexOf('browser') > -1;
 
 				this.__privates._findElementsOnPage.bind(this)(contextData);
+				this.__privates._setupBrowserAPI(this);
 			}
 
 		_init(node: CRM.Node, id: number, tabData: _browser.tabs.Tab,
@@ -4685,9 +5088,7 @@ type CRMAPIMessage = {
 		 * @returns {Object} - An object on which you can call .args, .fn and .send
 		 * 		(and their first-letter-only versions)
 		 */
-		browser(api: string) {
-			return new this.__privates._browserRequest(this, api);
-		}
+		browser: any = null;
 
 		/**
 		 * The GM API that fills in any APIs that GreaseMonkey uses and points them to their

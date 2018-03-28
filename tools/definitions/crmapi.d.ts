@@ -2126,6 +2126,322 @@ declare namespace CRM {
 			request: BrowserRequest;
 		}
 
+		interface BrowserRequestEvent {
+			addListener: BrowserRequestReturn;
+			removeListener: BrowserRequestReturn;
+		}
+
+		interface BrowserRequestObj {
+			any(api: string): BrowserRequestReturn;
+			alarms: {
+				create: BrowserRequestReturn,
+				get: BrowserRequestReturn,
+				getAll: BrowserRequestReturn,
+				clear: BrowserRequestReturn,
+				clearAll: BrowserRequestReturn,
+				onAlarm: BrowserRequestEvent
+			},
+			bookmarks: {
+				create: BrowserRequestReturn,
+				get: BrowserRequestReturn,
+				getChildren: BrowserRequestReturn,
+				getRecent: BrowserRequestReturn,
+				getSubTree: BrowserRequestReturn,
+				getTree: BrowserRequestReturn,
+				move: BrowserRequestReturn,
+				remove: BrowserRequestReturn,
+				removeTree: BrowserRequestReturn,
+				search: BrowserRequestReturn,
+				update: BrowserRequestReturn,
+				onCreated: BrowserRequestEvent,
+				onRemoved: BrowserRequestEvent,
+				onChanged: BrowserRequestEvent,
+				onMoved: BrowserRequestEvent
+			},
+			browserAction: {
+				setTitle: BrowserRequestReturn,
+				getTitle: BrowserRequestReturn,
+				setIcon: BrowserRequestReturn,
+				setPopup: BrowserRequestReturn,
+				getPopup: BrowserRequestReturn,
+				openPopup: BrowserRequestReturn,
+				setBadgeText: BrowserRequestReturn,
+				getBadgeText: BrowserRequestReturn,
+				setBadgeBackgroundColor: BrowserRequestReturn,
+				getBadgeBackgroundColor: BrowserRequestReturn,
+				enable: BrowserRequestReturn,
+				disable: BrowserRequestReturn,
+				onClicked: BrowserRequestEvent
+			},
+			browsingData: {
+				remove: BrowserRequestReturn,
+				removeCache: BrowserRequestReturn,
+				removeCookies: BrowserRequestReturn,
+				removeDownloads: BrowserRequestReturn,
+				removeFormData: BrowserRequestReturn,
+				removeHistory: BrowserRequestReturn,
+				removePasswords: BrowserRequestReturn,
+				removePluginData: BrowserRequestReturn,
+				settings: BrowserRequestReturn
+			},
+			commands: {
+				getAll: BrowserRequestReturn,
+				onCommand: BrowserRequestEvent
+			},
+			contextMenus: {
+				create: BrowserRequestReturn,
+				update: BrowserRequestReturn,
+				remove: BrowserRequestReturn,
+				removeAll: BrowserRequestReturn,
+				onClicked: BrowserRequestEvent
+			},
+			contextualIdentities: {
+				create: BrowserRequestReturn,
+				get: BrowserRequestReturn,
+				query: BrowserRequestReturn,
+				update: BrowserRequestReturn,
+				remove: BrowserRequestReturn
+			},
+			cookies: {
+				get: BrowserRequestReturn,
+				getAll: BrowserRequestReturn,
+				set: BrowserRequestReturn,
+				remove: BrowserRequestReturn,
+				getAllCookieStores: BrowserRequestReturn,
+				onChanged: BrowserRequestEvent
+			},
+			devtools: {
+				inspectedWindow: {
+					eval: BrowserRequestReturn,
+					reload: BrowserRequestReturn
+				},
+				network: {
+					onNavigated: BrowserRequestEvent
+				},
+				panels: {
+					create: BrowserRequestReturn,
+				}
+			},
+			downloads: {
+				download: BrowserRequestReturn,
+				search: BrowserRequestReturn,
+				pause: BrowserRequestReturn,
+				resume: BrowserRequestReturn,
+				cancel: BrowserRequestReturn,
+				open: BrowserRequestReturn,
+				show: BrowserRequestReturn,
+				showDefaultFolder: BrowserRequestReturn,
+				erase: BrowserRequestReturn,
+				removeFile: BrowserRequestReturn,
+				onCreated: BrowserRequestEvent,
+				onErased: BrowserRequestEvent,
+				onChanged: BrowserRequestEvent
+			},
+			extension: {
+				getURL: BrowserRequestReturn,
+				getViews: BrowserRequestReturn,
+				getBackgroundPage: BrowserRequestReturn,
+				isAllowedIncognitoAccess: BrowserRequestReturn,
+				isAllowedFileSchemeAccess: BrowserRequestReturn,
+			},
+			history: {
+				search: BrowserRequestReturn,
+				getVisits: BrowserRequestReturn,
+				addUrl: BrowserRequestReturn,
+				deleteUrl: BrowserRequestReturn,
+				deleteRange: BrowserRequestReturn,
+				deleteAll: BrowserRequestReturn,
+				onVisited: BrowserRequestEvent,
+				onVisitRemoved: BrowserRequestEvent
+			},
+			i18n: {
+				getAcceptLanguage: BrowserRequestReturn,
+				getMessage: BrowserRequestReturn,
+				getUILanguage: BrowserRequestReturn,
+				detectLanguage: BrowserRequestReturn,
+			},
+			identity: {
+				getRedirectURL: BrowserRequestReturn,
+				launchWebAuthFlow: BrowserRequestReturn
+			},
+			idle: {
+				queryState: BrowserRequestReturn,
+				setDetectionInterval: BrowserRequestReturn,
+				onStateChanged: BrowserRequestEvent
+			},
+			management: {
+				getSelf: BrowserRequestReturn,
+				uninstallSelf: BrowserRequestReturn,
+			},
+			notifications: {
+				create: BrowserRequestReturn,
+				clear: BrowserRequestReturn,
+				getAll: BrowserRequestReturn,
+				onClicked: BrowserRequestEvent,
+				onClosed: BrowserRequestEvent
+			},
+			omnibox: {
+				setDefaultSuggestion: BrowserRequestReturn,
+				onInputStarted: BrowserRequestEvent,
+				onInputChanged: BrowserRequestEvent,
+				onInputEntered: BrowserRequestEvent,
+				onInputCancelled: BrowserRequestEvent
+			},
+			pageAction: {
+				show: BrowserRequestReturn,
+				hide: BrowserRequestReturn,
+				setTitle: BrowserRequestReturn,
+				getTitle: BrowserRequestReturn,
+				setIcon: BrowserRequestReturn,
+				setPopup: BrowserRequestReturn,
+				getPopup: BrowserRequestReturn,
+				onClicked: BrowserRequestEvent
+			},
+			permissions: {
+				contains: BrowserRequestReturn,
+				getAll: BrowserRequestReturn,
+				request: BrowserRequestReturn,
+				remove: BrowserRequestReturn
+			},
+			runtime: {
+				setUninstallURL: BrowserRequestReturn,
+				connectNative: BrowserRequestReturn,
+				sendNativeMessage: BrowserRequestReturn,
+				getBrowserInfo: BrowserRequestReturn,
+				connect: BrowserRequestReturn,
+				getBackgroundPage: BrowserRequestReturn,
+				getManifest: BrowserRequestReturn,
+				getURL: BrowserRequestReturn,
+				getPlatformInfo: BrowserRequestReturn,
+				openOptionsPage: BrowserRequestReturn,
+				reload: BrowserRequestReturn,
+				sendMessage: BrowserRequestReturn,
+				onStartup: BrowserRequestEvent,
+				onUpdateAvailable: BrowserRequestEvent,
+				onInstalled: BrowserRequestEvent,
+				onConnectExternal: BrowserRequestEvent,
+				onConnect: BrowserRequestEvent,
+				onMessage: BrowserRequestEvent,
+				onMessageExternal: BrowserRequestEvent,
+				lastError: null,
+				id: null
+			},
+			sessions: {
+				getRecentlyClosed: BrowserRequestReturn,
+				restore: BrowserRequestReturn,
+				setTabValue: BrowserRequestReturn,
+				getTabValue: BrowserRequestReturn,
+				removeTabValue: BrowserRequestReturn,
+				setWindowValue: BrowserRequestReturn,
+				getWindowValue: BrowserRequestReturn,
+				removeWindowValue: BrowserRequestReturn,
+				onChanged: BrowserRequestEvent
+			},
+			sidebarAction: {
+				setPanel: BrowserRequestReturn,
+				getPanel: BrowserRequestReturn,
+				setTitle: BrowserRequestReturn,
+				getTitle: BrowserRequestReturn,
+				setIcon: BrowserRequestReturn,
+				open: BrowserRequestReturn,
+				close: BrowserRequestReturn
+			},
+			storage: {
+				local: {
+					get: BrowserRequestReturn,
+					set: BrowserRequestReturn,
+					remove: BrowserRequestReturn,
+					clear: BrowserRequestReturn
+				},
+				sync: {
+					get: BrowserRequestReturn,
+					set: BrowserRequestReturn,
+					remove: BrowserRequestReturn,
+					clear: BrowserRequestReturn
+				},
+				onChanged: BrowserRequestEvent
+			},
+			tabs: {
+				connect: BrowserRequestReturn,
+				detectLanguage: BrowserRequestReturn,
+				duplicate: BrowserRequestReturn,
+				getZoom: BrowserRequestReturn,
+				getZoomSettings: BrowserRequestReturn,
+				insertCSS: BrowserRequestReturn,
+				removeCSS: BrowserRequestReturn,
+				move: BrowserRequestReturn,
+				print: BrowserRequestReturn,
+				printPreview: BrowserRequestReturn,
+				reload: BrowserRequestReturn,
+				remove: BrowserRequestReturn,
+				saveAsPDF: BrowserRequestReturn,
+				setZoom: BrowserRequestReturn,
+				setZoomSettings: BrowserRequestReturn,
+				create: BrowserRequestReturn,
+				get: BrowserRequestReturn,
+				getCurrent: BrowserRequestReturn,
+				captureVisibleTab: BrowserRequestReturn,
+				update: BrowserRequestReturn,
+				query: BrowserRequestReturn,
+				executeScript: BrowserRequestReturn,
+				sendMessage: BrowserRequestReturn,
+				onActivated: BrowserRequestEvent,
+				onAttached: BrowserRequestEvent,
+				onCreated: BrowserRequestEvent,
+				onDetached: BrowserRequestEvent,
+				onMoved: BrowserRequestEvent,
+				onReplaced: BrowserRequestEvent,
+				onZoomChanged: BrowserRequestEvent,
+				onUpdated: BrowserRequestEvent,
+				onRemoved: BrowserRequestEvent,
+				onHighlighted: BrowserRequestEvent
+			},
+			topSites: {
+				get: BrowserRequestReturn,
+			},
+			webNavigation: {
+				getFrame: BrowserRequestReturn,
+				getAllFrames: BrowserRequestReturn,
+				onBeforeNavigate: BrowserRequestEvent,
+				onCommitted: BrowserRequestEvent,
+				onCreateNavigationTarget: BrowserRequestEvent,
+				onDOMContentLoaded: BrowserRequestEvent,
+				onCompleted: BrowserRequestEvent,
+				onErrorOccurred: BrowserRequestEvent,
+				onReferenceFragmentUpdated: BrowserRequestEvent,
+				onHistoryStateUpdated: BrowserRequestEvent
+			},
+			webRequest: {
+				onBeforeRequest: BrowserRequestEvent,
+				onBeforeSendHeaders: BrowserRequestEvent,
+				onSendHeaders: BrowserRequestEvent,
+				onHeadersReceived: BrowserRequestEvent,
+				onAuthRequired: BrowserRequestEvent,
+				onResponseStarted: BrowserRequestEvent,
+				onBeforeRedirect: BrowserRequestEvent,
+				onCompleted: BrowserRequestEvent,
+				onErrorOccurred: BrowserRequestEvent,
+				filterResponseData: BrowserRequestReturn,
+			},
+			windows: {
+				get: BrowserRequestReturn,
+				getCurrent: BrowserRequestReturn,
+				getLastFocused: BrowserRequestReturn,
+				getAll: BrowserRequestReturn,
+				create: BrowserRequestReturn,
+				update: BrowserRequestReturn,
+				remove: BrowserRequestReturn,
+				onCreated: BrowserRequestEvent,
+				onRemoved: BrowserRequestEvent,
+				onFocusChanged: BrowserRequestEvent
+			},
+			theme: {
+				getCurrent: BrowserRequestReturn,
+				update: BrowserRequestReturn,
+				reset: BrowserRequestReturn
+			}
+		}
+
 		/**
 		 * Headers for a GM_download call
 		 */
@@ -3864,11 +4180,11 @@ declare namespace CRM {
 			chrome(api: string): ChromeRequestReturn;
 	
 			/**
-			 * Calls the browser API given in the "API" parameter. Due to some issues with the browser message passing
-			 *		API it is not possible to pass messages and preserve scope. This could be fixed in other ways but
-			 *		unfortunately browser.tabs.executeScript (what is used to execute scripts on the page) runs in a
-			 *		sandbox and does not allow you to access a lot. As a solution to this there are a few types of
-			 *		functions you can chain-call on the crmAPI.browser(API) object:
+			 * An object closely resembling the browser API object. 
+			 * 		Access the function you want to run through the object and then
+			 * 		call it like the chrome API by calling a set of functions on it.
+			 * 		There are a few types of functions you can chain-call on the 
+			 * 		crmAPI.browser.{api} object:
 			 *			a or args or (): uses given arguments as arguments for the API in order specified. When passing a function,
 			 *				it will be converted to a placeholder function that will be called on return with the
 			 *				arguments chrome passed to it. This means the function is never executed on the background
@@ -3883,43 +4199,42 @@ declare namespace CRM {
 			 *			s or send: executes the request
  			 * Examples:
 			 *		- For a function that returns a promise:
-			 * 		crmAPI.browser('alarms.get')('name').send().then((alarm) => {
+			 * 		crmAPI.browser.alarms.get('name').send().then((alarm) => {
 			 *			//Do something with the result here
 			 *		});
 			 * 		-
 			 *		- Or the async version
-			 * 		const alarm = await crmAPI.browser('alarms.get')('name').send();
+			 * 		const alarm = await crmAPI.browser.alarms.get('name').send();
 			 *		-
 			 *		- For a function that returns a value it works the same:
-			 *		crmAPI.chrome('runtime.getUrl')(path).send().then((result) => {
+			 *		crmAPI.browser.runtime.getURL(path).send().then((result) => {
 			 *			//Do something with the result
 			 *		});
 			 *		-
 			 *		- For a function that uses neither:
-			 *		crmAPI.chrome('alarms.create')('name', {}).send();
+			 *		crmAPI.browser.alarms.create('name', {}).send();
 			 *		-
 			 * 		- Or you can still await it to know when it's done executing
-			 * 		crmAPI.chrome('alarms.create')('name', {}).send();		
+			 * 		crmAPI.browser.alarms.create('name', {}).send();		
 			 *		-
 			 *		- For a function that uses a persistent callback
-			 *		crmAPI.chrome('tabs.onCreated.addListener').persistent(function(tab) {
+			 *		crmAPI.browser.tabs.onCreated.addListener.persistent(function(tab) {
 			 * 			//Do something with the tab 
 			 *		}).send();
 			 *		-
 			 *		- A compacter version:
-			 *		const url = await crmAPI.chrome('alarms.get')('name').s();
+			 *		const { url } = await crmAPI.browser.tabs.create('name').s();
 			 *		-
 			 * Requires permission "chrome" (or "browser", they're the same) and the permission
-			 * of the the API, so chrome.bookmarks requires permission "bookmarks", 
-			 * chrome.alarms requires "alarms"
+			 * of the the API, so browser.bookmarks requires permission "bookmarks", 
+			 * browser.alarms requires "alarms"
 			 *
 			 * @permission chrome
 			 * @permission browser
-			 * @param {string} api - The API to use
 			 * @returns {Object} - An object on which you can call .args, .fn and .send
 			 * 		(and their first-letter-only versions)
 			 */
-			browser(api: string): BrowserRequestReturn;
+			browser: BrowserRequestObj;
 
 			/**
 			 * The GM API that fills in any APIs that GreaseMonkey uses and points them to their
