@@ -5228,7 +5228,7 @@ type CRMAPIMessage = {
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_setClipboard}
 			 * @param {any} ignoredArguments - An argument that is ignored
 			 */
-			GM_setClipboard: CrmAPIInstance._helpers,
+			GM_setClipboard: CrmAPIInstance._helpers.emptyFn,
 			/**
 			 * Sends an xmlhttpRequest with given parameters
 			 *
