@@ -5147,7 +5147,7 @@ type CRMAPIMessage = {
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_listValues}
 			 * @returns {String[]} All keys of the storage
 			 */
-			GM_listValues(this: CrmAPIInstance, ): string[] {
+			GM_listValues(this: CrmAPIInstance): string[] {
 				const keys = [];
 				for (const key in this.__privates._nodeStorage) {
 					if (this.__privates._nodeStorage.hasOwnProperty(key)) {
