@@ -4489,7 +4489,7 @@ describe('CRMAPI', () => {
 					});
 					it('should throw an error when the node is not a script', async () => {
 						await asyncThrows(() => {
-							return crmAPI.crm.script.backgroundLibraries.push(safeTestCRMTree[0].id, {
+							return crmAPI.crm.script.libraries.push(safeTestCRMTree[0].id, {
 								name: 'lib2'
 							});
 						}, /Node is not of type script/, 'non-existent library can\'t be added');
