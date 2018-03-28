@@ -4988,7 +4988,6 @@ describe('CRMAPI', () => {
 			await asyncDoesNotThrow(async () => {
 				return new Promise(async (resolve) => {
 					let called = 0;
-					debugger;
 					await crmAPI.browser.alarms.onAlarm.addListener.p((value) => {
 						called += 1;
 						if (called === 3) {
