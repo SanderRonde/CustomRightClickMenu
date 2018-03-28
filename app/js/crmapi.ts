@@ -5164,7 +5164,10 @@ type CRMAPIMessage = {
 			 * @returns {String} - A URL that can be used to get the resource value
 			 */
 			GM_getResourceURL(this: CrmAPIInstance, name: string): string {
-				return this.__privates._greasemonkeyData.resources[name].crmUrl;
+				if (this.__privates._greasemonkeyData.resources[name]) {
+					return this.__privates._greasemonkeyData.resources[name].crmUrl;
+				}
+				return undefined;
 			},
 			/**
 			 * Gets the resource string for given resource name
@@ -5174,7 +5177,10 @@ type CRMAPIMessage = {
 			 * @returns {String} - The resource value
 			 */
 			GM_getResourceString(this: CrmAPIInstance, name: string): string {
-				return this.__privates._greasemonkeyData.resources[name].dataString;
+				if (this.__privates._greasemonkeyData.resources[name]) {
+					return this.__privates._greasemonkeyData.resources[name].dataString;
+				}
+				return undefined;
 			},
 			/**
 			 * This method adds a string of CSS to the document. It creates a new <style> element,
