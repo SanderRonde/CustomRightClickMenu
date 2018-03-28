@@ -3770,18 +3770,6 @@ describe('User entrypoints', function() {
 				});
 			});
 		});
-		describe('Errors', function() {
-			it('should not have been thrown during testing', async function(done)  {
-				const result = (await driver.executeScript(inlineFn(() => {
-					return window.errorReportingTool.lastErrors;
-				}))).filter(err => !err.handled);
-				if (result.length) {
-					console.log(result);
-				}
-				assert.lengthOf(result, 0, 'no errors should be thrown when testing page');
-				done();
-			});
-		});
 	});
 });
 
