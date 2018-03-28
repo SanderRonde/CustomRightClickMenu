@@ -5401,7 +5401,7 @@ type CRMAPIMessage = {
 			 * Please use the comms API instead of this one, this one does nothing
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_saveTab}
-			 * @param {any} ignoredArguments - An argument that is ignored
+			 * @param {function} callback - A callback that is immediately called
 			 */
 			GM_saveTab: CrmAPIInstance._helpers.instantCb,
 			/**

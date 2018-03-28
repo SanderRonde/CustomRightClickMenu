@@ -2893,9 +2893,9 @@ declare namespace CRM {
 			 * Please use the comms API instead of this one, this one does nothing
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_saveTab}
-			 * @param {any} ignoredArguments - An argument that is ignored
+			 * @param {function} callback - A callback that is immediately called
 			 */
-			GM_saveTab: EmptyFn;
+			GM_saveTab: InstantCB;
 
 			/**
 			 * The unsafeWindow object provides full access to the pages javascript functions and variables.
