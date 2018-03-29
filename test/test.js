@@ -2491,6 +2491,49 @@ describe('CRMAPI', () => {
 	 * @type CRMAPI[]
 	 */
 	var crmAPIs = [];
+	var createSecretKey = function() {
+		var key = [];
+		var i;
+		for (i = 0; i < 25; i++) {
+			key[i] = Math.round(Math.random() * 100);
+		}
+		var joined = key.join(',');
+		if (!usedKeys[joined]) {
+			usedKeys[joined] = true;
+			return key;
+		} else {
+			return createSecretKey();
+		}
+	}
+	/**
+	 * @type {CRM.CRMAPI.GreaseMonkeyData}
+	 */
+	// @ts-ignore
+	var greaseMonkeyData = {
+		info: {
+			//@ts-ignore
+			testKey: createSecretKey()
+		},
+		resources: {
+			[generateRandomString()]: {
+				crmUrl: generateRandomString(),
+				dataString: generateRandomString()
+			},
+			[generateRandomString()]: {
+				crmUrl: generateRandomString(),
+				dataString: generateRandomString()
+			},
+			[generateRandomString()]: {
+				crmUrl: generateRandomString(),
+				dataString: generateRandomString()
+			}
+		},
+		[Math.round(Math.random() * 100)]: Math.round(Math.random() * 100),
+		[Math.round(Math.random() * 100)]: Math.round(Math.random() * 100),
+		[Math.round(Math.random() * 100)]: Math.round(Math.random() * 100),
+		[Math.round(Math.random() * 100)]: Math.round(Math.random() * 100),
+		[Math.round(Math.random() * 100)]: Math.round(Math.random() * 100)
+	};
 	describe('setup', function() {
 		/**
 		 * @type {CRM.ScriptNode}
@@ -2551,20 +2594,6 @@ describe('CRMAPI', () => {
 				"not": true
 			}]
 		};
-		var createSecretKey = function() {
-			var key = [];
-			var i;
-			for (i = 0; i < 25; i++) {
-				key[i] = Math.round(Math.random() * 100);
-			}
-			var joined = key.join(',');
-			if (!usedKeys[joined]) {
-				usedKeys[joined] = true;
-				return key;
-			} else {
-				return createSecretKey();
-			}
-		}
 		/**
 		 * @type CRM.CRMAPI.TabData
 		 */
@@ -2572,15 +2601,6 @@ describe('CRMAPI', () => {
 		var tabData = {id: 0, testKey: createSecretKey()};
 		var clickData = {selection: 'some text', testKey: createSecretKey()};
 		nodeStorage = {testKey: createSecretKey()};
-		/**
-			* @type {CRM.CRMAPI.GreaseMonkeyData}
-			*/
-		// @ts-ignore
-		var greaseMonkeyData = {
-			info: {
-				testKey: createSecretKey()
-			}
-		};
 		var secretKey = createSecretKey();
 		step('CrmAPIInit class can be created', () => {
 			let result;
@@ -5006,6 +5026,409 @@ describe('CRMAPI', () => {
 			await asyncThrows(() => {
 				return crmAPI.browser.any('alarms.doesnotexist').send();
 			}, /Passed API does not exist/, 'non-existent function throws');
+		});
+	});
+	describe('GM', () => {
+		describe('#GM_info()', () => {
+			it('should return the info object', () => {
+				const info = crmAPI.GM.GM_info();
+				assert.deepEqual(info, greaseMonkeyData.info,
+					'returned info is the same as expected');
+			});
+		});
+		let storageMirror = {};
+		describe('#GM_listValues()', () => {
+			before('Set test values', () => {
+				storageMirror = {};
+				for (let i = 0; i < 10; i++) {
+					const key = generateRandomString(true);
+					const value = generateRandomString();
+					crmAPI.GM.GM_setValue(key, value);
+					storageMirror[key] = value;
+				}
+			});
+			it('should return all keys', () => {
+				const expectedKeys = [];
+				for (const key in storageMirror) {
+					expectedKeys.push(key);
+				}
+
+				const actualKeys = crmAPI.GM.GM_listValues();
+				assert.includeMembers(actualKeys, expectedKeys,
+					'all keys were returned');
+			});
+			it('should not return deleted keys', () => {
+				const expectedKeys = [];
+				for (const key in storageMirror) {
+					if (Math.random() > 0.5) {
+						crmAPI.GM.GM_deleteValue(key);
+					} else {
+						expectedKeys.push(key);
+					}
+				}
+
+				const actualKeys = crmAPI.GM.GM_listValues();
+				assert.includeMembers(actualKeys, expectedKeys,
+					'deleted keys are removed');
+			});
+		});
+		describe('#GM_getValue()', () => {
+			before('Set test values', () => {
+				storageMirror = {};
+				for (let i = 0; i < 100; i++) {
+					const key = generateRandomString(true);
+					const value = generateRandomString();
+					crmAPI.GM.GM_setValue(key, value);
+				}
+			});
+			it('should return the correct value when it exists', () => {
+				for (const key in storageMirror) {
+					const expected = storageMirror[key];
+					const actual = crmAPI.GM.GM_getValue(key);
+					assert.strictEqual(actual, expected,
+						'returned value matches expected');
+				}
+			});
+			it('should return the default value if it does not exist', () => {
+				for (const key in storageMirror) {
+					const expected = generateRandomString();
+					const actual = crmAPI.GM.GM_getValue(`${key}x`, expected);
+					assert.strictEqual(actual, expected,
+						'returned value matches default');
+				}
+			});
+		});
+		describe('#GM_setValue()', () => {
+			before('Reset storagemirror', () => {
+				storageMirror = {};
+			});
+			it('should not throw when setting the values', () => {
+				for (let i = 0; i < 1000; i++) {
+					const key = generateRandomString(true);
+					const randVal = Math.round(Math.random() * 100);
+					if (randVal <= 20) {
+						assert.doesNotThrow(() => {
+							const value = Math.random() * 10000;
+							storageMirror[key] = value;
+							crmAPI.GM.GM_setValue(key, value);
+						}, 'number value can be set');
+					} else if (randVal <= 40) {
+						assert.doesNotThrow(() => {
+							const value = Math.random() > 0.5;
+							storageMirror[key] = value;
+							crmAPI.GM.GM_setValue(key, value);
+						}, 'boolean value can be set');
+					} else if (randVal <= 60) {
+						assert.doesNotThrow(() => {
+							const value = generateRandomString();
+							storageMirror[key] = value;
+							crmAPI.GM.GM_setValue(key, value);
+						}, 'string value can be set');
+					} else if (randVal <= 80) {
+						assert.doesNotThrow(() => {
+							const value = {};
+							for (let j = 0; j < Math.round(Math.random() * 100); j++) {
+								value[generateRandomString(true)] = generateRandomString();
+							}
+							storageMirror[key] = value;
+							crmAPI.GM.GM_setValue(key, value);
+						}, 'object value can be set');
+					} else {
+						assert.doesNotThrow(() => {
+							const value = [];
+							for (let j = 0; j < Math.round(Math.random() * 100); j++) {
+								value.push(generateRandomString());
+							}
+							storageMirror[key] = value;
+							crmAPI.GM.GM_setValue(key, value);
+						}, 'array value can be set');
+					}
+				}
+			});
+			it('should be possible to retrieve the values', () => {
+				for (const key in storageMirror) {
+					const expected = storageMirror[key];
+					const actual = crmAPI.GM.GM_getValue(key);
+					if (typeof expected === 'object') {
+						assert.deepEqual(actual, expected,
+							'complex types are returned properly');
+					} else {
+						assert.strictEqual(actual, expected,
+							'primitive type values are returned properly');
+					}
+				}
+			});
+			it('should not change value once set', () => {
+				for (const key in storageMirror) {
+					if (typeof storageMirror[key] === 'object') {
+						if (Array.isArray(storageMirror[key])) {
+							storageMirror[key].push('x');
+						} else {
+							storageMirror[key]['x'] = 'x';
+						}
+					}
+				}
+				for (const key in storageMirror) {
+					const expected = storageMirror[key];
+					const actual = crmAPI.GM.GM_getValue(key);
+					if (typeof expected === 'object') {
+						assert.notDeepEqual(actual, expected,
+							'remote has not changed');
+					}
+				}
+			});
+		});
+		describe('#GM_deleteValue()', () => {
+			const deletedKeys = [];
+			before('Set test values', () => {
+				storageMirror = {};
+				for (let i = 0; i < 100; i++) {
+					const key = generateRandomString(true);
+					const value = generateRandomString();
+					crmAPI.GM.GM_setValue(key, value);
+				}
+			});
+			it('should be able to delete something when the key exists', () => {
+				assert.doesNotThrow(() => {
+					for (const key in storageMirror) {
+						if (Math.random() > 0.5) {
+							crmAPI.GM.GM_deleteValue(key);
+							deletedKeys.push(key);
+						}
+					}
+				}, 'deletes valus without throwing');
+			});
+			it('should do nothing when the key does not exist', () => {
+				assert.doesNotThrow(() => {
+					for (const key in storageMirror) {
+						//Delete the key + some string
+						crmAPI.GM.GM_deleteValue(key + 'x');
+					}
+				}, 'deletes valus without throwing');
+			});
+			it('should actually be deleted', () => {
+				for (const key in storageMirror) {
+					let expected = undefined;
+					if (deletedKeys.indexOf(key) === -1) {
+						expected = storageMirror[key];
+					}
+					const actual = crmAPI.GM.GM_getValue(key);
+					if (deletedKeys.indexOf(key) === -1) {
+						assert.strictEqual(actual, expected, 
+							'undeleted keys are not affected');
+					} else {
+						assert.isUndefined(actual,
+							'undefined is returned when it the key does not exist')
+					}
+				}
+			});
+		});
+		describe('#GM_getResourceURL()', () => {
+			it('should return the correct URL if the resource exists', () => {
+				for (const name in greaseMonkeyData.resources) {
+					const actual = greaseMonkeyData.resources[name].crmUrl;
+					const expected = crmAPI.GM.GM_getResourceURL(name);
+					assert.strictEqual(actual, expected,
+						'urls match');
+				}
+			});
+			it('should return undefined if the resource does not exist', () => {
+				for (const name in greaseMonkeyData.resources) {
+					const expected = crmAPI.GM.GM_getResourceURL(`${name}x`);
+					assert.isUndefined(expected, 'returns undefined');
+				}
+			});
+		});
+		describe('#GM_getResourceString()', () => {
+			it('should return the correct URL if the resource exists', () => {
+				for (const name in greaseMonkeyData.resources) {
+					const actual = greaseMonkeyData.resources[name].dataString;
+					const expected = crmAPI.GM.GM_getResourceString(name);
+					assert.strictEqual(actual, expected,
+						'urls match');
+				}
+			});
+			it('should return undefined if the resource does not exist', () => {
+				for (const name in greaseMonkeyData.resources) {
+					const expected = crmAPI.GM.GM_getResourceString(`${name}x`);
+					assert.isUndefined(expected, 'returns undefined');
+				}
+			});
+		});
+		describe('#GM_log()', () => {
+			it('should be a callable function', () => {
+				assert.isFunction(crmAPI.GM.GM_log);
+			});
+		});
+		describe('#GM_openInTab()', () => {
+			let lastCall = undefined;
+			//@ts-ignore
+			window.open = (url, target) => {
+				lastCall = {
+					url, target
+				}
+			}
+			it('should be callable with a url', () => {
+				const url = generateRandomString();
+				crmAPI.GM.GM_openInTab(url);
+
+				assert.isDefined(lastCall, 'window.open was called');
+
+				assert.strictEqual(lastCall.url, url,
+					'URLs match');
+			});
+		});
+		describe('#GM_registerMenuCommand()', () => {
+			it('should be a callable function', () => {
+				assert.isFunction(crmAPI.GM.GM_registerMenuCommand);
+				assert.doesNotThrow(() => {
+					crmAPI.GM.GM_registerMenuCommand();
+				});
+			});
+		});
+		describe('#GM_unregisterMenuCommand()', () => {
+			it('should be a callable function', () => {
+				assert.isFunction(crmAPI.GM.GM_unregisterMenuCommand);
+				assert.doesNotThrow(() => {
+					crmAPI.GM.GM_unregisterMenuCommand();
+				});
+			});
+		});
+		describe('#GM_setClipboard()', () => {
+			it('should be a callable function', () => {
+				assert.isFunction(crmAPI.GM.GM_setClipboard);
+				assert.doesNotThrow(() => {
+					crmAPI.GM.GM_setClipboard();
+				});
+			});
+		});
+		describe('#GM_addValueChangeListener()', () => {
+			const calls = {};
+			const expectedCalls = {};
+			before('Set test values', () => {
+				storageMirror = {};
+				for (let i = 0; i < 100; i++) {
+					const key = generateRandomString(true);
+					const value = generateRandomString();
+					crmAPI.GM.GM_setValue(key, value);
+				}
+			});
+			it('should be able to set listeners without errors', () => {
+				assert.doesNotThrow(() => {
+					for (const key in storageMirror) {
+						crmAPI.GM.GM_addValueChangeListener(key, (name, oldValue, newValue) => {
+							calls[key] = calls[key] || [];
+							calls[key].push({
+								name, oldValue, newValue
+							});
+						});
+					}
+				}, 'function does not throw');
+			});
+			it('should call the listeners on set', () => {
+				for (const key in storageMirror) {
+					for (let i = 0; i < Math.round(Math.random() * 5); i++) {
+						const oldVal = crmAPI.GM.GM_getValue(key);
+						const newVal = generateRandomString();
+						crmAPI.GM.GM_setValue(key, newVal);
+						expectedCalls[key] = expectedCalls[key] || [];
+						expectedCalls[key].push({
+							name: key,
+							oldValue: oldVal,
+							newValue: newVal
+						})
+					}
+				}
+				assert.deepEqual(calls, expectedCalls,
+					'actual calls match expected');
+			});
+			it('should call the listeners on delete', () => {
+				for (const key in storageMirror) {
+					const oldVal = crmAPI.GM.GM_getValue(key);
+					crmAPI.GM.GM_deleteValue(key);
+					expectedCalls[key] = expectedCalls[key] || [];
+					expectedCalls[key].push({
+						name: key,
+						oldValue: oldVal,
+						newValue: undefined
+					});
+				}
+				assert.deepEqual(calls, expectedCalls,
+					'actual calls match expected');
+			});
+		});
+		describe('#GM_removeValueChangeListener()', () => {
+			const calls = {};
+			const expectedCalls = {};
+			const listeners = [];
+			before('Set test values', () => {
+				storageMirror = {};
+				for (let i = 0; i < 100; i++) {
+					const key = generateRandomString(true);
+					const value = generateRandomString();
+					crmAPI.GM.GM_setValue(key, value);
+					listeners.push(crmAPI.GM.GM_addValueChangeListener(key, (name, oldValue, newValue) => {
+						calls[key] = calls[key] || [];
+						calls[key].push({
+							name, oldValue, newValue
+						});
+					}));
+				}
+			});
+			it('should remove listeners without throwing', () => {
+				for (const listener of listeners) {
+					assert.doesNotThrow(() => {
+						crmAPI.GM.GM_removeValueChangeListener(listener);
+					}, 'calling the function does not throw');
+				}
+			});
+			it('should not call any listeners when their keys are updated', () => {
+				for (const key in storageMirror) {
+					for (let i = 0; i < Math.round(Math.random() * 5); i++) {
+						const oldVal = crmAPI.GM.GM_getValue(key);
+						const newVal = generateRandomString();
+						crmAPI.GM.GM_setValue(key, newVal);
+					}
+				}
+				assert.deepEqual(calls, {},
+					'no calls were made');
+			});
+		});
+		describe('#GM_getTab()', () => {
+			it('should be instantly called', async () => {
+				assert.isFunction(crmAPI.GM.GM_getTab);
+				await asyncDoesNotThrow(() => {
+					return new Promise((resolve) => {
+						crmAPI.GM.GM_getTab(() => {
+							resolve();
+						});
+					});
+				});
+			});
+		});
+		describe('#GM_getTabs()', () => {
+			it('should be instantly called', async () => {
+				assert.isFunction(crmAPI.GM.GM_getTabs);
+				await asyncDoesNotThrow(() => {
+					return new Promise((resolve) => {
+						crmAPI.GM.GM_getTabs(() => {
+							resolve();
+						});
+					});
+				});
+			});
+		});
+		describe('#GM_saveTab()', () => {
+			it('should be instantly called', async () => {
+				assert.isFunction(crmAPI.GM.GM_saveTab);
+				await asyncDoesNotThrow(() => {
+					return new Promise((resolve) => {
+						crmAPI.GM.GM_saveTab(() => {
+							resolve();
+						});
+					});
+				});
+			});
 		});
 	});
 });
