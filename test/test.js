@@ -152,11 +152,11 @@ function mergeObjects(obj1, obj2) {
 	return obj1;
 }
 
-function generateRandomString() {
+function generateRandomString(noDot) {
 	var length = 25 + Math.floor(Math.random() * 25);
 	var str = [];
 	for (var i = 0; i < length; i++) {
-		if (Math.floor(Math.random() * 5) === 0 && str[str.length - 1] !== '.' && str.length > 0 && (i - 1) !== length) {
+		if (Math.floor(Math.random() * 5) === 0 && str[str.length - 1] !== '.' && str.length > 0 && (i - 1) !== length && !noDot) {
 			str.push('.');
 		} else {
 			str.push(String.fromCharCode(48 + Math.floor(Math.random() * 74)));
