@@ -2138,7 +2138,7 @@ describe('User entrypoints', function() {
 					.findElement(webdriver.By.tagName('paper-button'))
 					.click()
 	
-				if (!TEST_EXTENSION) {
+				if (TEST_EXTENSION) {
 					return;
 				}
 					
