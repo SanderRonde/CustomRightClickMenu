@@ -165,9 +165,14 @@ namespace BrowserAPI {
 		return (_browserUserAgent = getBrowserUserAgent());
 	}
 
-	function isOptionsPage() {
+	function isDevOptionsPage() {
 		return location.href.indexOf('backgroun') === -1;
 	}
+
+	function isDevBackgroundPage() {
+		return browserAPI.runtime.getManifest().short_name.indexOf('dev') > -1;
+	}
+
 
 	function areStringsEqual(a: string|number, b: string|number): boolean {
 		return (a + '') === (b + '');
@@ -251,7 +256,7 @@ namespace BrowserAPI {
 	}
 
 	export function getTestData() {
-		if (!isOptionsPage()) {
+		if (!isDevOptionsPage() && !isDevBackgroundPage()) {
 			return undefined;
 		}
 		return testData;
