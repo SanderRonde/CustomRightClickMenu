@@ -1157,6 +1157,62 @@ declare namespace CRM {
 	}
 
 	/**
+	 * The position of a line selection
+	 */
+	interface LinePosition {
+		/**
+		 * The starting position
+		 */
+		from: {
+			/**
+			 * The line of the position
+			 */
+			line: number;
+		};
+		/**
+		 * The starting position
+		 */
+		to: {
+			/**
+			 * The line of the position
+			 */
+			line: number;
+		};
+	}
+	
+	/**
+	 * The position of a cursor selection
+	 */
+	interface CursorPosition extends LinePosition {
+		/**
+		 * The starting position
+		 */
+		from: {
+			/**
+			 * The line of the position
+			 */
+			line: number;
+			/**
+			 * The char of the position
+			 */
+			index: number;
+		};
+		/**
+		 * The end position
+		 */
+		to: {
+			/**
+			 * The line of the position
+			 */
+			line: number;
+			/**
+			 * The char of the position
+			 */
+			index: number;
+		}
+	}
+
+	/**
 	 * Local Storage (not synced)
 	 */
 	interface StorageLocal {
