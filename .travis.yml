@@ -28,7 +28,7 @@ before_install:
 - npm install gulp -g
 install:
 - yarn
-script: sh ./scripts/pretest.sh && yarn run $TEST || yarn run $TEST
+script: travis_wait sh ./scripts/pretest.sh && yarn run $TEST || yarn run $TEST
 
 jobs:
   include:
