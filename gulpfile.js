@@ -391,7 +391,6 @@ function readFile(filePath, options) {
 							base: 'html/'
 						}
 					}))
-					.pipe(replace(/﻿/g, ''))
 					.pipe(gulp.dest('./temp/elements/'));
 			},
 			function changeWebcomponentsThis() {
