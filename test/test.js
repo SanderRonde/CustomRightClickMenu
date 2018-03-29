@@ -2637,8 +2637,8 @@ describe('CRMAPI', () => {
 			assert.isObject(crmAPI.comm, 'comm API is an object');
 		});
 		step('should be able to set up other instances', async function () {
-			this.timeout(150);
-			this.slow(100);
+			this.timeout(1500);
+			this.slow(1000);
 			function setupInstance(tabId) {
 				return new Promise((resolve) => {
 					//First run crmapi.js
