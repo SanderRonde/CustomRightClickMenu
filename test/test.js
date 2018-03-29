@@ -4977,17 +4977,20 @@ describe('CRMAPI', () => {
 		});
 		it('works with functions whose promise resolves into nothing', async () => {
 			await asyncDoesNotThrow(() => {
+				//@ts-ignore
 				return crmAPI.browser.alarms.create(1, 2).send();
 			});
 		});
 		it('works with functions whose promise resolves into something', async () => {
 			await asyncDoesNotThrow(async () => {
+				//@ts-ignore
 				const result = await crmAPI.browser.alarms.get.args(1, 2).send();
 				assert.strictEqual(result, 1 + 2, 'resolved values matches expected');
 			});
 		});
 		it('works with functions whose promises resolves into an object', async () => {
 			await asyncDoesNotThrow(async () => {
+				//@ts-ignore
 				const result = await crmAPI.browser.alarms.getAll(1, 2).send();
 				assert.deepEqual(result, [1, 2], 'resolved values matches expected');
 			});
@@ -4995,6 +4998,7 @@ describe('CRMAPI', () => {
 		it('works with functions with a callback', async () => {
 			await asyncDoesNotThrow(async () => {
 				await new Promise(async (resolve) => {
+					//@ts-ignore
 					crmAPI.browser.alarms.clear((value) => {
 						assert.strictEqual(value, 1, 'resolved values matches expected');
 						resolve(null);

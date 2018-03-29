@@ -1,30 +1,7 @@
-type MaybeArray<T> = T|T[];
+/// <reference path="./crm.d.ts" />
+/// <reference path="./crm-browser.d.ts" />
 
-/**
- * The launch modes for scripts and stylesheets
- */
-declare const enum CRMLaunchModes {
-	/**
-	 * Runs when clicking the node
-	 */
-	RUN_ON_CLICKING = 0,
-	/**
-	 * Runs whenever the page has loaded
-	 */
-	ALWAYS_RUN = 1,
-	/**
-	 * Runs only on specified websites
-	 */
-	RUN_ON_SPECIFIED = 2,
-	/**
-	 * Is visible only on specified websites
-	 */
-	SHOW_ON_SPECIFIED = 3,
-	/**
-	 * Does not show up in the right-click menu and doesn't run
-	 */
-	DISABLED = 4
-}
+type MaybeArray<T> = T|T[];
 
 /**
  * The chrome.tabs.QueryInfo interface
@@ -251,1307 +228,6 @@ declare namespace CRM {
 		 * An option for inputting arrays of numbers or strings
 		 */
 		type OptionArray = OptionArrayString|OptionArrayNumber;
-	}
-
-	/**
-	 * Permissions related to the CRM API
-	 */
-	type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome' | 'browser';
-
-	/**
-	 * An extendable object
-	 */
-	interface Extendable<T> { 
-		[key: string]: any;
-		[key: number]: any;
-	}
-
-	/**
-	 * The chrome permission descriptions
-	 */
-	interface ChromePermissionDescriptions {
-		alarms: string;
-		background: string;
-		bookmarks: string;
-		browsingData: string;
-		clipboardRead: string;
-		clipboardWrite: string;
-		cookies: string;
-		contentSettings: string;
-		declarativeContent: string;
-		desktopCapture: string;
-		downloads: string;
-		history: string;
-		identity: string;
-		idle: string;
-		management: string;
-		notifications: string;
-		pageCapture: string;
-		power: string;
-		privacy: string;
-		printerProvider: string;
-		sessions: string;
-		"system.cpu": string;
-		"system.memory": string;
-		"system.storage": string;
-		topSites: string;
-		tabCapture: string;
-		tts: string;
-		webNavigation: string;
-		webRequest: string;
-		webRequestBlocking: string;
-	}
-
-	/**
-	 * The CRM permissions descriptions
-	 */
-	interface CRMPermissionDescriptions {
-		crmGet: string;
-		crmWrite: string;
-		chrome: string;
-		browser: string;
-	}
-
-	/**
-	 * The GreaseMonkey permissions descriptions
-	 */
-	interface GMPermissionDescriptions {
-		GM_addStyle: string;
-		GM_deleteValue: string;
-		GM_listValues: string;
-		GM_addValueChangeListener: string;
-		GM_removeValueChangeListener: string;
-		GM_setValue: string;
-		GM_getValue: string;
-		GM_log: string;
-		GM_getResourceText: string;
-		GM_getResourceURL: string;
-		GM_registerMenuCommand: string;
-		GM_unregisterMenuCommand: string;
-		GM_openInTab: string;
-		GM_xmlhttpRequest: string;
-		GM_download: string;
-		GM_getTab: string;
-		GM_saveTab: string;
-		GM_getTabs: string;
-		GM_notification: string;
-		GM_setClipboard: string;
-		GM_info: string;
-		unsafeWindow: string;
-	}
-
-	/**
-	 * The permission descriptions
-	 */
-	type PermissionDescriptions = ChromePermissionDescriptions & CRMPermissionDescriptions & GMPermissionDescriptions;
-
-	/**
-	 * The chrome permissions
-	 */
-	type ChromePermission = keyof ChromePermissionDescriptions;
-
-	/**
-	 * Any permissions for nodes
-	 */
-	type Permission = CRMPermission|keyof PermissionDescriptions;
-
-	/**
-	 * Info related to the source of a node's installation
-	 */
-	interface NodeInfoSource {
-		/**
-		 * The URL from which to update the node
-		 */
-		updateURL?: string;
-		/**
-		 * The URL from which the node was downloaded
-		 */
-		downloadURL?: string;
-		/**
-		 * The homepage of the node
-		 */
-		url?: string;
-		/**
-		 * The name of the author of the node
-		 */
-		author?: string;
-	}
-
-	/**
-	 * Info related to a node's installation
-	 */
-	interface NodeInfo {
-		/**
-		 * The date a node was installed
-		 */
-		installDate?: string;
-		/**
-		 * Whether the node is the root of a subtree when it was installed
-		 */
-		isRoot?: boolean;
-		/**
-		 * All permissions asked for by this node
-		 */
-		permissions: Permission[];
-		/**
-		 * Info related to the source of a node's installation
-		 */
-		source?: NodeInfoSource;
-		/**
-		 * The version of the node
-		 */
-		version?: string;
-		/**
-		 * The last time this node was updated
-		 */
-		lastUpdatedAt?: string;
-	}
-
-	/**
-	 * An option allowing the input of a number
-	 */
-	interface OptionNumber {
-		/**
-		 * The type of the option
-		 */
-		type: 'number';
-		/**
-		 * The minimum value of the number
-		 */
-		minimum?: number;
-		/**
-		 * The maximum value of the number
-		 */
-		maximum?: number;
-		/**
-		 * The description of this option
-		 */
-		descr?: string;
-		/**
-		 * The value of this option
-		 */
-		value: null|number;
-	}
-
-	/**
-	 * An option allowing the input of a string
-	 */
-	interface OptionString {
-		/**
-		 * The type of the option
-		 */
-		type: 'string';
-		/**
-		 * The maximum length of the string
-		 */
-		maxLength?: number;
-		/**
-		 * A regex string the value has to match
-		 */
-		format?: string;
-		/**
-		 * The description of this option
-		 */
-		descr?: string;
-		/**
-		 * The value of this option
-		 */
-		value: null|string;
-	}
-
-	/**
-	 * An option allowing the choice between a number of values
-	 */
-	interface OptionChoice {
-		/**
-		 * The type of the option
-		 */
-		type: 'choice';
-		/**
-		 * The description of this option
-		 */
-		descr?: string;
-		/**
-		 * The index of the currently selected value
-		 */
-		selected: number;
-		/**
-		 * The values of which to choose
-		 */
-		values: (string|number)[];
-	}
-
-	/**
-	 * An option allowing you to choose between true and false
-	 */
-	interface OptionCheckbox {
-		/**
-		 * The type of the option
-		 */
-		type: 'boolean';
-		/**
-		 * The description of this option
-		 */
-		descr?: string;
-		/**
-		 * The value of this option
-		 */
-		value: null|boolean;
-	}
-
-	/**
-	 * The base of an option for inputting arrays
-	 */
-	interface OptionArrayBase {
-		/**
-		 * The type of the option
-		 */
-		type: 'array';
-		/**
-		 * The maximum number of values
-		 */
-		maxItems?: number;
-		/**
-		 * The description of this option
-		 */
-		descr?: string;
-	}
-	/**
-	 * An option for inputting arrays of strings
-	 */
-	interface OptionArrayString extends OptionArrayBase {
-		/**
-		 * The type of items the array is made of
-		 */
-		items: 'string';
-		/**
-		 * The array's value
-		 */
-		value: null|string[];
-	}
-	/**
-	 * An option for inputting arrays of numbers
-	 */
-	interface OptionArrayNumber extends OptionArrayBase {
-		/**
-		 * The type of items the array is made of
-		 */
-		items: 'number';
-		/**
-		 * The array's value
-		 */
-		value: null|number[];
-	}
-	/**
-	 * An option for inputting arrays of numbers or strings
-	 */
-	type OptionArray = OptionArrayString|OptionArrayNumber;
-
-	/**
-	 * Removes any in key K from T
-	 */
-	type Remove<T, K extends keyof T> = T & {
-		[P in K]?: void;
-	}
-
-	/**
-	 * An option type
-	 */
-	type OptionsValue = OptionCheckbox|OptionString|OptionChoice|
-		OptionArray|OptionNumber;
-
-	/**
-	 * The options object of a script or stylesheet
-	 */
-	type Options = {
-		[key: string]: OptionsValue;
-		[key: number]: OptionsValue;
-	}
-
-	/**
-	 * True means show on given type. ['page','link','selection','image','video','audio']
-	 */
-	type ContentTypes = [boolean, boolean, boolean, boolean, boolean, boolean];
-
-	/**
-	 * The context type strings that the boolean array is translated into
-	 */
-	type ContentTypeString = 'page'|'link'|'selection'|'image'|'video'|'audio';
-
-	/**
-	 * A trigger on which to show or not show a node
-	 */
-	interface Trigger {
-		/**
-		 * 	The URL of the site on which to run,
-		 * 	if launchMode is 2 aka run on specified pages can be any of these
-		 * 	https://wiki.greasespot.net/Include_and_exclude_rules
-		 * 	otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
-		 * 	https://developer.chrome.com/extensions/match_patterns
-		 */
-		url: string;
-		/**
-		 * If true, does NOT run on given site
-		 */
-		not: boolean;
-	}
-
-	/**
-	 * The triggers for a node on which to or to not show a node
-	 */
-	type Triggers = Trigger[];
-
-	/**
-	 * A library for a script node
-	 */
-	type Library = {
-		/**
-		 * The name of the library
-		 */
-		name: string;
-		/**
-		 * The url of the library
-		 */
-		url: void;
-	}|{
-		/**
-		 * The name of the library
-		 */
-		name: void;
-		/**
-		 * The url of the library
-		 */
-		url: string;
-	}|{
-		/**
-		 * The name of the library
-		 */
-		name: string;
-		/**
-		 * The url of the library
-		 */
-		url: string;
-	}
-
-	/**
-	 * The metatags for a script node
-	 */
-	type MetaTags = { [key: string]: (string|number)[] };
-
-	/**
-	 * The type of a node
-	 */
-	type NodeType = 'script'|'link'|'divider'|'menu'|'stylesheet';
-
-	/**
-	 * The id of a node, has the source node encoded in typing to keep association
-	 */
-	type NodeId<T = SafeNode> = number & {
-		__srcNode?: T;
-	}
-
-	/**
-	 * A safe CRM node
-	 */
-	interface MadeSafeNode {
-		/**
-		 * The unique ID for the node
-		 */
-		id: NodeId<this>;
-		/**
-		 * The path to this node
-		 */
-		path: number[];
-		/**
-		 * The type of this node
-		 */
-		type: NodeType;
-		/**
-		 * The name of this node
-		 */
-		name: string;
-		/**
-		 * The children of this node (if a menu)
-		 */
-		children: SafeTree|void;
-		/**
-		 * The value of this link node before it was switched
-		 */
-		linkVal: LinkVal|void;
-		/**
-		 * The value of this menu node before it was switched
-		 */
-		menuVal: Tree|void;
-		/**
-		 * The value of this script node before it was switched
-		 */
-		scriptVal: ScriptVal|void;
-		/**
-		 * The value of this stylesheet node before it was switched
-		 */
-		stylesheetVal: StylesheetVal|void;
-		/**
-		 * Info related to the node's installation
-		 */
-		nodeInfo: NodeInfo;
-		/**
-		 * The triggers for this node, on which to show or not show it
-		 */
-		triggers: Triggers;
-		/**
-		 * The content types on which to show this node
-		 */
-		onContentTypes: ContentTypes;
-		/**
-		 * Whether to show this node only on the specified urls
-		 */
-		showOnSpecified?: boolean;
-		/**
-		 * The value of this node
-		 */
-		value: LinkVal|ScriptVal|StylesheetVal|Tree|void;
-	}
-
-	/**
-	 * The keys of a safe node
-	 */
-	type SafeKeys = keyof MadeSafeNode;
-
-	/**
-	 * Turns T into a safe node
-	 */
-	type MakeNodeSafe<T extends MadeSafeNode> = Pick<T, SafeKeys>;
-
-	/**
-	 * The base node on which other nodes are based (no value)
-	 */
-	interface BaseNodeNoVal {
-		/**
-		 * The storage for this node
-		 */
-		storage?: CRMAPI.NodeStorage;
-		/**
-		 * The index of this node in its parent
-		 */
-		index?: number;
-		/**
-		 * Whether the node is local (meaning it's made by the user of this extension)
-		 */
-		isLocal: boolean;
-		/**
-		 * The permissions that are currently allowed for this node
-		 */
-		permissions: Permission[];
-		/**
-		 * The children of this node (if a menu)
-		 */
-		children: Tree|SafeTree|void;
-		/**
-		 * The unique ID of this node
-		 */
-		id: NodeId<this>;
-		/**
-		 * The path to this node
-		 */
-		path: number[];
-		/**
-		 * The type of this node
-		 */
-		type: NodeType;
-		/**
-		 * The name of this node
-		 */
-		name: string;
-		/**
-		 * The value of this link node before it was switched
-		 */
-		linkVal: LinkVal|void;
-		/**
-		 * The value of this menu node before it was switched
-		 */
-		menuVal: Tree|void;
-		/**
-		 * The value of this script node before it was switched
-		 */
-		scriptVal: ScriptVal|void;
-		/**
-		 * The value of this stylesheet node before it was switched
-		 */
-		stylesheetVal: StylesheetVal|void;
-		/**
-		 * Info related to the node's installation
-		 */
-		nodeInfo: NodeInfo;
-		/**
-		 * The triggers for this node, on which to show or not show it
-		 */
-		triggers: Triggers;
-		/**
-		 * The content types on which to show this node
-		 */
-		onContentTypes: ContentTypes;
-		/**
-		 * Whether to show this node only on the specified urls
-		 */
-		showOnSpecified?: boolean;
-	}
-
-	/**
-	 * The base node on which other nodes are based
-	 */
-	interface BaseNode extends BaseNodeNoVal {
-		/**
-		 * The value of this node
-		 */
-		value: LinkVal|ScriptVal|StylesheetVal|Tree|void;
-	}
-
-	/**
-	 * A base node with children that is not safe
-	 */
-	interface NonSafeBaseNodeBase extends BaseNode {
-		/**
-		 * The children of this node (if it's a menu)
-		 */
-		children: Tree|void;
-	}
-
-	/**
-	 * A base node with children that is safe
-	 */
-	interface SafeBaseNodeBase extends BaseNode {
-		/**
-		 * The children of this node (if it's a menu)
-		 */
-		children: SafeTree|void;
-	}
-
-	/**
-	 * A safe base node
-	 */
-	type SafeCRMBaseNode = MakeNodeSafe<SafeBaseNodeBase>;
-
-	/**
-	 * Data about a compiled typescript script
-	 */
-	interface TypescriptCompilationData {
-		/**
-		 * The compiled typescript string
-		 */
-		compiled?: string;
-		/**
-		 * The hash of the source code for the latest compilation
-		 */
-		sourceHash?: string;
-	}
-
-	/**
-	 * Data about the usage of typescript for a given script
-	 */
-	interface TypescriptData {
-		/**
-		 * Whether typescript is enabled for this node
-		 */
-		enabled: boolean;
-		/**
-		 * Compilation data about the script
-		 */
-		script: TypescriptCompilationData;
-		/**
-		 * Compilation data about the background script
-		 */
-		backgroundScript: TypescriptCompilationData;
-	}
-
-	/**
-	 * The value of a script node
-	 */
-	interface ScriptVal {
-		/**
-		 * When to launch this node
-		 */
-		launchMode: CRMLaunchModes;
-		/**
-		 * The script to run
-		 */
-		script: string;
-		/**
-		 * The backgroundscript of this node
-		 */
-		backgroundScript: string;
-		/**
-		 * The metaTags for this node
-		 */
-		metaTags: MetaTags;
-		/**
-		 * The libraries to run with this node
-		 */
-		libraries: Library[];
-		/**
-		 * The libraries to run with this node's backgroundscript
-		 */
-		backgroundLibraries: Library[];
-		/**
-		 * Whether to show an update notice for this node
-		 */
-		updateNotice?: boolean;
-		/**
-		 * The script before conversion from legacy
-		 */
-		oldScript?: string;
-		/**
-		 * Whether the metaTags are hidden in the editor
-		 */
-		metaTagsHidden?: boolean;
-		/**
-		 * The options for this script
-		 */
-		options: Options|string;
-		/**
-		 * Data about the state of typescript in this node
-		 */
-		ts: TypescriptData;
-	}
-
-	/**
-	 * A converted stylesheet
-	 */
-	interface ConvertedStylesheet {
-		/**
-		 * The options that were used to generate it
-		 */
-		options: string;
-		/**
-		 * The stylesheet
-		 */
-		stylesheet: string;
-	}
-
-	/**
-	 * The value of a stylesheet node
-	 */
-	interface StylesheetVal {
-		/**
-		 * When to run this stylesheet
-		 */
-		launchMode: CRMLaunchModes;
-		/**
-		 * The stylesheet to run
-		 */
-		stylesheet: string;
-		/**
-		 * Whether this stylesheet is toggle-able
-		 */
-		toggle: boolean;
-		/**
-		 * Whether this stylesheet is toggled on by default
-		 */
-		defaultOn: boolean;
-		/**
-		 * Whether the metaTags are hidden in the editor
-		 */
-		metaTagsHidden?: boolean;
-		/**
-		 * The options for this stylesheet
-		 */
-		options: Options|string;
-		/**
-		 * The converted stylesheet
-		 */
-		convertedStylesheet: ConvertedStylesheet;
-	}
-
-	/**
-	 * A link for a linkNode
-	 */
-	interface LinkNodeLink {
-		/**
-		 * The URL of the link
-		 */
-		url: string;
-		/**
-		 * Whether to open the URL in a new tab (current tab if false)
-		 */
-		newTab: boolean;
-	}
-
-	/**
-	 * The value of a link node
-	 */
-	type LinkVal = LinkNodeLink[]
-
-	/**
-	 * A passive CRM node
-	 */
-	interface PassiveNode extends BaseNode {
-		/**
-		 * Whether to show the node only on the specified urls
-		 */
-		showOnSpecified: boolean;
-		/**
-		 * The children of this node (if it's a menu)
-		 */
-		children: Tree|SafeTree|void;
-	}
-
-	/**
-	 * A script node
-	 */
-	interface ScriptNode extends NonSafeBaseNodeBase {
-		/**
-		 * The type of the node
-		 */
-		type: 'script';
-		/**
-		 * The children of this node (none)
-		 */
-		children: void;
-		/**
-		 * The value of this script node
-		 */
-		value: ScriptVal;
-		/**
-		 * The value of the node when it was still a menu node
-		 */
-		menuVal: Tree|void;
-		/**
-		 * The value of the node when it still was a link node
-		 */
-		linkVal: LinkVal|void;
-		/**
-		 * The value of the node when it still was a stylesheet
-		 */
-		stylesheetVal: StylesheetVal|void;
-		/**
-		 * The value of this node when it was a script (none, as it is one now)
-		 */
-		scriptVal: void;
-	}
-
-	/**
-	 * A script node with only optional keys
-	 */
-	type PartialScriptNode = Partial<BaseNodeNoVal> & {
-		/**
-		 * The type of this node
-		 */
-		type?: 'script';
-		/**
-		 * The value of this node
-		 */
-		value?: Partial<ScriptVal>;
-		/**
-		 * The value of the node when it was still a menu node
-		 */
-		menuVal?: Tree|void;
-		/**
-		 * The value of the node when it still was a link node
-		 */
-		linkVal?: LinkVal|void;
-		/**
-		 * The value of the node when it still was a stylesheet
-		 */
-		stylesheetVal?: StylesheetVal|void;
-		/**
-		 * The value of this node when it was a script (none, as it is one now)
-		 */
-		scriptVal?: void;
-	}
-
-	/**
-	 * A stylesheet node
-	 */
-	interface StylesheetNode extends NonSafeBaseNodeBase {
-		/**
-		 * The type of this node
-		 */
-		type: 'stylesheet';
-		/**
-		 * The children of this node (none as it's no menu)
-		 */
-		children: void;
-		/**
-		 * The value of this node
-		 */
-		value: StylesheetVal;
-		/**
-		 * The value of the node when it was still a menu node
-		 */
-		menuVal: Tree|void;
-		/**
-		 * The value of the node when it still was a link node
-		 */
-		linkVal: LinkVal|void;
-		/**
-		 * The value of this node when it was a script
-		 */
-		scriptVal: ScriptVal|void;
-		/**
-		 * The value of this node when it was a stylesheet (none as it is one now)
-		 */
-		stylesheetVal: void;
-	}
-
-	/**
-	 * A stylesheet node with only optional keys
-	 */
-	type PartialStylesheetNode = Partial<BaseNodeNoVal> & {
-		/**
-		 * The type of this node
-		 */
-		type?: 'stylesheet';
-		/**
-		 * The value of this node
-		 */
-		value?: Partial<StylesheetVal>;
-		/**
-		 * The value of the node when it was still a menu node
-		 */
-		menuVal?: Tree|void;
-		/**
-		 * The value of the node when it still was a link node
-		 */
-		linkVal?: LinkVal|void;
-		/**
-		 * The value of this node when it was a stylesheet (none as it is one now)
-		 */
-		stylesheetVal?: void;
-		/**
-		 * The value of this node when it was a script
-		 */
-		scriptVal?: ScriptVal|void;
-	}
-
-	/**
-	 * A link node
-	 */
-	interface LinkNode extends PassiveNode {
-		/**
-		 * The type of this node
-		 */
-		type: 'link';
-		/**
-		 * The children of this node (none as it's no menu)
-		 */
-		children: void;
-		/**
-		 * The value of this node
-		 */
-		value: LinkVal;
-		/**
-		 * The value of this node when it was still a menu node
-		 */
-		menuVal: Tree|void;
-		/**
-		 * The value of this node when it was a script
-		 */
-		scriptVal: ScriptVal|void;
-		/**
-		 * The value of this node when it was still a stylesheet
-		 */
-		stylesheetVal: StylesheetVal|void;
-		/**
-		 * The value of this node when it was still a link (none as it is one now)
-		 */
-		linkVal: void;
-	}
-
-	/**
-	 * The base of a menu node
-	 */
-	interface MenuNodeBase extends PassiveNode {
-		/**
-		 * The type of this node
-		 */
-		type: 'menu'
-		/**
-		 * The children of this node
-		 */
-		children: SafeTree|Tree;
-		/**
-		 * The value of this node when it was still a link
-		 */
-		linkVal: LinkVal|void;
-		/**
-		 * The value of this node when it was a script
-		 */
-		scriptVal: ScriptVal|void;
-		/**
-		 * The value of this node when it was stylesheet
-		 */
-		stylesheetVal: StylesheetVal|void;
-		/**
-		 * The value of this node when it was still a menu node (none as it is one now)
-		 */
-		menuVal: void;
-	}
-
-	/**
-	 * A safe menu node
-	 */
-	interface SafeMenuNodeBase extends MenuNodeBase {
-		/**
-		 * The node's children (safe)
-		 */
-		children: SafeTree;
-	}
-
-	/**
-	 * A non-safe menu node
-	 */
-	interface MenuNode extends MenuNodeBase {
-		/**
-		 * The node's children (non-safe)
-		 */
-		children: Tree;
-	}
-
-	/**
-	 * A divider node
-	 */
-	interface DividerNode extends PassiveNode {
-		/**
-		 * The type of this node
-		 */
-		type: 'divider';
-		/**
-		 * The children of this node (none)
-		 */
-		children: void;
-		/**
-		 * The value of this node when it was still a menu node
-		 */
-		menuVal: Tree|void;
-		/**
-		 * The value of this node when it was still a link
-		 */
-		linkVal: LinkVal|void;
-		/**
-		 * The value of this node when it was a script
-		 */
-		scriptVal: ScriptVal|void;
-		/**
-		 * The value of this node when it was still a stylesheet
-		 */
-		stylesheetVal: StylesheetVal|void;
-	}
-
-	/**
-	 * A node that can be made safe
-	 */
-	type SafeMakableNodes = DividerNode | LinkNode | StylesheetNode | ScriptNode;
-	/**
-	 * A CRM node
-	 */
-	type Node = SafeMakableNodes | MenuNode;
-	/**
-	 * A tree of CRM nodes
-	 */
-	type Tree = Node[];
-
-	/**
-	 * A safe script node
-	 */
-	type SafeScriptNode = MakeNodeSafe<ScriptNode>;
-	/**
-	 * A safe stylesheet node
-	 */
-	type SafeStylesheetNode = MakeNodeSafe<StylesheetNode>;
-	/**
-	 * A safe link node
-	 */
-	type SafeLinkNode = MakeNodeSafe<LinkNode>;
-	/**
-	 * A safe menu node
-	 */
-	type SafeMenuNode = MakeNodeSafe<SafeMenuNodeBase>;
-	/**
-	 * A safe divider node
-	 */
-	type SafeDividerNode = MakeNodeSafe<DividerNode>;
-
-	/**
-	 * A safe node
-	 */
-	type SafeNode = SafeDividerNode | SafeMenuNode | SafeLinkNode | SafeStylesheetNode | SafeScriptNode;
-	/**
-	 * A CRM tree consisting of safe nodes
-	 */
-	type SafeTree = SafeNode[];
-
-	/**
-	 * Keybindings for the editor
-	 */
-	interface KeyBindings {
-		/**
-		 * A keybinding to complete this value
-		 */
-		autocomplete: string;
-		/**
-		 * A keybinding to show the type of this value
-		 */
-		showType: string;
-		/**
-		 * A keybinding to show the docs for this value
-		 */
-		showDocs: string;
-		/**
-		 * A keybinding to go to the definition of a value
-		 */
-		goToDef: string;
-		/**
-		 * A keybinding to jump back
-		 */
-		jumpBack: string;
-		/**
-		 * A keybinding to rename this value
-		 */
-		rename: string;
-		/**
-		 * A keybinding to select all instances of this value
-		 */
-		selectName: string;
-	}
-
-	/**
-	 * The settings for the editor
-	 */
-	interface EditorSettings {
-		/**
-		 * The theme to use for the editor
-		 */
-		theme: 'white'|'dark';
-		/**
-		 * The zoom on the editor (in percentage)
-		 */
-		zoom: string;
-		/**
-		 * The keybindings for the editor
-		 */
-		keyBindings: KeyBindings;
-		/**
-		 * Whether to disable the underlining of css colors
-		 */
-		cssUnderlineDisabled: boolean;
-		/**
-		 * Whether to disable the highlight of userscript metadata at the top of the file
-		 */
-		disabledMetaDataHighlight: boolean;
-	}
-
-	/**
-	 * The settings that are synced
-	 */
-	interface SettingsStorage {
-		/**
-		 * Settings for the editor
-		 */
-		editor: EditorSettings;
-		/**
-		 * The last time the settings were updated
-		 */
-		settingsLastUpdatedAt: number;
-		/**
-		 * The CRM tree
-		 */
-		crm: (DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode)[];
-		/**
-		 * The last ID to be generated
-		 */
-		latestId: number;
-	}
-
-	/**
-	 * A node that was being edited before an unexpected quit
-	 */
-	interface EditedNode {
-		/**
-		 * The value of the script or stylesheet
-		 */
-		val: string;
-		/**
-		 * The ID of the node that was being edited
-		 */
-		id: NodeId;
-		/**
-		 * The mode the editor was in
-		 */
-		mode: string;
-		/**
-		 * The CRM type that was on when it was being edited
-		 */
-		crmType: number;
-	}
-
-	/**
-	 * Data about the version of settings
-	 */
-	interface VersionData {
-		/**
-		 * The hash of the current data
-		 */
-		hash: string;
-		/**
-		 * The date the current data was last updated
-		 */
-		date: number;
-	}
-
-	/**
-	 * The version of the settings
-	 */
-	interface SettingsVersionData {
-		/**
-		 * Data about the current data's version
-		 */
-		current: VersionData;
-		/**
-		 * Data about the latest data's version
-		 */
-		latest: VersionData;
-		/**
-		 * Whether the data has been updated yet
-		 */
-		wasUpdated: boolean;
-	}
-
-	/**
-	 * A library added to this extension
-	 */
-	interface InstalledLibrary {
-		/**
-		 * The name of the library
-		 */
-		name?: string;
-		/**
-		 * The URL of the library
-		 */
-		url?: string;
-		/**
-		 * The code of the library
-		 */
-		code: string;
-		/**
-		 * Data about typescript usage in this library
-		 */
-		ts: {
-			/**
-			 * Whether typescript is enabled
-			 */
-			enabled: boolean;
-			/**
-			 * The code related to the library
-			 */
-			code: TypescriptCompilationData;
-		}
-	}
-
-	/**
-	 * Local Storage (not synced)
-	 */
-	interface StorageLocal {
-		/**
-		 * Any installed libraries
-		 */
-		libraries: InstalledLibrary[];
-		/**
-		 * The permissions to be requested
-		 */
-		requestPermissions: string[];
-		/**
-		 * The node that was being edited before an unexpected quit
-		 */
-		editing: EditedNode | void;
-		/**
-		 * The current CRM type
-		 */
-		selectedCrmType: number;
-		/**
-		 * Global variables for jslint
-		 */
-		jsLintGlobals: string[];
-		/**
-		 * Urls on which to never run any scripts
-		 */
-		globalExcludes: string[];
-		/**
-		 * Whether this is not the first time the extension was launched
-		 */
-		notFirstTime: boolean;
-		/**
-		 * The last time at which the settings were updated
-		 */
-		lastUpdatedAt: string;
-		/**
-		 * The author name of the user of this extension
-		 */
-		authorName: string;
-		/**
-		 * Whether to recover unsaved data when a script/stylesheet is quit unexpectedly
-		 */
-		recoverUnsavedData: boolean;
-		/**
-		 * Use your custom right-click menu on this page as a preview instead of chrome's regular one.
-		 */
-		CRMOnPage: boolean;
-		/**
-		 * Edit the custom right-click Menu by clicking on the respective elements when right-clicking on this page
-		 */
-		editCRMInRM: boolean;
-		/**
-		 * Whether to hide the tools ribbon in fullscreen mode
-		 */
-		hideToolsRibbon: boolean;
-		/**
-		 * Whether to shrink the title ribbon in fullscreen mode
-		 */
-		shrinkTitleRibbon: boolean;
-		/**
-		 * Whether to show the options link in the right-click menu
-		 */
-		showOptions: boolean;
-		/**
-		 * Whether to use storage sync (uses local storage if false)
-		 */
-		useStorageSync: boolean;
-		/**
-		 * The version of the settings
-		 */
-		settingsVersionData: SettingsVersionData;
-		/**
-		 * Permissions that were added
-		 */
-		addedPermissions?: {
-			/**
-			 * The ID of the node
-			 */
-			node: number;
-			/**
-			 * The permissions that were added
-			 */
-			permissions: string[];
-		};
-		/**
-		 * The scripts that were updated
-		 */
-		updatedScripts?: {
-			/**
-			 * The name of the script
-			 */
-			name: string;
-			/**
-			 * The old version
-			 */
-			oldVersion: string;
-			/**
-			 * The new version
-			 */
-			newVersion: string;
-		}[];
-		/**
-		 * Whether this is a transfer
-		 */
-		isTransfer?: boolean;
 	}
 
 	namespace CRMAPI {
@@ -2566,7 +1242,7 @@ declare namespace CRM {
 			/**
 			 * The type of the item
 			 */
-			type?: NodeType;
+			type?: CRM.NodeType;
 			/**
 			 * The ID of the node whose subtree to search in (none for root)
 			 */
@@ -2950,11 +1626,11 @@ declare namespace CRM {
 		 * @class
 		 */
 		export class Instance {
-			constructor(node: SafeNode, id: NodeId, tabData: TabData, 
+			constructor(node: CRM.SafeNode, id: CRM.NodeId, tabData: TabData, 
 				clickData: ClickData, secretKey: number[],
 				nodeStorage: NodeStorage, contextData: ContextData,
 				greasemonkeyData: GreaseMonkeyData, isBackground: boolean,
-				options: Options, enableBackwardsCompatibility: boolean,
+				options: CRM.Options, enableBackwardsCompatibility: boolean,
 				tabIndex: number, extensionId: string, supportedAPIs: string);
 	
 			/**
@@ -3012,7 +1688,7 @@ declare namespace CRM {
 			/**
 			 * All permissions that are allowed on this script
 			 */
-			permissions: Permission[];
+			permissions: CRM.Permission[];
 	
 			/**
 			 * If set, calls this function when an error occurs
@@ -3264,7 +1940,7 @@ declare namespace CRM {
 				 * @param {function} [callback] - A function that is called when done with the data as an argument
 				 * @returns {Promise<SafeNode[]>} A promise that resolves with the tree
 				 */
-				getTree(callback?: (data: SafeNode[]) => void): Promise<SafeNode[]>,
+				getTree(callback?: (data: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]>,
 	
 				/**
 				 * Gets the CRM's tree from either the root or from the node with ID nodeId
@@ -3272,19 +1948,19 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @param {number} nodeId - The ID of the subtree's root node
 				 * @param {function} callback - A function that is called when done with the data as an argument
-				 * @returns {Promise<SafeNode[]>} A promise that resolves with the subtree
+				 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the subtree
 				 */
-				getSubTree(nodeId: number, callback?: (data: SafeNode[]) => void): Promise<SafeNode[]>,
+				getSubTree(nodeId: number, callback?: (data: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]>,
 	
 				/**
 				 * Gets the node with ID nodeId
 				 *
 				 * @permission crmGet
 				 * @param {Instance~crmCallback} [callback] - A function that is called when done
-				 * @returns {Promise<SafeNode>} A promise that resolves with the node
+				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
-				getNode<T extends SafeNode>(nodeId: NodeId<T>, callback?: (node: T) => void): Promise<T>,
-				getNode(nodeId: number, callback?: (node: SafeNode) => void): Promise<SafeNode>,
+				getNode<T extends CRM.SafeNode>(nodeId: CRM.NodeId<T>, callback?: (node: T) => void): Promise<T>,
+				getNode(nodeId: number, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
 				 * Gets a node's ID from a path to the node
@@ -3307,19 +1983,19 @@ declare namespace CRM {
 				 * @param {string} [query.type] - The type of the item (link, script, stylesheet, divider or menu)
 				 * @param {number} [query.inSubTree] - The subtree in which this item is located (the number given is the id of the root item)
 				 * @param {Instance~crmCallback} [callback] - A callback that is called with the resulting nodes in an array
-				 * @returns {Promise<SafeNode[]>} A promise that resolves with the resulting nodes
+				 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the resulting nodes
 				 */
-				queryCrm(query: CRMQuery, callback?: (results: SafeNode[]) => void): Promise<SafeNode[]>,
+				queryCrm(query: CRMQuery, callback?: (results: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]>,
 	
 				/**
 				 * Gets the parent of the node with ID nodeId
 				 *
 				 * @permission crmGet
 				 * @param {number} nodeId - The node of which to get the parent
-				 * @param {(node: SafeNode|SafeNode[]) => void} callback - A callback with the parent of the given node as an argument
-				 * @returns {Promise<SafeNode|SafeNode[]>} A promise that resolves with the parent of given node
+				 * @param {(node: CRM.SafeNode|CRM.SafeNode[]) => void} callback - A callback with the parent of the given node as an argument
+				 * @returns {Promise<CRM.SafeNode|CRM.SafeNode[]>} A promise that resolves with the parent of given node
 				 */
-				getParentNode(nodeId: number, callback?: (node: SafeNode|SafeNode[]) => void): Promise<SafeNode|SafeNode[]>,
+				getParentNode(nodeId: number, callback?: (node: CRM.SafeNode|CRM.SafeNode[]) => void): Promise<CRM.SafeNode|CRM.SafeNode[]>,
 	
 				/**
 				 * Gets the type of node with ID nodeId
@@ -3327,10 +2003,10 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @param {number} nodeId - The id of the node whose type to get
 				 * @param {function} [callback] - A callback that is called with the type of the node as the parameter (link, script, menu or divider)
-				 * @returns {Promise<NodeType>} A promise that resolves with the type of the node
+				 * @returns {Promise<CRM.NodeType>} A promise that resolves with the type of the node
 				 */
-				getNodeType<T extends SafeNode>(nodeId: NodeId<T>, callback?: (type: T['type']) => void): Promise<T['type']>,
-				getNodeType(nodeId: number, callback?: (type: NodeType) => void): Promise<NodeType>,
+				getNodeType<T extends CRM.SafeNode>(nodeId: CRM.NodeId<T>, callback?: (type: T['type']) => void): Promise<T['type']>,
+				getNodeType(nodeId: number, callback?: (type: CRM.NodeType) => void): Promise<CRM.NodeType>,
 	
 				/**
 				 * Gets the value of node with ID nodeId
@@ -3338,10 +2014,10 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @param {number} nodeId - The id of the node whose value to get
 				 * @param {function} [callback] - A callback that is called with parameter linkVal, scriptVal, stylesheetVal or an empty object depending on type
-				 * @returns {Promise<LinkVal|ScriptVal|StylesheetVal|null>} A promise that resolves with the value of the node
+				 * @returns {Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null>} A promise that resolves with the value of the node
 				 */
-				getNodeValue<T extends SafeNode>(nodeId: NodeId<T>, callback?: (value: T['value']) => void): Promise<T['value']>,
-				getNodeValue(nodeId: number, callback?: (value: LinkVal|ScriptVal|StylesheetVal|null) => void): Promise<LinkVal|ScriptVal|StylesheetVal|null>,
+				getNodeValue<T extends CRM.SafeNode>(nodeId: CRM.NodeId<T>, callback?: (value: T['value']) => void): Promise<T['value']>,
+				getNodeValue(nodeId: number, callback?: (value: CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null) => void): Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null>,
 	
 				/**
 				 * Creates a node with the given options
@@ -3399,11 +2075,11 @@ declare namespace CRM {
 				 * @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggle-able by clicking (true = toggle-able), not required, defaults to true
 				 * @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
 				 * @param {Instance~crmCallback} [callback] - A callback given the new node as an argument
-				 * @returns {Promise<SafeNode>} A promise that resolves with the created node
+				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the created node
 				 */
-				createNode(options: Partial<SafeNode> & {
+				createNode(options: Partial<CRM.SafeNode> & {
 					position?: Relation;
-				}, callback?: (node: SafeNode) => void): Promise<SafeNode>,
+				}, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
 				 * Copies given node including children,
@@ -3426,9 +2102,9 @@ declare namespace CRM {
 				 *		before: before given node
 				 *		after: after the given node
 				 * @param {Instance~crmCallback} [callback] - A callback given the new node as an argument
-				 * @returns {Promise<SafeNode>} A promise that resolves with the copied node
+				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the copied node
 				 */
-				copyNode<T extends SafeNode, U extends string = 'name'>(nodeId: NodeId<T>, options: {
+				copyNode<T extends CRM.SafeNode, U extends string = 'name'>(nodeId: CRM.NodeId<T>, options: {
 					/**
 					 * The name of the new node (defaults to "name")
 					 */
@@ -3459,7 +2135,7 @@ declare namespace CRM {
 				 *		before: before given node
 				 *		after: after the given node
 				 * @param {Instance~crmCallback} [callback] - A callback given the new node as an argument
-				 * @returns {Promise<SafeNode>} A promise that resolves with the copied node
+				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the copied node
 				 */
 				copyNode(nodeId: number, options: {
 					/**
@@ -3470,7 +2146,7 @@ declare namespace CRM {
 					 * The position to copy it to
 					 */
 					position?: Relation
-				}, callback?: (node: SafeNode) => void): Promise<SafeNode>,
+				}, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
 				 * Moves given node to position specified in `position`
@@ -3488,10 +2164,10 @@ declare namespace CRM {
 				 *		before: before given node
 				 *		after: after the given node
 				 * @param {Instance~crmCallback} [callback] - A function that gets called with the new node as an argument
-				 * @returns {Promise<SafeNode>} A promise that resolves with the moved node
+				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the moved node
 				 */
-				moveNode<T extends SafeNode>(nodeId: NodeId<T>, position: Relation, callback?: (node: T) => void): Promise<T>,
-				moveNode(nodeId: number, position: Relation, callback?: (node: SafeNode) => void): Promise<SafeNode>,
+				moveNode<T extends CRM.SafeNode>(nodeId: CRM.NodeId<T>, position: Relation, callback?: (node: T) => void): Promise<T>,
+				moveNode(nodeId: number, position: Relation, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
 				 * Deletes given node
@@ -3516,9 +2192,9 @@ declare namespace CRM {
 				 * @param {string} [options.name] - Changes the name to given string
 				 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, contains the new node as an argument
-				 * @returns {Promise<SafeNode>} A promise that resolves with the edited node
+				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the edited node
 				 */
-				editNode<T extends SafeNode, U extends string = T['name'], NT extends NodeType = T['type']>(nodeId: NodeId<T>, options: { 
+				editNode<T extends CRM.SafeNode, U extends string = T['name'], NT extends CRM.NodeType = T['type']>(nodeId: CRM.NodeId<T>, options: { 
 					/**
 					 * The new name of the node
 					 */
@@ -3538,7 +2214,7 @@ declare namespace CRM {
 				 * @param {string} [options.name] - Changes the name to given string
 				 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, contains the new node as an argument
-				 * @returns {Promise<SafeNode>} A promise that resolves with the edited node
+				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the edited node
 				 */
 				editNode(nodeId: number, options: { 
 					/**
@@ -3548,8 +2224,8 @@ declare namespace CRM {
 					/**
 					 * The new type of the node
 					 */
-					type?: NodeType 
-				}, callback?: (node: SafeNode) => void): Promise<SafeNode>,
+					type?: CRM.NodeType 
+				}, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
 				 * Gets the triggers for given node
@@ -3557,9 +2233,9 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @param {number} nodeId - The node of which to get the triggers
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the triggers as an argument
-				 * @returns {Promise<Trigger[]>} A promise that resolves with the triggers
+				 * @returns {Promise<CRM.Trigger[]>} A promise that resolves with the triggers
 				 */
-				getTriggers(nodeId: number, callback?: (triggers: Trigger[]) => void): Promise<Trigger[]>,
+				getTriggers(nodeId: number, callback?: (triggers: CRM.Trigger[]) => void): Promise<CRM.Trigger[]>,
 	
 				/**
 				 * Sets the triggers for given node
@@ -3575,10 +2251,10 @@ declare namespace CRM {
 				 * 		https://developer.chrome.com/extensions/match_patterns
 				 * @param {boolean} triggers.not - If true does NOT show the node on that URL
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
-				 * @returns {Promise<SafeNode>} A promise that resolves with the node
+				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
-				setTriggers<T extends SafeNode>(nodeId: NodeId<T>, triggers: Trigger[], callback?: (node: T) => void): Promise<T>,
-				setTriggers(nodeId: number, triggers: Trigger[], callback?: (node: SafeNode) => void): Promise<SafeNode>,
+				setTriggers<T extends CRM.SafeNode>(nodeId: CRM.NodeId<T>, triggers: CRM.Trigger[], callback?: (node: T) => void): Promise<T>,
+				setTriggers(nodeId: number, triggers: CRM.Trigger[], callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
 				 * Gets the trigger' usage for given node (true - it's being used, or false), only works on
@@ -3599,10 +2275,10 @@ declare namespace CRM {
 				 * @param {number} nodeId - The node of which to get the triggers
 				 * @param {boolean} useTriggers - Whether the triggers should be used or not
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
-				 * @returns {Promise<SafeNode>} A promise that resolves with the node
+				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
-				setTriggerUsage<T extends SafeNode>(nodeId: NodeId<T>, useTriggers: boolean, callback?: (node: T) => void): Promise<T>
-				setTriggerUsage(nodeId: number, useTriggers: boolean, callback?: (node: SafeNode) => void): Promise<SafeNode>
+				setTriggerUsage<T extends CRM.SafeNode>(nodeId: CRM.NodeId<T>, useTriggers: boolean, callback?: (node: T) => void): Promise<T>
+				setTriggerUsage(nodeId: number, useTriggers: boolean, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>
 
 				/**
 				 * Gets the content types for given node
@@ -3611,9 +2287,9 @@ declare namespace CRM {
 				 * @permission crmWrite
 				 * @param {number} nodeId - The node of which to get the content types
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the content types array as an argument
-				 * @returns {Promise<ContentTypes>} A promise that resolves with the content types
+				 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the content types
 				 */
-				getContentTypes(nodeId: number, callback?: (contentTypes: ContentTypes) => void): Promise<ContentTypes>,
+				getContentTypes(nodeId: number, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes>,
 	
 				/**
 				 * Sets the content type at index `index` to given value `value`
@@ -3621,14 +2297,14 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @permission crmWrite
 				 * @param {number} nodeId - The node whose content types to set
-				 * @param {number|ContentTypeString} indexOrName - The index of the array to set, 0-5, ordered this way:
+				 * @param {number|CRM.ContentTypeString} indexOrName - The index of the array to set, 0-5, ordered this way:
 				 *		page, link, selection, image, video, audio. Can also be the name of the index (one of those words)
 				 * @param {boolean} value - The new value at index `index`
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the new array as an argument
-				 * @returns {Promise<ContentTypes>} A promise that resolves with the new content types
+				 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the new content types
 				 */
-				setContentType(nodeId: number, indexOrName: number, value: boolean, callback?: (contentTypes: ContentTypes) => void): Promise<ContentTypes>,
-				setContentType(nodeId: number, indexOrName: ContentTypeString, value: boolean, callback?: (contentTypes: ContentTypes) => void): Promise<ContentTypes>,
+				setContentType(nodeId: number, indexOrName: number, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes>,
+				setContentType(nodeId: number, indexOrName: CRM.ContentTypeString, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes>,
 	
 				/**
 				 * Sets the content types to given contentTypes array
@@ -3638,11 +2314,11 @@ declare namespace CRM {
 				 * @param {number} nodeId - The node whose content types to set
 				 * @param {number[]} contentTypes - An array of number, if an index is true, it's displayed at that index's value
 				 * @param {Instance~crmCallback} [callback] - A function to run when done, with the node as an argument
-				 * @returns {Promise<SafeNode>} A promise that resolves with the node
+				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
-				setContentTypes<T extends SafeNode>(nodeId: NodeId<T>, contentTypes: ContentTypes, callback?: (node: T) => void): Promise<T>,
-				setContentTypes(nodeId: number, contentTypes: ContentTypes, callback?: (node: SafeNode) => void): Promise<SafeNode>,
-				setContentTypes(nodeId: number, contentTypes: boolean[], callback?: (node: SafeNode) => void): Promise<SafeNode>,
+				setContentTypes<T extends CRM.SafeNode>(nodeId: CRM.NodeId<T>, contentTypes: CRM.ContentTypes, callback?: (node: T) => void): Promise<T>,
+				setContentTypes(nodeId: number, contentTypes: CRM.ContentTypes, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
+				setContentTypes(nodeId: number, contentTypes: boolean[], callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
 				 * Sets the launch mode of node with ID nodeId to `launchMode`
@@ -3657,10 +2333,10 @@ declare namespace CRM {
 				 *		3 = only show on specified pages
 				 * 		4 = disabled
 				 * @param {Instance~crmCallback} [callback] - A function that is ran when done with the new node as an argument
-				 * @returns {Promise<SafeNode>} A promise that resolves with the node
+				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
-				setLaunchMode<T extends SafeNode>(nodeId: NodeId<T>, launchMode: CRMLaunchModes, callback?: (node: T) => void): Promise<T>,
-				setLaunchMode(nodeId: number, launchMode: CRMLaunchModes, callback?: (node: SafeNode) => void): Promise<SafeNode>,
+				setLaunchMode<T extends CRM.SafeNode>(nodeId: CRM.NodeId<T>, launchMode: CRMLaunchModes, callback?: (node: T) => void): Promise<T>,
+				setLaunchMode(nodeId: number, launchMode: CRMLaunchModes, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 				/**
 				 * Gets the launchMode of the node with ID nodeId
@@ -3668,7 +2344,7 @@ declare namespace CRM {
 				 * @permission crmGet
 				 * @param {number} nodeId - The id of the node to get the launchMode of
 				 * @param {function} [callback] - A callback that is called with the launchMode as an argument
-				 * @returns {Promise<CRMLaunchModes>} A promise that resolves with the launchMode
+				 * @returns {Promise<CRM.CRMLaunchModes>} A promise that resolves with the launchMode
 				 */
 				getLaunchMode(nodeId: number, callback?: (launchMode: CRMLaunchModes) => void): Promise<CRMLaunchModes>,
 	
@@ -3684,10 +2360,10 @@ declare namespace CRM {
 					 * @param {number} nodeId - The node of which to change the stylesheet
 					 * @param {string} stylesheet - The code to change to
 					 * @param {Instance~crmCallback} [callback] - A function with the node as an argument
-					 * @returns {Promise<SafeNode>} A promise that resolves with the node
+					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 					 */
-					setStylesheet<T extends SafeNode>(nodeId: NodeId<T>, stylesheet: string, callback?: (node: T) => void): Promise<T>
-					setStylesheet(nodeId: number, stylesheet: string, callback?: (node: SafeNode) => void): Promise<SafeNode>
+					setStylesheet<T extends CRM.SafeNode>(nodeId: CRM.NodeId<T>, stylesheet: string, callback?: (node: T) => void): Promise<T>
+					setStylesheet(nodeId: number, stylesheet: string, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>
 	
 					/**
 					 * Gets the value of the stylesheet
@@ -3712,9 +2388,9 @@ declare namespace CRM {
 					 * @param {function} [callback] - A callback that is called with an array of objects as parameters, all containing two keys:
 					 *		newTab: Whether the link should open in a new tab or the current tab
 					 *		url: The URL of the link
-					 * @returns {Promise<LinkNodeLink[]>} A promise that resolves with the links
+					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
 					 */
-					getLinks(nodeId: number, callback?: (result: LinkNodeLink[]) => void): Promise<LinkNodeLink[]>,
+					getLinks(nodeId: number, callback?: (result: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]>,
 	
 					/**
 					 * Gets the links of the node with ID nodeId
@@ -3726,10 +2402,10 @@ declare namespace CRM {
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
 					 * @param {function} [callback] - A function that gets called when done with the new array as an argument
-					 * @returns {Promise<LinkNodeLink[]>} A promise that resolves with the links
+					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
 					 */
-					setLinks(nodeId: number, item: LinkNodeLink, 
-						callback?: (arr: LinkNodeLink[]) => void): Promise<LinkNodeLink[]>;
+					setLinks(nodeId: number, item: CRM.LinkNodeLink, 
+						callback?: (arr: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]>;
 					/**
 					 * Gets the links of the node with ID nodeId
 					 *
@@ -3740,10 +2416,10 @@ declare namespace CRM {
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
 					 * @param {function} [callback] - A function that gets called when done with the new array as an argument
-					 * @returns {Promise<LinkNodeLink[]>} A promise that resolves with the links
+					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
 					 */
-					setLinks(nodeId: number, items: LinkNodeLink[], 
-						callback?: (arr: LinkNodeLink[]) => void): Promise<LinkNodeLink[]>;
+					setLinks(nodeId: number, items: CRM.LinkNodeLink[], 
+						callback?: (arr: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]>;
 	
 					/**
 					 * Pushes given items into the array of URLs of node with ID nodeId
@@ -3755,10 +2431,10 @@ declare namespace CRM {
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
 					 * @param {function} [callback] - A function that gets called when done with the new array as an argument
-					 * @returns {Promise<LinkNodeLink[]>} A promise that resolves with the new links array
+					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the new links array
 					 */
-					push(nodeId: number, items: LinkNodeLink,
-						callback?: (arr: LinkNodeLink[]) => void): Promise<LinkNodeLink[]>,
+					push(nodeId: number, items: CRM.LinkNodeLink,
+						callback?: (arr: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]>,
 					/**
 					 * Pushes given items into the array of URLs of node with ID nodeId
 					 *
@@ -3769,10 +2445,10 @@ declare namespace CRM {
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
 					 * @param {function} [callback] - A function that gets called when done with the new array as an argument
-					 * @returns {Promise<LinkNodeLink[]>} A promise that resolves with the new links array
+					 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the new links array
 					 */
-					push(nodeId: number, items: LinkNodeLink[],
-						callback?: (arr: LinkNodeLink[]) => void): Promise<LinkNodeLink[]>
+					push(nodeId: number, items: CRM.LinkNodeLink[],
+						callback?: (arr: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]>
 	
 					/**
 					 * Splices the array of URLs of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)
@@ -3784,13 +2460,13 @@ declare namespace CRM {
 					 * @param {number} start - The index of the array at which to start splicing
 					 * @param {number} amount - The amount of items to splice
 					 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
-					 * @returns {Promise<{spliced: LinkNodeLink[], newArr: LinkNodeLink[]}>} A promise that resolves with an object
+					 * @returns {Promise<{spliced: CRM.LinkNodeLink[], newArr: CRM.LinkNodeLink[]}>} A promise that resolves with an object
 					 * 		containing a `spliced` property, which holds the spliced items, and a `newArr` property, holding the new array
 					 */
 					splice(nodeId: number, start: number, amount: number,
-						callback?: (spliced: LinkNodeLink[], newArr: LinkNodeLink[]) => void): Promise<{
-							spliced: LinkNodeLink[];
-							newArr: LinkNodeLink[];
+						callback?: (spliced: CRM.LinkNodeLink[], newArr: CRM.LinkNodeLink[]) => void): Promise<{
+							spliced: CRM.LinkNodeLink[];
+							newArr: CRM.LinkNodeLink[];
 						}>;
 				},
 	
@@ -3803,10 +2479,10 @@ declare namespace CRM {
 					 * @param {number} nodeId - The node of which to change the script
 					 * @param {string} script - The code to change to
 					 * @param {Instance~crmCallback} [callback] - A function with the node as an argument
-					 * @returns {Promise<SafeNode>} A promise that resolves with the new node
+					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the new node
 					 */
-					setScript<T extends SafeNode>(nodeId: NodeId<T>, script: string, callback?: (node: T) => void): Promise<T>,
-					setScript(nodeId: number, script: string, callback?: (node: SafeNode) => void): Promise<SafeNode>,
+					setScript<T extends CRM.SafeNode>(nodeId: CRM.NodeId<T>, script: string, callback?: (node: T) => void): Promise<T>,
+					setScript(nodeId: number, script: string, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 					/**
 					 * Gets the value of the script
@@ -3826,10 +2502,10 @@ declare namespace CRM {
 					 * @param {number} nodeId - The node of which to change the script
 					 * @param {string} script - The code to change to
 					 * @param {Instance~crmCallback} [callback] - A function with the node as an argument
-					 * @returns {Promise<SafeNode>} A promise that resolves with the node
+					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 					 */
-					setBackgroundScript<T extends SafeNode>(nodeId: NodeId<T>, script: string, callback?: (node: T) => void): Promise<T>,
-					setBackgroundScript(nodeId: number, script: string, callback?: (node: SafeNode) => void): Promise<SafeNode>,
+					setBackgroundScript<T extends CRM.SafeNode>(nodeId: CRM.NodeId<T>, script: string, callback?: (node: T) => void): Promise<T>,
+					setBackgroundScript(nodeId: number, script: string, callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 					/**
 					 * Gets the value of the backgroundScript
@@ -3852,11 +2528,11 @@ declare namespace CRM {
 						 * @param {Object} libraries - One library to push
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback that is called with the new array as an argument
-						 * @returns {Promise<Library[]>} A promise that resolves with the new libraries
+						 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
 						 */
 						push(nodeId: number, libraries: {
 							name: string;
-						}, callback?: (libs: Library[]) => void): Promise<Library[]>,
+						}, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
 						/**
 						 * Pushes given libraries to the node with ID nodeId's libraries array,
 						 * make sure to register them first or an error is thrown, only works on script nodes
@@ -3867,11 +2543,11 @@ declare namespace CRM {
 						 * @param {Object[]} libraries - An array of libraries to push
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback that is called with the new array as an argument
-						 * @returns {Promise<Library[]>} A promise that resolves with the new libraries
+						 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
 						 */
 						push(nodeId: number, libraries: {
 							name: string;
-						}[], callback?: (libs: Library[]) => void): Promise<Library[]>,
+						}[], callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
 	
 						/**
 						 * Splices the array of libraries of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)
@@ -3883,13 +2559,13 @@ declare namespace CRM {
 						 * @param {number} start - The index of the array at which to start splicing
 						 * @param {number} amount - The amount of items to splice
 						 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
-						 * @returns {Promise<{spliced: Library[], newArr: Library[]}>} A promise that resolves with an object
+						 * @returns {Promise<{spliced: CRM.Library[], newArr: CRM.Library[]}>} A promise that resolves with an object
 						 * 		that contains a `spliced` property, which contains the spliced items and a `newArr` property containing the new array
 						 */
 						splice(nodeId: number, start: number, amount: number,
-							callback?: (spliced: Library[], newArr: Library[]) => void): Promise<{
-								spliced: Library[];
-								newArr: Library[];
+							callback?: (spliced: CRM.Library[], newArr: CRM.Library[]) => void): Promise<{
+								spliced: CRM.Library[];
+								newArr: CRM.Library[];
 							}>;
 					},
 	
@@ -3907,11 +2583,11 @@ declare namespace CRM {
 						 * @param {Object} libraries - One library to push
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback that is called with the new array as an argument
-						 * @returns {Promise<Library[]>} A promise that resolves with the new libraries
+						 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
 						 */
 						push(nodeId: number, libraries: {
 							name: string;
-						}, callback?: (libs: Library[]) => void): Promise<Library[]>,
+						}, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
 						/**
 						 * Pushes given libraries to the node with ID nodeId's libraries array,
 						 * make sure to register them first or an error is thrown, only works on script nodes
@@ -3922,11 +2598,11 @@ declare namespace CRM {
 						 * @param {Object[]} libraries - An array of libraries to push
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback that is called with the new array as an argument
-						 * @returns {Promise<Library[]>} A promise that resolves with the new libraries
+						 * @returns {Promise<CRM.Library[]>} A promise that resolves with the new libraries
 						 */
 						push(nodeId: number, libraries: {
 							name: string;
-						}[], callback?: (libs: Library[]) => void): Promise<Library[]>,
+						}[], callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]>,
 	
 						/**
 						 * Splices the array of libraries of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)
@@ -3938,13 +2614,13 @@ declare namespace CRM {
 						 * @param {number} start - The index of the array at which to start splicing
 						 * @param {number} amount - The amount of items to splice
 						 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
-						 * @returns {Promise<{spliced: Library[], newArr: Library[]}>} A promise that resolves with an object
+						 * @returns {Promise<{spliced: CRM.Library[], newArr: CRM.Library[]}>} A promise that resolves with an object
 						 * 		that contains a `spliced` property, which contains the spliced items and a `newArr` property containing the new array
 						 */
 						splice(nodeId: number, start: number, amount: number,
-							callback?: (spliced: Library[], newArr: Library[]) => void): Promise<{
-								spliced: Library[];
-								newArr: Library[];
+							callback?: (spliced: CRM.Library[], newArr: CRM.Library[]) => void): Promise<{
+								spliced: CRM.Library[];
+								newArr: CRM.Library[];
 							}>;
 					}
 				},
@@ -3959,9 +2635,9 @@ declare namespace CRM {
 					 * @permission crmGet
 					 * @param {number} nodeId - The id of the node of which to get the children
 					 * @param {Instance~crmCallback} [callback] - A callback that is called with the node as an argument
-					 * @returns {Promise<SafeNode[]>} A promise that resolves with the children
+					 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the children
 					 */
-					getChildren(nodeId: number, callback?: (nodes: SafeNode[]) => void): Promise<SafeNode[]>,
+					getChildren(nodeId: number, callback?: (nodes: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]>,
 	
 					/**
 					 * Sets the children of node with ID nodeId to the nodes with IDs childrenIds
@@ -3972,10 +2648,10 @@ declare namespace CRM {
 					 * @param {number} nodeId - The id of the node of which to set the children
 					 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
 					 * @param {Instance~crmCallback} [callback] - A callback that is called with the node as an argument
-					 * @returns {Promise<SafeNode>} A promise that resolves with the menu node
+					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the menu node
 					 */
-					setChildren<T extends SafeNode>(nodeId: NodeId<T>, childrenIds: number[], callback?: (node: T) => void): Promise<T>,
-					setChildren(nodeId: number, childrenIds: number[], callback?: (node: SafeNode) => void): Promise<SafeNode>,
+					setChildren<T extends CRM.SafeNode>(nodeId: CRM.NodeId<T>, childrenIds: number[], callback?: (node: T) => void): Promise<T>,
+					setChildren(nodeId: number, childrenIds: number[], callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 					/**
 					 * Pushes the nodes with IDs childrenIds to the node with ID nodeId
@@ -3986,10 +2662,10 @@ declare namespace CRM {
 					 * @param {number} nodeId - The id of the node of which to push the children
 					 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
 					 * @param {Instance~crmCallback} [callback] - A callback that is called with the node as an argument
-					 * @returns {Promise<SafeNode>} A promise that resolves with the menu
+					 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the menu
 					 */
-					push<T extends SafeNode>(nodeId: NodeId<T>, childrenIds: number[], callback?: (node: T) => void): Promise<T>,
-					push(nodeId: number, childrenIds: number[], callback?: (node: SafeNode) => void): Promise<SafeNode>,
+					push<T extends CRM.SafeNode>(nodeId: CRM.NodeId<T>, childrenIds: number[], callback?: (node: T) => void): Promise<T>,
+					push(nodeId: number, childrenIds: number[], callback?: (node: CRM.SafeNode) => void): Promise<CRM.SafeNode>,
 	
 					/**
 					 * Splices the children of the node with ID nodeId, starting at `start` and splicing `amount` items,
@@ -4002,13 +2678,13 @@ declare namespace CRM {
 					 * @param {number} start - The index at which to start
 					 * @param {number} amount - The amount to splice
 					 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
-					 * @returns {Promise<{spliced: SafeNode[], newArr: SafeNode[]}>} A promise that resolves with an object
+					 * @returns {Promise<{spliced: CRM.SafeNode[], newArr: CRM.SafeNode[]}>} A promise that resolves with an object
 					 * 		that contains a `spliced` property, which contains the spliced children and a `newArr` property containing the new children array
 					 */
 					splice(nodeId: number, start: number, amount: number,
-						callback?: (spliced: SafeNode[], newArr: SafeNode[]) => void): Promise<{
-							spliced: SafeNode[];
-							newArr: SafeNode[];
+						callback?: (spliced: CRM.SafeNode[], newArr: CRM.SafeNode[]) => void): Promise<{
+							spliced: CRM.SafeNode[];
+							newArr: CRM.SafeNode[];
 						}>;
 				}
 			}
@@ -4096,7 +2772,7 @@ declare namespace CRM {
 				 * @param {string} [options.code] - The code to use
 				 * @param {boolean} [options.ts] - Whether the library uses the typescript language
 				 * @param {function} [callback] - A callback that is called with the library object as an argument
-				 * @returns {Promise<InstalledLibrary>} A promise that resolves with the new library
+				 * @returns {Promise<CRM.InstalledLibrary>} A promise that resolves with the new library
 				 */
 				register(name: string, options: {
 					/**
@@ -4111,7 +2787,7 @@ declare namespace CRM {
 					 * Whether the library uses the typescript language
 					 */
 					ts?: boolean;
-				}, callback?: (lib: InstalledLibrary) => void): Promise<InstalledLibrary>,
+				}, callback?: (lib: CRM.InstalledLibrary) => void): Promise<CRM.InstalledLibrary>,
 			}
 	
 			/**
@@ -4183,6 +2859,10 @@ declare namespace CRM {
 			 * An object closely resembling the browser API object. 
 			 * 		Access the function you want to run through the object and then
 			 * 		call it like the chrome API by calling a set of functions on it.
+			 * 		You can either call functions by finding them through their respective
+			 * 		objects (like crmAPI.browser.alarms.create) or by calling
+			 * 		crmAPI.browser.any(api) where api is a string where the apis
+			 * 		are separated by dots (for example: crmAPI.browser.any('alarms.create'))
 			 * 		There are a few types of functions you can chain-call on the 
 			 * 		crmAPI.browser.{api} object:
 			 *			a or args or (): uses given arguments as arguments for the API in order specified. When passing a function,
@@ -4234,7 +2914,9 @@ declare namespace CRM {
 			 * @returns {Object} - An object on which you can call .args, .fn and .send
 			 * 		(and their first-letter-only versions)
 			 */
-			browser: BrowserRequestObj;
+			browser: typeof crmbrowser & {
+				any(api: string): BrowserRequestReturn;
+			}
 
 			/**
 			 * The GM API that fills in any APIs that GreaseMonkey uses and points them to their
