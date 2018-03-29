@@ -2,8 +2,6 @@
 /// <reference path="../tools/definitions/crmapi.d.ts" />
 /// <reference path="../app/js/background.ts" />
 
-//TODO: .background.*
-
 'use strict';
 // @ts-ignore
 var mochaSteps = require('mocha-steps');
