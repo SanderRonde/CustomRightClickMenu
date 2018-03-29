@@ -5004,7 +5004,6 @@ describe('CRMAPI', () => {
 		});
 		it('should throw an error when a non-existent "any" function is tried', async () => {
 			await asyncThrows(() => {
-				debugger;
 				return crmAPI.browser.any('alarms.doesnotexist').send();
 			}, /Passed API does not exist/, 'non-existent function throws');
 		});
