@@ -99,6 +99,7 @@
     "js-beautify": "^1.7.5",
     "json3": "^3.3.2",
     "merge-stream": "^1.0.1",
+    "mkdirp": "^0.5.1",
     "mocha": "^2.5.3",
     "mocha-steps": "^1.0.0",
     "monaco-editor": "^0.10.1",

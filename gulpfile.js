@@ -14,6 +14,7 @@ const babel = require('gulp-babel');
 const xpi = require('firefox-xpi');
 const typedoc = require('typedoc');
 const crisper = require('crisper');
+const mkdirp = require('mkdirp');
 const rollup = require('rollup');
 const zip = require('gulp-zip');
 const which = require('which');
@@ -51,24 +52,30 @@ function genTask(description, toRun) {
  * @param {{encoding?: 'utf8'}} [options] - Any options
  */
 function writeFile(filePath, data, options) {
-	return new Promise((resolve, reject) => {
-		if (!options) {
-			fs.writeFile(filePath, data, (err) => {
-				if (err) {
-					reject(err);
+	return new Promise(async (resolve, reject) => {
+		mkdirp(path.dirname(filePath), (err) => {
+			if (err) {
+				reject(err);
+			} else {
+				if (!options) {
+					fs.writeFile(filePath, data, (err) => {
+						if (err) {
+							reject(err);
+						} else {
+							resolve();
+						}
+					});
 				} else {
-					resolve();
+					fs.writeFile(filePath, data, options, (err) => {
+						if (err) {
+							reject(err);
+						} else {
+							resolve();
+						}
+					});
 				}
-			});
-		} else {
-			fs.writeFile(filePath, data, options, (err) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve();
-				}
-			});
-		}
+			}
+		})
 	});
 }
 
@@ -980,6 +987,48 @@ function readFile(filePath, options) {
 
 	gulp.task('testBuild', genTask('Attempts to build everything',
 		gulp.series('clean', 'build', 'clean', 'documentationWebsite', 'clean')));
+})();
+
+/* Definitions */
+(() => {
+	/**
+	 * Replace a line with given callback's response when regexp matches
+	 * 
+	 * @param {string[]} lines - The lines to iterate through
+	 * @param {RegExp} regexp - The expression that should match
+	 * @param {(match: RegExpExecArray) => Promise<string>} callback - A function that
+	 * 		returns the to-replace string based on the match
+	 * @returns {Promise<string[]>} - The new array
+	 */
+	async function doReplace(lines, regexp, callback) {
+		let match;
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i];
+			if ((match = regexp.exec(line))) {
+				const replacement = (await callback(match)).split('\n');
+				lines.splice(i, 1, ...replacement);
+				return doReplace(lines, regexp, callback);
+			}
+		}
+		return lines;
+	}
+
+	gulp.task(genTask('Move all crmapi .d.ts files into a single file',
+		async function genDefs() {
+			const srcFile = await readFile('./tools/definitions/crmapi.d.ts', {
+				encoding: 'utf8'
+			});
+			const lines = srcFile.split('\n');
+			const newLines = (await doReplace(lines, /\/\/\/(\s*)<reference path="(.*)"(\s*)\/>/, async (match) => {
+				const file = match[2];
+				return await readFile(path.join('./tools/definitions', file), {
+					encoding: 'utf8'
+				});
+			})).join('\n');
+			await writeFile('./dist/defs/crmapi.d.ts', newLines, {
+				encoding: 'utf8'
+			});
+		}));
 })();
 
 /* Choosing a browser to test/build/develop */
