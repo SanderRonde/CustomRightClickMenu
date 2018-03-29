@@ -5130,7 +5130,8 @@ type CRMAPIMessage = {
 			 * @param {any} value - The value to store
 			 */
 			GM_setValue(this: CrmAPIInstance, name: string, value: any): void {
-				(this.storage as any).set(name, value);
+				(this.storage as any).set(name, (typeof value === 'object' ? 
+					JSON.parse(JSON.stringify(value)) : value));
 			},
 			/**
 			 * This method deletes an existing name / value pair from storage.
