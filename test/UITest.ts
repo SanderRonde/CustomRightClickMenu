@@ -811,7 +811,7 @@ function getContextMenu(): webdriver.promise.Promise<ContextMenu> {
 		driver.executeScript(inlineFn((REPLACE) => {
 			return JSON.stringify(REPLACE.getTestData()._currentContextMenu[0].children);
 		}, {
-			getTestData
+			getTestData: getTestData()
 		})).then((str) => {
 			resolve(JSON.parse(str));
 		});
@@ -1732,24 +1732,16 @@ function assertContextMenuEquality(contextMenu: ContextMenu, CRMNodes: CRM.Tree)
 }
 
 function getTestData() {
-	if (window.BrowserAPI) {
-		return window.BrowserAPI.getTestData();
+	if (TEST_EXTENSION) {
+		return () => {
+			return window.BrowserAPI.getTestData()
+		}
+	} else {
+		return () => {
+			return window.chrome;
+		}
 	}
-	return window.chrome;
 }
-
-// function getLog(): webdriver.promise.Promise<string> {
-// 	return new webdriver.promise.Promise<string>((resolve) => {
-// 		driver.executeScript(inlineFn(() => {
-// 			const log = JSON.stringify(window.app._log);
-// 			window.app._log = [];
-// 			return log;
-// 		})).then((str) => {
-// 			console.log(str);
-// 			resolve(str);
-// 		});
-// 	});
-// }
 
 function enterEditorFullscreen(__thisOrType: Mocha.ISuiteCallbackContext|DialogType,
 	type?: DialogType): webdriver.promise.Promise<FoundElement> {
@@ -2142,10 +2134,12 @@ describe('User entrypoints', function() {
 					return;
 				}
 					
+				await wait(500);
+
 				const lastCall = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
 					return JSON.stringify(REPLACE.getTestData()._lastSpecialCall);
 				}, {
-					getTestData
+					getTestData: getTestData()
 				})));
 				assert.isDefined(lastCall, 'a call to the browser API was made');
 				assert.strictEqual(lastCall.api, 'downloads.download',
@@ -3232,7 +3226,7 @@ describe('User entrypoints', function() {
 											REPLACE.page, REPLACE.tab
 										);
 								}, {
-									getTestData,
+									getTestData: getTestData(),
 									page: {
 										menuItemId: contextMenu[0].id,
 										editable: false,
@@ -3261,7 +3255,7 @@ describe('User entrypoints', function() {
 									REPLACE.getTestData()._clearExecutedScripts();
 									return str;
 								}, {
-									getTestData,
+									getTestData: getTestData(),
 								}))).map(scr => JSON.stringify(scr));
 	
 								assert.include(activatedScripts, JSON.stringify({
@@ -3409,7 +3403,7 @@ describe('User entrypoints', function() {
 											REPLACE.page, REPLACE.tab
 										);
 								}, {
-									getTestData,
+									getTestData: getTestData(),
 									page: {
 										menuItemId: contextMenu[0].id,
 										editable: false,
@@ -3436,7 +3430,7 @@ describe('User entrypoints', function() {
 								const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
 									return JSON.stringify(REPLACE.getTestData()._executedScripts);
 								}, {
-									getTestData
+									getTestData: getTestData()
 								})));
 	
 								assert.include(activatedScripts, {
@@ -3989,7 +3983,7 @@ describe('On-Page CRM', function() {
 					);
 				return true;
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				page: {
 					menuItemId: contextMenu[LinkOnPageTest.DEFAULT_LINKS].id,
 					editable: false,
@@ -4014,7 +4008,7 @@ describe('On-Page CRM', function() {
 			const activeTabs = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
 				return JSON.stringify(REPLACE.getTestData()._activeTabs);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 			})));
 			const expectedTabs = CRMNodes[LinkOnPageTest.DEFAULT_LINKS].value.map((link) => {
 				if (!link.newTab) {
@@ -4054,7 +4048,7 @@ describe('On-Page CRM', function() {
 						REPLACE.page, REPLACE.tab
 					);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				page: {
 					menuItemId: contextMenu[LinkOnPageTest.PRESET_LINKS].id,
 					editable: false,
@@ -4080,7 +4074,7 @@ describe('On-Page CRM', function() {
 			const activeTabs = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
 				return JSON.stringify(REPLACE.getTestData()._activeTabs);
 			}, {
-				getTestData
+				getTestData: getTestData()
 			})));
 			const expectedTabs = CRMNodes[LinkOnPageTest.PRESET_LINKS].value.map((link) => {
 				if (!link.newTab) {
@@ -4326,14 +4320,14 @@ describe('On-Page CRM', function() {
 					}
 				} as any);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				fakeTabId: fakeTabId
 			}));
 			await wait(500);
 			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
 				return JSON.stringify(REPLACE.getTestData()._executedScripts);
 			}, {
-				getTestData
+				getTestData: getTestData()
 			})));
 
 			assert.lengthOf(activatedScripts, 1, 'one script activated');
@@ -4353,7 +4347,7 @@ describe('On-Page CRM', function() {
 						REPLACE.page, REPLACE.tab
 					);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -4380,7 +4374,7 @@ describe('On-Page CRM', function() {
 			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
 				return JSON.stringify(REPLACE.getTestData()._executedScripts);
 			}, {
-				getTestData
+				getTestData: getTestData()
 			})));
 
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
@@ -4406,14 +4400,14 @@ describe('On-Page CRM', function() {
 					}
 				} as any);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				fakeTabId: fakeTabId
 			}));
 			await wait(500);
 			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
 				return JSON.stringify(REPLACE.getTestData()._executedScripts);
 			}, {
-				getTestData
+				getTestData: getTestData()
 			})));
 
 			//First one is the ALWAYS_RUN script, ignore that
@@ -4440,7 +4434,7 @@ describe('On-Page CRM', function() {
 					}
 				} as any);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				fakeTabId: fakeTabId
 			}));
 			await wait(500);
@@ -4456,7 +4450,7 @@ describe('On-Page CRM', function() {
 					REPLACE.page, REPLACE.tab
 				);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -4483,7 +4477,7 @@ describe('On-Page CRM', function() {
 			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
 				return JSON.stringify(REPLACE.getTestData()._executedScripts);
 			}, {
-				getTestData
+				getTestData: getTestData()
 			})));
 
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
@@ -4496,7 +4490,7 @@ describe('On-Page CRM', function() {
 					.executeScript(inlineFn((REPLACE) => {
 						return JSON.stringify(REPLACE.getTestData()._activatedBackgroundPages);
 					}, {
-						getTestData
+						getTestData: getTestData()
 					})));
 				assert.lengthOf(activatedBackgroundScripts, 1,
 					'one backgroundscript was activated');
@@ -4523,7 +4517,7 @@ describe('On-Page CRM', function() {
 						REPLACE.page, REPLACE.tab
 					);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -4551,7 +4545,7 @@ describe('On-Page CRM', function() {
 				.executeScript(inlineFn((REPLACE) => {
 					return JSON.stringify(REPLACE.getTestData()._executedScripts);
 				}, {
-					getTestData
+					getTestData: getTestData()
 				})));
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
 			assert.strictEqual(activatedScripts[0].id, fakeTabId,
@@ -4835,7 +4829,7 @@ describe('On-Page CRM', function() {
 						REPLACE.page, REPLACE.tab
 					);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				index: index,
 				page: {
 					menuItemId: contextMenu[0].id,
@@ -4863,7 +4857,7 @@ describe('On-Page CRM', function() {
 				.executeScript(inlineFn((REPLACE) => {
 					return JSON.stringify(REPLACE.getTestData()._executedScripts);
 				}, {
-					getTestData
+					getTestData: getTestData()
 				})));
 			assert.lengthOf(executedScripts, 1, 'one stylesheet was activated');
 			assert.strictEqual(executedScripts[0].id, fakeTabId,
@@ -4914,7 +4908,7 @@ describe('On-Page CRM', function() {
 					}
 				} as any);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				fakeTabId: fakeTabId
 			}));
 			await wait(50);
@@ -4922,7 +4916,7 @@ describe('On-Page CRM', function() {
 				.executeScript(inlineFn((REPLACE) => {
 					return JSON.stringify(REPLACE.getTestData()._executedScripts);
 				}, {
-					getTestData
+					getTestData: getTestData()
 				})));
 
 			//First one is the default on stylesheet, ignore that
@@ -4941,7 +4935,7 @@ describe('On-Page CRM', function() {
 						REPLACE.page, REPLACE.tab
 					);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -4968,7 +4962,7 @@ describe('On-Page CRM', function() {
 				.executeScript(inlineFn((REPLACE) => {
 					return JSON.stringify(REPLACE.getTestData()._executedScripts);
 				}, {
-					getTestData
+					getTestData: getTestData()
 				})));
 
 			assert.lengthOf(activatedScripts, 1, 'one stylesheet was activated');
@@ -4992,7 +4986,7 @@ describe('On-Page CRM', function() {
 					}
 				} as any);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				fakeTabId: fakeTabId
 			}));
 			await wait(50);
@@ -5000,7 +4994,7 @@ describe('On-Page CRM', function() {
 				.executeScript(inlineFn((REPLACE) => {
 					return JSON.stringify(REPLACE.getTestData()._executedScripts);
 				}, {
-					getTestData
+					getTestData: getTestData()
 				})));
 
 			//First one is the ALWAYS_RUN stylesheet, second one is the default on one ignore that
@@ -5025,7 +5019,7 @@ describe('On-Page CRM', function() {
 					}
 				} as any);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				fakeTabId: fakeTabId
 			}));
 			const contextMenu = await getContextMenu();
@@ -5039,7 +5033,7 @@ describe('On-Page CRM', function() {
 					REPLACE.page, REPLACE.tab
 				);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -5066,7 +5060,7 @@ describe('On-Page CRM', function() {
 				.executeScript(inlineFn((REPLACE) => {
 					return JSON.stringify(REPLACE.getTestData()._executedScripts);
 				}, {
-					getTestData
+					getTestData: getTestData()
 				})));
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
 			assert.strictEqual(activatedScripts[0].id, fakeTabId,
@@ -5090,7 +5084,7 @@ describe('On-Page CRM', function() {
 						REPLACE.page, REPLACE.tab
 					);
 			}, {
-				getTestData,
+				getTestData: getTestData(),
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -5117,7 +5111,7 @@ describe('On-Page CRM', function() {
 				.executeScript(inlineFn((REPLACE) => {
 					return JSON.stringify(REPLACE.getTestData()._executedScripts);
 				}, {
-					getTestData
+					getTestData: getTestData()
 				})));
 			assert.lengthOf(executedScripts, 1, 'one script was activated');
 			assert.strictEqual(executedScripts[0].id, fakeTabId,
@@ -5205,7 +5199,7 @@ describe('On-Page CRM', function() {
 								REPLACE.page, REPLACE.tab
 							);
 					}, {
-						getTestData,
+						getTestData: getTestData(),
 						page: {
 							menuItemId: contextMenu[0].id,
 							editable: false,
@@ -5245,7 +5239,7 @@ describe('On-Page CRM', function() {
 								REPLACE.page, REPLACE.tab
 							);
 					}, {
-						getTestData,
+						getTestData: getTestData(),
 						page: {
 							menuItemId: contextMenu[0].id,
 							editable: false,
