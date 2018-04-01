@@ -527,13 +527,17 @@ namespace BrowserAPI {
 				url?: string,
 				windowId?: number,
 			}) {
-				testData._activeTabs.push({
-					type: 'create',
-					data: createProperties
-				});
-
 				return createPromise<_browser.tabs.Tab>((handler) => {
-					__srcBrowser.tabs.create(createProperties, handler);
+					__srcBrowser.tabs.create(createProperties, (tab) => {
+						const { id } = tab;
+						testData._activeTabs.push({
+							type: 'create',
+							data: createProperties,
+							id
+						});
+
+						handler(tab);
+					});
 				});
 			},
 			get(tabId: number) {
@@ -601,7 +605,7 @@ namespace BrowserAPI {
 						data: typeof tabIdOrOptions === 'number' ?
 							options : tabIdOrOptions,
 						id: typeof tabIdOrOptions === 'number' ?
-							tabIdOrOptions : (await browserAPI.tabs.getCurrent()).id
+							tabIdOrOptions : undefined
 					});
 				});
 			},
@@ -622,9 +626,17 @@ namespace BrowserAPI {
 						const settings = typeof tabIdOrDetails === 'number' ?
 							details : tabIdOrDetails;
 						if (settings.code) {
+							let id: number = undefined;
+							if (typeof tabIdOrDetails === 'number') {
+								id = tabIdOrDetails;
+							} else {
+								const currentTab = await browserAPI.tabs.getCurrent();
+								if (currentTab) {
+									id = currentTab.id;
+								}
+							}
 							testData._executedScripts.push({
-								id: typeof tabIdOrDetails === 'number' ? 
-									tabIdOrDetails : (await browserAPI.tabs.getCurrent()).id,
+								id,
 								code: settings.code
 							})
 						}
