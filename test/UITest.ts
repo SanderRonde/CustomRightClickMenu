@@ -66,7 +66,7 @@ type DeepPartial<T> = {
 	[P in keyof T]?: DeepPartial<T[P]>;
 }
 
-interface AppChrome extends DeepPartial<Chrome> {
+interface TestData {
 	_lastSpecialCall: ChromeLastCall;
 	_currentContextMenu: ContextMenu;
 	_activeTabs: ActiveTabs;
@@ -86,6 +86,8 @@ interface AppChrome extends DeepPartial<Chrome> {
 		};
 	};
 }
+
+interface AppChrome extends DeepPartial<Chrome>, TestData {};
 
 type AsyncStates<T> = {
 	state: 'pending';
@@ -715,7 +717,7 @@ export function inlineFn<T extends {
 function inlineAsyncFn<T extends {
 	[key: string]: any;
 }, U>(fn: (resolve: (result: U) => void, reject: (err: Error) => void, 
-	REPLACE: T) => void|void, args?: T,
+	REPLACE: T) => Promise<U>|void, args?: T,
 	...insertedFunctions: Function[]): StringifiedCallbackFunction<number, U> {
 		args = args || {} as T;
 		let str = `${insertedFunctions.map(inserted => inserted.toString()).join('\n')}
@@ -738,14 +740,28 @@ function inlineAsyncFn<T extends {
 				state: 'pending',
 				result: null
 			}
-			try { (${es3IfyFunction(fn.toString())})(onDone, onFail) } catch(err) { onFail(err.name + '-' + err.stack); }
+			try { 
+				const res = (${es3IfyFunction(fn.toString())})(onDone, onFail);
+				if (typeof res === 'object' && 'then' in res) {
+					res.then(function(result) {
+						onDone(result);
+					}).catch(function(err) {
+						onFail(err);
+					});
+				}
+			} catch(err) { 
+				onFail(err.name + '-' + err.stack);
+			}
 			return currentAsync;`;
 		Object.getOwnPropertyNames(args).forEach((key) => {
 			let arg = args[key];
-			if (typeof arg === 'object' || typeof arg === 'function') {
+			if (typeof arg === 'object') {
 				arg = JSON.stringify(arg);
 			}
-
+			if (typeof arg === 'function') {
+				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'),
+					`(${arg.toString()})`);
+			}
 			if (typeof arg === 'string' && arg.split('\n').length > 1) {
 				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), 
 					`' + ${JSON.stringify(arg.split('\n'))}.join('\\n') + '`);
@@ -808,14 +824,64 @@ function getCRM<T extends CRM.Node[] = CRM.Tree>(): webdriver.promise.Promise<T>
 
 function getContextMenu(): webdriver.promise.Promise<ContextMenu> {
 	return new webdriver.promise.Promise<ContextMenu>((resolve) => {
-		driver.executeScript(inlineFn((REPLACE) => {
-			return JSON.stringify(REPLACE.getTestData()._currentContextMenu[0].children);
+		executeAsyncScript<EncodedString<ContextMenuItem[]>>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+			REPLACE.getBackgroundPageTestData().then((testData) => {
+				ondone(JSON.stringify(testData._currentContextMenu[0].children));
+			});
 		}, {
-			getTestData: getTestData()
+			getBackgroundPageTestData: getBackgroundPageTestData()
 		})).then((str) => {
 			resolve(JSON.parse(str));
 		});
 	});
+}
+
+async function getActiveTabs(): Promise<ActiveTabs> {
+	const encoded = await executeAsyncScript<EncodedString<ActiveTabs>>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+		REPLACE.getBackgroundPageTestData().then((testData) => {
+			ondone(JSON.stringify(testData._activeTabs));
+		});
+	}, {
+		getBackgroundPageTestData: getBackgroundPageTestData()
+	}));
+
+	//Filter dummy tab
+	const newTabs: ActiveTabs = [];
+	for (const activeTab of JSON.parse(encoded)) {
+		if (activeTab.id !== (await getDummyTabId()).tabId) {
+			newTabs.push(activeTab);
+		}
+	}
+	return newTabs;
+}
+
+async function getActivatedScripts({
+	clear = false,
+	filterDummy = false
+}: {
+	clear?: boolean;
+	filterDummy?: boolean;
+} = {}): Promise<ExecutedScript[]> {
+	const encoded = await executeAsyncScript<EncodedString<ExecutedScript[]>>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+		REPLACE.getBackgroundPageTestData().then((testData) => {
+			const scripts = JSON.stringify(testData._executedScripts);
+			if (REPLACE.clear) {
+				testData._clearExecutedScripts();
+			}
+			ondone(scripts);
+		});
+	}, {
+		getBackgroundPageTestData: getBackgroundPageTestData(),
+		clear
+	}));
+	
+	const newTabs: ExecutedScript[] = [];
+	for (const executedScript of JSON.parse(encoded)) {
+		if (!filterDummy || executedScript.id !== (await getDummyTabId()).tabId) {
+			newTabs.push(executedScript);
+		}
+	}
+	return newTabs;
 }
 
 async function waitForEditor() {
@@ -954,7 +1020,7 @@ async function doFullRefresh(__this?: Mocha.ISuiteCallbackContext|Mocha.IHookCal
 			window.onIsTest();
 		} else {
 			window.onIsTest = true;
-}
+		}
 	}));
 }
 
@@ -1741,13 +1807,138 @@ function assertContextMenuEquality(contextMenu: ContextMenu, CRMNodes: CRM.Tree)
 function getTestData() {
 	if (TEST_EXTENSION) {
 		return () => {
-			return window.BrowserAPI.getTestData()
+			return window.BrowserAPI.getTestData();
 		}
 	} else {
 		return () => {
 			return window.chrome;
 		}
 	}
+}
+
+let dummyTabInfo: {
+	tabId: number;
+	windowId: number;
+} = null;
+let dummyHandle: string = null;
+async function getDummyTabId() {
+	if (TEST_EXTENSION) {
+		return dummyTabInfo;
+	} else {
+		return {
+			tabId: getRandomId(),
+			windowId: getRandomId()
+		}
+	}
+}
+
+let currentTestWindow: string = null;
+async function switchToTestWindow() {
+	await driver.switchTo().window(currentTestWindow);
+}
+
+async function createTab(url: string, doClear: boolean = false) {
+	if (TEST_EXTENSION) {
+		const idData = await executeAsyncScript<{
+			tabId: number;
+			windowId: number;
+		}>(inlineAsyncFn((done, onReject, REPLACE) => { 
+			if (REPLACE.doClear) {
+				window.BrowserAPI.getTestData()._clearExecutedScripts();
+			}
+			browserAPI.tabs.create({
+				url: "REPLACE.url"
+			}).then(function(createdTab) {
+				done({
+					tabId: createdTab.id,
+					windowId: createdTab.windowId
+				});
+			});
+		}, {
+			url,
+			doClear
+		}));
+		await wait(5000);
+		await switchToTestWindow();
+		return idData;
+	} else {
+		const fakeTabId = getRandomId();
+		await driver.executeScript(inlineFn((REPLACE) => {
+			if (REPLACE.doClear) {
+				REPLACE.getTestData()._clearExecutedScripts();
+			}
+			REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
+				id: REPLACE.fakeTabId,
+				title: 'title',
+				url: "REPLACE.url"
+			};
+			window.browserAPI.runtime.sendMessage({
+				type: 'newTabCreated'
+			}, {
+				tab: {
+					id: REPLACE.fakeTabId
+				}
+			} as any);
+		}, {
+			url,
+			doClear,
+			fakeTabId,
+			getTestData: getTestData()
+		}));
+		return {
+			tabId: fakeTabId,
+			windowId: getRandomId()
+		}
+	}
+}
+
+interface Promiselike<T> {
+	then(listener: (result: T) => void): void;
+}
+
+function getBackgroundPageTestData(): () => Promiselike<TestData> {
+	if (TEST_EXTENSION) {
+		return () => {
+			const listeners: ((result: TestData) => void)[] = [];
+			let isDone: boolean = false;
+			let result: TestData = null;
+			window.browserAPI.runtime.getBackgroundPage().then((page: Window & {
+				BrowserAPI: typeof BrowserAPI;
+			}) => {
+				isDone = true;
+				result = page.BrowserAPI.getTestData();
+				listeners.forEach(listener => listener(result));
+			});
+			return {
+				then(listener) {
+					if (isDone) {
+						listener(result);
+					} else {
+						listeners.push(listener);
+					}
+				}
+			}
+		}
+	} else {
+		return () => {
+			return {
+				then(listener) {
+					listener(window.chrome);
+				}
+			}
+		}
+	}
+}
+
+async function closeOtherTabs() {
+	const tabs = await driver.getAllWindowHandles();
+	for (const tab of tabs) {
+		if (tab !== currentTestWindow && tab !== dummyHandle) {
+			await driver.switchTo().window(tab);
+			await driver.close();
+		}
+	}
+	await switchToTestWindow();
 }
 
 function enterEditorFullscreen(__thisOrType: Mocha.ISuiteCallbackContext|DialogType,
@@ -1790,6 +1981,7 @@ describe('User entrypoints', function() {
 					this.timeout(600000 * TIME_MODIFIER);
 					const prefix = await getExtensionDataOnly().getExtensionURLPrefix(driver, browserCapabilities);
 					await driver.get(`${prefix}/logging.html`);
+					currentTestWindow = await driver.getWindowHandle();
 					await waitFor(() => {
 						return driver.executeScript(inlineFn(() => {
 							return window.polymerElementsLoaded;
@@ -1807,6 +1999,7 @@ describe('User entrypoints', function() {
 					this.timeout(600000 * TIME_MODIFIER);
 					const prefix = await getExtensionDataOnly().getExtensionURLPrefix(driver, browserCapabilities);
 					await driver.get(`${prefix}/install.html`);
+					currentTestWindow = await driver.getWindowHandle();
 					await waitFor(() => {
 						return driver.executeScript(inlineFn(() => {
 							return window.polymerElementsLoaded;
@@ -1824,6 +2017,29 @@ describe('User entrypoints', function() {
 			it('should finish loading', async function() {
 				this.timeout(600000 * TIME_MODIFIER);
 				await openTestPageURL(browserCapabilities);
+				currentTestWindow = await driver.getWindowHandle();
+
+				if (TEST_EXTENSION) {
+					dummyTabInfo = await executeAsyncScript<{
+						tabId: number;
+						windowId: number;
+					}>(inlineAsyncFn((done, onReject, REPLACE) => { 
+						browserAPI.tabs.create({
+							url: 'http://www.github.com'
+						}).then(function(createdTab) {
+							done({ tabId: createdTab.id, windowId: createdTab.windowId });
+						});
+					}));
+				}
+				await switchToTestWindow();
+				const handles = await driver.getAllWindowHandles();
+				for (const handle of handles) {
+					if (handle !== currentTestWindow) {
+						dummyHandle = handle;
+						break;
+					}
+				}
+
 				await waitFor(() => {
 					return driver.executeScript(inlineFn(() => {
 						return window.polymerElementsLoaded;
@@ -3143,7 +3359,6 @@ describe('User entrypoints', function() {
 							});
 	
 							it('should be possible to add your own library through a URL', async () => {
-								const tabId = getRandomId();
 								const libName = getRandomString(25);
 								const libUrl = 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js';
 	
@@ -3225,15 +3440,19 @@ describe('User entrypoints', function() {
 									}).end();
 								});
 								const contextMenu = await getContextMenu();
-								await driver.executeScript(inlineFn((REPLACE) => {
+								const { tabId, windowId } = await getDummyTabId();
+								await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 									REPLACE.getTestData()._clearExecutedScripts();
-									return REPLACE.getTestData()._currentContextMenu[0]
-										.children[0]
-										.currentProperties.onclick(
-											REPLACE.page, REPLACE.tab
-										);
+									REPLACE.getBackgroundPageTestData().then((testData) => {
+										ondone(testData._currentContextMenu[0]
+											.children[0]
+											.currentProperties.onclick(
+												REPLACE.page, REPLACE.tab
+											));
+									});
 								}, {
 									getTestData: getTestData(),
+									getBackgroundPageTestData: getBackgroundPageTestData(),
 									page: {
 										menuItemId: contextMenu[0].id,
 										editable: false,
@@ -3246,7 +3465,7 @@ describe('User entrypoints', function() {
 										lastAccessed: 0,
 										id: tabId,
 										index: 1,
-										windowId: getRandomId(),
+										windowId: windowId,
 										highlighted: false,
 										active: true,
 										pinned: false,
@@ -3257,13 +3476,8 @@ describe('User entrypoints', function() {
 									}
 								}));
 								await wait(1000);
-								const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
-									const str = JSON.stringify(REPLACE.getTestData()._executedScripts);
-									REPLACE.getTestData()._clearExecutedScripts();
-									return str;
-								}, {
-									getTestData: getTestData(),
-								}))).map(scr => JSON.stringify(scr));
+								const activatedScripts = (await getActivatedScripts())
+									.map(scr => JSON.stringify(scr));
 	
 								assert.include(activatedScripts, JSON.stringify({
 									id: tabId,
@@ -3335,7 +3549,6 @@ describe('User entrypoints', function() {
 								this.retries(3); 
 								const libName = getRandomString(25);
 								const testCode = `'${getRandomString(100)}'`;
-								const tabId = getRandomId();
 	
 								await doFullRefresh();
 								this.timeout(60000 * TIME_MODIFIER);
@@ -3402,15 +3615,19 @@ describe('User entrypoints', function() {
 								await wait(1000);
 	
 								const contextMenu = await getContextMenu();
-								await driver.executeScript(inlineFn((REPLACE) => {
+								const { tabId, windowId } = await getDummyTabId();
+								await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 									REPLACE.getTestData()._clearExecutedScripts();
-									return REPLACE.getTestData()._currentContextMenu[0]
-										.children[0]
-										.currentProperties.onclick(
-											REPLACE.page, REPLACE.tab
-										);
+									REPLACE.getBackgroundPageTestData().then((testData) => {
+										ondone(testData._currentContextMenu[0]
+											.children[0]
+											.currentProperties.onclick(
+												REPLACE.page, REPLACE.tab
+											));
+									});
 								}, {
 									getTestData: getTestData(),
+									getBackgroundPageTestData: getBackgroundPageTestData(),
 									page: {
 										menuItemId: contextMenu[0].id,
 										editable: false,
@@ -3423,7 +3640,7 @@ describe('User entrypoints', function() {
 										lastAccessed: 0,
 										id: tabId,
 										index: 1,
-										windowId: getRandomId(),
+										windowId: windowId,
 										highlighted: false,
 										active: true,
 										pinned: false,
@@ -3434,11 +3651,7 @@ describe('User entrypoints', function() {
 									}
 								}));
 								await wait(1000);
-								const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
-									return JSON.stringify(REPLACE.getTestData()._executedScripts);
-								}, {
-									getTestData: getTestData()
-								})));
+								const activatedScripts = await getActivatedScripts();
 	
 								assert.include(activatedScripts, {
 									id: tabId,
@@ -3776,7 +3989,7 @@ describe('User entrypoints', function() {
 
 
 describe('On-Page CRM', function() {
-	if (SKIP_CONTEXTMENU || !TEST_EXTENSION) {
+	if (SKIP_CONTEXTMENU) {
 		return;
 	}
 	describe('Redraws on new CRM', function() {
@@ -3852,15 +4065,15 @@ describe('On-Page CRM', function() {
 		});
 	});
 	describe('Links', function() {
-		this.slow(2000 * TIME_MODIFIER);
-		this.timeout(3000 * TIME_MODIFIER);
+		this.slow(10000 * TIME_MODIFIER);
+		this.timeout(2000000 * TIME_MODIFIER);
 		const CRMNodes = [
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
 				id: getRandomId(),
 				showOnSpecified: false,
 				triggers: [{
-					url: 'http://www.somewebsite.com',
+					url: 'https://www.yahoo.com/',
 					not: false
 				}]
 			}),
@@ -3869,7 +4082,7 @@ describe('On-Page CRM', function() {
 				id: getRandomId(),
 				showOnSpecified: true,
 				triggers: [{
-					url: 'http://www.somewebsite.com',
+					url: 'https://www.yahoo.com/',
 					not: false
 				}]
 			}),
@@ -3878,7 +4091,7 @@ describe('On-Page CRM', function() {
 				id: getRandomId(),
 				showOnSpecified: true,
 				triggers: [{
-					url: 'http://www.somewebsite.com',
+					url: 'https://www.yahoo.com/',
 					not: true
 				}]
 			}),
@@ -3887,7 +4100,7 @@ describe('On-Page CRM', function() {
 				id: getRandomId(),
 				showOnSpecified: true,
 				triggers: [{
-					url: 'http://www.somewebsite.com',
+					url: 'https://www.yahoo.com/',
 					not: false
 				}],
 				onContentTypes: [true, false, false, false, false, false]
@@ -3897,7 +4110,7 @@ describe('On-Page CRM', function() {
 				id: getRandomId(),
 				showOnSpecified: true,
 				triggers: [{
-					url: 'http://www.somewebsite.com',
+					url: 'https://www.yahoo.com/',
 					not: false
 				}],
 				onContentTypes: [false, false, false, false, false, true]
@@ -3907,17 +4120,17 @@ describe('On-Page CRM', function() {
 				id: getRandomId(),
 				showOnSpecified: true,
 				triggers: [{
-					url: 'http://www.somewebsite.com',
+					url: 'https://www.yahoo.com/',
 					not: false
 				}],
 				value: [{
-					url: 'www.a.com',
+					url: 'www.youtube.com',
 					newTab: true
 				}, {
-					url: 'www.b.com',
-					newTab: false
+					url: 'www.reddit.com',
+					newTab: true
 				}, {
-					url: 'www.c.com',
+					url: 'www.bing.com',
 					newTab: true
 				}]
 			}),
@@ -3952,16 +4165,16 @@ describe('On-Page CRM', function() {
 				assert.isDefined(contextMenu[i], `node ${i} is defined`);
 				assert.strictEqual(contextMenu[i].currentProperties.title, 
 					CRMNodes[i].name, `names for ${i} match`);
-				assert.strictEqual(contextMenu[i].currentProperties.type,
+				assert.strictEqual(contextMenu[i].currentProperties.type || 'normal',
 					'normal', `type for ${i} is normal`);
-			}				
+			}
 		});
 		it('should match the given triggers', async () => {
 			const contextMenu = await getContextMenu();
 			assert.lengthOf(
-				contextMenu[LinkOnPageTest.NO_TRIGGERS].createProperties.documentUrlPatterns,
+				contextMenu[LinkOnPageTest.NO_TRIGGERS].createProperties.documentUrlPatterns || [],
 				0, 'triggers are turned off');
-			assert.deepEqual(contextMenu[LinkOnPageTest.TRIGGERS].createProperties.documentUrlPatterns,
+			assert.deepEqual(contextMenu[LinkOnPageTest.TRIGGERS].createProperties.documentUrlPatterns || [],
 				CRMNodes[LinkOnPageTest.TRIGGERS].triggers.map((trigger) => {
 					return prepareTrigger(trigger.url);
 				}), 'triggers are turned on');
@@ -3969,7 +4182,7 @@ describe('On-Page CRM', function() {
 		it('should match the given content types', async () => {
 			const contextMenu = await getContextMenu();
 			for (let i = 0; i < CRMNodes.length; i++) {
-				assert.includeMembers(contextMenu[i].currentProperties.contexts,
+				assert.includeMembers(contextMenu[i].currentProperties.contexts || [],
 					CRMNodes[i].onContentTypes.map((enabled, index) => {
 						if (enabled) {
 							return getTypeName(index);
@@ -3980,24 +4193,28 @@ describe('On-Page CRM', function() {
 			}
 		});
 		it('should open the correct links when clicked for the default link', async function() {
-			const tabId = ~~(Math.random() * 100);
-			const windowId = ~~(Math.random() * 100);
+			const { tabId, windowId } = await getDummyTabId();
 			const contextMenu = await getContextMenu();
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._currentContextMenu[0].children[LinkOnPageTest.DEFAULT_LINKS]
-					.currentProperties.onclick(
-						REPLACE.page, REPLACE.tab
-					);
-				return true;
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+				REPLACE.getTestData()._clearExecutedScripts();
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					ondone(testData._currentContextMenu[0]
+						.children[LinkOnPageTest.DEFAULT_LINKS]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
 			}, {
 				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
 				page: {
 					menuItemId: contextMenu[LinkOnPageTest.DEFAULT_LINKS].id,
 					editable: false,
-					pageUrl: 'www.google.com',
+					pageUrl: 'www.github.com',
 					modifiers: []
 				},
-				tab: {isArticle: false,
+				tab: {
+					isArticle: false,
 					isInReaderMode: false,
 					lastAccessed: 0,
 					id: tabId,
@@ -4007,55 +4224,55 @@ describe('On-Page CRM', function() {
 					active: true,
 					pinned: false,
 					selected: false,
-					url: 'http://www.google.com',
-					title: 'Google',
+					url: 'http://www.github.com',
+					title: 'GitHub',
 					incognito: false
 				}
 			}));
-			const activeTabs = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
-				return JSON.stringify(REPLACE.getTestData()._activeTabs);
-			}, {
-				getTestData: getTestData(),
-			})));
-			const expectedTabs = CRMNodes[LinkOnPageTest.DEFAULT_LINKS].value.map((link) => {
-				if (!link.newTab) {
-					return {
-						id:	tabId,
-						data: {
-							url: sanitizeUrl(link.url)
-						},
-						type: 'update'
-					};
-				} else {
-					return {
-						type: 'create',
-						data: {
-							windowId: windowId,
-							url: sanitizeUrl(link.url),
-							openerTabId: tabId
-						}
-					};
-				}
-			}) as ActiveTabs;
+			await wait(5000);
+			const activeTabs = await getActiveTabs();
+			const expected = CRMNodes[LinkOnPageTest.DEFAULT_LINKS].value;
 
-			assert.sameDeepMembers(activeTabs, expectedTabs,
-				'opened tabs match expected');
+			assert.lengthOf(activeTabs, expected.length, 
+				'arrays have the same length');
+			for (let i = 0; i < activeTabs.length; i++) {
+				const activeTab = activeTabs[i];
+				if (!expected[i].newTab) {
+					assert.propertyVal(activeTab, 'id', tabId,
+						'current tab was updated on the right tab');
+					assert.propertyVal(activeTab, 'type', 'update',
+						'change type was update');
+					assert.deepPropertyVal(activeTab, 'data', {
+						url: sanitizeUrl(expected[i].url)
+					}, 'updated url is correct');
+				} else {
+					assert.propertyVal(activeTab, 'type', 'create',
+						'new tab was created');
+					assert.deepPropertyVal(activeTab, 'data', {
+						windowId: windowId,
+						url: sanitizeUrl(expected[i].url),
+						openerTabId: tabId
+					}, 'new tab has correct URL, window ID and tab opener id');
+				}
+			}
 		});
 		it('should open the correct links when clicked for multiple links', async () => {
-			const tabId = ~~(Math.random() * 100);
-			const windowId = ~~(Math.random() * 100);
+			const { tabId, windowId } = await getDummyTabId();
 			const contextMenu = await getContextMenu();
-			await driver.executeScript(inlineFn((REPLACE) => {
-				//Clear it without removing object-array-magic-address-linking
-				while (REPLACE.getTestData()._activeTabs.length > 0) {
-					REPLACE.getTestData()._activeTabs.pop();
-				}
-				return REPLACE.getTestData()._currentContextMenu[0].children[LinkOnPageTest.PRESET_LINKS]
-					.currentProperties.onclick(
-						REPLACE.page, REPLACE.tab
-					);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					//Clear it without removing object-array-magic-address-linking
+					while (testData._activeTabs.length > 0) {
+						testData._activeTabs.pop();
+					}
+					ondone(testData._currentContextMenu[0]
+							.children[LinkOnPageTest.PRESET_LINKS]
+							.currentProperties.onclick(
+								REPLACE.page, REPLACE.tab
+							));
+				});
 			}, {
-				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
 				page: {
 					menuItemId: contextMenu[LinkOnPageTest.PRESET_LINKS].id,
 					editable: false,
@@ -4078,34 +4295,32 @@ describe('On-Page CRM', function() {
 					incognito: false
 				}
 			}));
-			const activeTabs = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
-				return JSON.stringify(REPLACE.getTestData()._activeTabs);
-			}, {
-				getTestData: getTestData()
-			})));
-			const expectedTabs = CRMNodes[LinkOnPageTest.PRESET_LINKS].value.map((link) => {
-				if (!link.newTab) {
-					return {
-						id:	tabId,
-						data: {
-							url: sanitizeUrl(link.url)
-						},
-						type: 'update'
-					};
-				} else {
-					return {
-						type: 'create',
-						data: {
-							windowId: windowId,
-							url: sanitizeUrl(link.url),
-							openerTabId: tabId
-						}
-					};
-				}
-			}) as ActiveTabs;
+			await wait(5000);
+			const activeTabs = await getActiveTabs();
+			const expected = CRMNodes[LinkOnPageTest.PRESET_LINKS].value;
 
-			assert.sameDeepMembers(activeTabs, expectedTabs,
-				'opened tabs match expected');
+			assert.lengthOf(activeTabs, expected.length, 
+				'arrays have the same length');
+			for (let i = 0; i < activeTabs.length; i++) {
+				const activeTab = activeTabs[i];
+				if (!expected[i].newTab) {
+					assert.propertyVal(activeTab, 'id', tabId,
+						'current tab was updated on the right tab');
+					assert.propertyVal(activeTab, 'type', 'update',
+						'change type was update');
+					assert.deepPropertyVal(activeTab, 'data', {
+						url: sanitizeUrl(expected[i].url)
+					}, 'updated url is correct');
+				} else {
+					assert.propertyVal(activeTab, 'type', 'create',
+						'new tab was created');
+					assert.deepPropertyVal(activeTab, 'data', {
+						windowId: windowId,
+						url: sanitizeUrl(expected[i].url),
+						openerTabId: tabId
+					}, 'new tab has correct URL, window ID and tab opener id');
+				}
+			}
 		});
 	});
 	describe('Menu & Divider', function() {
@@ -4212,8 +4427,9 @@ describe('On-Page CRM', function() {
 		});
 	});
 	describe('Scripts', function() {
-		this.slow(2000 * TIME_MODIFIER);
-		this.timeout(3000 * TIME_MODIFIER);
+		//TODO:
+		this.slow(5000 * TIME_MODIFIER);
+		this.timeout(10000 * TIME_MODIFIER);
 
 		const CRMNodes = [
 			templates.getDefaultScriptNode({
@@ -4251,7 +4467,7 @@ describe('On-Page CRM', function() {
 				id: getRandomId(),
 				triggers: [
 					{
-						url: 'http://www.example2.com',
+						url: 'http://www.reddit.com',
 						not: false
 					}
 				],
@@ -4265,7 +4481,7 @@ describe('On-Page CRM', function() {
 				id: getRandomId(),
 				triggers: [
 					{
-						url: 'http://www.example3.com',
+						url: 'http://www.amazon.com',
 						not: false
 					}
 				],
@@ -4293,16 +4509,21 @@ describe('On-Page CRM', function() {
 			DISABLED = 5
 		}
 
+		beforeEach('Close all tabs', async () => {
+			await closeOtherTabs();
+		});
 		it('should not throw when setting up the CRM', function(done) {
 			this.timeout(10000 * TIME_MODIFIER);
 			this.slow(6000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
-				await driver.executeScript(inlineFn((REPLACE) => {
-					window.globals.crmValues.tabData = {};
-					window.app.settings.crm = REPLACE.crm;
-					window.app.upload();
-					return true;
+				await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+					browserAPI.runtime.getBackgroundPage().then((backgroundPage: GlobalObject) => {
+						backgroundPage.globals.crmValues.tabData = {};
+						window.app.settings.crm = REPLACE.crm;
+						window.app.upload();
+						ondone(null);
+					});
 				}, {
 					crm: CRMNodes
 				}));
@@ -4311,50 +4532,32 @@ describe('On-Page CRM', function() {
 			}, 'setting up the CRM does not throw');
 		});
 		it('should always run when launchMode is set to ALWAYS_RUN', async () => {
-			const fakeTabId = getRandomId();
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._clearExecutedScripts();
-				REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
-					id: REPLACE.fakeTabId,
-					title: 'notexample',
-					url: 'http://www.notexample.com'
-				};
-				window.browserAPI.runtime.sendMessage({
-					type: 'newTabCreated'
-				}, {
-					tab: {
-						id: REPLACE.fakeTabId
-					}
-				} as any);
-			}, {
-				getTestData: getTestData(),
-				fakeTabId: fakeTabId
-			}));
+			this.timeout(10000);
+			const { tabId } = await createTab('http://www.twitter.com', true);
 			await wait(500);
-			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
-				return JSON.stringify(REPLACE.getTestData()._executedScripts);
-			}, {
-				getTestData: getTestData()
-			})));
+			const activatedScripts = await getActivatedScripts();
 
 			assert.lengthOf(activatedScripts, 1, 'one script activated');
-			assert.strictEqual(activatedScripts[0].id, fakeTabId, 
+			assert.strictEqual(activatedScripts[0].id, tabId, 
 				'script was executed on right tab');
 		});
 		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', async function() {
-			this.timeout(5000 * TIME_MODIFIER);
+			this.timeout(10000 * TIME_MODIFIER);
 			this.slow(2500 * TIME_MODIFIER);
-			const fakeTabId = getRandomId();
+			const { tabId, windowId } = await getDummyTabId();
 			const contextMenu = await getContextMenu();
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._clearExecutedScripts();
-				return REPLACE.getTestData()._currentContextMenu[0]
-					.children[ScriptOnPageTests.RUN_ON_CLICKING]
-					.currentProperties.onclick(
-						REPLACE.page, REPLACE.tab
-					);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(testData._currentContextMenu[0]
+						.children[ScriptOnPageTests.RUN_ON_CLICKING]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
 			}, {
 				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -4365,9 +4568,9 @@ describe('On-Page CRM', function() {
 					isArticle: false,
 					isInReaderMode: false,
 					lastAccessed: 0,
-					id: fakeTabId,
+					id: tabId,
 					index: 1,
-					windowId: getRandomId(),
+					windowId: windowId,
 					highlighted: false,
 					active: true,
 					pinned: false,
@@ -4378,86 +4581,47 @@ describe('On-Page CRM', function() {
 				}
 			}));
 			await wait(500);
-			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
-				return JSON.stringify(REPLACE.getTestData()._executedScripts);
-			}, {
-				getTestData: getTestData()
-			})));
+			const activatedScripts = await getActivatedScripts();
 
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
-			assert.strictEqual(activatedScripts[0].id, fakeTabId,
+			assert.strictEqual(activatedScripts[0].id, tabId,
 				'script was executed on the right tab');
 		});
 		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', async function() {
 			this.timeout(5000 * TIME_MODIFIER);
 			this.slow(2500 * TIME_MODIFIER);
-			const fakeTabId = getRandomId();
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._clearExecutedScripts();
-				REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
-					id: REPLACE.fakeTabId,
-					title: 'example',
-					url: 'http://www.example.com'
-				};
-				window.browserAPI.runtime.sendMessage({
-					type: 'newTabCreated'
-				}, {
-					tab: {
-						id: REPLACE.fakeTabId
-					}
-				} as any);
-			}, {
-				getTestData: getTestData(),
-				fakeTabId: fakeTabId
-			}));
+			const { tabId } = await createTab('http://www.example.com', true);
 			await wait(500);
-			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
-				return JSON.stringify(REPLACE.getTestData()._executedScripts);
-			}, {
-				getTestData: getTestData()
-			})));
+			const activatedScripts = await getActivatedScripts();
+
 
 			//First one is the ALWAYS_RUN script, ignore that
 			assert.lengthOf(activatedScripts, 2, 'two scripts activated');
-			assert.strictEqual(activatedScripts[1].id, fakeTabId, 
+			assert.strictEqual(activatedScripts[1].id, tabId, 
 				'new script was executed on right tab');
 		});
 		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', async function() {
-			this.timeout(5000 * TIME_MODIFIER);
-			this.slow(2500 * TIME_MODIFIER);
-			const fakeTabId = getRandomId();
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._clearExecutedScripts();
-				REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
-					id: REPLACE.fakeTabId,
-					title: 'example',
-					url: 'http://www.example2.com'
-				};
-				window.browserAPI.runtime.sendMessage({
-					type: 'newTabCreated'
-				}, {
-					tab: {
-						id: REPLACE.fakeTabId
-					}
-				} as any);
-			}, {
-				getTestData: getTestData(),
-				fakeTabId: fakeTabId
-			}));
+			this.timeout(10000 * TIME_MODIFIER);
+			this.slow(20000 * TIME_MODIFIER);
+			const { tabId, windowId } = await createTab('http://www.reddit.com', true);
+			
 			await wait(500);
 			const contextMenu = await getContextMenu();
 
 			assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
 
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._clearExecutedScripts();
-				return REPLACE.getTestData()._currentContextMenu[0]
-					.children[1]
-					.currentProperties.onclick(
-					REPLACE.page, REPLACE.tab
-				);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(testData._currentContextMenu[0]
+						.children[1]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
 			}, {
 				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -4468,9 +4632,9 @@ describe('On-Page CRM', function() {
 					isArticle: false,
 					isInReaderMode: false,
 					lastAccessed: 0,
-					id: fakeTabId,
+					id: tabId,
 					index: 1,
-					windowId: getRandomId(),
+					windowId: windowId,
 					highlighted: false,
 					active: true,
 					pinned: false,
@@ -4481,14 +4645,10 @@ describe('On-Page CRM', function() {
 				}
 			}));
 			await wait(500);
-			const activatedScripts = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
-				return JSON.stringify(REPLACE.getTestData()._executedScripts);
-			}, {
-				getTestData: getTestData()
-			})));
+			const activatedScripts = await getActivatedScripts();
 
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
-			assert.strictEqual(activatedScripts[0].id, fakeTabId,
+			assert.strictEqual(activatedScripts[0].id, tabId,
 				'script was executed on the right tab');
 		});
 		if (!TEST_EXTENSION) {
@@ -4514,17 +4674,20 @@ describe('On-Page CRM', function() {
 				'disabled node is not in the right-click menu');
 		});
 		it('should run the correct code when clicked', async () => {
-			const fakeTabId = getRandomId();
+			const { tabId, windowId } = await getDummyTabId();
 			const contextMenu = await getContextMenu();
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._clearExecutedScripts();
-				return REPLACE.getTestData()._currentContextMenu[0]
-					.children[ScriptOnPageTests.RUN_ON_CLICKING]
-					.currentProperties.onclick(
-						REPLACE.page, REPLACE.tab
-					);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(testData._currentContextMenu[0]
+						.children[ScriptOnPageTests.RUN_ON_CLICKING]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
 			}, {
 				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -4535,9 +4698,9 @@ describe('On-Page CRM', function() {
 					isArticle: false,
 					isInReaderMode: false,
 					lastAccessed: 0,
-					id: fakeTabId,
+					id: tabId,
 					index: 1,
-					windowId: getRandomId(),
+					windowId: windowId,
 					highlighted: false,
 					active: true,
 					pinned: false,
@@ -4548,14 +4711,9 @@ describe('On-Page CRM', function() {
 				}
 			}));
 			await wait(500);
-			const activatedScripts = JSON.parse(await driver
-				.executeScript(inlineFn((REPLACE) => {
-					return JSON.stringify(REPLACE.getTestData()._executedScripts);
-				}, {
-					getTestData: getTestData()
-				})));
+			const activatedScripts = await getActivatedScripts();
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
-			assert.strictEqual(activatedScripts[0].id, fakeTabId,
+			assert.strictEqual(activatedScripts[0].id, tabId,
 				'script was executed on the right tab');
 			assert.include(activatedScripts[0].code,
 				CRMNodes[ScriptOnPageTests.RUN_ON_CLICKING].value.script,
@@ -4563,8 +4721,8 @@ describe('On-Page CRM', function() {
 		});
 	});
 	describe('Stylesheets', function() {
-		this.slow(900 * TIME_MODIFIER);
-		this.timeout(2000 * TIME_MODIFIER);
+		this.slow(5000 * TIME_MODIFIER);
+		this.timeout(10000 * TIME_MODIFIER);
 
 		const CRMNodes = [
 			templates.getDefaultStylesheetNode({
@@ -4622,7 +4780,7 @@ describe('On-Page CRM', function() {
 				id: getRandomId(),
 				triggers: [
 					{
-						url: 'http://www.example2.com',
+						url: 'http://www.reddit.com',
 						not: false
 					}
 				],
@@ -4826,17 +4984,20 @@ describe('On-Page CRM', function() {
 		}
 
 		async function runStylesheet(index: StylesheetOnPageTests, expectedReg: RegExp, done: () => void) {
-			const fakeTabId = getRandomId();
+			const { tabId, windowId } = await getDummyTabId();
 			const contextMenu = await getContextMenu();
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._clearExecutedScripts();
-				return REPLACE.getTestData()._currentContextMenu[0]
-					.children[REPLACE.index - 3]
-					.currentProperties.onclick(
-						REPLACE.page, REPLACE.tab
-					);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(testData._currentContextMenu[0]
+						.children[REPLACE.index - 3]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
 			}, {
 				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
 				index: index,
 				page: {
 					menuItemId: contextMenu[0].id,
@@ -4848,9 +5009,9 @@ describe('On-Page CRM', function() {
 					isArticle: false,
 					isInReaderMode: false,
 					lastAccessed: 0,
-					id: fakeTabId,
+					id: tabId,
 					index: 1,
-					windowId: getRandomId(),
+					windowId: windowId,
 					highlighted: false,
 					active: true,
 					pinned: false,
@@ -4860,14 +5021,9 @@ describe('On-Page CRM', function() {
 					incognito: false
 				}
 			}))
-			const executedScripts = JSON.parse(await driver
-				.executeScript(inlineFn((REPLACE) => {
-					return JSON.stringify(REPLACE.getTestData()._executedScripts);
-				}, {
-					getTestData: getTestData()
-				})));
+			const executedScripts = await getActivatedScripts();
 			assert.lengthOf(executedScripts, 1, 'one stylesheet was activated');
-			assert.strictEqual(executedScripts[0].id, fakeTabId,
+			assert.strictEqual(executedScripts[0].id, tabId,
 				'stylesheet was executed on the right tab');
 			assert.isTrue(!!expectedReg.exec(executedScripts[0].code), 'executed code is the same as expected code');
 			done();
@@ -4878,16 +5034,21 @@ describe('On-Page CRM', function() {
 			return new RegExp(`.*\\("${whitespace + contains.join(whitespace) + whitespace}"\\).*`);
 		}
 
+		beforeEach('Close all tabs', async () => {
+			await closeOtherTabs();
+		});
 		it('should not throw when setting up the CRM', function(done) {
 			this.timeout(6000 * TIME_MODIFIER);
 			this.slow(10000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
-				await driver.executeScript(inlineFn((REPLACE) => {
-					window.globals.crmValues.tabData = {};
-					window.app.settings.crm = REPLACE.crm;
-					window.app.upload();
-					return true;
+				await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+					browserAPI.runtime.getBackgroundPage().then((backgroundPage: GlobalObject) => {
+						backgroundPage.globals.crmValues.tabData = {};
+						window.app.settings.crm = REPLACE.crm;
+						window.app.upload();
+						ondone(null);
+					});
 				}, {
 					crm: CRMNodes
 				}));
@@ -4896,53 +5057,34 @@ describe('On-Page CRM', function() {
 			}, 'setting up the CRM does not throw');
 		});
 		it('should always run when launchMode is set to ALWAYS_RUN', async function() {
-			this.timeout(2500 * TIME_MODIFIER);
-			this.slow(1000 * TIME_MODIFIER);
-			const fakeTabId = getRandomId();
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._clearExecutedScripts();
-				REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
-					id: REPLACE.fakeTabId,
-					title: 'example',
-					url: 'http://www.notexample.com'
-				};
-				
-				window.browserAPI.runtime.sendMessage({
-					type: 'newTabCreated'
-				}, {
-					tab: {
-						id: REPLACE.fakeTabId
-					}
-				} as any);
-			}, {
-				getTestData: getTestData(),
-				fakeTabId: fakeTabId
-			}));
+			this.timeout(10000 * TIME_MODIFIER);
+			this.slow(20000 * TIME_MODIFIER);
+			const { tabId } = await createTab('http://www.twitter.com', true);
 			await wait(50);
-			const activatedScripts = JSON.parse(await driver
-				.executeScript(inlineFn((REPLACE) => {
-					return JSON.stringify(REPLACE.getTestData()._executedScripts);
-				}, {
-					getTestData: getTestData()
-				})));
+			const activatedScripts = await getActivatedScripts({
+				filterDummy: true
+			});
 
 			//First one is the default on stylesheet, ignore that
 			assert.lengthOf(activatedScripts, 2, 'two stylesheets activated');
-			assert.strictEqual(activatedScripts[1].id, fakeTabId, 
+			assert.strictEqual(activatedScripts[1].id, tabId, 
 				'stylesheet was executed on right tab');
 		});
 		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', async () => {
-			const fakeTabId = getRandomId();
+			const { tabId, windowId } = await getDummyTabId();
 			const contextMenu = await getContextMenu();
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._clearExecutedScripts();
-				return REPLACE.getTestData()._currentContextMenu[0]
-					.children[2]
-					.currentProperties.onclick(
-						REPLACE.page, REPLACE.tab
-					);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(testData._currentContextMenu[0]
+						.children[2]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
 			}, {
 				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -4953,9 +5095,9 @@ describe('On-Page CRM', function() {
 					isArticle: false,
 					isInReaderMode: false,
 					lastAccessed: 0,
-					id: fakeTabId,
+					id: tabId,
 					index: 1,
-					windowId: getRandomId(),
+					windowId: windowId,
 					highlighted: false,
 					active: true,
 					pinned: false,
@@ -4965,82 +5107,39 @@ describe('On-Page CRM', function() {
 					incognito: false
 				}
 			}));
-			const activatedScripts = JSON.parse(await driver
-				.executeScript(inlineFn((REPLACE) => {
-					return JSON.stringify(REPLACE.getTestData()._executedScripts);
-				}, {
-					getTestData: getTestData()
-				})));
+			const activatedScripts = await getActivatedScripts();
 
 			assert.lengthOf(activatedScripts, 1, 'one stylesheet was activated');
-			assert.strictEqual(activatedScripts[0].id, fakeTabId,
+			assert.strictEqual(activatedScripts[0].id, tabId,
 				'stylesheet was executed on the right tab');
 		});
 		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', async () => {
-			const fakeTabId = getRandomId();
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._clearExecutedScripts();
-				REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
-					id: REPLACE.fakeTabId,
-					title: 'example',
-					url: 'http://www.example.com'
-				};
-				window.browserAPI.runtime.sendMessage({
-					type: 'newTabCreated'
-				}, {
-					tab: {
-						id: REPLACE.fakeTabId
-					}
-				} as any);
-			}, {
-				getTestData: getTestData(),
-				fakeTabId: fakeTabId
-			}));
+			const { tabId } = await createTab('http://www.example.com', true);
 			await wait(50);
-			const activatedScripts = JSON.parse(await driver
-				.executeScript(inlineFn((REPLACE) => {
-					return JSON.stringify(REPLACE.getTestData()._executedScripts);
-				}, {
-					getTestData: getTestData()
-				})));
+			const activatedScripts = await getActivatedScripts();
 
 			//First one is the ALWAYS_RUN stylesheet, second one is the default on one ignore that
 			assert.lengthOf(activatedScripts, 3, 'three stylesheets activated');
-			assert.strictEqual(activatedScripts[2].id, fakeTabId, 
+			assert.strictEqual(activatedScripts[2].id, tabId, 
 				'new stylesheet was executed on right tab');
 		});
 		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', async function() {
-			const fakeTabId = getRandomId();
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._clearExecutedScripts();
-				REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
-					id: REPLACE.fakeTabId,
-					title: 'example',
-					url: 'http://www.example2.com'
-				};
-				window.browserAPI.runtime.sendMessage({
-					type: 'newTabCreated'
-				}, {
-					tab: {
-						id: REPLACE.fakeTabId
-					}
-				} as any);
-			}, {
-				getTestData: getTestData(),
-				fakeTabId: fakeTabId
-			}));
+			const { tabId, windowId } = await createTab('http://www.reddit.com', true);
 			const contextMenu = await getContextMenu();
 			assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
 
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._clearExecutedScripts();
-				return REPLACE.getTestData()._currentContextMenu[0]
-					.children[3]
-					.currentProperties.onclick(
-					REPLACE.page, REPLACE.tab
-				);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(testData._currentContextMenu[0]
+						.children[3]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
 			}, {
 				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -5051,9 +5150,9 @@ describe('On-Page CRM', function() {
 					isArticle: false,
 					isInReaderMode: false,
 					lastAccessed: 0,
-					id: fakeTabId,
+					id: tabId,
 					index: 1,
-					windowId: getRandomId(),
+					windowId: windowId,
 					highlighted: false,
 					active: true,
 					pinned: false,
@@ -5063,14 +5162,9 @@ describe('On-Page CRM', function() {
 					incognito: false
 				}
 			}));
-			const activatedScripts = JSON.parse(await driver
-				.executeScript(inlineFn((REPLACE) => {
-					return JSON.stringify(REPLACE.getTestData()._executedScripts);
-				}, {
-					getTestData: getTestData()
-				})));
+			const activatedScripts = await getActivatedScripts();
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
-			assert.strictEqual(activatedScripts[0].id, fakeTabId,
+			assert.strictEqual(activatedScripts[0].id, tabId,
 				'script was executed on the right tab');
 		});
 		it('should not show the disabled node', async () => {
@@ -5081,17 +5175,20 @@ describe('On-Page CRM', function() {
 				'disabled node is not in the right-click menu');
 		});
 		it('should run the correct code when clicked', async function() {
-			const fakeTabId = getRandomId();
+			const { tabId, windowId } = await getDummyTabId();
 			const contextMenu = await getContextMenu();
-			await driver.executeScript(inlineFn((REPLACE) => {
-				REPLACE.getTestData()._clearExecutedScripts();
-				return REPLACE.getTestData()._currentContextMenu[0]
-					.children[2]
-					.currentProperties.onclick(
-						REPLACE.page, REPLACE.tab
-					);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(testData._currentContextMenu[0]
+						.children[2]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
 			}, {
 				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
 				page: {
 					menuItemId: contextMenu[0].id,
 					editable: false,
@@ -5102,9 +5199,9 @@ describe('On-Page CRM', function() {
 					isArticle: false,
 					isInReaderMode: false,
 					lastAccessed: 0,
-					id: fakeTabId,
+					id: tabId,
 					index: 1,
-					windowId: getRandomId(),
+					windowId: windowId,
 					highlighted: false,
 					active: true,
 					pinned: false,
@@ -5114,33 +5211,31 @@ describe('On-Page CRM', function() {
 					incognito: false
 				}
 			}));
-			const executedScripts = JSON.parse(await driver
-				.executeScript(inlineFn((REPLACE) => {
-					return JSON.stringify(REPLACE.getTestData()._executedScripts);
-				}, {
-					getTestData: getTestData()
-				})));
+			const executedScripts = await getActivatedScripts();
+
 			assert.lengthOf(executedScripts, 1, 'one script was activated');
-			assert.strictEqual(executedScripts[0].id, fakeTabId,
+			assert.strictEqual(executedScripts[0].id, tabId,
 				'script was executed on the right tab');
 			assert.include(executedScripts[0].code,
 				CRMNodes[StylesheetOnPageTests.RUN_ON_CLICKING].value.stylesheet.replace(/(\t|\s|\n)/g, ''),
 				'executed code is the same as set code');
 		});
-		it('should actually be applied to the page', async function() {
-			await driver.executeScript(inlineFn((args) => {
-				const dummyEl = document.createElement('div');
-				dummyEl.id = 'stylesheetTestDummy';
+		if (!TEST_EXTENSION) {
+			it('should actually be applied to the page', async function() {
+				await driver.executeScript(inlineFn((args) => {
+					const dummyEl = document.createElement('div');
+					dummyEl.id = 'stylesheetTestDummy';
 
-				window.dummyContainer.appendChild(dummyEl);
-			}));
-			await wait(100);
-			const dummy = await findElement(webdriver.By.id('stylesheetTestDummy'));
-			const dimensions = await dummy.getSize();
+					window.dummyContainer.appendChild(dummyEl);
+				}));
+				await wait(100);
+				const dummy = await findElement(webdriver.By.id('stylesheetTestDummy'));
+				const dimensions = await dummy.getSize();
 
-			assert.strictEqual(dimensions.width, 50, 'dummy element is 50px wide');
-			assert.strictEqual(dimensions.height, 50, 'dummy element is 50px high');
-		});
+				assert.strictEqual(dimensions.width, 50, 'dummy element is 50px wide');
+				assert.strictEqual(dimensions.height, 50, 'dummy element is 50px high');
+			});
+		}
 		it('should work with an if-then statement with no variables', function(done) {
 			runStylesheet(StylesheetOnPageTests.IF_NO_VARS, genContainsRegex('b', 'd', 'f'), done);
 		});
@@ -5165,6 +5260,9 @@ describe('On-Page CRM', function() {
 			let dummy1: FoundElement;
 			let dummy2: FoundElement;
 
+			let tabId: number;
+			let windowId: number;
+
 			before('Setting up dummy elements', async function() {
 				await driver.executeScript(inlineFn(() => {
 					const dummy1 = document.createElement('div');
@@ -5184,111 +5282,124 @@ describe('On-Page CRM', function() {
 				await wait(150);
 				dummy1 = results[0];
 				dummy2 = results[1];
+
+				const result = await getDummyTabId();
+				windowId = result.windowId;
+				tabId = result.tabId;
 			});
-			describe('Default off', function() {
-				const tabId = getRandomId();
-				this.slow(600 * TIME_MODIFIER);
-				this.timeout(1600 * TIME_MODIFIER);
-				it('should be off by default', async () => {
-					await wait(150);
-					const dimensions = await dummy1.getSize();
-					assert.notStrictEqual(dimensions.width, 50,
-						'dummy element is not 50px wide');
+			if (!TEST_EXTENSION) {
+				describe('Default off', function() {
+					this.slow(600 * TIME_MODIFIER);
+					this.timeout(1600 * TIME_MODIFIER);
+					it('should be off by default', async () => {
+						await wait(150);
+						const dimensions = await dummy1.getSize();
+						assert.notStrictEqual(dimensions.width, 50,
+							'dummy element is not 50px wide');
+					});
+					it('should be on when clicked', async function() {
+						this.slow(2000 * TIME_MODIFIER);
+						this.timeout(4000 * TIME_MODIFIER);
+						const contextMenu = await getContextMenu();
+						await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+							REPLACE.getBackgroundPageTestData().then((testData) => {
+								testData._clearExecutedScripts();
+								ondone(testData._currentContextMenu[0]
+									.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
+									.currentProperties.onclick(
+										REPLACE.page, REPLACE.tab
+									));
+							});
+						}, {
+							getTestData: getTestData(),
+							getBackgroundPageTestData: getBackgroundPageTestData(),
+							page: {
+								menuItemId: contextMenu[0].id,
+								editable: false,
+								pageUrl: 'www.google.com',
+								wasChecked: false,
+								modifiers: []
+							},
+							tab: {
+								isArticle: false,
+								isInReaderMode: false,
+								lastAccessed: 0,
+								id: tabId,
+								index: 1,
+								windowId: windowId,
+								highlighted: false,
+								active: true,
+								pinned: false,
+								selected: false,
+								url: 'http://www.google.com',
+								title: 'Google',
+								incognito: false
+							}
+						}));
+						await wait(100);
+						const dimensions = await dummy1.getSize();
+						assert.strictEqual(dimensions.width, 50,
+							'dummy element is 50px wide');
+					});
+					it('should be off when clicked again', async function() {
+						this.slow(2000 * TIME_MODIFIER);
+						this.timeout(4000 * TIME_MODIFIER);
+						const contextMenu = await getContextMenu();
+						await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+							REPLACE.getBackgroundPageTestData().then((testData) => {
+								testData._clearExecutedScripts();
+								ondone(testData._currentContextMenu[0]
+									.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
+									.currentProperties.onclick(
+										REPLACE.page, REPLACE.tab
+									));
+							});
+						}, {
+							getTestData: getTestData(),
+							getBackgroundPageTestData: getBackgroundPageTestData(),
+							page: {
+								menuItemId: contextMenu[0].id,
+								editable: false,
+								pageUrl: 'www.google.com',
+								wasChecked: true,
+								modifiers: []
+							},
+							tab: {
+								isArticle: false,
+								isInReaderMode: false,
+								lastAccessed: 0,
+								id: tabId,
+								index: 1,
+								windowId: windowId,
+								highlighted: false,
+								active: true,
+								pinned: false,
+								selected: false,
+								url: 'http://www.google.com',
+								title: 'Google',
+								incognito: false
+							}
+						}));
+						await wait(100);
+						const dimensions = await dummy1.getSize();
+						assert.notStrictEqual(dimensions.width, 50,
+							'dummy element is not 50px wide');
+					});
 				});
-				it('should be on when clicked', async function() {
-					this.slow(2000 * TIME_MODIFIER);
-					this.timeout(4000 * TIME_MODIFIER);
-					const contextMenu = await getContextMenu();
-					await driver.executeScript(inlineFn((REPLACE) => {
-						return REPLACE.getTestData()._currentContextMenu[0]
-							.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
-							.currentProperties.onclick(
-								REPLACE.page, REPLACE.tab
-							);
-					}, {
-						getTestData: getTestData(),
-						page: {
-							menuItemId: contextMenu[0].id,
-							editable: false,
-							pageUrl: 'www.google.com',
-							wasChecked: false,
-							modifiers: []
-						},
-						tab: {
-							isArticle: false,
-							isInReaderMode: false,
-							lastAccessed: 0,
-							id: tabId,
-							index: 1,
-							windowId: getRandomId(),
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false
-						}
-					}));
-					await wait(100);
-					const dimensions = await dummy1.getSize();
-					assert.strictEqual(dimensions.width, 50,
-						'dummy element is 50px wide');
+				describe('Default on', function() {
+					this.slow(300 * TIME_MODIFIER);
+					this.timeout(1500 * TIME_MODIFIER);
+					it('should be on by default', async () => {
+						const dimensions = await dummy2.getSize();
+						assert.strictEqual(dimensions.width, 50,
+							'dummy element is 50px wide');
+					});
 				});
-				it('should be off when clicked again', async function() {
-					this.slow(2000 * TIME_MODIFIER);
-					this.timeout(4000 * TIME_MODIFIER);
-					const contextMenu = await getContextMenu();
-					await driver.executeScript(inlineFn((REPLACE) => {
-						return REPLACE.getTestData()._currentContextMenu[0]
-							.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
-							.currentProperties.onclick(
-								REPLACE.page, REPLACE.tab
-							);
-					}, {
-						getTestData: getTestData(),
-						page: {
-							menuItemId: contextMenu[0].id,
-							editable: false,
-							pageUrl: 'www.google.com',
-							wasChecked: true,
-							modifiers: []
-						},
-						tab: {
-							isArticle: false,
-							isInReaderMode: false,
-							lastAccessed: 0,
-							id: tabId,
-							index: 1,
-							windowId: getRandomId(),
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false
-						}
-					}));
-					await wait(100);
-					const dimensions = await dummy1.getSize();
-					assert.notStrictEqual(dimensions.width, 50,
-						'dummy element is not 50px wide');
-				});
-			});
-			describe('Default on', function() {
-				this.slow(300 * TIME_MODIFIER);
-				this.timeout(1500 * TIME_MODIFIER);
-				it('should be on by default', async () => {
-					const dimensions = await dummy2.getSize();
-					assert.strictEqual(dimensions.width, 50,
-						'dummy element is 50px wide');
-				});
-			});
+			}
 		});
 	});
 	describe('Errors', function() {
-		it('should not have been thrown during testing contextmenu', async function(done)  {
+		it('should not have been thrown during testing contextmenu', async function()  {
 			const result = (await driver.executeScript(inlineFn(() => {
 				return window.errorReportingTool.lastErrors;
 			}))).filter(err => !err.handled);
@@ -5296,7 +5407,6 @@ describe('On-Page CRM', function() {
 				console.log(result);
 			}
 			assert.lengthOf(result, 0, 'no errors should be thrown when testing contextmenu');
-			done();
 		});
 	});
 });
