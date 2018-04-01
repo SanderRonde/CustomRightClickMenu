@@ -814,6 +814,10 @@ testWindow.chrome = {
 				onMessageListener && onMessageListener(message,
 					options, responseCallback);
 			},
+		getBackgroundPage: function(callback: (page: Window) => void) {
+			checkOnlyCallback(callback, false);
+			callback(window);
+		},
 		onInstalled: {
 			addListener: function(callback: () => void) {
 				checkOnlyCallback(callback, false);
