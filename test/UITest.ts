@@ -1979,6 +1979,7 @@ describe('User entrypoints', function() {
 			describe('Loading', function() {
 				it('should happen without errors', async function() {
 					this.timeout(600000 * TIME_MODIFIER);
+					this.slow(600000 * TIME_MODIFIER);
 					const prefix = await getExtensionDataOnly().getExtensionURLPrefix(driver, browserCapabilities);
 					await driver.get(`${prefix}/logging.html`);
 					currentTestWindow = await driver.getWindowHandle();
@@ -1997,6 +1998,7 @@ describe('User entrypoints', function() {
 			describe('Loading', function() {
 				it('should happen without errors', async function() {
 					this.timeout(600000 * TIME_MODIFIER);
+					this.slow(600000 * TIME_MODIFIER);
 					const prefix = await getExtensionDataOnly().getExtensionURLPrefix(driver, browserCapabilities);
 					await driver.get(`${prefix}/install.html`);
 					currentTestWindow = await driver.getWindowHandle();
@@ -4027,7 +4029,7 @@ describe('On-Page CRM', function() {
 		];
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.slow(6000 * TIME_MODIFIER);
+			this.slow(10000 * TIME_MODIFIER);
 			this.timeout(10000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
@@ -4144,7 +4146,7 @@ describe('On-Page CRM', function() {
 		}
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.slow(6000 * TIME_MODIFIER);
+			this.slow(10000 * TIME_MODIFIER);
 			this.timeout(10000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
@@ -4514,7 +4516,7 @@ describe('On-Page CRM', function() {
 		});
 		it('should not throw when setting up the CRM', function(done) {
 			this.timeout(10000 * TIME_MODIFIER);
-			this.slow(6000 * TIME_MODIFIER);
+			this.slow(1000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
 				await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
