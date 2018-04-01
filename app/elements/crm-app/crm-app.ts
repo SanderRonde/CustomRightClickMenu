@@ -512,6 +512,22 @@ namespace CRMAppElement {
 			return location.href.indexOf('demo') > -1;
 		}
 
+		private static _onIsTest() {
+			return new Promise((resolve) => {
+				if (location.href.indexOf('test') > -1) {
+					resolve(null);
+				} else {
+					if (window.onIsTest === true) {
+						resolve(null);
+					} else {
+						window.onIsTest = () => {
+							resolve(null);
+						};
+					}
+				}
+			})
+		}
+
 		static _getPageTitle(): string {
 			return this._isDemo() ?
 				'Demo, actual right-click menu does NOT work in demo' :
@@ -1618,6 +1634,25 @@ namespace CRMAppElement {
 			this._setup.setupLoadingBar().then(() => {
 				this._setup.setupStorages();
 			});
+
+			if (this._onIsTest()) {
+				var dummyContainer = window.dummyContainer = document.createElement('div');
+				dummyContainer.id = 'dummyContainer';
+				dummyContainer.style.width = '100vw';
+				dummyContainer.style.position = 'fixed';
+				dummyContainer.style.top = '0';
+				dummyContainer.style.zIndex = '999999999';
+				dummyContainer.style.display = 'flex';
+				dummyContainer.style.flexDirection = 'row';
+				dummyContainer.style.justifyContent = 'space-between';
+				document.body.appendChild(dummyContainer);
+
+				var node = document.createElement('style');
+				node.innerHTML = '#dummyContainer > * {\n' + 
+				'	background-color: blue;\n' +
+				'}';
+				document.head.appendChild(node);
+			}
 
 			this.show = false;
 		};

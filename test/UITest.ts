@@ -949,6 +949,13 @@ async function doFullRefresh(__this?: Mocha.ISuiteCallbackContext|Mocha.IHookCal
 		//About to time out
 		throw new Error('Failed to reload page');
 	});
+	await driver.executeScript(inlineFn(() => {
+		if (typeof window.onIsTest === 'function') {
+			window.onIsTest();
+		} else {
+			window.onIsTest = true;
+}
+	}));
 }
 
 function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done: (...args: any[]) => void): void;

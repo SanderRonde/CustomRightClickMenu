@@ -142,6 +142,8 @@ interface Window {
 			};
 		};
 	};
+	onIsTest: boolean|(() => void);
+	dummyContainer: HTMLElement;
 	monacoCommands: MonacoCommands;
 	MonacoEditorHookManager: typeof MonacoEditorElement.MonacoEditorHookManager;
 	crmAPIDefs?: any;
