@@ -70,7 +70,7 @@
     "babel-preset-minify": "^0.2.0",
     "babel-preset-react": "^6.11.1",
     "btoa": "^1.1.2",
-    "chai": "^3.5.0",
+    "chai": "^4.1.2",
     "crisper": "^2.1.1",
     "css-slam": "^2.0.2",
     "debug": "^2.3.2",
