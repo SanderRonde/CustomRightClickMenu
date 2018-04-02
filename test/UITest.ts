@@ -4013,6 +4013,43 @@ describe('On-Page CRM', function() {
 	if (SKIP_CONTEXTMENU) {
 		return;
 	}
+	if (SKIP_ENTRYPOINTS) {
+		before('Open test page', async () => {
+			this.timeout(600000 * TIME_MODIFIER);
+			await openTestPageURL(browserCapabilities);
+			currentTestWindow = await driver.getWindowHandle();
+
+			if (TEST_EXTENSION) {
+				dummyTabInfo = await executeAsyncScript<{
+					tabId: number;
+					windowId: number;
+				}>(inlineAsyncFn((done, onReject, REPLACE) => { 
+					browserAPI.tabs.create({
+						url: 'http://www.github.com'
+					}).then(function(createdTab) {
+						done({ tabId: createdTab.id, windowId: createdTab.windowId });
+					});
+				}));
+			}
+			await switchToTestWindow();
+			const handles = await driver.getAllWindowHandles();
+			for (const handle of handles) {
+				if (handle !== currentTestWindow) {
+					dummyHandle = handle;
+					break;
+				}
+			}
+
+			await waitFor(() => {
+				return driver.executeScript(inlineFn(() => {
+					return window.polymerElementsLoaded;
+				}));
+			}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
+				//About to time out
+				throw new Error('Failed to get elements loaded message, page load is failing');
+			});
+		});
+	}
 	describe('Redraws on new CRM', function() {
 		this.slow(2000 * TIME_MODIFIER);
 		this.timeout(30000 * TIME_MODIFIER);
