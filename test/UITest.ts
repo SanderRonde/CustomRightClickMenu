@@ -4529,6 +4529,15 @@ describe('On-Page CRM', function() {
 			DISABLED = 5
 		}
 
+		before('Clear executed scripts', async () => {
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+				});
+			}, {
+				getBackgroundPageTestData: getBackgroundPageTestData()
+			}));
+		});
 		beforeEach('Close all tabs', async () => {
 			await closeOtherTabs();
 		});
