@@ -172,6 +172,7 @@ type SharedWindow = {
 			return new RoughPromise<T>((resolve) => {
 				if (!initializers[0]) {
 					resolve(null);
+					return;
 				}
 				initializers[0]().then((result) => {
 					if (initializers[1]) {
