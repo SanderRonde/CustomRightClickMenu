@@ -4608,8 +4608,8 @@ describe('On-Page CRM', function() {
 				'script was executed on the right tab');
 		});
 		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', async function() {
-			this.timeout(5000 * TIME_MODIFIER);
-			this.slow(2500 * TIME_MODIFIER);
+			this.timeout(10000 * TIME_MODIFIER);
+			this.slow(10000 * TIME_MODIFIER);
 			const { tabId } = await createTab('http://www.example.com', true);
 			await wait(500);
 			const activatedScripts = await getActivatedScripts();
