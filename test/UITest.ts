@@ -1317,6 +1317,25 @@ class FoundElementsPromise extends PromiseContainer<FoundElement[]> {
 			});
 		}
 
+	public mapWaitChain(fn: (element: FoundElement) => 
+		webdriver.promise.Promise<any>, elements?: FoundElement[]): webdriver.promise.Promise<void> {
+			return new webdriver.promise.Promise<void>(async (resolve) => {
+				if (!elements) {
+					elements = await this._promise;
+				}
+				if (elements.length === 0) {
+					resolve(null);
+				} else {
+					const result = await fn(elements[0]);
+					if (elements[1]) {
+						resolve(await this.mapWaitChain(fn, elements.slice(1)));
+					} else {
+						resolve(result);
+					}
+				}
+			});
+		}
+
 	public waitFor(awaitable: webdriver.promise.Promise<any>) {
 		return new FoundElementsPromise(async (resolve) => {
 			const [ elements ] = await webdriver.promise.all([
@@ -2583,7 +2602,7 @@ describe('User entrypoints', function() {
 					await openDialog(type);
 					const dialog = await getDialog(type);
 					await dialog.findElements(webdriver.By.className('showOnContentItemCont'))
-						.mapWait((element) => {
+						.mapWaitChain((element) => {
 							return element.findElement(webdriver.By.tagName('paper-checkbox'))
 								.click()
 								.then(() => {
@@ -2611,7 +2630,7 @@ describe('User entrypoints', function() {
 					await openDialog(type);
 					const dialog = await getDialog(type);
 					await dialog.findElements(webdriver.By.className('showOnContentItemCont'))
-						.mapWait((element) => {
+						.mapWaitChain((element) => {
 							return element.findElement(webdriver.By.className('showOnContentItemIcon'))
 								.click()
 								.then(() => {
@@ -2638,7 +2657,7 @@ describe('User entrypoints', function() {
 					await openDialog(type);
 					const dialog = await getDialog(type);
 					await dialog.findElements(webdriver.By.className('showOnContentItemCont'))
-						.mapWait((element) => {
+						.mapWaitChain((element) => {
 							return element.findElement(webdriver.By.className('showOnContentItemTxt'))
 								.click()
 								.then(() => {
@@ -2679,7 +2698,7 @@ describe('User entrypoints', function() {
 					await openDialog(type);
 					const dialog = await getDialog(type);
 					await dialog.findElements(webdriver.By.className('showOnContentItemCont'))
-						.mapWait((element) => {
+						.mapWaitChain((element) => {
 							return element.findElement(webdriver.By.className('showOnContentItemIcon'))
 								.click()
 								.then(() => {
