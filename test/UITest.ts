@@ -2592,12 +2592,12 @@ describe('User entrypoints', function() {
 	
 		function testContentTypes(type: CRM.NodeType) {
 			describe('Content Types', function() {
-				this.timeout(30000 * TIME_MODIFIER);
-				this.slow(15000 * TIME_MODIFIER);
+				this.timeout(60000 * TIME_MODIFIER);
+				this.slow(30000 * TIME_MODIFIER);
 				const defaultContentTypes = [true, true, true, false, false, false];
 	
 				it('should be editable through clicking on the checkboxes', async function()  {
-					this.retries(3);
+					this.retries(10);
 					await resetSettings(this);
 					await openDialog(type);
 					const dialog = await getDialog(type);
@@ -2606,7 +2606,7 @@ describe('User entrypoints', function() {
 							return element.findElement(webdriver.By.tagName('paper-checkbox'))
 								.click()
 								.then(() => {
-									return wait(25);
+									return wait(100);
 								});
 						});
 					await saveDialog(dialog);
@@ -2625,7 +2625,7 @@ describe('User entrypoints', function() {
 						'all content types were toggled');
 				});
 				it('should be editable through clicking on the icons', async function()  {
-					this.retries(3);
+					this.retries(10);
 					await resetSettings(this);
 					await openDialog(type);
 					const dialog = await getDialog(type);
@@ -2634,7 +2634,7 @@ describe('User entrypoints', function() {
 							return element.findElement(webdriver.By.className('showOnContentItemIcon'))
 								.click()
 								.then(() => {
-									return wait(25);
+									return wait(100);
 								});
 						});
 					await saveDialog(dialog);
@@ -2652,7 +2652,7 @@ describe('User entrypoints', function() {
 						'all content types were toggled');
 				});
 				it('should be editable through clicking on the names', async function()  {
-					this.retries(3);
+					this.retries(10);
 					await resetSettings(this);
 					await openDialog(type);
 					const dialog = await getDialog(type);
@@ -2661,7 +2661,7 @@ describe('User entrypoints', function() {
 							return element.findElement(webdriver.By.className('showOnContentItemTxt'))
 								.click()
 								.then(() => {
-									return wait(25);
+									return wait(100);
 								});
 						});
 					await saveDialog(dialog);
@@ -2702,7 +2702,7 @@ describe('User entrypoints', function() {
 							return element.findElement(webdriver.By.className('showOnContentItemIcon'))
 								.click()
 								.then(() => {
-									return wait(25);
+									return wait(100);
 								});
 						});
 					await cancelDialog(dialog);
