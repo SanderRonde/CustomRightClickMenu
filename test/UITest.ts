@@ -4570,6 +4570,7 @@ describe('On-Page CRM', function() {
 			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
 					testData._clearExecutedScripts();
+					ondone(null);
 				});
 			}, {
 				getBackgroundPageTestData: getBackgroundPageTestData()
