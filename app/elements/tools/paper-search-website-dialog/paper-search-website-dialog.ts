@@ -300,7 +300,8 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 		 * Cancels all radio buttons and checks the one you just clicked
 		 */
 		static cancelAllRadiobuttons(this: PaperSearchWebsiteDialog, e: Polymer.ClickEvent) {
-			(this.$.listInputSearchList.querySelector('paper-radio-button[checked]') as HTMLPaperRadioButtonElement).checked = false;
+			const checkedEl = this.$.listInputSearchList.querySelector('paper-radio-button[checked]') as HTMLPaperRadioButtonElement;
+			checkedEl && (checkedEl.checked = false);
 			let node = e.target;
 			while (node.tagName !== 'PAPER-RADIO-BUTTON') {
 				node = node.parentElement;
