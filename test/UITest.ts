@@ -4429,7 +4429,6 @@ describe('On-Page CRM', function() {
 		});
 	});
 	describe('Scripts', function() {
-		//TODO:
 		this.slow(5000 * TIME_MODIFIER);
 		this.timeout(10000 * TIME_MODIFIER);
 
