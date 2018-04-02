@@ -3416,7 +3416,7 @@ describe('User entrypoints', function() {
 								await wait(2000);
 								const crm = await getCRM<[CRM.ScriptNode]>();
 	
-								assert.include(crm[0].value.libraries, {
+								assert.deepInclude(crm[0].value.libraries, {
 									name: libName,
 									url: libUrl
 								}, 'Library was added');
@@ -3481,7 +3481,7 @@ describe('User entrypoints', function() {
 								const activatedScripts = (await getActivatedScripts())
 									.map(scr => JSON.stringify(scr));
 	
-								assert.include(activatedScripts, JSON.stringify({
+								assert.deepInclude(activatedScripts, JSON.stringify({
 									id: tabId,
 									code: jqCode
 								}), 'library was properly executed');
@@ -3542,7 +3542,7 @@ describe('User entrypoints', function() {
 								await wait(2000);
 								const crm = await getCRM<[CRM.ScriptNode]>();
 	
-								assert.notInclude(crm[0].value.libraries, {
+								assert.notDeepInclude(crm[0].value.libraries, {
 									name: libName,
 									url: libUrl
 								}, 'Library was added');
@@ -3605,7 +3605,7 @@ describe('User entrypoints', function() {
 								await saveDialog(dialog);
 								const crm = await getCRM<[CRM.ScriptNode]>();
 	
-								assert.include(crm[0].value.libraries, {
+								assert.deepInclude(crm[0].value.libraries, {
 									name: libName,
 									url: null
 								}, 'Library was added');
@@ -3655,7 +3655,7 @@ describe('User entrypoints', function() {
 								await wait(1000);
 								const activatedScripts = await getActivatedScripts();
 	
-								assert.include(activatedScripts, {
+								assert.deepInclude(activatedScripts, {
 									id: tabId,
 									code: testCode
 								}, 'library was properly executed');
