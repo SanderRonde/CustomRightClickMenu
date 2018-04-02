@@ -4592,15 +4592,23 @@ namespace CRMAppElement {
 				return el as T;
 			}
 
+			private static _toArray<T>(iterable: ArrayLike<T>): T[] {
+				const arr = [];
+				for (let i = 0; i < iterable.length; i++) {
+					arr.push(iterable[i]);
+				}
+				return arr;
+			}
+
 			static getPath(e: {
 				path: Array<HTMLElement>;
 			}|{
 				Aa: Array<HTMLElement>;
 			}|Polymer.CustomEvent) {
 				if ('path' in e) {
-					return e.path;
+					return this._toArray(e.path);
 				} else if ('Aa' in e) {
-					return e.Aa;
+					return this._toArray(e.Aa);
 				}
 				return [];
 			}
