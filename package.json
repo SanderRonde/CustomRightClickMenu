@@ -55,7 +55,7 @@
     "@bower_components/shadycss": "webcomponents/shadycss#^v1.0.0",
     "@bower_components/web-animations-js": "web-animations/web-animations-js#^2.3.0",
     "@bower_components/webcomponentsjs": "Polymer/webcomponentsjs#^v1.0.0",
-    "@types/chai": "^4.0.4",
+    "@types/chai": "^4.1.2",
     "@types/mocha": "^2.2.43",
     "@types/node": "^8.0.34",
     "@types/selenium-webdriver": "^3.0.8",
