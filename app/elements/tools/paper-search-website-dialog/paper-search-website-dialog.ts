@@ -290,7 +290,12 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 		 * Confirms the choice of one of the search engines from the list
 		 */
 		static confirmManualSearchListInput(this: PaperSearchWebsiteDialog) {
-			this.chosenUrl = ($(this.$.listInputSearchList).find('paper-radio-button[checked]')[0] as HTMLPaperRadioButtonElement & {
+			const checkedButton = this.$.listInputSearchList.querySelector('paper-radio-button[checked]');
+			if (!checkedButton) {
+				window.app.util.showToast('Please select something');
+				return;
+			}
+			this.chosenUrl = (checkedButton as HTMLPaperRadioButtonElement & {
 				url: string;
 			}).url;
 			this.switchToWindow('confirmationWindow');
@@ -300,17 +305,18 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 		 * Cancels all radio buttons and checks the one you just clicked
 		 */
 		static cancelAllRadiobuttons(this: PaperSearchWebsiteDialog, e: Polymer.ClickEvent) {
-			const checkedEl = this.$.listInputSearchList.querySelector('paper-radio-button[checked]') as HTMLPaperRadioButtonElement;
-			checkedEl && (checkedEl.checked = false);
-			let node = e.target;
-			while (node.tagName !== 'PAPER-RADIO-BUTTON') {
-				node = node.parentElement;
-			}
-			if (!node) {
-				return;
-			}
-			(node as HTMLPaperRadioButtonElement).checked = true;
-			this.disableManualButton = false;
+			this.async(() => {
+				const checkedEl = this.$.listInputSearchList.querySelector('paper-radio-button[checked]') as HTMLPaperRadioButtonElement;
+				checkedEl && (checkedEl.checked = false);
+
+				const node = window.app.util.findElementWithTagname(e, 
+					'paper-radio-button');
+				if (!node) {
+					return;
+				}
+				(node as HTMLPaperRadioButtonElement).checked = true;
+				this.disableManualButton = false;
+			}, 0);
 		};
 
 		/**
