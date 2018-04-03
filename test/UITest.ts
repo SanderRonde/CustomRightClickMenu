@@ -2606,9 +2606,10 @@ describe('User entrypoints', function() {
 							return element.findElement(webdriver.By.tagName('paper-checkbox'))
 								.click()
 								.then(() => {
-									return wait(100);
+									return wait(250);
 								});
 						});
+					await wait(1000);
 					await saveDialog(dialog);
 					const crm = await getCRM();
 	
@@ -2634,9 +2635,10 @@ describe('User entrypoints', function() {
 							return element.findElement(webdriver.By.className('showOnContentItemIcon'))
 								.click()
 								.then(() => {
-									return wait(100);
+									return wait(250);
 								});
 						});
+					await wait(1000);
 					await saveDialog(dialog);
 					const crm = await getCRM();
 	
@@ -2661,9 +2663,10 @@ describe('User entrypoints', function() {
 							return element.findElement(webdriver.By.className('showOnContentItemTxt'))
 								.click()
 								.then(() => {
-									return wait(100);
+									return wait(250);
 								});
 						});
+					await wait(1000);
 					await saveDialog(dialog);
 					const crm = await getCRM();
 	
@@ -2702,9 +2705,10 @@ describe('User entrypoints', function() {
 							return element.findElement(webdriver.By.className('showOnContentItemIcon'))
 								.click()
 								.then(() => {
-									return wait(100);
+									return wait(250);
 								});
 						});
+					await wait(1000);
 					await cancelDialog(dialog);
 					const crm = await getCRM();
 	
