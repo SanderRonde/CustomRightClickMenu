@@ -104,6 +104,9 @@ namespace EditCrmItemElement {
 		}
 
 		static getMenuExpandMessage(this: EditCrmItem) {
+			if (!this.item.children) {
+				return `Click to show children`;
+			}
 			return 'Click to show ' + (this.item as CRM.MenuNode).children.length + ' child' + 
 				((this.item as CRM.MenuNode).children.length > 1 ? 'ren' : '');
 		};
