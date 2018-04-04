@@ -3480,18 +3480,11 @@ describe('User entrypoints', function() {
 								await crmApp.findElement(webdriver.By.id('addLibraryButton'))
 									.click();
 								await wait(1000);
-								const [isInvalid, libSizes] = await webdriver.promise.all([
-									crmApp.findElement(webdriver.By.id('addedLibraryName'))
-										.getProperty('invalid'),
-									crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
-										.getSize()
-								]) as [boolean, ClientRect];
+								const isInvalid = await crmApp
+									.findElement(webdriver.By.id('addedLibraryName'))
+									.getProperty('invalid');
 	
 								assert.isTrue(isInvalid, 'Name should be marked as invalid');
-								assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes))
-									.filter((key: keyof typeof libSizes) => {
-										return libSizes[key] !== 0;
-									}).length !== 0, 'Current dialog should be visible');
 	
 								await crmApp.findElement(webdriver.By.id('addedLibraryName'))
 									.findElement(webdriver.By.tagName('input'))
@@ -3606,18 +3599,11 @@ describe('User entrypoints', function() {
 								await crmApp.findElement(webdriver.By.id('addLibraryButton'))
 									.click();
 								await wait(5000);
-								const [isInvalid, libSizes] = await webdriver.promise.all([
-									crmApp.findElement(webdriver.By.id('addedLibraryName'))
-										.getProperty('invalid'),
-									crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
-										.getSize()
-								]) as [boolean, ClientRect];
+								const isInvalid = await crmApp
+									.findElement(webdriver.By.id('addedLibraryName'))
+									.getProperty('invalid');
 	
 								assert.isTrue(isInvalid, 'Name should be marked as invalid');
-								assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes))
-									.filter((key: keyof typeof libSizes) => {
-										return libSizes[key] !== 0;
-									}).length !== 0, 'Current dialog should be visible');
 	
 								await crmApp.findElement(webdriver.By.id('addedLibraryName'))
 									.findElement(webdriver.By.tagName('input'))
@@ -3672,18 +3658,11 @@ describe('User entrypoints', function() {
 									.sendKeys(InputKeys.CLEAR_ALL, testCode);
 								await crmApp.findElement(webdriver.By.id('addLibraryButton'))
 									.click();
-								const [isInvalid, libSizes] = await webdriver.promise.all([
-									crmApp.findElement(webdriver.By.id('addedLibraryName'))
-										.getProperty('invalid'),
-									crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
-										.getSize()
-								]) as [boolean, ClientRect];
+								const isInvalid = await crmApp
+									.findElement(webdriver.By.id('addedLibraryName'))
+									.getProperty('invalid');
 								
 								assert.isTrue(isInvalid, 'Name should be marked as invalid');
-								assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes))
-									.filter((key: keyof typeof libSizes) => {
-										return libSizes[key] !== 0;
-									}).length !== 0, 'Current dialog should be visible');
 	
 								await crmApp.findElement(webdriver.By.id('addedLibraryName'))
 									.findElement(webdriver.By.tagName('input'))
@@ -3781,18 +3760,11 @@ describe('User entrypoints', function() {
 									.sendKeys(InputKeys.CLEAR_ALL, testCode);
 								await crmApp.findElement(webdriver.By.id('addLibraryButton'))
 									.click();
-								const [isInvalid, libSizes] = await webdriver.promise.all([
-									crmApp.findElement(webdriver.By.id('addedLibraryName'))
-										.getProperty('invalid'),
-									crmApp.findElement(webdriver.By.id('addLibraryProcessContainer'))
-										.getSize()
-								]) as [boolean, ClientRect];
+								const isInvalid = await crmApp
+									.findElement(webdriver.By.id('addedLibraryName'))
+									.getProperty('invalid');
 	
 								assert.isTrue(isInvalid, 'Name should be marked as invalid');
-								assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes))
-									.filter((key: keyof typeof libSizes) => {
-										return libSizes[key] !== 0;
-									}).length !== 0, 'Current dialog should be visible');
 	
 								await crmApp.findElement(webdriver.By.id('addedLibraryName'))
 									.findElement(webdriver.By.tagName('input'))
