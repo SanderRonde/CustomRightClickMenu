@@ -1853,7 +1853,9 @@ async function getDummyTabId() {
 
 let currentTestWindow: string = null;
 async function switchToTestWindow() {
-	await driver.switchTo().window(currentTestWindow);
+	if (!TEST_EXTENSION) {
+		await driver.switchTo().window(currentTestWindow);
+	}
 }
 
 async function createTab(url: string, doClear: boolean = false) {
@@ -2034,6 +2036,9 @@ describe('User entrypoints', function() {
 		});
 	}
 	describe('Options Page', function() {
+		before('Switch to correct tab', async () => {
+			await switchToTestWindow();
+		});
 		describe('Loading', function() {
 			it('should finish loading', async function() {
 				this.timeout(600000 * TIME_MODIFIER);
@@ -2052,6 +2057,7 @@ describe('User entrypoints', function() {
 						});
 					}));
 				}
+				await wait(500);
 				await switchToTestWindow();
 				const handles = await driver.getAllWindowHandles();
 				for (const handle of handles) {
@@ -2937,8 +2943,12 @@ describe('User entrypoints', function() {
 			if (SKIP_OPTIONS_PAGE_DIALOGS) {
 				return;
 			}
-			before('Reset settings', function() {
-				return resetSettings(this);
+			beforeEach('Switch to correct tab', async function() {
+				await switchToTestWindow();
+			});
+			before('Reset settings', async function() {
+				await resetSettings(this);
+				await switchToTestWindow();
 			});
 			this.timeout(60000 * TIME_MODIFIER);
 	
