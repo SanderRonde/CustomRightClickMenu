@@ -1841,15 +1841,16 @@ class DummyTab {
 		windowId: number;
 	};
 	private _handle: string;
-	private _active: boolean = false;
+
+	public active: boolean = false;
 
 	constructor() {}
 
 	async init() {
-		if (this._active || !TEST_EXTENSION) {
+		if (this.active || !TEST_EXTENSION) {
 			return;
 		}
-		this._active = true;
+		this.active = true;
 
 		this._tabInfo = await executeAsyncScript<{
 			tabId: number;
@@ -1874,19 +1875,19 @@ class DummyTab {
 	private async _disable() {
 		await driver.switchTo().window(this._handle);
 		await driver.close();
-		this._active = false;
+		this.active = false;
 		this._tabInfo = null;
 		this._handle = null;
 	}
 
 	async disable() {
-		if (this._active) {
+		if (this.active) {
 			await this._disable();
 		}
 	}
 
 	async enable() {
-		if (!this._active) {
+		if (!this.active) {
 			await this.init();
 		}
 	}
@@ -1914,6 +1915,19 @@ const dummyTab = new DummyTab();
 let currentTestWindow: string = null;
 async function switchToTestWindow() {
 	if (TEST_EXTENSION) {
+		if (!currentTestWindow) {
+			const handles = await driver.getAllWindowHandles();
+			if (dummyTab.active) {
+				for (const handle of handles) {
+					if (handle !== await dummyTab.getHandle()) {
+						currentTestWindow = handle;
+						break;
+					}
+				}
+			} else {
+				currentTestWindow = await driver.getWindowHandle();
+			}
+		}
 		await driver.switchTo().window(currentTestWindow);
 	}
 }
