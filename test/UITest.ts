@@ -432,7 +432,7 @@ async function openTestPageURL(capabilities: BrowserstackCapabilities) {
 	if (TEST_EXTENSION) {
 		await getExtensionDataOnly().openOptionsPage(driver, capabilities);
 	} else {
-		await driver.get(`http://localhost:${PORT}/build/html/UITest.html#noClear-test-noBackgroundInfo`);
+		await driver.get(`http://localhost:${PORT}/build/html/UITest.html#test-noBackgroundInfo`);
 	}
 }
 

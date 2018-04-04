@@ -2265,11 +2265,6 @@ namespace CRMAppElement {
 						window.setTimeout(() => {
 							//All elements have been loaded, unhide them all
 							window.setTimeout(() => {
-								//Clear the annoying CSS mime type messages and the /deep/ warning
-								if (!window.lastError && location.hash.indexOf('noClear') === -1) {
-									console.clear();
-								}
-
 								window.setTimeout(() => {
 									//Wait for the fade to pass
 									window.polymerElementsLoaded = true;
