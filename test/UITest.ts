@@ -848,7 +848,7 @@ async function getActiveTabs(): Promise<ActiveTabs> {
 	//Filter dummy tab
 	const newTabs: ActiveTabs = [];
 	for (const activeTab of JSON.parse(encoded)) {
-		if (activeTab.id !== (await getDummyTabId()).tabId) {
+		if (activeTab.id !== (await dummyTab.getTabId()).tabId) {
 			newTabs.push(activeTab);
 		}
 	}
@@ -877,7 +877,7 @@ async function getActivatedScripts({
 	
 	const newTabs: ExecutedScript[] = [];
 	for (const executedScript of JSON.parse(encoded)) {
-		if (!filterDummy || executedScript.id !== (await getDummyTabId()).tabId) {
+		if (!filterDummy || executedScript.id !== (await dummyTab.getTabId()).tabId) {
 			newTabs.push(executedScript);
 		}
 	}
@@ -1835,21 +1835,81 @@ function getTestData() {
 	}
 }
 
-let dummyTabInfo: {
-	tabId: number;
-	windowId: number;
-} = null;
-let dummyHandle: string = null;
-async function getDummyTabId() {
-	if (TEST_EXTENSION) {
-		return dummyTabInfo;
-	} else {
-		return {
-			tabId: getRandomId(),
-			windowId: getRandomId()
+class DummyTab {
+	private _tabInfo: {
+		tabId: number;
+		windowId: number;
+	};
+	private _handle: string;
+	private _active: boolean = false;
+
+	constructor() {}
+
+	async init() {
+		if (this._active || !TEST_EXTENSION) {
+			return;
+		}
+		this._active = true;
+
+		this._tabInfo = await executeAsyncScript<{
+			tabId: number;
+			windowId: number;
+		}>(inlineAsyncFn((done, onReject, REPLACE) => { 
+			browserAPI.tabs.create({
+				url: 'http://www.github.com'
+			}).then(function(createdTab) {
+				done({ tabId: createdTab.id, windowId: createdTab.windowId });
+			});
+		}));
+
+		const handles = await driver.getAllWindowHandles();
+		for (const handle of handles) {
+			if (handle !== currentTestWindow) {
+				this._handle = handle;
+				break;
+			}
 		}
 	}
+
+	private async _disable() {
+		await driver.switchTo().window(this._handle);
+		await driver.close();
+		this._active = false;
+		this._tabInfo = null;
+		this._handle = null;
+	}
+
+	async disable() {
+		if (this._active) {
+			await this._disable();
+		}
+	}
+
+	async enable() {
+		if (!this._active) {
+			await this.init();
+		}
+	}
+
+	async getTabId() {
+		if (TEST_EXTENSION) {
+			await this.init();
+			return this._tabInfo;
+		} else {
+			return {
+				tabId: getRandomId(),
+				windowId: getRandomId()
+			}
+		}
+	}
+
+	async getHandle() {
+		await this.init();
+		return this._handle;
+	}
 }
+
+const dummyTab = new DummyTab();
 
 let currentTestWindow: string = null;
 async function switchToTestWindow() {
@@ -1954,7 +2014,7 @@ function getBackgroundPageTestData(): () => Promiselike<TestData> {
 async function closeOtherTabs() {
 	const tabs = await driver.getAllWindowHandles();
 	for (const tab of tabs) {
-		if (tab !== currentTestWindow && tab !== dummyHandle) {
+		if (tab !== currentTestWindow && tab !== await dummyTab.getHandle()) {
 			await driver.switchTo().window(tab);
 			await driver.close();
 		}
@@ -2046,26 +2106,10 @@ describe('User entrypoints', function() {
 				currentTestWindow = await driver.getWindowHandle();
 
 				if (TEST_EXTENSION) {
-					dummyTabInfo = await executeAsyncScript<{
-						tabId: number;
-						windowId: number;
-					}>(inlineAsyncFn((done, onReject, REPLACE) => { 
-						browserAPI.tabs.create({
-							url: 'http://www.github.com'
-						}).then(function(createdTab) {
-							done({ tabId: createdTab.id, windowId: createdTab.windowId });
-						});
-					}));
+					await dummyTab.init();
 				}
 				await wait(500);
 				await switchToTestWindow();
-				const handles = await driver.getAllWindowHandles();
-				for (const handle of handles) {
-					if (handle !== currentTestWindow) {
-						dummyHandle = handle;
-						break;
-					}
-				}
 
 				await waitFor(() => {
 					return driver.executeScript(inlineFn(() => {
@@ -3479,7 +3523,7 @@ describe('User entrypoints', function() {
 									}).end();
 								});
 								const contextMenu = await getContextMenu();
-								const { tabId, windowId } = await getDummyTabId();
+								const { tabId, windowId } = await dummyTab.getTabId();
 								await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 									REPLACE.getTestData()._clearExecutedScripts();
 									REPLACE.getBackgroundPageTestData().then((testData) => {
@@ -3654,7 +3698,7 @@ describe('User entrypoints', function() {
 								await wait(1000);
 	
 								const contextMenu = await getContextMenu();
-								const { tabId, windowId } = await getDummyTabId();
+								const { tabId, windowId } = await dummyTab.getTabId();
 								await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 									REPLACE.getTestData()._clearExecutedScripts();
 									REPLACE.getBackgroundPageTestData().then((testData) => {
@@ -3754,6 +3798,9 @@ describe('User entrypoints', function() {
 									name: libName,
 									url: testCode
 								}, 'Library was not added');
+							});
+							after('Disable dummy tab', async () => {
+								await dummyTab.disable();
 							});
 						});
 						describe('GetPageProperties', function() {
@@ -4037,26 +4084,8 @@ describe('On-Page CRM', function() {
 			await openTestPageURL(browserCapabilities);
 			currentTestWindow = await driver.getWindowHandle();
 
-			if (TEST_EXTENSION) {
-				dummyTabInfo = await executeAsyncScript<{
-					tabId: number;
-					windowId: number;
-				}>(inlineAsyncFn((done, onReject, REPLACE) => { 
-					browserAPI.tabs.create({
-						url: 'http://www.github.com'
-					}).then(function(createdTab) {
-						done({ tabId: createdTab.id, windowId: createdTab.windowId });
-					});
-				}));
-			}
+			await dummyTab.init();
 			await switchToTestWindow();
-			const handles = await driver.getAllWindowHandles();
-			for (const handle of handles) {
-				if (handle !== currentTestWindow) {
-					dummyHandle = handle;
-					break;
-				}
-			}
 
 			await waitFor(() => {
 				return driver.executeScript(inlineFn(() => {
@@ -4269,7 +4298,7 @@ describe('On-Page CRM', function() {
 			}
 		});
 		it('should open the correct links when clicked for the default link', async function() {
-			const { tabId, windowId } = await getDummyTabId();
+			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
 			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 				REPLACE.getTestData()._clearExecutedScripts();
@@ -4333,7 +4362,7 @@ describe('On-Page CRM', function() {
 			}
 		});
 		it('should open the correct links when clicked for multiple links', async () => {
-			const { tabId, windowId } = await getDummyTabId();
+			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
 			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
@@ -4629,7 +4658,7 @@ describe('On-Page CRM', function() {
 		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', async function() {
 			this.timeout(10000 * TIME_MODIFIER);
 			this.slow(2500 * TIME_MODIFIER);
-			const { tabId, windowId } = await getDummyTabId();
+			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
 			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
@@ -4759,7 +4788,7 @@ describe('On-Page CRM', function() {
 				'disabled node is not in the right-click menu');
 		});
 		it('should run the correct code when clicked', async () => {
-			const { tabId, windowId } = await getDummyTabId();
+			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
 			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
@@ -5069,7 +5098,7 @@ describe('On-Page CRM', function() {
 		}
 
 		async function runStylesheet(index: StylesheetOnPageTests, expectedReg: RegExp, done: () => void) {
-			const { tabId, windowId } = await getDummyTabId();
+			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
 			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
@@ -5156,7 +5185,7 @@ describe('On-Page CRM', function() {
 				'stylesheet was executed on right tab');
 		});
 		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', async () => {
-			const { tabId, windowId } = await getDummyTabId();
+			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
 			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
@@ -5260,7 +5289,7 @@ describe('On-Page CRM', function() {
 				'disabled node is not in the right-click menu');
 		});
 		it('should run the correct code when clicked', async function() {
-			const { tabId, windowId } = await getDummyTabId();
+			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
 			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
@@ -5368,7 +5397,7 @@ describe('On-Page CRM', function() {
 				dummy1 = results[0];
 				dummy2 = results[1];
 
-				const result = await getDummyTabId();
+				const result = await dummyTab.getTabId();
 				windowId = result.windowId;
 				tabId = result.tabId;
 			});
