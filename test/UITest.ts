@@ -2591,6 +2591,10 @@ describe('User entrypoints', function() {
 		}
 	
 		function testContentTypes(type: CRM.NodeType) {
+			if (TEST_EXTENSION && browserCapabilities.browser_version && 
+				Math.round(parseFloat(browserCapabilities.browser_version)) <= 40) {
+					return;
+				}
 			describe('Content Types', function() {
 				this.timeout(60000 * TIME_MODIFIER);
 				this.slow(30000 * TIME_MODIFIER);
