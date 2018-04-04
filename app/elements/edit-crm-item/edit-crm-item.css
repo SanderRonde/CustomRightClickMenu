@@ -212,3 +212,8 @@
 .menuArrow {
 	margin-top: -30px;
 }
+
+paper-button.blue {
+    background-color: #3F51B5;
+    color: white;
+}
