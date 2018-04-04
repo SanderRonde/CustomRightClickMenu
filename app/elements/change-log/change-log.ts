@@ -171,7 +171,7 @@ namespace ChangeLogElement {
 			version: string;
 			changes: Array<string>;
 		}> {
-			return changelog.sort(this._sortFunction);
+			return changelog.sort(this._sortFunction).reverse();
 		};
 
 		static ready(this: ChangeLog) {
