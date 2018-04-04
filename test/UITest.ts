@@ -1853,7 +1853,7 @@ async function getDummyTabId() {
 
 let currentTestWindow: string = null;
 async function switchToTestWindow() {
-	if (!TEST_EXTENSION) {
+	if (TEST_EXTENSION) {
 		await driver.switchTo().window(currentTestWindow);
 	}
 }
