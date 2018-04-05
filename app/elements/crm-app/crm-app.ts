@@ -4279,6 +4279,7 @@ namespace CRMAppElement {
 					'crmGet',
 					'crmWrite',
 					'crmRun',
+					'crmContextmenu',
 					'chrome',
 					'browser',
 
@@ -4344,6 +4345,7 @@ namespace CRMAppElement {
 					crmGet: 'Allows the reading of your Custom Right-Click Menu, including names, contents of all nodes, what they do and some metadata for the nodes',
 					crmWrite: 'Allows the writing of data and nodes to your Custom Right-Click Menu. This includes <b>creating</b>, <b>copying</b> and <b>deleting</b> nodes. Be very careful with this permission as it can be used to just copy nodes until your CRM is full and delete any nodes you had. It also allows changing current values in the CRM such as names, actual scripts in script-nodes etc.',
 					crmRun: 'Allows the running of arbitrary scripts from the background-page',
+					crmContextmenu: 'Allows the editing of this item\'s name in the contextmenu at runtime',
 					chrome: 'Allows the use of chrome API\'s',
 					browser: 'Allows the use of browser API\'s',
 

@@ -32,7 +32,8 @@ declare namespace CRM {
 	/**
 	 * Permissions related to the CRM API
 	 */
-	type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome' | 'browser';
+	type CRMPermission = 'crmGet' | 'crmWrite' | 'crmRun' |
+		'crmContextmenu' | 'chrome' | 'browser';
 
 	/**
 	 * An extendable object
@@ -88,7 +89,9 @@ declare namespace CRM {
 		crmGet: string;
 		crmWrite: string;
 		crmRun: string;
+		crmContextmenu: string;
 		chrome: string;
+		browser: string;
 	}
 
 	/**
