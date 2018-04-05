@@ -67,7 +67,7 @@ You can build the typescript definitions file by cloning the repo, installing al
 
 Entering fullscreen mode brings up a hamburger menu on the left (see the image below) that allows access to the tools ribbon, containing features like using the external editor, adding (your own) libraries, easy search script generation or JSLint.
 
-![fullscreen editor](https://github.com/SanderRonde/CustomRightClickMenu/blob/polymer-2/store_images/screenshot3.png)
+![fullscreen editor](https://github.com/SanderRonde/CustomRightClickMenu/blob/master-2/store_images/screenshot3.png)
 
 ## Contributing
 
