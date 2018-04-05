@@ -2573,7 +2573,6 @@ describe('CRMAPI', () => {
 	}
 	var greaseMonkeyData: CRM.CRMAPI.GreaseMonkeyData = {
 		info: {
-			//@ts-ignore
 			testKey: createSecretKey()
 		},
 		resources: {
@@ -2838,7 +2837,6 @@ describe('CRMAPI', () => {
 							}).join(', ') +
 							');';
 						const instance = eval(code);
-						//@ts-ignore
 						instance.onReady(() => {
 							resolve(instance);
 						});
@@ -3120,9 +3118,6 @@ describe('CRMAPI', () => {
 		describe('#createNode()', () => {
 			it('should correctly return the to-create node', async () => {
 				window.globals.latestId = 6;
-				/**
-				 * @type {any}
-				 */
 				var nodeSettings = {
 					name: 'testName',
 					type: 'link',
