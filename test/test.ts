@@ -3687,7 +3687,9 @@ describe('CRMAPI', () => {
 			beforeEach(async () => {
 				await resetTree();
 			});
-			it('should set a single content type by index when given valid input', async () => {
+			it('should set a single content type by index when given valid input', async function() {
+				this.timeout(250);
+				this.slow(150);
 				const currentContentTypes = JSON.parse(JSON.stringify(
 					safeTestCRMTree[0].onContentTypes));
 				for (let i = 0; i < currentContentTypes.length; i++) {
@@ -5573,7 +5575,9 @@ describe('CRMAPI', () => {
 			before('Reset storagemirror', () => {
 				storageMirror = {};
 			});
-			it('should not throw when setting the values', () => {
+			it('should not throw when setting the values', function() {
+				this.slow(1500);
+				this.timeout(5000);
 				for (let i = 0; i < 1000; i++) {
 					const key = generateRandomString(true);
 					const randVal = Math.round(Math.random() * 100);
@@ -5618,7 +5622,9 @@ describe('CRMAPI', () => {
 					}
 				}
 			});
-			it('should be possible to retrieve the values', () => {
+			it('should be possible to retrieve the values', function() {
+				this.timeout(500);
+				this.slow(200);
 				for (const key in storageMirror) {
 					const expected = storageMirror[key];
 					const actual = crmAPI.GM.GM_getValue(key);
