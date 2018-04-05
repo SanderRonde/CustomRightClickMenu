@@ -4,23 +4,26 @@
 
 'use strict';
 // @ts-ignore
-var mochaSteps = require('mocha-steps');
-var step = mochaSteps.step;
-var assert = require('chai').assert;
-var request = require('request');
-var fs = require('fs'); 
-var path = require('path');
+const mochaSteps = require('mocha-steps');
+const step: Mocha.ITestDefinition = mochaSteps.step;
+import * as request from 'request';
+import { assert } from 'chai';
+import * as path from 'path';
+import * as fs from 'fs';
 
-function isDefaultKey(key) {
-	return !(key !== 'getItem' && key !== 'setItem' && key !== 'length' && key !== 'clear' && key !== 'removeItem');
+function isDefaultKey(key: string): key is keyof Storage {
+	return !(key !== 'getItem' && 
+		key !== 'setItem' && 
+		key !== 'length' && 
+		key !== 'clear' && 
+		key !== 'removeItem');
 }
 
-/**
- * @returns {Storage}
- */
-function createLocalStorageObject() {
-	var obj = {
-		getItem(key) {
+function createLocalStorageObject(): Storage {
+	var obj: Storage & {
+		[key: string]: any;
+	} = {
+		getItem(key: string) {
 			if (!isDefaultKey(key)) {
 				return obj[key];
 			}
@@ -68,8 +71,8 @@ function createLocalStorageObject() {
 	return obj;
 }
 
-function toOldCrmNode(node) {
-	var oldNodes = [];
+function toOldCrmNode(node: CRM.Node) {
+	var oldNodes: string[] = [];
 	var dataArr = [node.name, node.type[0].toUpperCase() + node.type.slice(1)];
 	switch (node.type) {
 		case 'link':
@@ -80,7 +83,7 @@ function toOldCrmNode(node) {
 			break;
 		case 'menu':
 			var children = node.children;
-			dataArr.push(children.length);
+			dataArr.push(children.length + '');
 			oldNodes[0] = dataArr.join('%123');
 			children.forEach((child) => {
 				oldNodes = oldNodes.concat(toOldCrmNode(child));
@@ -116,18 +119,15 @@ function toOldCrmNode(node) {
 	return oldNodes;
 }
 
-/**
- * @returns {Storage}
- */
-function createCrmLocalStorage(nodes, newTab) {
+function createCrmLocalStorage(nodes: DeepPartial<CRM.Node>[], newTab: boolean = false): Storage {
 	var obj = createLocalStorageObject();
 	obj.whatpage = !!newTab;
 	obj.noBetaAnnouncement = true;
 	obj.firsttime = 'no';
 	obj.scriptOptions = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,';
-	var oldNodes = [];
+	var oldNodes: string[] = [];
 	nodes.forEach((node) => {
-		oldNodes = oldNodes.concat(toOldCrmNode(node));
+		oldNodes = oldNodes.concat(toOldCrmNode(node as CRM.Node));
 	});
 	obj.numberofrows = oldNodes.length;
 	oldNodes.forEach((oldNode, index) => {
@@ -136,21 +136,23 @@ function createCrmLocalStorage(nodes, newTab) {
 	return obj;
 }
 
-var backgroundPageWindowResolve;
+var backgroundPageWindowResolve: (val?: any) => void;
 var backgroundPageWindowDone = new Promise((resolve) => {
 	backgroundPageWindowResolve = resolve;
 });
 
-function mergeObjects(obj1, obj2) {
-	for (var key in obj2) {
-		if (obj2.hasOwnProperty(key)) {
-			obj1[key] = obj2[key];
-		}
+function mergeObjects<T1, T2>(obj1: T1, obj2: T2): T1 & T2 {
+	const joined: Partial<T1 & T2> = {};
+	for (let key in obj1) {
+		joined[key] = obj1[key];
 	}
-	return obj1;
+	for (let key in obj2) {
+		joined[key] = obj2[key];
+	}
+	return joined as T1 & T2;
 }
 
-function generateRandomString(noDot) {
+function generateRandomString(noDot: boolean = false) {
 	var length = 25 + Math.floor(Math.random() * 25);
 	var str = [];
 	for (var i = 0; i < length; i++) {
@@ -167,20 +169,24 @@ function generateRandomString(noDot) {
 //Takes a function and catches any errors, generating stack traces
 //	from the point of view of the actual error instead of the 
 //	assert error, which makes debugging waaaay easier
-var run = (fn) => {
-	return () => {
-		try {
-			return fn();
-		} catch (e) {
-			console.log('Error', e);
-			throw e;
-		}
-	};
-};
+// var run = (fn: Function) => {
+// 	return () => {
+// 		try {
+// 			return fn();
+// 		} catch (e) {
+// 			console.log('Error', e);
+// 			throw e;
+// 		}
+// 	};
+// };
 
-function createCopyFunction(obj, target) {
-	return function(props) {
-		props.forEach(function(prop) {
+function createCopyFunction(obj: {
+	[key: string]: any;
+}, target: {
+	[key: string]: any;
+}) {
+	return (props: string[]) => {
+		props.forEach((prop) => {
 			if (prop in obj) {
 				if (typeof obj[prop] === 'object') {
 					target[prop] = JSON.parse(JSON.stringify(obj[prop]));
@@ -192,13 +198,8 @@ function createCopyFunction(obj, target) {
 	}
 }
 
-function makeNodeSafe(node) {
-	/**
-	 * @type CRM.SafeNode
-	 */
-	var 
-		// @ts-ignore
-		newNode = {};
+function makeNodeSafe(node: CRM.Node): CRM.SafeNode {
+	const newNode: Partial<CRM.SafeNode> = {};
 	if (node.children) {
 		newNode.children = [];
 		for (var i = 0; i < node.children.length; i++) {
@@ -206,23 +207,17 @@ function makeNodeSafe(node) {
 		}
 	}
 
-	var copy = createCopyFunction(node, newNode);
+	const copy = createCopyFunction(node, newNode);
 
 	copy(['id','path', 'type', 'name', 'value', 'linkVal',
 			'menuVal', 'scriptVal', 'stylesheetVal', 'nodeInfo',
 			'triggers', 'onContentTypes', 'showOnSpecified']);
 
-	safeNodes.push(newNode);
-	return newNode;
+	safeNodes.push(newNode as CRM.SafeNode);
+	return newNode as CRM.SafeNode;
 }
 
-/**
- * @returns {CRM.SafeNode[]}
- */
-function makeTreeSafe(tree) {
-	/**
-	 * @type CRM.SafeNode[]
-	 */
+function makeTreeSafe(tree: CRM.Node[]) {
 	var safe = [];
 	for (var i = 0; i < tree.length; i++) {
 		safe.push(makeNodeSafe(tree[i]));
@@ -230,11 +225,8 @@ function makeTreeSafe(tree) {
 	return safe;
 }
 
-var safeNodes = [];
-/**
- * @type [CRM.MenuNode, CRM.LinkNode, CRM.ScriptNode, CRM.StylesheetNode, CRM.DividerNode, CRM.MenuNode]
- */
-var testCRMTree = [{
+const safeNodes: CRM.SafeNode[] = [];
+const testCRMTree = [{
 	"name": "menu",
 	"onContentTypes": [true, true, true, true, true, true],
 	"type": "menu",
@@ -260,7 +252,7 @@ var testCRMTree = [{
 	nodeInfo: {
 		permissions: []
 	}
-}, {
+} as CRM.MenuNode, {
 	"name": "link",
 	"onContentTypes": [true, true, true, false, false, false],
 	"type": "link",
@@ -292,7 +284,7 @@ var testCRMTree = [{
 	nodeInfo: {
 		permissions: []
 	}
-}, {
+} as CRM.LinkNode, {
 	"name": "script",
 	"onContentTypes": [true, true, true, false, false, false],
 	"type": "script",
@@ -347,7 +339,7 @@ var testCRMTree = [{
 	stylesheetVal: null,
 	menuVal: null,
 	permissions: []
-}, {
+} as CRM.ScriptNode, {
 	"name": "stylesheet",
 	"onContentTypes": [true, true, true, false, false, false],
 	"type": "stylesheet",
@@ -383,7 +375,7 @@ var testCRMTree = [{
 	stylesheetVal: null,
 	menuVal: null,
 	permissions: []
-}, {
+} as CRM.StylesheetNode, {
 	"name": "divider",
 	"onContentTypes": [true, true, true, false, false, false],
 	"type": "divider",
@@ -409,7 +401,7 @@ var testCRMTree = [{
 	stylesheetVal: null,
 	menuVal: null,
 	permissions: []
-}, {
+} as CRM.DividerNode, {
 	"name": "menu",
 	"onContentTypes": [true, true, true, false, false, false],
 	"type": "menu",
@@ -473,16 +465,15 @@ var testCRMTree = [{
 	stylesheetVal: null,
 	menuVal: null,
 	permissions: []
-}];
+} as CRM.MenuNode];
 
-var testCRMTreeBase = JSON.parse(JSON.stringify(testCRMTree));
+const testCRMTreeBase = JSON.parse(JSON.stringify(testCRMTree));
 
-/**
- * @type [CRM.SafeMenuNode, CRM.SafeLinkNode, CRM.SafeScriptNode, CRM.SafeStylesheetNode, CRM.SafeDividerNode, CRM.SafeMenuNode]
- */
-var 
-	// @ts-ignore
-	safeTestCRMTree = makeTreeSafe(testCRMTree); 
+const safeTestCRMTree = makeTreeSafe(testCRMTree) as [
+	CRM.SafeMenuNode, CRM.SafeLinkNode, 
+	CRM.SafeScriptNode, CRM.SafeStylesheetNode, 
+	CRM.SafeDividerNode, CRM.SafeMenuNode
+];
 
 function resetTree() {
 	return new Promise((resolve) => {
@@ -497,23 +488,28 @@ function resetTree() {
 					newValue: JSON.parse(JSON.stringify(testCRMTreeBase))
 				}]
 			}
-		}, {}, (response) => {
+		}, {}, (response: any) => {
 			resolve(response);
 		});
 	});
 }
 
 class xhr {
+	public readyState: number;
+	public status: number;
+	public responseText: string;
+	private _config: {
+		method: string;
+		filePath: string;
+	}
+
 	constructor() {
 		this.readyState = 0;
 		this.status = xhr.UNSENT;
 		this.responseText = '';
-		/**
-		 * @type {{method: string; filePath: string}}
-		 */
 		this._config;
 	}
-	open(method, filePath) {
+	open(method: string, filePath: string) {
 		//Strip chrome-extension://
 		filePath = filePath.split('://something/')[1];
 
@@ -566,10 +562,11 @@ class xhr {
 }
 
 // Simulate user-agent chrome on windows for codemirror
-var navigator = {
+//@ts-ignore
+const navigator = {
 	userAgent: 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
 };
-var document = {
+const document: Partial<Document> = {
 	documentMode: true,
 	createElement: function () {
 		return {
@@ -588,15 +585,26 @@ var document = {
 		};
 	},
 	nodeType: 9,
-	documentElement: document
-};
-var storageLocal = {};
-var storageSync = {};
-var bgPageConnectListener;
-var idChangeListener;
+	get documentElement() {
+		return document;
+	}
+} as any;
+const storageLocal: {
+	[key: string]: any;
+} = {};
+const storageSync: {
+	[key: string]: any;
+} = {};
+var bgPageConnectListener: (port: _browser.runtime.Port) => void;
+var idChangeListener: (change: {
+	[key: string]: {
+		oldValue?: any;
+		newValue?: any;
+	}
+}) => void;
 
 //Type checking
-function getOriginalFunctionName(err) {
+function getOriginalFunctionName(err: Error) {
 	var fns = err.stack.split('\n').slice(1);
 	for (var i = 0; i < fns.length; i++) {
 		if (fns[i].indexOf('typeCheck') > -1) {
@@ -610,7 +618,9 @@ function getOriginalFunctionName(err) {
 	return '';
 }
 
-function _getDotValue(source, index) {
+function _getDotValue<T extends {
+	[key: string]: T|any;	
+}>(source: T, index: string) {
 	var indexes = index.split('.');
 	var currentValue = source;
 	for (var i = 0; i < indexes.length; i++) {
@@ -623,14 +633,41 @@ function _getDotValue(source, index) {
 	}
 	return currentValue;
 };
-function dependencyMet(data, optionals) {
+
+type TypeCheckTypes = 'string' | 'function' |
+		'number' | 'object' | 'array' | 'boolean' | 'enum';
+
+interface TypeCheckConfig {
+	val: string;
+	type: TypeCheckTypes | TypeCheckTypes[];
+	optional?: boolean;
+	forChildren?: {
+		val: string;
+		type: TypeCheckTypes | TypeCheckTypes[];
+		optional?: boolean;
+	}[];
+	dependency?: string;
+	min?: number;
+	max?: number;
+	enum?: any[];
+}
+
+function dependencyMet(data: TypeCheckConfig, optionals: {
+	[key: string]: any;
+	[key: number]: any;
+}): boolean {
 	if (data.dependency && !optionals[data.dependency]) {
 		optionals[data.val] = false;
 		return false;
 	}
 	return true;
-};
-function _isDefined(data, value, optionals) {
+}
+
+function _isDefined(data: TypeCheckConfig, value: any, optionals: {
+	[key: string]: any;
+	[key: number]: any;
+}): boolean | 'continue' {
+	//Check if it's defined
 	if (value === undefined || value === null) {
 		if (data.optional) {
 			optionals[data.val] = false;
@@ -641,10 +678,10 @@ function _isDefined(data, value, optionals) {
 	}
 	return true;
 };
-function _typesMatch(data, value) {
-	var types = Array.isArray(data.type) ? data.type : [data.type];
-	for (var i = 0; i < types.length; i++) {
-		var type = types[i];
+function _typesMatch(data: TypeCheckConfig, value: any): string {
+	const types = Array.isArray(data.type) ? data.type : [data.type];
+	for (let i = 0; i < types.length; i++) {
+		const type = types[i];
 		if (type === 'array') {
 			if (typeof value === 'object' && Array.isArray(value)) {
 				return type;
@@ -661,7 +698,7 @@ function _typesMatch(data, value) {
 	throw new Error("Value for " + data.val + " is not of type " + types.join(' or ') +
 	 	getOriginalFunctionName(new Error()));
 };
-function _checkNumberConstraints(data, value) {
+function _checkNumberConstraints(data: TypeCheckConfig, value: number): boolean {
 	if (data.min !== undefined) {
 		if (data.min > value) {
 			throw new Error("Value for " + data.val + " is smaller than " + data.min +
@@ -676,7 +713,11 @@ function _checkNumberConstraints(data, value) {
 	}
 	return true;
 };
-function _checkArrayChildType(data, value, forChild) {
+function _checkArrayChildType(data: TypeCheckConfig, value: any, forChild: {
+	val: string;
+	type: TypeCheckTypes | TypeCheckTypes[];
+	optional?: boolean;
+}): boolean {
 	var types = Array.isArray(forChild.type) ? forChild.type : [forChild.type];
 	for (var i = 0; i < types.length; i++) {
 		var type = types[i];
@@ -693,11 +734,12 @@ function _checkArrayChildType(data, value, forChild) {
 		" is the property " + forChild.val + " of type " + types.join(' or ') +
 		getOriginalFunctionName(new Error()));
 };
-function _checkArrayChildrenConstraints(data, value) {
-	for (var i = 0; i < value.length; i++) {
-		for (var j = 0; j < data.forChildren.length; j++) {
-			var forChild = data.forChildren[j];
-			var childValue = value[i][forChild.val];
+function _checkArrayChildrenConstraints<T extends {
+	[key: string]: any;
+}>(data: TypeCheckConfig, values: T[]): boolean {
+	for (const value of values) {
+		for (const forChild of data.forChildren) {
+			const childValue = value[forChild.val];
 			if (childValue === undefined || childValue === null) {
 				if (!forChild.optional) {
 					throw new Error("For not all values in the array " + data.val +
@@ -712,7 +754,10 @@ function _checkArrayChildrenConstraints(data, value) {
 	}
 	return true;
 };
-function _checkConstraints(data, value, optionals) {
+function _checkConstraints(data: TypeCheckConfig, value: any, optionals: {
+	[key: string]: any;
+	[key: number]: any;
+}): boolean {
 	if (typeof value === 'number') {
 		return _checkNumberConstraints(data, value);
 	}
@@ -721,8 +766,13 @@ function _checkConstraints(data, value, optionals) {
 	}
 	return true;
 };
-function typeCheck(args, toCheck) {
-	var optionals = {};
+function typeCheck(args: {
+	[key: string]: any;
+}, toCheck: TypeCheckConfig[]) {
+	const optionals: {
+		[key: string]: any;
+		[key: number]: any;
+	} = {};
 	for (var i = 0; i < toCheck.length; i++) {
 		var data = toCheck[i];
 		if (!dependencyMet(data, optionals)) {
@@ -746,7 +796,7 @@ function typeCheck(args, toCheck) {
 	return true;
 };
 
-function checkOnlyCallback(callback, optional) {
+function checkOnlyCallback(callback: Function, optional: boolean) {
 	typeCheck({
 		callback: callback
 	}, [{
@@ -756,12 +806,7 @@ function checkOnlyCallback(callback, optional) {
 	}]);
 }
 
-/**
- * @param {() => Promise<any>} fn - The fn to run
- * @param {RegExp} regexp - The regex that should match the error
- * @param {string} [message] - The asser.throws message
- */
-function asyncThrows(fn, regexp, message) {
+function asyncThrows(fn: () => Promise<any>, regexp: RegExp, message?: string) {
 	return new Promise((resolve, reject) => {
 		fn().then((result) => {
 			assert.throws(() => {}, regexp, message);
@@ -775,11 +820,7 @@ function asyncThrows(fn, regexp, message) {
 	});
 }
 
-/**
- * @param {() => Promise<any>} fn - The fn to run
- * @param {string} [message] - The asser.throws message
- */
-function asyncDoesNotThrow(fn, message) {
+function asyncDoesNotThrow(fn: () => Promise<any>, message?: string) {
 	return new Promise((resolve, reject) => {
 		fn().then((result) => {
 			assert.doesNotThrow(() => {}, message);
@@ -793,12 +834,9 @@ function asyncDoesNotThrow(fn, message) {
 	});
 }
 
-var contexts = ['all', 'page', 'frame', 'selection', 'link',
-	'editable', 'image', 'video', 'audio', 'launcher',
-	'browser_action', 'page_action'];
-var bgPagePortMessageListeners = [];
-var crmAPIPortMessageListeners = [];
-var chrome = {
+const bgPagePortMessageListeners: ((message: any) => void)[] = [];
+const crmAPIPortMessageListeners: ((message: any) => void)[] = [];
+const chrome = ({
 	app: {
 		getDetails: function() {
 			return {
@@ -807,7 +845,7 @@ var chrome = {
 		}
 	},
 	runtime: {
-		getURL: function (url) { 
+		getURL: function (url: string) { 
 			if (url) {
 				if (url.indexOf('/') === 0) {
 					url = url.slice(1);
@@ -817,18 +855,24 @@ var chrome = {
 			return 'chrome-extension://something/';
 		},
 		onConnect: {
-			addListener: function (fn) {
+			addListener: function (fn: (port: _browser.runtime.Port) => void) {
 				checkOnlyCallback(fn, false);
 				bgPageConnectListener = fn;
 			}
 		},
 		onMessage: {
-			addListener: function (fn) {
+			addListener: function (fn: (message: any) => void) {
 				checkOnlyCallback(fn, false);
 				bgPageOnMessageListener = fn;
 			}
 		},
-		connect: function(extensionId, connectInfo) {
+		connect: function(extensionId?: string|{
+			name?: string;
+			includeTlsChannelId?: boolean;
+		}, connectInfo?: {
+			name?: string;
+			includeTlsChannelId?: boolean;
+		}) {
 			if (connectInfo === void 0 && typeof extensionId !== 'string') {
 				connectInfo = extensionId;
 				extensionId = void 0;
@@ -850,7 +894,7 @@ var chrome = {
 				optional: true,
 				dependency: 'connectInfo'
 			}, {
-				val: 'connectInfo.includeTisChannelId',
+				val: 'connectInfo.includeTlsChannelId',
 				type: 'boolean',
 				optional: true,
 				dependency: 'connectInfo'
@@ -859,22 +903,22 @@ var chrome = {
 			var idx = bgPagePortMessageListeners.length;
 			bgPageConnectListener({ //Port for bg page
 				onMessage: {
-					addListener: function(fn) {
+					addListener: function(fn: (message: any) => void) {
 						bgPagePortMessageListeners[idx] = fn;
 					}
 				},
-				postMessage: function(message) {
+				postMessage: function(message: any) {
 					crmAPIPortMessageListeners[idx](message);
 				}
-			});
+			} as any);
 
 			return { //Port for crmAPI
 				onMessage: {
-					addListener: function(fn) {
+					addListener: function(fn: (message: any) => void) {
 						crmAPIPortMessageListeners[idx] = fn;
 					}
 				},
-				postMessage: function (message) {
+				postMessage: function (message: any) {
 					bgPagePortMessageListeners[idx](message);
 				}
 			}
@@ -888,9 +932,13 @@ var chrome = {
 		},
 		openOptionsPage: function() { },
 		lastError: null,
-		sendMessage: function(extensionId, message, options, responseCallback) {
+		sendMessage: function(extensionId: string|any, message: any|{
+			includeTlsChannelId?: boolean;
+		}, options: {
+			includeTlsChannelId?: boolean;
+		}|((value: any) => void), responseCallback: (value: any) => void) {
 			if (typeof extensionId !== 'string') {
-				responseCallback = options;
+				responseCallback = options as (value: any) => void;
 				options = message;
 				message = extensionId;
 				extensionId = void 0;
@@ -914,7 +962,7 @@ var chrome = {
 				type: 'object',
 				optional: true
 			}, {
-				val: 'options.includeTisChannelId',
+				val: 'options.includeTlsChannelId',
 				type: 'boolean',
 				optional: true,
 				dependency: 'options'
@@ -926,7 +974,7 @@ var chrome = {
 		},
 	},
 	contextMenus: {
-		create: function(data, callback) {
+		create: function(data: _chrome.contextMenus.CreateProperties, callback?: () => void) {
 			typeCheck({
 				data: data,
 				callback: callback
@@ -980,7 +1028,7 @@ var chrome = {
 				optional: true
 			}]);
 		},
-		update: function(id, data, callback) {
+		update: function(id: number|string, data: _chrome.tabs.UpdateProperties, callback?: () => void) {
 			typeCheck({
 				id: id,
 				data: data,
@@ -1034,15 +1082,9 @@ var chrome = {
 				optional: true
 			}]);
 
-			if (data.contexts && data.contexts.filter(function(element) {
-				return contexts.indexOf(element) === -1;
-			}).length !== 0) {
-				throw new Error('Not all context values are in the enum');
-			}
-
 			callback && callback();
 		},
-		remove: function(id, callback) {
+		remove: function(id: number|string, callback?: () => void) {
 			typeCheck({
 				id: id,
 				callback: callback
@@ -1057,39 +1099,39 @@ var chrome = {
 
 			callback();
 		},
-		removeAll: function(callback) {
+		removeAll: function(callback?: () => void) {
 			checkOnlyCallback(callback, true);
 			callback();
 		}
 	},
 	commands: {
 		onCommand: {
-			addListener: function(listener) {
+			addListener: function(listener: () => void) {
 				checkOnlyCallback(listener, false);
 			}
 		},
-		getAll: function(callback) {
+		getAll: function(callback: (commands: any[]) => void) {
 			checkOnlyCallback(callback, false);
 			callback([]);
 		}
 	},
 	tabs: {
 		onHighlighted: {
-			addListener: function (listener) {
+			addListener: function (listener: () => void) {
 				checkOnlyCallback(listener, false);
 			 }
 		},
 		onUpdated: {
-			addListener: function (listener) {
+			addListener: function (listener: () => void) {
 				checkOnlyCallback(listener, false);
 			 }
 		},
 		onRemoved: {
-			addListener: function (listener) {
+			addListener: function (listener: () => void) {
 				checkOnlyCallback(listener, false);
 			 }
 		},
-		query: function(options, callback) {
+		query: function(options: _chrome.tabs.QueryInfo, callback?: (tabs: _chrome.tabs.Tab[]) => void) {
 			typeCheck({
 				options: options,
 				callback: callback
@@ -1169,78 +1211,84 @@ var chrome = {
 	},
 	webRequest: {
 		onBeforeRequest: {
-			addListener: function (listener) {
+			addListener: function (listener: () => void) {
 				checkOnlyCallback(listener, false);
 			 }
 		}
 	},
 	management: {
-		getAll: function(listener) {
+		getAll: function(listener: (extensions: any[]) => void) {
 			listener([]);
 		},
 		onInstalled: {
-			addListener: function (listener) {
+			addListener: function (listener: () => void) {
 				checkOnlyCallback(listener, false);
 			 }
 		},
 		onEnabled: {
-			addListener: function (listener) {
+			addListener: function (listener: () => void) {
 				checkOnlyCallback(listener, false);
 			 }
 		},
 		onUninstalled: {
-			addListener: function (listener) {
+			addListener: function (listener: () => void) {
 				checkOnlyCallback(listener, false);
 			 }
 		},
 		onDisabled: {
-			addListener: function (listener) {
+			addListener: function (listener: () => void) {
 				checkOnlyCallback(listener, false);
 			 }
 		}
 	},
 	notifications: {
 		onClosed: {
-			addListener: function (listener) {
+			addListener: function (listener: () => void) {
 				checkOnlyCallback(listener, false);
 			 }
 		},
 		onClicked: {
-			addListener: function (listener) {
+			addListener: function (listener: () => void) {
 				checkOnlyCallback(listener, false);
 			 }
 		}
 	},
 	permissions: {
-		getAll: function (callback) {
+		getAll: function (callback: (permissions: {
+			permissions: string[];
+		}) => void) {
 			checkOnlyCallback(callback, false);
 			callback({
 				permissions: []
 			});
 		},
 		onAdded: {
-			addListener: function (listener) {
+			addListener: function (listener: () => void) {
 				checkOnlyCallback(listener, false);
 			 }
 		},
 		onRemoved: {
-			addListener: function (listener) {
+			addListener: function (listener: () => void) {
 				checkOnlyCallback(listener, false);
 			 }
 		},
 	},
 	storage: {
 		sync: {
-			get: function (key, cb) {
+			get: function (key: string|((value: any) => void), cb?: (value: any) => void) {
 				if (typeof key === 'function') {
 					key(storageSync);
 				} else {
-					var result = {};
+					var result: {
+						[key: string]: any;
+					} = {};
 					result[key] = storageSync[key];
 					cb(result);
 				}
 			},
-			set: function (data, cb) {
+			set: function (data: {
+				[key: string]: any;
+			}|any, cb?: (data: any) => void) {
 				for (var objKey in data) {
 					if (data.hasOwnProperty(objKey)) {
 						storageSync[objKey] = data[objKey];
@@ -1250,48 +1298,67 @@ var chrome = {
 			}
 		},
 		local: {
-			get: function (key, cb) {
+			get: function (key: string|((value: any) => void), cb?: (value: any) => void) {
 				if (typeof key === 'function') {
 					key(storageLocal);
 				} else {
-					var result = {};
-					result[key] = storageLocal[key];
+					var result: {
+						[key: string]: any;
+					} = {};
+					result[key] = storageSync[key];
 					cb(result);
 				}
 			},
-			set: function (obj, cb) {
-				for (var objKey in obj) {
-					if (obj.hasOwnProperty(objKey)) {
-						if (objKey === 'latestId') {
-							idChangeListener && idChangeListener({
-								latestId: {
-									newValue: obj[objKey]
-								}
-							});
-						}
-						storageLocal[objKey] = obj[objKey];
+			set: function (data: {
+				[key: string]: any;
+			}|any, cb?: (data: any) => void) {
+				for (var objKey in data) {
+					if (objKey === 'latestId') {
+						idChangeListener && idChangeListener({
+							latestId: {
+								newValue: data[objKey]
+							}
+						});
 					}
+					storageLocal[objKey] = data[objKey];
 				}
 				cb && cb(storageLocal);
 			}
 		},
 		onChanged: {
-			addListener: function (fn) {
+			addListener: function (fn: (change: {
+				[key: string]: {
+					oldValue?: any;
+					newValue?: any;
+				}
+			}) => void) {
 				checkOnlyCallback(fn, false);
 				idChangeListener = fn;
 			}
 		}
 	}
-};
-/**
- * @type {GlobalObject & {XMLHttpRequest: any; crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}} & {chrome: typeof chrome, browser: typeof _browser}}
- */
-var window;
-/**
- * @type {GlobalObject & {XMLHttpRequest: any; crmAPI: CRM.CRMAPI.Instance; changelogLog: {[key: string]: Array<string>;}} & {chrome: typeof chrome, browser: typeof _browser}}
- */
-// @ts-ignore
-var backgroundPageWindow = window = {
+} as DeepPartial<typeof _chrome>) as typeof _chrome;
+
+let window: GlobalObject & {
+	XMLHttpRequest: any; 
+	crmAPI: CRM.CRMAPI.Instance; 
+	changelogLog: {
+		[key: string]: Array<string>;
+	}
+} & {
+	chrome: typeof chrome, 
+	browser: typeof _browser
+}
+const backgroundPageWindow: GlobalObject & {
+	XMLHttpRequest: any; 
+	crmAPI: CRM.CRMAPI.Instance; 
+	changelogLog: {
+		[key: string]: Array<string>;
+	}
+} & {
+	chrome: typeof chrome, 
+	browser: typeof _browser
+} = window = {
 	HTMLElement: function HTMLElement() {
 		return {};
 	},
@@ -1357,10 +1424,10 @@ var backgroundPageWindow = window = {
 		documentElement: {}
 	},
 	chrome: chrome
-};
+} as any;
 console.log('Please make sure you have an internet connection as some tests use XHRs');
 describe('Meta', () => {
-	var changelogCode;
+	let changelogCode: string;
 	step('should be able to read changelog.js', () => {
 		assert.doesNotThrow(() => {
 			const filePath = path.join(__dirname, '../', './app/elements/change-log/changelog.js');
@@ -1383,6 +1450,7 @@ describe('Meta', () => {
 	});
 });
 describe('Conversion', () => {
+	//@ts-ignore
 	var Worker = function() {
 		return  {
 			postMessage: function() {
@@ -1391,17 +1459,18 @@ describe('Conversion', () => {
 			addEventListener: function(){}
 		}
 	}
+	//@ts-ignore
 	var localStorage = {
 		getItem: function () { return 'yes'; }
 	};
 	describe('Setup', function() {
 		this.slow(1000);
-		var backgroundCode;
+		var backgroundCode: string;
 		step('should be able to read background.js and its dependencies', () => {
 			// @ts-ignore
 			window.localStorage = {
 				setItem: () => { },
-				getItem: (key) => {
+				getItem: (key: string) => {
 					if (key === 'transferToVersion2') {
 						return false;
 					}
@@ -1418,6 +1487,7 @@ describe('Conversion', () => {
 					});
 			}, 'File background.js is readable');
 		});
+		//@ts-ignore
 		var location = {
 			href: 'test.com'
 		}
@@ -1447,7 +1517,7 @@ describe('Conversion', () => {
 		step('generateScriptUpgradeErrorHandler should be overwritable', () => {
 			assert.doesNotThrow(() => {
 				backgroundPageWindow.TransferFromOld.LegacyScriptReplace.generateScriptUpgradeErrorHandler = () => {
-					return (oldScriptErrs, newScriptErrs, parseErrors, errors) => {
+					return ((oldScriptErrs: Error[], newScriptErrs: Error[], parseErrors: Error[], errors: Error[][]) => {
 						if (Array.isArray(errors)) {
 							if (Array.isArray(errors[0])) {
 								throw errors[0][0];
@@ -1465,7 +1535,7 @@ describe('Conversion', () => {
 						if (parseErrors) {
 							throw new Error('Error parsing script');
 						}
-					};
+					}) as any;
 				};
 			}, 'generateScriptUpgradeErrorHandler is overwritable');
 		});
@@ -1487,7 +1557,7 @@ describe('Conversion', () => {
 				});
 			}, 'Converting does not throw an error');
 		});
-		var singleLinkBaseCase = [{
+		const singleLinkBaseCase = [{
 			name: 'linkname',
 			type: 'link',
 			value: [{
@@ -1497,7 +1567,7 @@ describe('Conversion', () => {
 			}, {
 				url: 'badurl'
 			}]
-		}];
+		}] as CRM.LinkNode[];
 		it('should convert a CRM with one link with openInNewTab false', (done) => {
 			var openInNewTab = false;
 			var oldStorage = createCrmLocalStorage(singleLinkBaseCase, false);
@@ -1687,7 +1757,7 @@ describe('Conversion', () => {
 						singleLinkBaseCase[0],
 						singleLinkBaseCase[0]
 						]
-				  }])).then((result) => {
+				  }])).then((result: CRM.MenuNode[]) => {
 						assert.isDefined(result, 'Result is defined');
 						assert.isArray(result, 'Resulting CRM is an array');
 						assert.lengthOf(result, 1, 'Resulting CRM has one child');
@@ -1753,24 +1823,27 @@ describe('Conversion', () => {
 								}]
 							}]
 						}]
-					}])).then((result) => {
+					}])).then((result: CRM.MenuNode[]) => {
 						assert.isDefined(result, 'Result is defined');
 						assert.isArray(result, 'Result is an array');
 						assert.lengthOf(result, 1, 'Result only has one child');
 						assert.isArray(result[0].children, 'First node has a children array');
+
+						const firstChild = result[0].children[0] as CRM.MenuNode;
+
 						// @ts-ignore
 						assert.lengthOf(result[0].children, 1, 'First node has only one child');
-						assert.isArray(result[0].children[0].children, "First node's child has children");
-						assert.lengthOf(result[0].children[0].children, 2, 'First node\s child has 2 children');
-						assert.isArray(result[0].children[0].children[0].children, "First node's first child has children");
-						assert.lengthOf(result[0].children[0].children[0].children, 4, "First node's first child has 4 children");
-						result[0].children[0].children[0].children.forEach((child, index) => {
+						assert.isArray(firstChild.children, "First node's child has children");
+						assert.lengthOf(firstChild.children, 2, 'First node\s child has 2 children');
+						assert.isArray(firstChild.children[0].children, "First node's first child has children");
+						assert.lengthOf(firstChild.children[0].children as CRM.Node[], 4, "First node's first child has 4 children");
+						(firstChild.children[0].children as CRM.Node[]).forEach((child: CRM.MenuNode, index) => {
 							assert.isArray(child.children, `First node's first child's child at index ${index} has children array`);
 							assert.lengthOf(child.children, 0, `First node's first child's child at index ${index} has 0 children`);
 						});
-						assert.isArray(result[0].children[0].children[1].children, "First node's second child has children");
-						assert.lengthOf(result[0].children[0].children[1].children, 3, "First node's second child has 3 children");
-						result[0].children[0].children[1].children.forEach((child, index) => {
+						assert.isArray(firstChild.children[1].children, "First node's second child has children");
+						assert.lengthOf(firstChild.children[1].children as CRM.Node[], 3, "First node's second child has 3 children");
+						(firstChild.children[1].children as CRM.Node[]).forEach((child: CRM.MenuNode, index) => {
 							assert.isArray(child.children, `First node's first child's child at index ${index} has children array`);
 							assert.lengthOf(child.children, 0, `First node's first child's child at index ${index} has 0 children`);
 						});
@@ -1799,9 +1872,9 @@ describe('Conversion', () => {
 			BOTH: 2
 		}
 
-		function testScript(script, expected, testType, doneFn) {
+		function testScript(script: string, expected: string|number, testType: number|(() => void), doneFn?: () => void) {
 			if (typeof expected === 'number') {
-				doneFn = testType;
+				doneFn = testType as () => void;
 				testType = expected;
 				expected = script;
 			}
@@ -1812,7 +1885,7 @@ describe('Conversion', () => {
 							value: {
 								script: script
 							}
-						})]), testType).then((result) => {
+						})]), testType as number).then((result) => {
 							assert.isDefined(result, 'Result is defined');
 							assert.property(result[0], 'value', 'Script has property value');
 							assert.property(result[0].value, 'script', "Script's value property has a script property");
@@ -2142,7 +2215,7 @@ window.crmAPI.chrome('runtime.getURL')('something').return(function(x) {x = x + 
 		});
 	});
 });
-var bgPageOnMessageListener;
+var bgPageOnMessageListener: (message: any, sender: any, respond: (response: any) => void) => void;
 describe('CRMAPI', () => {
 	step('default settings should be set', () => {
 		assert.deepEqual(storageLocal, {
@@ -2191,7 +2264,7 @@ describe('CRMAPI', () => {
 						localChanges: false,
 						settingsChanges: [{
 							key: 'crm',
-							oldValue: JSON.parse(storageSync['section0']).crm,
+							oldValue: (JSON.parse(storageSync['section0']) as CRM.SettingsStorage).crm,
 							newValue: testCRMTree
 						}]
 					}
@@ -2457,14 +2530,14 @@ describe('CRMAPI', () => {
 					menuVal: null,
 					permissions: []
 				}],
-				"latestId": JSON.parse(storageSync.section0).latestId,
-				"settingsLastUpdatedAt": JSON.parse(storageSync.section0).settingsLastUpdatedAt,
+				"latestId": (JSON.parse(storageSync.section0) as CRM.SettingsStorage).latestId,
+				"settingsLastUpdatedAt": (JSON.parse(storageSync.section0) as CRM.SettingsStorage).settingsLastUpdatedAt,
 				"rootName": "Custom Menu"
 			},
 			indexes: ['section0']
 		});
 	});
-	var crmAPICode;
+	var crmAPICode: string;
 	step('should be able to read crmapi.js', () => {
 		assert.doesNotThrow(() => {
 			crmAPICode = fs.readFileSync(
@@ -2473,23 +2546,18 @@ describe('CRMAPI', () => {
 				});
 		}, 'File crmapi.js is readable');
 	});
-	var crmAPIResult;
 	step('crmapi.js should be runnable', () => {
 		assert.doesNotThrow(() => {
-			crmAPIResult = eval(crmAPICode);
+			eval(crmAPICode);
 		}, 'File crmapi.js is executable');
 	});
-	/**
-	 * @type CRMAPI
-	 */
-	var crmAPI;
-	var nodeStorage;
-	var usedKeys = {};
-	/**
-	 * @type CRMAPI[]
-	 */
-	var crmAPIs = [];
-	var createSecretKey = function() {
+	var crmAPI: CRMAPI;
+	var nodeStorage: any;
+	var usedKeys: {
+		[usedKey: string]: boolean;
+	} = {};
+	var crmAPIs: CRMAPI[] = [];
+	var createSecretKey = (): number[] => {
 		var key = [];
 		var i;
 		for (i = 0; i < 25; i++) {
@@ -2503,11 +2571,7 @@ describe('CRMAPI', () => {
 			return createSecretKey();
 		}
 	}
-	/**
-	 * @type {CRM.CRMAPI.GreaseMonkeyData}
-	 */
-	// @ts-ignore
-	var greaseMonkeyData = {
+	var greaseMonkeyData: CRM.CRMAPI.GreaseMonkeyData = {
 		info: {
 			//@ts-ignore
 			testKey: createSecretKey()
@@ -2531,11 +2595,8 @@ describe('CRMAPI', () => {
 		[Math.round(Math.random() * 100)]: Math.round(Math.random() * 100),
 		[Math.round(Math.random() * 100)]: Math.round(Math.random() * 100),
 		[Math.round(Math.random() * 100)]: Math.round(Math.random() * 100)
-	};
+	} as any;
 	describe('setup', function() {
-		/**
-		 * @type {CRM.ScriptNode}
-		 */
 		var node = {
 			"name": "script",
 			"onContentTypes": [true, true, true, false, false, false],
@@ -2591,12 +2652,8 @@ describe('CRMAPI', () => {
 				"url": "*://*.example.com/*",
 				"not": true
 			}]
-		};
-		/**
-		 * @type CRM.CRMAPI.TabData
-		 */
-		// @ts-ignore
-		var tabData = {id: 0, testKey: createSecretKey()};
+		} as CRM.ScriptNode;
+		var tabData: CRM.CRMAPI.TabData = {id: 0, testKey: createSecretKey()} as any;
 		var clickData = {selection: 'some text', testKey: createSecretKey()};
 		nodeStorage = {testKey: createSecretKey()};
 		var secretKey = createSecretKey();
@@ -2609,7 +2666,6 @@ describe('CRMAPI', () => {
 				}];
 				window.globals.availablePermissions = ['sessions'];
 				window.globals.crm.crmById[2] = node;
-				var indentUnit = '	'; //Tab
 
 				//Actual code
 				var code = 'new (window._crmAPIRegistry.pop())(' +
@@ -2650,18 +2706,18 @@ describe('CRMAPI', () => {
 		});
 	});
 	describe('Comm', () => {
-		var tabIds = [];
+		var tabIds: number[] = [];
 		step('exists', () => {
 			assert.isObject(crmAPI.comm, 'comm API is an object');
 		});
 		step('should be able to set up other instances', async function () {
 			this.timeout(1500);
 			this.slow(1000);
-			function setupInstance(tabId) {
+			function setupInstance(tabId: number): Promise<CRMAPI> {
 				return new Promise((resolve) => {
 					//First run crmapi.js
 					assert.doesNotThrow(() => {
-						crmAPIResult = eval(crmAPICode);
+						eval(crmAPICode);
 					}, 'File crmapi.js is executable');
 
 					var node = {
@@ -2696,6 +2752,12 @@ describe('CRMAPI', () => {
 								"grant": ["none"],
 								"match": ["*://*.google.com/*"],
 								"exclude": ["*://*.example.com/*"]
+							},
+							options: {},
+							ts: {
+								script: {},
+								backgroundScript: {},
+								enabled: false
 							}
 						},
 						"id": 2,
@@ -2707,7 +2769,7 @@ describe('CRMAPI', () => {
 							"url": "https://www.example.com"
 						}],
 						"nodeInfo": {
-							"permissions": ["none"]
+							"permissions": []
 						},
 						"triggers": [{
 							"url": "*://*.google.com/*",
@@ -2721,9 +2783,14 @@ describe('CRMAPI', () => {
 						}, {
 							"url": "*://*.example.com/*",
 							"not": true
-						}]
-					};
-					var createSecretKey = function() {
+						}],
+						children: null,
+						menuVal: null,
+						stylesheetVal: null,
+						scriptVal: null,
+						permissions: [],
+					} as CRM.ScriptNode;
+					var createSecretKey = (): number[] => {
 						var key = [];
 						var i;
 						for (i = 0; i < 25; i++) {
@@ -2756,7 +2823,6 @@ describe('CRMAPI', () => {
 							secretKey: secretKey,
 							usesLocalStorage: false
 						});
-						var indentUnit = '	'; //Tab
 
 						//Actual code
 						var code = 'new (window._crmAPIRegistry.pop())(' +
@@ -2798,13 +2864,13 @@ describe('CRMAPI', () => {
 			};
 		});
 
-		var listeners = [];
-		var listenerRemovals = [];
-		var listenersCalled = [];
+		var listeners: ((message: any) => void)[] = [];
+		var listenerRemovals: number[] = [];
+		var listenersCalled: number[] = [];
 		var expectedMessageValue = generateRandomString();
-		function setupListener(i) {
+		function setupListener(i: number) {
 			var idx = i;
-			var fn = function(message) {
+			var fn = function(message: any) {
 				if (expectedMessageValue !== message.key) {
 					throw new Error(`Received value ${message.key} did not match ${expectedMessageValue}`);
 				}
@@ -2974,10 +3040,7 @@ describe('CRMAPI', () => {
 				}
 			});
 			it('should return all nodes matching type', async () => {
-				/**
-				 * @type CRM.NodeType[]
-				 */
-				var types = ['link','script','menu','stylesheet','divider'];
+				var types: CRM.NodeType[] = ['link','script','menu','stylesheet','divider'];
 				for (const type of types) {
 					const results = await crmAPI.crm.queryCrm({
 						type: type
@@ -2996,12 +3059,12 @@ describe('CRMAPI', () => {
 				assert.isDefined(results, 'results are defined');
 				assert.isArray(results, 'results are in an array');
 
-				var expected = [];
+				var expected: CRM.SafeNode[] = [];
 
-				function flattenCrm(obj) {
+				function flattenCrm(obj: CRM.SafeNode) {
 					expected.push(obj);
-					if (obj.children) {
-						obj.children.forEach(function(child) {
+					if ((obj as CRM.SafeMenuNode).children) {
+						(obj as CRM.SafeMenuNode).children.forEach(function(child) {
 							flattenCrm(child);
 						});
 					}
@@ -3071,7 +3134,7 @@ describe('CRMAPI', () => {
 						illegalStuf: 123
 					}
 				}
-				var expected = JSON.parse(JSON.stringify(nodeSettings));
+				var expected: Partial<CRM.LinkNode> = JSON.parse(JSON.stringify(nodeSettings)) as any;
 				expected.id = 7;
 				expected.onContentTypes = [true, true, true, false, false, false];
 				expected.showOnSpecified = false;
@@ -3087,7 +3150,7 @@ describe('CRMAPI', () => {
 				};
 				expected.isLocal = true;
 				expected.path = [6];
-				delete expected.someBadSettings;
+				delete (expected as any).someBadSettings;
 				delete expected.isLocal;
 
 				const node = await crmAPI.crm.createNode({
@@ -3147,27 +3210,29 @@ describe('CRMAPI', () => {
 			});
 		});
 		describe('#moveNode()', () => {
-			function assertMovedNode(newNode, originalPosition, expectedIndex) {
-				if (!Array.isArray(expectedIndex)) {
-					expectedIndex = [expectedIndex];
+			function assertMovedNode(newNode: CRM.SafeNode, 
+				originalPosition: number, 
+				expectedIndex: number|number[]) {
+					if (!Array.isArray(expectedIndex)) {
+						expectedIndex = [expectedIndex];
+					}
+
+					var expectedTreeSize = safeTestCRMTree.length;
+					if (expectedIndex.length > 1) {
+						expectedTreeSize--;
+					}
+
+					assert.isDefined(newNode, 'new node is defined');
+					assert.strictEqual(window.globals.crm.crmTree.length, expectedTreeSize, 'tree size is the same as expected');
+					assert.deepEqual(newNode.path, expectedIndex, 'node has the wanted position');
+					assert.deepEqual(newNode, 
+						eval(`window.globals.crm.safeTree[${expectedIndex.join('].children[')}]`),
+								`newNode is node at path ${expectedIndex}`);
+
+					//Set path to expected node as to "exclude" that property
+					newNode.path = safeTestCRMTree[originalPosition].path;
+					assert.deepEqual(newNode, safeTestCRMTree[originalPosition], 'node is the same node as before');
 				}
-
-				var expectedTreeSize = safeTestCRMTree.length;
-				if (expectedIndex.length > 1) {
-					expectedTreeSize--;
-				}
-
-				assert.isDefined(newNode, 'new node is defined');
-				assert.strictEqual(window.globals.crm.crmTree.length, expectedTreeSize, 'tree size is the same as expected');
-				assert.deepEqual(newNode.path, expectedIndex, 'node has the wanted position');
-				assert.deepEqual(newNode, 
-					eval(`window.globals.crm.safeTree[${expectedIndex.join('].children[')}]`),
-							`newNode is node at path ${expectedIndex}`);
-
-				//Set path to expected node as to "exclude" that property
-				newNode.path = safeTestCRMTree[originalPosition].path;
-				assert.deepEqual(newNode, safeTestCRMTree[originalPosition], 'node is the same node as before');
-			}
 			describe('No Parameters', () => {
 				it('should move the node to the end if no relation is given', async () => {
 					await resetTree();
@@ -3345,18 +3410,18 @@ describe('CRMAPI', () => {
 						//Don't remove the current script
 						if (i !== 2) {
 							crmAPI.crm.deleteNode(node.id).then(() => {
-								resolve();
+								resolve(null);
 							}).catch((err) => {
 								reject(err);
 							});
 						} else {
-							resolve();
+							resolve(null);
 						}
 					});
 				}));
 				assert.lengthOf(window.globals.crm.crmTree, 1, 'crmTree is almost empty');
 				var crmByIdEntries = 0;
-				for (var id in window.globals.crm.crmById) {
+				for (var _id in window.globals.crm.crmById) {
 					crmByIdEntries++;
 				}
 				assert.strictEqual(crmByIdEntries, 1, 'crmById is almost empty');
@@ -3372,7 +3437,7 @@ describe('CRMAPI', () => {
 				await crmAPI.crm.deleteNode(safeTestCRMTree[5].children[0].id);
 				assert.isUndefined(window.globals.crm.crmById[safeTestCRMTree[5].children[0].id], 
 					'removed node is removed from crmById');
-				assert.isUndefined(window.globals.crm.crmTree[5].children[0], 
+				assert.isUndefined((window.globals.crm.crmTree[5] as CRM.MenuNode).children[0], 
 					'removed node is removed from crmTree');
 				// @ts-ignore
 				assert.lengthOf(window.globals.crm.crmTree[5].children, 0,
@@ -3405,12 +3470,12 @@ describe('CRMAPI', () => {
 				assert.deepEqual(newNode, localCopy, 'node matches old node');
 			});
 			it('should edit the type when given just the type change option (no-menu)', async () => {
-				const newNode = await crmAPI.crm.editNode(safeTestCRMTree[0].id, {
+				const newNode: CRM.SafeLinkNode = await crmAPI.crm.editNode(safeTestCRMTree[0].id, {
 					type: 'link'
-				});
+				}) as any;
 				assert.isDefined(newNode, 'new node is defined');
 
-				var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+				var localCopy: CRM.SafeLinkNode = JSON.parse(JSON.stringify(safeTestCRMTree[0])) as any;
 				localCopy.type = 'link';
 				localCopy.menuVal = [];
 				localCopy.value = [{
@@ -3420,12 +3485,12 @@ describe('CRMAPI', () => {
 				assert.deepEqual(newNode, localCopy, 'node matches expected node');
 			});
 			it('should edit the type when given just the type change option (menu)', async () => {
-				const newNode = await crmAPI.crm.editNode(safeTestCRMTree[3].id, {
+				const newNode: CRM.SafeMenuNode = await crmAPI.crm.editNode(safeTestCRMTree[3].id, {
 					type: 'menu'
-				});
+				}) as any;
 				assert.isDefined(newNode, 'new node is defined');
 
-				var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[3]));
+				var localCopy: CRM.SafeMenuNode = JSON.parse(JSON.stringify(safeTestCRMTree[3])) as any;
 				localCopy.type = 'menu';
 				localCopy.stylesheetVal = {
 					"stylesheet": "/* ==UserScript==\n// @name\tstylesheet\n// @CRM_contentTypes\t[true, true, true, false, false, false]\n// @CRM_launchMode\t3\n// @CRM_stylesheet\ttrue\n// @grant\tnone\n// @match\t*://*.example.com/*\n// ==/UserScript== */\nbody {\n\tbackground-color: red;\n}",
@@ -3443,13 +3508,13 @@ describe('CRMAPI', () => {
 				assert.deepEqual(newNode, localCopy, 'node matches expected node');
 			});
 			it('should be able to change both at the same time', async () => {
-				const newNode = await crmAPI.crm.editNode(safeTestCRMTree[0].id, {
+				const newNode: CRM.LinkNode = await crmAPI.crm.editNode(safeTestCRMTree[0].id, {
 					type: 'link',
 					name: 'someNewName'
-				});
+				}) as any;
 				assert.isDefined(newNode, 'new node is defined');
 
-				var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+				var localCopy: CRM.LinkNode = JSON.parse(JSON.stringify(safeTestCRMTree[0])) as any;
 				localCopy.type = 'link';
 				localCopy.name = 'someNewName';
 				localCopy.menuVal = [];
@@ -3502,7 +3567,7 @@ describe('CRMAPI', () => {
 			});
 
 			it('should set the triggers to passed triggers (empty)', async () => {
-				var triggers = [];
+				var triggers: CRM.Triggers = [];
 				const newNode = await crmAPI.crm.setTriggers(safeTestCRMTree[1].id, triggers);
 				assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
 				assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
@@ -3624,10 +3689,7 @@ describe('CRMAPI', () => {
 					'correct content types were flipped');
 			});
 			it('should set a single content type by name when given valid input', async () => {
-				/**
-				 * @type {CRM.ContentTypeString[]}
-				 */
-				const arr = ['page','link','selection','image','video','audio'];
+				const arr = ['page','link','selection','image','video','audio'] as CRM.ContentTypeString[];
 				const currentContentTypes = JSON.parse(JSON.stringify(
 					safeTestCRMTree[0].onContentTypes));
 				for (let i = 0; i < currentContentTypes.length; i++) {
@@ -3908,37 +3970,37 @@ describe('CRMAPI', () => {
 				});
 				it('should correctly splice at index 0 and amount 1', async () => {
 					const { spliced } = await crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 0, 1);
-					var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+					var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value)) as CRM.LinkNodeLink[];
 					var splicedExpected = linkCopy.splice(0, 1);
 
-					assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
+					assert.deepEqual((window.globals.crm.crmTree[5] as CRM.MenuNode).children[0].value, linkCopy, 
 						'new value matches expected');
 					assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
 				});
 				it('should correctly splice at index not-0 and amount 1', async () => {
 					const { spliced } = await crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 2, 1);
-					var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+					var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value)) as CRM.LinkNodeLink[];
 					var splicedExpected = linkCopy.splice(2, 1);
 
-					assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
+					assert.deepEqual((window.globals.crm.crmTree[5] as CRM.MenuNode).children[0].value, linkCopy, 
 						'new value matches expected');
 					assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
 				});
 				it('should correctly splice at index 0 and amount 2', async () => {
 					const { spliced } = await crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 0, 2);
-					var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+					var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value)) as CRM.LinkNodeLink[];
 					var splicedExpected = linkCopy.splice(0, 2);
 
-					assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
+					assert.deepEqual((window.globals.crm.crmTree[5] as CRM.MenuNode).children[0].value, linkCopy, 
 						'new value matches expected');
 					assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
 				});
 				it('should correctly splice at index non-0 and amount 2', async () => {
 					const { spliced } = await crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 1, 2);
-					var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+					var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value)) as CRM.LinkNodeLink[];
 					var splicedExpected = linkCopy.splice(1, 2);
 
-					assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
+					assert.deepEqual((window.globals.crm.crmTree[5] as CRM.MenuNode).children[0].value, linkCopy, 
 						'new value matches expected');
 					assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
 				});
@@ -4389,7 +4451,7 @@ describe('CRMAPI', () => {
 						index: 1,
 						isLocal: true,
 						permissions: []
-					};
+					} as CRM.SafeLinkNode;
 					assert.deepEqual(newNode.children[0], firstNodeCopy, 'first node was moved correctly');
 
 					var secondNodeCopy = {...JSON.parse(JSON.stringify(safeTestCRMTree[2])),
@@ -4398,7 +4460,7 @@ describe('CRMAPI', () => {
 						index: 2,
 						isLocal: true,
 						permissions: []
-					}
+					} as CRM.ScriptNode;
 					assert.deepEqual(newNode.children[1], secondNodeCopy, 'second node was moved correctly');
 
 					assert.notDeepEqual(newNode.children[0], window.globals.crm.crmTree[1],
@@ -4449,7 +4511,7 @@ describe('CRMAPI', () => {
 				beforeEach(resetTree);
 
 				it('should correctly splice at index 0 and amount 1', async () => {
-					const spliced = await crmAPI.crm.menu.splice(safeTestCRMTree[5].id, 0, 1);
+					const { spliced } = await crmAPI.crm.menu.splice(safeTestCRMTree[5].id, 0, 1);
 					// @ts-ignore
 					assert.lengthOf(window.globals.crm.crmTree[5].children, 0, 'new node has 0 children');
 					assert.deepEqual(spliced[0], safeTestCRMTree[5].children[0],
@@ -4463,14 +4525,19 @@ describe('CRMAPI', () => {
 		step('API exists', () => {
 			assert.isObject(crmAPI.storage, 'storage API is an object');
 		});
-		var usedStrings = {};
+		var usedStrings: {
+			[str: string]: boolean;
+		} = {};
 		function generateUniqueRandomString() {
 			var str;
 			while (usedStrings[(str = generateRandomString())]) {}
 			usedStrings[str] = true;
 			return str;
 		}
-		var storageTestData = [];
+		var storageTestData: {
+			key: string;
+			value: string;
+		}[] = [];
 		for (var i = 0; i < 50; i++) {
 			storageTestData.push({
 				key: generateUniqueRandomString(),
@@ -4480,13 +4547,13 @@ describe('CRMAPI', () => {
 		step('API works', () => {
 			var isClearing = false;
 
-			var listeners = [];
-			var listenerActivations = [];
+			var listeners: ((key: string, oldVal: any, newVal: any) => void)[] = [];
+			var listenerActivations: number[] = [];
 			for (var i = 0; i < storageTestData.length; i++) {
 				listenerActivations[i] = 0;
 			}
-			function createStorageOnChangeListener(index) {
-				var fn = function(key, oldVal, newVal) {
+			function createStorageOnChangeListener(index: number) {
+				var fn = function(key: string, oldVal: any, newVal: any) {
 					if (key !== storageTestData[index].key) {
 						throw new Error(`Storage keys do not match, ${key} does not match expected ${storageTestData[index].key}`);
 					}
@@ -4519,10 +4586,7 @@ describe('CRMAPI', () => {
 				}
 			}, 'setting storage works');
 
-			/**
-			 * @type {any}
-			 */
-			var storageTestExpected = {
+			var storageTestExpected: any = {
 				testKey: nodeStorage.testKey
 			};
 			for (let i = 0; i < storageTestData.length; i++) {
@@ -4569,16 +4633,17 @@ describe('CRMAPI', () => {
 			//Reset it
 			for (let i = 0; i < storageTestData.length; i++) {
 				var key = storageTestData[i].key;
+				let keyArr: string[] = [];
 				if (key.indexOf('.') > -1) {
-					key = key.split('.');
+					keyArr = key.split('.');
 				} else {
-					key = [key];
+					keyArr = [key];
 				}
 
 				assert.doesNotThrow(() => {
-					crmAPI.storage.remove(key[0]);
+					crmAPI.storage.remove(keyArr[0]);
 				}, 'removing top-level data does not throw');
-				assert.isUndefined(crmAPI.storage.get(key[0]), 'removed data is undefined');
+				assert.isUndefined(crmAPI.storage.get(keyArr[0]), 'removed data is undefined');
 			}
 
 			//Set by object
@@ -4593,12 +4658,20 @@ describe('CRMAPI', () => {
 	describe('Libraries', () => {
 		before(() => {
 			class XHRWrapper {
+				public onreadystatechange: () => void;
+				public onload: () => void;
+				public readyState: number;
+				public method: string;
+				public url: string;
+				public status: number;
+				public responseText: string;
+
 				constructor() {
 					this.onreadystatechange = undefined;
 					this.onload = undefined;
 					this.readyState = XHRWrapper.UNSENT;
 				}
-				open(method, url) {
+				open(method: string, url: string) {
 					this.method = method;
 					this.url = url;
 					this.readyState = XHRWrapper.OPENED;
@@ -4664,10 +4737,14 @@ describe('CRMAPI', () => {
 			// @ts-ignore
 			window.chrome = window.chrome || {};
 			window.chrome.sessions = {
-				testReturnSimple: function(a, b) {
+				testReturnSimple: function(a: number, b: number) {
 					return a + b;
 				},
-				testReturnObject: function(a, b) {
+				testReturnObject: function(a: {
+					x: number;
+					y: number;
+					z: number;
+				}, b: any[]) {
 					a.x = 3;
 					a.y = 4;
 					a.z = 5;
@@ -4677,10 +4754,21 @@ describe('CRMAPI', () => {
 					b.push(5);
 					return {a: a, b: b};
 				},
-				testCallbackSimple: function(a, b, callback) {
+				testCallbackSimple: function(a: number, b: number, callback: (result: number) => void) {
 					callback(a + b);
 				},
-				testCallbackObject: function(a, b, callback) {
+				testCallbackObject: function(a: {
+					x: number;
+					y: number;
+					z: number;
+				}, b: any[], callback: (result: {
+					a: {
+						x: number;
+						y: number;
+						z: number;
+					};
+					b: any[]
+				}) => void) {
 					a.x = 3;
 					a.y = 4;
 					a.z = 5;
@@ -4690,11 +4778,22 @@ describe('CRMAPI', () => {
 					b.push(5);
 					callback({ a: a, b: b });
 				},
-				testCombinedSimple: function(a, b, callback) {
+				testCombinedSimple: function(a: number, b: number, callback: (result: number) => void) {
 					callback(a + b);
 					return a + b;
 				},
-				testCombinedObject: function(a, b, callback) {
+				testCombinedObject: function(a: {
+					x: number;
+					y: number;
+					z: number;
+				}, b: any[], callback: (result: {
+					a: {
+						x: number;
+						y: number;
+						z: number;
+					};
+					b: any[]
+				}) => void) {
 					a.x = 3;
 					a.y = 4;
 					a.z = 5;
@@ -4705,12 +4804,31 @@ describe('CRMAPI', () => {
 					callback({ a: a, b: b });
 					return {a: a, b: b};
 				},
-				testPersistentSimple: function(a, b, callback) {
+				testPersistentSimple: function(a: number, b: number, callback: (result: number) => void) {
 					callback(a + b);
 					callback(a - b);
 					callback(a * b);
 				},
-				testPersistentObject: function(a, b, callback) {
+				testPersistentObject: function(a: {
+					x: number;
+					y: number;
+					z: number;
+					value: number;
+				}, b: any[], callback: (result: {
+					a: {
+						x: number;
+						y: number;
+						z: number;
+					};
+					b: any[]
+				}|{
+					c: {
+						x: number;
+						y: number;
+						z: number;
+					}
+					d: any[];
+				}|number) => void) {
 					a.x = 3;
 					a.y = 4;
 					a.z = 5;
@@ -4722,7 +4840,7 @@ describe('CRMAPI', () => {
 					callback({c: a, d: b});
 					callback(a.value + b[0]);
 				}
-			}
+			} as any;
 		});
 		step('exists', () => {
 			assert.isFunction(crmAPI.chrome);
@@ -4761,7 +4879,7 @@ describe('CRMAPI', () => {
 			var val1 = Math.floor(Math.random() * 50);
 			var val2 = Math.floor(Math.random() * 50);
 			assert.doesNotThrow(() => {
-				crmAPI.chrome('sessions.testCallbackSimple')(val1, val2, (value) => {
+				crmAPI.chrome('sessions.testCallbackSimple')(val1, val2, (value: number) => {
 					assert.strictEqual(value, val1 + val2, 'returned value matches expected value');
 					done();
 				}).send();
@@ -4773,7 +4891,15 @@ describe('CRMAPI', () => {
 			};
 			var val2 = [Math.floor(Math.random() * 50)];
 			assert.doesNotThrow(() => {
-				crmAPI.chrome('sessions.testCallbackObject')(val1, val2, (value) => {
+				crmAPI.chrome('sessions.testCallbackObject')(val1, val2, (value: {
+					a: {
+						value: number;
+						x: number;
+						y: number;
+						z: number;
+					}
+					b: number[];
+				}) => {
 					assert.deepEqual(value, {
 						a: {
 							value: val1.value,
@@ -4790,17 +4916,17 @@ describe('CRMAPI', () => {
 		it('works with combined functions and simple parameters', (done) => {
 			var val1 = Math.floor(Math.random() * 50);
 			var val2 = Math.floor(Math.random() * 50);
-			var promises = [];
+			var promises: Promise<any>[] = [];
 			
 			promises.push(new Promise((resolveCallback) => {
 				promises.push(new Promise((resolveReturn) => {
 					assert.doesNotThrow(() => {
-						crmAPI.chrome('sessions.testCombinedSimple')(val1, val2, (value) => {
+						crmAPI.chrome('sessions.testCombinedSimple')(val1, val2, (value: number) => {
 							assert.strictEqual(value, val1 + val2, 'returned value is equal to returned value');
-							resolveCallback();
+							resolveCallback(null);
 						}).return((value) => {
 							assert.strictEqual(value, val1 + val2, 'returned value is equal to returned value');
-							resolveReturn();
+							resolveReturn(null);
 						}).send();
 					}, 'calling chrome function does not throw');
 				}));
@@ -4816,12 +4942,20 @@ describe('CRMAPI', () => {
 				value: Math.floor(Math.random() * 50)
 			};
 			var val2 = [Math.floor(Math.random() * 50)];
-			var promises = [];
+			var promises: Promise<any>[] = [];
 
 			promises.push(new Promise((resolveCallback) => {
 				promises.push(new Promise((resolveReturn) => {
 					assert.doesNotThrow(() => {
-						crmAPI.chrome('sessions.testCombinedObject')(val1, val2, (value) => {
+						crmAPI.chrome('sessions.testCombinedObject')(val1, val2, (value: {
+							a: {
+								value: number;
+								x: number;
+								y: number;
+								z: number;
+							}
+							b: number[];
+						}) => {
 							assert.deepEqual(value, {
 								a: {
 									value: val1.value,
@@ -4831,7 +4965,7 @@ describe('CRMAPI', () => {
 								}, 
 								b: [val2[0], 3, 4, 5]
 							}, 'returned value matches expected');
-							resolveCallback();
+							resolveCallback(null);
 						}).return((value) => {
 							assert.deepEqual(value, {
 								a: {
@@ -4842,7 +4976,7 @@ describe('CRMAPI', () => {
 								}, 
 								b: [val2[0], 3, 4, 5]
 							}, 'returned value matches expected');
-							resolveReturn();
+							resolveReturn(null);
 						}).send();
 					}, 'calling chrome function does not throw');
 				}));
@@ -4860,7 +4994,7 @@ describe('CRMAPI', () => {
 
 			var called = 0;
 			assert.doesNotThrow(() => {
-				crmAPI.chrome('sessions.testPersistentSimple')(val1, val2).persistent((value) => {
+				crmAPI.chrome('sessions.testPersistentSimple')(val1, val2).persistent((value: number) => {
 					switch (called) {
 						case 0:
 							assert.strictEqual(value, val1 + val2, 'returned value matches expected');
@@ -4885,7 +5019,23 @@ describe('CRMAPI', () => {
 
 			var called = 0;
 			assert.doesNotThrow(() => {
-				crmAPI.chrome('sessions.testCallbackObject')(val1, val2, (value) => {
+				crmAPI.chrome('sessions.testCallbackObject')(val1, val2, (value: {
+					a: {
+						value: number;
+						x: number;
+						y: number;
+						z: number;
+					}
+					b: number[];
+				}|{
+					c: {
+						value: number;
+						x: number;
+						y: number;
+						z: number;
+					}
+					d: number[];
+				}|number) => {
 					switch (called) {
 						case 0:
 							assert.deepEqual(value, {
@@ -4932,12 +5082,12 @@ describe('CRMAPI', () => {
 						resolve(null);
 					});
 				},
-				get: function(a, b) {
+				get: function(a: number, b: number) {
 					return new Promise((resolve) => {
 						resolve(a + b);
 					});
 				},
-				getAll: function(a, b) {
+				getAll: function(a: number, b: number) {
 					return new Promise((resolve) => {
 						resolve([a, b]);
 					});
@@ -4946,7 +5096,7 @@ describe('CRMAPI', () => {
 					return new Promise((resolve) => {
 						//@ts-ignore
 						callback(1);
-						resolve();
+						resolve(null);
 					});
 				},
 				onAlarm: {
@@ -4958,7 +5108,7 @@ describe('CRMAPI', () => {
 							callback(2);
 							// @ts-ignore
 							callback(3);
-							resolve();
+							resolve(null);
 						});
 					},
 				},
@@ -5010,10 +5160,10 @@ describe('CRMAPI', () => {
 			await asyncDoesNotThrow(async () => {
 				return new Promise(async (resolve) => {
 					let called = 0;
-					await crmAPI.browser.alarms.onAlarm.addListener.p((value) => {
+					await crmAPI.browser.alarms.onAlarm.addListener.p((value: number) => {
 						called += 1;
 						if (called === 3) {
-							resolve();
+							resolve(null);
 						}
 					}).send();
 				});
@@ -5038,7 +5188,9 @@ describe('CRMAPI', () => {
 					'returned info is the same as expected');
 			});
 		});
-		let storageMirror = {};
+		let storageMirror: {
+			[key: string]: any;
+		} = {};
 		describe('#GM_listValues()', () => {
 			before('Set test values', () => {
 				storageMirror = {};
@@ -5128,7 +5280,9 @@ describe('CRMAPI', () => {
 						}, 'string value can be set');
 					} else if (randVal <= 80) {
 						assert.doesNotThrow(() => {
-							const value = {};
+							const value: {
+								[key: string]: string;
+							} = {};
 							for (let j = 0; j < Math.round(Math.random() * 100); j++) {
 								value[generateRandomString(true)] = generateRandomString();
 							}
@@ -5181,7 +5335,7 @@ describe('CRMAPI', () => {
 			});
 		});
 		describe('#GM_deleteValue()', () => {
-			const deletedKeys = [];
+			const deletedKeys: string[] = [];
 			before('Set test values', () => {
 				storageMirror = {};
 				for (let i = 0; i < 100; i++) {
@@ -5263,7 +5417,10 @@ describe('CRMAPI', () => {
 			});
 		});
 		describe('#GM_openInTab()', () => {
-			let lastCall = undefined;
+			let lastCall: {
+				url: string;
+				target: string;
+			} = undefined;
 			//@ts-ignore
 			window.open = (url, target) => {
 				lastCall = {
@@ -5305,8 +5462,20 @@ describe('CRMAPI', () => {
 			});
 		});
 		describe('#GM_addValueChangeListener()', () => {
-			const calls = {};
-			const expectedCalls = {};
+			const calls: {
+				[key: string]: {
+					name: string;
+					oldValue: any;
+					newValue: any;
+				}[];
+			} = {};
+			const expectedCalls: {
+				[key: string]: {
+					name: string;
+					oldValue: any;
+					newValue: any;
+				}[];
+			} = {};
 			before('Set test values', () => {
 				storageMirror = {};
 				for (let i = 0; i < 100; i++) {
@@ -5360,9 +5529,14 @@ describe('CRMAPI', () => {
 			});
 		});
 		describe('#GM_removeValueChangeListener()', () => {
-			const calls = {};
-			const expectedCalls = {};
-			const listeners = [];
+			const calls: {
+				[key: string]: {
+					name: string;
+					oldValue: any;
+					newValue: any;
+				}[];
+			} = {};
+			const listeners: number[] = [];
 			before('Set test values', () => {
 				storageMirror = {};
 				for (let i = 0; i < 100; i++) {
@@ -5387,7 +5561,6 @@ describe('CRMAPI', () => {
 			it('should not call any listeners when their keys are updated', () => {
 				for (const key in storageMirror) {
 					for (let i = 0; i < Math.round(Math.random() * 5); i++) {
-						const oldVal = crmAPI.GM.GM_getValue(key);
 						const newVal = generateRandomString();
 						crmAPI.GM.GM_setValue(key, newVal);
 					}
@@ -5402,7 +5575,7 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(() => {
 					return new Promise((resolve) => {
 						crmAPI.GM.GM_getTab(() => {
-							resolve();
+							resolve(null);
 						});
 					});
 				});
@@ -5414,7 +5587,7 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(() => {
 					return new Promise((resolve) => {
 						crmAPI.GM.GM_getTabs(() => {
-							resolve();
+							resolve(null);
 						});
 					});
 				});
@@ -5426,7 +5599,7 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(() => {
 					return new Promise((resolve) => {
 						crmAPI.GM.GM_saveTab(() => {
-							resolve();
+							resolve(null);
 						});
 					});
 				});
