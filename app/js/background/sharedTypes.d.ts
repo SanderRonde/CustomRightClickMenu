@@ -1,5 +1,6 @@
 /// <reference path="../../../tools/definitions/typescript.d.ts" />
 /// <reference path="../../../tools/definitions/specialJSON.d.ts" />
+/// <reference path="../polyfills/weakmap.ts" />
 interface CRMAPIMessageInstance<T, TD> {
 	id: number;
 	tabId: number;
@@ -221,6 +222,7 @@ type BackgroundpageWindow = Window & SharedWindow & {
 		exports?: any;
 	}
 	crypto: Crypto;
+	WeakMap: typeof WeakMapPolyfill;
 
 	log: typeof console.log;
 	info: typeof console.log;
