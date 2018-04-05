@@ -187,15 +187,15 @@ export namespace GlobalDeclarations {
 			}
 		}
 	}
-	function _permissionsChanged(available: _browser.permissions.Permissions) {
+	function permissionsChanged(available: _browser.permissions.Permissions) {
 		modules.globalObject.globals.availablePermissions = available.permissions;
 	}
 	export async function refreshPermissions() {
 		if ((window as any).chrome && (window as any).chrome.permissions) {
 			const chromePermissions: typeof _chrome.permissions = (window as any).chrome.permissions;
 			if ('onRemoved' in chromePermissions && 'onAdded' in chromePermissions) {
-				chromePermissions.onRemoved.addListener(_permissionsChanged);
-				chromePermissions.onAdded.addListener(_permissionsChanged);
+				chromePermissions.onRemoved.addListener(permissionsChanged);
+				chromePermissions.onAdded.addListener(permissionsChanged);
 			}
 		}
 		const available = browserAPI.permissions ? await browserAPI.permissions.getAll() : {

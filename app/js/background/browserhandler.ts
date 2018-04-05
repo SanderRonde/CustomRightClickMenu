@@ -2,7 +2,7 @@
 import { ModuleData } from "./moduleTypes";
 
 export namespace BrowserHandler.ChromeAPIs {
-	function _checkFirstRuntimeArg(message: ChromeAPIMessage|BrowserAPIMessage, expectedType: string, name: string) {
+	function checkFirstRuntimeArg(message: ChromeAPIMessage|BrowserAPIMessage, expectedType: string, name: string) {
 		if (!message.args[0] || (message.type === 'chrome' && message.args[0].type !== expectedType) ||
 			(message.type === 'browser' && message.args[0].type !== 'return')) {
 			modules.APIMessaging.ChromeMessage.throwError(message, expectedType === 'fn' ?
@@ -12,7 +12,7 @@ export namespace BrowserHandler.ChromeAPIs {
 		}
 		return false;
 	}
-	function _respondSuccess(message: ChromeAPIMessage|BrowserAPIMessage, params: any[]) {
+	function respondSuccess(message: ChromeAPIMessage|BrowserAPIMessage, params: any[]) {
 		if (message.type === 'browser') {
 			modules.APIMessaging.createReturn(message, message.args[0].val)(params[0]);
 		} else {
@@ -24,22 +24,22 @@ export namespace BrowserHandler.ChromeAPIs {
 	}
 	export function getBackgroundPage(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
 		console.warn(`The ${message.type}.runtime.getBackgroundPage API should not be used`);
-		if (_checkFirstRuntimeArg(message, 'fn', api)) {
+		if (checkFirstRuntimeArg(message, 'fn', api)) {
 			return true;
 		}
-		_respondSuccess(message, [{}]);
+		respondSuccess(message, [{}]);
 		return true;
 	}
 	export async function openOptionsPage(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
-		if (_checkFirstRuntimeArg(message, 'fn', api)) {
+		if (checkFirstRuntimeArg(message, 'fn', api)) {
 			return true;
 		}
 		await browserAPI.runtime.openOptionsPage();
-		message.args[0] && _respondSuccess(message, []);
+		message.args[0] && respondSuccess(message, []);
 		return true;
 	}
 	export function getManifest(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
-		if (_checkFirstRuntimeArg(message, 'return', api)) {
+		if (checkFirstRuntimeArg(message, 'return', api)) {
 			return true;
 		}
 		modules.APIMessaging.createReturn(message, message.args[0].val)(
@@ -113,11 +113,11 @@ export namespace BrowserHandler.ChromeAPIs {
 		return true;
 	}
 	export async function getPlatformInfo(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
-		if (_checkFirstRuntimeArg(message, 'fn', api)) {
+		if (checkFirstRuntimeArg(message, 'fn', api)) {
 			return true;
 		}
 		const platformInfo = await browserAPI.runtime.getPlatformInfo();
-		message.args[0] && _respondSuccess(message, [platformInfo]);
+		message.args[0] && respondSuccess(message, [platformInfo]);
 		return true;
 	}
 	export function getPackageDirectoryEntry(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
@@ -126,18 +126,18 @@ export namespace BrowserHandler.ChromeAPIs {
 				'getPackageDirectoryEntry is not supported on this platform');
 			return false;
 		}
-		if (_checkFirstRuntimeArg(message, 'fn', api)) {
+		if (checkFirstRuntimeArg(message, 'fn', api)) {
 			return true;
 		}
 		
 		const chromeRuntime = ((browserAPI.runtime as any) as typeof _chrome.runtime);
 		chromeRuntime.getPackageDirectoryEntry((directoryInfo) => {
-			message.args[0] && _respondSuccess(message, [directoryInfo]);
+			message.args[0] && respondSuccess(message, [directoryInfo]);
 		});
 		return true;
 	}
 
-	function _handlePossibleChromeEvent(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
+	function handlePossibleChromeEvent(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
 		if (api.split('.').length > 1) {
 			if (!message.args[0] || message.args[0].type !== 'fn') {
 				modules.APIMessaging.ChromeMessage.throwError(message,
@@ -211,7 +211,7 @@ export namespace BrowserHandler.ChromeAPIs {
 			case 'getPackageDirectoryEntry':
 				return ChromeAPIs.getPackageDirectoryEntry(message, fn);
 		}
-		return _handlePossibleChromeEvent(message, fn);
+		return handlePossibleChromeEvent(message, fn);
 	}
 }
 
@@ -224,7 +224,7 @@ export namespace BrowserHandler.ForbiddenCalls {
 	function getTargetId(message: ChromeAPIMessage|BrowserAPIMessage) {
 		return message.args[0].val;
 	}
-	function _respondSuccess(message: ChromeAPIMessage|BrowserAPIMessage, cbIndex: number, params: any[]) {
+	function respondSuccess(message: ChromeAPIMessage|BrowserAPIMessage, cbIndex: number, params: any[]) {
 		if (!message.args[cbIndex]) {
 			return;
 		}
@@ -237,11 +237,11 @@ export namespace BrowserHandler.ForbiddenCalls {
 			});
 		}
 	}
-	function _respondError(message: ChromeAPIMessage|BrowserAPIMessage, error: string) {
+	function respondError(message: ChromeAPIMessage|BrowserAPIMessage, error: string) {
 		modules.APIMessaging.ChromeMessage.throwError(message, 
 			error, '');
 	}
-	async function _removeContextMenuItem(descriptor: UserAddedContextMenu) {
+	async function removeContextMenuItem(descriptor: UserAddedContextMenu) {
 		const { actualId, children, parent, generatedId } = descriptor;
 		//Remove from parent
 		parent.children.splice(parent.children.indexOf(descriptor), 1);
@@ -251,7 +251,7 @@ export namespace BrowserHandler.ForbiddenCalls {
 
 		//Remove children
 		for (const child of children) {
-			await _removeContextMenuItem(child);
+			await removeContextMenuItem(child);
 		}
 
 		//Remove from contextmenu
@@ -268,19 +268,19 @@ export namespace BrowserHandler.ForbiddenCalls {
 			const ownId = message.id;
 			await modules.Util.filter(modules.crmValues.userAddedContextMenus, async(item) => {
 				const shouldBeRemoved = item.sourceNodeId === ownId;
-				await _removeContextMenuItem(item);
+				await removeContextMenuItem(item);
 				return !shouldBeRemoved;
 			});
-			_respondSuccess(message, 0, []);
+			respondSuccess(message, 0, []);
 		} else if (fn === 'remove') {
 			//Only allow if the target is something created by this node
 			if (isCreatedByCurrentNode(message)) {
 				const id = getTargetId(message);
-				await _removeContextMenuItem(
+				await removeContextMenuItem(
 					modules.crmValues.userAddedContextMenusById[id])
-				_respondSuccess(message, 1, []);
+				respondSuccess(message, 1, []);
 			} else {
-				_respondError(message, 
+				respondError(message, 
 					'Attempted to modify contextMenu item that was not' + 
 					' created by this node')
 			}
@@ -288,9 +288,9 @@ export namespace BrowserHandler.ForbiddenCalls {
 			if (isCreatedByCurrentNode(message)) {
 				const id = getTargetId(message);
 				await browserAPI.contextMenus.update(id, message.args[1].val);
-				_respondSuccess(message, 2, []);
+				respondSuccess(message, 2, []);
 			} else {
-				_respondError(message, 
+				respondError(message, 
 					'Attempted to modify contextMenu item that was not' + 
 					' created by this node')
 			}
@@ -303,7 +303,7 @@ export namespace BrowserHandler.ForbiddenCalls {
 				createProperties.parentId = byId[parentId].actualId;
 			}
 			const actualId = browserAPI.contextMenus.create(createProperties, 
-				modules.CRMNodes._handleUserAddedContextMenuErrors);
+				modules.CRMNodes.handleUserAddedContextMenuErrors);
 			
 			//Create a fake id
 			const fakeId = modules.Util.createUniqueNumber();
@@ -363,18 +363,18 @@ export namespace BrowserHandler {
 	}
 
 	export async function handle(message: ChromeAPIMessage|BrowserAPIMessage) {
-		if (!await _handleSpecialCalls(message)) {
+		if (!await handleSpecialCalls(message)) {
 			return false;
 		}
 		const apiPermission = message.requestType ||
 			message.api.split('.')[0] as CRM.Permission;
 
-		if (!_isAllowed(apiPermission)) {
+		if (!isAllowed(apiPermission)) {
 			modules.APIMessaging.ChromeMessage.throwError(message,
 				`Permission ${apiPermission} is not allowed for scripts, please use a CRM API replacemenet`);
 			return false;
 		}
-		if (!_hasPermission(message, apiPermission)) {
+		if (!hasPermission(message, apiPermission)) {
 			return false;
 		}
 		if (modules.constants.permissions.indexOf(apiPermission) === -1) {
@@ -401,7 +401,7 @@ export namespace BrowserHandler {
 					params.push(modules.Util.jsonFn.parse(message.args[i].val));
 					break;
 				case 'fn':
-					params.push(_createChromeFnCallbackHandler(message, message.args[i].val));
+					params.push(createChromeFnCallbackHandler(message, message.args[i].val));
 					break;
 				case 'return':
 					returnFunctions.push(modules.APIMessaging.createReturn(message, message.args[i].val));
@@ -434,14 +434,14 @@ export namespace BrowserHandler {
 		return true;
 	}
 
-	function _isAllowed(apiPermission: CRM.Permission) {
+	function isAllowed(apiPermission: CRM.Permission) {
 		if (apiPermission as any === 'storage') {
 			return false;
 		}
 		return true;
 	}
 
-	function _hasPermission(message: ChromeAPIMessage|BrowserAPIMessage, apiPermission: CRM.Permission) {
+	function hasPermission(message: ChromeAPIMessage|BrowserAPIMessage, apiPermission: CRM.Permission) {
 		const node = modules.crm.crmById[message.id];
 		if (!node.isLocal) {
 			let apiFound: boolean;
@@ -465,7 +465,7 @@ export namespace BrowserHandler {
 		}
 		return true;
 	}
-	async function _handleSpecialCalls(message: ChromeAPIMessage|BrowserAPIMessage) {
+	async function handleSpecialCalls(message: ChromeAPIMessage|BrowserAPIMessage) {
 		if (!/[a-zA-Z0-9]*/.test(message.api)) {
 			modules.APIMessaging.ChromeMessage.throwError(message, `Passed API "${
 				message.api
@@ -483,7 +483,7 @@ export namespace BrowserHandler {
 		}
 		return true;
 	}
-	function _createChromeFnCallbackHandler(message: ChromeAPIMessage|BrowserAPIMessage,
+	function createChromeFnCallbackHandler(message: ChromeAPIMessage|BrowserAPIMessage,
 		callbackIndex: number) {
 		return (...params: any[]) => {
 			modules.APIMessaging.CRMMessage.respond(message, 'success', {

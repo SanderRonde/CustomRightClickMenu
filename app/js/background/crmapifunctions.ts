@@ -990,7 +990,7 @@ export namespace CRMAPIFunctions {
 			});
 		});
 	}
-	function _doesLibraryExist(lib: {
+	function doesLibraryExist(lib: {
 		name: string;
 	}): string | boolean {
 		for (const { name } of modules.storages.storageLocal.libraries) {
@@ -1000,7 +1000,7 @@ export namespace CRMAPIFunctions {
 		}
 		return false;
 	}
-	function _isAlreadyUsed(script: CRM.ScriptNode, lib: {
+	function isAlreadyUsed(script: CRM.ScriptNode, lib: {
 		name: string;
 	}): boolean {
 		for (const { name } of script.value.libraries) {
@@ -1042,23 +1042,23 @@ export namespace CRMAPIFunctions {
 					if (Array.isArray(libraries)) {
 						for (const library of libraries) {
 							const originalName = library.name;
-							if (!(library.name = _doesLibraryExist(library) as string)) {
+							if (!(library.name = doesLibraryExist(library) as string)) {
 								__this.respondError('Library ' + originalName + 
 									' is not registered');
 								return false;
 							}
-							if (!_isAlreadyUsed(node, library)) {
+							if (!isAlreadyUsed(node, library)) {
 								node.value.libraries.push(library as CRM.Library);
 							}
 						}
 					} else {
 						const name = libraries.name;
-						if (!(libraries.name = _doesLibraryExist(libraries) as string)) {
+						if (!(libraries.name = doesLibraryExist(libraries) as string)) {
 							__this.respondError('Library ' + name +
 								' is not registered');
 							return false;
 						}
-						if (!_isAlreadyUsed(node, libraries)) {
+						if (!isAlreadyUsed(node, libraries)) {
 							node.value.libraries.push(libraries as CRM.Library);
 						}
 					}
@@ -1133,23 +1133,23 @@ export namespace CRMAPIFunctions {
 					if (Array.isArray(libraries)) { //Array
 						for (const library of libraries) {
 							const originalName = library.name;
-							if (!(library.name = _doesLibraryExist(library) as string)) {
+							if (!(library.name = doesLibraryExist(library) as string)) {
 								__this.respondError('Library ' + originalName +
 									' is not registered');
 								return false;
 							}
-							if (!_isAlreadyUsed(node, library)) {
+							if (!isAlreadyUsed(node, library)) {
 								node.value.backgroundLibraries.push(library as CRM.Library);
 							}
 						}
 					} else { //Object
 						const name = libraries.name;
-						if (!(libraries.name = _doesLibraryExist(libraries) as string)) {
+						if (!(libraries.name = doesLibraryExist(libraries) as string)) {
 							__this.respondError('Library ' + name + 
 								' is not registered');
 							return false;
 						}
-						if (!_isAlreadyUsed(node, libraries)) {
+						if (!isAlreadyUsed(node, libraries)) {
 							node.value.backgroundLibraries.push(libraries as CRM.Library);
 						}
 					}
@@ -1455,7 +1455,7 @@ export namespace CRMAPIFunctions {
 		});
 	}
 
-	async function _queryTabs(options: BrowserTabsQueryInfo & {
+	async function queryTabs(options: BrowserTabsQueryInfo & {
 		all?: boolean;
 	}): Promise<_browser.tabs.Tab[]> {
 		if (Object.getOwnPropertyNames(options).length === 0) {
@@ -1469,7 +1469,7 @@ export namespace CRMAPIFunctions {
 			return await browserAPI.tabs.query(options);
 		}
 	}
-	function _removeDuplicateTabs(tabs: _browser.tabs.Tab[]): _browser.tabs.Tab[] {
+	function removeDuplicateTabs(tabs: _browser.tabs.Tab[]): _browser.tabs.Tab[] {
 		const nonDuplicates: _browser.tabs.Tab[] = [];
 		const ids: number[] = [];
 		for (const tab of tabs) {
@@ -1487,7 +1487,7 @@ export namespace CRMAPIFunctions {
 
 	type MaybeArray<T> = T | T[];
 
-	async function _runScript(__this: CRMAPICall.Instance, id: number, options: BrowserTabsQueryInfo & {
+	async function doRunScript(__this: CRMAPICall.Instance, id: number, options: BrowserTabsQueryInfo & {
 		tabId?: MaybeArray<number>;
 	}) {
 		if (typeof options.tabId === 'number') {
@@ -1495,10 +1495,10 @@ export namespace CRMAPIFunctions {
 		}
 
 		const tabIds: number[] = options.tabId;
-	delete options.tabId;
+		delete options.tabId;
 
 		//Get results from tab query
-		const queriedTabs = await _queryTabs(options) || [];
+		const queriedTabs = await queryTabs(options) || [];
 		const tabIdTabs = await window.Promise.all((tabIds || []).map((tabId) => {
 			return browserAPI.tabs.get(tabId);
 		}));
@@ -1506,7 +1506,7 @@ export namespace CRMAPIFunctions {
 		if (!node || node.type !== 'script') {
 			return;
 		}
-		_removeDuplicateTabs([...queriedTabs, ...tabIdTabs]).forEach((tab) => {
+		removeDuplicateTabs([...queriedTabs, ...tabIdTabs]).forEach((tab) => {
 			modules.CRMNodes.Script.Handler.createHandler(node)({
 				pageUrl: tab.url,
 				menuItemId: 0,
@@ -1599,7 +1599,7 @@ export namespace CRMAPIFunctions {
 					options.tabId = [options.tabId];
 				}
 
-				await _runScript(__this, id, options);
+				await doRunScript(__this, id, options);
 			});
 		})
 	}
@@ -1684,7 +1684,7 @@ export namespace CRMAPIFunctions {
 					options.tabId = [options.tabId];
 				}
 
-				await _runScript(__this, __this.message.id, options);
+				await doRunScript(__this, __this.message.id, options);
 			});
 		})
 	}

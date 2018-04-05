@@ -36,7 +36,7 @@ export namespace Caches {
 
 	const cachedData = new window.WeakMap<Function, CachedData[]>();
 
-	function _isArraySame(first: any[], second: any[]): boolean {
+	function isArraySame(first: any[], second: any[]): boolean {
 		for (const i in first) {
 			if (first[i] !== second[i]) {
 				return false;
@@ -44,7 +44,7 @@ export namespace Caches {
 		}
 		return true;
 	}
-	function _encodeUnlinked<T extends Function|number|boolean|string|undefined|null|any[]|{
+	function encodeUnlinked<T extends Function|number|boolean|string|undefined|null|any[]|{
 		[key: string]: any;
 		[key: number]: any;
 	}>(val: T): UnlinkedValue<T> {
@@ -66,7 +66,7 @@ export namespace Caches {
 				}
 		}
 	}
-	function _decodeUnlinked<T extends Function|number|boolean|string|undefined|null|any[]|{
+	function decodeUnlinked<T extends Function|number|boolean|string|undefined|null|any[]|{
 		[key: string]: any;
 		[key: number]: any;
 	}>(unlinkedEncoded: UnlinkedValue<T>): T {
@@ -76,7 +76,7 @@ export namespace Caches {
 			return unlinkedEncoded.val as T;
 		}
 	}
-	function _getFromCache<R, A>(toCacheFn: (...args: A[]) => R, toCacheArgs: A[]): {
+	function getFromCache<R, A>(toCacheFn: (...args: A[]) => R, toCacheArgs: A[]): {
 		found: boolean;
 		result: R;
 	} {
@@ -91,12 +91,12 @@ export namespace Caches {
 			if (args.length !== toCacheArgs.length) {
 				continue;
 			}
-			if (!_isArraySame(args, toCacheArgs)) {
+			if (!isArraySame(args, toCacheArgs)) {
 				continue;
 			}
 			return {
 				found: true,
-				result: _decodeUnlinked(result)
+				result: decodeUnlinked(result)
 			}
 		}
 		return {
@@ -104,11 +104,11 @@ export namespace Caches {
 			result: null
 		}
 	}
-	function _doCache<R, A>(toCacheFn: (...args: (A|boolean)[]) => R, toCacheArgs: A[], unlink: boolean): R {
+	function doCache<R, A>(toCacheFn: (...args: (A|boolean)[]) => R, toCacheArgs: A[], unlink: boolean): R {
 		const result = toCacheFn(...[...toCacheArgs, false]);
 		const instance: CachedData = {
 			args: toCacheArgs,
-			result: unlink ? _encodeUnlinked(result) : {
+			result: unlink ? encodeUnlinked(result) : {
 				encoding: UNLINK_ENCODING.NOT_ENCODED,
 				val: result
 			}
@@ -126,10 +126,10 @@ export namespace Caches {
 		const regularArgsLength = toCacheFn.length - 1;
 		const allArgs = (Array.prototype.slice.apply(toCacheArgs) as A[]);
 		const regularArgs = allArgs.slice(0, regularArgsLength);
-		const { found, result } = _getFromCache(toCacheFn, regularArgs);
+		const { found, result } = getFromCache(toCacheFn, regularArgs);
 		if (found) {
 			return result;
 		}
-		return _doCache(toCacheFn, regularArgs, unlink);
+		return doCache(toCacheFn, regularArgs, unlink);
 	}
 }

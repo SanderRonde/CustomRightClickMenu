@@ -130,7 +130,7 @@ namespace TypeChecking {
 		enum?: any[];
 	}
 
-	function _getDotValue<T extends {
+	function getDotValue<T extends {
 		[key: string]: T | U
 	}, U>(source: T, index: string): U {
 		const indexes = index.split('.');
@@ -156,7 +156,7 @@ namespace TypeChecking {
 		return true;
 	}
 
-	function _isDefined(data: TypeCheckConfig, value: any, optionals: {
+	function isDefined(data: TypeCheckConfig, value: any, optionals: {
 		[key: string]: any;
 		[key: number]: any;
 	}): boolean | 'continue' {
@@ -172,7 +172,7 @@ namespace TypeChecking {
 		return true;
 	}
 
-	function _typesMatch(data: TypeCheckConfig, value: any): string {
+	function typesMatch(data: TypeCheckConfig, value: any): string {
 		const types = Array.isArray(data.type) ? data.type : [data.type];
 		for (let i = 0; i < types.length; i++) {
 			const type = types[i];
@@ -192,7 +192,7 @@ namespace TypeChecking {
 		throw new Error(`Value for ${data.val} is not of type ${types.join(' or ')}`);
 	}
 
-	function _checkNumberConstraints(data: TypeCheckConfig, value: number): boolean {
+	function checkNumberConstraints(data: TypeCheckConfig, value: number): boolean {
 		if (data.min !== undefined) {
 			if (data.min > value) {
 				throw new Error(`Value for ${data.val} is smaller than ${data.min}`);
@@ -206,7 +206,7 @@ namespace TypeChecking {
 		return true;
 	}
 
-	function _checkArrayChildType(data: TypeCheckConfig, value: any, forChild: {
+	function checkArrayChildType(data: TypeCheckConfig, value: any, forChild: {
 		val: string;
 		type: TypeCheckTypes | TypeCheckTypes[];
 		optional?: boolean;
@@ -226,7 +226,7 @@ namespace TypeChecking {
 			forChild.val} of type ${types.join(' or ')}`);
 	}
 
-	function _checkArrayChildrenConstraints<T extends {
+	function checkArrayChildrenConstraints<T extends {
 		[key: string]: any;
 	}>(data: TypeCheckConfig, values: T[]): boolean {
 		for (const value of values) {
@@ -238,7 +238,7 @@ namespace TypeChecking {
 					if (!forChild.optional) {
 						throw new Error(`For not all values in the array ${data.val} is the property ${forChild.val} defined`);
 					}
-				} else if (!_checkArrayChildType(data, childValue, forChild)) {
+				} else if (!checkArrayChildType(data, childValue, forChild)) {
 					return false;
 				}
 			}
@@ -246,15 +246,15 @@ namespace TypeChecking {
 		return true;
 	}
 
-	function _checkConstraints(data: TypeCheckConfig, value: any, optionals: {
+	function checkConstraints(data: TypeCheckConfig, value: any, optionals: {
 		[key: string]: any;
 		[key: number]: any;
 	}): boolean {
 		if (typeof value === 'number') {
-			return _checkNumberConstraints(data, value);
+			return checkNumberConstraints(data, value);
 		}
 		if (Array.isArray(value) && data.forChildren) {
-			return _checkArrayChildrenConstraints(data, value);
+			return checkArrayChildrenConstraints(data, value);
 		}
 		return true;
 	}
@@ -271,17 +271,17 @@ namespace TypeChecking {
 				continue;
 			}
 
-			const value = _getDotValue(args, data.val);
+			const value = getDotValue(args, data.val);
 			//Check if it's defined
-			const isDefined = _isDefined(data, value, optionals);
-			if (isDefined === true) {
-				const matchedType = _typesMatch(data, value);
+			const isDef = isDefined(data, value, optionals);
+			if (isDef === true) {
+				const matchedType = typesMatch(data, value);
 				if (matchedType) {
 					optionals[data.val] = true;
-					_checkConstraints(data, value, optionals);
+					checkConstraints(data, value, optionals);
 					continue;
 				}
-			} else if (isDefined === 'continue') {
+			} else if (isDef === 'continue') {
 				continue;
 			}
 			return false;

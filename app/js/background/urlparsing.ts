@@ -36,7 +36,7 @@ export namespace URLParsing {
 	export function urlMatchesPattern(pattern: MatchPattern, url: string) {
 		let urlPattern: MatchPattern | '<all_urls>';
 		try {
-			urlPattern = _parsePattern(url);
+			urlPattern = parsePattern(url);
 		} catch (e) {
 			return false;
 		}
@@ -45,16 +45,16 @@ export namespace URLParsing {
 			return true;
 		}
 		const matchPattern = urlPattern as MatchPattern;
-		return (_matchesScheme(pattern.scheme, matchPattern.scheme) &&
-			_matchesHost(pattern.host, matchPattern.host) &&
-			_matchesPath(pattern.path, matchPattern.path));
+		return (matchesScheme(pattern.scheme, matchPattern.scheme) &&
+			matchesHost(pattern.host, matchPattern.host) &&
+			matchesPath(pattern.path, matchPattern.path));
 	}
 	export function validatePatternUrl(url: string): MatchPattern | void {
 		if (!url || typeof url !== 'string') {
 			return null;
 		}
 		url = url.trim();
-		const pattern = _parsePattern(url);
+		const pattern = parsePattern(url);
 		if (pattern === '<all_urls>') {
 			return {
 				scheme: '*',
@@ -121,7 +121,7 @@ export namespace URLParsing {
 		return matches;
 	}
 
-	function _parsePattern(url: string): MatchPattern | '<all_urls>' {
+	function parsePattern(url: string): MatchPattern | '<all_urls>' {
 		if (url === '<all_urls>') {
 			return '<all_urls>';
 		}
@@ -144,13 +144,13 @@ export namespace URLParsing {
 			};
 		}
 	}
-	function _matchesScheme(scheme1: string, scheme2: string): boolean {
+	function matchesScheme(scheme1: string, scheme2: string): boolean {
 		if (scheme1 === '*') {
 			return true;
 		}
 		return scheme1 === scheme2;
 	}
-	function _matchesHost(host1: string, host2: string): boolean {
+	function matchesHost(host1: string, host2: string): boolean {
 		if (host1 === '*') {
 			return true;
 		}
@@ -163,7 +163,7 @@ export namespace URLParsing {
 
 		return (host1 === host2);
 	}
-	function _matchesPath(path1: string, path2: string): boolean {
+	function matchesPath(path1: string, path2: string): boolean {
 		const path1Split = path1.split('*');
 		const path1Length = path1Split.length;
 		const wildcards = path1Length - 1;

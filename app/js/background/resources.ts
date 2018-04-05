@@ -39,10 +39,10 @@ export namespace Resources {
 	}, name: string) {
 		switch (message.type) {
 			case 'register':
-				_registerResource(name, message.url, message.scriptId);
+				registerResource(name, message.url, message.scriptId);
 				break;
 			case 'remove':
-				_removeResource(name, message.scriptId);
+				removeResource(name, message.scriptId);
 				break;
 		}
 	}
@@ -50,11 +50,11 @@ export namespace Resources {
 	export function updateResourceValues() {
 		const resourceKeys = modules.storages.resourceKeys;
 		for (let i = 0; i < resourceKeys.length; i++) {
-			setTimeout(_generateUpdateCallback(resourceKeys[i]), (i * 1000));
+			setTimeout(generateUpdateCallback(resourceKeys[i]), (i * 1000));
 		}
 	}
 
-	function _getUrlData(scriptId: number, url: string, callback: (dataURI: string,
+	function getUrlData(scriptId: number, url: string, callback: (dataURI: string,
 		dataString: string) => void) {
 		//First check if the data has already been fetched
 		if (modules.storages.urlDataPairs[url]) {
@@ -75,7 +75,7 @@ export namespace Resources {
 			});
 		}
 	}
-	function _getHashes(url: string): {
+	function getHashes(url: string): {
 		algorithm: string;
 		hash: string;
 	}[] {
@@ -98,7 +98,7 @@ export namespace Resources {
 		});
 		return hashes;
 	}
-	function _doAlgorithm(name: string, data: any, lastMatchingHash: {
+	function doAlgorithm(name: string, data: any, lastMatchingHash: {
 		algorithm: string;
 		hash: string;
 	}) {
@@ -106,7 +106,7 @@ export namespace Resources {
 			return String.fromCharCode.apply(null, hash) === lastMatchingHash.hash;
 		});
 	}
-	function _algorithmNameToFnName(name: string): string {
+	function algorithmNameToFnName(name: string): string {
 		let numIndex = 0;
 		for (let i = 0; i < name.length; i++) {
 			if (name.charCodeAt(i) >= 48 && name.charCodeAt(i) <= 57) {
@@ -117,7 +117,7 @@ export namespace Resources {
 
 		return name.slice(0, numIndex).toUpperCase() + '-' + name.slice(numIndex);
 	}
-	function _matchesHashes(hashes: {
+	function matchesHashes(hashes: {
 		algorithm: string;
 		hash: string;
 	}[], data: string) {
@@ -152,17 +152,17 @@ export namespace Resources {
 			case 'sha1':
 			case 'sha384':
 			case 'sha512':
-				_doAlgorithm(_algorithmNameToFnName(lastMatchingHash.algorithm),
+				doAlgorithm(algorithmNameToFnName(lastMatchingHash.algorithm),
 					arrayBuffer, lastMatchingHash);
 				break;
 
 		}
 		return false;
 	}
-	function _registerResource(name: string, url: string, scriptId: number) {
-		const registerHashes = _getHashes(url);
+	function registerResource(name: string, url: string, scriptId: number) {
+		const registerHashes = getHashes(url);
 		if (window.navigator.onLine) {
-			_getUrlData(scriptId, url, (dataURI, dataString) => {
+			getUrlData(scriptId, url, (dataURI, dataString) => {
 				const resources = modules.storages.resources;
 				resources[scriptId] = resources[scriptId] || {};
 				resources[scriptId][name] = {
@@ -171,7 +171,7 @@ export namespace Resources {
 					dataURI: dataURI,
 					dataString: dataString,
 					hashes: registerHashes,
-					matchesHashes: _matchesHashes(registerHashes, dataString),
+					matchesHashes: matchesHashes(registerHashes, dataString),
 					crmUrl: `https://www.localhost.io/resource/${scriptId}/${name}`
 				};
 				browserAPI.storage.local.set({
@@ -198,7 +198,7 @@ export namespace Resources {
 			resourceKeys: resourceKeys
 		});
 	}
-	function _removeResource(name: string, scriptId: number) {
+	function removeResource(name: string, scriptId: number) {
 		for (let i = 0; i < modules.storages.resourceKeys.length; i++) {
 			if (modules.storages.resourceKeys[i].name === name &&
 				modules.storages.resourceKeys[i].scriptId === scriptId) {
@@ -233,7 +233,7 @@ export namespace Resources {
 			urlDataPairs: modules.storages.urlDataPairs
 		});
 	}
-	function _compareResource(key: {
+	function compareResource(key: {
 		name: string;
 		sourceUrl: string;
 		hashes: {
@@ -248,7 +248,7 @@ export namespace Resources {
 				resources[key.scriptId][key.name].dataURI !== dataURI) {
 					//Check if the hashes still match, if they don't, reject it
 					const resourceData = resources[key.scriptId][key.name];
-					if (_matchesHashes(resourceData.hashes, dataString)) {
+					if (matchesHashes(resourceData.hashes, dataString)) {
 						//Data URIs do not match, just update the url ref
 						modules.storages.urlDataPairs[key.sourceUrl].dataURI = dataURI;
 						modules.storages.urlDataPairs[key.sourceUrl].dataString = dataString;
@@ -261,7 +261,7 @@ export namespace Resources {
 				}
 		});
 	}
-	function _generateUpdateCallback(resourceKey: {
+	function generateUpdateCallback(resourceKey: {
 		name: string;
 		sourceUrl: string;
 		hashes: {
@@ -272,7 +272,7 @@ export namespace Resources {
 	}) {
 		return () => {
 			window.info('Attempting resource update');
-			_compareResource(resourceKey);
+			compareResource(resourceKey);
 		};
 	}
 }

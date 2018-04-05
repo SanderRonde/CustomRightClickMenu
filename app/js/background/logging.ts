@@ -41,7 +41,7 @@ export namespace Logging.LogExecution {
 };
 
 export namespace Logging.Listeners {
-	function _iterateInt<T>(target: {
+	function iterateInt<T>(target: {
 		[key: number]: T;
 	}, callback: (key: number, value: T) => void) {
 		for (const key in target) {
@@ -52,11 +52,11 @@ export namespace Logging.Listeners {
 	export function getIds(filterTabId: number = -1) {
 		const tabData = modules.crmValues.tabData;
 		const ids: number[] = [];
-		_iterateInt(tabData, (tabId, tab) => {
+		iterateInt(tabData, (tabId, tab) => {
 			if (filterTabId !== -1 && filterTabId !== tabId) {
 				return;
 			}
-			_iterateInt(tab.nodes, (nodeId) => {
+			iterateInt(tab.nodes, (nodeId) => {
 				if (ids.indexOf(nodeId) === -1) {
 					ids.push(nodeId);
 				}
@@ -70,7 +70,7 @@ export namespace Logging.Listeners {
 			title: modules.crm.crmById[id].name
 		}));
 	}
-	function _compareToCurrent<T extends U[], U>(current: T, previous: T, changeListeners: ((result: T) => void)[], type: 'id'|'tab') {
+	function compareToCurrent<T extends U[], U>(current: T, previous: T, changeListeners: ((result: T) => void)[], type: 'id'|'tab') {
 		if (!modules.Util.compareArray(current, previous)) {
 			changeListeners.forEach((listener) => {
 				listener(current);
@@ -86,7 +86,7 @@ export namespace Logging.Listeners {
 		return new Promise<TabData[]>(async (resolveOuter) => {
 			const tabData = modules.crmValues.tabData;
 			const tabs: Promise<TabData>[] = [];
-			_iterateInt(tabData, (tabId, tab) => {
+			iterateInt(tabData, (tabId, tab) => {
 				if (!tab.nodes[nodeId] && nodeId !== 0) {
 					return;
 				}
@@ -123,10 +123,10 @@ export namespace Logging.Listeners {
 		const listeners = modules.globalObject.globals.listeners;
 
 		const ids = getIds();
-		_compareToCurrent(ids, listeners.idVals, listeners.ids, 'id');
+		compareToCurrent(ids, listeners.idVals, listeners.ids, 'id');
 
 		const tabs = await getTabs();
-		_compareToCurrent(tabs, listeners.tabVals, listeners.tabs, 'tab');
+		compareToCurrent(tabs, listeners.tabVals, listeners.tabs, 'tab');
 
 		return {
 			ids,
@@ -186,7 +186,7 @@ export namespace Logging {
 					logMessages: []
 				};
 			modules.globalObject.globals.logging[id].logMessages.push(srcObj);
-			_updateLogs(srcObj);
+			updateLogs(srcObj);
 		}
 	export async function logHandler(message: {
 		type: string;
@@ -210,7 +210,7 @@ export namespace Logging {
 			}
 		}
 	}) {
-		_prepareLog(message.id, message.tabId);
+		prepareLog(message.id, message.tabId);
 		switch (message.type) {
 			case 'evalResult':
 				const tab = await browserAPI.tabs.get(message.tabId);
@@ -231,7 +231,7 @@ export namespace Logging {
 				break;
 			case 'log':
 			default:
-				await _logHandlerLog({
+				await logHandlerLog({
 					type: message.type,
 					id: message.id,
 					data: message.data,
@@ -246,7 +246,7 @@ export namespace Logging {
 		}
 	}
 
-	function _prepareLog(nodeId: number, tabId: number) {
+	function prepareLog(nodeId: number, tabId: number) {
 		if (modules.globalObject.globals.logging[nodeId]) {
 			if (!modules.globalObject.globals.logging[nodeId][tabId]) {
 				modules.globalObject.globals.logging[nodeId][tabId] = {};
@@ -264,7 +264,7 @@ export namespace Logging {
 			modules.globalObject.globals.logging[nodeId] = idObj;
 		}
 	}
-	function _updateLogs(newLog: LogListenerLine) {
+	function updateLogs(newLog: LogListenerLine) {
 		modules.globalObject.globals.listeners.log.forEach((logListener) => {
 			const idMatches = logListener.id === 'all' || ~~logListener.id === ~~newLog.id;
 			const tabMatches = logListener.tab === 'all' ||
@@ -275,7 +275,7 @@ export namespace Logging {
 			}
 		});
 	}
-	async function _logHandlerLog(message: {
+	async function logHandlerLog(message: {
 		type: string;
 		id: number;
 		data: string;
@@ -333,6 +333,6 @@ export namespace Logging {
 
 		modules.globalObject.globals.logging[message.id]
 			.logMessages.push(logValue);
-		_updateLogs(logValue);
+		updateLogs(logValue);
 	}
 }

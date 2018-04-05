@@ -123,7 +123,7 @@ export namespace Sandbox {
 			callback(new SandboxWorker(id, script, libraries, secretKey, getInstances));
 		}
 
-	function _sandboxChromeFunction(window: void, sandboxes: void, chrome: void, browser: void, fn: Function, context: any, args: any[]) {
+	function sandboxChromeFunction(window: void, sandboxes: void, chrome: void, browser: void, fn: Function, context: any, args: any[]) {
 		return fn.apply(context, args);
 	}
 
@@ -150,7 +150,7 @@ export namespace Sandbox {
 		}
 		return {
 			success: true,
-			result: _sandboxChromeFunction(null, null, null, null, (fn as any) as Function, context, args)
+			result: sandboxChromeFunction(null, null, null, null, (fn as any) as Function, context, args)
 		}
 	};
 }

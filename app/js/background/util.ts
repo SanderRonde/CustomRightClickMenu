@@ -81,7 +81,7 @@ export namespace Util {
 					if (!compareArray(firstArray[i], secondArray[i])) {
 						return false;
 					}
-				} else if (!_compareObj(firstArray[i], secondArray[i])) {
+				} else if (!compareObj(firstArray[i], secondArray[i])) {
 					return false;
 				}
 			} else if (firstArray[i] !== secondArray[i]) {
@@ -253,7 +253,7 @@ export namespace Util {
 		if (_requiredFiles.indexOf(path) > -1) {
 			return;
 		}
-		const fileContent = await _loadFile(path, 'Fetching library file', path);
+		const fileContent = await loadFile(path, 'Fetching library file', path);
 		eval(fileContent);
 		_requiredFiles.push(path);
 	}
@@ -424,10 +424,10 @@ export namespace Util {
 		}
 
 	const _requiredFiles: string[] = [];
-	function _loadFile(path: string, ...msg: any[]): Promise<string> {
+	function loadFile(path: string, ...msg: any[]): Promise<string> {
 		return xhr(browserAPI.runtime.getURL(path), msg);
 	}
-	function _compareObj(firstObj: {
+	function compareObj(firstObj: {
 		[key: string]: any;
 		[key: number]: any;
 	}, secondObj: {
@@ -447,7 +447,7 @@ export namespace Util {
 						if (!compareArray(firstObj[key], secondObj[key])) {
 							return false;
 						}
-					} else if (!_compareObj(firstObj[key], secondObj[key])) {
+					} else if (!compareObj(firstObj[key], secondObj[key])) {
 						return false;
 					}
 				} else if (firstObj[key] !== secondObj[key]) {

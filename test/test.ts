@@ -618,7 +618,7 @@ function getOriginalFunctionName(err: Error) {
 	return '';
 }
 
-function _getDotValue<T extends {
+function getDotValue<T extends {
 	[key: string]: T|any;	
 }>(source: T, index: string) {
 	var indexes = index.split('.');
@@ -663,7 +663,7 @@ function dependencyMet(data: TypeCheckConfig, optionals: {
 	return true;
 }
 
-function _isDefined(data: TypeCheckConfig, value: any, optionals: {
+function isDefined(data: TypeCheckConfig, value: any, optionals: {
 	[key: string]: any;
 	[key: number]: any;
 }): boolean | 'continue' {
@@ -678,7 +678,7 @@ function _isDefined(data: TypeCheckConfig, value: any, optionals: {
 	}
 	return true;
 };
-function _typesMatch(data: TypeCheckConfig, value: any): string {
+function typesMatch(data: TypeCheckConfig, value: any): string {
 	const types = Array.isArray(data.type) ? data.type : [data.type];
 	for (let i = 0; i < types.length; i++) {
 		const type = types[i];
@@ -698,7 +698,7 @@ function _typesMatch(data: TypeCheckConfig, value: any): string {
 	throw new Error("Value for " + data.val + " is not of type " + types.join(' or ') +
 	 	getOriginalFunctionName(new Error()));
 };
-function _checkNumberConstraints(data: TypeCheckConfig, value: number): boolean {
+function checkNumberConstraints(data: TypeCheckConfig, value: number): boolean {
 	if (data.min !== undefined) {
 		if (data.min > value) {
 			throw new Error("Value for " + data.val + " is smaller than " + data.min +
@@ -713,7 +713,7 @@ function _checkNumberConstraints(data: TypeCheckConfig, value: number): boolean 
 	}
 	return true;
 };
-function _checkArrayChildType(data: TypeCheckConfig, value: any, forChild: {
+function checkArrayChildType(data: TypeCheckConfig, value: any, forChild: {
 	val: string;
 	type: TypeCheckTypes | TypeCheckTypes[];
 	optional?: boolean;
@@ -734,7 +734,7 @@ function _checkArrayChildType(data: TypeCheckConfig, value: any, forChild: {
 		" is the property " + forChild.val + " of type " + types.join(' or ') +
 		getOriginalFunctionName(new Error()));
 };
-function _checkArrayChildrenConstraints<T extends {
+function checkArrayChildrenConstraints<T extends {
 	[key: string]: any;
 }>(data: TypeCheckConfig, values: T[]): boolean {
 	for (const value of values) {
@@ -747,22 +747,22 @@ function _checkArrayChildrenConstraints<T extends {
 						getOriginalFunctionName(new Error()));
 				}
 			}
-			else if (!_checkArrayChildType(data, childValue, forChild)) {
+			else if (!checkArrayChildType(data, childValue, forChild)) {
 				return false;
 			}
 		}
 	}
 	return true;
 };
-function _checkConstraints(data: TypeCheckConfig, value: any, optionals: {
+function checkConstraints(data: TypeCheckConfig, value: any, optionals: {
 	[key: string]: any;
 	[key: number]: any;
 }): boolean {
 	if (typeof value === 'number') {
-		return _checkNumberConstraints(data, value);
+		return checkNumberConstraints(data, value);
 	}
 	if (Array.isArray(value) && data.forChildren) {
-		return _checkArrayChildrenConstraints(data, value);
+		return checkArrayChildrenConstraints(data, value);
 	}
 	return true;
 };
@@ -778,17 +778,17 @@ function typeCheck(args: {
 		if (!dependencyMet(data, optionals)) {
 			continue;
 		}
-		var value = _getDotValue(args, data.val);
-		var isDefined = _isDefined(data, value, optionals);
-		if (isDefined === true) {
-			var matchedType = _typesMatch(data, value);
+		var value = getDotValue(args, data.val);
+		var isDef = isDefined(data, value, optionals);
+		if (isDef === true) {
+			var matchedType = typesMatch(data, value);
 			if (matchedType) {
 				optionals[data.val] = true;
-				_checkConstraints(data, value, optionals);
+				checkConstraints(data, value, optionals);
 				continue;
 			}
 		}
-		else if (isDefined === 'continue') {
+		else if (isDef === 'continue') {
 			continue;
 		}
 		return false;

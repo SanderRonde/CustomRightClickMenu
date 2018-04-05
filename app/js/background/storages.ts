@@ -12,7 +12,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Loca
 		lines: string[];
 	}
 
-	function _findLocalStorageExpression(expression: Tern.Expression, data: PersistentData): boolean {
+	function findLocalStorageExpression(expression: Tern.Expression, data: PersistentData): boolean {
 		switch (expression.type) {
 			case 'Identifier':
 				if (expression.name === 'localStorage') {
@@ -29,80 +29,80 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Loca
 					//Check if it's an actual chrome assignment
 					const declaration = expression.declarations[i];
 					if (declaration.init) {
-						if (_findLocalStorageExpression(declaration.init, data)) {
+						if (findLocalStorageExpression(declaration.init, data)) {
 							return true;
 						}
 					}
 				}
 				break;
 			case 'MemberExpression':
-				if (_findLocalStorageExpression(expression.object, data)) {
+				if (findLocalStorageExpression(expression.object, data)) {
 					return true;
 				}
-				return _findLocalStorageExpression(expression.property as Tern.Identifier, data);
+				return findLocalStorageExpression(expression.property as Tern.Identifier, data);
 			case 'CallExpression':
 				if (expression.arguments && expression.arguments.length > 0) {
 					for (let i = 0; i < expression.arguments.length; i++) {
-						if (_findLocalStorageExpression(expression.arguments[i], data)) {
+						if (findLocalStorageExpression(expression.arguments[i], data)) {
 							return true;
 						}
 					}
 				}
 				if (expression.callee) {
-					return _findLocalStorageExpression(expression.callee, data);
+					return findLocalStorageExpression(expression.callee, data);
 				}
 				break;
 			case 'AssignmentExpression':
-				return _findLocalStorageExpression(expression.right, data);
+				return findLocalStorageExpression(expression.right, data);
 			case 'FunctionExpression':
 			case 'FunctionDeclaration':
 				for (let i = 0; i < expression.body.body.length; i++) {
-					if (_findLocalStorageExpression(expression.body.body[i], data)) {
+					if (findLocalStorageExpression(expression.body.body[i], data)) {
 						return true;
 					}
 				}
 				break;
 			case 'ExpressionStatement':
-				return _findLocalStorageExpression(expression.expression, data);
+				return findLocalStorageExpression(expression.expression, data);
 			case 'SequenceExpression':
 				for (let i = 0; i < expression.expressions.length; i++) {
-					if (_findLocalStorageExpression(expression.expressions[i], data)) {
+					if (findLocalStorageExpression(expression.expressions[i], data)) {
 						return true;
 					}
 				}
 				break;
 			case 'UnaryExpression':
 			case 'ConditionalExpression':
-				if (_findLocalStorageExpression(expression.consequent, data)) {
+				if (findLocalStorageExpression(expression.consequent, data)) {
 					return true;
 				}
-				return _findLocalStorageExpression(expression.alternate, data);
+				return findLocalStorageExpression(expression.alternate, data);
 			case 'IfStatement': ;
-				if (_findLocalStorageExpression(expression.consequent, data)) {
+				if (findLocalStorageExpression(expression.consequent, data)) {
 					return true;
 				}
 				if (expression.alternate) {
-					return _findLocalStorageExpression(expression.alternate, data);
+					return findLocalStorageExpression(expression.alternate, data);
 				}
 				break;
 			case 'LogicalExpression':
 			case 'BinaryExpression':
-				if (_findLocalStorageExpression(expression.left, data)) {
+				if (findLocalStorageExpression(expression.left, data)) {
 					return true;
 				}
-				return _findLocalStorageExpression(expression.right, data);
+				return findLocalStorageExpression(expression.right, data);
 			case 'BlockStatement':
 				for (let i = 0; i < expression.body.length; i++) {
-					if (_findLocalStorageExpression(expression.body[i], data)) {
+					if (findLocalStorageExpression(expression.body[i], data)) {
 						return true;
 					}
 				}
 				break;
 			case 'ReturnStatement':
-				return _findLocalStorageExpression(expression.argument, data);
+				return findLocalStorageExpression(expression.argument, data);
 			case 'ObjectExpressions':
 				for (let i = 0; i < expression.properties.length; i++) {
-					if (_findLocalStorageExpression(expression.properties[i].value, data)) {
+					if (findLocalStorageExpression(expression.properties[i].value, data)) {
 						return true;
 					}
 				}
@@ -110,7 +110,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Loca
 		}
 		return false;
 	}
-	function _getLineSeperators(lines: string[]): {
+	function getLineSeperators(lines: string[]): {
 		start: number;
 		end: number;
 	}[] {
@@ -147,13 +147,13 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Loca
 		//Check all expressions for chrome calls
 		const persistentData: PersistentData = {
 			lines: lines,
-			lineSeperators: _getLineSeperators(lines),
+			lineSeperators: getLineSeperators(lines),
 			script: script
 		};
 
 		for (let i = 0; i < scriptExpressions.length; i++) {
 			const expression = scriptExpressions[i];
-			if (_findLocalStorageExpression(expression, persistentData)) {
+			if (findLocalStorageExpression(expression, persistentData)) {
 				//Margins may have changed, redo tern stuff
 				return replaceCalls(persistentData.lines);
 			}
@@ -196,13 +196,13 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 	type TransferOnErrorHandler = (position: TransferOnErrorError,
 		passes: number) => void;
 
-	function _isProperty(toCheck: string, prop: string): boolean {
+	function isProperty(toCheck: string, prop: string): boolean {
 		if (toCheck === prop) {
 			return true;
 		}
 		return toCheck.replace(/['|"|`]/g, '') === prop;
 	}
-	function _getCallLines(lineSeperators: {
+	function getCallLines(lineSeperators: {
 		start: number;
 		end: number;
 	}[], start: number, end: number): {
@@ -244,7 +244,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 
 		return line;
 	}
-	function _getFunctionCallExpressions(data: ChromePersistentData): Tern.Expression {
+	function getFunctionCallExpressions(data: ChromePersistentData): Tern.Expression {
 		//Keep looking through the parent expressions untill a CallExpression or MemberExpression is found
 		let index = data.parentExpressions.length - 1;
 		let expr = data.parentExpressions[index];
@@ -253,7 +253,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 		}
 		return data.parentExpressions[index];
 	}
-	function _getChromeAPI(expr: Tern.Expression, data: ChromePersistentData): {
+	function getChromeAPI(expr: Tern.Expression, data: ChromePersistentData): {
 		call: string;
 		args: string;
 	} {
@@ -275,14 +275,14 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 			args: args
 		};
 	}
-	function _getLineIndexFromTotalIndex(lines: string[], 
+	function getLineIndexFromTotalIndex(lines: string[], 
 		line: number, index: number): number {
 			for (let i = 0; i < line; i++) {
 				index -= lines[i].length + 1;
 			}
 			return index;
 		}
-	function _replaceChromeFunction(data: ChromePersistentData, expr: Tern.Expression, callLine: {
+	function replaceChromeFunction(data: ChromePersistentData, expr: Tern.Expression, callLine: {
 		from: {
 			line: number;
 		}
@@ -298,12 +298,12 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 
 		//Get chrome API
 		let i;
-		var chromeAPI = _getChromeAPI(expr, data);
+		var chromeAPI = getChromeAPI(expr, data);
 		var firstLine = data.persistent.lines[callLine.from.line];
-		var lineExprStart = _getLineIndexFromTotalIndex(data.persistent.lines,
+		var lineExprStart = getLineIndexFromTotalIndex(data.persistent.lines,
 			callLine.from.line, ((data.returnExpr && data.returnExpr.start) ||
 				expr.callee.start));
-		var lineExprEnd = _getLineIndexFromTotalIndex(data.persistent.lines,
+		var lineExprEnd = getLineIndexFromTotalIndex(data.persistent.lines,
 			callLine.from.line, expr.callee.end);
 
 		var newLine = firstLine.slice(0, lineExprStart) +
@@ -368,14 +368,14 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 				if (data.parentExpressions[i].type === 'BlockStatement' ||
 					(data.parentExpressions[i].type === 'FunctionExpression' &&
 						(data.parentExpressions[i].body as Tern.BlockStatement).type === 'BlockStatement')) {
-					scopeLength = _getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line, data.parentExpressions[i].end);
+					scopeLength = getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line, data.parentExpressions[i].end);
 					idx = 0;
 
 					//Get the lowest possible scopeLength as to stay on the last line of the scope
 					while (scopeLength > 0) {
-						scopeLength = _getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (++idx), data.parentExpressions[i].end);
+						scopeLength = getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (++idx), data.parentExpressions[i].end);
 					}
-					scopeLength = _getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (idx - 1), data.parentExpressions[i].end);
+					scopeLength = getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (idx - 1), data.parentExpressions[i].end);
 				}
 			}
 			if (idx === null) {
@@ -418,15 +418,15 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 		lines[callLine.from.line] = newLine;
 		return;
 	}
-	function _callsChromeFunction(callee: Tern.FunctionCallExpression, 
+	function callsChromeFunction(callee: Tern.FunctionCallExpression, 
 		data: ChromePersistentData, onError: TransferOnErrorHandler): boolean {
 			data.parentExpressions.push(callee);
 
 			//Check if the function has any arguments and check those first
 			if (callee.arguments && callee.arguments.length > 0) {
 				for (let i = 0; i < callee.arguments.length; i++) {
-					if (_findChromeExpression(callee.arguments[i],
-							_removeObjLink(data), onError)) {
+					if (findChromeExpression(callee.arguments[i],
+							removeObjLink(data), onError)) {
 							return true;
 						}
 				}
@@ -434,8 +434,8 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 
 			if (callee.type !== 'MemberExpression') {
 				//This is a call upon something (like a call in crmAPI.chrome), check the previous expression first
-				return _findChromeExpression(callee, 
-					_removeObjLink(data), onError);
+				return findChromeExpression(callee, 
+					removeObjLink(data), onError);
 			}
 
 			//Continue checking the call itself
@@ -445,33 +445,33 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 			}
 			if (callee.object && callee.object.name) {
 				//First object
-				const isWindowCall = (_isProperty(callee.object.name, 'window') &&
-					_isProperty(callee.property.name || (callee.property as any).raw, 'chrome'));
-				if (isWindowCall || _isProperty(callee.object.name, 'chrome')) {
+				const isWindowCall = (isProperty(callee.object.name, 'window') &&
+					isProperty(callee.property.name || (callee.property as any).raw, 'chrome'));
+				if (isWindowCall || isProperty(callee.object.name, 'chrome')) {
 					data.expression = callee;
-					const expr = _getFunctionCallExpressions(data);
-					const callLines = _getCallLines(data
+					const expr = getFunctionCallExpressions(data);
+					const callLines = getCallLines(data
 						.persistent
 						.lineSeperators, expr.start, expr.end);
 					if (data.isReturn && !data.isValidReturn) {
-						callLines.from.index = _getLineIndexFromTotalIndex(data.persistent
+						callLines.from.index = getLineIndexFromTotalIndex(data.persistent
 							.lines, callLines.from.line, callLines.from.index);
-						callLines.to.index = _getLineIndexFromTotalIndex(data.persistent
+						callLines.to.index = getLineIndexFromTotalIndex(data.persistent
 							.lines, callLines.to.line, callLines.to.index);
 						onError(callLines, data.persistent.passes);
 						return false;
 					}
 					if (!data.persistent.diagnostic) {
-						_replaceChromeFunction(data, expr, callLines);
+						replaceChromeFunction(data, expr, callLines);
 					}
 					return true;
 				}
 			} else if (callee.object) {
-				return _callsChromeFunction(callee.object as any, data, onError);
+				return callsChromeFunction(callee.object as any, data, onError);
 			}
 			return false;
 		}
-	function _removeObjLink(data: ChromePersistentData): ChromePersistentData {
+	function removeObjLink(data: ChromePersistentData): ChromePersistentData {
 		const parentExpressions = data.parentExpressions || [];
 		const newObj: ChromePersistentData = {} as any;
 		for (let key in data) {
@@ -490,7 +490,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 		newObj.parentExpressions = newParentExpressions;
 		return newObj;
 	}
-	function _findChromeExpression(expression: Tern.Expression, data: ChromePersistentData,
+	function findChromeExpression(expression: Tern.Expression, data: ChromePersistentData,
 		onError: TransferOnErrorHandler): boolean {
 		data.parentExpressions = data.parentExpressions || [];
 		data.parentExpressions.push(expression);
@@ -502,14 +502,14 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 					//Check if it's an actual chrome assignment
 					var declaration = expression.declarations[i];
 					if (declaration.init) {
-						var decData = _removeObjLink(data);
+						var decData = removeObjLink(data);
 
 						var returnName = declaration.id.name;
 						decData.isReturn = true;
 						decData.returnExpr = expression;
 						decData.returnName = returnName;
 
-						if (_findChromeExpression(declaration.init, decData, onError)) {
+						if (findChromeExpression(declaration.init, decData, onError)) {
 							return true;
 						}
 					}
@@ -524,8 +524,8 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 							//It's not a direct call to chrome, just handle this later after the function has been checked
 							argsTocheck.push(expression.arguments[i]);
 						} else {
-							if (_findChromeExpression(expression.arguments[i], 
-									_removeObjLink(data), onError)) {
+							if (findChromeExpression(expression.arguments[i], 
+									removeObjLink(data), onError)) {
 									return true;
 								}
 						}
@@ -533,12 +533,12 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 				}
 				data.functionCall = [];
 				if (expression.callee) {
-					if (_callsChromeFunction(expression.callee, data, onError)) {
+					if (callsChromeFunction(expression.callee, data, onError)) {
 						return true;
 					}
 				}
 				for (let i = 0; i < argsTocheck.length; i++) {
-					if (_findChromeExpression(argsTocheck[i], _removeObjLink(data), onError)) {
+					if (findChromeExpression(argsTocheck[i], removeObjLink(data), onError)) {
 						return true;
 					}
 				}
@@ -548,19 +548,19 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 				data.returnExpr = expression;
 				data.returnName = expression.left.name;
 
-				return _findChromeExpression(expression.right, data, onError);
+				return findChromeExpression(expression.right, data, onError);
 			case 'FunctionExpression':
 			case 'FunctionDeclaration':
 				data.isReturn = false;
 				for (let i = 0; i < expression.body.body.length; i++) {
-					if (_findChromeExpression(expression.body.body[i], 
-							_removeObjLink(data), onError)) {
+					if (findChromeExpression(expression.body.body[i], 
+							removeObjLink(data), onError)) {
 							return true;
 						}
 				}
 				break;
 			case 'ExpressionStatement':
-				return _findChromeExpression(expression.expression, data, onError);
+				return findChromeExpression(expression.expression, data, onError);
 			case 'SequenceExpression':
 				data.isReturn = false;
 				var lastExpression = expression.expressions.length - 1;
@@ -568,8 +568,8 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 					if (i === lastExpression) {
 						data.isReturn = true;
 					}
-					if (_findChromeExpression(expression.expressions[i], 
-							_removeObjLink(data), onError)) {
+					if (findChromeExpression(expression.expressions[i], 
+							removeObjLink(data), onError)) {
 							return true;
 						}
 				}
@@ -578,24 +578,24 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 			case 'ConditionalExpression':
 				data.isValidReturn = false;
 				data.isReturn = true;
-				if (_findChromeExpression(expression.consequent, 
-						_removeObjLink(data), onError)) {
+				if (findChromeExpression(expression.consequent, 
+						removeObjLink(data), onError)) {
 						return true;
 					}
-				if (_findChromeExpression(expression.alternate, 
-						_removeObjLink(data), onError)) {
+				if (findChromeExpression(expression.alternate, 
+						removeObjLink(data), onError)) {
 						return true;
 					}
 				break;
 			case 'IfStatement':
 				data.isReturn = false;
-				if (_findChromeExpression(expression.consequent, 
-						_removeObjLink(data), onError)) {
+				if (findChromeExpression(expression.consequent, 
+						removeObjLink(data), onError)) {
 						return true;
 					}
 				if (expression.alternate &&
-					_findChromeExpression(expression.alternate, 
-						_removeObjLink(data), onError)) {
+					findChromeExpression(expression.alternate, 
+						removeObjLink(data), onError)) {
 						return true;
 					}
 				break;
@@ -603,20 +603,20 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 			case 'BinaryExpression':
 				data.isReturn = true;
 				data.isValidReturn = false;
-				if (_findChromeExpression(expression.left, 
-						_removeObjLink(data), onError)) {
+				if (findChromeExpression(expression.left, 
+						removeObjLink(data), onError)) {
 						return true;
 					}
-				if (_findChromeExpression(expression.right, 
-						_removeObjLink(data), onError)) {
+				if (findChromeExpression(expression.right, 
+						removeObjLink(data), onError)) {
 						return true;
 					}
 				break;
 			case 'BlockStatement':
 				data.isReturn = false;
 				for (let i = 0; i < expression.body.length; i++) {
-					if (_findChromeExpression(expression.body[i], 
-							_removeObjLink(data), onError)) {
+					if (findChromeExpression(expression.body[i], 
+							removeObjLink(data), onError)) {
 							return true;
 						}
 				}
@@ -625,13 +625,13 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 				data.isReturn = true;
 				data.returnExpr = expression;
 				data.isValidReturn = false;
-				return _findChromeExpression(expression.argument, data, onError);
+				return findChromeExpression(expression.argument, data, onError);
 			case 'ObjectExpressions':
 				data.isReturn = true;
 				data.isValidReturn = false;
 				for (let i = 0; i < expression.properties.length; i++) {
-					if (_findChromeExpression(expression.properties[i].value, 
-							_removeObjLink(data), onError)) {
+					if (findChromeExpression(expression.properties[i].value, 
+							removeObjLink(data), onError)) {
 							return true;
 						}
 				}
@@ -639,7 +639,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 		}
 		return false;
 	}
-	function _generateOnError(container: TransferOnErrorError[][]): (
+	function generateOnError(container: TransferOnErrorError[][]): (
 		position: TransferOnErrorError, passes: number
 	) => void {
 		return (position: TransferOnErrorError, passes: number) => {
@@ -650,7 +650,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 			}
 		};
 	}
-	function _replaceChromeCalls(lines: string[], passes: number,
+	function replaceChromeCalls(lines: string[], passes: number,
 		onError: TransferOnErrorHandler): string {
 			//Analyze the file
 			var file = new LegacyScriptReplace.TernFile('[doc]');
@@ -700,7 +700,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 				persistentData.diagnostic = true;
 				for (let i = 0; i < scriptExpressions.length; i++) {
 					expression = scriptExpressions[i];
-					_findChromeExpression(expression, {
+					findChromeExpression(expression, {
 						persistent: persistentData
 					} as ChromePersistentData, onError);
 				}
@@ -709,10 +709,10 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 
 			for (let i = 0; i < scriptExpressions.length; i++) {
 				expression = scriptExpressions[i];
-				if (_findChromeExpression(expression, {
+				if (findChromeExpression(expression, {
 					persistent: persistentData
 				} as ChromePersistentData, onError)) {
-					script = _replaceChromeCalls(persistentData.lines.join('\n')
+					script = replaceChromeCalls(persistentData.lines.join('\n')
 						.split('\n'), passes + 1, onError);
 					break;
 				}
@@ -720,7 +720,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 
 			return script;
 		}
-	function _removePositionDuplicates(arr: TransferOnErrorError[]):
+	function removePositionDuplicates(arr: TransferOnErrorError[]):
 		TransferOnErrorError[] {
 		var jsonArr: EncodedString<TransferOnErrorError>[] = [];
 		arr.forEach((item, index) => {
@@ -749,8 +749,8 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 
 		const errors: TransferOnErrorError[][] = [];
 		try {
-			script = _replaceChromeCalls(script.split('\n'), 0,
-				_generateOnError(errors));
+			script = replaceChromeCalls(script.split('\n'), 0,
+				generateOnError(errors));
 		} catch (e) {
 			onError(null, null, true);
 			return script;
@@ -759,8 +759,8 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.Chro
 		const firstPassErrors = errors[0];
 		const finalPassErrors = errors[errors.length - 1];
 		if (finalPassErrors) {
-			onError(_removePositionDuplicates(firstPassErrors),
-				_removePositionDuplicates(finalPassErrors));
+			onError(removePositionDuplicates(firstPassErrors),
+				removePositionDuplicates(finalPassErrors));
 		}
 
 		return script;
@@ -828,7 +828,7 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace {
 };
 
 export namespace Storages.SetupHandling.TransferFromOld {
-	function _backupLocalStorage() {
+	function backupLocalStorage() {
 		if (typeof localStorage === 'undefined' ||
 			(typeof window.indexedDB === 'undefined' && typeof (window as any).webkitIndexedDB === 'undefined')) {
 			return;
@@ -853,26 +853,26 @@ export namespace Storages.SetupHandling.TransferFromOld {
 	export async function transferCRMFromOld(openInNewTab: boolean, storageSource: {
 		getItem(index: string | number): any;
 	} = localStorage, method: SCRIPT_CONVERSION_TYPE = SCRIPT_CONVERSION_TYPE.BOTH): Promise<CRM.Tree> {
-		_backupLocalStorage();
+		backupLocalStorage();
 		await Storages.SetupHandling.loadTernFiles();
 
 		const amount = parseInt(storageSource.getItem('numberofrows'), 10) + 1;
 
 		const nodes: CRM.Tree = [];
 		for (let i = 1; i < amount; i++) {
-			nodes.push(_parseOldCRMNode(storageSource.getItem(String(i)),
+			nodes.push(parseOldCRMNode(storageSource.getItem(String(i)),
 				openInNewTab, method));
 		}
 
 		//Structure nodes with children etc
 		const crm: CRM.Node[] = [];
-		_assignParents(crm, nodes, {
+		assignParents(crm, nodes, {
 			index: 0
 		}, nodes.length);
 		return crm;
 	}
 
-	function _parseOldCRMNode(string: string,
+	function parseOldCRMNode(string: string,
 		openInNewTab: boolean, method: SCRIPT_CONVERSION_TYPE): CRM.Node {
 		let node: CRM.Node;
 		const [name, type, nodeData] = string.split('%123');
@@ -947,7 +947,7 @@ export namespace Storages.SetupHandling.TransferFromOld {
 
 		return node;
 	}
-	function _assignParents(parent: CRM.Tree,
+	function assignParents(parent: CRM.Tree,
 		nodes: CRM.Node[], index: {
 			index: number;
 		}, amount: number) {
@@ -957,7 +957,7 @@ export namespace Storages.SetupHandling.TransferFromOld {
 				const childrenAmount = ~~currentNode.children;
 				currentNode.children = [];
 				index.index++;
-				_assignParents(currentNode.children, nodes, index, childrenAmount);
+				assignParents(currentNode.children, nodes, index, childrenAmount);
 				index.index--;
 			}
 			parent.push(currentNode);
@@ -967,8 +967,8 @@ export namespace Storages.SetupHandling.TransferFromOld {
 
 export namespace Storages.SetupHandling {
 	//Local storage
-	function _getDefaultStorages(callback: (result: [CRM.StorageLocal, CRM.SettingsStorage]) => void) {
-		const syncStorage = _getDefaultSyncStorage();
+	function getDefaultStorages(callback: (result: [CRM.StorageLocal, CRM.SettingsStorage]) => void) {
+		const syncStorage = getDefaultSyncStorage();
 		const syncHash = window.md5(JSON.stringify(syncStorage));
 
 		modules.Util.isTamperMonkeyEnabled((useAsUserscriptManager) => {
@@ -1006,7 +1006,7 @@ export namespace Storages.SetupHandling {
 		});
 	}
 	//Sync storage
-	function _getDefaultSyncStorage(): CRM.SettingsStorage {
+	function getDefaultSyncStorage(): CRM.SettingsStorage {
 		return {
 			editor: {
 				keyBindings: {
@@ -1059,13 +1059,13 @@ export namespace Storages.SetupHandling {
 				onDone: null
 			}
 
-			_getDefaultStorages(([defaultLocalStorage, defaultSyncStorage]) => {
+			getDefaultStorages(([defaultLocalStorage, defaultSyncStorage]) => {
 
 				//Save local storage
 				browserAPI.storage.local.set(defaultLocalStorage);
 
 				//Save sync storage
-				_uploadStorageSyncInitial(defaultSyncStorage);
+				uploadStorageSyncInitial(defaultSyncStorage);
 
 				if (crm) {
 					defaultSyncStorage.crm = crm;
@@ -1124,7 +1124,7 @@ export namespace Storages.SetupHandling {
 				'/js/libraries/tern/comment.js',
 				'/js/libraries/tern/infer.js'
 			];
-			_chainPromise(files.map((file) => {
+			chainPromise(files.map((file) => {
 				return () => {
 					return modules.Util.execFile(file)
 				}
@@ -1136,13 +1136,13 @@ export namespace Storages.SetupHandling {
 		});
 	}
 
-	function _chainPromise<T>(promiseInitializers: (() =>Promise<T>)[], index: number = 0): Promise<T> {
+	function chainPromise<T>(promiseInitializers: (() =>Promise<T>)[], index: number = 0): Promise<T> {
 		return new Promise<T>((resolve, reject) => {
 			promiseInitializers[index]().then((value) => {
 				if (index + 1 >= promiseInitializers.length) {
 					resolve(value);
 				} else {
-					_chainPromise(promiseInitializers, index + 1).then((value) => {
+					chainPromise(promiseInitializers, index + 1).then((value) => {
 						resolve(value);
 					}, (err) => {
 						reject(err);
@@ -1153,7 +1153,7 @@ export namespace Storages.SetupHandling {
 			});
 		});
 	}
-	async function _uploadStorageSyncInitial(data: CRM.SettingsStorage) {
+	async function uploadStorageSyncInitial(data: CRM.SettingsStorage) {
 		const settingsJson = JSON.stringify(data);
 
 		if (settingsJson.length >= 101400) {
@@ -1231,7 +1231,7 @@ export namespace Storages {
 			return;
 		}
 		//Check if any background page updates occurred
-		const { same, additions, removals } = _diffCRM(change.oldValue, change.newValue);
+		const { same, additions, removals } = diffCRM(change.oldValue, change.newValue);
 		for (const node of same) {
 			const currentValue = modules.crm.crmById[node.id];
 			if (node.type === 'script' && (currentValue && currentValue.type === 'script' &&
@@ -1255,7 +1255,7 @@ export namespace Storages {
 				}
 		}
 	}
-	function _diffCRM(previous: CRM.Tree, current: CRM.Tree): {
+	function diffCRM(previous: CRM.Tree, current: CRM.Tree): {
 		additions: CRM.Tree;
 		removals: CRM.Tree;
 		same: CRM.Tree;
@@ -1285,14 +1285,14 @@ export namespace Storages {
 		const same = [];
 		for (const previousId of previousIds) {
 			if (currentIds.indexOf(previousId) === -1) {
-				removals.push(_findNodeWithId(previous, previousId));
+				removals.push(findNodeWithId(previous, previousId));
 			}
 		}
 		for (const currentId of currentIds) {
 			if (previousIds.indexOf(currentId) === -1) {
-				additions.push(_findNodeWithId(current, currentId));
+				additions.push(findNodeWithId(current, currentId));
 			} else {
-				same.push(_findNodeWithId(current, currentId));
+				same.push(findNodeWithId(current, currentId));
 			}
 		}
 		return {
@@ -1301,13 +1301,13 @@ export namespace Storages {
 			same
 		}
 	}
-	function _findNodeWithId(tree: CRM.Tree, id: number): CRM.Node {
+	function findNodeWithId(tree: CRM.Tree, id: number): CRM.Node {
 		for (const node of tree) {
 			if (node.id === id) {
 				return node;
 			}
 			if (node.type === 'menu' && node.children) {
-				const result = _findNodeWithId(node.children, id);
+				const result = findNodeWithId(node.children, id);
 				if (result) {
 					return result;
 				}
@@ -1315,7 +1315,7 @@ export namespace Storages {
 		}
 		return null;
 	}
-	async function _uploadSync(changes: StorageChange[]) {
+	async function uploadSync(changes: StorageChange[]) {
 		const settingsJson = JSON.stringify(modules.storages.settingsStorage);
 		browserAPI.storage.local.set({
 			settingsVersionData: {
@@ -1331,7 +1331,7 @@ export namespace Storages {
 			await browserAPI.storage.local.set({
 				settings: modules.storages.settingsStorage
 			}).then(() => {
-				_changeCRMValuesIfSettingsChanged(changes);
+				changeCRMValuesIfSettingsChanged(changes);
 			}).catch((e) => {
 				window.log('Error on uploading to chrome.storage.local ', e);
 			});
@@ -1350,7 +1350,7 @@ export namespace Storages {
 				//Cut up all data into smaller JSON
 				const obj = cutData(settingsJson);
 				await browserAPI.storage.sync.set(obj as any).then(() => {
-					_changeCRMValuesIfSettingsChanged(changes);
+					changeCRMValuesIfSettingsChanged(changes);
 					browserAPI.storage.local.set({
 						settings: null
 					});
@@ -1382,7 +1382,7 @@ export namespace Storages {
 						modules.storages.storageLocal.useStorageSync = useStorageSync;
 					}
 
-					await _uploadSync(changes);
+					await uploadSync(changes);
 					break;
 				case 'libraries':
 					browserAPI.storage.local.set({
@@ -1404,19 +1404,19 @@ export namespace Storages {
 		switch (data.type) {
 			case 'optionsPage':
 				if (data.localChanges) {
-					_applyChangeForStorageType(modules.storages.storageLocal,
+					applyChangeForStorageType(modules.storages.storageLocal,
 						data.localChanges);
 					await uploadChanges('local', data.localChanges);
 				}
 				if (data.settingsChanges) {
-					_applyChangeForStorageType(modules.storages.settingsStorage,
+					applyChangeForStorageType(modules.storages.settingsStorage,
 						data.settingsChanges);
 					await uploadChanges('settings', data.settingsChanges);
 				}
 				break;
 			case 'libraries':
 				const compiled = await modules.CRMNodes.TS.compileAllLibraries(data.libraries);
-				_applyChangeForStorageType(modules.storages.storageLocal, [{
+				applyChangeForStorageType(modules.storages.storageLocal, [{
 					key: 'libraries',
 					newValue: compiled,
 					oldValue: modules.storages.storageLocal.libraries
@@ -1425,9 +1425,9 @@ export namespace Storages {
 			case 'nodeStorage':
 				modules.storages.nodeStorage[data.id] =
 					modules.storages.nodeStorage[data.id] || {};
-				_applyChangeForStorageType(modules.storages.nodeStorage[data.id],
+				applyChangeForStorageType(modules.storages.nodeStorage[data.id],
 					data.nodeStorageChanges, true);
-				_notifyNodeStorageChanges(data.id, data.tabId, data.nodeStorageChanges);
+				notifyNodeStorageChanges(data.id, data.tabId, data.nodeStorageChanges);
 				break;
 		}
 	}
@@ -1437,20 +1437,20 @@ export namespace Storages {
 			modules.storages.storageLocal = storageLocalCopy;
 			modules.storages.settingsStorage = settingsStorage;
 
-			modules.storages.globalExcludes = _setIfNotSet(chromeStorageLocal,
+			modules.storages.globalExcludes = setIfNotSet(chromeStorageLocal,
 				'globalExcludes', [] as string[]).map(modules.URLParsing.validatePatternUrl)
 				.filter((pattern) => {
 					return pattern !== null;
 				}) as MatchPattern[];
-			modules.storages.resources = _setIfNotSet(chromeStorageLocal,
+			modules.storages.resources = setIfNotSet(chromeStorageLocal,
 				'resources', []);
-			modules.storages.nodeStorage = _setIfNotSet(chromeStorageLocal,
+			modules.storages.nodeStorage = setIfNotSet(chromeStorageLocal,
 				'nodeStorage', {} as {
 					[nodeId: number]: any;
 				});
-			modules.storages.resourceKeys = _setIfNotSet(chromeStorageLocal,
+			modules.storages.resourceKeys = setIfNotSet(chromeStorageLocal,
 				'resourceKeys', []);
-			modules.storages.urlDataPairs = _setIfNotSet(chromeStorageLocal,
+			modules.storages.urlDataPairs = setIfNotSet(chromeStorageLocal,
 				'urlDataPairs', {} as {
 					[key: string]: {
 						dataString: string;
@@ -1493,7 +1493,7 @@ export namespace Storages {
 				settings?: CRM.SettingsStorage;
 			} = await browserAPI.storage.local.get() as any;
 			window.info('Checking if this is the first run');
-			const result = _isFirstTime(storageLocal);
+			const result = isFirstTime(storageLocal);
 			if (result.type === 'firstTimeCallback') {
 				const data = await result.fn;
 				await setStorages(data.storageLocalCopy, data.settingsStorage,
@@ -1542,7 +1542,7 @@ export namespace Storages {
 				}
 
 				window.info('Checking for data updates')
-				_checkForStorageSyncUpdates(settingsStorage, storageLocal);
+				checkForStorageSyncUpdates(settingsStorage, storageLocal);
 
 				await setStorages(storageLocalCopy, settingsStorage,
 					storageLocal, () => {
@@ -1560,7 +1560,7 @@ export namespace Storages {
 		modules.storages.storageLocal = null;
 	}
 
-	async function _changeCRMValuesIfSettingsChanged(changes: StorageChange[]) {
+	async function changeCRMValuesIfSettingsChanged(changes: StorageChange[]) {
 		const updated: {
 			crm: boolean;
 			id: boolean;
@@ -1607,7 +1607,7 @@ export namespace Storages {
 			}
 		}
 	}
-	function _setIfNotSet<T>(obj: any, key: string, defaultValue: T): T {
+	function setIfNotSet<T>(obj: any, key: string, defaultValue: T): T {
 		if (obj[key]) {
 			return obj[key];
 		}
@@ -1616,7 +1616,7 @@ export namespace Storages {
 		} as any);
 		return defaultValue;
 	}
-	function _applyChangeForStorageType(storageObj: {
+	function applyChangeForStorageType(storageObj: {
 		[key: string]: any;
 		[key: number]: any;
 	}, changes: StorageChange[], usesDots: boolean = false) {
@@ -1636,7 +1636,7 @@ export namespace Storages {
 			}
 		}
 	}
-	function _notifyNodeStorageChanges(id: number, tabId: number,
+	function notifyNodeStorageChanges(id: number, tabId: number,
 		changes: StorageChange[]) {
 		//Update in storage
 		modules.crm.crmById[id].storage = modules.storages
@@ -1663,7 +1663,7 @@ export namespace Storages {
 			}
 		}
 	}
-	function _getVersionObject(version: string): {
+	function getVersionObject(version: string): {
 		major: number;
 		minor: number;
 		patch: number;
@@ -1676,10 +1676,10 @@ export namespace Storages {
 			major, minor, patch
 		}
 	}
-	function _isVersionInRange(min: string, max: string, target: string): boolean {
-		const maxObj = _getVersionObject(max);
-		const minObj = _getVersionObject(min);
-		const targetObj = _getVersionObject(target);
+	function isVersionInRange(min: string, max: string, target: string): boolean {
+		const maxObj = getVersionObject(max);
+		const minObj = getVersionObject(min);
+		const targetObj = getVersionObject(target);
 		
 		if (targetObj.major > maxObj.major || targetObj.major < minObj.major) {
 			return false;
@@ -1693,7 +1693,7 @@ export namespace Storages {
 
 		return true;
 	}
-	function _upgradeVersion(oldVersion: string, newVersion: string): {
+	function upgradeVersion(oldVersion: string, newVersion: string): {
 		beforeSyncLoad: ((local: Partial<CRM.StorageLocal>) => void)[];
 		afterSyncLoad: ((sync: Partial<CRM.SettingsStorage>) => Partial<CRM.SettingsStorage>)[];
 		afterSync: (() => void)[];
@@ -1708,7 +1708,7 @@ export namespace Storages {
 			afterSync: []
 		}
 
-		if (_isVersionInRange(oldVersion, newVersion, '2.0.4')) {
+		if (isVersionInRange(oldVersion, newVersion, '2.0.4')) {
 			fns.afterSync.push(async () => {
 				await modules.Util.crmForEachAsync(modules.crm.crmTree, async (node) => {
 					if (node.type === 'script') {
@@ -1735,7 +1735,7 @@ export namespace Storages {
 				await modules.CRMNodes.updateCrm();
 			});
 		}
-		if (_isVersionInRange(oldVersion, newVersion, '2.0.11')) {
+		if (isVersionInRange(oldVersion, newVersion, '2.0.11')) {
 			modules.Util.isTamperMonkeyEnabled((isEnabled) => {
 				modules.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
 				browserAPI.storage.local.set({
@@ -1743,7 +1743,7 @@ export namespace Storages {
 				});
 			});
 		}
-		if (_isVersionInRange(oldVersion, newVersion, '2.0.15')) {
+		if (isVersionInRange(oldVersion, newVersion, '2.0.15')) {
 			fns.afterSyncLoad.push((sync) => {
 				sync.rootName = 'Custom Menu';
 				return sync;
@@ -1756,7 +1756,7 @@ export namespace Storages {
 				}]);
 			});
 		}
-		if (_isVersionInRange(oldVersion, newVersion, '2.1.0')) {
+		if (isVersionInRange(oldVersion, newVersion, '2.1.0')) {
 			fns.beforeSyncLoad.push((local) => {
 				const libs = local.libraries;
 				for (const lib of libs) {
@@ -1816,7 +1816,7 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 
 		return fns;
 	}
-	function _isFirstTime(storageLocal: CRM.StorageLocal): {
+	function isFirstTime(storageLocal: CRM.StorageLocal): {
 		type: 'firstTimeCallback';
 		fn: Promise<any>;
 	} | {
@@ -1833,7 +1833,7 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 		} else {
 			if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt) {
 				window.log('Upgrading minor version from', storageLocal.lastUpdatedAt, 'to', currentVersion);
-				const fns = _upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
+				const fns = upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
 				fns.beforeSyncLoad.forEach((fn) => {
 					fn(storageLocal);
 				});
@@ -1864,7 +1864,7 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 			}
 		}
 	}
-	function _checkForStorageSyncUpdates(storageSync: CRM.SettingsStorage, storageLocal: CRM.StorageLocal) {
+	function checkForStorageSyncUpdates(storageSync: CRM.SettingsStorage, storageLocal: CRM.StorageLocal) {
 		const syncString = JSON.stringify(storageSync);
 		const hash = window.md5(syncString);
 

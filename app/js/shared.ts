@@ -265,7 +265,7 @@ type SharedWindow = {
 		return res;
 	}
 	
-	function _propertyPersists<T extends keyof CSSStyleDeclaration>(property: T, value: string) {
+	function propertyPersists<T extends keyof CSSStyleDeclaration>(property: T, value: string) {
 		const dummyEl = document.createElement('div');
 	
 		dummyEl.style[property] = value;
@@ -281,7 +281,7 @@ type SharedWindow = {
 	window.setDisplayFlex = (el: HTMLElement|SVGElement) => {
 		if (_supportsFlexUnprefixed === null) {
 			_supportsFlexUnprefixed = 
-				_propertyPersists('display', 'flex');
+				propertyPersists('display', 'flex');
 		}
 
 		if (_supportsFlexUnprefixed) {
