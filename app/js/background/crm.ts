@@ -1838,7 +1838,7 @@ export namespace CRMNodes.NodeCreation {
 			enabled: false
 		};
 	}
-	async function _setLaunchModeData(node: CRM.Node,
+	async function _setupUserInteraction(node: CRM.Node,
 		rightClickItemOptions: ContextMenusCreateProperties, idHolder: {
 			id: number|string;
 		}) {
@@ -1873,7 +1873,7 @@ export namespace CRMNodes.NodeCreation {
 		const idHolder: {
 			id: number|string;
 		} = { id: null };
-		await _setLaunchModeData(node, rightClickItemOptions, idHolder);
+		await _setupUserInteraction(node, rightClickItemOptions, idHolder);
 		const id = idHolder.id;
 
 		if (replaceStylesheetTabs.length !== 0) {
