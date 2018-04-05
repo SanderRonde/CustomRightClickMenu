@@ -396,31 +396,31 @@ export namespace Util {
 	export function applyContextmenuOverride<T extends ContextMenuCreateProperties|ContextMenuUpdateProperties, 
 		U extends ContextMenuOverrides>(base: T, override: U): T {
 			override = override || {} as U;
+			base = base || {} as T;
 			const {
 				type, checked, contentTypes, isVisible, isDisabled, name
 			} = override;
-			const copy = JSON.parse(JSON.stringify(base || {} as T));
 			if (type) {
-				copy.type = type;
+				base.type = type;
 			}
 			if (typeof checked === 'boolean') {
-				copy.checked = checked;
+				base.checked = checked;
 			}
 			if (contentTypes) {
-				copy.contexts = contentTypes;
+				base.contexts = contentTypes;
 			}
 			if (typeof isVisible === 'boolean' && 
 				BrowserAPI.getBrowser() === 'chrome' && 
 				getChromeVersion() >= 62) {
-					(copy as any).visible = isVisible;
+					(base as any).visible = isVisible;
 				}
 			if (typeof isDisabled === 'boolean') {
-				copy.enabled = !isDisabled;
+				base.enabled = !isDisabled;
 			}
 			if (name) {
-				copy.title = name;
+				base.title = name;
 			}
-			return copy;
+			return base;
 		}
 
 	const _requiredFiles: string[] = [];

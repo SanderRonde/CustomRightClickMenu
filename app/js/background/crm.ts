@@ -1758,33 +1758,33 @@ export namespace CRMNodes.NodeCreation {
 	}
 	function generateClickHandler(node: CRM.Node,
 		rightClickItemOptions: ContextMenuCreateProperties) {
-		//It requires a click handler
-		switch (node.type) {
-			case 'divider':
-				rightClickItemOptions.type = 'separator';
-				break;
-			case 'link':
-				rightClickItemOptions.onclick = Link.createHandler(node);
-				break;
-			case 'script':
-				rightClickItemOptions.onclick = Script.Handler.createHandler(node);
-				break;
-			case 'stylesheet':
-				if (node.value.toggle) {
-					rightClickItemOptions.type = 'checkbox';
-					rightClickItemOptions.onclick = 
-						Stylesheet.createToggleHandler(node);
-					rightClickItemOptions.checked = node.value.defaultOn;
-				} else {
-					rightClickItemOptions.onclick = 
-						Stylesheet.createClickHandler(node);
-				}
-				modules.crmValues.nodeTabStatuses[node.id] = {
-					defaultCheckedValue: node.value.defaultOn
-				};
-				break;
+			//It requires a click handler
+			switch (node.type) {
+				case 'divider':
+					rightClickItemOptions.type = 'separator';
+					break;
+				case 'link':
+					rightClickItemOptions.onclick = Link.createHandler(node);
+					break;
+				case 'script':
+					rightClickItemOptions.onclick = Script.Handler.createHandler(node);
+					break;
+				case 'stylesheet':
+					if (node.value.toggle) {
+						rightClickItemOptions.type = 'checkbox';
+						rightClickItemOptions.onclick = 
+							Stylesheet.createToggleHandler(node);
+						rightClickItemOptions.checked = node.value.defaultOn;
+					} else {
+						rightClickItemOptions.onclick = 
+							Stylesheet.createClickHandler(node);
+					}
+					modules.crmValues.nodeTabStatuses[node.id] = {
+						defaultCheckedValue: node.value.defaultOn
+					};
+					break;
+			}
 		}
-	}
 	function handleContextMenuError(options: ContextMenuCreateProperties, e: _chrome.runtime.LastError|string, idHolder: {
 		id: number|string;
 	}) {
@@ -1833,7 +1833,7 @@ export namespace CRMNodes.NodeCreation {
 			pushToGlobalToExecute(node, launchMode)
 			handleHideOnPages(node, launchMode, rightClickItemOptions);
 			generateClickHandler(node, rightClickItemOptions);
-			rightClickItemOptions = modules.Util.applyContextmenuOverride(
+			modules.Util.applyContextmenuOverride(
 				rightClickItemOptions, getContextmenuGlobalOverrides(node));
 			generateContextMenuItem(rightClickItemOptions, idHolder);
 
