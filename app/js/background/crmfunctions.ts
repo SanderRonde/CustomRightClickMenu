@@ -1445,7 +1445,10 @@ export namespace CRMFunctions {
 						return modules.CRMNodes.makeSafe(splicedNode);
 					});
 					const { children } = __this.getNodeFromId(node.id, true, true) as CRM.MenuNode;
-					__this.respondSuccess(splicedSafe, children);
+					__this.respondSuccess({
+						spliced: splicedSafe, 
+						newArr: children
+					});
 					return true;
 				});
 			});
