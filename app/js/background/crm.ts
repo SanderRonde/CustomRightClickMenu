@@ -1636,7 +1636,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 					id: modules.Util.generateItemId()
 				});
 
-			const crmFn = new modules.CRMFunction.Instance(null, null);
+			const crmFn = new modules.CRMAPICall.Instance(null, null);
 			crmFn.moveNode(node, {}, null);
 		});
 	}
@@ -1664,7 +1664,7 @@ export namespace CRMNodes.Stylesheet {
 					'document.head.appendChild(CRMSSInsert);'
 				].join('');
 			}
-			modules.crmValues.stylesheetNodeStatusses[node.id][tab.id] = info.checked;
+			modules.crmValues.nodeTabStatuses[node.id][tab.id].checked = info.checked;
 			browserAPI.tabs.executeScript(tab.id, {
 				code: code,
 				allFrames: true
@@ -1710,7 +1710,7 @@ export namespace CRMNodes.NodeCreation {
 			crmNode.value.stylesheet !== node.value.stylesheet) { //Value changed
 
 			//Update after creating a new node
-			const statusses = modules.crmValues.stylesheetNodeStatusses;
+			const statusses = modules.crmValues.nodeTabStatuses;
 			for (let key in statusses[node.id]) {
 				if (statusses[node.id][key] && key !== 'defaultValue') {
 					replaceOnTabs.push({
@@ -1734,7 +1734,7 @@ export namespace CRMNodes.NodeCreation {
 		}
 	}
 	function _handleHideOnPages(node: CRM.Node, launchMode: CRMLaunchModes,
-		rightClickItemOptions: ContextMenusCreateProperties) {
+		rightClickItemOptions: ContextMenuCreateProperties) {
 		if ((node['showOnSpecified'] && (node.type === 'link' || node.type === 'divider' ||
 			node.type === 'menu')) ||
 			launchMode === CRMLaunchModes.SHOW_ON_SPECIFIED) {
@@ -1757,7 +1757,7 @@ export namespace CRMNodes.NodeCreation {
 		}
 	}
 	function _generateClickHandler(node: CRM.Node,
-		rightClickItemOptions: ContextMenusCreateProperties) {
+		rightClickItemOptions: ContextMenuCreateProperties) {
 		//It requires a click handler
 		switch (node.type) {
 			case 'divider':
@@ -1779,13 +1779,13 @@ export namespace CRMNodes.NodeCreation {
 					rightClickItemOptions.onclick = 
 						Stylesheet.createClickHandler(node);
 				}
-				modules.crmValues.stylesheetNodeStatusses[node.id] = {
-					defaultValue: node.value.defaultOn
+				modules.crmValues.nodeTabStatuses[node.id] = {
+					defaultCheckedValue: node.value.defaultOn
 				};
 				break;
 		}
 	}
-	function _handleContextMenuError(options: ContextMenusCreateProperties, e: _chrome.runtime.LastError|string, idHolder: {
+	function _handleContextMenuError(options: ContextMenuCreateProperties, e: _chrome.runtime.LastError|string, idHolder: {
 		id: number|string;
 	}) {
 		if (options.documentUrlPatterns) {
@@ -1802,7 +1802,7 @@ export namespace CRMNodes.NodeCreation {
 			window.log('An error occured with your context menu!', e);
 		}
 	}
-	function _generateContextMenuItem(rightClickItemOptions: ContextMenusCreateProperties, idHolder: {
+	function _generateContextMenuItem(rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
 		id: number|string;
 	}) {
 		try {
@@ -1822,24 +1822,29 @@ export namespace CRMNodes.NodeCreation {
 			_handleContextMenuError(rightClickItemOptions, e, idHolder);
 		}
 	}
+	function _getContextmenuGlobalOverrides(node: CRM.Node): ContextMenuOverrides {
+		return modules.crmValues.contextMenuGlobalOverrides[node.id];
+	}
 	function _addRightClickItemClick(node: CRM.Node, launchMode: CRMLaunchModes,
-		rightClickItemOptions: ContextMenusCreateProperties, idHolder: {
+		rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
 			id: number|string;
 		}) {
-		//On by default
-		_pushToGlobalToExecute(node, launchMode)
-		_handleHideOnPages(node, launchMode, rightClickItemOptions);
-		_generateClickHandler(node, rightClickItemOptions);
-		_generateContextMenuItem(rightClickItemOptions, idHolder)
+			//On by default
+			_pushToGlobalToExecute(node, launchMode)
+			_handleHideOnPages(node, launchMode, rightClickItemOptions);
+			_generateClickHandler(node, rightClickItemOptions);
+			rightClickItemOptions = modules.Util.applyContextmenuOverride(
+				rightClickItemOptions, _getContextmenuGlobalOverrides(node));
+			_generateContextMenuItem(rightClickItemOptions, idHolder);
 
-		modules.crmValues.contextMenuInfoById[idHolder.id] = {
-			settings: rightClickItemOptions,
-			path: node.path,
-			enabled: false
-		};
-	}
+			modules.crmValues.contextMenuInfoById[idHolder.id] = {
+				settings: rightClickItemOptions,
+				path: node.path,
+				enabled: false
+			};
+		}
 	async function _setupUserInteraction(node: CRM.Node,
-		rightClickItemOptions: ContextMenusCreateProperties, idHolder: {
+		rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
 			id: number|string;
 		}) {
 		const launchMode = ((node.type === 'script' || node.type === 'stylesheet') &&
@@ -1890,8 +1895,8 @@ export namespace CRMNodes.NodeCreation {
 					code: code,
 					allFrames: true
 				});
-				const statusses = modules.crmValues.stylesheetNodeStatusses;
-				statusses[node.id][replaceStylesheetTabs[i].id] = true;
+				const statusses = modules.crmValues.nodeTabStatuses;
+				statusses[node.id][replaceStylesheetTabs[i].id].checked = true;
 			}
 		}
 
@@ -2078,7 +2083,7 @@ export namespace CRMNodes {
 	}
 	export function buildPageCRM() {
 		return new Promise<void>((resolve) => {
-			modules.crmValues.stylesheetNodeStatusses = {};
+			modules.crmValues.nodeTabStatuses = {};
 			browserAPI.contextMenus.removeAll().then(() => {
 				modules.crmValues.rootId = browserAPI.contextMenus.create({
 					title: modules.storages.settingsStorage.rootName || 'Custom Menu',

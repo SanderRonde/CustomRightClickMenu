@@ -1,8 +1,8 @@
 import { MessageHandling } from "./messagehandling.js";
-import { CRMFunctions } from "./crmfunctions.js";
+import { CRMAPIFunctions } from "./crmapifunctions";
 import { ModuleData } from "./moduleTypes";
 
-export namespace CRMFunction {
+export namespace CRMAPICall {
 	export let modules: ModuleData;
 
 	export function initModule(_modules: ModuleData) {
@@ -39,12 +39,12 @@ export namespace CRMFunction {
 	};
 
 	export class Instance {
-		constructor(public message: MessageHandling.CRMFunctionMessage, 
-			public action: MessageHandling.CRMFunctionMessage['action']) {
+		constructor(public message: MessageHandling.CRMAPICallMessage, 
+			public action: MessageHandling.CRMAPICallMessage['action']) {
 				if (action === null) {
 					return;
 				}
-				CRMFunctions[action](this);
+				CRMAPIFunctions[action](this);
 			}
 
 		respondSuccess(...args: any[]) {

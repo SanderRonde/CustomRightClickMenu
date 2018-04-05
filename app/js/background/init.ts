@@ -1,10 +1,10 @@
 import {ModuleData, StorageModules, Modules } from "./moduleTypes";
 import { GlobalDeclarations } from "./global-declarations.js";
 import { MessageHandling } from "./messagehandling.js";
+import { CRMAPIFunctions } from "./crmapifunctions.js";
 import { BrowserHandler } from "./browserhandler.js";
 import { APIMessaging } from "./api-messaging.js";
-import { CRMFunctions } from "./crmfunctions.js";
-import { CRMFunction } from "./crmfunction.js";
+import { CRMAPICall } from "./crmapicall.js";
 import { URLParsing } from "./urlparsing.js";
 import { Resources } from "./resources.js";
 import { Storages } from "./storages.js";
@@ -60,8 +60,8 @@ export namespace Init {
 			BrowserHandler,
 			Caches,
 			CRMNodes,
-			CRMFunction,
-			CRMFunctions,
+			CRMAPICall,
+			CRMAPIFunctions,
 			GlobalDeclarations,
 			Logging,
 			MessageHandling,
@@ -84,8 +84,8 @@ export namespace Init {
 		BrowserHandler.initModule(moduleData);
 		Caches.initModule(moduleData);
 		CRMNodes.initModule(moduleData);
-		CRMFunction.initModule(moduleData);
-		CRMFunctions.initModule(null, moduleData);
+		CRMAPICall.initModule(moduleData);
+		CRMAPIFunctions.initModule(null, moduleData);
 		Global.initModule(moduleData);
 		GlobalDeclarations.initModule(moduleData);
 		Logging.initModule(moduleData);

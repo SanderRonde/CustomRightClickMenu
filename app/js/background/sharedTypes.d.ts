@@ -310,7 +310,7 @@ interface BGCRM {
 	};
 }
 
-interface ContextMenusCreateProperties {
+interface ContextMenuCreateProperties {
 	type?: _browser.contextMenus.ItemType,
 	id?: string,
 	title?: string,
@@ -324,7 +324,19 @@ interface ContextMenusCreateProperties {
 	enabled?: boolean,
 }
 
-interface ContextMenuSettings extends ContextMenusCreateProperties {
+interface ContextMenuUpdateProperties {
+	type?: _browser.contextMenus.ItemType,
+	title?: string,
+	checked?: boolean,
+	contexts?: _browser.contextMenus.ContextType[],
+	onclick?: (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => void,
+	parentId?: number|string,
+	documentUrlPatterns?: string[],
+	targetUrlPatterns?: string[],
+	enabled?: boolean,
+}
+
+interface ContextMenuSettings extends ContextMenuCreateProperties {
 	generatedId?: number;
 }
 
@@ -335,6 +347,15 @@ interface UserAddedContextMenu {
 	actualId: string|number;
 	parent: UserAddedContextMenu;
 	children: UserAddedContextMenu[];
+}
+
+interface ContextMenuOverrides {
+	type?: CRM.ContextMenuItemType;
+	checked?: boolean;
+	contentTypes?: CRM.ContentTypeString[];
+	isVisible?: boolean;
+	isDisabled?: boolean;
+	name?: string;
 }
 
 interface BGCRMValues {
@@ -382,17 +403,23 @@ interface BGCRMValues {
 	userAddedContextMenusById: {
 		[mappedId: string]: UserAddedContextMenu;
 		[mappedId: number]: UserAddedContextMenu;
-	}
+	},
+	contextMenuGlobalOverrides: {
+		[nodeId: number]: ContextMenuOverrides;
+	},
 	hideNodesOnPagesData: {
 		[nodeId: number]: {
 			not: boolean;
 			url: string;
 		}[];
 	};
-	stylesheetNodeStatusses: {
+	nodeTabStatuses: {
 		[nodeId: number]: {
-			[tabId: number]: boolean;
-			defaultValue: boolean;
+			[tabId: number]: {
+				checked?: boolean;
+				overrides?: ContextMenuOverrides;
+			};
+			defaultCheckedValue?: boolean;
 		};
 	};
 }

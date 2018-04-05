@@ -1,6 +1,6 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
 import { BrowserHandler } from "./browserhandler.js";
-import { CRMFunctions } from "./crmfunctions.js";
+import { CRMAPIFunctions } from "./crmapifunctions";
 import { ModuleData } from "./moduleTypes";
 
 export namespace MessageHandling.Instances {
@@ -137,8 +137,8 @@ export namespace MessageHandling {
 		[key: string]: any;
 	}
 	
-	export interface CRMFunctionMessage extends CRMAPIMessageInstance<'crm', CRMFunctionDataBase> {
-		action: keyof typeof CRMFunctions;
+	export interface CRMAPICallMessage extends CRMAPIMessageInstance<'crmapi', CRMFunctionDataBase> {
+		action: keyof typeof CRMAPIFunctions;
 	}
 	
 	export interface BackgroundAPIMessage extends CRMAPIMessageInstance<'background', {
@@ -235,12 +235,12 @@ export namespace MessageHandling {
 			});
 			return true;
 		}
-	export async function handleCrmAPIMessage(message: CRMFunctionMessage|
+	export async function handleCrmAPIMessage(message: CRMAPICallMessage|
 		BrowserHandler.ChromeAPIMessage|BrowserHandler.BrowserAPIMessage|
 		BackgroundAPIMessage) {
 			switch (message.type) {
-				case 'crm':
-					new modules.CRMFunction.Instance(message, message.action);
+				case 'crmapi':
+					new modules.CRMAPICall.Instance(message, message.action);
 					break;
 				case 'chrome':
 				case 'browser':

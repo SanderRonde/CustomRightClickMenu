@@ -44,8 +44,9 @@ export namespace Global {
 			contextMenuItemTree: [],
 			userAddedContextMenus: [],
 			userAddedContextMenusById: {},
+			contextMenuGlobalOverrides: {},
 			hideNodesOnPagesData: {},
-			stylesheetNodeStatusses: {}
+			nodeTabStatuses: {}
 		},
 		toExecuteNodes: {
 			onUrl: {},

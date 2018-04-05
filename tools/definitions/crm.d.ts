@@ -30,6 +30,11 @@ declare const enum CRMLaunchModes {
 declare namespace CRM {
 	
 	/**
+	 * The possible types of contextmenu items
+	 */
+	type ContextMenuItemType = 'normal'|'checkbox'|'radio'|'separator';
+
+	/**
 	 * Permissions related to the CRM API
 	 */
 	type CRMPermission = 'crmGet' | 'crmWrite' | 'crmRun' |

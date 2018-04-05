@@ -210,7 +210,7 @@ export namespace Util {
 		}
 	}
 	export function removeTab(tabId: number) {
-		const nodeStatusses = modules.crmValues.stylesheetNodeStatusses;
+		const nodeStatusses = modules.crmValues.nodeTabStatuses;
 		for (let nodeId in nodeStatusses) {
 			if (nodeStatusses[nodeId][tabId]) {
 				delete nodeStatusses[nodeId][tabId];
@@ -387,6 +387,41 @@ export namespace Util {
 			}
 		}
 	}
+	export function getChromeVersion() {
+		if (BrowserAPI.getBrowser() === 'chrome') {
+			return parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);	
+		}
+		return 1000;
+	}
+	export function applyContextmenuOverride<T extends ContextMenuCreateProperties|ContextMenuUpdateProperties, 
+		U extends ContextMenuOverrides>(base: T, override: U): T {
+			override = override || {} as U;
+			const {
+				type, checked, contentTypes, isVisible, isDisabled, name
+			} = override;
+			const copy = JSON.parse(JSON.stringify(base || {} as T));
+			if (type) {
+				copy.type = type;
+			}
+			if (typeof checked === 'boolean') {
+				copy.checked = checked;
+			}
+			if (contentTypes) {
+				copy.contexts = contentTypes;
+			}
+			if (typeof isVisible === 'boolean' && 
+				BrowserAPI.getBrowser() === 'chrome' && 
+				getChromeVersion() >= 62) {
+					(copy as any).visible = isVisible;
+				}
+			if (typeof isDisabled === 'boolean') {
+				copy.enabled = !isDisabled;
+			}
+			if (name) {
+				copy.title = name;
+			}
+			return copy;
+		}
 
 	const _requiredFiles: string[] = [];
 	function _loadFile(path: string, ...msg: any[]): Promise<string> {

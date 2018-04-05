@@ -1,4 +1,5 @@
 /// <reference path="background.ts" />
+/// <reference path="background/crmapifunctions.ts" />
 
 interface Window {
 	_crmAPIRegistry: any[];
@@ -107,7 +108,7 @@ type CRMAPIMessage = {
 	tabId: number;
 }|{
 	id: number;
-	type: 'crm';
+	type: 'crmapi';
 	tabIndex: number;
 	action: string;
 	crmPath: number[];
@@ -881,6 +882,17 @@ type CRMAPIMessage = {
 			 * @returns {Promise<any>} A promise that resolves with the response to the message
 			 */
 			_sendCrmMessage(action: string, callback: (...args: any[]) => void, params?: {
+				[key: string]: any;
+				[key: number]: any;
+			}): Promise<any>;
+
+			/**
+			 * Send a message to the background script with a promise instead of a callback
+			 * 
+			 * @param {string} action - What the action is
+			 * @param {Object} params - Any options or parameters
+			 */
+			_sendPromiseMessage(this: CrmAPIInstance, action: string, params?: {
 				[key: string]: any;
 				[key: number]: any;
 			}): Promise<any>;
@@ -2186,7 +2198,7 @@ type CRMAPIMessage = {
 						}
 					}
 					const message = {
-						type: 'crm',
+						type: 'crmapi',
 						id: this.__privates._id,
 						tabIndex: this.__privates._tabIndex,
 						action: action,
@@ -2219,6 +2231,20 @@ type CRMAPIMessage = {
 						.call(this, action, callback, params);
 					prom.then(resolve, reject);
 				});
+			},
+
+			/**
+			 * Send a message to the background script with a promise instead of a callback
+			 * 
+			 * @param {string} action - What the action is
+			 * @param {Object} params - Any options or parameters
+			 */
+			_sendPromiseMessage(this: CrmAPIInstance, action: string, params: {
+				[key: string]: any;
+				[key: number]: any;
+			} = {}) {
+				return this.__privates._sendOptionalCallbackCrmMessage
+					.call(this, action, () => {}, params);
 			},
 
 			_ensureBackground(this: CrmAPIInstance): boolean {
@@ -3844,6 +3870,135 @@ type CRMAPIMessage = {
 					}
 				}
 			}
+		};
+
+		/**
+		 * The contextMenuItem API which controls the look of this contextmenu item
+		 * None of these changes are persisted to the source node and only affect
+		 * the properties of the contextmenu item this session.
+		 * 
+		 * @type Object
+		 */
+		contextMenuItem = {
+			/**
+			 * Set the type of this contextmenu item. Options are "normal" for a regular one,
+			 * "checkbox" for one that can be checked, "radio" for one of many that can be
+			 * checked and "separator" for a divider line. Is not saved across sessions.
+			 * 
+			 * @param {CRM.ContextMenuItemType} itemType - The type to set it to
+			 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+			 * 	went wrong
+			 */
+			setType(this: CrmAPIInstance, itemType: CRM.ContextMenuItemType, allTabs: boolean = false) {
+				return this.__privates._sendPromiseMessage.call(this,
+					'contextmenuSetType', {
+						itemType,
+						allTabs
+					});
+			},
+			/**
+			 * Sets whether this item should be checked or not. If the contextmenu item type is either
+			 * "normal" or "separator", the type is first changed to "checkbox".
+			 *  Is not saved across sessions.
+			 * 
+			 * @param {boolean} checked - Whether it should be checked
+			 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+			 * 	went wrong
+			 */
+			setChecked(this: CrmAPIInstance, checked: boolean, allTabs: boolean = false) {
+				return this.__privates._sendPromiseMessage.call(this,
+					'contextmenuSetChecked', {
+						checked,
+						allTabs
+					});
+			},
+			/**
+			 * Sets the content types on which this item should appear. This is an array
+			 * containing the types it should appear on. It will not appear on types that
+			 * are not in the array. Possible values are "page", "link", "selection",
+			 * "image", "video" and "audio". Is not saved across sessions.
+			 * 
+			 * @param {CRM.ContentTypeString[]} contentTypes - The content types it should appear on
+			 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+			 * 	went wrong
+			 */
+			setContentTypes(this: CrmAPIInstance, contentTypes: CRM.ContentTypeString[], allTabs: boolean = false) {
+				return this.__privates._sendPromiseMessage.call(this,
+					'contextmenusetContentTypes', {
+						contentTypes,
+						allTabs
+					});
+			},
+			/**
+			 * Sets whether this item should be visible or not. This is only available in
+			 * chrome 62 and above (no other browsers), won't throw an error if
+			 * executed on a different browser/version. If this node is invisible by default
+			 * (for example run on specified), this won't do anything and throw an error.
+			 * Is not saved across sessions.
+			 * 
+			 * @param {boolean} isVisible - Whether it should be visible
+			 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+			 * 	went wrong
+			 */
+			setVisibility(this: CrmAPIInstance, isVisible: boolean, allTabs: boolean = false) {
+				return this.__privates._sendPromiseMessage.call(this,
+					'contextmenusetVisibility', {
+						isVisible,
+						allTabs
+					});
+			},
+			/**
+			 * Sets whether this item should be disabled or not. A disabled node
+			 * is simply greyed out and can not be clicked. Is not saved across sessions.
+			 * 
+			 * @param {boolean} isDisabled - Whether it should be disabled
+			 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+			 * 	went wrong
+			 */
+			setDisabled(this: CrmAPIInstance, isDisabled: boolean, allTabs: boolean = false) {
+				return this.__privates._sendPromiseMessage.call(this,
+					'contextmenusetDisabled', {
+						isDisabled,
+						allTabs
+					});
+			},
+			/**
+			 * Changes the display name of this item (can't be empty). 
+			 * Requires the "crmContextmenu" permission in order to prevent nodes from 
+			 * pretending to be other nodes. Can be reset to the default name by calling
+			 * crmAPI.contextMenuItem.resetName. Is not saved across sessions.
+			 * 
+			 * @permission crmContextmenu
+			 * @param {string} name - The new name
+			 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+			 * 	went wrong
+			 */
+			setName(this: CrmAPIInstance, name: string, allTabs: boolean = false) {
+				return this.__privates._sendPromiseMessage.call(this,
+					'contextmenusetName', {
+						name,
+						allTabs
+					});
+			},
+			/**
+			 * Resets the name to the original node name.
+			 * 
+			 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+			 * 	went wrong
+			 */
+			resetName(this: CrmAPIInstance, allTabs: boolean = false) {
+				return this.__privates._sendPromiseMessage.call(this,
+					'contextmenusetResetName', {
+						allTabs
+					});
+			},
 		};
 
 		/**

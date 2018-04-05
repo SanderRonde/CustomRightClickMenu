@@ -42,8 +42,8 @@ interface ChromeLastCall {
 
 interface ContextMenuItem {
 	id: number;
-	createProperties: ContextMenusCreateProperties;
-	currentProperties: ContextMenusCreateProperties;
+	createProperties: ContextMenuCreateProperties;
+	currentProperties: ContextMenuCreateProperties;
 	children: ContextMenuItem[];
 }
 

@@ -1,27 +1,27 @@
 /// <reference path="./sharedTypes.d.ts"/>
 import { MessageHandling } from "./messagehandling.js";
-import { CRMFunction } from "./crmfunction.js";
+import { CRMAPICall } from "./crmapicall.js";
 import { ModuleData } from "./moduleTypes";
 
 declare const window: BackgroundpageWindow;
 
-export namespace CRMFunctions {
+export namespace CRMAPIFunctions {
 	let modules: ModuleData;
 
 	//To avoid error in this function's form being different
-	export function initModule(__this: CRMFunction.Instance, _modules?: ModuleData) {
+	export function initModule(__this: CRMAPICall.Instance, _modules?: ModuleData) {
 		modules = _modules;
 	}
 
-	export function getRootContextMenu(__this: CRMFunction.Instance) {
+	export function getRootContextMenu(__this: CRMAPICall.Instance) {
 		__this.respondSuccess(modules.crmValues.rootId);
 	}
-	export function getTree(__this: CRMFunction.Instance) {
+	export function getTree(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.respondSuccess(modules.crm.safeTree);
 		});
 	}
-	export function getSubTree(__this: CRMFunction.Instance) {
+	export function getSubTree(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			const nodeId = __this.message.data.nodeId;
 			if (typeof nodeId === 'number') {
@@ -36,7 +36,7 @@ export namespace CRMFunctions {
 			}
 		});
 	}
-	export function getNode(__this: CRMFunction.Instance) {
+	export function getNode(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			const nodeId = __this.message.data.nodeId;
 			if (typeof nodeId === 'number') {
@@ -51,7 +51,7 @@ export namespace CRMFunctions {
 			}
 		});
 	}
-	export function getNodeIdFromPath(__this: CRMFunction.Instance) {
+	export function getNodeIdFromPath(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			//Force path recalculation
 			modules.CRMNodes.buildNodePaths(modules.crm.crmTree);
@@ -71,7 +71,7 @@ export namespace CRMFunctions {
 			}
 		});
 	}
-	export function queryCrm(__this: CRMFunction.Instance) {
+	export function queryCrm(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.typeCheck([{
 					val: 'query',
@@ -140,7 +140,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function getParentNode(__this: CRMFunction.Instance) {
+	export function getParentNode(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 				//Force path recalculation
@@ -158,21 +158,21 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function getNodeType(__this: CRMFunction.Instance) {
+	export function getNodeType(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
 				__this.respondSuccess(node.type);
 			});
 		});
 	}
-	export function getNodeValue(__this: CRMFunction.Instance) {
+	export function getNodeValue(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
 				__this.respondSuccess(node.value);
 			});
 		});
 	}
-	export function createNode(__this: CRMFunction.Instance) {
+	export function createNode(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 					val: 'options',
@@ -317,7 +317,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function copyNode(__this: CRMFunction.Instance) {
+	export function copyNode(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'options',
@@ -368,7 +368,7 @@ export namespace CRMFunctions {
 		});
 		return true;
 	}
-	export function moveNode(__this: CRMFunction.Instance) {
+	export function moveNode(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 				//Force path recalculation
@@ -390,7 +390,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function deleteNode(__this: CRMFunction.Instance) {
+	export function deleteNode(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 				//Force path recalculation
@@ -409,7 +409,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function editNode(__this: CRMFunction.Instance) {
+	export function editNode(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'options',
@@ -468,14 +468,14 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function getTriggers(__this: CRMFunction.Instance) {
+	export function getTriggers(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 				__this.respondSuccess(node.triggers);
 			});
 		});
 	}
-	export function setTriggers(__this: CRMFunction.Instance) {
+	export function setTriggers(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([
 				{
@@ -547,7 +547,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function getTriggerUsage(__this: CRMFunction.Instance) {
+	export function getTriggerUsage(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 				if (node.type === 'menu' || node.type === 'link' || 
@@ -559,7 +559,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function setTriggerUsage(__this: CRMFunction.Instance) {
+	export function setTriggerUsage(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'useTriggers',
@@ -589,14 +589,14 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function getContentTypes(__this: CRMFunction.Instance) {
+	export function getContentTypes(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 				__this.respondSuccess(node.onContentTypes);
 			});
 		});
 	}
-	export function setContentType(__this: CRMFunction.Instance) {
+	export function setContentType(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'index',
@@ -635,7 +635,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function setContentTypes(__this: CRMFunction.Instance) {
+	export function setContentTypes(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'contentTypes',
@@ -679,7 +679,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function linkGetLinks(__this: CRMFunction.Instance) {
+	export function linkGetLinks(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 				if (node.type === 'link') {
@@ -691,7 +691,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function linkSetLinks(__this: CRMFunction.Instance) {
+	export function linkSetLinks(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'items',
@@ -758,7 +758,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function linkPush(__this: CRMFunction.Instance) {
+	export function linkPush(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'items',
@@ -825,7 +825,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function linkSplice(__this: CRMFunction.Instance) {
+	export function linkSplice(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 				__this.typeCheck([
@@ -865,7 +865,7 @@ export namespace CRMFunctions {
 
 		});
 	}
-	export function setLaunchMode(__this: CRMFunction.Instance) {
+	export function setLaunchMode(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'launchMode',
@@ -891,7 +891,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function getLaunchMode(__this: CRMFunction.Instance) {
+	export function getLaunchMode(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 				if (node.type === 'script' || node.type === 'stylesheet') {
@@ -903,7 +903,7 @@ export namespace CRMFunctions {
 
 		});
 	}
-	export function registerLibrary(__this: CRMFunction.Instance) {
+	export function registerLibrary(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'name',
@@ -1010,7 +1010,7 @@ export namespace CRMFunctions {
 		}
 		return false;
 	}
-	export function scriptLibraryPush(__this: CRMFunction.Instance) {
+	export function scriptLibraryPush(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'libraries',
@@ -1069,7 +1069,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function scriptLibrarySplice(__this: CRMFunction.Instance) {
+	export function scriptLibrarySplice(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([
 				{
@@ -1102,7 +1102,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function scriptBackgroundLibraryPush(__this: CRMFunction.Instance) {
+	export function scriptBackgroundLibraryPush(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'libraries',
@@ -1160,7 +1160,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function scriptBackgroundLibrarySplice(__this: CRMFunction.Instance) {
+	export function scriptBackgroundLibrarySplice(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'start',
@@ -1191,7 +1191,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function setScriptValue(__this: CRMFunction.Instance) {
+	export function setScriptValue(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'script',
@@ -1215,7 +1215,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function getScriptValue(__this: CRMFunction.Instance) {
+	export function getScriptValue(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
 				if (node.type === 'script') {
@@ -1229,7 +1229,7 @@ export namespace CRMFunctions {
 
 		});
 	}
-	export function setStylesheetValue(__this: CRMFunction.Instance) {
+	export function setStylesheetValue(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'stylesheet',
@@ -1253,7 +1253,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function getStylesheetValue(__this: CRMFunction.Instance) {
+	export function getStylesheetValue(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
 				if (node.type === 'stylesheet') {
@@ -1267,7 +1267,7 @@ export namespace CRMFunctions {
 
 		});
 	}
-	export function setBackgroundScriptValue(__this: CRMFunction.Instance) {
+	export function setBackgroundScriptValue(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'script',
@@ -1291,7 +1291,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function getBackgroundScriptValue(__this: CRMFunction.Instance) {
+	export function getBackgroundScriptValue(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId, true).run(async (node) => {
 				if (node.type === 'script') {
@@ -1305,7 +1305,7 @@ export namespace CRMFunctions {
 
 		});
 	}
-	export function getMenuChildren(__this: CRMFunction.Instance) {
+	export function getMenuChildren(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
 				if (node.type === 'menu') {
@@ -1317,7 +1317,7 @@ export namespace CRMFunctions {
 
 		});
 	}
-	export function setMenuChildren(__this: CRMFunction.Instance) {
+	export function setMenuChildren(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'childrenIds',
@@ -1371,7 +1371,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function pushMenuChildren(__this: CRMFunction.Instance) {
+	export function pushMenuChildren(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'childrenIds',
@@ -1418,7 +1418,7 @@ export namespace CRMFunctions {
 			});
 		});
 	}
-	export function spliceMenuChildren(__this: CRMFunction.Instance) {
+	export function spliceMenuChildren(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'start',
@@ -1487,7 +1487,7 @@ export namespace CRMFunctions {
 
 	type MaybeArray<T> = T | T[];
 
-	async function _runScript(__this: CRMFunction.Instance, id: number, options: BrowserTabsQueryInfo & {
+	async function _runScript(__this: CRMAPICall.Instance, id: number, options: BrowserTabsQueryInfo & {
 		tabId?: MaybeArray<number>;
 	}) {
 		if (typeof options.tabId === 'number') {
@@ -1515,7 +1515,7 @@ export namespace CRMFunctions {
 			}, tab, true);
 		});
 	}
-	export function runScript(__this: CRMFunction.Instance) {
+	export function runScript(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmRun'], () => {
 			__this.typeCheck([{
 				val: 'id',
@@ -1603,7 +1603,7 @@ export namespace CRMFunctions {
 			});
 		})
 	}
-	export function runSelf(__this: CRMFunction.Instance) {
+	export function runSelf(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmRun'], () => {
 			__this.typeCheck([{
 				val: 'options',
@@ -1688,11 +1688,11 @@ export namespace CRMFunctions {
 			});
 		})
 	}
-	export function addKeyboardListener(__this: CRMFunction.Instance) {
+	export function addKeyboardListener(__this: CRMAPICall.Instance) {
 		__this.typeCheck([{
 			val: 'key',
 			type: 'string'
-		}], (optionals) => {
+		}], () => {
 			const msg = __this.message.data as MessageHandling.CRMFunctionDataBase & {
 				key: string;
 			};
@@ -1713,6 +1713,238 @@ export namespace CRMFunctions {
 				}
 			};
 			shortcuts[key].push(listenerObject);
+		});
+	}
+	function applyContextmenuChange(nodeId: number, tabId: number, 
+		override: ContextMenuOverrides, update: ContextMenuUpdateProperties,
+		allTabs: boolean) {
+			if (!allTabs) {
+				if (!(nodeId in modules.crmValues.nodeTabStatuses)) {
+					modules.crmValues.nodeTabStatuses[nodeId] = {
+						[tabId]: {
+							overrides: {}
+						}
+					};
+				} else if (!(tabId in modules.crmValues.nodeTabStatuses[nodeId])) {
+					modules.crmValues.nodeTabStatuses[nodeId][tabId] = {
+						overrides: {}
+					};
+				} else if (!modules.crmValues.nodeTabStatuses[nodeId][tabId].overrides) {
+					modules.crmValues.nodeTabStatuses[nodeId][tabId].overrides = {};
+				}
+			} else {
+				modules.crmValues.contextMenuGlobalOverrides[nodeId] = 
+					modules.crmValues.contextMenuGlobalOverrides[nodeId] || {};
+			}
+			const destination = allTabs ?
+				modules.crmValues.contextMenuGlobalOverrides[nodeId] :
+				modules.crmValues.nodeTabStatuses[nodeId][tabId].overrides;
+				
+			for (const key in override) {
+				const overrideKey = key as keyof ContextMenuOverrides;
+				destination[overrideKey] = override[overrideKey];
+			}
+
+			const contextmenuId = modules.crmValues.contextMenuIds[nodeId];
+			if (!contextmenuId) {
+				return;
+			}
+			browserAPI.contextMenus.update(contextmenuId, update).catch(() => {
+				//Item does not exist or something along those lines
+			});
+		}
+	export function contextmenuSetType(__this: CRMAPICall.Instance) {
+		__this.typeCheck([{
+			val: 'itemType',
+			type: 'string',
+		}, {
+			val: 'allTabs',
+			type: 'boolean',
+			optional: true
+		}], () => {
+			const { itemType, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+				itemType: CRM.ContextMenuItemType;
+				allTabs?: boolean;
+			};
+
+			const validTypes = ['normal', 'checkbox', 'radio', 'separator'];
+			if (validTypes.indexOf(itemType) === -1) {
+				__this.respondError('Item type is not one of "normal", "checkbox", "radio" or"separator"');
+				return;
+			}
+
+			applyContextmenuChange(__this.message.id, __this.message.tabId, {
+				type: itemType
+			}, {
+				type: itemType
+			}, allTabs);
+			__this.respondSuccess(null);
+		});
+	}
+	export function contextmenuSetChecked(__this: CRMAPICall.Instance) {
+		__this.typeCheck([{
+			val: 'checked',
+			type: 'boolean',
+		}, {
+			val: 'allTabs',
+			type: 'boolean',
+			optional: true
+		}], () => {
+			const { checked, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+				checked: boolean;
+				allTabs?: boolean;
+			};
+
+			const globalOverride = modules.crmValues.contextMenuGlobalOverrides[__this.message.id];
+			const tabOverride = (modules.crmValues.nodeTabStatuses[__this.message.id] &&
+				modules.crmValues.nodeTabStatuses[__this.message.id][__this.message.tabId] &&
+				modules.crmValues.nodeTabStatuses[__this.message.id][__this.message.tabId].overrides) || {};
+			const joinedOverrides = {...globalOverride, ...tabOverride};
+
+			const shouldConvertToCheckbox = joinedOverrides.type !== 'checkbox' && 
+				joinedOverrides.type !== 'radio';
+
+			const config: {
+				checked: boolean;
+				type?: CRM.ContextMenuItemType;
+			} = {...{
+				checked
+			}, ...shouldConvertToCheckbox ? {
+				type: 'checkbox'
+			} : {}}
+			applyContextmenuChange(__this.message.id, __this.message.tabId, 
+				config, config, allTabs);
+			__this.respondSuccess(null);
+		});
+	}
+	export function contextmenusetContentTypes(__this: CRMAPICall.Instance) {
+		__this.typeCheck([{
+			val: 'contentTypes',
+			type: 'array'
+		}, {
+			val: 'allTabs',
+			type: 'boolean',
+			optional: true
+		}], () => {
+			const { contentTypes, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+				contentTypes: CRM.ContentTypeString[];
+				allTabs?: boolean;
+			};
+
+			const validContentTypes = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+			for (const contentType of contentTypes) {
+				if (validContentTypes.indexOf(contentType) === -1) {
+					__this.respondError('Not all content types are one of "page", "link", ' + 
+						'"selection", "image", "video", "audio"');
+					return;
+				}
+			}
+
+			applyContextmenuChange(__this.message.id, __this.message.tabId, {
+				contentTypes
+			}, {
+				contexts: contentTypes
+			}, allTabs);
+			__this.respondSuccess(null);
+		});
+	}
+	export function contextmenusetVisibility(__this: CRMAPICall.Instance) {
+		__this.typeCheck([{
+			val: 'isVisible',
+			type: 'boolean',
+		}, {
+			val: 'allTabs',
+			type: 'boolean',
+			optional: true
+		}], () => {
+			__this.getNodeFromId(__this.message.data.nodeId).run((node: CRM.ScriptNode) => {
+				const { isVisible, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+					isVisible: boolean;
+					allTabs?: boolean;
+				};
+
+				if (node.value.launchMode === CRMLaunchModes.ALWAYS_RUN ||
+					node.value.launchMode === CRMLaunchModes.RUN_ON_SPECIFIED ||
+					node.value.launchMode === CRMLaunchModes.DISABLED) {
+						__this.respondError('A node that is not shown by default can not change' + 
+							' its hidden status');
+						return;
+					}
+
+				applyContextmenuChange(__this.message.id, __this.message.tabId, {
+					isVisible
+				}, BrowserAPI.getBrowser() === 'chrome' && 
+					modules.Util.getChromeVersion() >= 62 ? {
+						visible: isVisible
+					} as any : {}, allTabs);
+				__this.respondSuccess(null);
+			});
+		});
+	}
+	export function contextmenusetDisabled(__this: CRMAPICall.Instance) {
+		__this.typeCheck([{
+			val: 'isDisabled',
+			type: 'boolean',
+		}, {
+			val: 'allTabs',
+			type: 'boolean',
+			optional: true
+		}], () => {
+			const { isDisabled, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+				isDisabled: boolean;
+				allTabs?: boolean;
+			};
+			applyContextmenuChange(__this.message.id, __this.message.tabId, {
+				isDisabled: isDisabled
+			}, {
+				enabled: !isDisabled
+			}, allTabs);
+			__this.respondSuccess(null);
+		});
+	}
+	export function contextmenusetName(__this: CRMAPICall.Instance) {
+		__this.checkPermissions(['crmContextmenu'], () => {
+			__this.typeCheck([{
+				val: 'name',
+				type: 'string',
+			}, {
+				val: 'allTabs',
+				type: 'boolean',
+				optional: true
+			}], () => {
+				const { name, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+					name: string;
+					allTabs?: boolean;
+				};
+				applyContextmenuChange(__this.message.id, __this.message.tabId, {
+					name
+				}, {
+					title: name
+				}, allTabs);
+				__this.respondSuccess(null);
+			});
+		});
+	}
+	export function contextmenusetResetName(__this: CRMAPICall.Instance) {
+		__this.typeCheck([{
+			val: 'itemType',
+			type: 'string',
+		}, {
+			val: 'allTabs',
+			type: 'boolean',
+			optional: true
+		}], () => {
+			__this.getNodeFromId(__this.message.data.nodeId).run((node: CRM.ScriptNode) => {
+				const { allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+					allTabs?: boolean;
+				};
+				applyContextmenuChange(__this.message.id, __this.message.tabId, {
+					name: node.name
+				}, {
+					title: node.name
+				}, allTabs);
+				__this.respondSuccess(null);
+			});
 		});
 	}
 }

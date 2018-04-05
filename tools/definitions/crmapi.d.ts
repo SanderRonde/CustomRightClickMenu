@@ -1874,6 +1874,92 @@ declare namespace CRM {
 					removeListener(listener: StorageListener, key: string): void,
 				}
 			}
+
+			/**
+			 * The contextMenuItem API which controls the look of this contextmenu item
+			 * None of these changes are persisted to the source node and only affect
+			 * the properties of the contextmenu item this session.
+			 */
+			contextMenuItem: {
+				/**
+				 * Set the type of this contextmenu item. Options are "normal" for a regular one,
+				 * "checkbox" for one that can be checked, "radio" for one of many that can be
+				 * checked and "separator" for a divider line. Is not saved across sessions.
+				 * 
+				 * @param {CRM.ContextMenuItemType} itemType - The type to set it to
+				 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+				 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+				 * 	went wrong
+				 */
+				setType(itemType: CRM.ContextMenuItemType, allTabs?: boolean): Promise<void>;
+				/**
+				 * Sets whether this item should be checked or not. If the contextmenu item type is either
+				 * "normal" or "separator", the type is first changed to "checkbox".
+				 *  Is not saved across sessions.
+				 * 
+				 * @param {boolean} checked - Whether it should be checked
+				 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+				 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+				 * 	went wrong
+				 */
+				setChecked(checked: boolean, allTabs?: boolean): Promise<void>;
+				/**
+				 * Sets the content types on which this item should appear. This is an array
+				 * containing the types it should appear on. It will not appear on types that
+				 * are not in the array. Possible values are "page", "link", "selection",
+				 * "image", "video" and "audio". Is not saved across sessions.
+				 * 
+				 * @param {CRM.ContentTypeString[]} contentTypes - The content types it should appear on
+				 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+				 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+				 * 	went wrong
+				 */
+				setContentTypes(contentTypes: CRM.ContentTypeString[], allTabs?: boolean): Promise<void>;
+				/**
+				 * Sets whether this item should be visible or not. This is only available in
+				 * chrome 62 and above (no other browsers), won't throw an error if
+				 * executed on a different browser/version. If this node is invisible by default
+				 * (for example run on specified), this won't do anything and throw an error.
+				 * Is not saved across sessions.
+				 * 
+				 * @param {boolean} isVisible - Whether it should be visible
+				 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+				 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+				 * 	went wrong
+				 */
+				setVisibility(isVisible: boolean, allTabs?: boolean): Promise<void>;
+				/**
+				 * Sets whether this item should be disabled or not. A disabled node
+				 * is simply greyed out and can not be clicked. Is not saved across sessions.
+				 * 
+				 * @param {boolean} isDisabled - Whether it should be disabled
+				 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+				 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+				 * 	went wrong
+				 */
+				setDisabled(isDisabled: boolean, allTabs?: boolean): Promise<void>;
+				/**
+				 * Changes the display name of this item (can't be empty). 
+				 * Requires the "crmContextmenu" permission in order to prevent nodes from 
+				 * pretending to be other nodes. Can be reset to the default name by calling
+				 * crmAPI.contextMenuItem.resetName. Is not saved across sessions.
+				 * 
+				 * @permission crmContextmenu
+				 * @param {string} name - The new name
+				 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+				 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+				 * 	went wrong
+				 */
+				setName(name: string, allTabs?: boolean): Promise<void>;
+				/**
+				 * Resets the name to the original node name.
+				 * 
+				 * @param {boolean} [allTabs] - Whether to apply this change to all tabs, defaults to false
+				 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
+				 * 	went wrong
+				 */
+				resetName(allTabs?: boolean): Promise<void>;
+			};
 	
 	
 			/**

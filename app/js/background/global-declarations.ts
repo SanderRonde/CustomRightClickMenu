@@ -270,7 +270,7 @@ export namespace GlobalDeclarations {
 					}
 				} else {
 					await modules.MessageHandling.handleCrmAPIMessage(
-						(message as any) as MessageHandling.CRMFunctionMessage|
+						(message as any) as MessageHandling.CRMAPICallMessage|
 							BrowserHandler.ChromeAPIMessage);
 				}
 			};
@@ -526,6 +526,17 @@ export namespace GlobalDeclarations {
 			});
 		}
 
+		function getContextmenuTabOverrides(nodeId: number, tabId: number): ContextMenuOverrides {
+			const statuses = modules.crmValues.nodeTabStatuses;
+			if (!(nodeId in statuses)) {
+				return null;
+			}
+			if (!(tabId in statuses[nodeId])) {
+				return null;
+			}
+			return statuses[nodeId][tabId].overrides;
+		}
+
 		async function tabChangeListener(changeInfo: {
 			tabIds: number[];
 			windowId?: number;
@@ -567,18 +578,28 @@ export namespace GlobalDeclarations {
 			await applyNodeChangesOntree(modules.crmValues.rootId, 
 				modules.crmValues.contextMenuItemTree, changes);
 
-			const statuses = modules.crmValues.stylesheetNodeStatusses;
+			const statuses = modules.crmValues.nodeTabStatuses;
 			const ids = modules.crmValues.contextMenuIds;
 
 			for (let nodeId in statuses) {
+				const isStylesheet = modules.crm.crmById[nodeId].type === 'stylesheet';
 				const status = statuses[nodeId];
 				const currentValue = status[currentTabId];
-				await browserAPI.contextMenus.update(ids[nodeId], {
+				const base = isStylesheet ? {
 					checked: typeof currentValue === 'boolean' ?
-						currentValue : status.defaultValue
-				}).catch((err) => {
-					window.log(err.message);
-				});
+						currentValue : status.defaultCheckedValue
+				} : null;
+				const overrides = getContextmenuTabOverrides(~~nodeId, currentTabId);
+
+				if (!base && !overrides) {
+					break;
+				}
+
+				await browserAPI.contextMenus.update(ids[nodeId], 
+					modules.Util.applyContextmenuOverride(base || {},
+						overrides || {})).catch((err) => {
+							window.log(err.message);
+						});
 			}
 		}
 
@@ -605,9 +626,9 @@ export namespace GlobalDeclarations {
 
 		function onTabsRemoved(tabId: number) {
 			//Delete all data for this tabId
-			for (let node in modules.crmValues.stylesheetNodeStatusses) {
-				if (modules.crmValues.stylesheetNodeStatusses[node]) {
-					modules.crmValues.stylesheetNodeStatusses[node][tabId] = undefined;
+			for (let node in modules.crmValues.nodeTabStatuses) {
+				if (modules.crmValues.nodeTabStatuses[node]) {
+					modules.crmValues.nodeTabStatuses[node][tabId] = undefined;
 				}
 			}
 

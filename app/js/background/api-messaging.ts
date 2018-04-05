@@ -14,7 +14,7 @@ export namespace APIMessaging.CRMMessage {
 		} | T;
 	}
 
-	export function respond(message: CRMAPIMessageInstance<'crm' | 'chrome' | 'browser' | 'background', any>,
+	export function respond(message: CRMAPIMessageInstance<'crmapi' | 'chrome' | 'browser' | 'background', any>,
 		type: 'success' | 'error' | 'chromeError', data: any | string, stackTrace?:
 			string) {
 		const msg: CRMAPIResponse<any> = {
@@ -68,7 +68,7 @@ export namespace APIMessaging {
 		modules = _modules;
 	}
 
-	export function createReturn(message: CRMAPIMessageInstance<'crm' | 'chrome' | 'browser', any>,
+	export function createReturn(message: CRMAPIMessageInstance<'crmapi' | 'chrome' | 'browser', any>,
 		callbackIndex: number) {
 		return (result: any) => {
 			CRMMessage.respond(message, 'success', {
