@@ -29,7 +29,6 @@ export namespace Global {
 			safeTree: [],
 			crmByIdSafe: {}
 		},
-		keys: {},
 		availablePermissions: [],
 		crmValues: {
 			tabData: {

@@ -417,9 +417,6 @@ interface Globals {
 	storages: BGStorages;
 	background: BGBackground;
 	crm: BGCRM;
-	keys: {
-		[secretKey: string]: boolean;
-	};
 	availablePermissions: string[];
 	crmValues: BGCRMValues;
 	toExecuteNodes: BGToExecute;

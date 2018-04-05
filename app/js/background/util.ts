@@ -99,13 +99,17 @@ export namespace Util {
 	export function safe(node: CRM.Node): CRM.SafeNode {
 		return modules.crm.crmByIdSafe[node.id];
 	}
+
+	const keys: {
+		[secretKey: string]: boolean;
+	} = {};
 	export function createSecretKey(): number[] {
 		const key: number[] = [];
 		for (let i = 0; i < 25; i++) {
 			key[i] = Math.round(Math.random() * 100);
 		}
-		if (!modules.globalObject.globals.keys[key.join(',')]) {
-			modules.globalObject.globals.keys[key.join(',')] = true;
+		if (!keys[key.join(',')]) {
+			keys[key.join(',')] = true;
 			return key;
 		} else {
 			return createSecretKey();
