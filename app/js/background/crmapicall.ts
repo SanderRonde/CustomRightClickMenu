@@ -44,7 +44,12 @@ export namespace CRMAPICall {
 				if (action === null) {
 					return;
 				}
-				CRMAPIFunctions[action](this);
+				const parts = action.split('.');
+				let current: any = CRMAPIFunctions;
+				for (const part of parts) {
+					current = current[part as keyof typeof current];
+				}
+				current(this);
 			}
 
 		respondSuccess(...args: any[]) {

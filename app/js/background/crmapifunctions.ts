@@ -6,14 +6,272 @@ import { ModuleData } from "./moduleTypes";
 declare const window: BackgroundpageWindow;
 
 export namespace CRMAPIFunctions {
-	let modules: ModuleData;
+	export let modules: ModuleData;
 
 	//To avoid error in this function's form being different
 	export function initModule(__this: CRMAPICall.Instance, _modules?: ModuleData) {
 		modules = _modules;
 	}
 
-	export function getRootContextMenu(__this: CRMAPICall.Instance) {
+	export function _doesLibraryExist(lib: {
+		name: string;
+	}): string | boolean {
+		for (const { name } of modules.storages.storageLocal.libraries) {
+			if (name.toLowerCase() === lib.name.toLowerCase()) {
+				return name;
+			}
+		}
+		return false;
+	}
+	export function _isAlreadyUsed(script: CRM.ScriptNode, lib: {
+		name: string;
+	}): boolean {
+		for (const { name } of script.value.libraries) {
+			if (name === (lib.name || null)) {
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
+export namespace CRMAPIFunctions.contextMenuItem {
+	function applyContextmenuChange(nodeId: number, tabId: number, 
+		override: ContextMenuOverrides, update: ContextMenuUpdateProperties,
+		allTabs: boolean) {
+			if (!allTabs) {
+				if (!(nodeId in modules.crmValues.nodeTabStatuses)) {
+					modules.crmValues.nodeTabStatuses[nodeId] = {
+						[tabId]: {
+							overrides: {}
+						}
+					};
+				} else if (!(tabId in modules.crmValues.nodeTabStatuses[nodeId])) {
+					modules.crmValues.nodeTabStatuses[nodeId][tabId] = {
+						overrides: {}
+					};
+				} else if (!modules.crmValues.nodeTabStatuses[nodeId][tabId].overrides) {
+					modules.crmValues.nodeTabStatuses[nodeId][tabId].overrides = {};
+				}
+			} else {
+				modules.crmValues.contextMenuGlobalOverrides[nodeId] = 
+					modules.crmValues.contextMenuGlobalOverrides[nodeId] || {};
+			}
+			const destination = allTabs ?
+				modules.crmValues.contextMenuGlobalOverrides[nodeId] :
+				modules.crmValues.nodeTabStatuses[nodeId][tabId].overrides;
+				
+			for (const key in override) {
+				const overrideKey = key as keyof ContextMenuOverrides;
+				destination[overrideKey] = override[overrideKey];
+			}
+
+			const contextmenuId = modules.crmValues.contextMenuIds[nodeId];
+			if (!contextmenuId) {
+				return;
+			}
+			browserAPI.contextMenus.update(contextmenuId, update).catch(() => {
+				//Item does not exist or something along those lines
+			});
+		}
+	export function setType(__this: CRMAPICall.Instance) {
+		__this.typeCheck([{
+			val: 'itemType',
+			type: 'string',
+		}, {
+			val: 'allTabs',
+			type: 'boolean',
+			optional: true
+		}], () => {
+			const { itemType, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+				itemType: CRM.ContextMenuItemType;
+				allTabs?: boolean;
+			};
+
+			const validTypes = ['normal', 'checkbox', 'radio', 'separator'];
+			if (validTypes.indexOf(itemType) === -1) {
+				__this.respondError('Item type is not one of "normal", "checkbox", "radio" or"separator"');
+				return;
+			}
+
+			applyContextmenuChange(__this.message.id, __this.message.tabId, {
+				type: itemType
+			}, {
+				type: itemType
+			}, allTabs);
+			__this.respondSuccess(null);
+		});
+	}
+	export function setChecked(__this: CRMAPICall.Instance) {
+		__this.typeCheck([{
+			val: 'checked',
+			type: 'boolean',
+		}, {
+			val: 'allTabs',
+			type: 'boolean',
+			optional: true
+		}], () => {
+			const { checked, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+				checked: boolean;
+				allTabs?: boolean;
+			};
+
+			const globalOverride = modules.crmValues.contextMenuGlobalOverrides[__this.message.id];
+			const tabOverride = (modules.crmValues.nodeTabStatuses[__this.message.id] &&
+				modules.crmValues.nodeTabStatuses[__this.message.id][__this.message.tabId] &&
+				modules.crmValues.nodeTabStatuses[__this.message.id][__this.message.tabId].overrides) || {};
+			const joinedOverrides = {...globalOverride, ...tabOverride};
+
+			const shouldConvertToCheckbox = joinedOverrides.type !== 'checkbox' && 
+				joinedOverrides.type !== 'radio';
+
+			const config: {
+				checked: boolean;
+				type?: CRM.ContextMenuItemType;
+			} = {...{
+				checked
+			}, ...shouldConvertToCheckbox ? {
+				type: 'checkbox'
+			} : {}}
+			applyContextmenuChange(__this.message.id, __this.message.tabId, 
+				config, config, allTabs);
+			__this.respondSuccess(null);
+		});
+	}
+	export function setContentTypes(__this: CRMAPICall.Instance) {
+		__this.typeCheck([{
+			val: 'contentTypes',
+			type: 'array'
+		}, {
+			val: 'allTabs',
+			type: 'boolean',
+			optional: true
+		}], () => {
+			const { contentTypes, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+				contentTypes: CRM.ContentTypeString[];
+				allTabs?: boolean;
+			};
+
+			const validContentTypes = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+			for (const contentType of contentTypes) {
+				if (validContentTypes.indexOf(contentType) === -1) {
+					__this.respondError('Not all content types are one of "page", "link", ' + 
+						'"selection", "image", "video", "audio"');
+					return;
+				}
+			}
+
+			applyContextmenuChange(__this.message.id, __this.message.tabId, {
+				contentTypes
+			}, {
+				contexts: contentTypes
+			}, allTabs);
+			__this.respondSuccess(null);
+		});
+	}
+	export function setVisibility(__this: CRMAPICall.Instance) {
+		__this.typeCheck([{
+			val: 'isVisible',
+			type: 'boolean',
+		}, {
+			val: 'allTabs',
+			type: 'boolean',
+			optional: true
+		}], () => {
+			__this.getNodeFromId(__this.message.data.nodeId).run((node: CRM.ScriptNode) => {
+				const { isVisible, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+					isVisible: boolean;
+					allTabs?: boolean;
+				};
+
+				if (node.value.launchMode === CRMLaunchModes.ALWAYS_RUN ||
+					node.value.launchMode === CRMLaunchModes.RUN_ON_SPECIFIED ||
+					node.value.launchMode === CRMLaunchModes.DISABLED) {
+						__this.respondError('A node that is not shown by default can not change' + 
+							' its hidden status');
+						return;
+					}
+
+				applyContextmenuChange(__this.message.id, __this.message.tabId, {
+					isVisible
+				}, BrowserAPI.getBrowser() === 'chrome' && 
+					modules.Util.getChromeVersion() >= 62 ? {
+						visible: isVisible
+					} as any : {}, allTabs);
+				__this.respondSuccess(null);
+			});
+		});
+	}
+	export function setDisabled(__this: CRMAPICall.Instance) {
+		__this.typeCheck([{
+			val: 'isDisabled',
+			type: 'boolean',
+		}, {
+			val: 'allTabs',
+			type: 'boolean',
+			optional: true
+		}], () => {
+			const { isDisabled, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+				isDisabled: boolean;
+				allTabs?: boolean;
+			};
+			applyContextmenuChange(__this.message.id, __this.message.tabId, {
+				isDisabled: isDisabled
+			}, {
+				enabled: !isDisabled
+			}, allTabs);
+			__this.respondSuccess(null);
+		});
+	}
+	export function setName(__this: CRMAPICall.Instance) {
+		__this.checkPermissions(['crmContextmenu'], () => {
+			__this.typeCheck([{
+				val: 'name',
+				type: 'string',
+			}, {
+				val: 'allTabs',
+				type: 'boolean',
+				optional: true
+			}], () => {
+				const { name, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+					name: string;
+					allTabs?: boolean;
+				};
+				applyContextmenuChange(__this.message.id, __this.message.tabId, {
+					name
+				}, {
+					title: name
+				}, allTabs);
+				__this.respondSuccess(null);
+			});
+		});
+	}
+	export function resetName(__this: CRMAPICall.Instance) {
+		__this.typeCheck([{
+			val: 'itemType',
+			type: 'string',
+		}, {
+			val: 'allTabs',
+			type: 'boolean',
+			optional: true
+		}], () => {
+			__this.getNodeFromId(__this.message.data.nodeId).run((node: CRM.ScriptNode) => {
+				const { allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+					allTabs?: boolean;
+				};
+				applyContextmenuChange(__this.message.id, __this.message.tabId, {
+					name: node.name
+				}, {
+					title: node.name
+				}, allTabs);
+				__this.respondSuccess(null);
+			});
+		});
+	}
+}
+
+export namespace CRMAPIFunctions.crm {
+	export function getRootContextMenuId(__this: CRMAPICall.Instance) {
 		__this.respondSuccess(modules.crmValues.rootId);
 	}
 	export function getTree(__this: CRMAPICall.Instance) {
@@ -679,7 +937,89 @@ export namespace CRMAPIFunctions {
 			});
 		});
 	}
-	export function linkGetLinks(__this: CRMAPICall.Instance) {
+	export function setLaunchMode(__this: CRMAPICall.Instance) {
+		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+			__this.typeCheck([{
+				val: 'launchMode',
+				type: 'number',
+				min: 0,
+				max: 4
+			}], () => {
+				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
+					const msg = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+						launchMode: CRMLaunchModes;
+					};
+
+					if (node.type === 'script' || node.type === 'stylesheet') {
+						node.value.launchMode = msg['launchMode'];
+					} else {
+						__this.respondError('Node is not of type script or stylesheet');
+						return false;
+					}
+					await modules.CRMNodes.updateCrm();
+					__this.respondSuccess(modules.Util.safe(node));
+					return true;
+				});
+			});
+		});
+	}
+	export function getLaunchMode(__this: CRMAPICall.Instance) {
+		__this.checkPermissions(['crmGet'], () => {
+			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+				if (node.type === 'script' || node.type === 'stylesheet') {
+					__this.respondSuccess(node.value.launchMode);
+				} else {
+					__this.respondError('Node is not of type script or stylesheet');
+				}
+			});
+
+		});
+	}
+}
+
+export namespace CRMAPIFunctions.crm.stylesheet {
+	export function setStylesheet(__this: CRMAPICall.Instance) {
+		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+			__this.typeCheck([{
+				val: 'stylesheet',
+				type: 'string'
+			}], () => {
+				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
+					const { stylesheet } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+						stylesheet: string;
+					};
+					if (node.type === 'stylesheet') {
+						node.value.stylesheet = stylesheet;
+					} else {
+						node.stylesheetVal = node.stylesheetVal ||
+							modules.constants.templates.getDefaultStylesheetValue();
+						(node.stylesheetVal as CRM.StylesheetVal).stylesheet = stylesheet;
+					}
+					await modules.CRMNodes.updateCrm();
+					__this.respondSuccess(modules.Util.safe(node));
+					return true;
+				});
+			});
+		});
+	}
+	export function getStylesheet(__this: CRMAPICall.Instance) {
+		__this.checkPermissions(['crmGet'], () => {
+			__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
+				if (node.type === 'stylesheet') {
+					__this.respondSuccess(node.value.stylesheet);
+				} else if (node.stylesheetVal) {
+					__this.respondSuccess(node.stylesheetVal.stylesheet);
+				} else {
+					__this.respondSuccess(undefined);
+				}
+			});
+
+		});
+	}
+}
+
+export namespace CRMAPIFunctions.crm.link {
+	export function getLinks(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 				if (node.type === 'link') {
@@ -691,7 +1031,7 @@ export namespace CRMAPIFunctions {
 			});
 		});
 	}
-	export function linkSetLinks(__this: CRMAPICall.Instance) {
+	export function setLinks(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'items',
@@ -758,7 +1098,7 @@ export namespace CRMAPIFunctions {
 			});
 		});
 	}
-	export function linkPush(__this: CRMAPICall.Instance) {
+	export function push(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'items',
@@ -825,7 +1165,7 @@ export namespace CRMAPIFunctions {
 			});
 		});
 	}
-	export function linkSplice(__this: CRMAPICall.Instance) {
+	export function splice(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 				__this.typeCheck([
@@ -865,24 +1205,25 @@ export namespace CRMAPIFunctions {
 
 		});
 	}
-	export function setLaunchMode(__this: CRMAPICall.Instance) {
+}
+
+export namespace CRMAPIFunctions.crm.script {
+	export function setScript(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
-				val: 'launchMode',
-				type: 'number',
-				min: 0,
-				max: 4
+				val: 'script',
+				type: 'string'
 			}], () => {
+				const { script }  = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+					script: string;
+				};
 				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
-					const msg = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-						launchMode: CRMLaunchModes;
-					};
-
-					if (node.type === 'script' || node.type === 'stylesheet') {
-						node.value.launchMode = msg['launchMode'];
+					if (node.type === 'script') {
+						node.value.script = script;
 					} else {
-						__this.respondError('Node is not of type script or stylesheet');
-						return false;
+						node.scriptVal = node.scriptVal ||
+							modules.constants.templates.getDefaultScriptValue();
+						(node.scriptVal as CRM.ScriptVal).script = script;
 					}
 					await modules.CRMNodes.updateCrm();
 					__this.respondSuccess(modules.Util.safe(node));
@@ -891,126 +1232,62 @@ export namespace CRMAPIFunctions {
 			});
 		});
 	}
-	export function getLaunchMode(__this: CRMAPICall.Instance) {
+	export function getScript(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
-			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
-				if (node.type === 'script' || node.type === 'stylesheet') {
-					__this.respondSuccess(node.value.launchMode);
+			__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
+				if (node.type === 'script') {
+					__this.respondSuccess(node.value.script);
+				} else if (node.scriptVal) {
+					__this.respondSuccess(node.scriptVal.script);
 				} else {
-					__this.respondError('Node is not of type script or stylesheet');
+					__this.respondSuccess(undefined);
 				}
 			});
 
 		});
 	}
-	export function registerLibrary(__this: CRMAPICall.Instance) {
-		__this.checkPermissions(['crmWrite'], () => {
+	export function setBackgroundScript(__this: CRMAPICall.Instance) {
+		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
-				val: 'name',
+				val: 'script',
 				type: 'string'
-			}, {
-				val: 'url',
-				type: 'string',
-				optional: true
-			}, {
-				val: 'code',
-				type: 'string',
-				optional: true
-			}, {
-				val: 'ts',
-				type: 'boolean',
-				optional: true
-			}], async (optionals) => {
-				const { name, url, ts, code } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-					url?: string;
-					name: string;
-					code?: string;
+			}], () => {
+				const { script } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+					script: string;
 				};
-
-				let newLibrary: CRM.InstalledLibrary;
-				if (optionals['url']) {
-					if (url.indexOf('.js') === url.length - 3) {
-						//Use URL
-						const res = await Promise.race([new Promise<string|number>((resolve) => {
-							modules.Util.xhr(url).then((content) => {
-								resolve(content);
-							}, (status) => {
-								resolve(status);
-							})
-						}), new Promise<string|number>((resolve) => {
-							setTimeout(() => {
-								resolve(null);
-							}, 5000);	
-						})]);
-						if (res === null) {
-							__this.respondError('Request timed out');
-						} else if (typeof res === 'number') {
-							__this.respondError(`Request failed with status code ${res}`);
-						} else {
-							newLibrary = {
-								name,
-								code: res,
-								url,
-								ts: {
-									enabled: !!ts,
-									code: {}
-								}
-							};
-							const compiled = await modules.CRMNodes.TS.compileLibrary(newLibrary);
-							modules.storages.storageLocal.libraries.push(compiled);
-							await browserAPI.storage.local.set({
-								libraries: modules.storages.storageLocal.libraries
-							});
-							__this.respondSuccess(compiled);
-						}
+				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
+					if (node.type === 'script') {
+						node.value.backgroundScript = script;
 					} else {
-						__this.respondError('No valid URL given');
-						return false;
+						node.scriptVal = node.scriptVal ||
+							modules.constants.templates.getDefaultScriptValue();
+						(node.scriptVal as CRM.ScriptVal).backgroundScript = script;
 					}
-				} else if (optionals['code']) {
-					newLibrary = {
-						name,
-						code,
-						ts: {
-							enabled: !!ts,
-							code: {}
-						}
-					};
-					const compiled = await modules.CRMNodes.TS.compileLibrary(newLibrary);
-					modules.storages.storageLocal.libraries.push(compiled);
-					await browserAPI.storage.local.set({
-						libraries: modules.storages.storageLocal.libraries
-					});
-					__this.respondSuccess(compiled);
-				} else {
-					__this.respondError('No URL or code given');
-					return false;
-				}
-				return true;
+					await modules.CRMNodes.updateCrm([__this.message.data.nodeId]);
+					__this.respondSuccess(modules.Util.safe(node));
+					return true;
+				});
 			});
 		});
 	}
-	function doesLibraryExist(lib: {
-		name: string;
-	}): string | boolean {
-		for (const { name } of modules.storages.storageLocal.libraries) {
-			if (name.toLowerCase() === lib.name.toLowerCase()) {
-				return name;
-			}
-		}
-		return false;
+	export function getBackgroundScript(__this: CRMAPICall.Instance) {
+		__this.checkPermissions(['crmGet'], () => {
+			__this.getNodeFromId(__this.message.data.nodeId, true).run(async (node) => {
+				if (node.type === 'script') {
+					__this.respondSuccess(await modules.Util.getScriptNodeScript(node, 'background'));
+				} else if (node.scriptVal) {
+					__this.respondSuccess(node.scriptVal.backgroundScript);
+				} else {
+					__this.respondSuccess(undefined);
+				}
+			});
+
+		});
 	}
-	function isAlreadyUsed(script: CRM.ScriptNode, lib: {
-		name: string;
-	}): boolean {
-		for (const { name } of script.value.libraries) {
-			if (name === (lib.name || null)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	export function scriptLibraryPush(__this: CRMAPICall.Instance) {
+}
+
+export namespace CRMAPIFunctions.crm.script.libraries {
+	export function push(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'libraries',
@@ -1042,23 +1319,23 @@ export namespace CRMAPIFunctions {
 					if (Array.isArray(libraries)) {
 						for (const library of libraries) {
 							const originalName = library.name;
-							if (!(library.name = doesLibraryExist(library) as string)) {
+							if (!(library.name = _doesLibraryExist(library) as string)) {
 								__this.respondError('Library ' + originalName + 
 									' is not registered');
 								return false;
 							}
-							if (!isAlreadyUsed(node, library)) {
+							if (!_isAlreadyUsed(node, library)) {
 								node.value.libraries.push(library as CRM.Library);
 							}
 						}
 					} else {
 						const name = libraries.name;
-						if (!(libraries.name = doesLibraryExist(libraries) as string)) {
+						if (!(libraries.name = _doesLibraryExist(libraries) as string)) {
 							__this.respondError('Library ' + name +
 								' is not registered');
 							return false;
 						}
-						if (!isAlreadyUsed(node, libraries)) {
+						if (!_isAlreadyUsed(node, libraries)) {
 							node.value.libraries.push(libraries as CRM.Library);
 						}
 					}
@@ -1069,7 +1346,7 @@ export namespace CRMAPIFunctions {
 			});
 		});
 	}
-	export function scriptLibrarySplice(__this: CRMAPICall.Instance) {
+	export function splice(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([
 				{
@@ -1102,7 +1379,10 @@ export namespace CRMAPIFunctions {
 			});
 		});
 	}
-	export function scriptBackgroundLibraryPush(__this: CRMAPICall.Instance) {
+}
+
+export namespace CRMAPIFunctions.crm.script.backgroundLibraries {
+	export function push(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'libraries',
@@ -1133,23 +1413,23 @@ export namespace CRMAPIFunctions {
 					if (Array.isArray(libraries)) { //Array
 						for (const library of libraries) {
 							const originalName = library.name;
-							if (!(library.name = doesLibraryExist(library) as string)) {
+							if (!(library.name = _doesLibraryExist(library) as string)) {
 								__this.respondError('Library ' + originalName +
 									' is not registered');
 								return false;
 							}
-							if (!isAlreadyUsed(node, library)) {
+							if (!_isAlreadyUsed(node, library)) {
 								node.value.backgroundLibraries.push(library as CRM.Library);
 							}
 						}
 					} else { //Object
 						const name = libraries.name;
-						if (!(libraries.name = doesLibraryExist(libraries) as string)) {
+						if (!(libraries.name = _doesLibraryExist(libraries) as string)) {
 							__this.respondError('Library ' + name + 
 								' is not registered');
 							return false;
 						}
-						if (!isAlreadyUsed(node, libraries)) {
+						if (!_isAlreadyUsed(node, libraries)) {
 							node.value.backgroundLibraries.push(libraries as CRM.Library);
 						}
 					}
@@ -1160,7 +1440,7 @@ export namespace CRMAPIFunctions {
 			});
 		});
 	}
-	export function scriptBackgroundLibrarySplice(__this: CRMAPICall.Instance) {
+	export function splice(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'start',
@@ -1191,121 +1471,10 @@ export namespace CRMAPIFunctions {
 			});
 		});
 	}
-	export function setScriptValue(__this: CRMAPICall.Instance) {
-		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
-			__this.typeCheck([{
-				val: 'script',
-				type: 'string'
-			}], () => {
-				const { script }  = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-					script: string;
-				};
-				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
-					if (node.type === 'script') {
-						node.value.script = script;
-					} else {
-						node.scriptVal = node.scriptVal ||
-							modules.constants.templates.getDefaultScriptValue();
-						(node.scriptVal as CRM.ScriptVal).script = script;
-					}
-					await modules.CRMNodes.updateCrm();
-					__this.respondSuccess(modules.Util.safe(node));
-					return true;
-				});
-			});
-		});
-	}
-	export function getScriptValue(__this: CRMAPICall.Instance) {
-		__this.checkPermissions(['crmGet'], () => {
-			__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
-				if (node.type === 'script') {
-					__this.respondSuccess(node.value.script);
-				} else if (node.scriptVal) {
-					__this.respondSuccess(node.scriptVal.script);
-				} else {
-					__this.respondSuccess(undefined);
-				}
-			});
+}
 
-		});
-	}
-	export function setStylesheetValue(__this: CRMAPICall.Instance) {
-		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
-			__this.typeCheck([{
-				val: 'stylesheet',
-				type: 'string'
-			}], () => {
-				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
-					const { stylesheet } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-						stylesheet: string;
-					};
-					if (node.type === 'stylesheet') {
-						node.value.stylesheet = stylesheet;
-					} else {
-						node.stylesheetVal = node.stylesheetVal ||
-							modules.constants.templates.getDefaultStylesheetValue();
-						(node.stylesheetVal as CRM.StylesheetVal).stylesheet = stylesheet;
-					}
-					await modules.CRMNodes.updateCrm();
-					__this.respondSuccess(modules.Util.safe(node));
-					return true;
-				});
-			});
-		});
-	}
-	export function getStylesheetValue(__this: CRMAPICall.Instance) {
-		__this.checkPermissions(['crmGet'], () => {
-			__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
-				if (node.type === 'stylesheet') {
-					__this.respondSuccess(node.value.stylesheet);
-				} else if (node.stylesheetVal) {
-					__this.respondSuccess(node.stylesheetVal.stylesheet);
-				} else {
-					__this.respondSuccess(undefined);
-				}
-			});
-
-		});
-	}
-	export function setBackgroundScriptValue(__this: CRMAPICall.Instance) {
-		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
-			__this.typeCheck([{
-				val: 'script',
-				type: 'string'
-			}], () => {
-				const { script } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-					script: string;
-				};
-				__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
-					if (node.type === 'script') {
-						node.value.backgroundScript = script;
-					} else {
-						node.scriptVal = node.scriptVal ||
-							modules.constants.templates.getDefaultScriptValue();
-						(node.scriptVal as CRM.ScriptVal).backgroundScript = script;
-					}
-					await modules.CRMNodes.updateCrm([__this.message.data.nodeId]);
-					__this.respondSuccess(modules.Util.safe(node));
-					return true;
-				});
-			});
-		});
-	}
-	export function getBackgroundScriptValue(__this: CRMAPICall.Instance) {
-		__this.checkPermissions(['crmGet'], () => {
-			__this.getNodeFromId(__this.message.data.nodeId, true).run(async (node) => {
-				if (node.type === 'script') {
-					__this.respondSuccess(await modules.Util.getScriptNodeScript(node, 'background'));
-				} else if (node.scriptVal) {
-					__this.respondSuccess(node.scriptVal.backgroundScript);
-				} else {
-					__this.respondSuccess(undefined);
-				}
-			});
-
-		});
-	}
-	export function getMenuChildren(__this: CRMAPICall.Instance) {
+export namespace CRMAPIFunctions.crm.menu {
+	export function getChildren(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet'], () => {
 			__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
 				if (node.type === 'menu') {
@@ -1317,7 +1486,7 @@ export namespace CRMAPIFunctions {
 
 		});
 	}
-	export function setMenuChildren(__this: CRMAPICall.Instance) {
+	export function setChildren(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'childrenIds',
@@ -1371,7 +1540,7 @@ export namespace CRMAPIFunctions {
 			});
 		});
 	}
-	export function pushMenuChildren(__this: CRMAPICall.Instance) {
+	export function push(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'childrenIds',
@@ -1418,7 +1587,7 @@ export namespace CRMAPIFunctions {
 			});
 		});
 	}
-	export function spliceMenuChildren(__this: CRMAPICall.Instance) {
+	export function splice(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'start',
@@ -1454,7 +1623,9 @@ export namespace CRMAPIFunctions {
 			});
 		});
 	}
+}
 
+export namespace CRMAPIFunctions.crm.background {
 	async function queryTabs(options: BrowserTabsQueryInfo & {
 		all?: boolean;
 	}): Promise<_browser.tabs.Tab[]> {
@@ -1715,235 +1886,93 @@ export namespace CRMAPIFunctions {
 			shortcuts[key].push(listenerObject);
 		});
 	}
-	function applyContextmenuChange(nodeId: number, tabId: number, 
-		override: ContextMenuOverrides, update: ContextMenuUpdateProperties,
-		allTabs: boolean) {
-			if (!allTabs) {
-				if (!(nodeId in modules.crmValues.nodeTabStatuses)) {
-					modules.crmValues.nodeTabStatuses[nodeId] = {
-						[tabId]: {
-							overrides: {}
-						}
-					};
-				} else if (!(tabId in modules.crmValues.nodeTabStatuses[nodeId])) {
-					modules.crmValues.nodeTabStatuses[nodeId][tabId] = {
-						overrides: {}
-					};
-				} else if (!modules.crmValues.nodeTabStatuses[nodeId][tabId].overrides) {
-					modules.crmValues.nodeTabStatuses[nodeId][tabId].overrides = {};
-				}
-			} else {
-				modules.crmValues.contextMenuGlobalOverrides[nodeId] = 
-					modules.crmValues.contextMenuGlobalOverrides[nodeId] || {};
-			}
-			const destination = allTabs ?
-				modules.crmValues.contextMenuGlobalOverrides[nodeId] :
-				modules.crmValues.nodeTabStatuses[nodeId][tabId].overrides;
-				
-			for (const key in override) {
-				const overrideKey = key as keyof ContextMenuOverrides;
-				destination[overrideKey] = override[overrideKey];
-			}
+}
 
-			const contextmenuId = modules.crmValues.contextMenuIds[nodeId];
-			if (!contextmenuId) {
-				return;
-			}
-			browserAPI.contextMenus.update(contextmenuId, update).catch(() => {
-				//Item does not exist or something along those lines
-			});
-		}
-	export function contextmenuSetType(__this: CRMAPICall.Instance) {
-		__this.typeCheck([{
-			val: 'itemType',
-			type: 'string',
-		}, {
-			val: 'allTabs',
-			type: 'boolean',
-			optional: true
-		}], () => {
-			const { itemType, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-				itemType: CRM.ContextMenuItemType;
-				allTabs?: boolean;
-			};
-
-			const validTypes = ['normal', 'checkbox', 'radio', 'separator'];
-			if (validTypes.indexOf(itemType) === -1) {
-				__this.respondError('Item type is not one of "normal", "checkbox", "radio" or"separator"');
-				return;
-			}
-
-			applyContextmenuChange(__this.message.id, __this.message.tabId, {
-				type: itemType
-			}, {
-				type: itemType
-			}, allTabs);
-			__this.respondSuccess(null);
-		});
-	}
-	export function contextmenuSetChecked(__this: CRMAPICall.Instance) {
-		__this.typeCheck([{
-			val: 'checked',
-			type: 'boolean',
-		}, {
-			val: 'allTabs',
-			type: 'boolean',
-			optional: true
-		}], () => {
-			const { checked, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-				checked: boolean;
-				allTabs?: boolean;
-			};
-
-			const globalOverride = modules.crmValues.contextMenuGlobalOverrides[__this.message.id];
-			const tabOverride = (modules.crmValues.nodeTabStatuses[__this.message.id] &&
-				modules.crmValues.nodeTabStatuses[__this.message.id][__this.message.tabId] &&
-				modules.crmValues.nodeTabStatuses[__this.message.id][__this.message.tabId].overrides) || {};
-			const joinedOverrides = {...globalOverride, ...tabOverride};
-
-			const shouldConvertToCheckbox = joinedOverrides.type !== 'checkbox' && 
-				joinedOverrides.type !== 'radio';
-
-			const config: {
-				checked: boolean;
-				type?: CRM.ContextMenuItemType;
-			} = {...{
-				checked
-			}, ...shouldConvertToCheckbox ? {
-				type: 'checkbox'
-			} : {}}
-			applyContextmenuChange(__this.message.id, __this.message.tabId, 
-				config, config, allTabs);
-			__this.respondSuccess(null);
-		});
-	}
-	export function contextmenusetContentTypes(__this: CRMAPICall.Instance) {
-		__this.typeCheck([{
-			val: 'contentTypes',
-			type: 'array'
-		}, {
-			val: 'allTabs',
-			type: 'boolean',
-			optional: true
-		}], () => {
-			const { contentTypes, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-				contentTypes: CRM.ContentTypeString[];
-				allTabs?: boolean;
-			};
-
-			const validContentTypes = ['page', 'link', 'selection', 'image', 'video', 'audio'];
-			for (const contentType of contentTypes) {
-				if (validContentTypes.indexOf(contentType) === -1) {
-					__this.respondError('Not all content types are one of "page", "link", ' + 
-						'"selection", "image", "video", "audio"');
-					return;
-				}
-			}
-
-			applyContextmenuChange(__this.message.id, __this.message.tabId, {
-				contentTypes
-			}, {
-				contexts: contentTypes
-			}, allTabs);
-			__this.respondSuccess(null);
-		});
-	}
-	export function contextmenusetVisibility(__this: CRMAPICall.Instance) {
-		__this.typeCheck([{
-			val: 'isVisible',
-			type: 'boolean',
-		}, {
-			val: 'allTabs',
-			type: 'boolean',
-			optional: true
-		}], () => {
-			__this.getNodeFromId(__this.message.data.nodeId).run((node: CRM.ScriptNode) => {
-				const { isVisible, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-					isVisible: boolean;
-					allTabs?: boolean;
-				};
-
-				if (node.value.launchMode === CRMLaunchModes.ALWAYS_RUN ||
-					node.value.launchMode === CRMLaunchModes.RUN_ON_SPECIFIED ||
-					node.value.launchMode === CRMLaunchModes.DISABLED) {
-						__this.respondError('A node that is not shown by default can not change' + 
-							' its hidden status');
-						return;
-					}
-
-				applyContextmenuChange(__this.message.id, __this.message.tabId, {
-					isVisible
-				}, BrowserAPI.getBrowser() === 'chrome' && 
-					modules.Util.getChromeVersion() >= 62 ? {
-						visible: isVisible
-					} as any : {}, allTabs);
-				__this.respondSuccess(null);
-			});
-		});
-	}
-	export function contextmenusetDisabled(__this: CRMAPICall.Instance) {
-		__this.typeCheck([{
-			val: 'isDisabled',
-			type: 'boolean',
-		}, {
-			val: 'allTabs',
-			type: 'boolean',
-			optional: true
-		}], () => {
-			const { isDisabled, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-				isDisabled: boolean;
-				allTabs?: boolean;
-			};
-			applyContextmenuChange(__this.message.id, __this.message.tabId, {
-				isDisabled: isDisabled
-			}, {
-				enabled: !isDisabled
-			}, allTabs);
-			__this.respondSuccess(null);
-		});
-	}
-	export function contextmenusetName(__this: CRMAPICall.Instance) {
-		__this.checkPermissions(['crmContextmenu'], () => {
+export namespace CRMAPIFunctions.crm.libraries {
+	export function register(__this: CRMAPICall.Instance) {
+		__this.checkPermissions(['crmWrite'], () => {
 			__this.typeCheck([{
 				val: 'name',
-				type: 'string',
+				type: 'string'
 			}, {
-				val: 'allTabs',
+				val: 'url',
+				type: 'string',
+				optional: true
+			}, {
+				val: 'code',
+				type: 'string',
+				optional: true
+			}, {
+				val: 'ts',
 				type: 'boolean',
 				optional: true
-			}], () => {
-				const { name, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+			}], async (optionals) => {
+				const { name, url, ts, code } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
+					url?: string;
 					name: string;
-					allTabs?: boolean;
+					code?: string;
 				};
-				applyContextmenuChange(__this.message.id, __this.message.tabId, {
-					name
-				}, {
-					title: name
-				}, allTabs);
-				__this.respondSuccess(null);
-			});
-		});
-	}
-	export function contextmenusetResetName(__this: CRMAPICall.Instance) {
-		__this.typeCheck([{
-			val: 'itemType',
-			type: 'string',
-		}, {
-			val: 'allTabs',
-			type: 'boolean',
-			optional: true
-		}], () => {
-			__this.getNodeFromId(__this.message.data.nodeId).run((node: CRM.ScriptNode) => {
-				const { allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-					allTabs?: boolean;
-				};
-				applyContextmenuChange(__this.message.id, __this.message.tabId, {
-					name: node.name
-				}, {
-					title: node.name
-				}, allTabs);
-				__this.respondSuccess(null);
+
+				let newLibrary: CRM.InstalledLibrary;
+				if (optionals['url']) {
+					if (url.indexOf('.js') === url.length - 3) {
+						//Use URL
+						const res = await Promise.race([new Promise<string|number>((resolve) => {
+							modules.Util.xhr(url).then((content) => {
+								resolve(content);
+							}, (status) => {
+								resolve(status);
+							})
+						}), new Promise<string|number>((resolve) => {
+							setTimeout(() => {
+								resolve(null);
+							}, 5000);	
+						})]);
+						if (res === null) {
+							__this.respondError('Request timed out');
+						} else if (typeof res === 'number') {
+							__this.respondError(`Request failed with status code ${res}`);
+						} else {
+							newLibrary = {
+								name,
+								code: res,
+								url,
+								ts: {
+									enabled: !!ts,
+									code: {}
+								}
+							};
+							const compiled = await modules.CRMNodes.TS.compileLibrary(newLibrary);
+							modules.storages.storageLocal.libraries.push(compiled);
+							await browserAPI.storage.local.set({
+								libraries: modules.storages.storageLocal.libraries
+							});
+							__this.respondSuccess(compiled);
+						}
+					} else {
+						__this.respondError('No valid URL given');
+						return false;
+					}
+				} else if (optionals['code']) {
+					newLibrary = {
+						name,
+						code,
+						ts: {
+							enabled: !!ts,
+							code: {}
+						}
+					};
+					const compiled = await modules.CRMNodes.TS.compileLibrary(newLibrary);
+					modules.storages.storageLocal.libraries.push(compiled);
+					await browserAPI.storage.local.set({
+						libraries: modules.storages.storageLocal.libraries
+					});
+					__this.respondSuccess(compiled);
+				} else {
+					__this.respondError('No URL or code given');
+					return false;
+				}
+				return true;
 			});
 		});
 	}

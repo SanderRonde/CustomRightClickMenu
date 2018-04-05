@@ -3892,7 +3892,7 @@ type CRMAPIMessage = {
 			 */
 			setType(this: CrmAPIInstance, itemType: CRM.ContextMenuItemType, allTabs: boolean = false) {
 				return this.__privates._sendPromiseMessage.call(this,
-					'contextmenuSetType', {
+					'contextMenuItem.setType', {
 						itemType,
 						allTabs
 					});
@@ -3909,7 +3909,7 @@ type CRMAPIMessage = {
 			 */
 			setChecked(this: CrmAPIInstance, checked: boolean, allTabs: boolean = false) {
 				return this.__privates._sendPromiseMessage.call(this,
-					'contextmenuSetChecked', {
+					'contextMenuItem.setChecked', {
 						checked,
 						allTabs
 					});
@@ -3927,7 +3927,7 @@ type CRMAPIMessage = {
 			 */
 			setContentTypes(this: CrmAPIInstance, contentTypes: CRM.ContentTypeString[], allTabs: boolean = false) {
 				return this.__privates._sendPromiseMessage.call(this,
-					'contextmenusetContentTypes', {
+					'contextMenuItem.setContentTypes', {
 						contentTypes,
 						allTabs
 					});
@@ -3946,7 +3946,7 @@ type CRMAPIMessage = {
 			 */
 			setVisibility(this: CrmAPIInstance, isVisible: boolean, allTabs: boolean = false) {
 				return this.__privates._sendPromiseMessage.call(this,
-					'contextmenusetVisibility', {
+					'contextMenuItem.setVisibility', {
 						isVisible,
 						allTabs
 					});
@@ -3962,7 +3962,7 @@ type CRMAPIMessage = {
 			 */
 			setDisabled(this: CrmAPIInstance, isDisabled: boolean, allTabs: boolean = false) {
 				return this.__privates._sendPromiseMessage.call(this,
-					'contextmenusetDisabled', {
+					'contextMenuItem.setDisabled', {
 						isDisabled,
 						allTabs
 					});
@@ -3981,7 +3981,7 @@ type CRMAPIMessage = {
 			 */
 			setName(this: CrmAPIInstance, name: string, allTabs: boolean = false) {
 				return this.__privates._sendPromiseMessage.call(this,
-					'contextmenusetName', {
+					'contextMenuItem.setName', {
 						name,
 						allTabs
 					});
@@ -3995,7 +3995,7 @@ type CRMAPIMessage = {
 			 */
 			resetName(this: CrmAPIInstance, allTabs: boolean = false) {
 				return this.__privates._sendPromiseMessage.call(this,
-					'contextmenusetResetName', {
+					'contextMenuItem.resetName', {
 						allTabs
 					});
 			},
@@ -4170,7 +4170,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<string|number>} A promise that resolves with the ID
 			 */
 			getRootContextMenuId(this: CrmAPIInstance, callback?: (contextMenuId: string|number) => void): Promise<string|number> {
-				return this.__privates._sendCrmMessage('getRootContextMenu', callback);
+				return this.__privates._sendCrmMessage('crm.getRootContextMenuId', callback);
 			},
 			/**
 			 * Gets the CRM tree from the tree's root
@@ -4180,7 +4180,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the tree
 			 */
 			getTree(this: CrmAPIInstance, callback?: (data: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]> {
-				return this.__privates._sendCrmMessage('getTree', callback);
+				return this.__privates._sendCrmMessage('crm.getTree', callback);
 			},
 			/**
 			 * Gets the CRM's tree from either the root or from the node with ID nodeId
@@ -4191,7 +4191,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the subtree
 			 */
 			getSubTree(this: CrmAPIInstance, nodeId: number, callback?: (data: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]> {
-				return this.__privates._sendCrmMessage('getSubTree', callback, {
+				return this.__privates._sendCrmMessage('crm.getSubTree', callback, {
 					nodeId: nodeId
 				});
 			},
@@ -4203,7 +4203,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 			 */
 			getNode(this: CrmAPIInstance, nodeId: number, callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
-				return this.__privates._sendCrmMessage('getNode', callback, {
+				return this.__privates._sendCrmMessage('crm.getNode', callback, {
 					nodeId: nodeId
 				});
 			},
@@ -4217,7 +4217,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<number>} A promise that resolves with the ID
 			 */
 			getNodeIdFromPath(this: CrmAPIInstance, path: number[], callback?: (id: number) => void): Promise<number> {
-				return this.__privates._sendCrmMessage('getNodeIdFromPath', callback, {
+				return this.__privates._sendCrmMessage('crm.getNodeIdFromPath', callback, {
 					path: path
 				});
 			},
@@ -4235,7 +4235,7 @@ type CRMAPIMessage = {
 			 */
 			queryCrm(this: CrmAPIInstance, query: { name?: string, type?: CRM.NodeType, inSubTree?: number}, 
 				callback?: (results: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]> {
-					return this.__privates._sendCrmMessage('queryCrm', callback, {
+					return this.__privates._sendCrmMessage('crm.queryCrm', callback, {
 						query: query
 					});
 				},
@@ -4248,7 +4248,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRM.SafeNode|CRM.SafeNode[]>} A promise that resolves with the parent of given node
 			 */
 			getParentNode(this: CrmAPIInstance, nodeId: number, callback?: (node: CRM.SafeNode|CRM.SafeNode[]) => void): Promise<CRM.SafeNode|CRM.SafeNode[]> {
-				return this.__privates._sendCrmMessage('getParentNode', callback, {
+				return this.__privates._sendCrmMessage('crm.getParentNode', callback, {
 					nodeId: nodeId
 				});
 			},
@@ -4261,7 +4261,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRM.NodeType>} A promise that resolves with the type of the node
 			 */
 			getNodeType(this: CrmAPIInstance, nodeId: number, callback?: CRMNodeCallback): Promise<CRM.NodeType> {
-				return this.__privates._sendCrmMessage('getNodeType', callback, {
+				return this.__privates._sendCrmMessage('crm.getNodeType', callback, {
 					nodeId: nodeId
 				});
 			},
@@ -4274,7 +4274,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null>} A promise that resolves with the value of the node
 			 */
 			getNodeValue(this: CrmAPIInstance, nodeId: number, callback?: CRMNodeCallback): Promise<CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null> {
-				return this.__privates._sendCrmMessage('getNodeValue', callback, {
+				return this.__privates._sendCrmMessage('crm.getNodeValue', callback, {
 					nodeId: nodeId
 				});
 			},
@@ -4339,7 +4339,7 @@ type CRMAPIMessage = {
 			createNode(this: CrmAPIInstance, options: Partial<CreateCRMConfig> & {
 				position?: Relation;
 			}, callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'createNode', callback, {
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.createNode', callback, {
 					options: options
 				});
 			},
@@ -4372,7 +4372,7 @@ type CRMAPIMessage = {
 			} = {}, callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
 				//To prevent the user's stuff from being disturbed if they re-use the object
 				const optionsCopy = JSON.parse(JSON.stringify(options));
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'copyNode', callback, {
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.copyNode', callback, {
 					nodeId: nodeId,
 					options: optionsCopy
 				});
@@ -4404,7 +4404,7 @@ type CRMAPIMessage = {
 				else {
 					positionCopy = {};
 				}
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'moveNode', callback, {
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.moveNode', callback, {
 					nodeId: nodeId,
 					position: positionCopy
 				});
@@ -4420,7 +4420,7 @@ type CRMAPIMessage = {
 				 * 	that resolves with an error message or the success status
 			 */
 			deleteNode(this: CrmAPIInstance, nodeId: number, callback?: (result: string|boolean) => void): Promise<string|boolean> {
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'deleteNode', callback, {
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.deleteNode', callback, {
 					nodeId: nodeId
 				});
 			},
@@ -4443,7 +4443,7 @@ type CRMAPIMessage = {
 				options = options || {};
 				//To prevent the user's stuff from being disturbed if they re-use the object
 				const optionsCopy = JSON.parse(JSON.stringify(options));
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'editNode', callback, {
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.editNode', callback, {
 					options: optionsCopy,
 					nodeId: nodeId
 				});
@@ -4457,7 +4457,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRM.Trigger[]>} A promise that resolves with the triggers
 			 */
 			getTriggers(this: CrmAPIInstance, nodeId: number, callback?: (triggers: CRM.Trigger[]) => void): Promise<CRM.Trigger[]> {
-				return this.__privates._sendCrmMessage('getTriggers', callback, {
+				return this.__privates._sendCrmMessage('crm.getTriggers', callback, {
 					nodeId: nodeId
 				});
 			},
@@ -4478,7 +4478,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 			 */
 			setTriggers(this: CrmAPIInstance, nodeId: number, triggers: CRM.Triggers[], callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setTriggers', callback, {
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.setTriggers', callback, {
 					nodeId: nodeId,
 					triggers: triggers
 				});
@@ -4493,7 +4493,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<boolean>} A promise that resolves with a boolean indicating whether triggers are used
 			 */
 			getTriggerUsage(this: CrmAPIInstance, nodeId: number, callback?: CRMNodeCallback): Promise<boolean> {
-				return this.__privates._sendCrmMessage('getTriggerUsage', callback, {
+				return this.__privates._sendCrmMessage('crm.getTriggerUsage', callback, {
 					nodeId: nodeId
 				});
 			},
@@ -4508,7 +4508,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 			 */
 			setTriggerUsage(this: CrmAPIInstance, nodeId: number, useTriggers: boolean, callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setTriggerUsage', callback, {
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.setTriggerUsage', callback, {
 					nodeId: nodeId,
 					useTriggers: useTriggers
 				});
@@ -4523,7 +4523,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the content types
 			 */
 			getContentTypes(this: CrmAPIInstance, nodeId: number, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes> {
-				return this.__privates._sendCrmMessage('getContentTypes', callback, {
+				return this.__privates._sendCrmMessage('crm.getContentTypes', callback, {
 					nodeId: nodeId
 				});
 			},
@@ -4540,7 +4540,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRM.ContentTypes>} A promise that resolves with the new content types
 			 */
 			setContentType(this: CrmAPIInstance, nodeId: number, indexOrName: number|CRM.ContentTypeString, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): Promise<CRM.ContentTypes> {
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setContentType', callback, {
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.setContentType', callback, {
 					index: indexOrName,
 					value: value,
 					nodeId: nodeId
@@ -4560,7 +4560,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 			 */
 			setContentTypes(this: CrmAPIInstance, nodeId: number, contentTypes: CRM.ContentTypes, callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setContentTypes', callback, {
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.setContentTypes', callback, {
 					contentTypes: contentTypes,
 					nodeId: nodeId
 				});
@@ -4582,7 +4582,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 			 */
 			setLaunchMode(this: CrmAPIInstance, nodeId: number, launchMode: CRMLaunchModes, callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setLaunchMode', callback, {
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.setLaunchMode', callback, {
 					nodeId: nodeId,
 					launchMode: launchMode
 				});
@@ -4597,7 +4597,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<CRMLaunchModes>} A promise that resolves with the launchMode
 			 */
 			getLaunchMode(this: CrmAPIInstance, nodeId: number, callback?: (launchMode: CRMLaunchModes) => void): Promise<CRMLaunchModes> {
-				return this.__privates._sendCrmMessage('getLaunchMode', callback, {
+				return this.__privates._sendCrmMessage('crm.getLaunchMode', callback, {
 					nodeId: nodeId
 				});
 			},
@@ -4618,7 +4618,7 @@ type CRMAPIMessage = {
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
 				setStylesheet(this: CrmAPIInstance, nodeId: number, stylesheet: string, callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
-					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setStylesheetValue', callback, {
+					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.stylesheet.setStylesheet', callback, {
 						nodeId: nodeId,
 						stylesheet: stylesheet
 					});
@@ -4632,7 +4632,7 @@ type CRMAPIMessage = {
 				 * @returns {Promise<string>} A promise that resolves with the stylesheet
 				 */
 				getStylesheet(this: CrmAPIInstance, nodeId: number, callback?: CRMNodeCallback): Promise<string> {
-					return this.__privates._sendCrmMessage('getStylesheetValue', callback, {
+					return this.__privates._sendCrmMessage('crm.stylesheet.getStylesheet', callback, {
 						nodeId: nodeId
 					});
 				}
@@ -4654,7 +4654,7 @@ type CRMAPIMessage = {
 				 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
 				 */
 				getLinks(this: CrmAPIInstance, nodeId: number, callback?: (result: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]> {
-					return this.__privates._sendCrmMessage('linkGetLinks', callback, {
+					return this.__privates._sendCrmMessage('crm.link.getLinks', callback, {
 						nodeId: nodeId
 					});
 				},
@@ -4671,7 +4671,7 @@ type CRMAPIMessage = {
 				 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the links
 				 */
 				setLinks(this: CrmAPIInstance, nodeId: number, items: MaybeArray<CRM.LinkNodeLink>, callback?: (result: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]> {
-					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'linkSetLinks', callback, {
+					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.link.setLinks', callback, {
 						nodeId: nodeId,
 						items: items
 					});
@@ -4689,7 +4689,7 @@ type CRMAPIMessage = {
 				 * @returns {Promise<CRM.LinkNodeLink[]>} A promise that resolves with the new links array
 				 */
 				push(this: CrmAPIInstance, nodeId: number, items: MaybeArray<CRM.LinkNodeLink>, callback?: (result: CRM.LinkNodeLink[]) => void): Promise<CRM.LinkNodeLink[]> {
-					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'linkPush', callback, {
+					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.link.push', callback, {
 						items: items,
 						nodeId: nodeId
 					});
@@ -4712,7 +4712,7 @@ type CRMAPIMessage = {
 						spliced: CRM.LinkNodeLink[];
 						newArr: CRM.LinkNodeLink[];
 					}> {
-						return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'linkSplice', ({
+						return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.link.splice', ({
 							spliced, newArr
 						}: {
 							spliced: CRM.LinkNodeLink[];
@@ -4743,7 +4743,7 @@ type CRMAPIMessage = {
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the new node
 				 */
 				setScript(this: CrmAPIInstance, nodeId: number, script: string, callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
-					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setScriptValue', callback, {
+					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.script.setScript', callback, {
 						nodeId: nodeId,
 						script: script
 					});
@@ -4757,7 +4757,7 @@ type CRMAPIMessage = {
 				 * @returns {Promise<string>} A promise that resolves with the script
 				 */
 				getScript(this: CrmAPIInstance, nodeId: number, callback?: (script: string) => void): Promise<string> {
-					return this.__privates._sendCrmMessage('getScriptValue', callback, {
+					return this.__privates._sendCrmMessage('crm.script.getScript', callback, {
 						nodeId: nodeId
 					});
 				},
@@ -4772,7 +4772,7 @@ type CRMAPIMessage = {
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the node
 				 */
 				setBackgroundScript(this: CrmAPIInstance, nodeId: number, script: string, callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
-					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setBackgroundScriptValue', callback, {
+					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.script.setBackgroundScript', callback, {
 						nodeId: nodeId,
 						script: script
 					});
@@ -4786,7 +4786,7 @@ type CRMAPIMessage = {
 				 * @returns {Promise<string>} A promise that resolves with the backgroundScript
 				 */
 				getBackgroundScript(this: CrmAPIInstance, nodeId: number, callback?: (backgroundScript: string) => void): Promise<string> {
-					return this.__privates._sendCrmMessage('getBackgroundScriptValue', callback, {
+					return this.__privates._sendCrmMessage('crm.script.getBackgroundScript', callback, {
 						nodeId: nodeId
 					});
 				},
@@ -4811,7 +4811,7 @@ type CRMAPIMessage = {
 					push(this: CrmAPIInstance, nodeId: number, libraries: MaybeArray<{
 						name: string;
 					}>, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]> {
-						return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptLibraryPush', callback, {
+						return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.script.libraries.push', callback, {
 							nodeId: nodeId,
 							libraries: libraries
 						});
@@ -4834,7 +4834,7 @@ type CRMAPIMessage = {
 							spliced: CRM.Library[];
 							newArr: CRM.Library[];
 						}> {
-							return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptLibrarySplice', ({
+							return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.script.libraries.splice', ({
 								spliced, newArr
 							}: {
 								spliced: CRM.Library[];
@@ -4869,10 +4869,11 @@ type CRMAPIMessage = {
 					push(this: CrmAPIInstance, nodeId: number, libraries: MaybeArray<{
 						name: string;
 					}>, callback?: (libs: CRM.Library[]) => void): Promise<CRM.Library[]> {
-						return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptBackgroundLibraryPush', callback, {
-							nodeId: nodeId,
-							libraries: libraries
-						});
+						return this.__privates._sendOptionalCallbackCrmMessage.call(this, 
+							'crm.script.backgroundLibraries.push', callback, {
+								nodeId: nodeId,
+								libraries: libraries
+							});
 					},
 					/**
 					 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
@@ -4892,18 +4893,19 @@ type CRMAPIMessage = {
 							spliced: CRM.Library[];
 							newArr: CRM.Library[];
 						}> {
-							return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'scriptBackgroundLibrarySplice', ({
-								spliced, newArr
-							}: {
-								spliced: CRM.Library[];
-								newArr: CRM.Library[];
-							}) => {
-								callback && callback(spliced, newArr);
-							}, {
-								nodeId: nodeId,
-								start: start,
-								amount: amount
-							});
+							return this.__privates._sendOptionalCallbackCrmMessage.call(this, 
+								'crm.script.backgroundLibraries.splice', ({
+									spliced, newArr
+								}: {
+									spliced: CRM.Library[];
+									newArr: CRM.Library[];
+								}) => {
+									callback && callback(spliced, newArr);
+								}, {
+									nodeId: nodeId,
+									start: start,
+									amount: amount
+								});
 						}
 				}
 			},
@@ -4922,7 +4924,7 @@ type CRMAPIMessage = {
 				 * @returns {Promise<CRM.SafeNode[]>} A promise that resolves with the children
 				 */
 				getChildren(this: CrmAPIInstance, nodeId: number, callback?: (children: CRM.SafeNode[]) => void): Promise<CRM.SafeNode[]> {
-					return this.__privates._sendCrmMessage('getMenuChildren', callback, {
+					return this.__privates._sendCrmMessage('crm.menu.getChildren', callback, {
 						nodeId: nodeId
 					});
 				},
@@ -4939,7 +4941,7 @@ type CRMAPIMessage = {
 				 * @returns {Promise<CRM.SafeNode>} A promise that resolves with the menu node
 				 */
 				setChildren(this: CrmAPIInstance, nodeId: number, childrenIds: number[], callback?: CRMNodeCallback): Promise<CRM.SafeNode> {
-					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'setMenuChildren', callback, {
+					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.menu.setChildren', callback, {
 						nodeId: nodeId,
 						childrenIds: childrenIds
 					});
@@ -4959,7 +4961,7 @@ type CRMAPIMessage = {
 					if (!Array.isArray(childrenIds)) {
 						childrenIds = [childrenIds];
 					}
-					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'pushMenuChildren', callback, {
+					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.menu.push', callback, {
 						nodeId: nodeId,
 						childrenIds: childrenIds
 					});
@@ -4983,7 +4985,7 @@ type CRMAPIMessage = {
 						spliced: CRM.SafeNode[];
 						newArr: CRM.SafeNode[];
 					}> {
-					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'spliceMenuChildren', ({
+					return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.menu.splice', ({
 						spliced, newArr
 					}: {
 						spliced: CRM.SafeNode[];
@@ -5035,10 +5037,11 @@ type CRMAPIMessage = {
 				if (!this.__privates._ensureBackground()) {
 					return;
 				}
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'runScript', null, {
-					id: id,
-					options: options
-				}, true);
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 
+					'crm.background.runScript', null, {
+						id: id,
+						options: options
+					}, true);
 			},
 			/**
 			 * Runs this script on given tab(s)
@@ -5069,9 +5072,10 @@ type CRMAPIMessage = {
 				if (!this.__privates._ensureBackground()) {
 					return;
 				}
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'runSelf', null, {
-					options: options
-				});
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 
+					'crm.background.runSelf', null, {
+						options: options
+					});
 			},
 			/**
 			 * Adds a listener for a keyboard event
@@ -5083,9 +5087,10 @@ type CRMAPIMessage = {
 				if (!this.__privates._ensureBackground()) {
 					return;
 				}
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'addKeyboardListener', callback, {
-					key: key
-				}, true);
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 
+					'crm.background.addKeyboardListener', callback, {
+						key: key
+					}, true);
 			}
 		}
 
@@ -5120,7 +5125,7 @@ type CRMAPIMessage = {
 				url: string
 				ts?: boolean;
 			}, callback?: (lib: CRM.Library) => void): Promise<CRM.Library> {
-				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'registerLibrary', callback, {
+				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 'crm.libraries.register', callback, {
 					name: name,
 					url: options.url,
 					code: options.code,
