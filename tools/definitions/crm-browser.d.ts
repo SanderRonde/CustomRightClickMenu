@@ -283,7 +283,7 @@ declare namespace crmbrowser.contextMenus {
         documentUrlPatterns?: string[],
         targetUrlPatterns?: string[],
         enabled?: boolean,
-    }, callback?: () => void): number|string;
+    }, callback?: () => void): BrowserReturnValue<number|string>;
     function update(id: number|string, updateProperties: {
         type?: ItemType,
         title?: string,
