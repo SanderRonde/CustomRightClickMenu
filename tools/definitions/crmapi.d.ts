@@ -1641,7 +1641,8 @@ declare namespace CRM {
 				nodeStorage: NodeStorage, contextData: ContextData,
 				greasemonkeyData: GreaseMonkeyData, isBackground: boolean,
 				options: CRM.Options, enableBackwardsCompatibility: boolean,
-				tabIndex: number, extensionId: string, supportedAPIs: string);
+				tabIndex: number, extensionId: string, supportedAPIs: string,
+				nodeStorageSync: CRM.NodeStorage);
 	
 			/**
 			 * When true, shows stacktraces on error in the console of the page
@@ -1817,6 +1818,83 @@ declare namespace CRM {
 			 * The storage API used to store and retrieve data for this script
 			 */
 			storage: {
+				/**
+				 * Gets the value at given key, if no key is given returns the entire storage object
+				 *
+				 * @param {string} [keyPath] - The path at which to look, a string separated with dots
+				 */
+				get(keyPath?: string): any,
+				/**
+				 * Gets the value at given key, if no key is given returns the entire storage object
+				 *
+				 * @param {array} [keyPath] - The path at which to look, an array of strings and numbers representing keys
+				 */
+				get(keyPath?: (string|number)[]): any,
+				/**
+				 * Sets the data at given key given value
+				 *
+				 * @param {string} keyPath - The path at which to look, a string separated with dots
+				 * @param {any} [value] - The value to set it to, optional if keyPath is an object
+				 */
+				set(keyPath: string, value?: any): void,
+				/**
+				 * Sets the data at given key given value
+				 *
+				 * @param {array} keyPath - The path at which to look, an array of strings and numbers representing keys
+				 * @param {any} [value] - The value to set it to, optional if keyPath is an object
+				 */
+				set(keyPath: (string|number)[], value?: any): void,
+				/**
+				 * Deletes the data at given key given value
+				 *
+				 * @param {string} keyPath - The path at which to look, a string separated with dots
+				 */
+				remove(keyPath: string): void,
+				/**
+				 * Deletes the data at given key given value
+				 *
+				 * @param {array} keyPath - The path at which to look, an array of strings and numbers representing keys
+				 */
+				remove(keyPath: (string|number)[]): void,
+				/**
+				 * Functions related to the onChange event of the storage API
+				 */
+				onChange: {
+					/**
+					 * Adds an onchange listener for the storage, listens for a key if given
+					 *
+					 * @param {function} listener - The function to run, gets called
+					 *		gets called with the first argument being the key, the second being
+					 *		the old value, the third being the new value and the fourth
+					 *		a boolean indicating if the change was on a remote tab
+					 * @param {string} [key] - The key to listen for, if it's nested separate it by dots
+					 * 		like a.b.c
+					 * @returns {number} A number that can be used to remove the listener
+					 */
+					addListener(listener: StorageListener, key: string): number,
+					/**
+					 * Removes ALL listeners with given listener (function) as the listener,
+					 *	if key is given also checks that they have that key
+					 *
+					 * @param {number} listener - The number of the listener to remove (given by addListener)
+					 * @param {string} [key] - The key to check
+					 */
+					removeListener(listener: number, key: string): void,
+					/**
+					 * Removes ALL listeners with given listener (function) as the listener,
+					 *	if key is given also checks that they have that key
+					 *
+					 * @param {function} listener - The listener to remove
+					 * @param {string} [key] - The key to check
+					 */
+					removeListener(listener: StorageListener, key: string): void,
+				}
+			}
+
+			/**
+			 * The storage API used to store and retrieve data for this script
+			 */
+			storageSync: {
 				/**
 				 * Gets the value at given key, if no key is given returns the entire storage object
 				 *

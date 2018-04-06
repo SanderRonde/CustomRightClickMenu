@@ -30,12 +30,15 @@ export namespace CRMNodes.Script.Handler {
 		if (BrowserAPI.isBrowserAPISupported('browser')) {
 			supportedBrowserAPIs.push('browser');
 		}
+		modules.storages.nodeStorageSync[node.id] = 
+			modules.storages.nodeStorageSync[node.id] || {};
 		return [		
 			[		
 				`var crmAPI = new (window._crmAPIRegistry.pop())(${[		
 					safeNode, node.id, tab, info, key, nodeStorage,		
 					contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},		
-					enableBackwardsCompatibility, tabIndex, browserAPI.runtime.id, supportedBrowserAPIs.join(',')
+					enableBackwardsCompatibility, tabIndex, browserAPI.runtime.id, supportedBrowserAPIs.join(','),
+					modules.storages.nodeStorageSync[node.id]
 				].map((param) => {		
 					if (param === void 0) {		
 						return JSON.stringify(null);		
@@ -477,13 +480,16 @@ export namespace CRMNodes.Script.Background {
 		if (BrowserAPI.isBrowserAPISupported('browser')) {
 			supportedBrowserAPIs.push('browser');
 		}
+		modules.storages.nodeStorageSync[node.id] = 
+			modules.storages.nodeStorageSync[node.id] || {};
 		return [
 			code.join('\n'), [
 				`var crmAPI = new (window._crmAPIRegistry.pop())(${[
 					safeNode, node.id, { id: 0 }, {}, key,
 					nodeStorage, null,
 					greaseMonkeyData, true, fixOptionsErrors((node.value && node.value.options) || {}),
-					enableBackwardsCompatibility, 0, browserAPI.runtime.id, supportedBrowserAPIs.join(',')
+					enableBackwardsCompatibility, 0, browserAPI.runtime.id, supportedBrowserAPIs.join(','),
+					modules.storages.nodeStorageSync[node.id]
 				]
 					.map((param) => {
 						if (param === void 0) {

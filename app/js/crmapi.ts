@@ -595,11 +595,11 @@ type CRMAPIMessage = {
 				nodeStorage: CRM.NodeStorage, contextData: EncodedContextData,
 				greasemonkeyData: GreaseMonkeyData, isBackground: boolean, 
 				options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: number, 
-				extensionId: string, supportedAPIs: string) {
+				extensionId: string, supportedAPIs: string, nodeStorageSync: CRM.NodeStorage) {
 					super(node, id, tabData, clickData, secretKey, nodeStorage,
 						contextData, greasemonkeyData, isBackground,
 						options, enableBackwardsCompatibility, tabIndex,
-						extensionId, supportedAPIs);
+						extensionId, supportedAPIs, nodeStorageSync);
 
 					mapObjThisArgs(this, thisMap, thisArgs);
 
@@ -620,6 +620,11 @@ type CRMAPIMessage = {
 
 	function makePrivate(target: any, name: any) {
 		target.__privates__ = (target.__privates__ || []).concat([name]);
+	}
+
+	const enum STORAGE_TYPE {
+		SYNC,
+		LOCAL
 	}
 
 	/**
@@ -655,6 +660,7 @@ type CRMAPIMessage = {
 			_clickData: _browser.contextMenus.OnClickData,
 			_secretKey: number[];
 			_nodeStorage: CRM.NodeStorage;
+			_nodeStorageSync: CRM.NodeStorage;
 			_contextData: EncodedContextData|RestoredContextData;
 			_greasemonkeyData: GreaseMonkeyData;
 			_isBackground: boolean;
@@ -747,7 +753,7 @@ type CRMAPIMessage = {
 				oldValue: any;
 				newValue: any;
 				key: string;
-			}[]): void;
+			}[], isSync: STORAGE_TYPE): void;
 
 			_instancesReady: boolean,
 			_instancesReadyListeners: ((instances: CommInstance[]) => void)[],
@@ -851,9 +857,14 @@ type CRMAPIMessage = {
 
 			_storageListeners: CallbackStorageInterface<{
 				callback: StorageChangeListener;
+				type: STORAGE_TYPE;
 				key: string;
 			}>,
 			_storagePrevious: {
+				[key: string]: any;
+				[key: number]: any;
+			}
+			_storagePreviousSync: {
 				[key: string]: any;
 				[key: number]: any;
 			}
@@ -861,9 +872,12 @@ type CRMAPIMessage = {
 			/**
 			 * Notifies any listeners of changes to the storage object
 			 */
-			_notifyChanges(keyPath: string|string[]|number[], oldValue: any, newValue: any, remote?: boolean): void;
+			_notifyChanges(storageType: STORAGE_TYPE,
+				keyPath: string|string[]|number[], oldValue: any, 
+				newValue: any, remote?: boolean): void;
 
-			_localStorageChange(keyPath: string|string[]|number[], oldValue: any, newValue: any): void;
+			_localStorageChange(keyPath: string|string[]|number[], oldValue: any, 
+				newValue: any, isSync: STORAGE_TYPE): void;
 
 			/**
 			 * Sends a message to the background script with given parameters
@@ -976,6 +990,17 @@ type CRMAPIMessage = {
 			_addNotificationListener(notificationId: number, onclick: number, ondone: number): void;
 
 			_setGlobalFunctions(): void;
+
+			_storageGet(storageType: STORAGE_TYPE, keyPath?: string|string[]|number[]): any;
+			_storageSet(storageType: STORAGE_TYPE, keyPath: string|string[]|number[]|{
+				[key: string]: any;
+				[key: number]: any;
+			}, value?: any): void;
+			_storageRemove(storageType: STORAGE_TYPE, keyPath: string|string[]|number[]): void;
+			_addStorageOnChangeListener(storageType: STORAGE_TYPE, 
+				listener: StorageChangeListener, key: string): number;
+			_removeStorageChangeListener(storageType: STORAGE_TYPE,
+				listener: StorageChangeListener|number, key: string): void;
 		} = {
 			_node: null,
 			_id: null,
@@ -983,6 +1008,7 @@ type CRMAPIMessage = {
 			_clickData: null,
 			_secretKey: null,
 			_nodeStorage: null,
+			_nodeStorageSync: null,
 			_contextData: null,
 			_greasemonkeyData: null,
 			_isBackground: null,
@@ -1367,6 +1393,7 @@ type CRMAPIMessage = {
 				>();
 				this.__privates._storageListeners = new CrmAPIInstance._helpers.CallbackStorage<{
 					callback: StorageChangeListener;
+					type: STORAGE_TYPE;
 					key: string;
 				}>()
 			},
@@ -1691,13 +1718,22 @@ type CRMAPIMessage = {
 				oldValue: any;
 				newValue: any;
 				key: string;
-			}[]) {
+			}[], storageType: STORAGE_TYPE) {
+				const src = storageType === STORAGE_TYPE.SYNC ? 
+					this.__privates._nodeStorageSync : 
+					this.__privates._nodeStorage;
+
 				for (let i = 0; i < changes.length; i++) {
 					const keyPath = changes[i].key.split('.');
-					this.__privates._notifyChanges(keyPath, changes[i].oldValue, changes[i].newValue, true);
-					const data = CrmAPIInstance._helpers.lookup(keyPath, this.__privates._nodeStorage, true) || {};
+					this.__privates._notifyChanges(storageType,
+						keyPath, changes[i].oldValue, changes[i].newValue, true);
+					const data = CrmAPIInstance._helpers.lookup(keyPath, src, true) || {};
 					(data as any)[keyPath[keyPath.length - 1]] = changes[i].newValue;
-					this.__privates._storagePrevious = this.__privates._nodeStorage;
+					if (storageType === STORAGE_TYPE.SYNC) {
+						this.__privates._storagePreviousSync = src;	
+					} else {
+						this.__privates._storagePrevious = src;
+					}
 				}
 			},
 
@@ -2000,7 +2036,7 @@ type CRMAPIMessage = {
 							this.__privates._getHints(message);
 							break;
 						case 'storageUpdate':
-							this.__privates._remoteStorageChange(message.changes);
+							this.__privates._remoteStorageChange(message.changes, message.isSync);
 							break;
 						case 'instancesUpdate':
 							this.__privates._instancesChange(message.change);
@@ -2147,47 +2183,54 @@ type CRMAPIMessage = {
 
 			_storageListeners: null,
 			_storagePrevious: {},
+			_storagePreviousSync: {},
 
 			/**
 			 * Notifies any listeners of changes to the storage object
 			 */
-			_notifyChanges(this: CrmAPIInstance, keyPath: string|string[]|number[], oldValue: any, newValue: any, remote: boolean = false) {
-				let keyPathString: string;
-				if (Array.isArray(keyPath)) {
-					keyPathString = keyPath.join('.');
-				} else {
-					keyPathString = keyPath;
-				}
-				this.__privates._storageListeners.forEach((listener) => {
-					if (listener.key.indexOf(keyPathString) > -1) {
-						CrmAPIInstance._helpers.isFn(listener.callback) && listener.callback(listener.key, oldValue, newValue, remote || false);
+			_notifyChanges(this: CrmAPIInstance, storageType: STORAGE_TYPE, 
+				keyPath: string|string[]|number[], oldValue: any, 
+				newValue: any, remote: boolean = false) {
+					let keyPathString: string;
+					if (Array.isArray(keyPath)) {
+						keyPathString = keyPath.join('.');
+					} else {
+						keyPathString = keyPath;
 					}
-				});
-				this.__privates._storagePrevious = this.__privates._nodeStorage;
-			},
-
-			_localStorageChange(this: CrmAPIInstance, keyPath: string|string[]|number[], oldValue: any, newValue: any) {
-				this.__privates._sendMessage({
-					id: this.__privates._id,
-					type: 'updateStorage',
-					data: {
-						type: 'nodeStorage',
-						nodeStorageChanges: [
-							{
-								key: typeof keyPath === 'string' ? keyPath : keyPath.join('.'),
-								oldValue: oldValue,
-								newValue: newValue
+					this.__privates._storageListeners.forEach((listener) => {
+						if (listener.key.indexOf(keyPathString) > -1 && 
+							listener.type === storageType) {
+								CrmAPIInstance._helpers.isFn(listener.callback) && listener.callback(listener.key, oldValue, newValue, remote || false);
 							}
-						],
+					});
+					this.__privates._storagePrevious = this.__privates._nodeStorage;
+				},
+
+			_localStorageChange(this: CrmAPIInstance, keyPath: string|string[]|number[], oldValue: any, 
+				newValue: any, storageType: STORAGE_TYPE) {
+					this.__privates._sendMessage({
 						id: this.__privates._id,
+						type: 'updateStorage',
+						data: {
+							type: 'nodeStorage',
+							isSync: storageType === STORAGE_TYPE.SYNC,
+							nodeStorageChanges: [
+								{
+									key: typeof keyPath === 'string' ? keyPath : keyPath.join('.'),
+									oldValue: oldValue,
+									newValue: newValue
+								}
+							],
+							id: this.__privates._id,
+							tabIndex: this.__privates._tabIndex,
+							tabId: this.__privates._tabData.id
+						},
 						tabIndex: this.__privates._tabIndex,
 						tabId: this.__privates._tabData.id
-					},
-					tabIndex: this.__privates._tabIndex,
-					tabId: this.__privates._tabData.id
-				});
-				this.__privates._notifyChanges(keyPath, oldValue, newValue, false);
-			},
+					});
+					this.__privates._notifyChanges(storageType, 
+						keyPath, oldValue, newValue, false);
+				},
 
 			/**
 			 * Sends a message to the background script with given parameters
@@ -2900,7 +2943,185 @@ type CRMAPIMessage = {
 				(window as any).$ = (window as any).$ || this.$crmAPI as any;
 
 				(window as any).log = (window as any).log || this.log as any;
-			}
+			},
+
+			_storageGet(this: CrmAPIInstance, storageType: STORAGE_TYPE, 
+				keyPath?: string|string[]|number[]): any {
+					const src = storageType === STORAGE_TYPE.SYNC ?
+						this.__privates._nodeStorageSync :
+						this.__privates._nodeStorage;
+					if (!keyPath) {
+						return src;
+					}
+					if (CrmAPIInstance._helpers.checkType(keyPath, 'string', true)) {
+						const keyPathString = keyPath;
+						if (typeof keyPathString === 'string') {
+							if (keyPathString.indexOf('.') === -1) {
+								return src[keyPathString];
+							}
+							else {
+								keyPath = keyPathString.split('.');
+							}
+						}
+					}
+					CrmAPIInstance._helpers.checkType(keyPath, 'array', 'keyPath');
+					if (Array.isArray(keyPath)) {
+						return CrmAPIInstance._helpers.lookup(keyPath, src);
+					}	
+				},
+
+			_storageSet(this: CrmAPIInstance, storageType: STORAGE_TYPE, 
+				keyPath: string|string[]|number[]|{
+					[key: string]: any;
+					[key: number]: any;
+				}, value?: any): void {
+					const src = storageType === STORAGE_TYPE.SYNC ?
+						this.__privates._nodeStorageSync :
+						this.__privates._nodeStorage;
+					if (CrmAPIInstance._helpers.checkType(keyPath, 'string', true)) {
+						const keyPathStr = keyPath;
+						if (typeof keyPathStr === 'string') {
+							if (keyPathStr.indexOf('.') === -1) {
+								this.__privates._localStorageChange(keyPath as string, 
+									src[keyPathStr], value, 
+									storageType);
+								src[keyPathStr] = value;
+								if (storageType === STORAGE_TYPE.SYNC) {
+									this.__privates._storagePreviousSync = src;
+								} else {
+									this.__privates._storagePrevious = src;
+								}
+								return undefined;
+							}
+							else {
+								keyPath = keyPathStr.split('.');
+							}
+						}
+					}
+					if (CrmAPIInstance._helpers.checkType(keyPath, 'array', true)) {
+						const keyPathArr = keyPath;
+						if (Array.isArray(keyPathArr)) {
+	
+							//Lookup and in the meantime create object containers if new
+							let dataCont = src;
+							const length = keyPathArr.length - 1;
+							for (let i = 0; i < length; i++) {
+								if (dataCont[keyPathArr[i]] === undefined) {
+									dataCont[keyPathArr[i]] = {};
+								}
+								dataCont = dataCont[keyPathArr[i]];
+							}
+	
+							this.__privates._localStorageChange(keyPathArr, 
+								dataCont[keyPathArr[keyPathArr.length - 1]], value,
+								STORAGE_TYPE.LOCAL);
+							dataCont[keyPathArr[keyPathArr.length - 1]] = value;
+							if (storageType === STORAGE_TYPE.SYNC) {
+								this.__privates._storagePreviousSync = src;
+							} else {
+								this.__privates._storagePrevious = src;
+							}
+							return undefined;
+						}
+					}
+					CrmAPIInstance._helpers.checkType(keyPath, ['object'], 'keyPath');
+					const keyPathObj = keyPath;
+					if (typeof keyPathObj === 'object') {
+						for (const key in keyPathObj) {
+							if (keyPathObj.hasOwnProperty(key)) {
+								this.__privates._localStorageChange(key, 
+									src[key], keyPathObj[key],
+									storageType);
+								src[key] = keyPathObj[key];
+							}
+						}
+					}
+					if (storageType === STORAGE_TYPE.SYNC) {
+						this.__privates._storagePreviousSync = src;
+					} else {
+						this.__privates._storagePrevious = src;
+					}
+					return undefined;
+				},
+
+			_storageRemove(this: CrmAPIInstance, storageType: STORAGE_TYPE, 
+				keyPath: string|string[]|number[]): void {
+					const src = storageType === STORAGE_TYPE.SYNC ?
+						this.__privates._nodeStorageSync :
+						this.__privates._nodeStorage;
+					if (CrmAPIInstance._helpers.checkType(keyPath, 'string', true)) {
+						const keyPathStr = keyPath;
+						if (typeof keyPathStr === 'string') {
+							if (keyPathStr.indexOf('.') === -1) {
+								this.__privates._notifyChanges(
+									storageType, keyPathStr, src[keyPathStr], undefined);
+								delete src[keyPathStr];
+								if (storageType === STORAGE_TYPE.SYNC) {
+									this.__privates._storagePreviousSync = src;
+								} else {
+									this.__privates._storagePrevious = src;
+								}
+								return undefined;
+							}
+							else {
+								keyPath = keyPathStr.split('.');
+							}
+						}
+					}
+					if (CrmAPIInstance._helpers.checkType(keyPath, 'array', true)) {
+						const keyPathArr = keyPath;
+						if (Array.isArray(keyPathArr)) {
+							const data = CrmAPIInstance._helpers.lookup(keyPathArr, src, true);
+							this.__privates._notifyChanges(
+								storageType, keyPathArr.join('.'), 
+								(data as any)[keyPathArr[keyPathArr.length - 1]], undefined);
+							delete (data as any)[keyPathArr[keyPathArr.length - 1]];
+							if (storageType === STORAGE_TYPE.SYNC) {
+								this.__privates._storagePreviousSync = src;
+							} else {
+								this.__privates._storagePrevious = src;
+							}
+							return undefined;
+						}
+					}
+					if (storageType === STORAGE_TYPE.SYNC) {
+						this.__privates._storagePreviousSync = src;
+					} else {
+						this.__privates._storagePrevious = src;
+					}
+					return undefined;
+				},
+
+			_addStorageOnChangeListener(this: CrmAPIInstance, storageType: STORAGE_TYPE, 
+				listener: StorageChangeListener, key: string): number {
+					return this.__privates._storageListeners.add({
+						callback: listener,
+						type: storageType,
+						key: key
+					});
+				},
+
+			_removeStorageChangeListener(this: CrmAPIInstance, storageType: STORAGE_TYPE,
+				listener: StorageChangeListener|number, key: string): void {
+					if (typeof listener === 'number') {
+						this.__privates._storageListeners.remove(listener);
+					}
+					else {
+						this.__privates._storageListeners.forEach((storageListener, index) => {
+							if (storageListener.callback === listener && 
+								storageListener.type === storageType) {
+									if (key !== undefined) {
+										if (storageListener.key === key) {
+											this.__privates._storageListeners.remove(index);
+										}
+									} else {
+										this.__privates._storageListeners.remove(index);
+									}
+								}
+							});
+					}
+				}
+			
 		}
 
 		/**
@@ -2923,13 +3144,14 @@ type CRMAPIMessage = {
 		 * @param {number} tabIndex - The index of this script (with this id) running on this tab
 		 * @param {string} extensionId - The id of the extension
 		 * @param {string} supportedAPIs - The supported browser APIs
+		 * @param {CRM.NodeStorage} nodeStorageSync - Synced node storage 
 		 */
 		constructor(node: CRM.Node, id: number, tabData: _browser.tabs.Tab,
 			clickData: _browser.contextMenus.OnClickData, secretKey: number[],
 			nodeStorage: CRM.NodeStorage, contextData: EncodedContextData,
 			greasemonkeyData: GreaseMonkeyData, isBackground: boolean, 
 			options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: number, 
-			extensionId: string, supportedAPIs: string) { 
+			extensionId: string, supportedAPIs: string, nodeStorageSync: CRM.NodeStorage) { 
 				this.__privates._node = node;
 				this.__privates._id = id;
 				this.__privates._tabData = tabData;
@@ -2944,6 +3166,7 @@ type CRMAPIMessage = {
 				this.__privates._tabIndex = tabIndex;
 				this.__privates._extensionId = extensionId;
 				this.__privates._supportedAPIs = supportedAPIs;
+				this.__privates._nodeStorageSync = nodeStorageSync;
 
 				this.tabId = tabData.id;
 				this.currentTabIndex = tabIndex;
@@ -3752,24 +3975,8 @@ type CRMAPIMessage = {
 			 * @returns {any} - The data you are looking for
 			 */
 			get(this: CrmAPIInstance, keyPath?: string|string[]|number[]): any {
-				if (!keyPath) {
-					return this.__privates._nodeStorage;
-				}
-				if (CrmAPIInstance._helpers.checkType(keyPath, 'string', true)) {
-					const keyPathString = keyPath;
-					if (typeof keyPathString === 'string') {
-						if (keyPathString.indexOf('.') === -1) {
-							return this.__privates._nodeStorage[keyPathString];
-						}
-						else {
-							keyPath = keyPathString.split('.');
-						}
-					}
-				}
-				CrmAPIInstance._helpers.checkType(keyPath, 'array', 'keyPath');
-				if (Array.isArray(keyPath)) {
-					return CrmAPIInstance._helpers.lookup(keyPath, this.__privates._nodeStorage);
-				}
+				return this.__privates._storageGet(STORAGE_TYPE.LOCAL,
+					keyPath);
 			},
 			/**
 			 * Sets the data at given key to given value
@@ -3784,52 +3991,8 @@ type CRMAPIMessage = {
 				[key: string]: any;
 				[key: number]: any;
 			}, value?: any): void {
-				if (CrmAPIInstance._helpers.checkType(keyPath, 'string', true)) {
-					const keyPathStr = keyPath;
-					if (typeof keyPathStr === 'string') {
-						if (keyPathStr.indexOf('.') === -1) {
-							this.__privates._localStorageChange(keyPath as string, this.__privates._nodeStorage[keyPathStr], value);
-							this.__privates._nodeStorage[keyPathStr] = value;
-							this.__privates._storagePrevious = this.__privates._nodeStorage;
-							return undefined;
-						}
-						else {
-							keyPath = keyPathStr.split('.');
-						}
-					}
-				}
-				if (CrmAPIInstance._helpers.checkType(keyPath, 'array', true)) {
-					const keyPathArr = keyPath;
-					if (Array.isArray(keyPathArr)) {
-
-						//Lookup and in the meantime create object containers if new
-						let dataCont = this.__privates._nodeStorage;
-						const length = keyPathArr.length - 1;
-						for (let i = 0; i < length; i++) {
-							if (dataCont[keyPathArr[i]] === undefined) {
-								dataCont[keyPathArr[i]] = {};
-							}
-							dataCont = dataCont[keyPathArr[i]];
-						}
-
-						this.__privates._localStorageChange(keyPathArr, dataCont[keyPathArr[keyPathArr.length - 1]], value);
-						dataCont[keyPathArr[keyPathArr.length - 1]] = value;
-						this.__privates._storagePrevious = this.__privates._nodeStorage;
-						return undefined;
-					}
-				}
-				CrmAPIInstance._helpers.checkType(keyPath, ['object'], 'keyPath');
-				const keyPathObj = keyPath;
-				if (typeof keyPathObj === 'object') {
-					for (const key in keyPathObj) {
-						if (keyPathObj.hasOwnProperty(key)) {
-							this.__privates._localStorageChange(key, this.__privates._nodeStorage[key], keyPathObj[key]);
-							this.__privates._nodeStorage[key] = keyPathObj[key];
-						}
-					}
-				}
-				this.__privates._storagePrevious = this.__privates._nodeStorage;
-				return undefined;
+				return this.__privates._storageSet(STORAGE_TYPE.LOCAL,
+					keyPath, value);
 			},
 			/**
 			 * Deletes the data at given key given value
@@ -3839,32 +4002,8 @@ type CRMAPIMessage = {
 			 *		one section of the path, or just a plain string without dots as the key
 			 */
 			remove(this: CrmAPIInstance, keyPath: string|string[]|number[]): void {
-				if (CrmAPIInstance._helpers.checkType(keyPath, 'string', true)) {
-					const keyPathStr = keyPath;
-					if (typeof keyPathStr === 'string') {
-						if (keyPathStr.indexOf('.') === -1) {
-							this.__privates._notifyChanges(keyPathStr, this.__privates._nodeStorage[keyPathStr], undefined);
-							delete this.__privates._nodeStorage[keyPathStr];
-							this.__privates._storagePrevious = this.__privates._nodeStorage;
-							return undefined;
-						}
-						else {
-							keyPath = keyPathStr.split('.');
-						}
-					}
-				}
-				if (CrmAPIInstance._helpers.checkType(keyPath, 'array', true)) {
-					const keyPathArr = keyPath;
-					if (Array.isArray(keyPathArr)) {
-						const data = CrmAPIInstance._helpers.lookup(keyPathArr, this.__privates._nodeStorage, true);
-						this.__privates._notifyChanges(keyPathArr.join('.'), (data as any)[keyPathArr[keyPathArr.length - 1]], undefined);
-						delete (data as any)[keyPathArr[keyPathArr.length - 1]];
-						this.__privates._storagePrevious = this.__privates._nodeStorage;
-						return undefined;
-					}
-				}
-				this.__privates._storagePrevious = this.__privates._nodeStorage;
-				return undefined;
+				return this.__privates._storageRemove(STORAGE_TYPE.LOCAL,
+					keyPath);
 			},
 			/**
 			 * Functions related to the onChange event of the storage API
@@ -3884,10 +4023,8 @@ type CRMAPIMessage = {
 				 * @returns {number} A number that can be used to remove the listener
 				 */
 				addListener(this: CrmAPIInstance, listener: StorageChangeListener, key: string) {
-					return this.__privates._storageListeners.add({
-						callback: listener,
-						key: key
-					});
+					return this.__privates._addStorageOnChangeListener(
+						STORAGE_TYPE.LOCAL, listener, key);
 				},
 				/**
 				 * Removes ALL listeners with given listener (function) as the listener,
@@ -3898,22 +4035,91 @@ type CRMAPIMessage = {
 				 * @param {string} [key] - The key to check
 				 */
 				removeListener(this: CrmAPIInstance, listener: StorageChangeListener|number, key: string) {
-					if (typeof listener === 'number') {
-						this.__privates._storageListeners.remove(listener);
-					}
-					else {
-						this.__privates._storageListeners.forEach((storageListener, index) => {
-							if (storageListener.callback === listener) {
-								if (key !== undefined) {
-									if (storageListener.key === key) {
-										this.__privates._storageListeners.remove(index);
-									}
-								} else {
-									this.__privates._storageListeners.remove(index);
-								}
-							}
-						});
-					}
+					this.__privates._removeStorageChangeListener(
+						STORAGE_TYPE.LOCAL, listener, key);
+				}
+			}
+		};
+
+		/**
+		 * The synced storage API used to store and retrieve data for this script across 
+		 * browser instances
+		 *
+		 * @type Object
+		 */
+		storageSync = {
+			/**
+			 * Gets the value at given key, if no key is given returns the entire storage object
+			 *
+			 * @param {string|array} [keyPath] - The path at which to look, can be either
+			 *		a string with dots separating the path, an array with each entry holding
+			 *		one section of the path, or just a plain string without dots as the key,
+			 *		can also hold nothing to return the entire storage
+			 * @returns {any} - The data you are looking for
+			 */
+			get(this: CrmAPIInstance, keyPath?: string|string[]|number[]): any {
+				return this.__privates._storageGet(STORAGE_TYPE.SYNC,
+					keyPath);
+			},
+			/**
+			 * Sets the data at given key to given value
+			 *
+			 * @param {string|array|Object} keyPath - The path at which to look, can be either
+			 *		a string with dots separating the path, an array with each entry holding
+			 *		one section of the path, a plain string without dots as the key or
+			 * 		an object. This object will be written on top of the storage object
+			 * @param {any} [value] - The value to set it to, optional if keyPath is an object
+			 */
+			set(this: CrmAPIInstance, keyPath: string|string[]|number[]|{
+				[key: string]: any;
+				[key: number]: any;
+			}, value?: any): void {
+				return this.__privates._storageSet(STORAGE_TYPE.SYNC,
+					keyPath, value);
+			},
+			/**
+			 * Deletes the data at given key given value
+			 *
+			 * @param {string|array} keyPath - The path at which to look, can be either
+			 *		a string with dots separating the path, an array with each entry holding
+			 *		one section of the path, or just a plain string without dots as the key
+			 */
+			remove(this: CrmAPIInstance, keyPath: string|string[]|number[]): void {
+				return this.__privates._storageRemove(STORAGE_TYPE.SYNC,
+					keyPath);
+			},
+			/**
+			 * Functions related to the onChange event of the storage API
+			 *
+			 * @type Object
+			 */
+			onChange: {
+				/**
+				 * Adds an onchange listener for the storage, listens for a key if given
+				 *
+				 * @param {function} listener - The function to run, gets called
+				 *		gets called with the first argument being the key, the second being
+				 *		the old value, the third being the new value and the fourth
+				 *		a boolean indicating if the change was on a remote tab
+				 * @param {string} [key] - The key to listen for, if it's nested separate it by dots
+				 * 		like a.b.c
+				 * @returns {number} A number that can be used to remove the listener
+				 */
+				addListener(this: CrmAPIInstance, listener: StorageChangeListener, key: string) {
+					return this.__privates._addStorageOnChangeListener(
+						STORAGE_TYPE.SYNC, listener, key);
+				},
+				/**
+				 * Removes ALL listeners with given listener (function) as the listener,
+				 *	if key is given also checks that they have that key
+				 *
+				 * @param {function|number} listener - The listener to remove or the number to
+				 * 		to remove it.
+				 * @param {string} [key] - The key to check
+				 */
+				removeListener(this: CrmAPIInstance, listener: StorageChangeListener|number, key: string) {
+					this.__privates._removeStorageChangeListener(
+						STORAGE_TYPE.SYNC, listener, key);
 				}
 			}
 		};
@@ -5530,6 +5736,7 @@ type CRMAPIMessage = {
 			GM_addValueChangeListener(this: CrmAPIInstance, name: string, callback: (name: string, oldValue: any, newValue: any, remote: boolean) => void): number {
 				return this.__privates._storageListeners.add({
 					key: name,
+					type: STORAGE_TYPE.LOCAL,
 					callback: callback
 				});
 			},

@@ -1030,7 +1030,8 @@ export namespace Storages.SetupHandling {
 			],
 			settingsLastUpdatedAt: new Date().getTime(),
 			latestId: modules.globalObject.globals.latestId,
-			rootName: 'Custom Menu'
+			rootName: 'Custom Menu',
+			nodeStorageSync: {}
 		};
 	}
 
@@ -1404,6 +1405,7 @@ export namespace Storages {
 		nodeStorageChanges?: StorageChange[];
 		id?: number;
 		tabId?: number;
+		isSync?: boolean;
 	}) {
 		switch (data.type) {
 			case 'optionsPage':
@@ -1429,9 +1431,15 @@ export namespace Storages {
 			case 'nodeStorage':
 				modules.storages.nodeStorage[data.id] =
 					modules.storages.nodeStorage[data.id] || {};
-				applyChangeForStorageType(modules.storages.nodeStorage[data.id],
-					data.nodeStorageChanges, true);
-				notifyNodeStorageChanges(data.id, data.tabId, data.nodeStorageChanges);
+				if (data.isSync) {
+					applyChangeForStorageType(modules.storages.nodeStorage[data.id],
+						data.nodeStorageChanges, true);
+				} else {
+					applyChangeForStorageType(modules.storages.nodeStorage[data.id],
+						data.nodeStorageChanges, true);
+				}
+				notifyNodeStorageChanges(data.id, data.tabId, data.nodeStorageChanges,
+					data.isSync);
 				break;
 		}
 	}
@@ -1450,6 +1458,10 @@ export namespace Storages {
 				'resources', []);
 			modules.storages.nodeStorage = setIfNotSet(chromeStorageLocal,
 				'nodeStorage', {} as {
+					[nodeId: number]: any;
+				});
+			modules.storages.nodeStorageSync = setIfNotSet(settingsStorage,
+				'nodeStorageSync', {} as {
 					[nodeId: number]: any;
 				});
 			modules.storages.resourceKeys = setIfNotSet(chromeStorageLocal,
@@ -1641,7 +1653,7 @@ export namespace Storages {
 		}
 	}
 	function notifyNodeStorageChanges(id: number, tabId: number,
-		changes: StorageChange[]) {
+		changes: StorageChange[], isSync: boolean) {
 		//Update in storage
 		modules.crm.crmById[id].storage = modules.storages
 			.nodeStorage[id];
@@ -1659,6 +1671,7 @@ export namespace Storages {
 						nodes[id].forEach((tabIndexInstance) => {
 							modules.Util.postMessage(tabIndexInstance.port, {
 								changes: changes,
+								isSync: isSync,
 								messageType: 'storageUpdate'
 							});
 						});

@@ -12,6 +12,7 @@ export namespace Global {
 		storages: {
 			insufficientPermissions: [],
 			settingsStorage: null,
+			nodeStorageSync: null,
 			globalExcludes: null,
 			resourceKeys: null,
 			urlDataPairs: null,

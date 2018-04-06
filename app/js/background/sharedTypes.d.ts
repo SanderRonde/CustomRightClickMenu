@@ -163,21 +163,6 @@ interface EncodedContextData {
 	toElement: number;
 }
 
-interface Resource {
-	name: string;
-	sourceUrl: string;
-	matchesHashes: boolean;
-	dataURI: string;
-	dataString: string;
-	crmUrl: string;
-	hashes: {
-		algorithm: string;
-		hash: string;
-	}[];
-}
-
-type CRMResources = { [name: string]: Resource };
-
 interface GreaseMonkeyDataInfo {
 	script: {
 		author?: string;
@@ -213,7 +198,7 @@ interface GreaseMonkeyDataInfo {
 			}
 		},
 		position: number;
-		resources: Resource[];
+		resources: CRM.Resource[];
 		"run-at": string;
 		system: boolean;
 		unwrap: boolean;
@@ -229,7 +214,7 @@ interface GreaseMonkeyDataInfo {
 
 interface GreaseMonkeyData {
 	info: GreaseMonkeyDataInfo;
-	resources: CRMResources;
+	resources: CRM.CRMResources;
 }
 
 /**
@@ -401,58 +386,23 @@ interface BGStorages {
 		[nodeId: number]: any;
 	};
 	/**
+	 * Nodes' storage. Indexed by ID
+	 */
+	nodeStorageSync: {
+		/**
+		 * The storage for given node Id
+		 */
+		[nodeId: number]: any;
+	};
+	/**
 	 * Registered resources by the script ID
 	 */
-	resources: {
+	resources: 	{
 		/**
-		 * A script's resources by name
-		 */
-		[scriptId: number]: {
-			/**
-			 * A resource object
-			 */
-			[name: string]: {
-				/**
-				 * The name of the resource
-				 */
-				name: string;
-				/**
-				 * The URL the resource points to
-				 */
-				sourceUrl: string;
-				/**
-				 * Whether the hashes match the content
-				 */
-				matchesHashes: boolean;
-				/**
-				 * The original data URI
-				 */
-				dataURI: string;
-				/**
-				 * The data in string form
-				 */
-				dataString: string;
-				/**
-				 * A url that points to this resource through a local non-existent.
-				 * For example: https://www.localhost.io/resource/${scriptId}/${name}
-				 */
-				crmUrl: string;
-				/**
-				 * Hashes calculated over the content
-				 */
-				hashes: {
-					/**
-					 * The algorithm used to calculate the hash
-					 */
-					algorithm: string;
-					/**
-					 * The calculated hash
-					 */
-					hash: string;
-				}[];
-			};
-		};
-	};
+		* A script's resources by name
+		*/
+		[scriptId: number]: CRM.CRMResources;
+	}
 	/**
 	 * Any messages about scripts trying to access permissions they don't have
 	 */

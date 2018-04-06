@@ -2550,6 +2550,7 @@ describe('CRMAPI', () => {
 					menuVal: null,
 					permissions: []
 				}],
+				nodeStorageSync: {},
 				"latestId": (JSON.parse(storageSync.section0) as CRM.SettingsStorage).latestId,
 				"settingsLastUpdatedAt": (JSON.parse(storageSync.section0) as CRM.SettingsStorage).settingsLastUpdatedAt,
 				"rootName": "Custom Menu"

@@ -1129,6 +1129,15 @@ declare namespace CRM {
 		 * The name of the root node
 		 */
 		rootName: string;
+		/**
+		 * Nodes' storage. Indexed by ID
+		 */
+		nodeStorageSync: {
+			/**
+			 * The storage for given node Id
+			 */
+			[nodeId: number]: any;
+		};
 		
 		[key: string]: any;
 	}
