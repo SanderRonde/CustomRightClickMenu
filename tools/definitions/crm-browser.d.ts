@@ -829,8 +829,8 @@ declare namespace crmbrowser.runtime {
     function openOptionsPage(): BrowserReturnValue<void>;
 
     // TODO: Explicitly expose every property of the manifest
-    function getManifest(): object;
-    function getURL(path: string): string;
+    function getManifest(): BrowserReturnValue<object>;
+    function getURL(path: string): BrowserReturnValue<string>;
     function setUninstallURL(url: string): BrowserReturnValue<void>;
     function reload(): BrowserReturnValue<void>;
     // Will not exist: https://bugzilla.mozilla.org/show_bug.cgi?id=1314922
@@ -838,7 +838,7 @@ declare namespace crmbrowser.runtime {
     function connect(
         extensionId?: string,
         connectInfo?: { name?: string, includeTlsChannelId?: boolean }
-    ): Port;
+    ): BrowserReturnValue<Port>;
     function connectNative(application: string): Port;
 
     function sendMessage<T = any, U = any>(
