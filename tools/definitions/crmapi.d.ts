@@ -653,7 +653,7 @@ declare namespace CRM {
 		/**
 		 * An instance of a script running on a tab
 		 */
-		interface Instance {
+		interface CommInstance {
 			/**
 			 * The ID of the tab
 			 */
@@ -1713,9 +1713,9 @@ declare namespace CRM {
 				 * call instance.sendMessage on them
 				 *
 				 * @param {function} [callback] - A function to call with the instances
-				 * @returns {Promise<Instance[]>} A promise that resolves with the instances
+				 * @returns {Promise<CommInstance[]>} A promise that resolves with the instances
 				 */
-				getInstances(callback?: (instances: Instance[]) => void): Promise<Instance[]>,
+				getInstances(callback?: (instances: CommInstance[]) => void): Promise<CommInstance[]>,
 				/**
 				 * Sends a message to given instance
 				 *
@@ -1759,7 +1759,7 @@ declare namespace CRM {
 				 *		the message key of that object will be filled with the reason
 				 *		it failed ("instance no longer exists" or "no listener exists")
 				 */
-				sendMessage(instance: Instance, tabIndex: number, message: any, callback?: InstanceCallback): Promise<InstanceCallback>,
+				sendMessage(instance: CommInstance, tabIndex: number, message: any, callback?: InstanceCallback): Promise<InstanceCallback>,
 				/**
 				 * Adds a listener for any comm-messages sent from other instances of
 				 * this script

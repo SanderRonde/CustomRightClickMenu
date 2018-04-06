@@ -268,7 +268,7 @@ type CRMAPIMessage = {
 
 	type ModifiedSymbolTypes = SymbolType|'array';
 
-	interface Instance {
+	interface CommInstance {
 		id: number;
 		tabIndex: number;
 		sendMessage(message: any, callback: (data: {
@@ -742,8 +742,8 @@ type CRMAPIMessage = {
 			}[]): void;
 
 			_instancesReady: boolean,
-			_instancesReadyListeners: ((instances: Instance[]) => void)[],
-			_instances: CallbackStorageInterface<Instance>;
+			_instancesReadyListeners: ((instances: CommInstance[]) => void)[],
+			_instances: CallbackStorageInterface<CommInstance>;
 
 			_instancesChange(change: {
 				type: 'removed';
@@ -1354,7 +1354,7 @@ type CRMAPIMessage = {
 					persistent: boolean;
 					maxCalls: number;
 				}>()
-				this.__privates._instances = new CrmAPIInstance._helpers.CallbackStorage<Instance>();
+				this.__privates._instances = new CrmAPIInstance._helpers.CallbackStorage<CommInstance>();
 				this.__privates._commListeners = new CrmAPIInstance._helpers.CallbackStorage<InstanceCallback>();
 				this.__privates._backgroundPageListeners = new CrmAPIInstance._helpers.CallbackStorage<
 					(message: any, respond: (message: any) => void) => void
@@ -1949,7 +1949,7 @@ type CRMAPIMessage = {
 						});
 					}
 
-					const instancesArr: Instance[] = [];
+					const instancesArr: CommInstance[] = [];
 					this.__privates._instances.forEach((instance) => {
 						instancesArr.push(instance);
 					});
@@ -3558,12 +3558,12 @@ type CRMAPIMessage = {
 			 * call instance.sendMessage on them
 			 *
 			 * @param {function} [callback] - A function to call with the instances
-			 * @returns {Promise<Instance[]>} A promise that resolves with the instances
+			 * @returns {Promise<CommInstance[]>} A promise that resolves with the instances
 			 */
-			getInstances(this: CrmAPIInstance, callback?: (instances: Instance[]) => void): Promise<Instance[]> {
-				return new Promise<Instance[]>((resolve) => {
+			getInstances(this: CrmAPIInstance, callback?: (instances: CommInstance[]) => void): Promise<CommInstance[]> {
+				return new Promise<CommInstance[]>((resolve) => {
 					if (this.__privates._instancesReady) {
-						const instancesArr: Instance[] = [];
+						const instancesArr: CommInstance[] = [];
 						this.__privates._instances.forEach((instance) => {
 							instancesArr.push(instance);
 						});
@@ -3580,7 +3580,7 @@ type CRMAPIMessage = {
 			/**
 			 * Sends a message to given instance
 			 *
-			 * @param {Instance|number} instance - The instance to send the message to
+			 * @param {CommInstance|number} instance - The instance to send the message to
 			 * @param {number} tabIndex - The index in which it ran on the tab.
 			 * 		When a script is ran multiple times on the same tab,
 			 * 		it gets added to the tabIndex array (so it starts at 0)
@@ -3598,8 +3598,8 @@ type CRMAPIMessage = {
 			 *		the message key of that object will be filled with the reason
 			 *		it failed ("instance no longer exists" or "no listener exists")
 			 */
-			sendMessage(this: CrmAPIInstance, instance: Instance|number, tabIndex: number, message: any, callback?: InstanceCallback): Promise<InstanceCallback> {
-				let instanceObj: Instance;
+			sendMessage(this: CrmAPIInstance, instance: CommInstance|number, tabIndex: number, message: any, callback?: InstanceCallback): Promise<InstanceCallback> {
+				let instanceObj: CommInstance;
 				if (typeof instance === "number") {
 					instanceObj = this.__privates._instances.get(instance);
 				} else {
