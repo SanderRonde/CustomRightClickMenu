@@ -5158,6 +5158,13 @@ describe('CRMAPI', () => {
 					callback({a: a, b: b});
 					callback({c: a, d: b});
 					callback(a.value + b[0]);
+				},
+				willError: function(callback: () => void) {
+					window.chrome.runtime.lastError = {
+						message: 'Some error'
+					}
+					callback();
+					window.chrome.runtime.lastError = null;
 				}
 			} as any;
 		});
@@ -5388,6 +5395,23 @@ describe('CRMAPI', () => {
 					done();
 				}).send();
 			}, 'calling chrome function does not throw');
+		});
+		it('sets crmAPI.lastError on chrome runtime lastError', (done) => {
+			assert.doesNotThrow(() => {
+				crmAPI.chrome('sessions.willError')(() => {
+					assert.isDefined(crmAPI.lastError);
+					done();
+				}).send();
+			});
+		});
+		it('should throw when crmAPI.lastError is unchecked', (done) => {
+			assert.doesNotThrow(() => {
+				crmAPI.onError = (err: Error) => {
+					assert.isDefined(err);
+					done();
+				};
+				crmAPI.chrome('sessions.willError')(() => { });
+			});
 		});
 	});
 	describe('Browser', () => {
