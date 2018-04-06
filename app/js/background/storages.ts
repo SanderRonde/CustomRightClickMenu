@@ -1432,7 +1432,7 @@ export namespace Storages {
 				modules.storages.nodeStorage[data.id] =
 					modules.storages.nodeStorage[data.id] || {};
 				if (data.isSync) {
-					applyChangeForStorageType(modules.storages.nodeStorage[data.id],
+					applyChangeForStorageType(modules.storages.nodeStorageSync[data.id],
 						data.nodeStorageChanges, true);
 				} else {
 					applyChangeForStorageType(modules.storages.nodeStorage[data.id],
@@ -1440,6 +1440,19 @@ export namespace Storages {
 				}
 				notifyNodeStorageChanges(data.id, data.tabId, data.nodeStorageChanges,
 					data.isSync);
+				if (data.isSync) {
+					await uploadChanges('settings', [{
+						key: 'nodeStorageSync',
+						newValue: modules.storages.nodeStorageSync,
+						oldValue: undefined
+					}]);
+				} else {
+					await uploadChanges('local', [{
+						key: 'nodeStorage',
+						newValue: modules.storages.nodeStorage,
+						oldValue: undefined
+					}]);
+				}
 				break;
 		}
 	}
