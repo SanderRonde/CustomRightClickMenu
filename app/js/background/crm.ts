@@ -1664,6 +1664,9 @@ export namespace CRMNodes.Stylesheet {
 					'document.head.appendChild(CRMSSInsert);'
 				].join('');
 			}
+			if (!(tab.id in modules.crmValues.nodeTabStatuses[node.id])) {
+				modules.crmValues.nodeTabStatuses[node.id][tab.id] = {};
+			}
 			modules.crmValues.nodeTabStatuses[node.id][tab.id].checked = info.checked;
 			browserAPI.tabs.executeScript(tab.id, {
 				code: code,
