@@ -1221,6 +1221,52 @@ declare namespace CRM {
 	}
 
 	/**
+	 * A CRM resource
+	 */
+	interface Resource {
+		/**
+		 * The name of the resource
+		 */
+		name: string;
+		/**
+		 * The URL the resource points to
+		 */
+		sourceUrl: string;
+		/**
+		 * Whether the hashes match the content
+		 */
+		matchesHashes: boolean;
+		/**
+		 * The original data URI
+		 */
+		dataURI: string;
+		/**
+		 * The data in string form
+		 */
+		dataString: string;
+		/**
+		 * A url that points to this resource through a local non-existent.
+		 * For example: https://www.localhost.io/resource/${scriptId}/${name}
+		 */
+		crmUrl: string;
+		/**
+		 * Hashes calculated over the content
+		 */
+		hashes: {
+			/**
+			 * The algorithm used to calculate the hash
+			 */
+			algorithm: string;
+			/**
+			 * The calculated hash
+			 */
+			hash: string;
+		}[];
+	}
+	
+	type CRMResources = { [name: string]: Resource };
+
+	/**
 	 * Local Storage (not synced)
 	 */
 	interface StorageLocal {
@@ -1265,6 +1311,73 @@ declare namespace CRM {
 		 * Urls on which to never run any scripts
 		 */
 		globalExcludes: Array<string>;
+		/**
+		 * Registered resources by the script ID
+		 */
+		resources: 	{
+			/**
+			* A script's resources by name
+			*/
+			[scriptId: number]: CRMResources;
+		}
+		/**
+		 * Storage for all nodes (not synced)
+		 */
+		nodeStorage: {
+			[nodeId: number]: any;
+		}
+		/**
+		 * Registered resources
+		 */
+		resourceKeys: {
+			/**
+			 * The name of the resource
+			 */
+			name: string;
+			/**
+			 * The URL the resource points to
+			 */
+			sourceUrl: string;
+			/**
+			 * Hashes calculated over the content
+			 */
+			hashes: {
+				/**
+				 * The algorithm used to calculate the hash
+				 */
+				algorithm: string;
+				/**
+				 * The calculated hash
+				 */
+				hash: string;
+			}[];
+			/**
+			 * The script that uses it
+			 */
+			scriptId: number;
+		}[];
+		/**
+		 * An object with URLs as keys and resources as values
+		 */
+		urlDataPairs: {
+			/**
+			 * A resource data object
+			 */
+			[url: string]: {
+				/**
+				 * The data in string form
+				 */
+				dataString: string;
+				/**
+				 * All nodes that use this resource
+				 */
+				refs: number[];
+				/**
+				 * The original data URI
+				 */
+				dataURI: string;
+			};
+		};
 		/**
 		 * Whether this is not the first time the extension was launched
 		 */
@@ -1348,7 +1461,6 @@ declare namespace CRM {
 			 */
 			wasUpdated: boolean;
 		};
-
 		/**
 		 * Permissions that were added
 		 */
@@ -1402,7 +1514,5 @@ declare namespace CRM {
 				generalError: boolean;		
 			}		
 		};
-		
-		[key: string]: any;
 	}
 }

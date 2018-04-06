@@ -1001,7 +1001,11 @@ export namespace Storages.SetupHandling {
 						date: new Date().getTime()
 					},
 					wasUpdated: false
-				}
+				},
+				nodeStorage: {},
+				resources: {},
+				resourceKeys: [],
+				urlDataPairs: {}
 			}, syncStorage]);
 		});
 	}
@@ -1607,7 +1611,7 @@ export namespace Storages {
 			}
 		}
 	}
-	function setIfNotSet<T>(obj: any, key: string, defaultValue: T): T {
+	function setIfNotSet<U, K extends keyof U>(obj: U, key: K, defaultValue: U[K]): U[K] {
 		if (obj[key]) {
 			return obj[key];
 		}
