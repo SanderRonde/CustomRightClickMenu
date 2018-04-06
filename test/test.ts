@@ -2243,7 +2243,7 @@ describe('CRMAPI', () => {
 			editCRMInRM: true,
 			nodeStorage: {},
 			resourceKeys: [],
-			resources: [],
+			resources: {},
 			updatedScripts: [],
 			urlDataPairs: {},
 			useStorageSync: true,

@@ -1468,7 +1468,7 @@ export namespace Storages {
 					return pattern !== null;
 				}) as MatchPattern[];
 			modules.storages.resources = setIfNotSet(chromeStorageLocal,
-				'resources', []);
+				'resources', {});
 			modules.storages.nodeStorage = setIfNotSet(chromeStorageLocal,
 				'nodeStorage', {} as {
 					[nodeId: number]: any;
