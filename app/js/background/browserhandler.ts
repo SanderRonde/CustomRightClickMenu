@@ -486,10 +486,19 @@ export namespace BrowserHandler {
 	function createChromeFnCallbackHandler(message: ChromeAPIMessage|BrowserAPIMessage,
 		callbackIndex: number) {
 		return (...params: any[]) => {
-			modules.APIMessaging.CRMMessage.respond(message, 'success', {
-				callbackId: callbackIndex,
-				params: params
-			});
+			if ((window as any).chrome && (window as any).chrome.runtime && 
+				(window as any).chrome.runtime.lastError) {
+					modules.APIMessaging.CRMMessage.respond(message, 'success', {
+						callbackId: callbackIndex,
+						lastError: (window as any).chrome.runtime.lastError,
+						params: params
+					});
+				} else {
+					modules.APIMessaging.CRMMessage.respond(message, 'success', {
+						callbackId: callbackIndex,
+						params: params
+					});
+				}
 		};
 	}
 }

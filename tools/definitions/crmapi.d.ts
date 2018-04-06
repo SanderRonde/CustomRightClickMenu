@@ -1662,6 +1662,11 @@ declare namespace CRM {
 			 * 		`catchErrors` option on the options page.
 			 */
 			debugOnerror: boolean;
+
+			/**
+			 * Is set if a chrome call triggered an error, otherwise unset
+			 */
+			lastError: Error;
 	
 			/**
 			 * When true, warns you after 5 seconds of not sending a chrome function

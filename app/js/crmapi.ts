@@ -228,6 +228,7 @@ type CRMAPIMessage = {
 		callbackId: number;
 		type: 'success'|'error'|'chromeError';
 		data: string|any[];
+		lastError?: Error;
 		messageType: 'callback';
 	}
 
@@ -708,6 +709,10 @@ type CRMAPIMessage = {
 				maxCalls?: number;
 			}): number;
 			_handshakeFunction(this: CrmAPIInstance): void;
+			_lastError: {
+				checked: boolean;
+				err: Error;
+			}
 			_callbackHandler(message: CallbackMessage): void;
 			_executeCode(message: Message<{
 				messageType: 'executeCRMCode';
@@ -1224,7 +1229,7 @@ type CRMAPIMessage = {
 						onConnect: listener,
 						onMessage: listener,
 						onMessageExternal: listener,
-						lastError: null,
+						lastError: undefined,
 						id: null
 					},
 					sessions: {
@@ -1478,10 +1483,34 @@ type CRMAPIMessage = {
 				this.__privates._queue = null;
 			},
 
+			_lastError: null,
+
 			_callbackHandler(this: CrmAPIInstance, message: CallbackMessage) {
 				const call = this.__privates._callInfo.get(message.callbackId);
 				if (call) {
+					if (message.lastError) {
+						this.__privates._lastError = {
+							checked: false,
+							err: message.lastError
+						}
+					}
 					call.callback(message.type, message.data, call.stackTrace);
+					if (message.lastError) {
+						if (!this.__privates._lastError.checked) {
+							if (this.onError) {
+								this.onError({
+									error: 'Unchecked lastError',
+									message: 'Unchecked lastError',
+									lineNumber: 0,
+									stackTrace: call.stackTrace.join('\n')
+								});
+							} else {
+								throw new Error('Unchecked lastError');
+							}
+						}
+						this.__privates._lastError = undefined;
+					}
+
 					if (!call.persistent) {
 						call.maxCalls--;
 						if (call.maxCalls === 0) {
@@ -2923,6 +2952,15 @@ type CRMAPIMessage = {
 				this.isBackground = isBackground;
 				this.chromeAPISupported = supportedAPIs.split(',').indexOf('chrome') > -1;
 				this.browserAPISupported = supportedAPIs.split(',').indexOf('browser') > -1;
+				Object.defineProperty(this, 'lastError', {
+					get() {
+						if (this.__privates._lastError) {
+							this.__privates._lastError.checked = true;
+							return this.__privates._lastError.err;
+						}
+						return undefined;
+					}
+				});
 
 				this.__privates._findElementsOnPage.bind(this)(contextData);
 				this.__privates._setupBrowserAPI(this);
@@ -2968,6 +3006,13 @@ type CRMAPIMessage = {
 		 * @type boolean
 		 */
 		debugOnerror = false;
+
+		/**
+		 * Is set if a chrome call triggered an error, otherwise unset
+		 * 
+		 * @type Error
+		 */
+		lastError: Error = undefined;
 
 		/**
 		 * If set, calls this function when an error occurs
