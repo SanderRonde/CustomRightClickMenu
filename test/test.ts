@@ -5056,6 +5056,7 @@ describe('CRMAPI', () => {
 		before('Setup', () => {
 			// @ts-ignore
 			window.chrome = window.chrome || {};
+			window.chrome.runtime = window.chrome.runtime || {} as typeof window.chrome.runtime;
 			window.chrome.sessions = {
 				testReturnSimple: function(a: number, b: number) {
 					return a + b;
