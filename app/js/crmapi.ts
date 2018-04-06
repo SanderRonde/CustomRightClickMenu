@@ -295,6 +295,9 @@ type CRMAPIMessage = {
 		success: true;
 	}) => void;
 
+	type InstanceListener = (message: any) => void;
+	type RespondableInstanceListener = (message: any, respond: (response: any) => void) => void;
+
 	interface CallbackStorageInterface<T> {
 		constructor: Function;
 		length: number;
@@ -754,7 +757,7 @@ type CRMAPIMessage = {
 				tabIndex: number;
 			}): void;
 
-			_commListeners: CallbackStorageInterface<InstanceCallback>;
+			_commListeners: CallbackStorageInterface<InstanceListener>;
 
 			_instanceMessageHandler(message: Message<{
 				message: any;
@@ -784,9 +787,7 @@ type CRMAPIMessage = {
 				id: number;
 			}>): (data: any) => void;
 
-			_backgroundPageListeners: CallbackStorageInterface<
-				(message: any, respond: (message: any) => void) => void
-			>;
+			_backgroundPageListeners: CallbackStorageInterface<RespondableInstanceListener>;
 
 			_backgroundPageMessageHandler(message: Message<{
 				message: any;
@@ -1355,9 +1356,9 @@ type CRMAPIMessage = {
 					maxCalls: number;
 				}>()
 				this.__privates._instances = new CrmAPIInstance._helpers.CallbackStorage<CommInstance>();
-				this.__privates._commListeners = new CrmAPIInstance._helpers.CallbackStorage<InstanceCallback>();
+				this.__privates._commListeners = new CrmAPIInstance._helpers.CallbackStorage<InstanceListener>();
 				this.__privates._backgroundPageListeners = new CrmAPIInstance._helpers.CallbackStorage<
-					(message: any, respond: (message: any) => void) => void
+					RespondableInstanceListener
 				>();
 				this.__privates._storageListeners = new CrmAPIInstance._helpers.CallbackStorage<{
 					callback: StorageChangeListener;
@@ -3621,7 +3622,7 @@ type CRMAPIMessage = {
 			 * @param {function} listener - The listener that gets called with the message
 			 * @returns {number} An id that can be used to remove the listener
 			 */
-			addListener(this: CrmAPIInstance, listener: InstanceCallback) {
+			addListener(this: CrmAPIInstance, listener: InstanceListener) {
 				const prevLength = this.__privates._commListeners.length;
 				const idx = this.__privates._commListeners.add(listener);
 				if (prevLength === 0) {
@@ -3635,7 +3636,7 @@ type CRMAPIMessage = {
 			 * @param {listener|number} listener - The listener to remove or the number returned
 			 * 		by adding it.
 			 */
-			removeListener(this: CrmAPIInstance, listener: number|InstanceCallback) {
+			removeListener(this: CrmAPIInstance, listener: number|InstanceListener) {
 				this.__privates._commListeners.remove(listener);
 				if (this.__privates._commListeners.length === 0) {
 					this.__privates._updateCommHandlerStatus(false);
@@ -3648,7 +3649,7 @@ type CRMAPIMessage = {
 			 * @param {Function} callback - A function to be called with a response
 			 * @returns {Promise<any>} A promise that resolves with the response
 			 */
-			messageBackgroundPage(this: CrmAPIInstance, message: any, callback: InstanceCallback): Promise<any> {
+			messageBackgroundPage(this: CrmAPIInstance, message: any, callback: InstanceListener): Promise<any> {
 				return new Promise<any>((resolve, reject) => {
 					if (this.__privates._isBackground) {
 						reject('The function messageBackgroundPage is not available in background pages');
@@ -3681,7 +3682,7 @@ type CRMAPIMessage = {
 			 *		Contains the message and the respond params respectively.
 			 *		Calling the respond param with data sends a message back.
 			 */
-			listenAsBackgroundPage(this: CrmAPIInstance, callback: InstanceCallback) {
+			listenAsBackgroundPage(this: CrmAPIInstance, callback: InstanceListener) {
 				if (this.__privates._isBackground) {
 					this.__privates._backgroundPageListeners.add(callback);
 				} else {

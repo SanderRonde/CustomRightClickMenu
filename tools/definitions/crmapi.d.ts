@@ -1217,6 +1217,16 @@ declare namespace CRM {
 		 * The callback function for an instance call
 		 */
 		type InstanceCallback = (data: UnsuccessfulInstanceCallback|SuccessfulInstanceCallback) => void;
+
+		/**
+		 * A listener for an instance
+		 */
+		type InstanceListener = (message: any) => void;
+
+		/**
+		 * A listener for an instance that can be responded to
+		 */
+		type RespondableInstanceListener = (message: any, respond: (response: any) => void) => void;
 	
 		/**
 		 * A listener for a storage change
@@ -1767,7 +1777,7 @@ declare namespace CRM {
 				 * @param {function} listener - The listener that gets called with the message
 				 * @returns {number} An id that can be used to remove the listener
 				 */
-				addListener(listener: InstanceCallback): number,
+				addListener(listener: InstanceListener): number,
 				/**
 				 * Removes a listener currently added by using comm.addListener
 				 *
@@ -1777,9 +1787,9 @@ declare namespace CRM {
 				/**
 				 * Removes a listener currently added by using comm.addListener
 				 *
-				 * @param {InstanceCallback} listener - The listener to remove
+				 * @param {InstanceListener} listener - The listener to remove
 				 */
-				removeListener(listener: InstanceCallback): void,
+				removeListener(listener: InstanceListener): void,
 				/**
 				 * Sends a message to the background page for this script
 				 *
@@ -1795,7 +1805,7 @@ declare namespace CRM {
 				 *		Contains the message and the respond params respectively.
 				 *		Calling the respond param with data sends a message back.
 				*/
-				listenAsBackgroundPage(callback: (message: any, respond: (response: any) => void) => void): void
+				listenAsBackgroundPage(callback: RespondableInstanceListener): void
 			};
 	
 			/**
