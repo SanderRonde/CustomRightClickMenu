@@ -998,7 +998,7 @@ type CRMAPIMessage = {
 			}, value?: any): void;
 			_storageRemove(storageType: STORAGE_TYPE, keyPath: string|string[]|number[]): void;
 			_addStorageOnChangeListener(storageType: STORAGE_TYPE, 
-				listener: StorageChangeListener, key: string): number;
+				listener: StorageChangeListener, key?: string): number;
 			_removeStorageChangeListener(storageType: STORAGE_TYPE,
 				listener: StorageChangeListener|number, key: string): void;
 		} = {
@@ -2198,10 +2198,13 @@ type CRMAPIMessage = {
 						keyPathString = keyPath;
 					}
 					this.__privates._storageListeners.forEach((listener) => {
-						if (listener.key.indexOf(keyPathString) > -1 && 
-							listener.type === storageType) {
-								CrmAPIInstance._helpers.isFn(listener.callback) && listener.callback(listener.key, oldValue, newValue, remote || false);
-							}
+						if (listener.type !== storageType) {
+							return;
+						}
+						if (!listener.key || listener.key.indexOf(keyPathString) > -1) {
+							CrmAPIInstance._helpers.isFn(listener.callback) && 
+								listener.callback(keyPathString, oldValue, newValue, remote || false);
+						}
 					});
 					this.__privates._storagePrevious = this.__privates._nodeStorage;
 				},
@@ -4023,7 +4026,7 @@ type CRMAPIMessage = {
 				 * 		like a.b.c
 				 * @returns {number} A number that can be used to remove the listener
 				 */
-				addListener(this: CrmAPIInstance, listener: StorageChangeListener, key: string) {
+				addListener(this: CrmAPIInstance, listener: StorageChangeListener, key?: string): number {
 					return this.__privates._addStorageOnChangeListener(
 						STORAGE_TYPE.LOCAL, listener, key);
 				},
@@ -4106,7 +4109,7 @@ type CRMAPIMessage = {
 				 * 		like a.b.c
 				 * @returns {number} A number that can be used to remove the listener
 				 */
-				addListener(this: CrmAPIInstance, listener: StorageChangeListener, key: string) {
+				addListener(this: CrmAPIInstance, listener: StorageChangeListener, key?: string) {
 					return this.__privates._addStorageOnChangeListener(
 						STORAGE_TYPE.SYNC, listener, key);
 				},

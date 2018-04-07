@@ -1871,7 +1871,7 @@ declare namespace CRM {
 					 * 		like a.b.c
 					 * @returns {number} A number that can be used to remove the listener
 					 */
-					addListener(listener: StorageListener, key: string): number,
+					addListener(listener: StorageListener, key?: string): number,
 					/**
 					 * Removes ALL listeners with given listener (function) as the listener,
 					 *	if key is given also checks that they have that key
@@ -1879,7 +1879,7 @@ declare namespace CRM {
 					 * @param {number} listener - The number of the listener to remove (given by addListener)
 					 * @param {string} [key] - The key to check
 					 */
-					removeListener(listener: number, key: string): void,
+					removeListener(listener: number, key?: string): void,
 					/**
 					 * Removes ALL listeners with given listener (function) as the listener,
 					 *	if key is given also checks that they have that key
@@ -1887,7 +1887,7 @@ declare namespace CRM {
 					 * @param {function} listener - The listener to remove
 					 * @param {string} [key] - The key to check
 					 */
-					removeListener(listener: StorageListener, key: string): void,
+					removeListener(listener: StorageListener, key?: string): void,
 				}
 			}
 
