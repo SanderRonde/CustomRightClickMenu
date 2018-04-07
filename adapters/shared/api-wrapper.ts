@@ -801,4 +801,7 @@ if (!menusBrowserAPI.contextMenus) {
 	menusBrowserAPI.menus = menusBrowserAPI.contextMenus;
 }
 
-export const browserAPI = BrowserAPI.polyfill;
+export type BrowserAPIPolyfill = typeof BrowserAPI.polyfill;
+export const browserAPI = window.browserAPI = {...BrowserAPI.polyfill, ...{
+	__isVirtual: true
+}};

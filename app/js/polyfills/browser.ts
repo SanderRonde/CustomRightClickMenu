@@ -691,10 +691,11 @@ namespace BrowserAPI {
 interface Window {
 	browserAPI: typeof BrowserAPI.polyfill & {
 		__isProxied: boolean;
+		__isVirtual?: boolean;
 	};
 }
 
-if (!window.browserAPI) {
+if (!window.browserAPI || window.browserAPI.__isVirtual) {
 	// Force override of window.browser if browser is edge or if no "browser"
 	//	global exists already. Basically equal to 
 	// 	window.browser = BrowserAPI.polyfill || window.browser  	&
