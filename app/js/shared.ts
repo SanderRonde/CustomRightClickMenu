@@ -343,7 +343,7 @@ type SharedWindow = {
 		fill?: 'forwards'|'backwards'|'both';
 	}) => {
 		const { from, propName, to, postfix } = properties;
-		if (_supportsTransformUnprefixed && !el.animate.isJqueryPolyfill) {
+		if (_supportsTransformUnprefixed && !el.__isAnimationJqueryPolyfill) {
 			return el.animate([{
 				transform: `${propName}(${from}${postfix})`
 			}, {
