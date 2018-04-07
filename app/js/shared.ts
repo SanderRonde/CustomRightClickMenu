@@ -305,10 +305,7 @@ type SharedWindow = {
 		let currentAnimation: {
 			cancel(): void;
 		} = null;
-		const retVal: Animation = {
-			effect: {
-				target: el
-			},
+		var retVal: Animation = {
 			onfinish: null,
 			oncancel: null,
 			cancel() {
@@ -335,7 +332,32 @@ type SharedWindow = {
 						timelineTime: null
 					});
 				});
-			}
+			},
+			pause() {},
+			finish() {},
+			currentTime: 0,
+			effect: {
+				timing: 0,
+				getComputedTiming() {
+					return {
+						endTime: 0,
+						activeDuration: 0,
+						currentIteration: 0,
+						localTime: 0,
+						progress: null
+					}
+				}
+			},
+			finished: Promise.resolve(retVal),
+			pending: false,
+			startTime: Date.now(),
+			id: '',
+			ready: Promise.resolve(retVal),
+			playState: 'finished',
+			playbackRate: 1.0,
+			timeline: {
+				currentTime: Date.now()
+			},
 		}
 		doAnimation(from, to, () => {
 			retVal.onfinish && retVal.onfinish.apply(retVal, {
