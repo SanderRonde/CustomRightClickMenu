@@ -4,7 +4,6 @@
 /// <reference path="../../tools/definitions/crmapi.d.ts" />
 /// <reference path="../../tools/definitions/chrome.d.ts" />
 
-import { openHTMLPage } from './../background/open-html-page';
 import { generateRandomString } from './util';
 
 interface WindowType extends Window { }
