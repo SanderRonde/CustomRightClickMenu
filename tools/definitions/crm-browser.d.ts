@@ -1100,6 +1100,9 @@ declare namespace crmbrowser.tabs {
         windowId?: number,
         options?: crmbrowser.extensionTypes.ImageDetails
     ): BrowserReturnValue<string>;
+    function captureVisibleTab(
+        options?: crmbrowser.extensionTypes.ImageDetails
+    ): BrowserReturnValue<string>;
     function detectLanguage(tabId?: number): BrowserReturnValue<string>;
     function duplicate(tabId: number): BrowserReturnValue<Tab>;
     function executeScript(
