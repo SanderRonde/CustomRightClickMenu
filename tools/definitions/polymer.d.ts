@@ -396,6 +396,7 @@ declare namespace Polymer {
 		'crm-edit-page': HTMLCrmEditPageElement;
 		'paper-toggle-option': HTMLPaperToggleOptionElement;
 		'edit-crm': HTMLEditCrmElement;
+		'edit-crm-item': HTMLEditCrmItemElement;
 		'center-element': HTMLCenterElementElement;
 		'paper-serach-website-dialog': HTMLPaperSearchWebsiteDialogElement;
 		'use-external-editor': HTMLUseExternalEditorElement;
