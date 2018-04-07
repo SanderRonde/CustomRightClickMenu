@@ -7,3 +7,9 @@ export function generateRandomString() {
 	}
 	return str.join('');
 }
+
+export function semiSandbox(code: string, codeStr: string, crmAPI?: any, window?: any, _semiSandbox?: any) {
+	eval(`var ${codeStr} = (${codeStr}) => { eval(code); })`);
+	code = null;
+	eval('eval(codeStr())');
+}

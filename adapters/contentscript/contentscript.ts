@@ -1,15 +1,9 @@
-import { generateRandomString } from "../shared/util";
+import { generateRandomString, semiSandbox } from "../shared/util";
 import { CONTENT_SCRIPT_FILE } from "../pages/content";
 
-function _semiSandbox(code: string, codeStr: string, crmAPI?: any, window?: any, _semiSandbox?: any) {
-	eval(`var ${codeStr} = (${codeStr}) => { eval(code); })`);
-	code = null;
-	eval('eval(codeStr())');
-}
-
 (() => {
-	function semiSandbox(code: string) {
-		_semiSandbox(code, generateRandomString());
+	function sandbox(code: string) {
+		semiSandbox(code, generateRandomString());
 	}
 
 	(() => {
@@ -17,10 +11,10 @@ function _semiSandbox(code: string, codeStr: string, crmAPI?: any, window?: any,
 			if (message.channel === 'tabs.executeScript' && 
 				message.tabId === crmAPI.tabId) {
 					const code = message.code;
-					semiSandbox(code);
+					sandbox(code);
 				}
 		});
 
-		semiSandbox(CONTENT_SCRIPT_FILE);
+		sandbox(CONTENT_SCRIPT_FILE);
 	})();
 })();
