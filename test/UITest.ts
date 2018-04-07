@@ -3455,7 +3455,8 @@ describe('User entrypoints', function() {
 								}));
 							});
 	
-							it('should be possible to add your own library through a URL', async () => {
+							it('should be possible to add your own library through a URL', async function() {
+								this.retries(3);
 								const libName = getRandomString(25);
 								const libUrl = 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js';
 	

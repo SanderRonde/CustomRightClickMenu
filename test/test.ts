@@ -5028,6 +5028,7 @@ describe('CRMAPI', () => {
 		describe('#register()', () => {
 			it('should correctly register a library solely by its url and fetch it', async function () {
 				this.timeout(500);
+				this.retries(3);
 				this.slow(400);
 				const library = await crmAPI.libraries.register('someLibrary', {
 					url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
