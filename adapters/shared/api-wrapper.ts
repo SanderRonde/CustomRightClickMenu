@@ -203,12 +203,12 @@ namespace BrowserAPI {
 			removeListener: BrowserReturnValue<void>;
 		}) { }
 
-		public addListener(callback: T) {
-			return this._event.addListener.persistent(callback).send();
+		public addListener(callback: T, ...args: any[]) {
+			return this._event.addListener.persistent(callback)(...args).send();
 		}
 
-		public removeListener(callback: T) {
-			return this._event.removeListener.persistent(callback).send();
+		public removeListener(callback: T, ...args: any[]) {
+			return this._event.removeListener.persistent(callback)(...args).send();
 		}
 	}
 
@@ -761,7 +761,7 @@ namespace BrowserAPI {
 				crmAPI.browser.tabs.onHighlighted)
 		},
 		webRequest: {
-			onBeforeRequest: new SimpleEventHandler<(callback: (arg: {
+			onBeforeRequest: new SimpleEventHandler<(arg: {
 				requestId: string,
 				url: string,
 				method: string,
@@ -776,9 +776,7 @@ namespace BrowserAPI {
 				type: _browser.webRequest.ResourceType,
 				timeStamp: number,
 				originUrl: string,
-			}) => void, filter: _chrome.webRequest.RequestFilter, 
-				extraInfoSpec?: Array<"blocking"|"requestBody">) => void>(
-					crmAPI.browser.webRequest.onBeforeRequest)
+			}) => void>(crmAPI.browser.webRequest.onBeforeRequest)
 		}
 	};
 	Object.defineProperty(polyfill.runtime, 'lastError', {
