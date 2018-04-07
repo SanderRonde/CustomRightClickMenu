@@ -38,12 +38,17 @@ export namespace BrowserHandler.ChromeAPIs {
 		message.args[0] && respondSuccess(message, []);
 		return true;
 	}
+	export async function _getManifest() {
+		return await browserAPI.runtime.getManifest();
+	}
 	export function getManifest(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
 		if (checkFirstRuntimeArg(message, 'return', api)) {
 			return true;
 		}
-		modules.APIMessaging.createReturn(message, message.args[0].val)(
-			browserAPI.runtime.getManifest());
+		_getManifest().then((manifest) => {
+			modules.APIMessaging.createReturn(message, message.args[0].val)(
+				manifest);
+		});
 		return true;
 	}
 	export function getURL(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
@@ -302,7 +307,7 @@ export namespace BrowserHandler.ForbiddenCalls {
 				//Map mapped value to actual value
 				createProperties.parentId = byId[parentId].actualId;
 			}
-			const actualId = browserAPI.contextMenus.create(createProperties, 
+			const actualId = await browserAPI.contextMenus.create(createProperties, 
 				modules.CRMNodes.handleUserAddedContextMenuErrors);
 			
 			//Create a fake id

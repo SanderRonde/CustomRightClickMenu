@@ -26,13 +26,13 @@ export namespace Init {
 	}
 
 	export async function init() {
-		initModules();
+		await initModules();
 		await initEverything();
 		after();
 	}
 
-	function genStorageModules(): StorageModules {
-		const isDev = browserAPI.runtime.getManifest().short_name.indexOf('dev') > -1;
+	async function genStorageModules(): Promise<StorageModules> {
+		const isDev = (await browserAPI.runtime.getManifest()).short_name.indexOf('dev') > -1;
 		const globalObject: GlobalObject = typeof module !== 'undefined' || isDev ?
 			window : {};
 		const globals = Global.globals;
@@ -73,12 +73,12 @@ export namespace Init {
 		}
 	}
 
-	function genModulesData(): ModuleData {
-		return {...genStorageModules(), ...genModulesObject()}
+	async function genModulesData(): Promise<ModuleData> {
+		return {...await genStorageModules(), ...genModulesObject()}
 	}
 
-	function initModules() {
-		const moduleData = genModulesData();
+	async function initModules() {
+		const moduleData = await genModulesData();
 		
 		APIMessaging.initModule(moduleData);
 		BrowserHandler.initModule(moduleData);

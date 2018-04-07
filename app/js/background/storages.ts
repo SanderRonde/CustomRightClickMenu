@@ -971,7 +971,7 @@ export namespace Storages.SetupHandling {
 		const syncStorage = getDefaultSyncStorage();
 		const syncHash = window.md5(JSON.stringify(syncStorage));
 
-		modules.Util.isTamperMonkeyEnabled((useAsUserscriptManager) => {
+		modules.Util.isTamperMonkeyEnabled(async (useAsUserscriptManager) => {
 			callback([{
 				requestPermissions: [],
 				editing: null,
@@ -980,7 +980,7 @@ export namespace Storages.SetupHandling {
 				globalExcludes: [''],
 				useStorageSync: true,
 				notFirstTime: true,
-				lastUpdatedAt: browserAPI.runtime.getManifest().version,
+				lastUpdatedAt: (await browserAPI.runtime.getManifest()).version,
 				authorName: 'anonymous',
 				showOptions: true,
 				recoverUnsavedData: false,
@@ -1522,7 +1522,7 @@ export namespace Storages {
 				settings?: CRM.SettingsStorage;
 			} = await browserAPI.storage.local.get() as any;
 			window.info('Checking if this is the first run');
-			const result = isFirstTime(storageLocal);
+			const result = await isFirstTime(storageLocal);
 			if (result.type === 'firstTimeCallback') {
 				const data = await result.fn;
 				await setStorages(data.storageLocalCopy, data.settingsStorage,
@@ -1846,7 +1846,7 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 
 		return fns;
 	}
-	function isFirstTime(storageLocal: CRM.StorageLocal): {
+	async function isFirstTime(storageLocal: CRM.StorageLocal): Promise<{
 		type: 'firstTimeCallback';
 		fn: Promise<any>;
 	} | {
@@ -1854,8 +1854,8 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 		fn: () => void;
 	} | {
 		type: 'noChanges';
-	} {				
-		const currentVersion = browserAPI.runtime.getManifest().version;
+	}> {				
+		const currentVersion = (await browserAPI.runtime.getManifest()).version;
 		if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt === currentVersion) {
 			return {
 				type: 'noChanges'

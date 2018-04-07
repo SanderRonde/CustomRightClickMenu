@@ -1740,11 +1740,11 @@ namespace CRMAppElement {
 			window.doc = window.app.$;
 			this._setupConsoleInterface();
 
-			browserAPI.runtime.onInstalled.addListener((details) => {
+			browserAPI.runtime.onInstalled.addListener(async (details) => {
 				if (details.reason === 'update') {
 					//Show a little message
 					this.$.messageToast.text = `Extension has been updated to version ${
-						browserAPI.runtime.getManifest().version}`;
+						(await browserAPI.runtime.getManifest()).version}`;
 					this.$.messageToast.show();
 				}
 			});

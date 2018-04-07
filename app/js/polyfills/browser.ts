@@ -170,7 +170,7 @@ namespace BrowserAPI {
 	}
 
 	function isDevBackgroundPage() {
-		return browserAPI.runtime.getManifest().short_name.indexOf('dev') > -1;
+		return __srcBrowser.runtime.getManifest().short_name.indexOf('dev') > -1;
 	}
 
 
@@ -284,7 +284,7 @@ namespace BrowserAPI {
 				documentUrlPatterns?: string[],
 				targetUrlPatterns?: string[],
 				enabled?: boolean,
-			}, callback?: () => void): number|string {
+			}, callback?: () => void): Promise<number|string> {
 				const id = __srcBrowser.contextMenus.create(createProperties as any, () => {
 					if (!callback) {
 						return;
@@ -312,7 +312,7 @@ namespace BrowserAPI {
 				} else {
 					testData._currentContextMenu.push(testNode)
 				}
-				return id;
+				return Promise.resolve(id);
 			},
 			update(id: number|string, updateProperties: {
 				type?: _browser.contextMenus.ItemType,
@@ -443,7 +443,7 @@ namespace BrowserAPI {
 				});
 			},
 			getManifest() {
-				return __srcBrowser.runtime.getManifest();
+				return Promise.resolve(__srcBrowser.runtime.getManifest());
 			},
 			getURL(path: string) {
 				return __srcBrowser.runtime.getURL(path);
@@ -459,7 +459,7 @@ namespace BrowserAPI {
 				});
 			},
 			reload() {
-				__srcBrowser.runtime.reload();
+				return Promise.resolve(__srcBrowser.runtime.reload());
 			},
 			sendMessage<U>(extensionIdOrmessage: string|any, optionsOrMessage?: any|{
 				includeTlsChannelId?: boolean;

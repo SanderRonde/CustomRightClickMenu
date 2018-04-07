@@ -287,7 +287,7 @@ export namespace CRMNodes.Script.Handler {
 				scriptUpdateURL: metaVal('updateURL'),
 				scriptWillUpdate: true,
 				scriptHandler: 'Custom Right-Click Menu',
-				version: browserAPI.runtime.getManifest().version
+				version: (await browserAPI.runtime.getManifest()).version
 			},
 			resources: modules.storages.resources[node.id] || {}
 		};
@@ -1794,14 +1794,14 @@ export namespace CRMNodes.NodeCreation {
 					break;
 			}
 		}
-	function handleContextMenuError(options: ContextMenuCreateProperties, e: _chrome.runtime.LastError|string, idHolder: {
+	async function handleContextMenuError(options: ContextMenuCreateProperties, e: _chrome.runtime.LastError|string, idHolder: {
 		id: number|string;
 	}) {
 		if (options.documentUrlPatterns) {
 			console.log('An error occurred with your context menu, attempting again with no url matching.', e);
 			delete options.documentUrlPatterns;
-			idHolder.id = browserAPI.contextMenus.create(options, () => {
-				idHolder.id = browserAPI.contextMenus.create({
+			idHolder.id = await browserAPI.contextMenus.create(options, async () => {
+				idHolder.id = await browserAPI.contextMenus.create({
 					title: 'ERROR',
 					onclick: createOptionsPageHandler()
 				});
@@ -1811,30 +1811,30 @@ export namespace CRMNodes.NodeCreation {
 			window.log('An error occured with your context menu!', e);
 		}
 	}
-	function generateContextMenuItem(rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
+	async function generateContextMenuItem(rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
 		id: number|string;
 	}) {
 		try {
-			idHolder.id = browserAPI.contextMenus.create(rightClickItemOptions, () => {
+			idHolder.id = await browserAPI.contextMenus.create(rightClickItemOptions, async () => {
 				if ((window as any).chrome && (window as any).chrome.runtime) {
 					const __chrome: typeof _chrome = (window as any).chrome;
 					if (__chrome && __chrome.runtime && __chrome.runtime.lastError) {
-						handleContextMenuError(rightClickItemOptions, __chrome.runtime.lastError, idHolder);
+						await handleContextMenuError(rightClickItemOptions, __chrome.runtime.lastError, idHolder);
 					}
 				} else {
 					if (browserAPI.runtime.lastError) {
-						handleContextMenuError(rightClickItemOptions, browserAPI.runtime.lastError, idHolder);
+						await handleContextMenuError(rightClickItemOptions, browserAPI.runtime.lastError, idHolder);
 					}
 				}
 			});
 		} catch(e) {
-			handleContextMenuError(rightClickItemOptions, e, idHolder);
+			await handleContextMenuError(rightClickItemOptions, e, idHolder);
 		}
 	}
 	function getContextmenuGlobalOverrides(node: CRM.Node): ContextMenuOverrides {
 		return modules.crmValues.contextMenuGlobalOverrides[node.id];
 	}
-	function addRightClickItemClick(node: CRM.Node, launchMode: CRMLaunchModes,
+	async function addRightClickItemClick(node: CRM.Node, launchMode: CRMLaunchModes,
 		rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
 			id: number|string;
 		}) {
@@ -1844,7 +1844,7 @@ export namespace CRMNodes.NodeCreation {
 			generateClickHandler(node, rightClickItemOptions);
 			modules.Util.applyContextmenuOverride(
 				rightClickItemOptions, getContextmenuGlobalOverrides(node));
-			generateContextMenuItem(rightClickItemOptions, idHolder);
+			await generateContextMenuItem(rightClickItemOptions, idHolder);
 
 			modules.crmValues.contextMenuInfoById[idHolder.id] = {
 				settings: rightClickItemOptions,
@@ -1872,7 +1872,7 @@ export namespace CRMNodes.NodeCreation {
 		} else if (launchMode === CRMLaunchModes.RUN_ON_SPECIFIED) {
 			modules.toExecuteNodes.onUrl[node.id] = node.triggers;
 		} else if (launchMode !== CRMLaunchModes.DISABLED) {
-			addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder);
+			await addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder);
 		}
 	}
 
@@ -2080,7 +2080,7 @@ export namespace CRMNodes {
 				//Map mapped value to actual value
 				createProperties.parentId = byId[parentId].actualId;
 			}
-			const actualId = browserAPI.contextMenus.create(createProperties, 
+			const actualId = await browserAPI.contextMenus.create(createProperties, 
 				handleUserAddedContextMenuErrors);
 			menu.actualId = actualId;
 
@@ -2093,8 +2093,8 @@ export namespace CRMNodes {
 	export function buildPageCRM() {
 		return new Promise<void>((resolve) => {
 			modules.crmValues.nodeTabStatuses = {};
-			browserAPI.contextMenus.removeAll().then(() => {
-				modules.crmValues.rootId = browserAPI.contextMenus.create({
+			browserAPI.contextMenus.removeAll().then(async () => {
+				modules.crmValues.rootId = await browserAPI.contextMenus.create({
 					title: modules.storages.settingsStorage.rootName || 'Custom Menu',
 					contexts: ['all']
 				});
@@ -2123,13 +2123,13 @@ export namespace CRMNodes {
 						});
 					}
 				})).then(() => {
-					addUserAddedContextMenuItems().then(() => {
+					addUserAddedContextMenuItems().then(async () => {
 						if (modules.storages.storageLocal.showOptions) {
 							const tree = modules.crmValues.contextMenuItemTree;
 							const index = tree.length;
 							tree[index] = {
 								index,
-								id: browserAPI.contextMenus.create({
+								id: await browserAPI.contextMenus.create({
 									type: 'separator',
 									parentId: modules.crmValues.rootId
 								}),
@@ -2141,7 +2141,7 @@ export namespace CRMNodes {
 							};
 							tree[index + 1] = {
 								index: index + 1,
-								id: browserAPI.contextMenus.create({
+								id: await browserAPI.contextMenus.create({
 									title: 'Options',
 									onclick: createOptionsPageHandler(),
 									parentId: modules.crmValues.rootId
