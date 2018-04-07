@@ -629,7 +629,10 @@ namespace UseExternalEditorElement {
 			}
 		}
 
-		static doCSSAnimation(element: HTMLElement, [before, after] : [{
+		static doCSSAnimation(element: {
+			animate: Function;
+			style: CSSStyleDeclaration;
+		}, [before, after] : [{
 			[key: string]: string|number;
 		}, {
 			[key: string]: string|number;

@@ -50,7 +50,9 @@ interface Window {
 	register(fn: any): void;
 	with<T>(initializer: () => Withable, fn: () => T): T;
 	withAsync<T>(initializer: () => Promise<Withable>, fn: () => Promise<T>): Promise<T>;
-	setDisplayFlex(el: HTMLElement|SVGElement): void;
+	setDisplayFlex(el: {
+		style: CSSStyleDeclaration;
+	}): void;
 	setTransform(el: HTMLElement|SVGElement, value: string): void;
 	animateTransform(el: HTMLElement, properties: {
 		propName: string;
@@ -96,7 +98,9 @@ type SharedWindow = {
 	register(fn: any): void;
 	with<T>(initializer: () => Withable, fn: () => T): T;
 	withAsync<T>(initializer: () => Promise<Withable>, fn: () => Promise<T>): Promise<T>;
-	setDisplayFlex(el: HTMLElement|SVGElement): void;
+	setDisplayFlex(el: {
+		style: CSSStyleDeclaration;
+	}): void;
 	setTransform(el: HTMLElement|SVGElement, value: string): void;
 	animateTransform(el: HTMLElement, properties: {
 		propName: string;
