@@ -3,7 +3,7 @@ const joinPages = require('./tools/joinPages');
 const polymerBuild = require('./tools/build');
 const childProcess = require('child_process');
 const htmlTypings = require('html-typings');
-const beautify = require('js-beautify').js;
+const beautify = require('gulp-beautify');
 const replace = require('gulp-replace');
 const banner = require('gulp-banner');
 const rename = require('gulp-rename');
@@ -171,11 +171,7 @@ function readFile(filePath, options) {
 							'MonacoEditorHookManager.caretRangeFromPoint(arguments[0])'))
 						.pipe(replace(/this.target(\s)?=(\s)?e.target/g,
 							'this.target = e.path ? e.path[0] : e.target'))
-						.pipe(through.obj((file, enc, cb) => {
-							const content = beautify(file.contents.toString('utf8'));
-							file.contents = new Buffer(content);
-							cb(null, file);
-						}))
+						.pipe(beautify())
 						.pipe(gulp.dest('app/elements/edit-pages/monaco-editor/src/min/'));
 				},
 				function tsEmbedDev() {
@@ -868,11 +864,7 @@ function readFile(filePath, options) {
 		async function beautifyJs() {
 			return gulp
 				.src('build/**/*.js')
-				.pipe(through.obj((file, enc, cb) => {
-					const content = beautify(file.contents.toString('utf8'));
-					file.contents = new Buffer(content);
-					cb(null, file);
-				}))
+				.pipe(beautify())
 				.pipe(gulp.dest('./build/'));
 		}
 	); 
