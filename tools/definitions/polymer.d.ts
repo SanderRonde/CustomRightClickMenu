@@ -565,3 +565,9 @@ interface NodeSelector {
 	querySelector(selectors: string): HTMLElement | null;
 	querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): NodeListOf<Polymer.ElementTagNameMap[K]> | null;
 }
+
+interface ParentNode {
+	querySelector<K extends keyof ElementTagNameMaps>(selectors: K): ElementTagNameMaps[K] | null;
+	querySelector(selectors: string): HTMLElement | null;
+	querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): NodeListOf<Polymer.ElementTagNameMap[K]> | null;
+}
