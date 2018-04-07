@@ -1,12 +1,11 @@
-import { generateRandomString } from "../shared/util";
-import { browserAPI } from "../shared/api-wrapper";
-import { openHTMLPage } from "./open-html-page";
+import { INSTALL_STYLESHEET_SCRIPT_FILE } from "../pages/installstylesheet-page";
+import { INSTALL_PAGE_HTML_FILE } from "../pages/install-page";
 import { CONTENT_SCRIPT_FILE } from "../pages/content-page";
 import { CRMAPI_SCRIPT_FILE } from "../pages/crmapi-page";
-import { INSTALL_PAGE_HTML_FILE } from "../pages/install-page";
-import { INSTALL_STYLESHEET_SCRIPT_FILE } from "../pages/installstylesheet-page";
-import { LOGGING_HTML_FILE } from "../pages/logging-page";
 import { OPTIONS_HTML_FILE } from "../pages/options-page";
+import { LOGGING_HTML_FILE } from "../pages/logging-page";
+import { generateRandomString } from "../shared/util";
+import { browserAPI } from "../shared/api-wrapper";
 
 const extensionId = generateRandomString();
 
@@ -39,6 +38,12 @@ function doInterception(id: string) {
 		return createDataURI('404 :(');
 	}, {
 		urls: [url]
+	});
+}
+
+function openHTMLPage() {
+	browserAPI.tabs.create({
+		url: `http://crmapi-meta.example.${extensionId}.pizza/options.html`
 	});
 }
 
