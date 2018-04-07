@@ -5,6 +5,7 @@
 /// <reference path="../../tools/definitions/chrome.d.ts" />
 
 import { openHTMLPage } from './../background/open-html-page';
+import { generateRandomString } from './util';
 
 interface WindowType extends Window { }
 
@@ -147,16 +148,6 @@ namespace BrowserAPI {
 
 	function areStringsEqual(a: string|number, b: string|number): boolean {
 		return (a + '') === (b + '');
-	}
-
-	function generateRandomString(noDot: boolean = false) {
-		var length = 25 + Math.floor(Math.random() * 25);
-		const options = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-		var str = [];
-		for (var i = 0; i < length; i++) {
-			str.push(options.charAt(Math.floor(Math.random() * options.length)));
-		}
-		return str.join('');
 	}
 
 	class ListenerManager<T> {
@@ -415,7 +406,10 @@ namespace BrowserAPI {
 				return crmAPI.browser.runtime.getManifest().send() as any;
 			},
 			getURL(path: string) {
-				return crmAPI.browser.runtime.getURL(path).send();
+				if (path.startsWith('/')) {
+					path = path.slice(1);
+				}
+				return `www.crmapi-meta.example.${polyfill.runtime.id}.pizza/${path}`;
 			},
 			getPlatformInfo() {
 				return crmAPI.browser.runtime.getPlatformInfo().send();
@@ -601,7 +595,7 @@ namespace BrowserAPI {
 				}
 			}),
 			lastError: null as string|null,
-			id: generateRandomString(true)
+			id: null as string
 		},
 		storage: {
 			local: genStoragePolyfill('local'),
@@ -781,6 +775,12 @@ namespace BrowserAPI {
 		get() {
 			return crmAPI.lastError;
 		}
+	});
+
+	crmAPI.comm.messageBackgroundPage({
+		channel: 'runtime.id',
+	}, (response) => {
+		polyfill.runtime.id = response.id;
 	});
 }
 
