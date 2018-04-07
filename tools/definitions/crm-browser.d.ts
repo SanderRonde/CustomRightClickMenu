@@ -3,6 +3,8 @@
 
 // Borrowed from https://github.com/kelseasy/web-ext-types
 
+// Last updated at 7-4-2018 to commit daae1085685b97efdb98c59668cbdfd91c5c874c
+
 // This Source Code Form is subject to the terms of the Mozilla Public
 // license, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -1009,7 +1011,7 @@ declare namespace crmbrowser.storage {
     interface StorageSet extends Set<StorageValue> {}
 
     interface Get {
-        (keys?: string|string[]|null): BrowserReturnValue<StorageObject>;
+        <T extends StorageObject>(keys?: string|string[]|null): Promise<T>;
         /* <T extends StorageObject>(keys: T): BrowserReturnValue<{[K in keyof T]: T[K]}>; */
         <T extends StorageObject>(keys: T): BrowserReturnValue<T>;
     }
