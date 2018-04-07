@@ -1,1 +1,1 @@
-export const INSTALL_PAGE_HTML_FILE = '//TODO: fill with install.html content';
+export const INSTALL_PAGE_HTML_FILE = 'FILECONTENTS';

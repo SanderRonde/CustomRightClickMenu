@@ -1,1 +1,1 @@
-export const CONTENT_SCRIPT_FILE = '//TODO: fill with contentscript.js content';
+export const CONTENT_SCRIPT_FILE = 'FILECONTENTS';
