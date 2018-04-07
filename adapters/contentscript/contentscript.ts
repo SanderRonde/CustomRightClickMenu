@@ -1,3 +1,4 @@
+import { INSTALL_STYLESHEET_SCRIPT_FILE } from "../pages/installstylesheet-page";
 import { generateRandomString, semiSandbox } from "../shared/util";
 import { CONTENT_SCRIPT_FILE } from "../pages/content-page";
 
@@ -16,5 +17,8 @@ import { CONTENT_SCRIPT_FILE } from "../pages/content-page";
 		});
 
 		sandbox(CONTENT_SCRIPT_FILE);
+		if (location.href.indexOf('userstyles.org') > -1) {
+			sandbox(INSTALL_STYLESHEET_SCRIPT_FILE);
+		}
 	})();
 })();
