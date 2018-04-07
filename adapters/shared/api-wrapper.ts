@@ -333,15 +333,14 @@ namespace BrowserAPI {
 							connectedInstance = message.instance;
 							connectedTabIndex = message.tabIndex;
 							waitingMessages.forEach((msg) => {
-								crmAPI.comm.sendMessage(connectedInstance, 
-									connectedTabIndex, {
-										channel: 'runtime.connect',
-										type: 'established',
-										tabIndex: crmAPI.currentTabIndex,
-										instanceId: crmAPI.instanceId,
-										connectionId: id,
-										payload: msg
-									});
+								crmAPI.comm.messageBackgroundPage({
+									channel: 'runtime.connect',
+									type: 'established',
+									tabIndex: crmAPI.currentTabIndex,
+									instanceId: crmAPI.instanceId,
+									connectionId: id,
+									payload: msg
+								});
 							});
 						} else if (message.channel === 'runtime.connect' && 
 							message.type === 'msg' && 
@@ -429,22 +428,27 @@ namespace BrowserAPI {
 				includeTlsChannelId?: boolean;
 				toProxyScript?: boolean;
 			}) {
-				(await crmAPI.comm.getInstances()).forEach((instance) => {
-					let payload: any;
-					if (options || optionsOrMessage) {
-						payload = optionsOrMessage;
-					} else {
-						payload = extensionIdOrmessage;
-					}
-					instance.sendMessage({
-						channel: 'runtime.sendMessage',
-						type: 'message',
-						instance: crmAPI.instanceId,
-						tabIndex: crmAPI.currentTabIndex,
-						tabId: crmAPI.tabId,
-						payload: payload
+				let payload: any;
+				if (options || optionsOrMessage) {
+					payload = optionsOrMessage;
+				} else {
+					payload = extensionIdOrmessage;
+				}
+				const msg = {
+					channel: 'runtime.sendMessage',
+					type: 'message',
+					instance: crmAPI.instanceId,
+					tabIndex: crmAPI.currentTabIndex,
+					tabId: crmAPI.tabId,
+					payload: payload
+				};
+				if (crmAPI.isBackground) {
+					crmAPI.comm.messageBackgroundPage(msg);
+				} else {
+					(await crmAPI.comm.getInstances()).forEach((instance) => {
+						instance.sendMessage(msg);
 					});
-				});
+				}
 			},
 			onInstalled: new SimpleEventHandler<(data: {
 				reason: _browser.runtime.OnInstalledReason,
@@ -570,9 +574,15 @@ namespace BrowserAPI {
 				payload?: any;
 			}>({
 				setup: (handleMessage) => {
-					crmAPI.comm.addListener(async (message) => {
-						handleMessage(message);
-					});
+					if (crmAPI.isBackground) {
+						crmAPI.comm.listenAsBackgroundPage((message) => {
+							handleMessage(message);
+						});
+					} else {
+						crmAPI.comm.addListener(async (message) => {
+							handleMessage(message);
+						});
+					}
 				}, 
 				onCall: async (callback, message) => {
 					if (message.channel !== 'runtime.sendMessage') {
@@ -777,11 +787,13 @@ namespace BrowserAPI {
 		}
 	});
 
-	crmAPI.comm.messageBackgroundPage({
-		channel: 'runtime.id',
-	}, (response) => {
-		polyfill.runtime.id = response.id;
-	});
+	if (!crmAPI.isBackground) {
+		crmAPI.comm.messageBackgroundPage({
+			channel: 'runtime.id',
+		}, (response) => {
+			polyfill.runtime.id = response.id;
+		});
+	}
 }
 
 type MenusBrowserAPI = typeof BrowserAPI.polyfill & {
