@@ -1947,7 +1947,7 @@ declare namespace CRM {
 					 * @returns {number} A number that can be used to remove the listener
 					 */
 					addListener(listener: (key: string, oldValue: any, newValue: any, remote: boolean) => void, 
-						key: string): number,
+						key?: string): number,
 					/**
 					 * Removes ALL listeners with given listener (function) as the listener,
 					 *	if key is given also checks that they have that key
@@ -1955,7 +1955,7 @@ declare namespace CRM {
 					 * @param {number} listener - The number of the listener to remove (given by addListener)
 					 * @param {string} [key] - The key to check
 					 */
-					removeListener(listener: number, key: string): void,
+					removeListener(listener: number, key?: string): void,
 					/**
 					 * Removes ALL listeners with given listener (function) as the listener,
 					 *	if key is given also checks that they have that key
@@ -1964,7 +1964,7 @@ declare namespace CRM {
 					 * @param {string} [key] - The key to check
 					 */
 					removeListener(listener: (key: string, oldValue: any, newValue: any, remote: boolean) => void, 
-						key: string): void,
+						key?: string): void,
 				}
 			}
 
