@@ -4575,7 +4575,7 @@ describe('CRMAPI', () => {
 			}
 			function createStorageOnChangeListener(index: number) {
 				var fn = function(key: string, oldVal: any, newVal: any) {
-					if (key !== storageTestData[index].key) {
+					if (storageTestData[index].key.indexOf(key) !== 0) {
 						throw new Error(`Storage keys do not match, ${key} does not match expected ${storageTestData[index].key}`);
 					}
 					if (!isClearing) {
@@ -5412,7 +5412,7 @@ describe('CRMAPI', () => {
 					assert.isDefined(err);
 					done();
 				};
-				crmAPI.chrome('sessions.willError')(() => { });
+				crmAPI.chrome('sessions.willError')(() => { }).send();
 			});
 		});
 	});

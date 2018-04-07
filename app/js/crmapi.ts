@@ -1529,7 +1529,7 @@ type CRMAPIMessage = {
 									error: 'Unchecked lastError',
 									message: 'Unchecked lastError',
 									lineNumber: 0,
-									stackTrace: call.stackTrace.join('\n')
+									stackTrace: (call.stackTrace && call.stackTrace.join('\n')) || ''
 								});
 							} else {
 								throw new Error('Unchecked lastError');
@@ -2201,7 +2201,7 @@ type CRMAPIMessage = {
 						if (listener.type !== storageType) {
 							return;
 						}
-						if (!listener.key || listener.key.indexOf(keyPathString) > -1) {
+						if (!listener.key || listener.key.indexOf(keyPathString) === 0) {
 							CrmAPIInstance._helpers.isFn(listener.callback) && 
 								listener.callback(keyPathString, oldValue, newValue, remote || false);
 						}
