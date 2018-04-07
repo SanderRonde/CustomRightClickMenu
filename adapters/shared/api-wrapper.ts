@@ -4,8 +4,7 @@
 /// <reference path="../../tools/definitions/crmapi.d.ts" />
 /// <reference path="../../tools/definitions/chrome.d.ts" />
 
-import {} from '.';
-import { openHTMLPage } from './open-html-page';
+import { openHTMLPage } from './../background/open-html-page';
 
 interface WindowType extends Window { }
 
@@ -37,9 +36,6 @@ namespace BrowserAPI {
 
 	// So if browser is Edge, use "browser", otherwise use "chrome" if available
 	// 	to ensure always always getting callback-style APIs
-	const apisWindow = window as AllBrowserAPIsWindow;
-	const __srcBrowser: typeof _chrome = apisWindow.StyleMedia ?
-		(apisWindow.browser as any) : apisWindow.chrome;
 
 	type ChromeCallbackHandler<T> = {
 		(...args: any[]): void;
@@ -364,14 +360,10 @@ namespace BrowserAPI {
 								onMessage.forEach(cb => cb(message.payload));
 							}
 				});
-				crmAPI.comm.getInstances().then((instances) => {
-					for (const instance of instances) {
-						instance.sendMessage({
-							channel: 'runtime.connect',
-							type: 'establish',
-							connectionId: id
-						});
-					}
+				crmAPI.comm.messageBackgroundPage({
+					channel: 'runtime.connect',
+					type: 'establish',
+					connectionId: id
 				});
 				return {
 					name: '',
@@ -406,13 +398,12 @@ namespace BrowserAPI {
 						if (connectedInstance === null) {
 							waitingMessages.push(message);
 						} else {
-							crmAPI.comm.sendMessage(connectedInstance,
-								connectedTabIndex, {
-									channel: 'runtime.connect',
-									type: 'established',
-									connectionId: id,
-									payload: message
-								});
+							crmAPI.comm.messageBackgroundPage({
+								channel: 'runtime.connect',
+								type: 'established',
+								connectionId: id,
+								payload: message
+							});
 						}
 					}
 				};
@@ -429,8 +420,10 @@ namespace BrowserAPI {
 			getPlatformInfo() {
 				return crmAPI.browser.runtime.getPlatformInfo().send();
 			},
-			async openOptionsPage() {
-				await openHTMLPage();
+			openOptionsPage() {
+				crmAPI.comm.messageBackgroundPage({
+					channel: 'runtime.openOptionsPage'
+				});
 			},
 			reload() {
 				return crmAPI.browser.runtime.reload().send();
@@ -487,7 +480,7 @@ namespace BrowserAPI {
 				}[];
 			}>({
 				setup: (handleMessage, storage) => {
-					crmAPI.comm.addListener((message) => {
+					crmAPI.comm.listenAsBackgroundPage((message) => {
 						handleMessage(message);
 					});
 					storage.portIdMaps = [];
@@ -791,31 +784,14 @@ namespace BrowserAPI {
 	});
 }
 
-interface Window {
-	browserAPI: typeof BrowserAPI.polyfill & {
-		__isProxied: boolean;
-	};
+type MenusBrowserAPI = typeof BrowserAPI.polyfill & {
+	menus?: (typeof BrowserAPI.polyfill)['contextMenus']
+};
+const menusBrowserAPI = BrowserAPI.polyfill as MenusBrowserAPI;
+if (!menusBrowserAPI.contextMenus) {
+	menusBrowserAPI.contextMenus = menusBrowserAPI.menus;
+} else if (!menusBrowserAPI.menus) {
+	menusBrowserAPI.menus = menusBrowserAPI.contextMenus;
 }
 
-if (!window.browserAPI) {
-	// Force override of window.browser if browser is edge or if no "browser"
-	//	global exists already. Basically equal to 
-	// 	window.browser = BrowserAPI.polyfill || window.browser  	&
-	// 	if getBrowser() === 'edge': window.browser = BrowserAPI.polyfill
-	window.browserAPI = (BrowserAPI.getBrowser() === 'edge' || !(window as any).browser) ?
-		{...BrowserAPI.polyfill as typeof BrowserAPI.polyfill, ...{
-			__isProxied: true
-		}} :
-		window.browserAPI;
-
-	type MenusBrowserAPI = typeof BrowserAPI.polyfill & {
-		menus?: (typeof BrowserAPI.polyfill)['contextMenus']
-	};
-	const menusBrowserAPI = window.browserAPI as MenusBrowserAPI;
-	if (!menusBrowserAPI.contextMenus) {
-		menusBrowserAPI.contextMenus = menusBrowserAPI.menus;
-	} else if (!menusBrowserAPI.menus) {
-		menusBrowserAPI.menus = menusBrowserAPI.contextMenus;
-	}
-}
-const browserAPI = window.browserAPI as typeof BrowserAPI.polyfill;
+export const browserAPI = BrowserAPI.polyfill;
