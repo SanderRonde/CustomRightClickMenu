@@ -1691,6 +1691,12 @@ declare namespace CRM {
 			 * The tabIndex of this instance
 			 */
 			currentTabIndex: number;
+
+			/**
+			 * The ID of this instance of this script. Can be used to filter it
+			 * from all instances or to send to another instance. 
+			 */
+			instanceId: number;
 	
 			/**
 			 * Data about the click on the page

@@ -229,6 +229,13 @@ export namespace GlobalDeclarations {
 							id: number;
 							tabIndex: number;
 						}[] = [];
+						const currentInstance: {
+							id: number;
+							tabIndex: number;
+						} = {
+							id: ~~message.tabId,
+							tabIndex: tabData[message.tabId].nodes[message.id].length - 1
+						}
 						for (let instance in nodeInstances[message.id]) {
 							if (nodeInstances[message.id].hasOwnProperty(instance) &&
 								nodeInstances[message.id][instance]) {
@@ -245,8 +252,8 @@ export namespace GlobalDeclarations {
 										modules.Util.postMessage(tabInstance.port, {
 											change: {
 												type: 'added',
-												value: ~~message.tabId,
-												tabIndex: index
+												value: currentInstance.id,
+												tabIndex: currentInstance.tabIndex
 											},
 											messageType: 'instancesUpdate'
 										});
@@ -265,7 +272,11 @@ export namespace GlobalDeclarations {
 
 						modules.Util.postMessage(port, {
 							data: 'connected',
-							instances: instancesArr
+							instances: instancesArr,
+							currentInstance: {
+								id: currentInstance.id,
+								tabIndex: currentInstance.tabIndex
+							}
 						});
 					}
 				} else {

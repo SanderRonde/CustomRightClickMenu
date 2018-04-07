@@ -667,6 +667,7 @@ type CRMAPIMessage = {
 			_options: CRM.Options;
 			_enableBackwardsCompatibility: boolean;
 			_tabIndex: number;
+			_instanceId: number;
 			_extensionId: string;
 			_supportedAPIs: string;
 
@@ -1015,6 +1016,7 @@ type CRMAPIMessage = {
 			_options: null,
 			_enableBackwardsCompatibility: null,
 			_tabIndex: null,
+			_instanceId: null,
 			_extensionId: null,
 			_supportedAPIs: null,
 
@@ -2000,18 +2002,24 @@ type CRMAPIMessage = {
 			_messageHandler(this: CrmAPIInstance, message: Message<any>) {
 				if (this.__privates._queue) {
 					//Update instance array
-					const instanceArr = (message as Message<{
+					const { instances, currentInstance } = (message as Message<{
 						data: 'connected';
 						instances: {
 							id: number;
 							tabIndex: number;
 						}[];
-					}>).instances;
-					for (let i = 0; i < instanceArr.length; i++) {
+						currentInstance: {
+							id: number;
+							tabIndex: number;
+						};
+					}>);
+					this.__privates._instanceId = currentInstance.id;
+					this.instanceId = currentInstance.id;
+					for (let i = 0; i < instances.length; i++) {
 						this.__privates._instances.add({
-							id: instanceArr[i].id,
-							tabIndex: instanceArr[i].tabIndex,
-							sendMessage: this.__privates._generateSendInstanceMessageFunction(instanceArr[i].id, instanceArr[i].tabIndex)
+							id: instances[i].id,
+							tabIndex: instances[i].tabIndex,
+							sendMessage: this.__privates._generateSendInstanceMessageFunction(instances[i].id, instances[i].tabIndex)
 						});
 					}
 
@@ -2154,13 +2162,13 @@ type CRMAPIMessage = {
 					data: {
 						toInstanceId: instanceId,
 						toTabIndex: tabIndex,
-						tabIndex: tabIndex,
+						tabIndex: this.__privates._tabIndex,
 						message: message,
 						id: this.__privates._id,
 						tabId: this.__privates._tabData.id
 					},
 					tabId: this.__privates._tabData.id,
-					tabIndex: tabIndex,
+					tabIndex: this.__privates._tabIndex,
 					onFinish: {
 						maxCalls: 1,
 						fn: onFinish
@@ -3286,6 +3294,14 @@ type CRMAPIMessage = {
 		 * @type {number}
 		 */
 		currentTabIndex: number;
+
+		/**
+		 * The ID of this instance of this script. Can be used to filter it
+		 * from all instances or to send to another instance. 
+		 * 
+		 * @type {number}
+		 */
+		instanceId: number;
 
 		/**
 		 * The permissions that are allowed for this script
