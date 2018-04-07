@@ -210,24 +210,38 @@ namespace CRMAppElement {
 					}
 				},
 				timeline: {
-					get currentTime() {
-						return Date.now();
-					}	
+					currentTime: null
 				},
 				startTime: Date.now(),
 				ready: Promise.resolve(returnVal),
-				get playbackRate() {
-					return state.playbackRate;
-				},
-				get playState() {
-					return state.playState;
-				},
-				get finished() {
-					return state.finishedPromise;
-				},
+				playbackRate: null,
+				playState: null,
+				finished: null,
 				oncancel: null,
 				onfinish: null
 			};
+			Object.defineProperty(returnVal.timeline, 'currentTime', {
+				get() {
+					return Date.now();
+				}
+			});
+			Object.defineProperties(returnVal, {
+				playbackRate: {
+					get() {
+						return state.playbackRate;
+					}
+				},
+				playState: {
+					get() {
+						return state.playState;
+					}
+				},
+				finished: {
+					get() {
+						return state.finishedPromise;
+					}
+				}
+			});
 			$(this).animate(properties[1], options.duration, function () {
 				if (returnVal.onfinish) {
 					returnVal.onfinish.apply({
