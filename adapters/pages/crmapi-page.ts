@@ -1,0 +1,1 @@
+export const CRMAPI_SCRIPT_FILE = '//TODO: fill with crmapi.js content';
