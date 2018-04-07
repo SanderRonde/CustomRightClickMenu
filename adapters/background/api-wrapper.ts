@@ -4,20 +4,11 @@
 /// <reference path="../../tools/definitions/crmapi.d.ts" />
 /// <reference path="../../tools/definitions/chrome.d.ts" />
 
-declare namespace _browser.runtime {
-	function getManifest(): _chrome.runtime.Manifest;
-}
+import {} from '.';
 
-declare namespace _browser.storage {
-	interface Get {
-		<S extends CRM.StorageLocal|CRM.SettingsStorage = 
-			CRM.StorageLocal|CRM.SettingsStorage>(): Promise<S>;
-		<S extends CRM.StorageLocal|CRM.SettingsStorage,
-			K extends keyof S>(keys: K): Promise<S>;
-		<S extends CRM.StorageLocal|CRM.SettingsStorage,
-			K extends keyof S>(keys: K[]): Promise<S>;
-	}
-}
+interface WindowType extends Window { }
+
+declare const window: WindowType;
 
 const ids: number[] = [];
 function genId() {
@@ -30,7 +21,7 @@ function genId() {
 }
 
 namespace BrowserAPI {
-	interface AllBrowserAPIsWindow extends Window {
+	interface AllBrowserAPIsWindow extends WindowType {
 		browser: typeof _browser;
 		chrome: typeof _chrome;
 		StyleMedia?: any;
