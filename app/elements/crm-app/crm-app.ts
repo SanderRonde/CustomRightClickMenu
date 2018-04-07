@@ -62,22 +62,82 @@ namespace CRMAppElement {
 			fill?: 'forwards'|'backwards'|'both';
 		}): Animation {
 			if (!properties[1]) {
-				return {
+				var skippedAnimation: Animation = {
+					currentTime: null,
 					play: function () { },
 					reverse: function () { },
 					cancel: function() { },
+					finish: function() {},
+					pause: function() {},
 					effect: {
-						target: this
-					}
+						timing: 0,
+						getComputedTiming() {
+							return {
+								endTime: 0,
+								activeDuration: 0,
+								currentIteration: 0,
+								localTime: 0,
+								progress: null
+							}
+						}
+					},
+					finished: Promise.resolve(skippedAnimation),
+					pending: false,
+					startTime: Date.now(),
+					id: '',
+					ready: Promise.resolve(skippedAnimation),
+					playState: 'finished',
+					playbackRate: 1.0,
+					timeline: {
+						currentTime: Date.now()
+					},
+					oncancel: null,
+					onfinish: null
 				};
+				return skippedAnimation;
 			}
 
 			const element = this;
 			let direction: 'forwards' | 'backwards' = 'forwards';
-			const returnVal: Animation = {
+			const state: {
+				isPaused: boolean;
+				currentProgress: number;
+				msRemaining: number;
+				finishedPromise: Promise<Animation>;
+				finishPromise: (animation: Animation) => void;
+				playbackRate: number;
+				playState: 'idle'|'running'|'paused'|'finished';
+				iterations: number;
+			} = {
+				isPaused: false,
+				currentProgress: 0,
+				msRemaining: 0,
+				finishedPromise: null,
+				finishPromise: null,
+				playbackRate: 1.0,
+				playState: 'idle',
+				iterations: 0
+			};
+			var returnVal: Animation = {
 				play() {
-					$(element).stop().animate(properties[~~(direction === 'forwards')],
-						(options && options.duration) || 500, function () {
+					state.playState = 'running';
+					state.iterations++;
+
+					state.finishedPromise = new Promise<Animation>((resolve) => {
+						state.finishPromise = resolve;
+					});
+
+					let duration = (options && options.duration) || 500;
+					if (state.isPaused) {
+						duration = state.msRemaining;
+					}
+					duration = duration / state.playbackRate;
+					$(element).stop().animate(properties[~~(direction === 'forwards')], {
+						duration: duration,
+						complete() {
+							state.playState = 'finished';
+							state.isPaused = false;
+							state.finishPromise && state.finishPromise(returnVal);
 							if (returnVal.onfinish) {
 								returnVal.onfinish.apply({
 									effect: {
@@ -85,18 +145,88 @@ namespace CRMAppElement {
 									}
 								});
 							}
-						});
+						},
+						progress(animation, progress, remainingMs) {
+							state.currentProgress = progress;
+							state.msRemaining = remainingMs;
+						}
+					});
+					state.isPaused = false;
 				},
 				reverse() {
 					direction = 'backwards';
 					this.play();
 				},
 				cancel() {
-					$(element).stop()
+					state.playState = 'idle';
+					$(element).stop();
+					state.isPaused = false;
+
+					//Reset to start
+					const props = properties[~~(direction !== 'forwards')];
+					for (const prop in props) {
+						element.style[prop as any] = props[prop];
+					}
 				},
+				finish() {
+					state.isPaused = false;
+					$(element).stop().animate(properties[~~(direction === 'forwards')], {
+						duration: 0,
+						complete() {
+							state.playState = 'finished';
+							state.finishPromise && state.finishPromise(returnVal);
+							if (returnVal.onfinish) {
+								returnVal.onfinish.apply({
+									effect: {
+										target: element
+									}
+								});
+							}
+						}
+					});
+				},
+				pause() {
+					state.playState = 'paused';
+					$(element).stop();
+					state.isPaused = true;
+				},
+				id: '',
+				pending: false,
+				currentTime: null,
 				effect: {
-					target: this
-				}
+					timing: 0,
+					getComputedTiming() {
+						const duration = ((options && options.duration) || 500) / state.playbackRate;
+						return {
+							endTime: duration,
+							activeDuration: duration,
+							localTime: state.playState === 'running' ?
+								duration - state.msRemaining : null,
+							progress: state.playState === 'running' ?
+								state.currentProgress : null,
+							currentIteration: state.playState === 'running' ?
+								state.iterations : null
+						}
+					}
+				},
+				timeline: {
+					get currentTime() {
+						return Date.now();
+					}	
+				},
+				startTime: Date.now(),
+				ready: Promise.resolve(returnVal),
+				get playbackRate() {
+					return state.playbackRate;
+				},
+				get playState() {
+					return state.playState;
+				},
+				get finished() {
+					return state.finishedPromise;
+				},
+				oncancel: null,
+				onfinish: null
 			};
 			$(this).animate(properties[1], options.duration, function () {
 				if (returnVal.onfinish) {
@@ -301,7 +431,7 @@ namespace CRMAppElement {
 		}
 
 		if (!animateExists) {
-			HTMLElement.prototype.animate.isJqueryPolyfill = true;
+			HTMLElement.prototype.__isAnimationJqueryPolyfill = true;
 		}
 	})();
 

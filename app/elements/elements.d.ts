@@ -220,34 +220,21 @@ interface LogLineContainerInterface {
 	}
 }
 
-//Animation
-interface Animation {
-	onfinish?: () => void;
-	play(): void;
-	cancel(): void;
-	reverse?(): void;
-	effect: {
-		target: HTMLElement;
-	}
-}
-
 interface HTMLElement {
-	animate: {
-		<K extends {
-			[key: string]: string;
-		} = {
-			[key: string]: string;
-		}>(this: HTMLElement, properties: [{
-			[key in keyof K]: string|number;
-		}, {
-			[key in keyof K]: string|number;
-		}], options: {
-			duration?: number;
-			easing?: string;
-			fill?: 'forwards'|'backwards'|'both';
-		}): Animation;
-		isJqueryPolyfill?: boolean;
-	}
+	__isAnimationJqueryPolyfill?: boolean;
+	animate<K extends {
+		[key: string]: string;
+	} = {
+		[key: string]: string;
+	}>(this: HTMLElement, properties: [{
+		[key in keyof K]: string|number;
+	}, {
+		[key in keyof K]: string|number;
+	}], options: {
+		duration?: number;
+		easing?: string;
+		fill?: 'forwards'|'backwards'|'both';
+	}): Animation;
 	animateTo<K extends {
 		[key: string]: string;
 	} = {
