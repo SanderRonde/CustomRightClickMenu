@@ -1169,6 +1169,17 @@ declare namespace crmbrowser.tabs {
         // deprecated: selected?: boolean,
         url?: string,
     }): BrowserReturnValue<Tab>;
+    function update(updateProperties: {
+        active?: boolean,
+        // unsupported: autoDiscardable?: boolean,
+        // unsupported: highlighted?: boolean,
+        loadReplace?: boolean,
+        muted?: boolean,
+        openerTabId?: number,
+        pinned?: boolean,
+        // deprecated: selected?: boolean,
+        url?: string,
+    }): BrowserReturnValue<Tab>;
 
     const onActivated: CRMBrowserListener<{ tabId: number, windowId: number }>;
     const onAttached: CRMBrowserEvListener<(tabId: number, attachInfo: {
