@@ -1,5 +1,5 @@
 import { generateRandomString, semiSandbox } from "../shared/util";
-import { CONTENT_SCRIPT_FILE } from "../pages/content";
+import { CONTENT_SCRIPT_FILE } from "../pages/content-page";
 
 (() => {
 	function sandbox(code: string) {
