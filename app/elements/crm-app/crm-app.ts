@@ -4960,7 +4960,8 @@ namespace CRMAppElement {
 					window.app.$.messageToast.show();
 				} else {
 					const elements = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item');
-					for (const element of elements) {
+					for (let i = 0; i < elements.length; i++) {
+						const element = elements[i];
 						if (element.item && element.item.id && element.item.id === node.id) {
 							element.openEditPage();
 							break;
