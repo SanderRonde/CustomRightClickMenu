@@ -86,6 +86,7 @@
     "gulp-beautify": "^2.0.1",
     "gulp-cli": "^2.0.1",
     "gulp-if": "^2.0.2",
+    "gulp-inline-source": "^3.1.0",
     "gulp-processhtml": "^1.2.0",
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.6.1",
