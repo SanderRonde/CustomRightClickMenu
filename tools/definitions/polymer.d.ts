@@ -104,7 +104,7 @@ declare namespace Polymer {
 		getElementsByTagNameNS(namespaceURI: string, localName: string): HTMLCollectionOf<Element>;
 		hasAttribute(name: string): boolean;
 		hasAttributeNS(namespaceURI: string, localName: string): boolean;
-		msGetRegionContent(): MSRangeCollection;
+		msGetRegionContent(): any;
 		msGetUntransformedBounds(): ClientRect;
 		msMatchesSelector(selectors: string): boolean;
 		msReleasePointerCapture(pointerId: number): void;
@@ -204,7 +204,7 @@ declare namespace Polymer {
 		onmouseup: (this: HTMLElement, ev: MouseEvent) => any;
 		onmousewheel: (this: HTMLElement, ev: WheelEvent) => any;
 		onmscontentzoom: (this: HTMLElement, ev: UIEvent) => any;
-		onmsmanipulationstatechanged: (this: HTMLElement, ev: MSManipulationEvent) => any;
+		onmsmanipulationstatechanged: (this: HTMLElement, ev: any) => any;
 		onpaste: (this: HTMLElement, ev: ClipboardEvent) => any;
 		onpause: (this: HTMLElement, ev: Event) => any;
 		onplay: (this: HTMLElement, ev: Event) => any;
