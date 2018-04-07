@@ -415,7 +415,9 @@ export namespace BrowserHandler {
 		}
 
 		try {
-			let { success, result } = modules.Sandbox.sandboxChrome(message.api, message.type, params);
+			let { success, result } = 'crmAPI' in window && window.crmAPI && '__isVirtual' in window ?
+				await modules.Sandbox.sandboxVirtualChromeFunction(message.api, message.type, message.args) :
+				modules.Sandbox.sandboxChrome(message.api, message.type, params);
 			if (!success) {
 				modules.APIMessaging.ChromeMessage.throwError(message,
 					'Passed API does not exist');

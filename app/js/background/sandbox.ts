@@ -1,3 +1,5 @@
+/// <reference path="../../../tools/definitions/crmapi.d.ts" />
+
 declare const window: BackgroundpageWindow;
 
 interface SandboxWorkerMessage {
@@ -129,6 +131,89 @@ export namespace Sandbox {
 			return fn.apply(context, args);
 		}
 
+	export function sandboxVirtualChromeFunction(api: string, base: 'chrome'|'browser', args: {
+		type: 'fn' | 'return' | 'arg';
+		isPersistent?: boolean;
+		val: any;
+	}[]) {
+		return new Promise<{
+			success: boolean;
+			result: any;
+		}>((resolve) => {
+			//window.chrome or window.browser does not exist
+			if (base === 'chrome') {
+				try {
+					let obj = crmAPI.chrome(api);
+					obj.onError = () => {
+						resolve({
+							success: false,
+							result: null
+						});
+					};
+					for (const arg of args) {
+						switch (arg.type) {
+							case 'fn':
+								obj = obj.persistent(arg.val);
+								break;
+							case 'arg':
+								obj = obj.args(arg.val);
+								break;
+							case 'return':
+								obj = obj.return(arg.val);
+								break;
+						}
+					}
+					obj.return((returnVal) => {
+						resolve({
+							success: true,
+							result: returnVal
+						});
+					}).send();
+				} catch(e) {
+					resolve({
+						success: false,
+						result: null
+					});
+				}
+			} else if (base === 'browser') {
+				try {
+					let obj: any = crmAPI.browser;
+					const apiParts = api.split('.');
+					for (const part of apiParts) {
+						obj = obj[part as keyof typeof obj];
+					}
+					let call = obj as CRM.CRMAPI.BrowserRequestReturn;
+					for (const arg of args) {
+						switch (arg.type) {
+							case 'fn':
+								call = call.persistent(arg.val);
+								break;
+							case 'arg':
+								call = call.args(arg.val);
+								break;
+						}
+					}
+					call.send().then((result) => {
+						resolve({
+							success: true,
+							result
+						});
+					}, () => {
+						resolve({
+							success: false,
+							result: null
+						})
+					});
+				} catch(e) {
+					resolve({
+						success: false,
+						result: null
+					});
+				}
+			}
+		});
+	}
+
 	export function sandboxChrome(api: string, base: 'chrome'|'browser', args: any[]) {
 		let context = {};
 		let fn = (window as any)[base];
@@ -150,6 +235,14 @@ export namespace Sandbox {
 				result: null
 			}
 		}
+
+		if ('crmAPI' in window && window.crmAPI && '__isVirtual' in window) {
+			return {
+				success: true,
+				result: sandboxVirtualChromeFunction(api, base, args)
+			}
+		}
+
 		return {
 			success: true,
 			result: sandboxChromeFunction((fn as any) as Function, context, args)

@@ -4,11 +4,9 @@
 /// <reference path="../../tools/definitions/crmapi.d.ts" />
 /// <reference path="../../tools/definitions/chrome.d.ts" />
 
-import { generateRandomString } from './util';
+import { generateRandomString, WindowType } from './util';
 
-interface WindowType extends Window { }
-
-declare const window: WindowType
+declare const window: WindowType;
 
 const ids: number[] = [];
 function genId() {

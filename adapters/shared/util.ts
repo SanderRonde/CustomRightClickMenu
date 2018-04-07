@@ -1,3 +1,7 @@
+export interface WindowType extends Window {
+	__isVirtual: boolean;
+}
+
 export function generateRandomString() {
 	var length = 25 + Math.floor(Math.random() * 25);
 	const options = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

@@ -1,11 +1,13 @@
 import { INSTALL_STYLESHEET_SCRIPT_FILE } from "../pages/installstylesheet-page";
+import { generateRandomString, WindowType } from "../shared/util";
 import { INSTALL_PAGE_HTML_FILE } from "../pages/install-page";
 import { CONTENT_SCRIPT_FILE } from "../pages/content-page";
 import { CRMAPI_SCRIPT_FILE } from "../pages/crmapi-page";
 import { OPTIONS_HTML_FILE } from "../pages/options-page";
 import { LOGGING_HTML_FILE } from "../pages/logging-page";
-import { generateRandomString } from "../shared/util";
 import { browserAPI } from "../shared/api-wrapper";
+
+declare const window: WindowType;
 
 const extensionId = generateRandomString();
 
@@ -61,6 +63,8 @@ function openHTMLPage() {
 }
 
 (() => {
+	window.__isVirtual = true;
+
 	browserAPI.runtime.openOptionsPage = () => {
 		openHTMLPage();
 	}
