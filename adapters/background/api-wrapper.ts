@@ -5,10 +5,11 @@
 /// <reference path="../../tools/definitions/chrome.d.ts" />
 
 import {} from '.';
+import { openHTMLPage } from './open-html-page';
 
 interface WindowType extends Window { }
 
-declare const window: WindowType;
+declare const window: WindowType
 
 const ids: number[] = [];
 function genId() {
@@ -428,8 +429,8 @@ namespace BrowserAPI {
 			getPlatformInfo() {
 				return crmAPI.browser.runtime.getPlatformInfo().send();
 			},
-			openOptionsPage() {
-				//TODO: open custom options page
+			async openOptionsPage() {
+				await openHTMLPage();
 			},
 			reload() {
 				return crmAPI.browser.runtime.reload().send();
