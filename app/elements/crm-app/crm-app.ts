@@ -139,10 +139,9 @@ namespace CRMAppElement {
 							state.isPaused = false;
 							state.finishPromise && state.finishPromise(returnVal);
 							if (returnVal.onfinish) {
-								returnVal.onfinish.apply({
-									effect: {
-										target: element
-									}
+								returnVal.onfinish.apply(returnVal, {
+									currentTime: Date.now(),
+    								timelineTime: null
 								});
 							}
 						},
@@ -167,6 +166,11 @@ namespace CRMAppElement {
 					for (const prop in props) {
 						element.style[prop as any] = props[prop];
 					}
+
+					returnVal.oncancel && returnVal.oncancel.apply(returnVal, {
+						currentTime: Date.now(),
+						timelineTime: null
+					});
 				},
 				finish() {
 					state.isPaused = false;
@@ -176,10 +180,9 @@ namespace CRMAppElement {
 							state.playState = 'finished';
 							state.finishPromise && state.finishPromise(returnVal);
 							if (returnVal.onfinish) {
-								returnVal.onfinish.apply({
-									effect: {
-										target: element
-									}
+								returnVal.onfinish.apply(returnVal, {
+									currentTime: Date.now(),
+    								timelineTime: null
 								});
 							}
 						}

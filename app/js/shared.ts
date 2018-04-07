@@ -310,24 +310,38 @@ type SharedWindow = {
 				target: el
 			},
 			onfinish: null,
+			oncancel: null,
 			cancel() {
 				currentAnimation && currentAnimation.cancel();
+				this.oncancel && this.oncancel.apply(this, {
+					currentTime: Date.now(),
+					timelineTime: null
+				});
 			},
 			play() {
 				currentAnimation && currentAnimation.cancel();
 				currentAnimation = doAnimation(from, to, () => {
-					this.onfinish && this.onfinish();
+					this.onfinish && this.onfinish.apply(this, {
+						currentTime: Date.now(),
+						timelineTime: null
+					});
 				});
 			},
 			reverse() {
 				currentAnimation && currentAnimation.cancel();
 				currentAnimation = doAnimation(to, from, () => {
-					this.onfinish && this.onfinish();
+					this.onfinish && this.onfinish.apply(this, {
+						currentTime: Date.now(),
+						timelineTime: null
+					});
 				});
 			}
 		}
 		doAnimation(from, to, () => {
-			retVal.onfinish && retVal.onfinish();
+			retVal.onfinish && retVal.onfinish.apply(retVal, {
+				currentTime: Date.now(),
+				timelineTime: null
+			});
 		});
 		return retVal;
 	}
