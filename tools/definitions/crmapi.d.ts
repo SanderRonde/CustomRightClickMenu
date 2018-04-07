@@ -1227,11 +1227,6 @@ declare namespace CRM {
 		 * A listener for an instance that can be responded to
 		 */
 		type RespondableInstanceListener = (message: any, respond: (response: any) => void) => void;
-	
-		/**
-		 * A listener for a storage change
-		 */
-		type StorageListener = (key: string, oldValue: any, newValue: any, remote: boolean) => void;
 
 		/**
 		 * A keypath to a storage location
@@ -1525,7 +1520,8 @@ declare namespace CRM {
 			 *		indicates whether the change was from a remote tab
 			 * @returns {number} - The id of the listener, used for removing it
 			 */
-			GM_addValueChangeListener(name: string, callback: StorageListener): number,
+			GM_addValueChangeListener(name: string, 
+				callback: (key: string, oldValue: any, newValue: any, remote: boolean) => void): number,
 
 			/**
 			 * Removes a change listener by its ID.
@@ -1871,7 +1867,8 @@ declare namespace CRM {
 					 * 		like a.b.c
 					 * @returns {number} A number that can be used to remove the listener
 					 */
-					addListener(listener: StorageListener, key?: string): number,
+					addListener(listener: (key: string, oldValue: any, newValue: any, remote: boolean) => void, 
+						key?: string): number,
 					/**
 					 * Removes ALL listeners with given listener (function) as the listener,
 					 *	if key is given also checks that they have that key
@@ -1887,7 +1884,8 @@ declare namespace CRM {
 					 * @param {function} listener - The listener to remove
 					 * @param {string} [key] - The key to check
 					 */
-					removeListener(listener: StorageListener, key?: string): void,
+					removeListener(listener: (key: string, oldValue: any, newValue: any, remote: boolean) => void, 
+						key?: string): void,
 				}
 			}
 
@@ -1948,7 +1946,8 @@ declare namespace CRM {
 					 * 		like a.b.c
 					 * @returns {number} A number that can be used to remove the listener
 					 */
-					addListener(listener: StorageListener, key: string): number,
+					addListener(listener: (key: string, oldValue: any, newValue: any, remote: boolean) => void, 
+						key: string): number,
 					/**
 					 * Removes ALL listeners with given listener (function) as the listener,
 					 *	if key is given also checks that they have that key
@@ -1964,7 +1963,8 @@ declare namespace CRM {
 					 * @param {function} listener - The listener to remove
 					 * @param {string} [key] - The key to check
 					 */
-					removeListener(listener: StorageListener, key: string): void,
+					removeListener(listener: (key: string, oldValue: any, newValue: any, remote: boolean) => void, 
+						key: string): void,
 				}
 			}
 
