@@ -1361,13 +1361,9 @@ declare namespace crmbrowser.webRequest {
     // TODO: Enforce the return result of the addListener call in the contract
     //       Use an intersection type for all the default properties
     interface ReqListener<T, U> {
-        addListener: (
-            callback: (arg: T) => void,
-            filter: RequestFilter,
-            extraInfoSpec?: Array<U>,
-        ) => BlockingResponse|BrowserReturnValue<BlockingResponse>;
-        removeListener: (callback: (arg: T) => void) => void;
-        hasListener: (callback: (arg: T) => void) => boolean;
+        addListener: BrowserReturnValue<void>;
+        removeListener: BrowserReturnValue<void>
+        hasListener: BrowserReturnValue<void>;
     }
 
     const onBeforeRequest: ReqListener<{
