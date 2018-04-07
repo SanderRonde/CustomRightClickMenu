@@ -227,7 +227,7 @@ type CRMAPIMessage = {
 	interface CallbackMessage {
 		callbackId: number;
 		type: 'success'|'error'|'chromeError';
-		data: string|any[];
+		data: string|any;
 		lastError?: Error;
 		messageType: 'callback';
 	}
@@ -1515,14 +1515,14 @@ type CRMAPIMessage = {
 			_callbackHandler(this: CrmAPIInstance, message: CallbackMessage) {
 				const call = this.__privates._callInfo.get(message.callbackId);
 				if (call) {
-					if (message.lastError) {
+					if (message.data && message.data.lastError) {
 						this.__privates._lastError = {
 							checked: false,
-							err: message.lastError
+							err: message.data.lastError
 						}
 					}
 					call.callback(message.type, message.data, call.stackTrace);
-					if (message.lastError) {
+					if (message.data && message.data.lastError) {
 						if (!this.__privates._lastError.checked) {
 							if (this.onError) {
 								this.onError({
@@ -3175,11 +3175,12 @@ type CRMAPIMessage = {
 				this.isBackground = isBackground;
 				this.chromeAPISupported = supportedAPIs.split(',').indexOf('chrome') > -1;
 				this.browserAPISupported = supportedAPIs.split(',').indexOf('browser') > -1;
+				const privates = this.__privates;
 				Object.defineProperty(this, 'lastError', {
-					get() {
-						if (this.__privates._lastError) {
-							this.__privates._lastError.checked = true;
-							return this.__privates._lastError.err;
+					get: () => {
+						if (privates._lastError) {
+							privates._lastError.checked = true;
+							return privates._lastError.err;
 						}
 						return undefined;
 					}
