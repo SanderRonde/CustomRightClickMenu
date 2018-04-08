@@ -1,1 +1,0 @@
-export const LOGGING_HTML_FILE = ["FILECONTENTS"] as string[];

@@ -1,1 +1,0 @@
-export const CRMAPI_SCRIPT_FILE = ["FILECONTENTS"] as string[];

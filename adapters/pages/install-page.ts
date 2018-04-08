@@ -1,1 +1,0 @@
-export const INSTALL_PAGE_HTML_FILE = ["FILECONTENTS"] as string[];
