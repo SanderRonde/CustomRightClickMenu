@@ -261,3 +261,5 @@ dist/
 app/js/background/*.js
 test/UI/drivers/*.js
 test/test.js
+adapters/**/*.js
+!adapters/gulpfile.js
