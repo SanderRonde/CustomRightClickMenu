@@ -233,7 +233,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 			return new Promise((resolve, reject) => {
 				const data = (this.$.manualInputListChoiceInput
 					.$$('iron-autogrow-textarea') as Polymer.RootElement)
-					.$$('textarea').value as EncodedString<Array<string>>;
+					.$$('textarea').value as EncodedString<string[]>;
 
 				try {
 					const structuredSearchEngines = JSON.parse(data);
