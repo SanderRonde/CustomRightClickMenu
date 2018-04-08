@@ -212,3 +212,8 @@ paper-spinner {
 #warning {
 	width: 412px;
 }
+
+paper-button.blue {
+    background-color: #3F51B5;
+    color: white;
+}
