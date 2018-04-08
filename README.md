@@ -1,4 +1,6 @@
-# Custom Right-Click Menu - Create your own context menu
+# Custom Right-Click Menu Meta
+
+This branch is dedicated to creating an adapter (a few files) for running CRM in itself. Theoretically it should be possible, however chrome can not handle evalling files that large (about 3.5 million chars).
 
 Create your own entry in the right-click menu. Add custom scripts, links, sub-menus or custom CSS in your right-click menu and
 do anything you want all from your right-click menu. Featuring full GreaseMonkey compatibility for userscripts and Stylish compatibility for userstyles.
