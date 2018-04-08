@@ -1,5 +1,6 @@
 ﻿(function () {
 	'use strict';
+	//@ts-ignore
 	window.changelogLog = {
 		'2.0.0': [
 			'Revamped the UI',
