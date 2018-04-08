@@ -230,7 +230,7 @@ function readFile(filePath, options) {
 				const project = ts.createProject('tsconfig.json');
 				return project.src()
 					.pipe(project())
-					.js.pipe(gulp.dest('./'));
+					.js.pipe(gulp.dest('./app'));
 			},
 			function compileTest() {
 				const project = ts.createProject('test/tsconfig.json');

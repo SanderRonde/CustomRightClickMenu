@@ -4,7 +4,7 @@
         "alwaysStrict": true,
         "baseUrl": "./tools/definitions/",
         "forceConsistentCasingInFileNames": true,
-        "module": "esnext",
+        "module": "commonjs",
         "noImplicitAny": true,
         "noImplicitThis": true,
         "removeComments": true,
@@ -14,16 +14,13 @@
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
         "noUnusedLocals": true,
-        "target": "es3",
+        "target": "es5",
         "experimentalDecorators": true,
         "strictPropertyInitialization": true
 	}, 
     "allowJs": true,
     "compileOnSave": true,
     "include": [
-        "app/",
-    ],
-    "exclude": [
-        "app/js/libraries/crmapi.d.ts"
+        "./"
     ]
 }
