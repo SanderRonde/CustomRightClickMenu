@@ -1,9 +1,8 @@
 import { BrowserAPIPolyfill } from "./api-wrapper";
 
 export interface WindowType extends Window {
-	browserAPI: BrowserAPIPolyfill & {
-		__isVirtual: boolean;
-	}
+	__isVirtual: boolean;
+	browserAPI: BrowserAPIPolyfill;
 }
 
 export function generateRandomString() {

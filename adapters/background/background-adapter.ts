@@ -11,14 +11,6 @@ declare const window: WindowType;
 
 const extensionId = generateRandomString();
 
-function createDataURI(fileContent: string) {
-	return {
-		redirectUrl: `data:text/plain;base64,${
-			Buffer.from(fileContent).toString('base64')
-		}`
-	}
-}
-
 function doInterception(id: string) {
 	//Inline it to run it over there and return instantly
 	const listener = eval(`function(arg) {
