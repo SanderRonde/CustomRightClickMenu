@@ -2,7 +2,7 @@
     "compilerOptions": {
         "jsx": "react",
         "alwaysStrict": true,
-        "baseUrl": "./tools/definitions/",
+        "baseUrl": "./../../tools/definitions/",
         "forceConsistentCasingInFileNames": true,
         "module": "commonjs",
         "noImplicitAny": true,

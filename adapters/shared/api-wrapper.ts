@@ -3,13 +3,15 @@
 /// <reference path="../../tools/definitions/crm.d.ts" />
 /// <reference path="../../tools/definitions/crmapi.d.ts" />
 /// <reference path="../../tools/definitions/chrome.d.ts" />
+/// <reference path="../../tools/definitions/tern.d.ts" />
+/// <reference path="../../tools/definitions/polymer.d.ts" />
 
-import { generateRandomString, WindowType } from './util';
+import { WindowType } from './util';
 
 declare const window: WindowType;
 
 const ids: number[] = [];
-function genId() {
+function genId(): number {
 	const num = Math.round(Math.random() * 1e10);
 	if (ids.indexOf(num) > -1) {
 		return genId();
@@ -19,36 +21,6 @@ function genId() {
 }
 
 namespace BrowserAPI {
-	interface AllBrowserAPIsWindow extends WindowType {
-		browser: typeof _browser;
-		chrome: typeof _chrome;
-		StyleMedia?: any;
-	}
-
-	// Chrome uses callback-style APIs under the "chrome" global
-	// ^ Same for opera ^
-	// Edge uses callback-style APIs under the "browser" global
-	//	and an as good as empty "chrome" global (pls edge...)
-	// Firefox uses promise-based APIs under the "browser" global
-	// 	and callback-style APIs under the (probably temporary) "chrome" global
-
-	// So if browser is Edge, use "browser", otherwise use "chrome" if available
-	// 	to ensure always always getting callback-style APIs
-
-	type ChromeCallbackHandler<T> = {
-		(...args: any[]): void;
-		__resolve(value: T): void;
-		__reject(err: any): void;
-	}
-
-	class CustomError extends Error {
-		constructor({ message }: _chrome.runtime.LastError, { stack }: Error) {
-			super(message);
-			this.stack = stack;
-			this.message = message;
-		}
-	}
-
 	function genStoragePolyfill(type: 'local'|'sync') {
 		const base = type === 'local' ?
 			crmAPI.storage : crmAPI.storageSync;
@@ -57,7 +29,9 @@ namespace BrowserAPI {
 				if (!keys) {
 					return base.get();
 				}
-				const container = {};
+				const container: {
+					[key: string]: any;
+				} = {};
 				if (!Array.isArray(keys)) {
 					keys = [keys];
 				}
@@ -143,31 +117,24 @@ namespace BrowserAPI {
 	}
 
 
-	function areStringsEqual(a: string|number, b: string|number): boolean {
-		return (a + '') === (b + '');
-	}
-
 	class ListenerManager<T> {
-		private _listeners: Set<T> = new Set<T>(); 
+		private _listeners: T[] = [];
 		
 		add(listener: T) {
-			this._listeners.add(listener);
+			this._listeners.push(listener);
 		}
 
 		get() {
-			const listeners: T[] = [];
-			for (const value of this._listeners.values()) {
-				listeners.push(value);
-			}
-			return listeners;
+			return this._listeners;
 		}
 
 		remove(listener: T) {
-			this._listeners.delete(listener);
+			this._listeners.splice(
+				this._listeners.indexOf(listener), 1);
 		}
 
 		contains(listener: T) {
-			return this._listeners.has(listener);
+			return this._listeners.indexOf(listener) !== -1;
 		}
 	}
 
@@ -209,9 +176,6 @@ namespace BrowserAPI {
 		}
 	}
 
-	const onConnectListeners = new ListenerManager<(port: _browser.runtime.Port) => void>();
-	const onMessageListeners = new ListenerManager<_browser.runtime.onMessageEvent>();
-	
 	export const polyfill = {
 		commands: {
 			getAll() {
@@ -402,7 +366,7 @@ namespace BrowserAPI {
 				return crmAPI.browser.runtime.getManifest().send() as any;
 			},
 			getURL(path: string) {
-				if (path.startsWith('/')) {
+				if (path.indexOf('/') === 0) {
 					path = path.slice(1);
 				}
 				return `www.crmapi-meta.example.${polyfill.runtime.id}.pizza/${path}`;
@@ -802,4 +766,5 @@ if (!menusBrowserAPI.contextMenus) {
 }
 
 export type BrowserAPIPolyfill = typeof BrowserAPI.polyfill;
-export const browserAPI = window.browserAPI = BrowserAPI.polyfill;
+window.browserAPI = BrowserAPI.polyfill as any;
+export const browserAPI = BrowserAPI.polyfill;
