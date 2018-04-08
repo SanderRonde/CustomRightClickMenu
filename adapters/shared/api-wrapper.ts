@@ -185,19 +185,7 @@ namespace BrowserAPI {
 				crmAPI.browser.commands.onCommand)
 		},
 		contextMenus: {
-			create(createProperties: {
-				type?: _browser.contextMenus.ItemType,
-				id?: string,
-				title?: string,
-				checked?: boolean,
-				command?: "_execute_browser_action" | "_execute_page_action" | "_execute_sidebar_action",
-				contexts?: _browser.contextMenus.ContextType[],
-				onclick?: (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => void,
-				parentId?: number|string,
-				documentUrlPatterns?: string[],
-				targetUrlPatterns?: string[],
-				enabled?: boolean,
-			}, callback?: () => void): Promise<number|string> {
+			create(createProperties: any, callback?: () => void): Promise<number|string> {
 				const prom = crmAPI.browser.contextMenus.create(createProperties as any).send();
 				prom.then(() => {
 					callback && callback();

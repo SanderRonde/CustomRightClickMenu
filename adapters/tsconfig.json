@@ -1,6 +1,5 @@
 {
     "compilerOptions": {
-        "jsx": "react",
         "alwaysStrict": true,
         "baseUrl": "./../../tools/definitions/",
         "forceConsistentCasingInFileNames": true,
