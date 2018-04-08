@@ -83,4 +83,4 @@ function openHTMLPage() {
 	});
 
 	doInterception(extensionId);
-});
+})();
