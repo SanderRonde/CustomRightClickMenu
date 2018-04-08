@@ -11,6 +11,10 @@ declare const window: WindowType;
 
 const extensionId = generateRandomString();
 
+function reformatFileContents(contents: EncodedString<string[]>) {
+	return JSON.parse(contents).join('\n');
+}
+
 function doInterception(id: string) {
 	//Inline it to run it over there and return instantly
 	const listener = eval(`function(arg) {
@@ -18,27 +22,28 @@ function doInterception(id: string) {
 		switch (path) {
 			case 'contentscript.js':
 				return {
-					redirectUrl: btoa("${CONTENT_SCRIPT_FILE}")
+					redirectUrl: btoa("${reformatFileContents(CONTENT_SCRIPT_FILE)}")
 				}
 			case 'crmapi.js':
 				return {
-					redirectUrl: btoa("${CRMAPI_SCRIPT_FILE}")
+					redirectUrl: btoa("${reformatFileContents(CRMAPI_SCRIPT_FILE)}")
 				}
 			case 'install.html':
 				return {
-					redirectUrl: btoa("${INSTALL_PAGE_HTML_FILE}")
+					redirectUrl: btoa("${reformatFileContents(INSTALL_PAGE_HTML_FILE)}")
 				}
 			case 'install-stylesheet.js':
 				return {
-					redirectUrl: btoa("${INSTALL_STYLESHEET_SCRIPT_FILE}")
+					redirectUrl: btoa("${
+						reformatFileContents(INSTALL_STYLESHEET_SCRIPT_FILE)}")
 				}
 			case 'logging.html':
 				return {
-					redirectUrl: btoa("${LOGGING_HTML_FILE}")
+					redirectUrl: btoa("${reformatFileContents(LOGGING_HTML_FILE)}")
 				}
 			case 'options.html':
 				return {
-					redirectUrl: btoa("${OPTIONS_HTML_FILE}")
+					redirectUrl: btoa("${reformatFileContents(OPTIONS_HTML_FILE)}")
 				}
 		}
 		return createDataURI('404 :(');

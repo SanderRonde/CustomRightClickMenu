@@ -1,1 +1,1 @@
-export const LOGGING_HTML_FILE = 'FILECONTENTS';
+export const LOGGING_HTML_FILE = 'FILECONTENTS' as EncodedString<string[]>;

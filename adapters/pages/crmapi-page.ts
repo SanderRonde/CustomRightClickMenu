@@ -1,1 +1,1 @@
-export const CRMAPI_SCRIPT_FILE = 'FILECONTENTS';
+export const CRMAPI_SCRIPT_FILE = 'FILECONTENTS' as EncodedString<string[]>;
