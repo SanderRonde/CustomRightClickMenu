@@ -163,6 +163,7 @@
     "test-local": "yarn test:global",
     "test-build": "gulp stashBrowser && gulp browserChrome && gulp testBuild",
     "package": "gulp genCRX && gulp genXPI",
+    "meta": "yarn build && gulp -f ./adapters/gulpfile.js",
     "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'app/bower_components', 'junction') } catch (e) { }\""
   },
   "version": "2.0.16",

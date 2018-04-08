@@ -2,6 +2,8 @@
 
 This branch is dedicated to creating an adapter (a few files) for running CRM in itself. Theoretically it should be possible, however chrome can not handle evalling files that large (about 3.5 million chars).
 
+Building this branch: Run `yarn run meta`. The files will be in the /dist/meta/ folder.
+
 Create your own entry in the right-click menu. Add custom scripts, links, sub-menus or custom CSS in your right-click menu and
 do anything you want all from your right-click menu. Featuring full GreaseMonkey compatibility for userscripts and Stylish compatibility for userstyles.
 
