@@ -1482,9 +1482,6 @@ namespace CRMAppElement {
 				val: 'requestPermissions',
 				type: 'array'
 			}, {
-				val: 'editing',
-				type: 'object'
-			}, {
 				val: 'selectedCrmType',
 				type: 'number',
 			}, {
@@ -1493,6 +1490,18 @@ namespace CRMAppElement {
 			}, {
 				val: 'globalExcludes',
 				type: 'array'
+			}, {
+				val: 'resources',
+				type: 'object'
+			}, {
+				val: 'nodeStorage',
+				type: 'object'
+			}, {
+				val: 'resourceKeys',
+				type: 'array'
+			}, {
+				val: 'urlDataPairs',
+				type: 'object'
 			}, {
 				val: 'notFirstTime',
 				type: 'boolean'
@@ -1619,6 +1628,33 @@ namespace CRMAppElement {
 			}, {
 				val: 'rootName',
 				type: 'string'
+			}, {
+				val: 'nodeStorageSync',
+				type: 'object'
+			}, {
+				val: 'editor',
+				type: 'object'
+			}, {
+				val: 'editor.theme',
+				type: 'string'
+			}, {
+				val: 'editor.zoom',
+				type: 'string'
+			}, {
+				val: 'editor.keyBindings',
+				type: 'object'
+			}, {
+				val: 'editor.keyBindings.goToDef',
+				type: 'string'
+			}, {
+				val: 'editor.keyBindings.rename',
+				type: 'string'
+			}, {
+				val: 'editor.cssUnderlineDisabled',
+				type: 'boolean'
+			}, {
+				val: 'editor.disabledMetaDataHighlight',
+				type: 'boolean'
 			}], errors);
 			return errors;
 		}
