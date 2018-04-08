@@ -1,1 +1,1 @@
-export const INSTALL_STYLESHEET_SCRIPT_FILE = 'FILECONTENTS' as EncodedString<string[]>;
+export const INSTALL_STYLESHEET_SCRIPT_FILE = ["FILECONTENTS"] as string[];

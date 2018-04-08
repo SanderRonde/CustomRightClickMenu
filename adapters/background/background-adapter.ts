@@ -11,8 +11,8 @@ declare const window: WindowType;
 
 const extensionId = generateRandomString();
 
-function reformatFileContents(contents: EncodedString<string[]>) {
-	return JSON.parse(contents).join('\n');
+function reformatFileContents(contents: string[]) {
+	return contents.join('\n');
 }
 
 function doInterception(id: string) {

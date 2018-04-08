@@ -1,1 +1,1 @@
-export const OPTIONS_HTML_FILE = 'FILECONTENTS' as EncodedString<string[]>;
+export const OPTIONS_HTML_FILE = ["FILECONTENTS"] as string[];

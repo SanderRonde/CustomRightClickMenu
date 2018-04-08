@@ -1,1 +1,1 @@
-export const INSTALL_PAGE_HTML_FILE = 'FILECONTENTS' as EncodedString<string[]>;
+export const INSTALL_PAGE_HTML_FILE = ["FILECONTENTS"] as string[];

@@ -16,9 +16,9 @@ import { CONTENT_SCRIPT_FILE } from "../pages/content-page";
 				}
 		});
 
-		sandbox(CONTENT_SCRIPT_FILE);
+		sandbox(CONTENT_SCRIPT_FILE.join('\n'));
 		if (location.href.indexOf('userstyles.org') > -1) {
-			sandbox(INSTALL_STYLESHEET_SCRIPT_FILE);
+			sandbox(INSTALL_STYLESHEET_SCRIPT_FILE.join('\n'));
 		}
 	})();
 })();
