@@ -3110,6 +3110,14 @@ declare namespace CRM {
 			 * 		and here http://tampermonkey.net/documentation.php
 			 */
 			GM: GM_Fns;
+
+			/**
+			 * Logs given arguments to the background page and logger page
+			 * 
+			 * @param {any[]} argument - An argument to pass (can be as many as you want)
+			 * 		in the form of crmAPI.log(a,b,c,d);
+			 */
+			log(...args: any[]): void;
 	
 			/**
 			 * Gets the current text selection
