@@ -3,11 +3,10 @@ yarn build
 echo "Changing branches"
 
 echo "Pushing to gh-pages" && echo -en "travis_fold:start:gh_pages\\r"
-grunt documentationWebsite
-grunt moveFavicon
-grunt demoWebsite
-grunt compile
-grunt changeGitIgnore
+gulp documentationWebsite
+gulp moveFavicon
+gulp demoWebsite
+gulp changeGitIgnore
 
 git config user.name "Travis CI"
 git config user.email "builds@travis-ci.org"
@@ -22,9 +21,8 @@ echo "Changed branches"
 
 npm install
 
-grunt moveDocumentationWebsite
-grunt compile
-grunt changeGitIgnore
+gulp compile
+gulp changeGitIgnore
 
 set +e
 git diff-index --quiet HEAD
