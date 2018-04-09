@@ -19,7 +19,7 @@ git reset --hard
 git checkout -b gh-pages
 echo "Changed branches"
 
-npm install
+yarn install
 
 gulp compile
 gulp changeGitIgnore
