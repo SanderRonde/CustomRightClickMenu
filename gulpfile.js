@@ -241,54 +241,6 @@ function readFile(filePath, options) {
 		))));
 })();
 
-/* Website related tasks */
-(() => {
-	gulp.task(genTask('Extracts the files needed for the documentationWebsite' + 
-		' and places them in build/website',
-			function documentationWebsite(done) {
-				const app = new typedoc.Application({
-					mode: 'file',
-					out: 'documentation/',
-					includeDeclarations: true,
-					entryPoint: 'CRM',
-					theme: 'docs/theme',
-					name: 'CRM API',
-					readme: 'none',
-				});
-				
-				const src = app.expandInputFiles(['./tools/definitions/crmapi.d.ts']);
-				const project = app.convert(src);
-				if (!project) {
-					throw new Error('Failed to load TypeDoc project');
-				}
-				app.generateDocs(project, 'documentation/');
-				done();
-			}));
-
-	gulp.task(genTask('Moves the favicon for the website to the directory',
-		function moveFavicon() {
-			return gulp
-				.src('favicon.ico', { cwd: './test/UI/', base: './test/UI/' })
-				.pipe(gulp.dest('./documentation/'));
-		}));
-	
-	gulp.task(genTask('Moves the gitignore for the gh-pages branch to the root',
-		function changeGitIgnore() {
-			return gulp
-				.src('gh-pages-gitignore.gitignore', { cwd: './tools', base: './tools' })
-				.pipe(rename('.gitignore'))
-				.pipe(gulp.dest('./'));
-		}));
-
-	gulp.task('demoWebsite', genTask('Moves the demo website to /demo',
-		gulp.series('compile', function copyDemoWebsite() {
-			return gulp
-				.src('demo.html', { cwd: './app/html', base: './app/html' })
-				.pipe(rename('index.html'))
-				.pipe(gulp.dest('./demo'));
-		})));
-})();
-
 /* Building the app */
 (() => {
 	const buildPrePolymer = gulp.series(
@@ -975,9 +927,56 @@ function readFile(filePath, options) {
 				dest: 'build/html/UITest.html'
 			});
 		})));
+})();
 
-	gulp.task('testBuild', genTask('Attempts to build everything',
-		gulp.series('clean', 'build', 'clean', 'documentationWebsite', 'clean')));
+/* Website related tasks */
+(() => {
+	gulp.task(genTask('Extracts the files needed for the documentationWebsite' + 
+		' and places them in build/website',
+			function documentationWebsite(done) {
+				const app = new typedoc.Application({
+					mode: 'file',
+					out: 'documentation/',
+					includeDeclarations: true,
+					entryPoint: 'CRM',
+					theme: 'docs/theme',
+					name: 'CRM API',
+					readme: 'none',
+				});
+				
+				const src = app.expandInputFiles(['./tools/definitions/crmapi.d.ts']);
+				const project = app.convert(src);
+				if (!project) {
+					throw new Error('Failed to load TypeDoc project');
+				}
+				app.generateDocs(project, 'documentation/');
+				done();
+			}));
+
+	gulp.task(genTask('Moves the favicon for the website to the directory',
+		function moveFavicon() {
+			return gulp
+				.src('favicon.ico', { cwd: './test/UI/', base: './test/UI/' })
+				.pipe(gulp.dest('./documentation/'));
+		}));
+	
+	gulp.task(genTask('Moves the gitignore for the gh-pages branch to the root',
+		function changeGitIgnore() {
+			return gulp
+				.src('gh-pages-gitignore.gitignore', { cwd: './tools', base: './tools' })
+				.pipe(rename('.gitignore'))
+				.pipe(gulp.dest('./'));
+		}));
+
+	gulp.task('demoWebsite', genTask('Moves the demo website to /demo',
+		gulp.series('buildTest', function copyDemoWebsite() {
+			return gulp
+				.src('UITest.html', { cwd: './build/html', base: './build/html' })
+				.pipe(replace(/<title>((\w|\s)+)<\/title>/g, '<title>Demo</title>'))
+				.pipe(replace(/<head>/, '<head><base href="../build/html/">'))
+				.pipe(rename('index.html'))
+				.pipe(gulp.dest('./demo'));
+		})));
 })();
 
 /* Definitions */
@@ -1153,3 +1152,5 @@ function readFile(filePath, options) {
 })();
 
 gulp.task('default', gulp.series('build'));
+gulp.task('testBuild', genTask('Attempts to build everything',
+	gulp.series('clean', 'build', 'clean', 'documentationWebsite', 'clean')));
