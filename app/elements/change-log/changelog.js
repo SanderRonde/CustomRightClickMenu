@@ -71,6 +71,20 @@
 		'2.0.16': [
 			'Fixed possible bug that can break the CRM on the options page from appearing since the last update'
 		],
+		'2.0.17': [
+			'Nodes are selectable again',
+			'Link nodes can be removed properly',
+			'%s in link nodes gets replaced with the currently selected text'
+		],
+		'2.0.18': [
+			'Fixed dragging',
+			'Types can be changed again',
+			'Widened nodes'
+		],
+		'2.0.19': [
+			'Fixed cancelling selection',
+			'Fixed type switching animation'
+		],
 		'2.1.0': [
 			'Uses polymer 2 instead of polymer 1 (25% faster loading)',
 			'Works on multiple browsers now (chrome, firefox, edge and opera)',
