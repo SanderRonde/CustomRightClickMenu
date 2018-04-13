@@ -263,3 +263,4 @@ test/UI/drivers/*.js
 test/test.js
 adapters/**/*.js
 !adapters/gulpfile.js
+test/migration-test.js

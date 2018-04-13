@@ -319,7 +319,7 @@ function getCapabilities(): BrowserstackCapabilities {
 	return {} as any;
 }
 
-function tryReadManifest(filePath: string): Promise<_chrome.runtime.Manifest> {
+export function tryReadManifest(filePath: string): Promise<_chrome.runtime.Manifest> {
 	return new Promise<_chrome.runtime.Manifest>((resolve) => {
 		readFile(join(__dirname, '../', filePath), {
 			encoding: 'utf8'
@@ -339,7 +339,7 @@ function isThennable(value: any): value is Promise<any> {
 	return value && typeof value === "object" && typeof value.then === "function";
 }
 
-function waitFor<T>(condition: () => webdriver.promise.Promise<false|T>|Promise<false|T>|false|T, interval: number, 
+export function waitFor<T>(condition: () => webdriver.promise.Promise<false|T>|Promise<false|T>|false|T, interval: number, 
 	max: number): webdriver.promise.Promise<T> {
 		return new webdriver.promise.Promise<T>((resolve, reject) => {
 			let totalTime = 0;
@@ -368,7 +368,7 @@ function waitFor<T>(condition: () => webdriver.promise.Promise<false|T>|Promise<
 		});
 	}
 
-function getGitHash() {
+export function getGitHash() {
 	return new Promise<string>((resolve) => {
 		if (process.env.TRAVIS) {
 			resolve(process.env.TRAVIS_COMMIT);
@@ -714,7 +714,11 @@ export function inlineFn<T extends {
 		return str as StringifedFunction<U>;
 	}
 
-function inlineAsyncFn<T extends {
+export function setDriver(newDriver: TypedWebdriver) {
+	driver = newDriver;
+}
+
+export function inlineAsyncFn<T extends {
 	[key: string]: any;
 }, U>(fn: (resolve: (result: U) => void, reject: (err: Error) => void, 
 	REPLACE: T) => Promise<U>|void, args?: T,
@@ -774,7 +778,7 @@ function inlineAsyncFn<T extends {
 		return str as StringifiedCallbackFunction<number, U>;
 	}
 
-function executeAsyncScript<T>(script: StringifiedCallbackFunction<number, T>): webdriver.promise.Promise<T> {
+export function executeAsyncScript<T>(script: StringifiedCallbackFunction<number, T>): webdriver.promise.Promise<T> {
 	return new webdriver.promise.Promise<T>(async (resolve, reject) => {
 		const asyncIndex = await driver.executeScript(script);
 		const descr = await waitFor(async () => {
@@ -812,7 +816,7 @@ function getSyncSettings(): webdriver.promise.Promise<CRM.SettingsStorage> {
 	}); 
 }
 
-function getCRM<T extends CRM.Node[] = CRM.Tree>(): webdriver.promise.Promise<T> {
+export function getCRM<T extends CRM.Node[] = CRM.Tree>(): webdriver.promise.Promise<T> {
 	return new webdriver.promise.Promise<T>((resolve) => { 
 		driver.executeScript(inlineFn(() => {
 			return JSON.stringify(window.app.settings.crm);
@@ -904,7 +908,7 @@ async function waitForEditor() {
 	}, 25, 60000 * TIME_MODIFIER);
 }
 
-function saveDialog(dialog: FoundElement): webdriver.promise.Promise<void> {
+export function saveDialog(dialog: FoundElement): webdriver.promise.Promise<void> {
 	return new webdriver.promise.Promise<void>(async (resolve) => {
 		await waitForEditor();
 		await dialog.findElement(webdriver.By.id('saveButton')).click();
@@ -921,7 +925,7 @@ function cancelDialog(dialog: FoundElement): webdriver.promise.Promise<void> {
 }
 
 type DialogType = 'link'|'script'|'divider'|'menu'|'stylesheet';
-function getDialog(type: DialogType): webdriver.promise.Promise<FoundElement> {
+export function getDialog(type: DialogType): webdriver.promise.Promise<FoundElement> {
 	return new webdriver.promise.Promise<FoundElement>(async (resolve) => {
 		const el = await findElement(webdriver.By.tagName('crm-app'))
 			.findElement(webdriver.By.tagName('crm-edit-page'))
@@ -1108,9 +1112,9 @@ function openDialog(type: CRM.NodeType) {
 	});
 }
  
-function wait<T>(time: number, resolveParam: T): webdriver.promise.Promise<T>;
-function wait<T>(time: number): webdriver.promise.Promise<any>;
-function wait<T>(time: number, resolveParam?: T): webdriver.promise.Promise<T> {
+export function wait<T>(time: number, resolveParam: T): webdriver.promise.Promise<T>;
+export function wait<T>(time: number): webdriver.promise.Promise<any>;
+export function wait<T>(time: number, resolveParam?: T): webdriver.promise.Promise<T> {
 	return new webdriver.promise.Promise((resolve) => {
 		setTimeout(() => {
 			if (resolveParam) {
@@ -1133,7 +1137,7 @@ interface FoundElement {
 	getSize(): webdriver.promise.Promise<ClientRect>;
 }
 
-const enum InputKeys {
+export const enum InputKeys {
 	CLEAR_ALL = 0,
 	BACK_SPACE = 1
 }
@@ -1709,7 +1713,7 @@ function locatorToCss(by: webdriver.Locator): string {
 	}
 }
 
-function findElement(by: webdriver.Locator): FoundElementPromise {
+export function findElement(by: webdriver.Locator): FoundElementPromise {
 	const selector = locatorToCss(by);
 	return new FoundElementPromise(async (resolve, reject) => {
 		const found = await driver.executeScript(inlineFn(() => {
