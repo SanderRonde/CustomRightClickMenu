@@ -61,6 +61,7 @@ declare class TypedWebdriver extends webdriver.WebDriver {
 }
 
 const TEST_LOCAL: boolean = process.argv.indexOf('--remote') === -1;
+const ZIP_PATH = path.join(__dirname, '../', 'temp/migration/downloadedzip.zip');
 
 function getInput() {
 	if (process.argv.indexOf('--from') === -1 || !process.argv[process.argv.indexOf('--from') + 1]) {
@@ -115,33 +116,40 @@ async function getVersionURL(version: string) {
 	return null;
 }
 
+function assertDir(dir: string): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		mkdirp(dir, (err?: Error) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(null);
+			}
+		});
+	});
+}
+
 function writeFile(filePath: string, data: string, options: {
 	encoding?: 'utf8'
 }) {
 	return new Promise(async (resolve, reject) => {
-		mkdirp(path.dirname(filePath), (err?: Error) => {
-			if (err) {
-				reject(err);
-			} else {
-				if (!options) {
-					fs.writeFile(filePath, data, (err) => {
-						if (err) {
-							reject(err);
-						} else {
-							resolve(null);
-						}
-					});
+		await assertDir(path.dirname(filePath));
+		if (!options) {
+			fs.writeFile(filePath, data, (err) => {
+				if (err) {
+					reject(err);
 				} else {
-					fs.writeFile(filePath, data, options, (err) => {
-						if (err) {
-							reject(err);
-						} else {
-							resolve(null);
-						}
-					});
+					resolve(null);
 				}
-			}
-		})
+			});
+		} else {
+			fs.writeFile(filePath, data, options, (err) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(null);
+				}
+			});
+		}
 	});
 }
 
@@ -151,16 +159,15 @@ function downloadZip(url: string) {
 		request({
 			url: url,
 			encoding: null
-		}, (err, resp, body) => {
+		}, async (err, resp, body) => {
 			if (err) {
 				reject(err);
 				return;
 			}
-			console.log('writing');
-			writeFile('./../temp/migration/downloadedzip.zip', body, {
+			await assertDir(path.dirname(ZIP_PATH));
+			writeFile(ZIP_PATH, body, {
 				encoding: 'utf8'
 			}).then(() => {
-				console.log('wrote');``
 				resolve(null);
 			}, (err) => {
 				reject(err);
@@ -171,7 +178,7 @@ function downloadZip(url: string) {
 
 function unpackZip(dest: string): Promise<void> {
 	return new Promise((resolve, reject) => {
-		extractZip('./../temp/migration/downloadedzip.zip', {}, (err) => {
+		extractZip(ZIP_PATH, {}, (err) => {
 			if (err) {
 				reject(err);
 				return;
