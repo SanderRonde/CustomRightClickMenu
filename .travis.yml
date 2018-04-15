@@ -13,6 +13,7 @@ stages:
 env:
 - TEST=test-build
 - TEST=test-local
+- TEST=test-migration
 - TEST=test:chrome:old:page
 - TEST=test:chrome:old:extension
 - TEST=test:chrome:latest:page
