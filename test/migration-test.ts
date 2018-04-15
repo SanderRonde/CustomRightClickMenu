@@ -170,8 +170,9 @@ function getInput(): Input {
 			process.exit(1);
 		}
 
-	const testLocal = process.argv.indexOf('--remote') === -1 &&
+	const testRemote = process.argv.indexOf('--remote') !== -1 ||
 		!!process.env.TRAVIS;
+	const testLocal = !testRemote;
 	
 	return {
 		isLocal: testLocal,
