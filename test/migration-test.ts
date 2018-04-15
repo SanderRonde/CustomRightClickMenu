@@ -201,11 +201,11 @@ function getAllBetween(from: string, to: string) {
 	let started: boolean = false;
 	for (const version of getSortedVersions()) {
 		if (!started) {
-			if (semver.eq(from, version)) {
+			if (semver.gte(from, version)) {
 				started = true;
 			}
 		} else if (to !== 'current') {
-			if (version === 'current' || semver.eq(to, version)) {
+			if (version === 'current' || semver.gte(to, version)) {
 				return versionsBetween;
 			}
 		}
