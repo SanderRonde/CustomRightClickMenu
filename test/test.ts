@@ -1451,7 +1451,7 @@ describe('Meta', () => {
 		[version: string]: string[];
 	}
 	step('changelog should be defined', () => {
-		changelog = require('../app/elements/change-log/change-log');
+		changelog = require('../app/elements/change-log/changelog');
 		assert.isDefined(changelog, 'changelogLog is defined');
 	});
 	step('current manifest version should have a changelog entry', () => {
