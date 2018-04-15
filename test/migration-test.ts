@@ -254,6 +254,23 @@ function getRuns(input: Input): {
 }[] {
 	if (input.fromToInput.enabled) {
 		const { from, to } = input.fromToInput;
+
+		const sortedVersions = getSortedVersions();
+		if (sortedVersions.indexOf(from) === -1) {
+			process.stdout.write(`Version ${from} is not a valid release\n`);	
+			process.stdout.write(`Choose from:\n${sortedVersions.map((version) => {
+				`- ${version}`
+			}).join('\n')}`);
+			process.exit(1);
+		}
+		if (sortedVersions.indexOf(to) === -1) {
+			process.stdout.write(`Version ${to} is not a valid release\n`);	
+			process.stdout.write(`Choose from:\n${sortedVersions.map((version) => {
+				`- ${version}`
+			}).join('\n')}`);
+			process.exit(1);
+		}
+
 		return [{
 			from, to
 		}];
@@ -265,6 +282,16 @@ function getRuns(input: Input): {
 	}[] = [];
 	const { from, to } = getFromTo(input);
 	const between = getAllBetween(from, to);
+
+	if (between.indexOf(from) === -1) {
+		process.stdout.write(`Version ${from} is not a valid release,` +
+			` skipping it only\n`);
+	}
+	if (between.indexOf(to) === -1) {
+		process.stdout.write(`Version ${to} is not a valid release,` +
+			` skipping it only\n`);
+	}
+
 	for (let i = 0 ; i < between.length - 1; i++) {
 		runs.push({
 			from: between[i],
