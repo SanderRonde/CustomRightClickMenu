@@ -62,7 +62,6 @@ declare class TypedWebdriver extends webdriver.WebDriver {
 	executeScript<T>(script: Function, ...var_args: any[]): webdriver.promise.Promise<T>;
 }
 
-const TEST_LOCAL: boolean = process.argv.indexOf('--remote') === -1;
 const ROOT = path.join(__dirname, '../');
 const ZIP_PATH = path.join(ROOT, 'temp/migration/downloadedzip.zip');
 
@@ -77,6 +76,7 @@ function getInput() {
 	}
 	const from = process.argv[process.argv.indexOf('--from') + 1];
 	const to = process.argv[process.argv.indexOf('--to') + 1];
+	const testLocal = process.argv.indexOf('--remote') === -1;
 
 	if (semver.lt(from, '2.0.12') || (to !== 'current' && semver.lt(to, '2.0.12'))) {
 		process.stderr.write('Please only test versions above 2.0.12');
@@ -84,7 +84,7 @@ function getInput() {
 	}
 	
 	return {
-		from, to
+		from, to, isLocal: testLocal
 	}
 }
 
@@ -200,11 +200,11 @@ async function loadSourceCodeToDir(version: string, dest: string) {
 	await unpackZip(dest);
 }
 
-async function createOptionsPageDriver(srcPath: string) {
+async function createOptionsPageDriver(srcPath: string, isLocal: boolean) {
 	const secrets: {
 		user: string;
 		key: string;
-	} = !TEST_LOCAL ? require('./UI/secrets') : {
+	} = !isLocal ? require('./UI/secrets') : {
 		user: '',
 		key: ''
 	};
@@ -235,19 +235,19 @@ async function createOptionsPageDriver(srcPath: string) {
 		.addExtensions(srcPath)
 		.toCapabilities());
 	const unBuilt = new webdriver.Builder()
-		.usingServer(TEST_LOCAL ? 
+		.usingServer(isLocal ? 
 			'http://localhost:9515' : 'http://hub-cloud.browserstack.com/wd/hub')
 		.withCapabilities(capabilties);
 	return {
-		driver: TEST_LOCAL ? 
+		driver: isLocal ? 
 			await unBuilt.forBrowser('Chrome').build() : 
 			await unBuilt.build(),
 		capabilties: baseCapabilities
 	}
 }
 
-async function setupExtensionOptionsPageInstance(srcPath: string) {
-	const { driver, capabilties } = await createOptionsPageDriver(srcPath);
+async function setupExtensionOptionsPageInstance(srcPath: string, isLocal: boolean) {
+	const { driver, capabilties } = await createOptionsPageDriver(srcPath, isLocal);
 	await chromeExtensionData.openOptionsPage(driver, capabilties);
 	return driver;
 }
@@ -313,7 +313,7 @@ async function openDialog(driver: TypedWebdriver, index: number) {
 }
 
 (() => {
-	const { from, to } = getInput();
+	const { from, to, isLocal } = getInput();
 
 	before('Clear migration directory', async () => {
 		await del(path.join(ROOT, 'temp/migration/'));
@@ -381,7 +381,7 @@ async function openDialog(driver: TypedWebdriver, index: number) {
 				this.timeout(20000);
 				this.slow(5000);
 				driver = await setupExtensionOptionsPageInstance(
-					path.join(ROOT, 'temp/migration/from.crx'));
+					path.join(ROOT, 'temp/migration/from.crx'), isLocal);
 			});
 			it('should finish loading', async function() {
 				this.timeout(60000);
@@ -952,7 +952,7 @@ async function openDialog(driver: TypedWebdriver, index: number) {
 				this.slow(4000);
 
 				driver = await setupExtensionOptionsPageInstance(
-					path.join(ROOT, 'temp/migration/to.crx'));
+					path.join(ROOT, 'temp/migration/to.crx'), isLocal);
 			});
 			it('should finish loading', async function() {
 				this.timeout(60000);
