@@ -952,7 +952,7 @@ function generatePromiseChain<T>(data: T[],
 		}
 	}
 
-function forEachPromise<T>(data: T[],
+export function forEachPromise<T>(data: T[],
 	fn: (data: T) => webdriver.promise.Promise<any>): 
 	webdriver.promise.Promise<any> {
 		return new webdriver.promise.Promise((resolve) => {
@@ -1129,7 +1129,7 @@ export function wait<T>(time: number, resolveParam?: T): webdriver.promise.Promi
 	});
 }
 
-interface FoundElement {
+export interface FoundElement {
 	click(): webdriver.promise.Promise<void>;
 	findElement(by: webdriver.Locator): FoundElementPromise;
 	findElements(by: webdriver.Locator): FoundElementsPromise;
@@ -1461,7 +1461,7 @@ class FoundElementPromise extends PromiseContainer<FoundElement> {
 	}
 }
 
-class FoundElement implements FoundElement {
+export class FoundElement implements FoundElement {
 	constructor(public selector: string, public index: number,
 		public parent: FoundElement = null) { }
 
