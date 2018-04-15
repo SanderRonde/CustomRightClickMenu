@@ -4,14 +4,18 @@ const extractZip: (zipPath: string, opts: {
 	defaultFileMode?: number;
 	onEntry?: (entry: string, zipfile: any) => void;
 }, cb: (err?: Error) => void) => void = require('extract-zip');
+import * as chromeExtensionData from './UI/drivers/chrome-extension';
+import * as chromeDriver from 'selenium-webdriver/chrome';
 import * as webdriver from 'selenium-webdriver';
 import octokit = require('@octokit/rest');
-import { spawn } from 'child_process';
 import request = require('request');
+import vinyl = require('vinyl-fs');
 const mkdirp = require('mkdirp');
 const semver = require('semver');
+const zip = require('gulp-zip');
 import path = require('path');
 import * as chai from 'chai';
+const del = require('del');
 import fs = require('fs');
 const assert = chai.assert;
 const _promise = global.Promise;
@@ -29,7 +33,7 @@ const originals: any = {
 describe = it = before = after = beforeEach = afterEach = () => {};
 import { 
 	wait, getGitHash, tryReadManifest, waitFor, 
-	inlineFn, executeAsyncScript, inlineAsyncFn, setDriver, getDialog, saveDialog, InputKeys, getCRM, findElement 
+	inlineFn, executeAsyncScript, inlineAsyncFn, setDriver, getDialog, saveDialog, InputKeys, getCRM, findElement, FoundElement, forEachPromise 
 } from './UITest';
 describe = originals.describe;
 it = originals.it;
@@ -44,10 +48,8 @@ afterEach = originals.afterEach;
 global.Promise = _promise;
 
 
-const httpServer: {
-	createServer(options: any): any;
-} = require('http-server');
-const copydir = require('copy-dir');
+const copydir: (fromDir: string, toDir: string, 
+	callback: (err?: Error) => void) => void = require('copy-dir');
 const github = new octokit();
 
 type StringifedFunction<RETVAL> = string & {
@@ -61,7 +63,8 @@ declare class TypedWebdriver extends webdriver.WebDriver {
 }
 
 const TEST_LOCAL: boolean = process.argv.indexOf('--remote') === -1;
-const ZIP_PATH = path.join(__dirname, '../', 'temp/migration/downloadedzip.zip');
+const ROOT = path.join(__dirname, '../');
+const ZIP_PATH = path.join(ROOT, 'temp/migration/downloadedzip.zip');
 
 function getInput() {
 	if (process.argv.indexOf('--from') === -1 || !process.argv[process.argv.indexOf('--from') + 1]) {
@@ -96,7 +99,6 @@ async function getReleasesPage(page: number) {
 
 function findVersionInReleases(version: string, releases: any[]) {
 	for (const release of releases) {
-		console.log(release.name, version);
 		if (release.name.indexOf(version) > -1) {
 			return release;
 		}
@@ -110,7 +112,7 @@ async function getVersionURL(version: string) {
 		releases = [...releases, ...((await getReleasesPage(i)) as any).data];
 		const release = await findVersionInReleases(version, releases);
 		if (release) {
-			return release.zipball_url;
+			return release.assets[0].browser_download_url;
 		}
 	}
 	return null;
@@ -165,20 +167,20 @@ function downloadZip(url: string) {
 				return;
 			}
 			await assertDir(path.dirname(ZIP_PATH));
-			writeFile(ZIP_PATH, body, {
+			await writeFile(ZIP_PATH, body, {
 				encoding: 'utf8'
-			}).then(() => {
-				resolve(null);
-			}, (err) => {
-				reject(err);
 			});
+			resolve(null);
 		});
 	});
 }
 
 function unpackZip(dest: string): Promise<void> {
-	return new Promise((resolve, reject) => {
-		extractZip(ZIP_PATH, {}, (err) => {
+	return new Promise(async (resolve, reject) => {
+		await assertDir(path.dirname(dest));
+		extractZip(ZIP_PATH, {
+			dir: dest
+		}, (err) => {
 			if (err) {
 				reject(err);
 				return;
@@ -198,154 +200,193 @@ async function loadSourceCodeToDir(version: string, dest: string) {
 	await unpackZip(dest);
 }
 
+async function createOptionsPageDriver(srcPath: string) {
+	const secrets: {
+		user: string;
+		key: string;
+	} = !TEST_LOCAL ? require('./UI/secrets') : {
+		user: '',
+		key: ''
+	};
+	const baseCapabilities = {
+		'browserName' : 'Chrome',
+		'os' : 'Windows',
+		'os_version' : '10',
+		'resolution' : '1920x1080',
+		'browserstack.user' : secrets.user,
+		'browserstack.key' : secrets.key,
+		'browserstack.local': true,
+		'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+		'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+	};
+	const capabilties = new webdriver.Capabilities({...baseCapabilities, ...{
+		project: 'Custom Right-Click Menu',
+		build: `${(
+			await tryReadManifest('app/manifest.json') ||
+			await tryReadManifest('app/manifest.chrome.json')
+		).version} - ${await getGitHash()}`,
+		name: `${
+			'Chrome'
+		} ${
+			'latest'
+		}`,
+		'browserstack.local': true
+	}}).merge(new chromeDriver.Options()
+		.addExtensions(srcPath)
+		.toCapabilities());
+	const unBuilt = new webdriver.Builder()
+		.usingServer(TEST_LOCAL ? 
+			'http://localhost:9515' : 'http://hub-cloud.browserstack.com/wd/hub')
+		.withCapabilities(capabilties);
+	return {
+		driver: TEST_LOCAL ? 
+			await unBuilt.forBrowser('Chrome').build() : 
+			await unBuilt.build(),
+		capabilties: baseCapabilities
+	}
+}
+
+async function setupExtensionOptionsPageInstance(srcPath: string) {
+	const { driver, capabilties } = await createOptionsPageDriver(srcPath);
+	await chromeExtensionData.openOptionsPage(driver, capabilties);
+	return driver;
+}
+
+function folderToCrx(folder: string, name: string, dest: string): Promise<void> {
+	return new Promise((resolve, reject) => {
+		if (folder.indexOf('/') === folder.length - 1) {
+			folder = folder.slice(0, -1);
+		}
+		vinyl.src(`${folder}/**`, {
+			cwd: folder,
+			base: folder
+		})
+		.pipe(zip(name))
+		.pipe(vinyl.dest(dest))
+		.on('end', () => {
+			resolve(null);
+		})
+		.on('error', (err: Error) => {
+			reject(err);
+		});
+	});
+}
+
+function flattenPath(path: number[]): number {
+	let total = -1;
+	for (const row of path) {
+		total += row + 1;
+	}
+	return total;
+}
+
+function accessByPath<T extends {
+	children?: T[]|void;
+}>(tree: T[], path: number[]): T {
+	for (let i = 0; i < path.length - 1; i++) {
+		const child = tree[path[i]].children;
+		if (!child) {
+			throw new Error('Could not find child in tree');
+		}
+		tree = child;
+	}
+	return tree[path[path.length - 1]];
+}
+
+async function openDialog(driver: TypedWebdriver, index: number) {
+	await driver.executeScript(inlineFn((REPLACE) => {
+		[
+			window.app.editCRM && 
+				<NodeListOf<EditCrmItem>>window.app.editCRM
+					.querySelectorAll('edit-crm-item:not([root-node])'),
+			window.app.editCRM.shadowRoot &&
+				<NodeListOf<EditCrmItem>>window.app.editCRM.shadowRoot
+					.querySelectorAll('edit-crm-item:not([root-node])')
+		].filter(val => !!val).map((selection) => {
+			selection && 
+				selection[REPLACE.index] &&
+				selection[REPLACE.index].openEditPage();
+		});
+	}, {
+		index
+	}));
+}
+
 (() => {
 	const { from, to } = getInput();
 
-	describe('Loading source code', () => {
+	before('Clear migration directory', async () => {
+		await del(path.join(ROOT, 'temp/migration/'));
+	});
+	describe('Loading source code', function() {
+		this.timeout(20000);
+		this.slow(20000);
 		it('should be able to load the "from" version', async () => {
 			global.Promise = _promise;
 
-			await loadSourceCodeToDir(from, './../temp/migration/from/');
+			await loadSourceCodeToDir(from, 
+				path.join(ROOT, 'temp/migration/from/'));
 		});
 		it('should be able to load the "to" version', async () => {
 			if (to === 'current') {
 				await new Promise((resolve, reject) => {
-					copydir('./../', './../temp/migration/to', (err?: Error) => {
-						if (err) {
-							reject(err);
-							return;
-						}
-						resolve(null);
-					});
+					copydir(path.join(ROOT, 'build/'), 
+						path.join(ROOT, 'temp/migration/to/'),
+						(err?: Error) => {
+							if (err) {
+								reject(err);
+								return;
+							}
+							resolve(null);
+						});
 				});
 			} else {
-				await loadSourceCodeToDir(to, './../temp/migration/to/');
+				await loadSourceCodeToDir(to,
+					path.join(ROOT, 'temp/migration/to/'));
 			}
 		});
 	});
-	return;
-	describe('Building', () => {
-		it('should be able to install dependencies for the "from" version', async () => {
-			await new Promise((resolve, reject) => {
-				spawn('yarn', [], {
-					cwd: './../temp/migration/from'
-				}).on('close', (code) => {
-					if (code === 0) {
-						resolve(null);
-					} else {
-						reject('Command yarn failed');
-					}
-				})
-			});
+	describe('Creating .crx files', function() {
+		this.timeout(5000);
+		this.slow(2000);
+		it('should be possible to create a crx file from the "from" folder', async () => {
+			await folderToCrx(path.join(ROOT, 'temp/migration/from'),
+				'from.crx', path.join(ROOT, 'temp/migration/'));
 		});
-		it('should be able to install dependencies for the "to" version', async () => {
-			await new Promise((resolve, reject) => {
-				spawn('yarn', [], {
-					cwd: './../temp/migration/to'
-				}).on('close', (code) => {
-					if (code === 0) {
-						resolve(null);
-					} else {
-						reject('Command yarn failed');
-					}
-				})
-			});
-		});
-		it('should be able to build the "from" version', async () => {
-			await new Promise((resolve, reject) => {
-				spawn('gulp', ['buildTest'], {
-					cwd: './../temp/migration/from'
-				}).on('close', (code) => {
-					if (code === 0) {
-						resolve(null);
-					} else {
-						reject('Command yarn failed');
-					}
-				})
-			});
-		});
-		it('should be able to build the "to" version', async () => {
-			await new Promise((resolve, reject) => {
-				spawn('gulp', ['buildTest'], {
-					cwd: './../temp/migration/to'
-				}).on('close', (code) => {
-					if (code === 0) {
-						resolve(null);
-					} else {
-						reject('Command yarn failed');
-					}
-				})
-			});
+		it('should be possible to create a crx file from the "to" folder', async () => {
+			await folderToCrx(path.join(ROOT, 'temp/migration/to'),
+				'to.crx', path.join(ROOT, 'temp/migration/'));
 		});
 	});
-	const FROM_VERSION_PORT = 1260;
-	const TO_VERSION_PORT = 1270;
+
+	const NODES: [CRM.NodeType, number[]][] = [
+		['link', [0]],
+		['script', [1]],
+		['divider', [2]],
+		['stylesheet', [3]],
+		['menu', [4]],
+		['link', [4, 0]]
+	];
+
+	function forEachNode(callback: (type: CRM.NodeType, path: number[]) => void) {
+		for (const [ type, path ] of NODES) {
+			callback(type, path);
+		}
+	}
+
 	let driver: TypedWebdriver;
 	describe('Getting and setting storage', () => {
-		let fromServer = null;
-		let toServer = null;
-		const getURL = (port: number) => `http://localhost:${port}/build/html/UITest.html#test-noBackgroundInfo`;
 		describe('Loading page', () => {
-			before('Set up HTTP servers, set up selenium instance', async () => {
-				//From server
-				fromServer = httpServer.createServer({
-					root: './../temp/migration/from',
-					robots: false
-				});
-				fromServer.listen(FROM_VERSION_PORT);
-
-				//To server
-				toServer = httpServer.createServer({
-					root: './../temp/migration/to',
-					robots: false
-				});
-				toServer.listen(TO_VERSION_PORT);
-
-				//Selenium webdriver
-				const secrets: {
-					user: string;
-					key: string;
-				} = !TEST_LOCAL ? require('./UI/secrets') : {
-					user: '',
-					key: ''
-				};
-				const unBuilt = new webdriver.Builder()
-					.usingServer(TEST_LOCAL ? 
-						'http://localhost:9515' : 'http://hub-cloud.browserstack.com/wd/hub')
-					.withCapabilities(new webdriver.Capabilities({...{
-						'browserName' : 'Chrome',
-						'os' : 'Windows',
-						'os_version' : '10',
-						'resolution' : '1920x1080',
-						'browserstack.user' : secrets.user,
-						'browserstack.key' : secrets.key,
-						'browserstack.local': true,
-						'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-						'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-					}, ...{
-						project: 'Custom Right-Click Menu',
-						build: `${(
-							await tryReadManifest('./../app/manifest.json') ||
-							await tryReadManifest('./../app/manifest.chrome.json')
-						).version} - ${await getGitHash()}`,
-						name: `${
-							'Chrome'
-						} ${
-							'latest'
-						}`,
-						'browserstack.local': true
-					}}));
-				if (TEST_LOCAL) {
-					driver = unBuilt.forBrowser('Chrome').build();
-				} else {
-					driver = unBuilt.build();
-				}
+			it('should be possible to set up "from" selenium instance', async function() {
+				this.timeout(20000);
+				this.slow(5000);
+				driver = await setupExtensionOptionsPageInstance(
+					path.join(ROOT, 'temp/migration/from.crx'));
 			});
-
-			it('should be able to load the "from" page', async function() {
+			it('should finish loading', async function() {
 				this.timeout(60000);
+				this.slow(30000);
 
-				await driver.get(getURL(FROM_VERSION_PORT));
 				setDriver(driver);
 				await wait(1000);
 				await waitFor(() => {
@@ -358,8 +399,10 @@ async function loadSourceCodeToDir(version: string, dest: string) {
 				});
 			});
 		});
-		describe('Preparing settings', () => {
+		describe('Clearing settings', () => {
 			it('should be possible to clear storage', async function() {
+				this.timeout(60000);
+				this.slow(35000);
 				await executeAsyncScript(inlineAsyncFn((done) => {
 					const global = window.browserAPI || (window as any).chrome;
 					if (window.browserAPI) {
@@ -376,6 +419,23 @@ async function loadSourceCodeToDir(version: string, dest: string) {
 						});
 					}
 				}));
+
+				//Refresh background page
+				await executeAsyncScript(inlineAsyncFn((done) => {
+					const global = window.browserAPI || (window as any).chrome;
+					if (window.browserAPI) {
+						window.browserAPI.runtime.getBackgroundPage().then((backgroundPage) => {
+							backgroundPage.location.reload();
+							done(null);
+						});
+					} else {
+						global.runtime.getBackgroundPage((backgroundPage: Window) => {
+							backgroundPage.location.reload();
+							done(null);
+						});
+					}
+				}));
+				await wait(2000);
 				await driver.navigate().refresh();
 				await wait(1000);
 				await waitFor(() => {
@@ -386,135 +446,470 @@ async function loadSourceCodeToDir(version: string, dest: string) {
 					//About to time out
 					throw new Error('Failed to get elements loaded message, page load is failing');
 				});
+				await wait(3000);
 			});
 		});
+
 		describe('Creating CRM', () => {
-			async function testTypeSwitch(type: string, index: number) {
-				await driver.executeScript(inlineFn(() => {
-					const crmItem = (window.app.editCRM.shadowRoot
-						.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>)[index];
-					crmItem.typeIndicatorMouseOver();
-				}));
-				await wait(300);
-				await driver.executeScript(inlineFn(() => {
-					const crmItem = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])')[0];
-					const typeSwitcher = crmItem.shadowRoot.querySelector('type-switcher');
-					typeSwitcher.openTypeSwitchContainer();
-				}));
-				await wait(300);
-				const typesMatch = await driver.executeScript(inlineFn(() => {
-					const crmItem = (window.app.editCRM.shadowRoot
-						.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>)[0];
-					const typeSwitcher = crmItem.shadowRoot.querySelector('type-switcher');
-					(typeSwitcher.shadowRoot.querySelector('.typeSwitchChoice[type="REPLACE.type"]') as HTMLElement)
+			describe('Creating structure', () => {
+				async function testTypeSwitch(type: CRM.NodeType, index: number) {
+					await driver.executeScript(inlineFn((REPLACE) => {
+						[
+							window.app.editCRM && 
+								window.app.editCRM
+									.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>,
+							window.app.editCRM.shadowRoot &&
+								window.app.editCRM.shadowRoot
+								.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>
+						].filter(val => !!val).map((selection) => {
+							selection && 
+								selection[REPLACE.index] &&
+								selection[REPLACE.index].typeIndicatorMouseOver();
+						});
+					}, {
+						index
+					}));
+					await wait(300);
+					await driver.executeScript(inlineFn((REPLACE) => {
+						[
+							window.app.editCRM && 
+								window.app.editCRM
+									.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>,
+							window.app.editCRM.shadowRoot &&
+								window.app.editCRM.shadowRoot
+								.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>
+						].filter(val => !!val).forEach((selection) => {
+							[
+								selection && 
+									selection[REPLACE.index] && 
+									selection[REPLACE.index].querySelector('type-switcher'),
+								selection && 
+									selection[REPLACE.index] && 
+									selection[REPLACE.index].shadowRoot &&
+									selection[REPLACE.index].shadowRoot.querySelector('type-switcher')
+							].filter(val => !!val).forEach((selection) => {
+								selection.openTypeSwitchContainer();
+							});
+						});
+					}, {
+						index
+					}));
+					await wait(300);
+					const typesMatch = await driver.executeScript(inlineFn((REPLACE) => {
+						[
+							window.app.editCRM && 
+								window.app.editCRM
+									.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>,
+							window.app.editCRM.shadowRoot &&
+								window.app.editCRM.shadowRoot
+								.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>
+						].filter(val => !!val).forEach((selection) => {
+							[
+								selection && 
+									selection[REPLACE.index] && 
+									selection[REPLACE.index].querySelector('type-switcher'),
+								selection && 
+									selection[REPLACE.index] && 
+									selection[REPLACE.index].shadowRoot &&
+									selection[REPLACE.index].shadowRoot.querySelector('type-switcher')
+							].filter(val => !!val).forEach((selection) => {
+								[
+									selection && 
+										selection
+											.querySelector('.typeSwitchChoice[type="REPLACE.type"]') as HTMLElement,
+									selection && 
+										selection.shadowRoot &&
+										selection.shadowRoot
+											.querySelector('.typeSwitchChoice[type="REPLACE.type"]') as HTMLElement
+								].filter(val => !!val).forEach((selection) => {
+									selection.click();
+								});
+							});
+							selection && selection[REPLACE.index] && 
+								selection[REPLACE.index].typeIndicatorMouseLeave();
+						});
+						return window.app.settings.crm[REPLACE.index].type === 'REPLACE.type' as CRM.NodeType;
+					}, {
+						type,
+						index
+					}));
+
+					assert.isTrue(typesMatch, 'new type matches expected');
+				}
+
+				it('should be possible to create a second node', async function() {
+					this.timeout(1500);
+					this.slow(600);
+
+					await findElement(webdriver.By.tagName('crm-app'))
+						.findElement(webdriver.By.tagName('edit-crm'))
+						.findElement(webdriver.By.id('addButton'))
 						.click();
-					crmItem.typeIndicatorMouseLeave();
-					return window.app.settings.crm[0].type === 'REPLACE.type' as CRM.NodeType;
-				}, {
-					type: type
-				}));
+					await wait(100);
+					await findElement(webdriver.By.tagName('crm-app'))
+						.findElement(webdriver.By.tagName('edit-crm'))
+						.findElement(webdriver.By.className('addingItemPlaceholder'))
+						.click();
+				});
+				it('should be possible to convert the second node to a script', async function() {
+					this.timeout(3000);
+					this.slow(2000);
 
-				assert.isTrue(typesMatch, 'new type matches expected');
-			}
+					await testTypeSwitch('script', 1);
+				});
+				it('should be possible to create a third node', async function() {
+					this.timeout(1500);
+					this.slow(1000);
 
-			it('should be possible to change the link\'s name', async () => {
-				await driver.executeScript(inlineFn(() => {
-					((window.app.editCRM.shadowRoot
-						.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>)[0])
-						.openEditPage();
-				}));
-				await wait(1000);
-				const dialog = await getDialog('link');
-				const name = 'linkname';
-				await dialog.findElement(webdriver.By.id('nameInput'))
-					.sendKeys(InputKeys.CLEAR_ALL, name)
-				await wait(300);
-				await saveDialog(dialog);
+					await findElement(webdriver.By.tagName('crm-app'))
+						.findElement(webdriver.By.tagName('edit-crm'))
+						.findElement(webdriver.By.id('addButton'))
+						.click();
+					await wait(100);
+					await findElement(webdriver.By.tagName('crm-app'))
+						.findElement(webdriver.By.tagName('edit-crm'))
+						.findElement(webdriver.By.className('addingItemPlaceholder'))
+						.click();
+				});
+				it('should be possible to convert the third node to a divider', async function() {
+					this.timeout(3000);
+					this.slow(2000);
+					
+					await testTypeSwitch('divider', 2);
+				});
+				it('should be possible to create a fourth node', async function() {
+					this.timeout(1500);
+					this.slow(1000);
 
-				const crm = await getCRM();
-				assert.strictEqual(crm[0].name, name, 
-					'name has been saved');
+					await findElement(webdriver.By.tagName('crm-app'))
+						.findElement(webdriver.By.tagName('edit-crm'))
+						.findElement(webdriver.By.id('addButton'))
+						.click();
+					await wait(100);
+					await findElement(webdriver.By.tagName('crm-app'))
+						.findElement(webdriver.By.tagName('edit-crm'))
+						.findElement(webdriver.By.className('addingItemPlaceholder'))
+						.click();
+				});
+				it('should be possible to convert the fourth node to a stylesheet', async function() {
+					this.timeout(3000);
+					this.slow(2000);
+					
+					await testTypeSwitch('stylesheet', 3);
+				});
+				it('should be possible to create a fifth node', async function() {
+					this.timeout(1500);
+					this.slow(1000);
+
+					await findElement(webdriver.By.tagName('crm-app'))
+						.findElement(webdriver.By.tagName('edit-crm'))
+						.findElement(webdriver.By.id('addButton'))
+						.click();
+					await wait(100);
+					await findElement(webdriver.By.tagName('crm-app'))
+						.findElement(webdriver.By.tagName('edit-crm'))
+						.findElement(webdriver.By.className('addingItemPlaceholder'))
+						.click();
+				});
+				it('should be possible to convert the fifth node to a menu', async function() {
+					this.timeout(3000);
+					this.slow(2000);
+					
+					await testTypeSwitch('menu', 4);
+				});
+				it('should be possible to add a child to the menu', async function() {
+					this.timeout(1500);
+					this.slow(1000);
+
+					await findElement(webdriver.By.tagName('crm-app'))
+						.findElement(webdriver.By.tagName('edit-crm'))
+						.findElement(webdriver.By.id('addButton'))
+						.click();
+					await wait(100);
+					await findElement(webdriver.By.tagName('crm-app'))
+						.findElement(webdriver.By.tagName('edit-crm'))
+						.findElements(webdriver.By.className('addingItemPlaceholder'))
+						.get(1)
+						.click();
+				});
 			});
-			it('should be possible to create a second node', async () => {
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.tagName('edit-crm'))
-					.findElement(webdriver.By.id('addButton'))
-					.click();
-				await wait(100);
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.tagName('edit-crm'))
-					.findElement(webdriver.By.className('addingItemPlaceholder'))
-					.click();
-			});
-			it('should be possible to convert the second node to a script', async () => {
-				await testTypeSwitch('script', 1);
-			});
-			it('should be possible to create a third node', async () => {
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.tagName('edit-crm'))
-					.findElement(webdriver.By.id('addButton'))
-					.click();
-				await wait(100);
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.tagName('edit-crm'))
-					.findElement(webdriver.By.className('addingItemPlaceholder'))
-					.click();
-			});
-			it('should be possible to convert the third node to a divider', async () => {
-				await testTypeSwitch('script', 2);
-			});
-			it('should be possible to create a fourth node', async () => {
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.tagName('edit-crm'))
-					.findElement(webdriver.By.id('addButton'))
-					.click();
-				await wait(100);
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.tagName('edit-crm'))
-					.findElement(webdriver.By.className('addingItemPlaceholder'))
-					.click();
-			});
-			it('should be possible to convert the fourth node to a divider', async () => {
-				await testTypeSwitch('divider', 3);
-			});
-			it('should be possible to create a fifth node', async () => {
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.tagName('edit-crm'))
-					.findElement(webdriver.By.id('addButton'))
-					.click();
-				await wait(100);
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.tagName('edit-crm'))
-					.findElement(webdriver.By.className('addingItemPlaceholder'))
-					.click();
-			});
-			it('should be possible to convert the fifth node to a stylesheet', async () => {
-				await testTypeSwitch('stylesheet', 4);
-			});
-			it('should be possible to create a sixth node', async () => {
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.tagName('edit-crm'))
-					.findElement(webdriver.By.id('addButton'))
-					.click();
-				await wait(100);
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.tagName('edit-crm'))
-					.findElement(webdriver.By.className('addingItemPlaceholder'))
-					.click();
-			});
-			it('should be possible to convert the sixth node to a menu', async () => {
-				await testTypeSwitch('stylesheet', 5);
-			});
-			it('should be possible to add a child to the menu', async () => {
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.tagName('edit-crm'))
-					.findElement(webdriver.By.id('addButton'))
-					.click();
-				await wait(100);
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.tagName('edit-crm'))
-					.findElement(webdriver.By.className('addingItemPlaceholder'))
-					.click();
+			describe('Setting some values', () => {
+				forEachNode((type, path) => {
+					const index = flattenPath(path);
+					describe(`Setting values for node ${index}`, () => {
+						let dialog: FoundElement;
+						before('Open dialog', async function() {
+							this.timeout(30000);
+
+							await openDialog(driver, index);
+							await wait(2000);
+							dialog = await getDialog(type);
+							await wait(2000);
+						});
+
+						let name: string;
+						describe('Setting values', () => {
+							afterEach(async function() {
+								this.timeout(10000);
+
+								await wait(1000);
+							})
+							it('should be possible to set the name', async () => {
+								name = `name${index}`;
+								await dialog.findElement(webdriver.By.id('nameInput'))
+									.sendKeys(InputKeys.CLEAR_ALL, name);
+							});
+							it('should be possible to set the content types', async function() {
+								this.timeout(5000);
+								this.slow(4000);
+
+								await dialog.findElements(
+									webdriver.By.className('showOnContentItemCont'))
+										.mapWaitChain((element, index) => {
+											if (index === 0) {
+												return wait(250);
+											}
+											return element.findElement(
+												webdriver.By.tagName('paper-checkbox'))
+													.click()
+													.then(() => {
+														return wait(250);
+													});
+										});
+							});
+							switch (type) {
+								case 'link':
+								case 'menu':
+								case 'divider':
+									it('should be possible to change the showOnSpecified',
+										async function() {
+											this.timeout(5000);
+											this.slow(3000);
+
+											await dialog.findElement(
+												webdriver.By.id('showOnSpecified')).click();
+											await dialog.findElement(webdriver.By.id('addTrigger'))
+												.click()
+												.click();
+											await wait(500);
+											const triggers = await dialog
+												.findElements(
+													webdriver.By.className('executionTrigger'));
+											await triggers[0].findElement(
+												webdriver.By.tagName('paper-checkbox')).click();
+											await triggers[1].findElement(
+												webdriver.By.tagName('paper-input'))
+												.sendKeys(InputKeys.CLEAR_ALL, 
+													'http://www.google.com');
+										});
+									break;
+								case 'script':
+								case 'stylesheet':
+									it('should be possible to change the click triggers', 
+										async function() {
+											this.timeout(4000);
+											this.slow(2000);
+
+											await dialog.findElement(webdriver.By.id('dropdownMenu'))
+												.click();
+											await wait(500);
+											const options = await dialog
+												.findElements(
+													webdriver.By.css(
+														'.stylesheetLaunchOption,' + 
+														' .scriptLaunchOption'));
+											await options[1]
+												.click();
+										});
+									break;
+							}
+
+							switch (type) {
+								case 'link':
+									it('should be possible to add links', async function() {
+										this.timeout(8000);
+										this.slow(6000);
+
+										const newUrl = 'www.google.com';
+										await dialog
+											.findElement(webdriver.By.id('changeLink'))
+											.findElement(webdriver.By.tagName('paper-button'))
+											.click()
+											.click()
+											.click()
+										await wait(500);
+										await forEachPromise(await dialog
+											.findElements(webdriver.By.className('linkChangeCont')), 
+												(element) => {
+													return new webdriver.promise.Promise(async (resolve) => {
+														await wait(250);
+														await element
+															.findElement(
+																webdriver.By.tagName('paper-checkbox'))
+															.click();
+														await element
+															.findElement(
+																webdriver.By.tagName('paper-input'))
+															.sendKeys(
+																InputKeys.CLEAR_ALL, newUrl);
+														resolve(null);
+													});
+												});
+									});
+									break;
+								case 'script':
+									it('should be possible to change the contents of the ' + 
+										'script, backgroundscript and options', async function() {
+											//Do this programmatically as the editor layout
+											// changes sometimes
+	
+											await driver.executeScript(inlineFn((REPLACE) => {
+												const node = <CRM.ScriptNode
+													>window.scriptEdit.newSettings;
+												node.value.script = 'script0script1script2';
+												node.value.backgroundScript = 
+													'backgroundscript0backgroundscript1' +
+													'backgroundscript2';
+												node.value.options = {
+													value: {
+														type: 'number',
+														value: 1
+													}
+												}
+											}));	
+										});
+									break;
+								case 'stylesheet':
+									it('should be possible to change the contents of the ' + 
+										'stylesheet and options', async function() {
+											//Do this programmatically as the editor layout
+											// changes sometimes
+	
+											await driver.executeScript(inlineFn((REPLACE) => {
+												const node = <CRM.StylesheetNode
+													>window.stylesheetEdit.newSettings;
+												node.value.stylesheet = 
+													'stylesheet0stylesheet1stylesheet2';
+												node.value.options = {
+													value: {
+														type: 'number',
+														value: 1
+													}
+												}
+											}));	
+										});
+									it('should be possible to toggle the sliders', async function() {
+										this.timeout(500);
+										this.slow(200);
+
+										await dialog.findElement(webdriver.By.id('isTogglableButton'))
+											.click();
+										await dialog.findElement(webdriver.By.id('isDefaultOnButton'))
+											.click();
+									});
+									break;
+							}
+						});
+
+						let crm: CRM.Tree;
+						describe('Saving the values', () => {
+							it('should be possible to save the dialog', async function() {
+								this.timeout(10000);
+								this.slow(9000);
+
+								await wait(2000);
+								await saveDialog(dialog);
+								await wait(1500);
+								crm = await getCRM();
+							});
+						});
+						describe('Testing set values', () => {
+							it('has changed the name', () => {
+								assert.strictEqual(accessByPath(crm, path).name, name, 
+									'name has been saved');
+							});
+							if (type !== 'script' && type !== 'stylesheet') {
+								it('has changed the content types', () => {
+									assert.isFalse(accessByPath(crm, path).onContentTypes[1], 
+										'content types that were on were switched off');
+									assert.isTrue(accessByPath(crm, path).onContentTypes[4],
+										'content types that were off were switched on');
+									let newContentTypes = [
+										true, true, true, false, false, false
+									].map(contentType => !contentType);
+									newContentTypes[0] = true;
+									assert.deepEqual(accessByPath(crm, path).onContentTypes,
+										newContentTypes,
+										'all content types were toggled');
+								});
+							}
+							switch (type) {
+								case 'link':
+								case 'menu':
+								case 'divider':
+									it('should have changed the triggers', async function() {
+											assert.lengthOf(accessByPath(crm, path).triggers, 
+												3, 'trigger has been added');
+											assert.isTrue(accessByPath(crm, path).triggers[0].not, 
+												'first trigger is NOT');
+											assert.isFalse(accessByPath(crm, path).triggers[1].not, 
+												'second trigger is not NOT');
+											assert.strictEqual(accessByPath(crm, path).triggers[0].url, 
+												'*://*.example.com/*',
+												'first trigger url stays the same');
+											assert.strictEqual(accessByPath(crm, path).triggers[1].url, 
+												'http://www.google.com',
+												'second trigger url changed');
+										});
+									break;
+								case 'script':
+								case 'stylesheet':
+									it('should have changed the launch modes', () => {
+										assert.strictEqual(
+											accessByPath(crm as (CRM.StylesheetNode|CRM.ScriptNode)[], 
+												path).value.launchMode, 1, 
+												'launchmode is the same as expected');
+									});
+									break;
+							}
+							switch (type) {
+								case 'link':
+									it('should have added the links', () => {
+										const newUrl = 'www.google.com';
+										const newValue = {
+											newTab: true,
+											url: newUrl
+										};
+										assert.lengthOf(accessByPath(crm as CRM.LinkNode[], 
+											path).value, 4, 'node has 4 links now');
+	
+										//Only one newTab can be false at a time
+										const newLinks = Array.apply(null, Array(4))
+											.map(() => JSON.parse(JSON.stringify(newValue)));
+										newLinks[3].newTab = false;
+					
+										assert.deepEqual(accessByPath(crm as CRM.LinkNode[],
+											path).value, newLinks, 
+												'new links match changed link value');
+									});
+									break;
+								case 'stylesheet':
+									it('should have toggled the sliders', function() {
+										assert.isTrue(accessByPath(crm as CRM.StylesheetNode[], 
+											path).value.toggle, 
+												'toggle option is set to on');
+										assert.isTrue(accessByPath(crm as CRM.StylesheetNode[],
+											path).value.toggle, 
+												'toggle option is set to true');
+										assert.isTrue(accessByPath(crm as CRM.StylesheetNode[], 
+											path).value.defaultOn, 
+												'defaultOn is set to true');
+									});
+									break;
+							}
+						});
+					});
+				});
 			});
 		});
 
@@ -544,12 +939,25 @@ async function loadSourceCodeToDir(version: string, dest: string) {
 					}
 				}));
 			});
+			it('should be possible to quit the selenium instance', async function() {
+				this.timeout(250);
+				this.slow(150);
+
+				await driver.quit();
+			});
 		});
 		describe('Loading "to" version', () => {
-			it('should be able to load the page', async function() {
-				this.timeout(60000);
+			it('should be possible to set up "to" selenium instance', async function() {
+				this.timeout(5000);
+				this.slow(4000);
 
-				await driver.get(getURL(TO_VERSION_PORT));
+				driver = await setupExtensionOptionsPageInstance(
+					path.join(ROOT, 'temp/migration/to.crx'));
+			});
+			it('should finish loading', async function() {
+				this.timeout(60000);
+				this.slow(15000);
+
 				setDriver(driver);
 				await wait(1000);
 				await waitFor(() => {
@@ -560,57 +968,187 @@ async function loadSourceCodeToDir(version: string, dest: string) {
 					//About to time out
 					throw new Error('Failed to get elements loaded message, page load is failing');
 				});
+				await wait(5000);
 			});
-			it('should be able to set the storage settings', async () => {
+			it('should be able to set the storage settings', async function() {
+				this.timeout(10000);
 				await executeAsyncScript(inlineAsyncFn((done, reject, REPLACE) => {
+					const data = JSON.parse('REPLACE.storageData');
+
 					const global = window.browserAPI || (window as any).chrome;
 					if (window.browserAPI) {
-						window.browserAPI.storage.local.set(REPLACE.storageData.local).then(() => {
-							window.browserAPI.storage.sync.set(REPLACE.storageData.sync).then(() => {
+						window.browserAPI.storage.local.set(data.local).then(() => {
+							window.browserAPI.storage.sync.set(data.sync).then(() => {
 								done(null);
 							});
 						});
 					} else {
-						global.storage.local.set(REPLACE.storageData.local).then(() => {
-							global.storage.sync.set(REPLACE.storageData.sync).then(() => {
+						global.storage.local.set(data.local).then(() => {
+							global.storage.sync.set(data.sync).then(() => {
 								done(null);
 							});
 						});
 					}
 				}, {
-					storageData
+					storageData: JSON.stringify(storageData)
 				}));
 			});
 		});
-		describe('Testing page', () => {
-			before('Reloading page', async () => {
-				await driver.navigate().refresh();
-			});
-			it('should finish loading', async function() {
-				this.timeout(120000);
+	});
+	describe('Testing page', () => {
+		before('Reloading page', async () => {
+			await driver.navigate().refresh();
+		});
+		it('should finish loading', async function() {
+			this.timeout(60000);
+			this.slow(15000);
 
-				await waitFor(() => {
-					return driver.executeScript(inlineFn(() => {
-						return window.polymerElementsLoaded;
-					}));
-				}, 2500, 600000).then(() => {}, () => {
-					//About to time out
-					throw new Error('Failed to get elements loaded message, page load is failing');
-				});
+			await waitFor(() => {
+				return driver.executeScript(inlineFn(() => {
+					return window.polymerElementsLoaded;
+				}));
+			}, 2500, 600000).then(() => {}, () => {
+				//About to time out
+				throw new Error('Failed to get elements loaded message, page load is failing');
 			});
-			it('should not have thrown any errors', async () => {
-				const result = await driver.executeScript(inlineFn(() => {
+			await wait(6000);
+		});
+		it('should not have thrown any errors', async () => {
+			const result = await driver.executeScript(inlineFn(() => {
+				return window.errorReportingTool.lastErrors;
+			}));
+			assert.lengthOf(result, 0, 'no errors should have been thrown');
+		});
+		it('should have loaded the CRM', async () => {
+			const item = await driver.executeScript(inlineFn(() => {
+				for (const selection of [
+					window.app.editCRM && 
+						<NodeListOf<EditCrmItem>>window.app.editCRM
+							.querySelectorAll('edit-crm-item:not([root-node])'),
+					window.app.editCRM.shadowRoot &&
+						<NodeListOf<EditCrmItem>>window.app.editCRM.shadowRoot
+							.querySelectorAll('edit-crm-item:not([root-node])')
+				].filter(val => !!val)) {
+					if (selection && selection[0]) {
+						return selection;
+					}
+				}
+				return null;
+			}));
+			assert.exists(item, 'edit-crm-item exists');
+		});
+		forEachNode((type, path) => {
+			const index = flattenPath(path);
+			it(`should be possible to open the dialog at index ${index} without errors`, async function() {
+				this.timeout(20000);
+				this.slow(15000);
+
+				await openDialog(driver, index);
+				await wait(2000);
+				const dialog = await getDialog(type);
+
+				const errors = await driver.executeScript(inlineFn(() => {
 					return window.errorReportingTool.lastErrors;
 				}));
-				assert.lengthOf(result, 0, 'no errors should have been thrown');
+				assert.lengthOf(errors, 0, 'no errors should have been thrown');
+
+				await wait(2000);
+				await saveDialog(dialog);
+				await wait(1500);
 			});
-			it('should have loaded the CRM', async () => {
-				const item = await driver.executeScript(inlineFn(() => {
-					return (window.app.editCRM.shadowRoot
-						.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>)[0];
-				}));
-				assert.exists(item, 'edit-crm-item exists');
+			let crm: CRM.Tree;
+			it('should be possible to load the CRM', async () => {
+				crm = await getCRM();
+				assert.exists(crm, 'loaded crm exists');
+			});
+			describe(`Tests for index ${index}`, () => {
+				it('has changed the name', () => {
+					assert.strictEqual(accessByPath(crm, path).name, `name${index}`, 
+						'name has been saved');
+				});
+				if (type !== 'script' && type !== 'stylesheet') {
+					it('has changed the content types', () => {
+						assert.isFalse(accessByPath(crm, path).onContentTypes[1], 
+							'content types that were on were switched off');
+						assert.isTrue(accessByPath(crm, path).onContentTypes[4],
+							'content types that were off were switched on');
+						let newContentTypes = [
+							true, true, true, false, false, false
+						].map(contentType => !contentType);
+						newContentTypes[0] = true;
+						assert.deepEqual(accessByPath(crm, path).onContentTypes,
+							newContentTypes,
+							'all content types were toggled');
+					});
+				}
+				switch (type) {
+					case 'link':
+					case 'menu':
+					case 'divider':
+						it('should have changed the triggers', async function() {
+							assert.lengthOf(accessByPath(crm, path).triggers, 
+								3, 'trigger has been added');
+							assert.isTrue(accessByPath(crm, path).triggers[0].not, 
+								'first trigger is NOT');
+							assert.isFalse(accessByPath(crm, path).triggers[1].not, 
+								'second trigger is not NOT');
+							assert.strictEqual(accessByPath(crm, path).triggers[0].url, 
+								'*://*.example.com/*',
+								'first trigger url stays the same');
+							assert.strictEqual(accessByPath(crm, path).triggers[1].url, 
+								'http://www.google.com',
+								'second trigger url changed');
+						});
+						break;
+					case 'script':
+					case 'stylesheet':
+						it('should have changed the launch modes', () => {
+							assert.strictEqual(
+								accessByPath(crm as (CRM.StylesheetNode|CRM.ScriptNode)[], 
+									path).value.launchMode, 1, 
+									'launchmode is the same as expected');
+						});
+						break;
+				}
+				switch (type) {
+					case 'link':
+						it('should have added the links', () => {
+							const newUrl = 'www.google.com';
+							const newValue = {
+								newTab: true,
+								url: newUrl
+							};
+							assert.lengthOf(accessByPath(crm as CRM.LinkNode[], 
+								path).value, 4, 'node has 4 links now');
+
+							//Only one newTab can be false at a time
+							const newLinks = Array.apply(null, Array(4))
+								.map(() => JSON.parse(JSON.stringify(newValue)));
+							newLinks[3].newTab = false;
+		
+							assert.deepEqual(accessByPath(crm as CRM.LinkNode[],
+								path).value, newLinks, 
+									'new links match changed link value');
+						});
+						break;
+					case 'stylesheet':
+						it('should have toggled the sliders', function() {
+							assert.isTrue(accessByPath(crm as CRM.StylesheetNode[], 
+								path).value.toggle, 
+									'toggle option is set to on');
+							assert.isTrue(accessByPath(crm as CRM.StylesheetNode[],
+								path).value.toggle, 
+									'toggle option is set to true');
+							assert.isTrue(accessByPath(crm as CRM.StylesheetNode[], 
+								path).value.defaultOn, 
+									'defaultOn is set to true');
+						});
+						break;
+				}
 			});
 		});
+	});
+	after('Quit driver', async () => {	
+		await driver.quit();
 	});
 })();
