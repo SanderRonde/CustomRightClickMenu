@@ -1324,8 +1324,8 @@ class FoundElementsPromise extends PromiseContainer<FoundElement[]> {
 			});
 		}
 
-	public mapWaitChain(fn: (element: FoundElement) => 
-		webdriver.promise.Promise<any>, elements?: FoundElement[]): webdriver.promise.Promise<void> {
+	public mapWaitChain(fn: (element: FoundElement, index: number) => 
+		webdriver.promise.Promise<any>, elements?: FoundElement[], index = 0): webdriver.promise.Promise<void> {
 			return new webdriver.promise.Promise<void>(async (resolve) => {
 				if (!elements) {
 					elements = await this._promise;
@@ -1333,9 +1333,9 @@ class FoundElementsPromise extends PromiseContainer<FoundElement[]> {
 				if (elements.length === 0) {
 					resolve(null);
 				} else {
-					const result = await fn(elements[0]);
+					const result = await fn(elements[0], index);
 					if (elements[1]) {
-						resolve(await this.mapWaitChain(fn, elements.slice(1)));
+						resolve(await this.mapWaitChain(fn, elements.slice(1), index + 1));
 					} else {
 						resolve(result);
 					}
