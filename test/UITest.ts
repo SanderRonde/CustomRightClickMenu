@@ -2692,7 +2692,6 @@ describe('User entrypoints', function() {
 					let newContentTypes = defaultContentTypes.map(contentType => !contentType);
 					//CRM prevents you from turning off all content types and 2 is the one that stays on
 					newContentTypes[2] = true;
-					newContentTypes = crm[0].onContentTypes;
 					assert.deepEqual(crm[0].onContentTypes,
 						newContentTypes,
 						'all content types were toggled');
