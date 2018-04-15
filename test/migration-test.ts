@@ -1202,7 +1202,10 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 		});
 	});
 	describe('Testing page', () => {
-		before('Reloading page', async () => {
+		before('Reloading page', async function() {
+			this.timeout(10000);
+			this.slow(4000);
+			
 			await driver.navigate().refresh();
 		});
 		it('should finish loading', async function() {
