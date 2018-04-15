@@ -891,6 +891,9 @@ async function getActivatedScripts({
 async function waitForEditor() {
 	await waitFor(() => {
 		return driver.executeScript(inlineFn(() => {
+			if (!window.app.item) {
+				return true;
+			}
 			if (window.app.item.type === 'script') {
 				return window.scriptEdit.editorManager &&
 					window.scriptEdit.editorManager.getModel('default') &&
