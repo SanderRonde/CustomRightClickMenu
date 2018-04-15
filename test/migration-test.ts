@@ -1205,7 +1205,7 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 		before('Reloading page', async function() {
 			this.timeout(10000);
 			this.slow(4000);
-			
+
 			await driver.navigate().refresh();
 		});
 		it('should finish loading', async function() {
@@ -1367,8 +1367,13 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 	const { isLocal } = input;
 	const runs = getRuns(input);
 
-	runs.forEach(({ from, to }) => {
-		describe(`Migrating from ${from} to ${to}`, () => {
+	runs.forEach(({ from, to }, index) => {
+		if (index !== 0) {
+			return;
+		}
+		describe(`Migrating from ${from} to ${to}`, function() {
+			this.retries(2);
+
 			doTestsFromTo(from, to, isLocal);
 		});
 	});
