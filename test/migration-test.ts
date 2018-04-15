@@ -54,6 +54,12 @@ global.Promise = _promise;
 const copydir: (fromDir: string, toDir: string, 
 	callback: (err?: Error) => void) => void = require('copy-dir');
 const github = new octokit();
+if (process.env.TRAVIS) {
+	github.authenticate({
+		type: 'oauth',
+		token: process.env.GITHUB_ACCESS_TOKEN
+	});
+}
 
 type StringifedFunction<RETVAL> = string & {
 	__fn: RETVAL;
