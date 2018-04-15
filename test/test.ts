@@ -1447,25 +1447,15 @@ const backgroundPageWindow: GlobalObject & {
 } as any;
 console.log('Please make sure you have an internet connection as some tests use XHRs');
 describe('Meta', () => {
-	let changelogCode: string;
-	step('should be able to read changelog.js', () => {
-		assert.doesNotThrow(() => {
-			const filePath = path.join(__dirname, '../', './app/elements/change-log/changelog.js');
-			changelogCode = fs.readFileSync(filePath, {
-				encoding: 'utf8'
-			});
-		}, 'File changelog.js is readable');
-	});
-	step('should be able to execute changelog.js', () => {
-		assert.doesNotThrow(() => {
-			eval(changelogCode);
-		}, 'File changelog.js is runnable');
-	});
+	let changelog: {
+		[version: string]: string[];
+	}
 	step('changelog should be defined', () => {
-		assert.isDefined(window.changelogLog, 'window.changelogLog is defined');
+		changelog = require('../app/elements/change-log/change-log');
+		assert.isDefined(changelog, 'changelogLog is defined');
 	});
 	step('current manifest version should have a changelog entry', () => {
-		assert.isDefined(window.changelogLog[chrome.runtime.getManifest().version],
+		assert.isDefined(changelog[chrome.runtime.getManifest().version],
 			'Current manifest version has a changelog entry');
 	});
 });
