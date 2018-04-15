@@ -263,18 +263,11 @@ function getRuns(input: Input): {
 	}[] = [];
 	const { from, to } = getFromTo(input);
 	const between = getAllBetween(from, to);
-	for (const minor of between) {
-		if (minor === 'current') {
-			continue;
-		}
-		for (const major of between) {
-			if (major === 'current' || semver.gt(major, minor)) {
-				runs.push({
-					from: minor,
-					to: major
-				});
-			}
-		}
+	for (let i = 0 ; i < between.length - 1; i++) {
+		runs.push({
+			from: between[i],
+			to: between[between.length - 1]
+		});
 	}
 	return runs;
 }
