@@ -4,6 +4,9 @@ const extractZip: (zipPath: string, opts: {
 	defaultFileMode?: number;
 	onEntry?: (entry: string, zipfile: any) => void;
 }, cb: (err?: Error) => void) => void = require('extract-zip');
+const versions: {
+	[version: string]: string[];
+} = require('../app/elements/change-log/changelog');
 import * as chromeExtensionData from './UI/drivers/chrome-extension';
 import * as chromeDriver from 'selenium-webdriver/chrome';
 import * as webdriver from 'selenium-webdriver';
@@ -63,38 +66,234 @@ declare class TypedWebdriver extends webdriver.WebDriver {
 }
 
 const ROOT = path.join(__dirname, '../');
+const ZIP_CACHE_DIR = path.join(ROOT, 'temp/migration/cached/');
 const ZIP_PATH = path.join(ROOT, 'temp/migration/downloadedzip.zip');
 
-function getInput() {
-	if (process.argv.indexOf('--from') === -1 || !process.argv[process.argv.indexOf('--from') + 1]) {
-		process.stderr.write('Please provide a --from parameter');
+function checkVersionArgs(fromName: string, toName: string) {
+	if (process.argv.indexOf(fromName) === -1 && 
+		!process.argv[process.argv.indexOf(fromName) + 1]) {
+			process.stderr.write(`Please provide an argument for ${fromName}\n`);
+			process.exit(1);
+		}
+	if (process.argv.indexOf(toName) === -1 &&
+		!process.argv[process.argv.indexOf(toName) + 1]) {
+			process.stderr.write(`Please provide an argument for ${toName}\n`);
+			process.exit(1);
+		}
+
+	const fromIndex = process.argv.indexOf(fromName);
+	const toIndex = process.argv.indexOf(toName);
+
+	if ((fromIndex === -1) !== (toIndex === -1)) {
+		process.stderr.write(`Please provide both a ${fromName} and a ${
+			toName} parameter or neither\n`);
 		process.exit(1);
 	}
-	if (process.argv.indexOf('--to') === -1 || !process.argv[process.argv.indexOf('--to') + 1]) {
-		process.stderr.write('Please provide a --to parameter');
+
+	if (fromIndex === -1 || toIndex === -1) {
+		return {
+			enabled: false,
+			from: '',
+			to: ''
+		}
+	}
+
+	const from = process.argv[process.argv.indexOf(fromName) + 1];
+	const to = process.argv[process.argv.indexOf(toName) + 1];
+
+	if (!!from !== !!to) {
+		process.stderr.write(`Please provide both a ${fromName} and a ${
+			toName} parameter\n`);
 		process.exit(1);
 	}
-	const from = process.argv[process.argv.indexOf('--from') + 1];
-	const to = process.argv[process.argv.indexOf('--to') + 1];
-	const testLocal = process.argv.indexOf('--remote') === -1;
+
+	if (!from || !to) {
+		return {
+			enabled: false,
+			from: '',
+			to: ''
+		}
+	}
 
 	if (semver.lt(from, '2.0.12') || (to !== 'current' && semver.lt(to, '2.0.12'))) {
-		process.stderr.write('Please only test versions above 2.0.12');
+		process.stderr.write('Please only test versions above 2.0.12\n');
 		process.exit(1);
 	}
-	
+
 	return {
-		from, to, isLocal: testLocal
+		enabled: true,
+		from,
+		to
 	}
 }
 
+interface Input {
+    isLocal: boolean;
+    fromToInput: {
+        enabled: boolean;
+        from: string;
+        to: string;
+    };
+    fromAllToAllInput: {
+        enabled: boolean;
+        from: string;
+        to: string;
+	};
+	allToLatest: boolean;
+	allToCurrent: boolean;
+}
+
+function printHelp() {
+	process.stderr.write('Please provide a from-to input method\n');
+	process.stderr.write('Either provide one of these forms:\n' + 
+		'--from {minor} and --to {major} - For testing migration from minor to major' + 
+		'--from-all {version} and --to-all {version} - For testing migration for all versions ' + 
+			'between and including from minor to major\n' +
+		'--all-to-current - For testing all versions from the first to the current build\n' + 
+		'--all-to-latest - For testing all versions from the first to the last release');
+}
+
+function getInput(): Input {
+	if (process.argv.indexOf('-h') > -1) {
+		printHelp();
+		process.exit(0);
+	}
+
+	const fromAllToAllInput = checkVersionArgs('--from-all', '--to-all');
+	const allToCurrent = process.argv.indexOf('--all-to-current') !== -1;
+	const allToLatest = process.argv.indexOf('--all-to-latest') !== -1
+	const fromToInput = checkVersionArgs('--from', '--to');
+
+	if (!fromAllToAllInput.enabled && !allToCurrent &&
+		!allToLatest && !fromToInput.enabled) {
+			printHelp();
+			process.exit(1);
+		}
+
+	const testLocal = process.argv.indexOf('--remote') !== -1;
+	
+	return {
+		isLocal: testLocal,
+		fromToInput,
+		fromAllToAllInput,
+		allToLatest, 
+		allToCurrent
+	}
+}
+
+function getSortedVersions() {
+	return Object.getOwnPropertyNames(versions)
+		.filter((version) => {
+			return semver.gt(version, '2.0.11');
+		}).sort((a, b) => {
+			if (semver.eq(a, b)) {
+				return 0;
+			}
+			return semver.lt(a, b) ? 
+				-1 : 1;
+		});
+}
+
+function getAllBetween(from: string, to: string) {
+	const versionsBetween: string[] = [];
+	let started: boolean = false;
+	for (const version of getSortedVersions()) {
+		if (!started) {
+			if (semver.eq(from, version)) {
+				started = true;
+			}
+		} else if (to !== 'current') {
+			if (version === 'current' || semver.eq(to, version)) {
+				return versionsBetween;
+			}
+		}
+		if (started) {
+			versionsBetween.push(version);
+		}
+	}
+	if (to === 'current') {
+		return [...versionsBetween, 'current'];
+	}
+	return versionsBetween;
+}
+
+function getFromTo({
+	fromAllToAllInput,
+	allToCurrent,
+	allToLatest	
+}: Input): {
+	from: string;
+	to: string;
+} {
+	if (fromAllToAllInput.enabled) {
+		const { from, to } = fromAllToAllInput;
+		return {
+			from, to
+		}
+	}
+
+	const allVersions = getSortedVersions();
+	if (allToLatest) {
+		return {
+			from: allVersions[0],
+			to: allVersions.pop()
+		}
+	} else {
+		return {
+			from: allVersions[0],
+			to: 'current'
+		}
+	}
+}
+
+function getRuns(input: Input): {
+	from: string;
+	to: string;
+}[] {
+	if (input.fromToInput.enabled) {
+		const { from, to } = input.fromToInput;
+		return [{
+			from, to
+		}];
+	}
+
+	const runs: {
+		from: string;
+		to: string;
+	}[] = [];
+	const { from, to } = getFromTo(input);
+	const between = getAllBetween(from, to);
+	for (const minor of between) {
+		if (minor === 'current') {
+			continue;
+		}
+		for (const major of between) {
+			if (major === 'current' || semver.gt(major, minor)) {
+				runs.push({
+					from: minor,
+					to: major
+				});
+			}
+		}
+	}
+	return runs;
+}
+
+const cachedPages: {
+	[page: number]: any;
+} = {};
 async function getReleasesPage(page: number) {
-	return await github.repos.getReleases({
+	if (cachedPages[page]) {
+		return cachedPages[page];
+	}
+	const releases = await github.repos.getReleases({
 		owner: 'SanderRonde',
 		repo: 'CustomRightClickMenu',
 		page: page,
 		per_page: 100
 	});
+	cachedPages[page] = releases;
+	return releases;
 }
 
 function findVersionInReleases(version: string, releases: any[]) {
@@ -155,23 +354,39 @@ function writeFile(filePath: string, data: string, options: {
 	});
 }
 
-
+const cachedDownloads: string[] = [];
 function downloadZip(url: string) {
 	return new Promise((resolve, reject) => {
-		request({
-			url: url,
-			encoding: null
-		}, async (err, resp, body) => {
-			if (err) {
-				reject(err);
-				return;
-			}
-			await assertDir(path.dirname(ZIP_PATH));
-			await writeFile(ZIP_PATH, body, {
-				encoding: 'utf8'
+		if (cachedDownloads.indexOf(url) > -1) {
+			const readStream = fs.createReadStream(
+				path.join(ZIP_CACHE_DIR, `${cachedDownloads.indexOf(url)}.zip`));
+			const writeStream = fs.createWriteStream(ZIP_PATH);
+			readStream.pipe(writeStream).once('close', () => {
+				resolve(null);
 			});
-			resolve(null);
-		});
+		} else {
+			request({
+				url: url,
+				encoding: null
+			}, async (err, resp, body) => {
+				if (err) {
+					reject(err);
+					return;
+				}
+				await assertDir(path.dirname(ZIP_PATH));
+				await writeFile(ZIP_PATH, body, {
+					encoding: 'utf8'
+				});
+
+				await assertDir(ZIP_CACHE_DIR);
+				const index = cachedDownloads.push(url) - 1;
+				await writeFile(path.join(ZIP_CACHE_DIR, `${index}.zip`), 
+					body, {
+						encoding: 'utf8'
+					});
+				resolve(null);
+			});
+		}
 	});
 }
 
@@ -312,9 +527,7 @@ async function openDialog(driver: TypedWebdriver, index: number) {
 	}));
 }
 
-(() => {
-	const { from, to, isLocal } = getInput();
-
+function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 	before('Clear migration directory', async () => {
 		await del(path.join(ROOT, 'temp/migration/'));
 	});
@@ -652,7 +865,7 @@ async function openDialog(driver: TypedWebdriver, index: number) {
 							afterEach(async function() {
 								this.timeout(10000);
 
-								await wait(1000);
+								await wait(500);
 							})
 							it('should be possible to set the name', async () => {
 								name = `name${index}`;
@@ -1150,5 +1363,17 @@ async function openDialog(driver: TypedWebdriver, index: number) {
 	});
 	after('Quit driver', async () => {	
 		await driver.quit();
+	});
+}
+
+(() => {
+	const input = getInput();
+	const { isLocal } = input;
+	const runs = getRuns(input);
+
+	runs.forEach(({ from, to }) => {
+		describe(`Migrating from ${from} to ${to}`, () => {
+			doTestsFromTo(from, to, isLocal);
+		});
 	});
 })();
