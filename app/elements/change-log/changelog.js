@@ -1,7 +1,7 @@
-﻿(function () {
+﻿//@ts-check
+(function (config) {
 	'use strict';
-	//@ts-ignore
-	window.changelogLog = {
+	const changelog = {
 		'2.0.0': [
 			'Revamped the UI',
 			'Rewrote the entire extension',
@@ -119,4 +119,16 @@
 			'Plenty of bug fixes and improvements to code legibility and documentation'
 		]
 	};
-}());
+
+	if (config.isModule) {
+		config.global.exports = changelog;
+	} else {
+		config.global.changelogLog = changelog;
+	}
+}(typeof module !== 'undefined' ? {
+	isModule: true,
+	global: module
+} : {
+	isModule: false,
+	global: window
+}));
