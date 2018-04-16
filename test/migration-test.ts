@@ -1406,9 +1406,6 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 	const runs = getRuns(input);
 
 	runs.forEach(({ from, to }, index) => {
-		if (index !== 0) {
-			return;
-		}
 		describe(`Migrating from ${from} to ${to}`, function() {
 			this.retries(2);
 
