@@ -166,7 +166,8 @@
     "build-opera": "gulp stashBrowser && gulp browserOpera && gulp build && gulp copy:buildToOpera",
     "test-local": "yarn pretest && yarn test:global",
     "test-build": "gulp stashBrowser && gulp browserChrome && gulp testBuild",
-    "test-migration": "yarn pretest && mocha test/migration-test.js --all-to-current --chrome-latest",
+    "test-migration:2.0.12-2.0.19": "mocha test/migration-test.js --chrome-latest --from-all 2.0.12 --to-all 2.0.19 --target current",
+    "test-migration": "yarn pretest && yarn test-migration:2.0.12-2.0.19",
     "package": "gulp genCRX && gulp genXPI",
     "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'app/bower_components', 'junction') } catch (e) { }\""
   },
