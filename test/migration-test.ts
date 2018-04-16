@@ -619,7 +619,7 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 	describe('Getting and setting storage', () => {
 		describe('Loading page', () => {
 			it('should be possible to set up "from" selenium instance', async function() {
-				this.timeout(20000);
+				this.timeout(60000);
 				this.slow(5000);
 				driver = await setupExtensionOptionsPageInstance(
 					path.join(ROOT, 'temp/migration/from.crx'), isLocal);
@@ -1181,16 +1181,16 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 				}));
 			});
 			it('should be possible to quit the selenium instance', async function() {
-				this.timeout(250);
-				this.slow(150);
+				this.timeout(60000);
+				this.slow(10000);
 
 				await driver.quit();
 			});
 		});
 		describe('Loading "to" version', () => {
 			it('should be possible to set up "to" selenium instance', async function() {
-				this.timeout(5000);
-				this.slow(4000);
+				this.timeout(60000);
+				this.slow(10000);
 
 				driver = await setupExtensionOptionsPageInstance(
 					path.join(ROOT, 'temp/migration/to.crx'), isLocal);
@@ -1392,7 +1392,10 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 			});
 		});
 	});
-	after('Quit driver', async () => {	
+	after('Quit driver', async function() {	
+		this.timeout(60000);
+		this.slow(10000);
+
 		await driver.quit();
 	});
 }
