@@ -298,10 +298,15 @@ function getRuns(input: Input): {
 			` skipping it only\n`);
 	}
 
-	for (let i = 0 ; i < between.length - 1; i++) {
+	const target = process.argv.indexOf('--target') !== -1 ?
+		process.argv[process.argv.indexOf('--target') + 1] :
+		between[between.length - 1];
+	const len = target === between[between.length - 1] ? 
+		between.length - 1 : between.length;
+	for (let i = 0 ; i < len; i++) {
 		runs.push({
 			from: between[i],
-			to: between[between.length - 1]
+			to: target
 		});
 	}
 	return runs;
