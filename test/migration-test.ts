@@ -749,35 +749,45 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 							window.app.editCRM.shadowRoot &&
 								window.app.editCRM.shadowRoot
 								.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>
-						].filter(val => !!val).forEach((selection) => {
+						].filter(val => !!val).forEach((editCrmItem) => {
 							[
-								selection && 
-									selection[REPLACE.index] && 
-									selection[REPLACE.index].querySelector('type-switcher'),
-								selection && 
-									selection[REPLACE.index] && 
-									selection[REPLACE.index].shadowRoot &&
-									selection[REPLACE.index].shadowRoot.querySelector('type-switcher')
-							].filter(val => !!val).forEach((selection) => {
+								editCrmItem && 
+									editCrmItem[REPLACE.index] && 
+									editCrmItem[REPLACE.index].querySelector('type-switcher'),
+								editCrmItem && 
+									editCrmItem[REPLACE.index] && 
+									editCrmItem[REPLACE.index].shadowRoot &&
+									editCrmItem[REPLACE.index].shadowRoot.querySelector('type-switcher')
+							].filter(val => !!val).forEach((typeSwitcher: TypeSwitcher) => {
+								switch (REPLACE.versionFrom) {
+									case '2.0.15':
+									case '2.0.16':
+									case '2.0.17':
+										editCrmItem && editCrmItem[REPLACE.index] &&
+											(editCrmItem[REPLACE.index].$.typeSwitcher = 
+												typeSwitcher);
+								};
+
 								[
-									selection && 
-										selection
+									typeSwitcher && 
+										typeSwitcher
 											.querySelector('.typeSwitchChoice[type="REPLACE.type"]') as HTMLElement,
-									selection && 
-										selection.shadowRoot &&
-										selection.shadowRoot
+									typeSwitcher && 
+										typeSwitcher.shadowRoot &&
+										typeSwitcher.shadowRoot
 											.querySelector('.typeSwitchChoice[type="REPLACE.type"]') as HTMLElement
-								].filter(val => !!val).forEach((selection) => {
-									selection.click();
+								].filter(val => !!val).forEach((typeSwitchChoice) => {
+									typeSwitchChoice.click();
 								});
 							});
-							selection && selection[REPLACE.index] && 
-								selection[REPLACE.index].typeIndicatorMouseLeave();
+							editCrmItem && editCrmItem[REPLACE.index] && 
+								editCrmItem[REPLACE.index].typeIndicatorMouseLeave();
 						});
 						return window.app.settings.crm[REPLACE.index].type === 'REPLACE.type' as CRM.NodeType;
 					}, {
 						type,
-						index
+						index,
+						versionFrom: from
 					}));
 
 					assert.isTrue(typesMatch, 'new type matches expected');
