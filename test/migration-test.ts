@@ -211,7 +211,7 @@ function getAllBetween(from: string, to: string) {
 				started = true;
 			}
 		} else if (to !== 'current') {
-			if (version === 'current' || semver.gte(to, version)) {
+			if (version === 'current' || semver.gte(version, to)) {
 				return versionsBetween;
 			}
 		}
