@@ -90,39 +90,39 @@
 			'Fixed cancelling selection',
 			'Fixed type switching animation'
 		],
-		// '2.1.0': [
-		// 	'Uses polymer 2 instead of polymer 1 (25% faster loading)',
-		// 	'Works on multiple browsers now (chrome, firefox, edge and opera)',
-		// 	'Uses the monaco editor instead of codemirror, featuring better code completion and features overall',
-		// 	'Supports writing scripts in [typescript](https://www.typescriptlang.org/) and compiling them in-extension',
-		// 	'Supports typescript libraries and includes code completion for them as well',
-		// 	'Added a "libraries" tab in the script dialog for quick toggling of libraries',
-		// 	'Libraries can be edited and/or removed',
-		// 	'Uses [TypeDoc](http://typedoc.org/) for documentation instead',
-		// 	'Added the ' + 
-		// 		'[crmAPI.storageSync](https://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html#storagesync)' + 
-		// 		' API for syncing your script\'s storage across browser instances',
-		// 	'Added the ' + 
-		// 		'[crmAPI.browser](https://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html#browser)' +
-		// 		' API which combines the [webExtensions](https://developer.mozilla.org/nl/Add-ons/WebExtensions)' + 
-		// 		' and [crmAPI.chrome](https://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html#chrome)' + 
-		// 		' functionalities',
-		// 	'All callback-based crmAPI functions now also return a promise',
-		// 	'Added the ' +
-		// 		'[crmAPI.contextMenuItem](https://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html#contextmenuitem)' + 
-		// 		' API for changing the contextmenu item\'s look,' +
-		// 		' such as adding/removing a checkmark, changing the title, disabling or hiding it',
-		// 	'Added the lastError, instanceId, chromeAPISupported and browserAPISupported properties' + 
-		// 		' to the crmAPI object',
-		// 	'Added better code completion for the CRM API',
-		// 	'The script and stylesheet options tab has better code completion',
-		// 	'It\'s now possible to create contextmenu items as a script',
-		// 	'Removed the external editor\'s functionality as chrome apps are being [deprecated](https://blog.chromium.org/2016/08/from-chrome-apps-to-web.html)',
-		// 	'Added some more options to the "get page property" ribbon tool',
-		// 	'Added support for a more programmatic way of editing the CRM through window.consoleInfo()',
-		// 	'Reversed changelog order so the newest changes are on top',
-		// 	'Plenty of bug fixes and improvements to code legibility and documentation'
-		// ]
+		'2.1.0': [
+			'Uses polymer 2 instead of polymer 1 (25% faster loading)',
+			'Works on multiple browsers now (chrome, firefox, edge and opera)',
+			'Uses the monaco editor instead of codemirror, featuring better code completion and features overall',
+			'Supports writing scripts in [typescript](https://www.typescriptlang.org/) and compiling them in-extension',
+			'Supports typescript libraries and includes code completion for them as well',
+			'Added a "libraries" tab in the script dialog for quick toggling of libraries',
+			'Libraries can be edited and/or removed',
+			'Uses [TypeDoc](http://typedoc.org/) for documentation instead',
+			'Added the ' + 
+				'[crmAPI.storageSync](https://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html#storagesync)' + 
+				' API for syncing your script\'s storage across browser instances',
+			'Added the ' + 
+				'[crmAPI.browser](https://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html#browser)' +
+				' API which combines the [webExtensions](https://developer.mozilla.org/nl/Add-ons/WebExtensions)' + 
+				' and [crmAPI.chrome](https://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html#chrome)' + 
+				' functionalities',
+			'All callback-based crmAPI functions now also return a promise',
+			'Added the ' +
+				'[crmAPI.contextMenuItem](https://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html#contextmenuitem)' + 
+				' API for changing the contextmenu item\'s look,' +
+				' such as adding/removing a checkmark, changing the title, disabling or hiding it',
+			'Added the lastError, instanceId, chromeAPISupported and browserAPISupported properties' + 
+				' to the crmAPI object',
+			'Added better code completion for the CRM API',
+			'The script and stylesheet options tab has better code completion',
+			'It\'s now possible to create contextmenu items as a script',
+			'Removed the external editor\'s functionality as chrome apps are being [deprecated](https://blog.chromium.org/2016/08/from-chrome-apps-to-web.html)',
+			'Added some more options to the "get page property" ribbon tool',
+			'Added support for a more programmatic way of editing the CRM through window.consoleInfo()',
+			'Reversed changelog order so the newest changes are on top',
+			'Plenty of bug fixes and improvements to code legibility and documentation'
+		]
 	};
 
 	return changelog;
