@@ -1,5 +1,10 @@
 ﻿//@ts-check
-(function (config) {
+((cl) => {
+	typeof module !== 'undefined' ? 
+		module.exports = cl : 
+		//@ts-ignore
+		window.changelogLog = cl;
+})(function (config) {
 	'use strict';
 	const changelog = {
 		'2.0.0': [
@@ -120,15 +125,5 @@
 		// ]
 	};
 
-	if (config.isModule) {
-		config.global.exports = changelog;
-	} else {
-		config.global.changelogLog = changelog;
-	}
-}(typeof module !== 'undefined' ? {
-	isModule: true,
-	global: module
-} : {
-	isModule: false,
-	global: window
-}));
+	return changelog;
+}());
