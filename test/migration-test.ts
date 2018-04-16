@@ -156,7 +156,7 @@ function printHelp() {
 		'--from-all {version} and --to-all {version} - For testing migration for all versions ' + 
 			'between and including from minor to major\n' +
 		'--all-to-current - For testing all versions from the first to the current build\n' + 
-		'--all-to-latest - For testing all versions from the first to the last release');
+		'--all-to-latest - For testing all versions from the first to the last release\n');
 }
 
 function getInput(): Input {
@@ -266,14 +266,14 @@ function getRuns(input: Input): {
 			process.stdout.write(`Version ${from} is not a valid release\n`);	
 			process.stdout.write(`Choose from:\n${sortedVersions.map((version) => {
 				`- ${version}`
-			}).join('\n')}`);
+			}).join('\n')}\n`);
 			process.exit(1);
 		}
 		if (sortedVersions.indexOf(to) === -1) {
 			process.stdout.write(`Version ${to} is not a valid release\n`);	
 			process.stdout.write(`Choose from:\n${sortedVersions.map((version) => {
 				`- ${version}`
-			}).join('\n')}`);
+			}).join('\n')}\n`);
 			process.exit(1);
 		}
 
@@ -436,7 +436,7 @@ function unpackZip(dest: string): Promise<void> {
 async function loadSourceCodeToDir(version: string, dest: string) {
 	const url = await getVersionURL(version);
 	if (!url) {
-		process.stderr.write('Failed to find release');
+		process.stderr.write('Failed to find release\n');
 		process.exit(1);
 	}
 	await downloadZip(url);
