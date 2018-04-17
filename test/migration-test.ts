@@ -759,7 +759,7 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 									editCrmItem[REPLACE.index].shadowRoot &&
 									editCrmItem[REPLACE.index].shadowRoot.querySelector('type-switcher')
 							].filter(val => !!val).forEach((typeSwitcher: TypeSwitcher) => {
-								switch (REPLACE.versionFrom) {
+								switch ("REPLACE.versionFrom" as any) {
 									case '2.0.15':
 									case '2.0.16':
 									case '2.0.17':
