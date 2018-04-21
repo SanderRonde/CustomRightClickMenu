@@ -16,7 +16,9 @@
 			<div id="fullscreenEditor">
 				<div id="editorCurrentScriptTitle">
 					<div id="showHideToolsRibbonCont">
-						<paper-icon-button title="tools" id="showHideToolsRibbonButton" icon="menu" on-tap="domListener" data-on-tap="toggleToolsRibbon"></paper-icon-button>							
+						<paper-icon-button title="tools" id="showHideToolsRibbonButton" 
+							icon="menu" on-tap="domListener" data-on-tap="toggleToolsRibbon">
+						</paper-icon-button>							
 					</div>
 					<div id="editorTitleRibbon">
 						<span id="ribbonScriptName" hidden$="[[!scriptItem]]"></span>
@@ -118,11 +120,18 @@
 						<div main-title class="title">[[_getPageTitle()]]</div>
 					</app-toolbar>
 					<template is="dom-if" if="[[_isOldChrome()]]">
-						<div class="badBrowserBanner">You are using a very old version of Chrome (<span>[[_getChromeAge()]]</span> years old).
-							Some features may perform worse or not at all. Please consider updating your chrome.</div>
+						<div class="badBrowserBanner">
+							You are using a very old version of 
+							Chrome (<span>[[_getChromeAge()]]</span> years old).
+							Some features may perform worse or not at all. Please consider 
+							updating your chrome.</div>
 					</template>
 					<template is="dom-if" if="[[_isEdge()]]">
-						<div class="badBrowserBanner">You are using Edge. Please consider switching to a better browser (like Chrome) as some features may perform worse or not at all.</div>
+						<div class="badBrowserBanner">
+							You are using Edge. Please consider switching 
+							to a better browser (like Chrome) as some features may perform worse or
+							not at all.
+						</div>
 					</template>
 				</app-header>
 				<div class="container">
@@ -133,22 +142,31 @@
 						</div>
 						<div class="options">
 							<paper-toggle-option id="catchErrors">
-								Catch errors in scripts and log them. If off, allows for easier debugging using chrome's "pause on exceptions", if on, allows for custom handling.
+								Catch errors in scripts and log them. If off, 
+								allows for easier debugging using chrome's 
+								"pause on exceptions", if on, allows for custom handling.
 							</paper-toggle-option>
 							<paper-toggle-option id="showOptions">
 								Show options link in right-click menu
 							</paper-toggle-option>
 							<paper-toggle-option id="recoverUnsavedData">
-								Prompt you with an option to recover your unsaved script after you close a script/stylesheet without hitting the "save" or "exit" button.
+								Prompt you with an option to recover your 
+								unsaved script after you close a script/stylesheet 
+								without hitting the "save" or "exit" button.
 							</paper-toggle-option>
 							<paper-toggle-option id="CRMOnPage" showmessage disabledreason="Can't disable demo contextmenu in demo mode">
-								Use your custom right-click menu on this page as a preview instead of chrome's regular one.
+								Use your custom right-click menu on this page as 
+								a preview instead of chrome's regular one.
 							</paper-toggle-option>
 							<paper-toggle-option id="editCRMInRM">
-								Edit the custom right-click Menu by clicking on the respective elements when right-clicking on this page
+								Edit the custom right-click Menu by clicking on the 
+								respective elements when right-clicking on this page
 							</paper-toggle-option>
 							<paper-toggle-option id="useStorageSync">
-								Sync your storage across all chrome instances signed in to this account using chrome storage sync. Turning this on will limit your total CRM size (including scripts, excluding libraries) to a total of 102,400 bytes. Currently using
+								Sync your storage across all chrome instances signed 
+								in to this account using chrome storage sync. Turning 
+								this on will limit your total CRM size (including scripts, 
+								excluding libraries) to a total of 102,400 bytes. Currently using
 								<span style$="{{_getSettingsJsonLengthColor(settingsJsonLength)}}">{{_placeCommas(settingsJsonLength)}}</span>/102,400 bytes
 							</paper-toggle-option>
 							<paper-button on-tap="domListener" data-on-tap="showManagePermissions" raised class="blue">Manage Permissions</paper-button>
@@ -244,7 +262,10 @@
 							Commonly Used Links
 						</div>
 						<div class="defaultsDescr">
-							Here are some commonly used links to get you started. Click the "ADD" button to add the link to your custom right-click menu. It will be added at the end of the list but you can always change the order later if you want.
+							Here are some commonly used links to get you started. 
+							Click the "ADD" button to add the link to your custom 
+							right-click menu. It will be added at the end of the 
+							list but you can always change the order later if you want.
 						</div>
 						<br />
 						<div class="defaultLinks">
@@ -265,7 +286,11 @@
 							Commonly Used Search Engines
 						</div>
 						<div class="defaultsDescr">
-							These are some commonly used search-engines. Click "ADD" to add the search-engine to your CRM. You can then drag the script anywhere you want it to be. You can also change the name you want it to have below or do it when it's already in your CRM.
+							These are some commonly used search-engines.
+							Click "ADD" to add the search-engine to your CRM. You can 
+							then drag the script anywhere you want it to be. You can 
+							also change the name you want it to have below or do it 
+							when it's already in your CRM.
 						</div>
 						<div class="defaultSearchEngines">
 							<default-link search-engine href="https://www.google.com/search?q=%s" default-name="Google"></default-link>
@@ -279,18 +304,28 @@
 							Launching programs instead of links
 						</div>
 						<div class="URISchemeDescr">
-							You may want to launch programs on your computer as well, instead of only using links.
-							This is possible, but requires a bit of extra effort because of chrome's security restrictions.
-							Directly linking to files on your computer to open them is not possible (at least not for executable programs),
-							this is why you'll need to set up a custom (local only) URI that launches the program you want to launch.
-							If you want to read up about it some more check out <a href="https://msdn.microsoft.com/en-us/library/aa767914(VS.85).aspx" rel="noopener" target="_blank">this</a> page.
-							To make this possible you'll need to add a key/value pair in your registry. After doing this, instead of http:// use yourscheme:// as a link.<br>
+							You may want to launch programs on your computer as well, 
+							instead of only using links.
+							This is possible, but requires a bit of extra effort because 
+							of chrome's security restrictions.
+							Directly linking to files on your computer to open them is 
+							not possible (at least not for executable programs),
+							this is why you'll need to set up a custom (local only) URI 
+							that launches the program you want to launch.
+							If you want to read up about it some more check out 
+							<a href="https://msdn.microsoft.com/en-us/library/aa767914(VS.85).aspx" rel="noopener" target="_blank">this</a> page.
+							To make this possible you'll need to add a key/value 
+							pair in your registry. After doing this, 
+							instead of http:// use yourscheme:// as a link.<br>
 							If you are on a mac you can use
 							<a rel="noopener" href="https://support.shotgunsoftware.com/hc/en-us/community/posts/209485898-Launching-External-Applications-using-Custom-Protocols-under-OSX" target="_blank">this</a>
 							method. If you are on a windows computer you can do this yourself if you
-							want to (follow <a href="https://support.microsoft.com/nl-nl/kb/310516" rel="noopener" target="_blank">these</a> instructions),
-							or you can generate a file you can download that will write the key/value pair for you by hitting the button below.
-							The second method is a lot easier and faster but it's understandable if you don't trust this extension in which case you can do it manually.
+							want to (follow 
+							<a href="https://support.microsoft.com/nl-nl/kb/310516" rel="noopener" target="_blank">these</a> instructions),
+							or you can generate a file you can download that will 
+							write the key/value pair for you by hitting the button below.
+							The second method is a lot easier and faster but it's 
+							understandable if you don't trust this extension in which case you can do it manually.
 						</div>
 						<div class="URISchemeGenerator">
 							<paper-input id="URISchemeFilePath" label="File path including name" value="C:\files\my_file.exe"></paper-input>
@@ -304,7 +339,13 @@
 							Global Excludes
 						</div>
 						<div class="globalExcludesDescr">
-							There are some sites on which you don't want any script to run on such as paypal and your bank's website, below you can enter these sites to make sure that no CRM script is ever ran on that page unless you specifically clicked on it. URLs must be specified as follows <a href="https://developer.chrome.com/extensions/match_patterns" rel="noopener" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
+							There are some sites on which you don't want any 
+							script to run on such as paypal and your bank's website, 
+							below you can enter these sites to make sure that no 
+							CRM script is ever ran on that page unless you 
+							specifically clicked on it. URLs must be specified 
+							as follows 
+							<a href="https://developer.chrome.com/extensions/match_patterns" rel="noopener" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
 						</div>
 						<div class="globalExcludesItems">
 							<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
@@ -322,11 +363,16 @@
 							Importing your settings
 						</div>
 						<div class="importDescr">
-							Here you can import your settings or CRM nodes from somewhere else. Simply copy the code into the box below and hit "import". Checking "overwrite" will overwrite your current settings and/or CRM with the settings you imported.
+							Here you can import your settings or CRM nodes from 
+							somewhere else. Simply copy the code into the box below 
+							and hit "import". Checking "overwrite" will overwrite 
+							your current settings and/or CRM with the settings you imported.
 						</div>
 						<div class="importSettings">
 							<textarea rows="10" id="importSettingsInput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
-							<span id="importSettingsError">Something went wrong processing the data, please check the data</span>
+							<span id="importSettingsError">
+								Something went wrong processing the data, please check the data
+							</span>
 						</div>
 						<paper-checkbox checked id="overWriteImport">Overwrite</paper-checkbox>
 						<paper-checkbox id="oldCRMImport">CRM 1.0</paper-checkbox>
@@ -339,7 +385,10 @@
 							Exporting your settings
 						</div>
 						<div class="exportDescr">
-							Here you can export your settings and/or CRM. To export select CRM nodes hit the "select" button below the editor above and hit export. Paste the generated data into a different instance's "import" field to import the data.
+							Here you can export your settings and/or CRM. To export select 
+							CRM nodes hit the "select" button below the editor above and 
+							hit export. Paste the generated data into a different 
+							instance's "import" field to import the data.
 						</div>
 						<div class="exportSettings">
 							<center-element id="exportSettingsSpinner" nostyle hide>
@@ -379,10 +428,13 @@
 							Privacy Policy
 						</div>
 						<div class="privacyPolicyDescr">
-							This extension does not store personally identifiable information. It also doesn't store your data on any servers except google's.
-							This extension uses google's <a href="https://developer.chrome.com/extensions/storage" rel="noopener" target="_blank">chrome.storage.sync</a> to sync your
-							data across devices. This data only consists of your custom right-click menu and its settings. To turn off this feature, disable the
-							"use storage sync" checkbox at the top of this page.
+							This extension does not store personally identifiable information. 
+							It also doesn't store your data on any servers except google's.
+							This extension uses google's 
+							<a href="https://developer.chrome.com/extensions/storage" rel="noopener" target="_blank">chrome.storage.sync</a> 
+							to sync your data across devices. This data only consists of 
+							your custom right-click menu and its settings. To turn off 
+							this feature, disable the "use storage sync" checkbox at the top of this page.
 						</div>
 					</div>
 					<br /><br />
@@ -404,7 +456,14 @@
 							Contact
 						</div>
 						<div class="contactDescr">
-							If you have found any bugs, thought of any suggestions or have any other reason to contact me you can do so at <a rel="noopener" href="mailto:awsdfgvhbjn@gmail.com" target="_blank">awsdfgvhbjn@gmail.com</a>. To find out more about me, check out <a href="https://github.com/SanderRonde/" rel="noopener" target="_blank">my github page</a>. You can also check out the github repository over <a href="https://github.com/SanderRonde/CustomRightClickMenu" rel="noopener" target="_blank">here</a> if you want to report an issue, create a pull request, or just want to check out the code.
+							If you have found any bugs, thought of any suggestions or 
+							have any other reason to contact me you can do so at 
+							<a rel="noopener" href="mailto:awsdfgvhbjn@gmail.com" target="_blank">awsdfgvhbjn@gmail.com</a>. To 
+							find out more about me, check out 
+							<a href="https://github.com/SanderRonde/" rel="noopener" target="_blank">my github page</a>. You 
+							can also check out the github repository over 
+							<a href="https://github.com/SanderRonde/CustomRightClickMenu" rel="noopener" target="_blank">here</a> if you 
+							want to report an issue, create a pull request, or just want to check out the code.
 						</div>
 					</div>
 					<br /><br />
