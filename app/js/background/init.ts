@@ -12,7 +12,7 @@ import { Logging } from "./logging.js";
 import { Sandbox } from "./sandbox.js";
 import { Global } from "./global.js";
 import { CRMNodes } from "./crm.js";
-import { Caches } from "./cache";
+import { Caches } from "./cache.js";
 import { Info } from "./info.js";
 import { Util } from "./util.js";
 

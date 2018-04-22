@@ -1,5 +1,5 @@
 import { MessageHandling } from "./messagehandling.js";
-import { CRMAPIFunctions } from "./crmapifunctions";
+import { CRMAPIFunctions } from "./crmapifunctions.js";
 import { ModuleData } from "./moduleTypes";
 
 export namespace CRMAPICall {
