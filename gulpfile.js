@@ -142,7 +142,7 @@ function readFile(filePath, options) {
 										writeFile(file, html, {
 											encoding: 'utf8'
 										}),
-										writeFile(`${dir}${name}.js`, js, {
+										writeFile(path.join(dir, `${name}.js`), js, {
 											encoding: 'utf8'
 										}),
 									]);
