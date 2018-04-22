@@ -880,7 +880,7 @@ namespace CRMAppElement {
 							}
 						], {
 							duration: 250,
-							easing: 'bez',
+							easing: 'linear',
 							fill: 'both'
 						});
 					}
