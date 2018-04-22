@@ -846,13 +846,16 @@ namespace CRMAppElement {
 			return string.split('').reverse().join('');
 		};
 
-		private static _genRequestPermissionsHandler(this: CrmApp, overlay: HTMLPaperDialogElement, toRequest: Array<CRM.Permission>) {
+		private static _genRequestPermissionsHandler(this: CrmApp, overlayContainer: {
+			overlay: HTMLPaperDialogElement
+		}, toRequest: Array<CRM.Permission>) {
 			const fn = () => {
 				let el: HTMLElement & {
 					animation?: {
 						reverse?(): void;
 					}
 				}, svg;
+				const overlay = overlayContainer.overlay;
 				overlay.style.maxHeight = 'initial!important';
 				overlay.style.top = 'initial!important';
 				overlay.removeEventListener('iron-overlay-opened', fn);
@@ -1018,14 +1021,19 @@ namespace CRMAppElement {
 				}
 				const requestPermissionsOther = this.$$('#requestPermissionsOther');
 
-				let overlay: HTMLPaperDialogElement;
+				const overlayContainer: {
+					overlay: HTMLPaperDialogElement;
+				} = {
+					overlay: null
+				};
 
-				const handler = this._genRequestPermissionsHandler(overlay, toRequest);
+				const handler = this._genRequestPermissionsHandler(overlayContainer, toRequest);
 
 				const interval = window.setInterval(() => {
 					try {
 						const centerer = window.doc.requestPermissionsCenterer as CenterElement;
-						overlay = window.app.util.getQuerySlot()(centerer)[0] as HTMLPaperDialogElement
+						const overlay = overlayContainer.overlay = 
+							window.app.util.getQuerySlot()(centerer)[0] as HTMLPaperDialogElement;
 						if (overlay.open) {
 							window.clearInterval(interval);
 							const innerOverlay = window.app.util.getQuerySlot()(overlay)[0] as HTMLElement;
