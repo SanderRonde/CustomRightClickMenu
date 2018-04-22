@@ -3,7 +3,24 @@
 <head>
 	<meta charset="UTF-8">
 	<title>View your scripts' logs</title>
-	<style>
+	<style type="text/css">
+		::-webkit-scrollbar-thumb {
+			border-radius: 10px;
+			background-color: rgb(93,93,93);
+		}
+
+		::-webkit-scrollbar {
+			background-color: rgb(40,40,40);
+			border-radius: 10px;
+			width: 8px;
+		}
+
+		body {
+			font-size: 75%;
+			font-family: "Segoe UI", Tahoma, sans-serif;
+			margin: 0!important;
+		}
+
 		#splashScreen {
 			top: 0;
 			bottom: 0;
@@ -27,7 +44,6 @@
 	<link rel="import" href="../bower_components/polymer/lib/legacy/class.html" />
 	<link rel="import" href="../elements/log-page/log-page.html" />
 	<link rel="stylesheet" href="../fonts/fonts.css">
-	<link rel="stylesheet" href="../css/logging.css" />
 </head>
 <body style="margin: 0;">
 	<log-page></log-page>

@@ -282,7 +282,6 @@ function readFile(filePath, options) {
 				return gulp
 					.src([
 						'fonts/*',
-						'css/*',
 						'js/**/*',
 						'html/install.html', 
 						'html/logging.html', 
