@@ -1344,8 +1344,7 @@ export namespace Storages {
 			await browserAPI.storage.sync.set({
 				indexes: -1
 			});
-		}
-		else {
+		} else {
 			//Using chrome.storage.sync
 			if (settingsJson.length >= 101400) {
 				await browserAPI.storage.local.set({
