@@ -143,7 +143,7 @@
 						<div class="options">
 							<paper-toggle-option id="catchErrors">
 								Catch errors in scripts and log them. If off, 
-								allows for easier debugging using chrome's 
+								allows for easier debugging using your browser's 
 								"pause on exceptions", if on, allows for custom handling.
 							</paper-toggle-option>
 							<paper-toggle-option id="showOptions">
@@ -156,15 +156,15 @@
 							</paper-toggle-option>
 							<paper-toggle-option id="CRMOnPage" showmessage disabledreason="Can't disable demo contextmenu in demo mode">
 								Use your custom right-click menu on this page as 
-								a preview instead of chrome's regular one.
+								a preview instead of your browser's regular one.
 							</paper-toggle-option>
 							<paper-toggle-option id="editCRMInRM">
 								Edit the custom right-click Menu by clicking on the 
 								respective elements when right-clicking on this page
 							</paper-toggle-option>
 							<paper-toggle-option id="useStorageSync">
-								Sync your storage across all chrome instances signed 
-								in to this account using chrome storage sync. Turning 
+								Sync your storage across all browser instances signed 
+								in to this account using browser storage sync. Turning 
 								this on will limit your total CRM size (including scripts, 
 								excluding libraries) to a total of 102,400 bytes. Currently using
 								<span style$="{{_getSettingsJsonLengthColor(settingsJsonLength)}}">{{_placeCommas(settingsJsonLength)}}</span>/102,400 bytes
@@ -307,7 +307,7 @@
 							You may want to launch programs on your computer as well, 
 							instead of only using links.
 							This is possible, but requires a bit of extra effort because 
-							of chrome's security restrictions.
+							of browsers' security restrictions.
 							Directly linking to files on your computer to open them is 
 							not possible (at least not for executable programs),
 							this is why you'll need to set up a custom (local only) URI 
@@ -416,7 +416,7 @@
 						</div>
 						<div class="loggingDescr">
 							Clicking on this button will take you to a page where you can monitor your scripts' logs
-							from one central place. Think of it as a chrome dev tools for all your scripts and with
+							from one central place. Think of it as a dev tools for all your scripts and with
 							only your logs. <br />
 							To make your logs show up there, use <code class="codeSynthax">crmAPI.log</code> in your code.
 						</div>
@@ -430,8 +430,8 @@
 						<div class="privacyPolicyDescr">
 							This extension does not store personally identifiable information. 
 							It also doesn't store your data on any servers except google's.
-							This extension uses google's 
-							<a href="https://developer.chrome.com/extensions/storage" rel="noopener" target="_blank">chrome.storage.sync</a> 
+							This extension uses your browser's 
+							<a href="https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/storage/sync" rel="noopener" target="_blank">browser.storage.sync</a> 
 							to sync your data across devices. This data only consists of 
 							your custom right-click menu and its settings. To turn off 
 							this feature, disable the "use storage sync" checkbox at the top of this page.
@@ -495,7 +495,7 @@
 							Maybe you don't like this version of the extension and would like to go back.
 							Fortunately this is possible. Simply click the export button below, copy the
 							resulting settings and paste them into the import box of the 
-							<a href="https://chrome.google.com/webstore/detail/bdoncblefnjcmbdfnidnhcjglnpbngbb" rel="noopener" target="_blank">legacy extension</a>.
+							<a href="https://chrome.google.com/webstore/detail/bdoncblefnjcmbdfnidnhcjglnpbngbb" rel="noopener" target="_blank">legacy extension (chrome only)</a>.
 							<br><br>
 							<textarea rows="10" id="exportToLegacyOutput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
 							<br>
@@ -527,7 +527,7 @@
 				<paper-toast id="externalEditorLocationToast" text="The file is located at...." duration="10000">
 					<a href="file:///C:/" rel="noopener" target="_blank" id="externalEditoOpenLocationInBrowser" role="button">OPEN IN BROWSER</a>
 				</paper-toast>
-				<paper-toast id="storageExceededToast" text="Chrome storage sync has ran out of space, switched to local storage for the moment, remove CRM nodes or code and switch back to sync later" duration="10000"></paper-toast>
+				<paper-toast id="storageExceededToast" text="Storage sync has ran out of space, switched to local storage for the moment, remove CRM nodes or code and switch back to sync later" duration="10000"></paper-toast>
 				<paper-toast id="noErrorsFound" text="No more errors found" duration="3500"></paper-toast>
 				<paper-toast id="acceptDownloadToast" text="Please accept the permission request to report a bug or suggest a feature" duration="3500"></paper-toast>
 				<paper-toast id="updatedSettingsToast" text="Settings were updated to those on xx-xx-xxxx" duration="5000"></paper-toast>
@@ -686,7 +686,7 @@
 					If for example you want any page's background-color to be black except for one website, you can use <pre class="inlineCodePre">@url</pre> to give that page a different background color.
 					You can use regular expressions as long as you wrap them in brackets.
 					<br /><br />
-					- Use chrome's dev tools to find the CSS id/class of elements. Press F12 to open the dev tools, click the magnifying glass and click element you want to style.
+					- Use the dev tools to find the CSS id/class of elements. Press F12 to open the dev tools, click the magnifying glass and click element you want to style.
 					If you want only that element to be styled, right-click it in the developer tools and click "copy CSS path" and use that as the selector.
 					If you want all elements with some class to be styled, simply use the class on it.
 					<div class="buttons">
@@ -751,7 +751,7 @@
 						<div>
 							<h2 id="requestPermissionsHeader">Allow permissions</h2>
 							<div id="requestPermissionsTxt">
-								A script that you presumably wrote or added has asked to use one or more chrome permissions that you have not yet allowed for this extension, please allow these permissions as you see fit.
+								A script that you presumably wrote or added has asked to use one or more browser permissions that you have not yet allowed for this extension, please allow these permissions as you see fit.
 								Remember that this will only allow YOU to write scripts that acces these permissions and not downloaded and installed scripts.
 								Other scripts can only acces these permissons if you give those scripts specifically that permission on installing them.
 								You can basically allow any permission, they will only be used if you write them into one of your own scripts (or a downloaded one requests it) so allowing permissions that are not used yet simply saves you the hassle of doing it later during script installation or execution.
@@ -890,7 +890,7 @@
 								<div class="versionUpdateTab">
 									<h2 class="versionUpdateTabHeader">Extra open source</h2>
 									<div class="versionUpdateTabTxt">
-										While the source of chrome extensions can be looked at by anyone, the extension wasn't
+										While the source of browser extensions can be looked at by anyone, the extension wasn't
 										completely open source before. With this new version the entire project is online over
 										at <a href="https://www.github.com/SanderRonde/CustomRightClickMenu" rel="noopener" target="_blank">Github</a>.
 										If you feel like helping out, reporting some issues, or just checking out the code and learning
