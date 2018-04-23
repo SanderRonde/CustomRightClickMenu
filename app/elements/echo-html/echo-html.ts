@@ -22,7 +22,7 @@ namespace EchoHtmlElement {
 		static properties = echoHtmlProperties;
 
 		private static _stampHtml(this: EchoHtml, html: string) {
-			this.shadowRoot.innerHTML = html;
+			this.$.content.innerHTML = html;
 		};
 
 		private static _makeLinksFromHtml(html: string): string {
