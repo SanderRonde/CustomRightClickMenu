@@ -2247,6 +2247,7 @@ describe('CRMAPI', () => {
 			resourceKeys: [],
 			resources: {},
 			updatedScripts: [],
+			settings: null,
 			urlDataPairs: {},
 			useStorageSync: true,
 			requestPermissions: [],
@@ -2556,7 +2557,7 @@ describe('CRMAPI', () => {
 				"settingsLastUpdatedAt": (JSON.parse(storageSync.section0) as CRM.SettingsStorage).settingsLastUpdatedAt,
 				"rootName": "Custom Menu"
 			},
-			indexes: ['section0']
+			indexes: 1
 		});
 	});
 	var crmAPICode: string;
