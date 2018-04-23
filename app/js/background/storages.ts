@@ -1169,10 +1169,11 @@ export namespace Storages.SetupHandling {
 				settings: data
 			});
 			await browserAPI.storage.sync.set({
-				indexes: null
+				indexes: -1
 			});
 		} else {
 			//Cut up all data into smaller JSON
+			await browserAPI.storage.sync.clear();
 			const obj = Storages.cutData(settingsJson);
 			await browserAPI.storage.sync.set(obj).then(() => {
 				browserAPI.storage.local.set({
@@ -1188,7 +1189,7 @@ export namespace Storages.SetupHandling {
 					settings: data
 				});
 				await browserAPI.storage.sync.set({
-					indexes: null
+					indexes: -1
 				});
 			});
 		}
@@ -1341,7 +1342,7 @@ export namespace Storages {
 				window.log('Error on uploading to chrome.storage.local ', e);
 			});
 			await browserAPI.storage.sync.set({
-				indexes: null
+				indexes: -1
 			});
 		}
 		else {
@@ -1354,6 +1355,7 @@ export namespace Storages {
 			} else {
 				//Cut up all data into smaller JSON
 				const obj = cutData(settingsJson);
+				await browserAPI.storage.sync.clear();
 				await browserAPI.storage.sync.set(obj as any).then(() => {
 					changeCRMValuesIfSettingsChanged(changes);
 					browserAPI.storage.local.set({
@@ -1494,19 +1496,16 @@ export namespace Storages {
 			callback && callback();
 		}
 	export function cutData(data: any): {
-		indexes: number[];
+		indexes: number;
 		[key: number]: string;
 	} {
 		const obj = {} as any;
-		const indexes: string[] = [];
 		const splitJson = data.match(/[\s\S]{1,5000}/g);
-		splitJson.forEach((section: String) => {
-			const arrLength = indexes.length;
-			const sectionKey = `section${arrLength}`;
+		splitJson.forEach((section: string, index: number) => {
+			const sectionKey = `section${index}`;
 			obj[sectionKey] = section;
-			indexes[arrLength] = sectionKey;
 		});
-		obj.indexes = indexes;
+		obj.indexes = splitJson.length;
 		return obj;
 	}
 	export function loadStorages() {
@@ -1515,7 +1514,7 @@ export namespace Storages {
 			const storageSync: {
 				[key: string]: string
 			} & {
-				indexes: string[];
+				indexes: number|string[];
 			} = await browserAPI.storage.sync.get() as any;
 			window.info('Loading local storage data');
 			const storageLocal: CRM.StorageLocal & {
@@ -1538,15 +1537,18 @@ export namespace Storages {
 				if (storageLocal['useStorageSync']) {
 					//Parse the data before sending it to the callback
 					const indexes = storageSync['indexes'];
-					if (!indexes) {
+					if (indexes === -1 || indexes === null || indexes === undefined) {
 						await browserAPI.storage.local.set({
 							useStorageSync: false
 						});
 						settingsStorage = storageLocal.settings;
 					} else {
 						const settingsJsonArray: string[] = [];
-						indexes.forEach((index) => {
-							settingsJsonArray.push(storageSync[index]);
+						const indexesLength = typeof indexes === 'number' ? 
+							indexes : (Array.isArray(indexes) ? 
+								indexes.length : 0);
+						modules.Util.createArray(indexesLength).forEach((_, index) => {
+							settingsJsonArray.push(storageSync[`section${index}`]);
 						});
 						const jsonString = settingsJsonArray.join('');
 						settingsStorage = JSON.parse(jsonString);
@@ -1559,8 +1561,11 @@ export namespace Storages {
 						});
 						const indexes = storageSync['indexes'];
 						const settingsJsonArray: string[] = [];
-						indexes.forEach((index) => {
-							settingsJsonArray.push(storageSync[index]);
+						const indexesLength = typeof indexes === 'number' ? 
+							indexes : (Array.isArray(indexes) ? 
+								indexes.length : 0);
+						modules.Util.createArray(indexesLength).forEach((_, index) => {
+							settingsJsonArray.push(storageSync[`section${index}`]);
 						});
 						const jsonString = settingsJsonArray.join('');
 						settingsStorage = JSON.parse(jsonString);

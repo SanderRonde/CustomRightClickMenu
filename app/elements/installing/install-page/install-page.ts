@@ -131,6 +131,14 @@ namespace InstallPageElement {
 			});
 		};
 
+		private static _createArray(this: InstallPage, length: number): void[] {
+			const arr = [];
+			for (let i = 0; i < length; i++) {
+				arr[i] = undefined;
+			}
+			return arr;
+		}
+
 		private static _initSettings(this: InstallPage) {
 			this.settingsReady = new Promise(async (resolve) => {
 				const local: CRM.StorageLocal & {
@@ -141,18 +149,21 @@ namespace InstallPageElement {
 					const storageSync: {
 						[key: string]: string
 					} & {
-						indexes: Array<string>;
+						indexes: Array<string>|number;
 					} = await browserAPI.storage.sync.get() as any;
 					let indexes = storageSync.indexes;
-					if (!indexes) {
+					if (indexes === null || indexes === -1 || indexes === undefined) {
 						browserAPI.storage.local.set({
 							useStorageSync: false
 						});
 						this.settings = local.settings;
 					} else {
 						const settingsJsonArray: Array<string> = [];
-						indexes.forEach(function (index) {
-							settingsJsonArray.push(storageSync[index]);
+						const indexesLength = typeof indexes === 'number' ? 
+							indexes : (Array.isArray(indexes) ? 
+								indexes.length : 0);
+						this._createArray(indexesLength).forEach((_, index) => {
+							settingsJsonArray.push(storageSync[`section${index}`]);
 						});
 						const jsonString = settingsJsonArray.join('');
 						this.settings = JSON.parse(jsonString);
@@ -170,8 +181,11 @@ namespace InstallPageElement {
 						} = await browserAPI.storage.sync.get() as any;
 						const indexes = storageSync.indexes;
 						const settingsJsonArray: Array<string> = [];
-						indexes.forEach(function (index) {
-							settingsJsonArray.push(storageSync[index]);
+						const indexesLength = typeof indexes === 'number' ? 
+							indexes : (Array.isArray(indexes) ? 
+								indexes.length : 0);
+						this._createArray(indexesLength).forEach((_, index) => {
+							settingsJsonArray.push(storageSync[`section${index}`]);
 						});
 						const jsonString = settingsJsonArray.join('');
 						this.settings = JSON.parse(jsonString);

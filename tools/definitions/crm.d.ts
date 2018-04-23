@@ -1139,7 +1139,8 @@ declare namespace CRM {
 			[nodeId: number]: any;
 		};
 		
-		[key: string]: any;
+		indexes?: number;
+		[index: string]: any;
 	}
 
 	/**

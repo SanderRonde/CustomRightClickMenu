@@ -2401,18 +2401,21 @@ namespace CRMAppElement {
 						const sync = storageSync as {
 							[key: string]: string
 						} & {
-							indexes: Array<string>;
+							indexes: number|string[];
 						};
 						let indexes = sync.indexes;
-						if (!indexes) {
+						if (indexes == null || indexes === -1 || indexes === undefined) {
 							browserAPI.storage.local.set({
 								useStorageSync: false
 							});
 							callback(storageLocal.settings);
 						} else {
-							const settingsJsonArray: Array<string> = [];
-							indexes.forEach(function (index) {
-								settingsJsonArray.push(sync[index]);
+							const settingsJsonArray: string[] = [];
+							const indexesLength = typeof indexes === 'number' ? 
+								indexes : (Array.isArray(indexes) ? 
+									indexes.length : 0);
+							window.app.util.createArray(indexesLength).forEach((_, index) => {
+								settingsJsonArray.push(sync[`section${index}`]);
 							});
 							const jsonString = settingsJsonArray.join('');
 							parent.settingsJsonLength = jsonString.length;
@@ -2435,8 +2438,11 @@ namespace CRMAppElement {
 							};
 							const indexes = sync.indexes;
 							const settingsJsonArray: Array<string> = [];
-							indexes.forEach(function (index) {
-								settingsJsonArray.push(sync[index]);
+							const indexesLength = typeof indexes === 'number' ? 
+								indexes : (Array.isArray(indexes) ? 
+									indexes.length : 0);
+							window.app.util.createArray(indexesLength).forEach((_, index) => {
+								settingsJsonArray.push(sync[`section${index}`]);
 							});
 							const jsonString = settingsJsonArray.join('');
 							parent.settingsJsonLength = jsonString.length;
@@ -4696,6 +4702,14 @@ namespace CRMAppElement {
 		 * Various util functions
 		 */
 		static util = class CRMAppUtil {
+			static createArray(length: number): void[] {
+				const arr = [];
+				for (let i = 0; i < length; i++) {
+					arr[i] = undefined;
+				}
+				return arr;
+			}
+
 			static getChromeVersion() {
 				return this.parent().getChromeVersion();
 			}
