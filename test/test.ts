@@ -1316,10 +1316,11 @@ const chrome = ({
 				}
 				cb && cb(storageSync);
 			},
-			clear: function() {
+			clear: function(callback?: () => void) {
 				for (let key in storageSync) {
 					delete storageSync[key];
 				}
+				callback && callback();
 			}
 		},
 		local: {
@@ -1349,10 +1350,11 @@ const chrome = ({
 				}
 				cb && cb(storageLocal);
 			},
-			clear: function() {
+			clear: function(callback?: () => void) {
 				for (let key in storageLocal) {
 					delete storageLocal[key];
 				}
+				callback && callback();
 			}
 		},
 		onChanged: {
@@ -2247,7 +2249,6 @@ describe('CRMAPI', () => {
 			updatedScripts: [],
 			urlDataPairs: {},
 			useStorageSync: true,
-			settings: null,
 			requestPermissions: [],
 			editing: null,
 			selectedCrmType: 0,
