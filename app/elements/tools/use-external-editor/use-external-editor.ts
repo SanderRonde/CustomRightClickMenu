@@ -7,8 +7,8 @@ type ChooseFileDialog = PaperDialogBase & {
 		updateErrors?: {
 			parseError?: boolean;
 			generalError?: boolean;
-			newScript: Array<CursorPosition>;
-			oldScript: Array<CursorPosition>;
+			newScript: CursorPosition[];
+			oldScript: CursorPosition[];
 		}): void;
 	local: string;
 	file: string;
@@ -623,7 +623,7 @@ namespace UseExternalEditorElement {
 
 		static applyProps<T extends {
 			[key: string]: string|number;
-		}>(source: T, target: any, props: Array<keyof T>) {
+		}>(source: T, target: any, props: (keyof T)[]) {
 			for (let i = 0; i < props.length; i++) {
 				target[props[i]] = source[props[i]] + '';
 			}
@@ -755,8 +755,8 @@ namespace UseExternalEditorElement {
 		private static chooseFileDialog(this: UseExternalEditor, chooseFileDialog: ChooseFileDialog): (local: string, file: string, callback: (result: string|false) => void,
 			isUpdate?: boolean, updateErrors?: {
 				parseError: boolean;
-				newScript: Array<CursorPosition>;
-				oldScript: Array<CursorPosition>;
+				newScript: CursorPosition[];
+				oldScript: CursorPosition[];
 			}) => void {
 				const _this = this
 				return (local, file, callback, isUpdate, updateErrors) => {

@@ -18,33 +18,33 @@ namespace CRMAppElement {
 	interface JQueryContextMenu extends JQueryStatic {
 		contextMenu(settings: {
 			selector: string;
-			items: Array<JQContextMenuItem>;
+			items: JQContextMenuItem[];
 		} | 'destroy'): void;
-		bez(curve: Array<number>): string;
+		bez(curve: number[]): string;
 	}
 
 	type TypeCheckTypes = 'string' | 'function' | 'number' | 'object' | 'array' | 'boolean';
 
 	interface TypeCheckConfig {
 		val: string;
-		type: TypeCheckTypes | Array<TypeCheckTypes>;
+		type: TypeCheckTypes | TypeCheckTypes[];
 		optional?: boolean;
-		forChildren?: Array<{
+		forChildren?: {
 			val: string;
-			type: TypeCheckTypes | Array<TypeCheckTypes>;
+			type: TypeCheckTypes | TypeCheckTypes[];
 			optional?: boolean;
-		}>;
+		}[];
 		dependency?: string;
 		min?: number;
 		max?: number;
 	}
 
-	type TypeCheckErrors = Array<{
+	type TypeCheckErrors = {
 		err: string;
 		storageType?: 'local'|'sync';
-	}>;
+	}[];
 
-	window.runOrAddAsCallback = function (toRun: Function, thisElement: HTMLElement, params: Array<any>): void {
+	window.runOrAddAsCallback = function (toRun: Function, thisElement: HTMLElement, params: any[]): void {
 		if (window.app.settings) {
 			toRun.apply(thisElement, params);
 		} else {
@@ -54,9 +54,9 @@ namespace CRMAppElement {
 
 	(() => {
 		const animateExists = !!document.createElement('div').animate;
-		const animatePolyFill = function (this: HTMLElement, properties: Array<{
+		const animatePolyFill = function (this: HTMLElement, properties: {
 			[key: string]: any;
-		}>, options: {
+		}[], options: {
 			duration?: number;
 			easing?: string|'bez';
 			fill?: 'forwards'|'backwards'|'both';
@@ -263,9 +263,9 @@ namespace CRMAppElement {
 		interface UsedAnimation {
 			element: HTMLElement;
 			state: 'completed'|'initial';
-			properties: Array<{
+			properties: {
 				[key: string]: string;
-			}>;
+			}[];
 			animation: Animation;
 			options: {
 				duration?: number;
@@ -274,7 +274,7 @@ namespace CRMAppElement {
 			}
 		}
 
-		const usedAnimations: Array<[HTMLElement, UsedAnimation]> = [];
+		const usedAnimations: [HTMLElement, UsedAnimation][] = [];
 
 		function getObjSize(obj: {
 			[key: string]: any;
@@ -307,11 +307,11 @@ namespace CRMAppElement {
 			return true;
 		}
 
-		function areConfigsEqual(first: Array<{
+		function areConfigsEqual(first: {
 			[key: string]: any;
-		}>, second: Array<{
+		}[], second: {
 			[key: string]: any;
-		}>): {
+		}[]): {
 			equal: boolean;
 			reverse: boolean;
 		} {
@@ -369,9 +369,9 @@ namespace CRMAppElement {
 				reusedFill === newFill;
 		}
 
-		function attemptReUse(element: HTMLElement, properties:  Array<{
+		function attemptReUse(element: HTMLElement, properties:  {
 			[key: string]: any;
-		}>, options: {
+		}[], options: {
 			duration?: number;
 			easing?: string|'bez';
 			fill?: 'forwards'|'backwards'|'both';
@@ -403,9 +403,9 @@ namespace CRMAppElement {
 			return null;
 		}
 
-		function doAnimation(element: HTMLElement, properties:  Array<{
+		function doAnimation(element: HTMLElement, properties:  {
 			[key: string]: any;
-		}>, options: {
+		}[], options: {
 			duration?: number;
 			easing?: string|'bez';
 			fill?: 'forwards'|'backwards'|'both';
@@ -419,9 +419,9 @@ namespace CRMAppElement {
 			return animation;
 		}
 
-		HTMLElement.prototype.animate = function(this: HTMLElement, properties:  Array<{
+		HTMLElement.prototype.animate = function(this: HTMLElement, properties:  {
 			[key: string]: any;
-		}>, options: {
+		}[], options: {
 			duration?: number;
 			easing?: string|'bez';
 			fill?: 'forwards'|'backwards'|'both';
@@ -454,14 +454,14 @@ namespace CRMAppElement {
 
 	const crmAppProperties: {
 		settings: CRM.SettingsStorage;
-		onSettingsReadyCallbacks: Array<{
+		onSettingsReadyCallbacks: {
 			callback: Function;
 			thisElement: HTMLElement;
-			params: Array<any>;
-		}>
+			params: any[];
+		}[];
 		crmType: number;
 		settingsJsonLength: number;
-		globalExcludes: Array<string>;
+		globalExcludes: string[];
 		versionUpdateTab: number;
 	} = {
 		settings: {
@@ -492,12 +492,12 @@ namespace CRMAppElement {
 	} as any;
 
 	interface PersistentData {
-		lineSeperators: Array<{
+		lineSeperators: {
 			start: number;
 			end: number;
-		}>;
+		}[];
 		script: string;
-		lines: Array<string>;
+		lines: string[];
 		siblingExpr?: Tern.Expression;
 		isObj?: boolean;
 	}
@@ -506,15 +506,15 @@ namespace CRMAppElement {
 		persistent: {
 			passes: number;
 			diagnostic: boolean;
-			lineSeperators: Array<{
+			lineSeperators: {
 				start: number;
 				end: number;
-			}>;
+			}[];
 			script: string;
-			lines: Array<string>;
+			lines: string[];
 		};
-		parentExpressions: Array<Tern.Expression>;
-		functionCall: Array<string>;
+		parentExpressions: Tern.Expression[];
+		functionCall: string[];
 		isReturn: boolean;
 		isValidReturn: boolean;
 		returnExpr: Tern.Expression;
@@ -534,13 +534,13 @@ namespace CRMAppElement {
 	type TransferOnError = (position: TransferOnErrorError,
 		passes: number) => void;
 
-	type ScriptUpgradeErrorHandler = (oldScriptErrors: Array<CursorPosition>,
-		newScriptErrors: Array<CursorPosition>, parseError: boolean) => void;
+	type ScriptUpgradeErrorHandler = (oldScriptErrors: CursorPosition[],
+		newScriptErrors: CursorPosition[], parseError: boolean) => void;
 
 	class CA {
 		static is = 'crm-app';
 
-		static _log: Array<any> = [];
+		static _log: any[] = [];
 
 		/**
 		 * Whether to show the item-edit-page
@@ -598,7 +598,7 @@ namespace CRMAppElement {
 		/**
 		 * The global variables for the jsLint linter
 		 */
-		static jsLintGlobals: Array<string> = [];
+		static jsLintGlobals: string[] = [];
 
 		/**
 		 * The tern server used for key bindings
@@ -710,10 +710,10 @@ namespace CRMAppElement {
 			return 1000;
 		}
 
-		private static _generateCodeOptionsArray<T extends CRM.Options>(this: CrmApp, settings: T|string): Array<{
+		private static _generateCodeOptionsArray<T extends CRM.Options>(this: CrmApp, settings: T|string): {
 			key: keyof T;
 			value: T[keyof T]
-		}> {
+		}[] {
 			if (typeof settings === 'string') {
 				return [];
 			}
@@ -805,7 +805,7 @@ namespace CRMAppElement {
 			return 'color: rgb(' + red + ', ' + green + ', 0);';
 		};
 
-		private static _findScriptsInSubtree(this: CrmApp, toFind: CRM.Node, container: Array<CRM.Node>) {
+		private static _findScriptsInSubtree(this: CrmApp, toFind: CRM.Node, container: CRM.Node[]) {
 			if (toFind.type === 'script') {
 				container.push(toFind);
 			} else if (toFind.children) {
@@ -815,7 +815,7 @@ namespace CRMAppElement {
 			}
 		};
 
-		private static async _runDialogsForImportedScripts(this: CrmApp, nodesToAdd: Array<CRM.Node>, dialogs: Array<CRM.ScriptNode>) {
+		private static async _runDialogsForImportedScripts(this: CrmApp, nodesToAdd: CRM.Node[], dialogs: CRM.ScriptNode[]) {
 			if (dialogs[0]) {
 				const script = dialogs.splice(0, 1)[0];
 				await window.scriptEdit.openPermissionsDialog(script);
@@ -825,7 +825,7 @@ namespace CRMAppElement {
 			}
 		};
 
-		private static _addImportedNodes(this: CrmApp, nodesToAdd: Array<CRM.Node>): boolean {
+		private static _addImportedNodes(this: CrmApp, nodesToAdd: CRM.Node[]): boolean {
 			if (!nodesToAdd[0]) {
 				return false;
 			}
@@ -836,7 +836,7 @@ namespace CRMAppElement {
 			});
 
 			this.crm.add(toAdd);
-			const scripts: Array<CRM.ScriptNode> = [];
+			const scripts: CRM.ScriptNode[] = [];
 			this._findScriptsInSubtree(toAdd, scripts);
 			this._runDialogsForImportedScripts(nodesToAdd, scripts);
 			return true;
@@ -848,7 +848,7 @@ namespace CRMAppElement {
 
 		private static _genRequestPermissionsHandler(this: CrmApp, overlayContainer: {
 			overlay: HTMLPaperDialogElement
-		}, toRequest: Array<CRM.Permission>) {
+		}, toRequest: CRM.Permission[]) {
 			const fn = () => {
 				let el: HTMLElement & {
 					animation?: {
@@ -952,7 +952,7 @@ namespace CRMAppElement {
 
 				$(this.shadowRoot.querySelectorAll('#requestPermissionsAcceptAll')).off('click').on('click', function () {
 					browserAPI.permissions.request({
-						permissions: toRequest as Array<_browser.permissions.Permission>
+						permissions: toRequest as _browser.permissions.Permission[]
 					}).then((accepted) => {
 						if (accepted) {
 							browserAPI.storage.local.set({
@@ -971,7 +971,7 @@ namespace CRMAppElement {
 		/**
 		 * Shows the user a dialog and asks them to allow/deny those permissions
 		 */
-		private static async _requestPermissions(this: CrmApp, toRequest: Array<CRM.Permission>,
+		private static async _requestPermissions(this: CrmApp, toRequest: CRM.Permission[],
 			force: boolean = false) {
 			let i;
 			let index;
@@ -994,11 +994,11 @@ namespace CRMAppElement {
 				const allowed = browserAPI.permissions ? await browserAPI.permissions.getAll() : {
 					permissions: []
 				};
-				const requested: Array<{
+				const requested: {
 					name: string;
 					description: string;
 					toggled: boolean;
-				}> = [];
+				}[] = [];
 				for (i = 0; i < toRequest.length; i++) {
 					requested.push({
 						name: toRequest[i],
@@ -1007,16 +1007,16 @@ namespace CRMAppElement {
 					});
 				}
 
-				const other: Array<{
+				const other: {
 					name: string;
 					description: string;
 					toggled: boolean;
-				}> = [];
+				}[] = [];
 				for (i = 0; i < allPermissions.length; i++) {
 					other.push({
 						name: allPermissions[i],
 						description: this.templates.getPermissionDescription(allPermissions[i]),
-						toggled: (allowed.permissions.indexOf((allPermissions as Array<_browser.permissions.Permission>)[i]) > -1)
+						toggled: (allowed.permissions.indexOf((allPermissions as _browser.permissions.Permission[])[i]) > -1)
 					});
 				}
 				const requestPermissionsOther = this.$$('#requestPermissionsOther');
@@ -1162,7 +1162,7 @@ namespace CRMAppElement {
 			});
 		};
 
-		static addSettingsReadyCallback(this: CrmApp, callback: Function, thisElement: HTMLElement, params: Array<any>) {
+		static addSettingsReadyCallback(this: CrmApp, callback: Function, thisElement: HTMLElement, params: any[]) {
 			this.onSettingsReadyCallbacks.push({
 				callback: callback,
 				thisElement: thisElement,
@@ -1261,13 +1261,13 @@ namespace CRMAppElement {
 			}
 		}
 
-		private static _logCode(...args: Array<{
+		private static _logCode(...args: ({
 			content: string;
 			isCode: true;
-		}|string>) {
+		}|string)[]) {
 			let currentWord: string = '';
-			const logArgs: Array<string> = [];
-			const styleArgs: Array<string> = [];
+			const logArgs: string[] = [];
+			const styleArgs: string[] = [];
 			const isEdge = BrowserAPI.getBrowser() === 'edge';
 			for (const arg of args) {
 				if (typeof arg === 'string') {
@@ -1376,7 +1376,7 @@ namespace CRMAppElement {
 
 			private static _checkArrayChildType(this: CrmApp, data: TypeCheckConfig, value: any, forChild: {
 			val: string;
-			type: TypeCheckTypes | Array<TypeCheckTypes>;
+			type: TypeCheckTypes | TypeCheckTypes[];
 			optional?: boolean;
 		}, errors: TypeCheckErrors): boolean {
 			const types = Array.isArray(forChild.type) ? forChild.type : [forChild.type]
@@ -1399,7 +1399,7 @@ namespace CRMAppElement {
 
 		private static _checkArrayChildrenConstraints<T extends {
 			[key: string]: any;
-		}>(this: CrmApp, data: TypeCheckConfig, value: Array<T>, errors: TypeCheckErrors): boolean {
+		}>(this: CrmApp, data: TypeCheckConfig, value: T[], errors: TypeCheckErrors): boolean {
 			for (let i = 0; i < value.length; i++) {
 				for (let j = 0; j < data.forChildren.length; j++) {
 					const forChild = data.forChildren[j];
@@ -1434,7 +1434,7 @@ namespace CRMAppElement {
 			return true;
 		}
 
-		private static typeCheck(this: CrmApp, data: any, toCheck: Array<TypeCheckConfig>, errors: TypeCheckErrors) {
+		private static typeCheck(this: CrmApp, data: any, toCheck: TypeCheckConfig[], errors: TypeCheckErrors) {
 			const optionals: {
 				[key: string]: any;
 				[key: number]: any;
@@ -1668,25 +1668,25 @@ namespace CRMAppElement {
 		}
 
 		private static _checkFormat(this: CrmApp) {
-			let errors: Array<{
+			let errors: {
 				err: string;
 				storageType: 'local'|'sync';
-			}> = [];
+			}[] = [];
 
 			errors = this._checkLocalFormat().map((err) => {
 				err.storageType = 'local';
 				return err;
-			}) as Array<{
+			}) as {
 				err: string;
 				storageType: 'local'|'sync';
-			}>;
+			}[];
 			errors = errors.concat(this._checkSyncFormat().map((err) => {
 				err.storageType = 'sync';
 				return err;
-			}) as Array<{
+			}) as {
 				err: string;
 				storageType: 'local'|'sync';
-			}>);
+			}[]);
 
 			return errors;
 		}
@@ -1853,7 +1853,7 @@ namespace CRMAppElement {
 			scope: any;
 			text: string;
 			ast: Tern.ParsedFile;
-			lineOffsets: Array<number>;
+			lineOffsets: number[];
 
 			constructor(public name: string) { }
 		}
@@ -1961,7 +1961,7 @@ namespace CRMAppElement {
 				return node;
 			};
 
-			private static _assignParents(parent: CRM.Tree, nodes: Array<CRM.Node>,
+			private static _assignParents(parent: CRM.Tree, nodes: CRM.Node[],
 				index: {
 					index: number;
 				}, amount: number) {
@@ -1978,7 +1978,7 @@ namespace CRMAppElement {
 				}
 			};
 
-			private static _chainPromise<T>(promiseInitializers: Array<() =>Promise<T>>, index: number = 0): Promise<T> {
+			private static _chainPromise<T>(promiseInitializers: (() =>Promise<T>)[], index: number = 0): Promise<T> {
 				return new Promise<T>((resolve, reject) => {
 					promiseInitializers[index]().then((value) => {
 						if (index + 1 >= promiseInitializers.length) {
@@ -2001,7 +2001,7 @@ namespace CRMAppElement {
 			}
 			private static _loadTernFiles(): Promise<void> {
 				return new Promise((resolve, reject) => {
-					const files: Array<string> = [
+					const files: string[] = [
 						'/js/libraries/tern/walk.js',
 						'/js/libraries/tern/signal.js',
 						'/js/libraries/tern/acorn.js',
@@ -2287,7 +2287,7 @@ namespace CRMAppElement {
 				delete storageLocal.nodeStorage;
 				if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
 					if (browserAPI.permissions) {
-						await parent._requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
+						await parent._requestPermissions(storageLocal.requestPermissions as CRM.Permission[]);
 					}
 				}
 				if (storageLocal.editing) {
@@ -2434,10 +2434,10 @@ namespace CRMAppElement {
 							const sync = storageSync as {
 								[key: string]: string
 							} & {
-								indexes: Array<string>;
+								indexes: string[];
 							};
 							const indexes = sync.indexes;
-							const settingsJsonArray: Array<string> = [];
+							const settingsJsonArray: string[] = [];
 							const indexesLength = typeof indexes === 'number' ? 
 								indexes : (Array.isArray(indexes) ? 
 									indexes.length : 0);
@@ -2496,7 +2496,7 @@ namespace CRMAppElement {
 				});
 			};
 
-			static buildNodePaths(tree: CRM.Tree, currentPath: Array<number>) {
+			static buildNodePaths(tree: CRM.Tree, currentPath: number[]) {
 				for (let i = 0; i < tree.length; i++) {
 					const childPath = currentPath.concat([i]);
 					const node = tree[i];
@@ -2547,7 +2547,7 @@ namespace CRMAppElement {
 		 * Functions related to uploading the data to the backgroundpage
 		 */
 		private static _uploading = class CRMAppUploading {
-			private static _areValuesDifferent(val1: Array<any> | Object, val2: Array<any> | Object): boolean {
+			private static _areValuesDifferent(val1: any[] | Object, val2: any[] | Object): boolean {
 				//Array or object
 				const obj1ValIsArray = Array.isArray(val1);
 				let obj2ValIsArray = Array.isArray(val2);
@@ -2568,7 +2568,7 @@ namespace CRMAppElement {
 								return true;
 							} else {
 								//Both are arrays, compare them
-								if (!this._parent().util.compareArray(val1 as Array<any>, val2 as Array<any>)) {
+								if (!this._parent().util.compareArray(val1 as any[], val2 as any[])) {
 									//Changes have been found, also say the container arrays have changed
 									return true;
 								}
@@ -2600,11 +2600,11 @@ namespace CRMAppElement {
 			}, obj2: {
 				[key: string]: S
 				[key: number]: S
-			}, changes: Array<{
+			}, changes: {
 				oldValue: S;
 				newValue: T;
 				key: any;
-			}>): boolean {
+			}[]): boolean {
 				for (let key in obj1) {
 					if (obj1.hasOwnProperty(key)) {
 						if (this._areValuesDifferent(obj1[key], obj2[key])) {
@@ -2620,19 +2620,19 @@ namespace CRMAppElement {
 			};
 
 			static getChanges(force: boolean) {
-				const localChanges: Array<{
+				const localChanges: {
 					oldValue: any;
 					newValue: any;
 					key: any;
-				}> = [];
+				}[] = [];
 				const storageLocal = this._parent().storageLocal;
 				const storageLocalCopy = force ? {} : this._parent()._storageLocalCopy;
 
-				const settingsChanges: Array<{
+				const settingsChanges: {
 					oldValue: any;
 					newValue: any;
 					key: any;
-				}> = [];
+				}[] = [];
 				const settings = this._parent().settings;
 				const settingsCopy = force ? {} : this._parent()._settingsCopy;
 				const hasLocalChanged = this._getObjDifferences(storageLocal, storageLocalCopy, localChanges);
@@ -2781,10 +2781,10 @@ namespace CRMAppElement {
 					}
 					return false;
 				}
-				static getLineSeperators(lines: Array<string>): Array<{
+				static getLineSeperators(lines: string[]): {
 					start: number;
 					end: number;
-				}> {
+				}[] {
 					let index = 0;
 					const lineSeperators = [];
 					for (let i = 0; i < lines.length; i++) {
@@ -2795,7 +2795,7 @@ namespace CRMAppElement {
 					}
 					return lineSeperators;
 				}
-				static replaceCalls(lines: Array<string>): string {
+				static replaceCalls(lines: string[]): string {
 					//Analyze the file
 					const file = new window.app._TernFile('[doc]');
 					file.text = lines.join('\n');
@@ -2846,10 +2846,10 @@ namespace CRMAppElement {
 					}
 					return toCheck.replace(/['|"|`]/g, '') === prop;
 				}
-				private static _getCallLines(lineSeperators: Array<{
+				private static _getCallLines(lineSeperators: {
 					start: number;
 					end: number;
-				}>, start: number, end: number): {
+				}[], start: number, end: number): {
 						from: {
 							index: number;
 							line: number;
@@ -2919,7 +2919,7 @@ namespace CRMAppElement {
 						args: args
 					};
 				}
-				private static _getLineIndexFromTotalIndex(lines: Array<string>, line: number, index:
+				private static _getLineIndexFromTotalIndex(lines: string[], line: number, index:
 					number): number {
 					for (let i = 0; i < line; i++) {
 						index -= lines[i].length + 1;
@@ -3162,7 +3162,7 @@ namespace CRMAppElement {
 							break;
 						case 'CallExpression':
 						case 'MemberExpression':
-							const argsTocheck: Array<Tern.Expression> = [];
+							const argsTocheck: Tern.Expression[] = [];
 							if (expression.arguments && expression.arguments.length > 0) {
 								for (let i = 0; i < expression.arguments.length; i++) {
 									if (expression.arguments[i].type !== 'MemberExpression' && expression.arguments[i].type !== 'CallExpression') {
@@ -3285,7 +3285,7 @@ namespace CRMAppElement {
 					}
 					return false;
 				}
-				private static _generateOnError(container: Array<Array<TransferOnErrorError>>): (
+				private static _generateOnError(container: TransferOnErrorError[][]): (
 					position: TransferOnErrorError, passes: number
 				) => void {
 					return (position: TransferOnErrorError, passes: number) => {
@@ -3296,7 +3296,7 @@ namespace CRMAppElement {
 						}
 					};
 				}
-				private static _replaceChromeCalls(lines: Array<string>, passes: number,
+				private static _replaceChromeCalls(lines: string[], passes: number,
 					onError: TransferOnError): string {
 					//Analyze the file
 					var file = new window.app._TernFile('[doc]');
@@ -3328,8 +3328,8 @@ namespace CRMAppElement {
 
 					//Check all expressions for chrome calls
 					const persistentData: {
-						lines: Array<any>,
-						lineSeperators: Array<any>,
+						lines: any[],
+						lineSeperators: any[],
 						script: string,
 						passes: number,
 						diagnostic?: boolean;
@@ -3366,9 +3366,9 @@ namespace CRMAppElement {
 
 					return script;
 				}
-				private static _removePositionDuplicates(arr: Array<TransferOnErrorError>):
-					Array<TransferOnErrorError> {
-					var jsonArr: Array<EncodedString<TransferOnErrorError>> = [];
+				private static _removePositionDuplicates(arr: TransferOnErrorError[]):
+					TransferOnErrorError[] {
+					var jsonArr: EncodedString<TransferOnErrorError>[] = [];
 					arr.forEach((item, index) => {
 						jsonArr[index] = JSON.stringify(item);
 					});
@@ -3380,8 +3380,8 @@ namespace CRMAppElement {
 					});
 				}
 				static replace(script: string, onError: (
-					oldScriptErrors: Array<TransferOnErrorError>,
-					newScriptErrors: Array<TransferOnErrorError>,
+					oldScriptErrors: TransferOnErrorError[],
+					newScriptErrors: TransferOnErrorError[],
 					parseError?: boolean
 				) => void): string {
 					//Remove execute locally
@@ -3393,7 +3393,7 @@ namespace CRMAppElement {
 						}
 					}
 
-					const errors: Array<Array<TransferOnErrorError>> = [];
+					const errors: TransferOnErrorError[][] = [];
 					try {
 						script = this._replaceChromeCalls(script.split('\n'), 0,
 							this._generateOnError(errors));
@@ -3418,8 +3418,8 @@ namespace CRMAppElement {
 						if (!keys.upgradeErrors) {
 							var val: {
 								[key: number]: {
-									oldScript: Array<CursorPosition>;
-									newScript: Array<CursorPosition>;
+									oldScript: CursorPosition[];
+									newScript: CursorPosition[];
 									generalError: boolean;
 								}
 							} = {};
@@ -3757,7 +3757,7 @@ namespace CRMAppElement {
 					this.parent().upload();
 				} else {
 					try {
-						const settingsArr: Array<any> = dataString.split('%146%');
+						const settingsArr: any[] = dataString.split('%146%');
 						if (settingsArr[0] === 'all') {
 							this.parent().storageLocal.showOptions = settingsArr[2];
 
@@ -3881,7 +3881,7 @@ namespace CRMAppElement {
 					this.parent().$.versionUpdateDialog.close();
 				} else {
 					const nextTabIndex = this.parent().versionUpdateTab + 1;
-					const tabs = (document.getElementsByClassName('versionUpdateTab') as any) as Array<HTMLElement>;
+					const tabs = (document.getElementsByClassName('versionUpdateTab') as any) as HTMLElement[];
 					const selector = tabs[nextTabIndex];
 					selector.style.height = 'auto';
 
@@ -3938,7 +3938,7 @@ namespace CRMAppElement {
 			static goPrevVersionUpdateTab() {
 				if (this.parent().versionUpdateTab !== 0) {
 					const prevTabIndex = this.parent().versionUpdateTab - 1;
-					const tabs = (document.getElementsByClassName('versionUpdateTab') as any) as Array<HTMLElement>;
+					const tabs = (document.getElementsByClassName('versionUpdateTab') as any) as HTMLElement[];
 					const selector = tabs[prevTabIndex];
 					selector.style.height = 'auto';
 
@@ -4172,7 +4172,7 @@ namespace CRMAppElement {
 			/**
 			 * Merges two arrays
 			 */
-			static mergeArrays<T extends Array<T> | Array<U>, U>(mainArray: T, additionArray: T): T {
+			static mergeArrays<T extends T[] | U[], U>(mainArray: T, additionArray: T): T {
 				for (let i = 0; i < additionArray.length; i++) {
 					if (mainArray[i] && typeof additionArray[i] === 'object' &&
 						mainArray[i] !== undefined && mainArray[i] !== null) {
@@ -4395,7 +4395,7 @@ namespace CRMAppElement {
 			/**
 			 * Gets all permissions that can be requested by this extension
 			 */
-			static getPermissions(): Array<CRM.Permission> {
+			static getPermissions(): CRM.Permission[] {
 				return [
 					'alarms',
 					'activeTab',
@@ -4436,7 +4436,7 @@ namespace CRMAppElement {
 			/**
 			 * Gets all permissions that can be requested by this extension including those specific to scripts
 			 */
-			static getScriptPermissions(): Array<CRM.Permission> {
+			static getScriptPermissions(): CRM.Permission[] {
 				return [
 					'alarms',
 					'activeTab',
@@ -4583,15 +4583,15 @@ namespace CRMAppElement {
 		 * CRM functions.
 		 */
 		static crm = class CRMAppCRMFunctions {
-			private static _getEvalPath(path: Array<number>): string {
+			private static _getEvalPath(path: number[]): string {
 				return 'window.app.settings.crm[' + (path.join('].children[')) + ']';
 			};
 
-			static lookup(path: Array<number>, returnArray?: boolean): CRM.Node | Array<CRM.Node>;
-			static lookup(path: Array<number>, returnArray: false): CRM.Node;
-			static lookup(path: Array<number>, returnArray: true): Array<CRM.Node>;
-			static lookup(path: Array<number>): CRM.Node;
-			static lookup(path: Array<number>, returnArray: boolean = false): CRM.Node | Array<CRM.Node> {
+			static lookup(path: number[], returnArray?: boolean): CRM.Node | CRM.Node[];
+			static lookup(path: number[], returnArray: false): CRM.Node;
+			static lookup(path: number[], returnArray: true): CRM.Node[];
+			static lookup(path: number[]): CRM.Node;
+			static lookup(path: number[], returnArray: boolean = false): CRM.Node | CRM.Node[] {
 				const pathCopy = JSON.parse(JSON.stringify(path));
 				if (returnArray) {
 					pathCopy.splice(pathCopy.length - 1, 1);
@@ -4609,10 +4609,10 @@ namespace CRMAppElement {
 				return (returnArray ? result.children : result);
 			};
 
-			private static _lookupId(id: number, returnArray: boolean, node: CRM.Node): Array<CRM.Node> | CRM.Node | void;
+			private static _lookupId(id: number, returnArray: boolean, node: CRM.Node): CRM.Node[] | CRM.Node | void;
 			private static _lookupId(id: number, returnArray: false, node: CRM.Node): CRM.Node;
-			private static _lookupId(id: number, returnArray: true, node: CRM.Node): Array<CRM.Node>;
-			private static _lookupId(id: number, returnArray: boolean, node: CRM.Node): Array<CRM.Node> | CRM.Node | void {
+			private static _lookupId(id: number, returnArray: true, node: CRM.Node): CRM.Node[];
+			private static _lookupId(id: number, returnArray: boolean, node: CRM.Node): CRM.Node[] | CRM.Node | void {
 				const nodeChildren = node.children;
 				if (nodeChildren) {
 					let el;
@@ -4629,10 +4629,10 @@ namespace CRMAppElement {
 				return null;
 			};
 
-			static lookupId(id: number, returnArray: boolean): Array<CRM.Node> | CRM.Node;
-			static lookupId(id: number, returnArray: true): Array<CRM.Node>;
+			static lookupId(id: number, returnArray: boolean): CRM.Node[] | CRM.Node;
+			static lookupId(id: number, returnArray: true): CRM.Node[];
 			static lookupId(id: number, returnArray: false): CRM.Node;
-			static lookupId(id: number, returnArray: boolean): Array<CRM.Node> | CRM.Node {
+			static lookupId(id: number, returnArray: boolean): CRM.Node[] | CRM.Node {
 				if (!returnArray) {
 					return window.app._nodesById[id];
 				}
@@ -4671,7 +4671,7 @@ namespace CRMAppElement {
 			/**
 			 * Moves a value in the CRM from one place to another
 			 */
-			static move(toMove: Array<number>, target: Array<number>, sameColumn: boolean) {
+			static move(toMove: number[], target: number[], sameColumn: boolean) {
 				const toMoveContainer = this.lookup(toMove, true);
 				let toMoveIndex = toMove[toMove.length - 1];
 				const toMoveItem = toMoveContainer[toMoveIndex];
@@ -4740,7 +4740,7 @@ namespace CRMAppElement {
 
 			static createElement<K extends keyof ElementTagNameMaps, T extends ElementTagNameMaps[K]>(tagName: K, options: {
 				id?: string;
-				classes?: Array<string>;
+				classes?: string[];
 				props?: {
 					[key: string]: string|number;
 				}
@@ -4748,7 +4748,7 @@ namespace CRMAppElement {
 				onhover?: (el: T, event: Event) => void;
 				onblur?: (el: T, event: Event) => void;
 				ref?: (el: T) => void;
-			}, children: Array<any | string> = []): T {
+			}, children: (any|string)[] = []): T {
 				const el = document.createElement(tagName) as T;
 				options.id && (el.id = options.id);
 				options.classes && el.classList.add.apply(el.classList, options.classes);
@@ -4777,11 +4777,11 @@ namespace CRMAppElement {
 
 			static createSVG<K extends keyof SVGElementTagNameMap, T extends SVGElementTagNameMap[K]>(tag: K, options: {
 				id?: string;
-				classes?: Array<string>;
+				classes?: string[];
 				props?: {
 					[key: string]: string;
 				}
-			}, children: Array<any> = []): T {
+			}, children: any[] = []): T {
 				const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
 				options.id && (el.id = options.id);
 				options.classes && el.classList.add.apply(el.classList, options.classes);
@@ -4803,9 +4803,9 @@ namespace CRMAppElement {
 			}
 
 			static getPath(e: {
-				path: Array<HTMLElement>;
+				path: HTMLElement[];
 			}|{
-				Aa: Array<HTMLElement>;
+				Aa: HTMLElement[];
 			}|Polymer.CustomEvent) {
 				if ('path' in e) {
 					return this._toArray(e.path);
@@ -4826,9 +4826,9 @@ namespace CRMAppElement {
 			}
 
 			static findElementWithTagname<T extends keyof ElementTagNameMaps>(event: {
-				path: Array<HTMLElement>;
+				path: HTMLElement[];
 			}|{
-				Aa: Array<HTMLElement>;
+				Aa: HTMLElement[];
 			}|Polymer.CustomEvent, tagName: T): ElementTagNameMaps[T] {
 				let index = 0;
 				const path = this.getPath(event);
@@ -4844,9 +4844,9 @@ namespace CRMAppElement {
 			}
 
 			static findElementWithClassName(event: {
-				path: Array<HTMLElement>;
+				path: HTMLElement[];
 			}|{
-				Aa: Array<HTMLElement>;
+				Aa: HTMLElement[];
 			}|Polymer.CustomEvent, className: string): Polymer.PolymerElement {
 				let index = 0;
 				const path = this.getPath(event);
@@ -4862,9 +4862,9 @@ namespace CRMAppElement {
 			}
 
 			static findElementWithId(event: {
-				path: Array<HTMLElement>;
+				path: HTMLElement[];
 			}|{
-				Aa: Array<HTMLElement>;
+				Aa: HTMLElement[];
 			}|Polymer.CustomEvent, id: string): Polymer.PolymerElement {
 				let index = 0;
 				const path = this.getPath(event);
@@ -4882,7 +4882,7 @@ namespace CRMAppElement {
 			/**
 			 * Inserts the value into given array
 			 */
-			static insertInto<T>(toAdd: T, target: Array<T>, position: number = null): Array<T> {
+			static insertInto<T>(toAdd: T, target: T[], position: number = null): T[] {
 				if (position) {
 					let temp1, i;
 					let temp2 = toAdd;
@@ -4940,7 +4940,7 @@ namespace CRMAppElement {
 				return true;
 			};
 
-			static compareArray(firstArray: Array<any>, secondArray: Array<any>): boolean {
+			static compareArray(firstArray: any[], secondArray: any[]): boolean {
 				if (!firstArray !== !secondArray) {
 					return false;
 				} else if (!firstArray || !secondArray) {
@@ -4986,7 +4986,7 @@ namespace CRMAppElement {
 				}
 			}
 
-			static crmForEach(tree: Array<CRM.Node>, fn: (node: CRM.Node) => void): CRM.Tree {
+			static crmForEach(tree: CRM.Node[], fn: (node: CRM.Node) => void): CRM.Tree {
 				for (let i = 0; i < tree.length; i++) {
 					const node = tree[i];
 					if (node.type === 'menu' && node.children) {
@@ -5017,10 +5017,10 @@ namespace CRMAppElement {
 
 			private static _root: HTMLElement = null;
 
-			private static _listeners: Array<{
+			private static _listeners: {
 				event: string;
 				handler: EventListener;
-			}> = [];
+			}[] = [];
 
 			private static _setContentTypeClasses(el: HTMLElement, node: CRM.Node) {
 				const contentTypes = node.onContentTypes;

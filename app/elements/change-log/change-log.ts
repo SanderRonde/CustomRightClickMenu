@@ -2,10 +2,10 @@
 
 namespace ChangeLogElement {
 	export const changeLogProperties: {
-		changelog: Array<{
+		changelog: {
 			version: string;
-			changes: Array<string>;
-		}>;
+			changes: string[];
+		}[];
 	} = {
 		/**
 		 * The changelog that is displayed
@@ -93,15 +93,15 @@ namespace ChangeLogElement {
 		 * for polymer to iterate through
 		 */
 		private static _makeChangelogArray(changelog: {
-			[key: string]: Array<string>;
-		}): Array<{
+			[key: string]: string[];
+		}): {
 			version: string;
-			changes: Array<string>;	
-		}> {
-			const arrayChangelog: Array<{
+			changes: string[];	
+		}[] {
+			const arrayChangelog: {
 				version: string;
-				changes: Array<string>;	
-			}> = [];
+				changes: string[];	
+			}[] = [];
 			for (let versionEntry in changelog) {
 				if (changelog.hasOwnProperty(versionEntry)) {
 					arrayChangelog.push({
@@ -153,10 +153,10 @@ namespace ChangeLogElement {
 		 */
 		private static _sortFunction(a: {
 			version: string;
-			changes: Array<string>;
+			changes: string[];
 		}, b: {
 			version: string;
-			changes: Array<string>;
+			changes: string[];
 		}): number {
 			return window.changeLog._compareVersions(a.version, b.version);
 		};
@@ -164,13 +164,13 @@ namespace ChangeLogElement {
 		/**
 		 * Sorts the changelog from highest version first to lowest last
 		 */
-		private static _sortChangelog(changelog: Array<{
+		private static _sortChangelog(changelog: {
 			version: string;
-			changes: Array<string>;
-		}>): Array<{
+			changes: string[];
+		}[]): {
 			version: string;
-			changes: Array<string>;
-		}> {
+			changes: string[];
+		}[] {
 			return changelog.sort(this._sortFunction).reverse();
 		};
 

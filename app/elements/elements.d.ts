@@ -51,7 +51,7 @@ interface Completion {
 }
 
 interface Completions {
-	completions: Array<Completion>;
+	completions: Completion[];
 	end: {
 		ch: number;
 		line: number;
@@ -84,17 +84,17 @@ interface JSLintWarning {
 }
 
 interface JSLintResult {
-	directives: Array<any>;
+	directives: any[];
 	edition: string;
 	exports: {
 		[key: string]: any;
 	};
-	froms: Array<string>;
-	functions: Array<any>;
+	froms: string[];
+	functions: any[];
 	global: any;
 	id: "(JSLint)";
 	json: boolean;
-	lines: Array<string>;
+	lines: string[];
 	module: boolean;
 	ok: boolean;
 	option: {
@@ -102,9 +102,9 @@ interface JSLintResult {
 	};
 	property: any;
 	stop: boolean;
-	tokens: Array<any>;
-	tree: Array<any>;
-	warnings: Array<JSLintWarning>;
+	tokens: any[];
+	tree: any[];
+	warnings: JSLintWarning[];
 }
 
 interface CSSLintWarning {
@@ -123,17 +123,17 @@ interface LinterWarning {
 interface Window {
 	jslint(source: String, option_object: {
 		[key: string]: any;
-	}, globals: Array<string>): JSLintResult;
+	}, globals: string[]): JSLintResult;
 	CSSLint: {
-		verify(text: string, ruleset?: Array<any>): {
-			messages: Array<CSSLintWarning>;
+		verify(text: string, ruleset?: any[]): {
+			messages: CSSLintWarning[];
 		}
 	}
 	monaco: typeof monaco;
 	AMDLoader: {
 		global: {
 			require: {
-				(paths: Array<string>, callback: () => void): void;
+				(paths: string[], callback: () => void): void;
 				config(config: {
 					paths: {
 						[key: string]: string;
@@ -165,7 +165,7 @@ interface Window {
 	logElements?: {
 		logLines: any;
 	};
-	runOrAddAsCallback(toRun: Function, thisElement: HTMLElement, params: Array<any>): void;
+	runOrAddAsCallback(toRun: Function, thisElement: HTMLElement, params: any[]): void;
 	addCalcFn(element: HTMLElement, prop: string, calcValue: string, disable?: boolean): void;
 	useOptionsCompletions: boolean;
 	Storages: {
@@ -206,16 +206,16 @@ type EditPage = NodeEditBehaviorScriptInstance|
 	NodeEditBehaviorMenuInstance|NodeEditBehaviorDividerInstance;
 
 interface LogLineContainerInterface {
-	add(lineData: Array<LogLineData>, line: LogListenerLine): void;
+	add(lineData: LogLineData[], line: LogListenerLine): void;
 	popEval(): {
-		data: Array<LogLineData>;
+		data: LogLineData[];
 		line: LogListenerLine;
 	};
 	clear(): void;
 	render(): JSX.Element;
 
 	props: {
-		items: Array<any>;
+		items: any[];
 		logConsole: LogConsole;
 	}
 }

@@ -2,7 +2,7 @@
 
 namespace PaperGetPagePropertiesElement {
 	export const paperGetPagePropertiesProperties: {
-		selected: Array<number>;
+		selected: number[];
 	} = {
 		selected: {
 			type: Array,
@@ -17,10 +17,10 @@ namespace PaperGetPagePropertiesElement {
 		/**
 		 * The properties that can be chosen
 		 */
-		static options: Array<{
+		static options: {
 			name: string;
 			id: string;	
-		}> = [];
+		}[] = [];
 
 		/**
 		 * The event listener to send all onclick data to

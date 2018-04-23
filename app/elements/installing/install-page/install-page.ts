@@ -149,7 +149,7 @@ namespace InstallPageElement {
 					const storageSync: {
 						[key: string]: string
 					} & {
-						indexes: Array<string>|number;
+						indexes: string[]|number;
 					} = await browserAPI.storage.sync.get() as any;
 					let indexes = storageSync.indexes;
 					if (indexes === null || indexes === -1 || indexes === undefined) {
@@ -158,7 +158,7 @@ namespace InstallPageElement {
 						});
 						this.settings = local.settings;
 					} else {
-						const settingsJsonArray: Array<string> = [];
+						const settingsJsonArray: string[] = [];
 						const indexesLength = typeof indexes === 'number' ? 
 							indexes : (Array.isArray(indexes) ? 
 								indexes.length : 0);
@@ -177,10 +177,10 @@ namespace InstallPageElement {
 						const storageSync: {
 							[key: string]: string
 						} & {
-							indexes: Array<string>;
+							indexes: string[];
 						} = await browserAPI.storage.sync.get() as any;
 						const indexes = storageSync.indexes;
-						const settingsJsonArray: Array<string> = [];
+						const settingsJsonArray: string[] = [];
 						const indexesLength = typeof indexes === 'number' ? 
 							indexes : (Array.isArray(indexes) ? 
 								indexes.length : 0);

@@ -17,9 +17,9 @@ namespace CodeEditBehaviorNamespace {
 	export interface JQueryContextMenu extends JQueryStatic {
 		contextMenu(settings: {
 			selector: string;
-			items: Array<JQContextMenuItem>;
+			items: JQContextMenuItem[];
 		} | 'destroy'): void;
-		bez(curve: Array<number>): string;
+		bez(curve: number[]): string;
 	}
 
 	export class CEB {	

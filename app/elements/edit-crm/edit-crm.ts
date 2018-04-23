@@ -51,49 +51,49 @@ namespace EditCrmElement {
 	} as any;
 
 	interface CRMColumn {
-		list: Array<CRM.Node & {
+		list: (CRM.Node & {
 			expanded: boolean;
 			name: string;
 			shadow: boolean;
 			index: number;	
-		}>;
+		})[];
 		dragging: boolean;
 		draggingItem: EditCrmItem;
 	}
 
 	export interface CRMColumnElement extends HTMLElement {
 		index: number;
-		items: Array<CRM.Node & {
+		items: (CRM.Node & {
 			expanded: boolean;
 			name: string;
 			shadow: boolean;
 			index: number;	
-		}>;
+		})[];
 	}
 
 	interface CRMBuilderColumn {
-		list: Array<CRM.Node & {
+		list: (CRM.Node & {
 			expanded: boolean;
 			name: string;
 			shadow: boolean;
 			index: number;	
 			isPossibleAddLocation?: boolean;
-		}>;
-		menuPath: Array<number>;
-		indent: Array<void>;
+		})[];
+		menuPath: number[];
+		indent: void[];
 		index: number;
 		shadow: boolean;
 		isEmpty: boolean;
 	}
 
-	type CRMBuilder = Array<CRMBuilderColumn>;
+	type CRMBuilder = CRMBuilderColumn[];
 
 	namespace Sortable {
 		export interface Instance {
 			option<T>(name: string, value?: T): T;
 			closest(el: string, selector?: HTMLElement): HTMLElement|null;
-			toArray(): Array<string>;
-			sort(order: Array<string>): void;
+			toArray(): string[];
+			sort(order: string[]): void;
 			save(): void;
 			destroy(): void;
 		}
@@ -186,27 +186,27 @@ namespace EditCrmElement {
 		/**
 		 * The currently used set menus
 		 */
-		static setMenus: Array<number> = [];
+		static setMenus: number[] = [];
 
 		/**
 		 * A list of selected nodes
 		 */
-		static selectedElements: Array<number> = [];
+		static selectedElements: number[] = [];
 
 		/**
 		 * A list of all the column elements
 		 */
-		private static _columns: Array<CRMColumnElement> = [];
+		private static _columns: CRMColumnElement[] = [];
 
 		/**
 		 * The menus that are set to be shown in the crm
 		 */
-		private static _setItems: Array<number>;
+		private static _setItems: number[];
 
 		/**
 		 * The sortable object
 		 */
-		private static _sortables: Array<Sortable.Instance> = [];
+		private static _sortables: Sortable.Instance[] = [];
 
 		static properties = editCrmProperties;
 
@@ -229,7 +229,7 @@ namespace EditCrmElement {
 		/**
 		 * Gets the columns in this crm-edit element
 		 */
-		private static _getColumns(this: EditCrm): Array<CRMColumnElement> {
+		private static _getColumns(this: EditCrm): CRMColumnElement[] {
 			//Check if the nodes still exist 
 			if (this._columns && document.contains(this._columns[0])) {
 				return this._columns;
@@ -250,7 +250,7 @@ namespace EditCrmElement {
 		 *
 		 * @return The last menu on the given list.
 		 */
-		private static _getLastMenu(this: EditCrm, list: Array<CRM.Node>, hidden: {
+		private static _getLastMenu(this: EditCrm, list: CRM.Node[], hidden: {
 			[nodeId: number]: boolean
 		}, exclude: number) {
 			let lastMenu = -1;
@@ -295,7 +295,7 @@ namespace EditCrmElement {
 			return 1;
 		};
 
-		private static _getIndent(this: EditCrm, data: Array<CRM.Node>, lastMenu: number, hiddenNodes: {
+		private static _getIndent(this: EditCrm, data: CRM.Node[], lastMenu: number, hiddenNodes: {
 			[nodeId: number]: boolean;
 		}): number {
 			let visibleIndent = lastMenu;
@@ -315,31 +315,31 @@ namespace EditCrmElement {
 		 *
 		 * @return the CRM edit object
 		 */
-		private static _buildCRMEditObj(this: EditCrm, setMenus: Array<number>, unsetMenus: Array<number>): {
+		private static _buildCRMEditObj(this: EditCrm, setMenus: number[], unsetMenus: number[]): {
 			crm: CRMBuilder;
-			setMenus: Array<number>;
+			setMenus: number[];
 		} {
 			let column: CRMBuilderColumn;
 			let indent: number;
-			const path: Array<number> = [];
-			let columnCopy: Array<CRM.Node & {
+			const path: number[] = [];
+			let columnCopy: (CRM.Node & {
 				expanded: boolean;
 				name: string;
 				shadow: boolean;
 				index: number;
 				isPossibleAddLocation?: boolean;
-			}>;
+			})[];
 			let columnNum: number = 0;
 			let lastMenu: number = -2;
 			let indentTop: number = 0;
 			const crmEditObj: CRMBuilder = [];
-			const newSetMenus: Array<number> = [];
-			let list: Array<CRM.Node & Partial<{
+			const newSetMenus: number[] = [];
+			let list: (CRM.Node & Partial<{
 				expanded: boolean;
 				name: string;
 				shadow: boolean;
 				index: number;
-			}>> = window.app.settings.crm;
+			}>)[] = window.app.settings.crm;
 			const setMenusLength: number = setMenus.length;
 			const showContentTypes: number = window.app.crmType;
 
@@ -369,13 +369,13 @@ namespace EditCrmElement {
 					column = {
 						indent: columnIndent,
 						menuPath: path.concat(lastMenu),
-						list: list as Array<CRM.Node & {
+						list: list as (CRM.Node & {
 							expanded: boolean;
 							name: string;
 							shadow: boolean;
 							index: number;	
 							isPossibleAddLocation?: boolean;
-						}>,
+						})[],
 						index: columnNum,
 						shadow: window.app.shadowStart && window.app.shadowStart <= columnNum
 					} as any;
@@ -388,7 +388,7 @@ namespace EditCrmElement {
 						const lastNode = list[lastMenu];
 						lastNode.expanded = true;
 						if (window.app.shadowStart && lastNode.menuVal) {
-							list = (lastNode as CRM.ScriptNode|CRM.LinkNode|CRM.DividerNode|CRM.StylesheetNode).menuVal as Array<CRM.Node>;
+							list = (lastNode as CRM.ScriptNode|CRM.LinkNode|CRM.DividerNode|CRM.StylesheetNode).menuVal as CRM.Node[];
 						} else {
 							list = (list[lastMenu] as CRM.MenuNode).children;
 						}
@@ -568,8 +568,8 @@ namespace EditCrmElement {
 		 * @return The object to be sent to Polymer
 		 */
 		static build(this: EditCrm, settings: {
-			setItems?: Array<number>;
-			unsetItems?: Array<number>;
+			setItems?: number[];
+			unsetItems?: number[];
 			quick?: boolean;
 			superquick?: boolean;
 		} = {
@@ -672,7 +672,7 @@ namespace EditCrmElement {
 			}
 		};
 
-		private static _addItem(this: EditCrm, path: Array<number>) {
+		private static _addItem(this: EditCrm, path: number[]) {
 			const newItem = window.app.templates.getDefaultLinkNode({
 				id: window.app.generateItemId()
 			});
@@ -686,7 +686,7 @@ namespace EditCrmElement {
 			window.app.upload();
 		};
 
-		private static _getSelected(this: EditCrm): Array<number> {
+		private static _getSelected(this: EditCrm): number[] {
 			const selected = [];
 			const editCrmItems = this.getItems();
 			let i;
@@ -698,7 +698,7 @@ namespace EditCrmElement {
 			return selected;
 		};
 		
-		private static _ifDefSet(this: EditCrm, node: CRM.Node, target: Partial<CRM.SafeNode>, ...props: Array<keyof CRM.SafeNode>) { 
+		private static _ifDefSet(this: EditCrm, node: CRM.Node, target: Partial<CRM.SafeNode>, ...props: (keyof CRM.SafeNode)[]) { 
 			for (let i = 0; i < props.length; i++) {
 				const property = props[i];
 				if (node[property] !== void 0) {
@@ -721,7 +721,7 @@ namespace EditCrmElement {
 			return newNode as CRM.SafeNode;
 		};
 
-		private static _extractUniqueChildren(this: EditCrm, node: CRM.Node, toExportIds: Array<number>, results: Array<CRM.Node>) {
+		private static _extractUniqueChildren(this: EditCrm, node: CRM.Node, toExportIds: number[], results: CRM.Node[]) {
 			if (toExportIds.indexOf(node.id) > -1) {
 				results.push(node);
 			} else {
@@ -771,7 +771,7 @@ namespace EditCrmElement {
 			};
 		};
 
-		private static _getMetaLines(this: EditCrm, script: string): Array<string> {
+		private static _getMetaLines(this: EditCrm, script: string): string[] {
 			const metaIndexes = this._getMetaIndexes(script);
 			if (metaIndexes.start === -1) {
 				return null;
@@ -785,7 +785,7 @@ namespace EditCrmElement {
 		};
 
 		private static _getMetaTags(this: EditCrm, script: string): {
-			[key: string]: Array<string|number>;
+			[key: string]: (string|number)[];
 		} {
 			const metaLines = this._getMetaLines(script);
 
@@ -819,7 +819,7 @@ namespace EditCrmElement {
 			let codeSplit = code.split('\n');
 			const metaIndexes = this._getMetaIndexes(code);
 			let metaTags: {
-				[key: string]: Array<string | number>;
+				[key: string]: (string|number)[];
 			} = {};
 			if (metaIndexes.start !== -1) {
 				//Remove metaLines
@@ -829,7 +829,7 @@ namespace EditCrmElement {
 
 			this._setMetaTagIfSet(metaTags, 'name', 'name', node);
 			author = (metaTags['nodeInfo'] && JSON.parse(metaTags['nodeInfo'][0] as string).author) || author || 'anonymous';
-			let authorArr: Array<string> = [];
+			let authorArr: string[] = [];
 			if (!Array.isArray(author)) {
 				authorArr = [author];
 			}
@@ -986,10 +986,10 @@ namespace EditCrmElement {
 			}, 150);
 		};
 
-		private static _exportGivenNodes(this: EditCrm, exports: Array<CRM.Node>) {
+		private static _exportGivenNodes(this: EditCrm, exports: CRM.Node[]) {
 			const __this = this;
 
-			const safeExports: Array<CRM.SafeNode> = [];
+			const safeExports: CRM.SafeNode[] = [];
 			for (let i = 0; i < exports.length; i++) {
 				safeExports[i] = this.makeNodeSafe(exports[i]);
 			}
@@ -1038,8 +1038,8 @@ namespace EditCrmElement {
 			}
 		};
 
-		private static _exportGivenNodeIDs(this: EditCrm, toExport: Array<number>) {
-			const exports: Array<CRM.Node> = [];
+		private static _exportGivenNodeIDs(this: EditCrm, toExport: number[]) {
+			const exports: CRM.Node[] = [];
 			for (let i = 0; i < window.app.settings.crm.length; i++) {
 				this._extractUniqueChildren(window.app.settings.crm[i], toExport, exports);
 			}
@@ -1101,7 +1101,7 @@ namespace EditCrmElement {
 			}, 150);
 		};
 
-		static getCRMElementFromPath(this: EditCrm, path: Array<number>, showPath: boolean = false): EditCrmItem {
+		static getCRMElementFromPath(this: EditCrm, path: number[], showPath: boolean = false): EditCrmItem {
 			let i;
 			for (i = 0; i < path.length - 1; i++) {
 				if (this.setMenus[i] !== path[i]) {
@@ -1142,7 +1142,7 @@ namespace EditCrmElement {
 			}]);
 		}
 
-		static getItems(this: EditCrm): Array<EditCrmItem> {
+		static getItems(this: EditCrm): EditCrmItem[] {
 			return Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('edit-crm-item'));
 		}
 

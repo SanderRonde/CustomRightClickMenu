@@ -2,7 +2,7 @@
 
 namespace PaperArrayInputElement {
 	export const paperArrayInputProperties: {
-		values: Array<any>;
+		values: any[];
 		max: number;
 		title: string;
 		type: CRM.OptionArray['items'];
@@ -39,7 +39,7 @@ namespace PaperArrayInputElement {
 
 		static _maxReachedTimeout: number = -1;
 
-		static _hasItems<T extends Array<S>, S>(arr: T): boolean {
+		static _hasItems<T extends S[], S>(arr: T): boolean {
 			return arr && arr.length > 0;
 		}
 

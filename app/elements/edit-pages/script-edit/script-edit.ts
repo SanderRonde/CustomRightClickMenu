@@ -18,7 +18,7 @@ namespace ScriptEditElement {
 
 		static properties = scriptEditProperties;
 
-		private static _permissionDialogListeners: Array<() => void> = [];
+		private static _permissionDialogListeners: (() => void)[] = [];
 
 		static isTsEnabled(this: NodeEditBehaviorScriptInstance) {
 			return this.item.value && this.item.value.ts && this.item.value.ts.enabled;
@@ -264,11 +264,11 @@ namespace ScriptEditElement {
 			this.active = false;
 		};
 
-		private static _onPermissionsDialogOpen(extensionWideEnabledPermissions: Array<string>,
+		private static _onPermissionsDialogOpen(extensionWideEnabledPermissions: string[],
 			settingsStorage: Partial<CRM.ScriptNode>) {
 				let el, svg;
 				const showBotEls = Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.requestPermissionsShowBot'));
-				const newListeners: Array<() => void> = [];
+				const newListeners: (() => void)[] = [];
 				showBotEls.forEach((showBotEl: HTMLElement) => {
 					this._permissionDialogListeners.forEach((listener) => {
 						showBotEl.removeEventListener('click', listener);
@@ -382,30 +382,30 @@ namespace ScriptEditElement {
 				const askedPermissions = (nodeItem.nodeInfo &&
 					nodeItem.nodeInfo.permissions) || [];
 
-				const requiredActive: Array<{
+				const requiredActive: {
 					name: string;
 					toggled: boolean;
 					required: boolean;
 					description: string;
-				}> = [];
-				const requiredInactive: Array<{
+				}[] = [];
+				const requiredInactive: {
 					name: string;
 					toggled: boolean;
 					required: boolean;
 					description: string;
-				}> = [];
-				const nonRequiredActive: Array<{
+				}[] = [];
+				const nonRequiredActive: {
 					name: string;
 					toggled: boolean;
 					required: boolean;
 					description: string;
-				}> = [];
-				const nonRequiredNonActive: Array<{
+				}[] = [];
+				const nonRequiredNonActive: {
 					name: string;
 					toggled: boolean;
 					required: boolean;
 					description: string;
-				}> = [];
+				}[] = [];
 
 				let isAsked;
 				let isActive;
@@ -537,12 +537,12 @@ namespace ScriptEditElement {
 			};
 		};
 
-		static keyBindings: Array<{
+		static keyBindings: {
 			name: string;
 			defaultKey: string;
 			monacoKey: string;
 			storageKey: keyof CRM.KeyBindings;
-		}> = [{
+		}[] = [{
 				name: 'Go To Type Definition',
 				defaultKey: 'Ctrl-F12',
 				monacoKey: 'editor.action.goToTypeDefinition',
@@ -555,8 +555,8 @@ namespace ScriptEditElement {
 			}
 		];
 
-		private static _translateKeyCombination(this: NodeEditBehaviorScriptInstance, keys: string): Array<number> {
-			const monacoKeys: Array<number> = [];
+		private static _translateKeyCombination(this: NodeEditBehaviorScriptInstance, keys: string): number[] {
+			const monacoKeys: number[] = [];
 			for (const key of keys.split('-')) {
 				if (key === 'Ctrl') {
 					monacoKeys.push(monaco.KeyMod.CtrlCmd);
@@ -583,10 +583,10 @@ namespace ScriptEditElement {
 			if (!this.editorManager.isTextarea(editor) && !this.editorManager.isDiff(editor)) {
 				const oldAction = editor.getAction(keyBinding.monacoKey) as monaco.editor.IEditorAction & {
 					_precondition: {
-						expr: Array<{
+						expr: {
 							key: string;
 							defaultValue: boolean;
-						}>;
+						}[];
 					}
 				}
 				editor.addAction({

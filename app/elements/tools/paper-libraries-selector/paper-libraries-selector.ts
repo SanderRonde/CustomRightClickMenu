@@ -2,10 +2,10 @@
 
 namespace PaperLibrariesSelectorElement {
 	export const paperLibrariesSelectorProperties: {
-		usedlibraries: Array<CRM.Library>;
-		libraries: Array<LibrarySelectorLibrary>;
-		selected: Array<number>;
-		installedLibraries: Array<CRM.InstalledLibrary>;
+		usedlibraries: CRM.Library[];
+		libraries: LibrarySelectorLibrary[];
+		selected: number[];
+		installedLibraries: CRM.InstalledLibrary[];
 		mode: 'main'|'background';
 		noroot: boolean;
 	} = {
@@ -72,11 +72,11 @@ namespace PaperLibrariesSelectorElement {
 			library: LibrarySelectorLibrary;
 		} = null;
 
-		private static _eventListeners: Array<{
+		private static _eventListeners: {
 			target: HTMLElement;
 			event: string;
 			listener: Function;
-		}> = [];
+		}[] = [];
 
 		private static _srcNode: CRM.ScriptNode = null;
 
@@ -103,7 +103,7 @@ namespace PaperLibrariesSelectorElement {
 		}
 
 		static categorizeLibraries(this: PaperLibrariesSelector) {
-			const anonymous: Array<LibrarySelectorLibrary> = [];
+			const anonymous: LibrarySelectorLibrary[] = [];
 			const selectedObj: {
 				[key: string]: boolean;
 			} = {};
@@ -124,7 +124,7 @@ namespace PaperLibrariesSelectorElement {
 		private static _getLibraries(this: PaperLibrariesSelector, selectedObj: {
 			[key: string]: boolean;
 		}) {
-			let libraries: Array<LibrarySelectorLibrary> = [];
+			let libraries: LibrarySelectorLibrary[] = [];
 			this.installedLibraries.forEach(function(item) {
 				const itemCopy: LibrarySelectorLibrary = {} as any;
 				itemCopy.name = item.name;
@@ -143,8 +143,8 @@ namespace PaperLibrariesSelectorElement {
 			return libraries;
 		}
 
-		private static _setSelectedLibraries(this: PaperLibrariesSelector, libraries: Array<LibrarySelectorLibrary>) {
-			const selected: Array<number> = [];
+		private static _setSelectedLibraries(this: PaperLibrariesSelector, libraries: LibrarySelectorLibrary[]) {
+			const selected: number[] = [];
 			libraries.forEach(function(item, index) {
 				if (item.selected === 'true') {
 					selected.push(index);
@@ -170,7 +170,7 @@ namespace PaperLibrariesSelectorElement {
 			} = this.categorizeLibraries();
 			let libraries = this._getLibraries(selectedObj)
 			this._setSelectedLibraries(libraries);
-			const anonymousLibraries: Array<LibrarySelectorLibrary> = [];
+			const anonymousLibraries: LibrarySelectorLibrary[] = [];
 			anonymous.forEach(function(item) {
 				const itemCopy: LibrarySelectorLibrary = {
 					isLibrary: true,
@@ -260,25 +260,25 @@ namespace PaperLibrariesSelectorElement {
 			});
 		}
 		
-		private static _hideElements<T extends keyof typeof window.doc>(...els: Array<T>) {
+		private static _hideElements<T extends keyof typeof window.doc>(...els: T[]) {
 			for (let i = 0; i < els.length; i++) {
 				(window.doc[els[i]] as any).style.display = 'none';
 			}
 		}
 
-		private static _showElements<T extends keyof typeof window.doc>(...els: Array<T>) {
+		private static _showElements<T extends keyof typeof window.doc>(...els: T[]) {
 			for (let i = 0; i < els.length; i++) {
 				(window.doc[els[i]] as any).style.display = 'block';
 			}
 		}
 
-		private static _showElementsFlex<T extends keyof typeof window.doc>(...els: Array<T>) {
+		private static _showElementsFlex<T extends keyof typeof window.doc>(...els: T[]) {
 			for (let i = 0; i < els.length; i++) {
 				window.setDisplayFlex(window.doc[els[i]] as any);
 			}
 		}
 
-		private static _setLibraries(this: PaperLibrariesSelector, libraries: Array<CRM.InstalledLibrary>) {
+		private static _setLibraries(this: PaperLibrariesSelector, libraries: CRM.InstalledLibrary[]) {
 			browserAPI.storage.local.set({
 				libraries: libraries
 			} as any);
@@ -657,7 +657,7 @@ namespace PaperLibrariesSelectorElement {
 			contentEl.style.height = (~~contentEl.style.height.split('px')[0] - 48) + 'px';
 		}
 
-		static updateLibraries(this: PaperLibrariesSelector, libraries: Array<LibrarySelectorLibrary>,
+		static updateLibraries(this: PaperLibrariesSelector, libraries: LibrarySelectorLibrary[],
 			srcNode: CRM.ScriptNode, mode: 'main'|'background' = 'main') {
 				this.set('usedlibraries', libraries);
 				this._srcNode = srcNode

@@ -4,7 +4,7 @@ namespace PaperSearchWebsiteDialog {
 	export const paperSearchWebsiteDialogProperties: {
 		selectedOption: string;
 		selectedIsUrl: boolean;
-		searchList: Array<string>;
+		searchList: string[];
 		chosenUrl: string;
 		searchQuery: string;
 		searchTestResult: string;
@@ -81,7 +81,7 @@ namespace PaperSearchWebsiteDialog {
 		/**
 		 * The path of windows chosen
 		 */
-		static windowPath: Array<number> = [0];
+		static windowPath: number[] = [0];
 
 		/**
 		 * Whether this dialog has already been fitted
@@ -91,7 +91,7 @@ namespace PaperSearchWebsiteDialog {
 		/**
 		 * All the windows' id's of this dialog
 		 */
-		static windows: Array<PaperSearchWebsiteDialogWindow> =
+		static windows: PaperSearchWebsiteDialogWindow[] =
 			[
 				'initialWindow',
 				'chooseDefaultSearchWindow',

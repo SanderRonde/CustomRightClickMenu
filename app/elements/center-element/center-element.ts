@@ -7,8 +7,8 @@ namespace CenterElementElement {
 		fill: boolean;
 		fullscreenoverlay: boolean;
 		hide: boolean;
-		requestedPermissions: Array<string>;
-		otherPermissions: Array<string>;
+		requestedPermissions: string[];
+		otherPermissions: string[];
 		nostyle: boolean;
 	} = {
 		/**

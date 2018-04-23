@@ -37,7 +37,7 @@ namespace TypeSwitcherElement {
 		/**
 		 * All types other than this one
 		 */
-		static remainingTypes: Array<CRM.NodeType>;
+		static remainingTypes: CRM.NodeType[];
 
 		/**
 		 * Whether the choices container is toggled open
@@ -176,7 +176,7 @@ namespace TypeSwitcherElement {
 			if (typeof e === 'string') {
 				type = e;
 			} else {
-				const path = window.app.util.getPath(e) as Array<Polymer.PolymerElement>;
+				const path = window.app.util.getPath(e) as Polymer.PolymerElement[];
 				if (path[0].tagName === 'SPAN') {
 					type = path[0].innerHTML as CRM.NodeType;
 				} else {

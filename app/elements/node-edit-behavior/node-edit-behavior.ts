@@ -167,9 +167,9 @@ namespace NodeEditBehaviorNamespace {
 		};
 
 		static checkToggledIconAmount(this: NodeEditBehaviorInstance, e: {
-			path: Array<HTMLElement>;
+			path: HTMLElement[];
 		}|{
-			Aa: Array<HTMLElement>;
+			Aa: HTMLElement[];
 		}) {
 			this.async(() => {
 				const selectedCheckboxes: {

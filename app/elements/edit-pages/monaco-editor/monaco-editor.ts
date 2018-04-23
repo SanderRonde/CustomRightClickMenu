@@ -38,15 +38,15 @@ namespace MonacoEditorElement {
 
 	abstract class EventEmitter<PubL extends string, PriL extends string> {
 		private _privateListenerMap: {
-			[key in PriL]: Array<(...params: Array<any>) => any>;
+			[key in PriL]: ((...params: any[]) => any)[];
 		} = {} as any;
 
 		private _publicListenerMap: {
-			[key in PubL]: Array<(...params: Array<any>) => any>;
+			[key in PubL]: ((...params: any[]) => any)[];
 		} = {} as any;
 
-		private _insertOnce<T extends (...args: Array<any>) => any>(arr: Array<T>, value: T) {
-			const self = (((...args: Array<any>) => {
+		private _insertOnce<T extends (...args: any[]) => any>(arr: T[], value: T) {
+			const self = (((...args: any[]) => {
 				arr.slice(arr.indexOf(self, 1));
 				return value(...args);
 			}) as any);
@@ -61,7 +61,7 @@ namespace MonacoEditorElement {
 			}
 		}
 
-		protected _listen<E extends PriL>(event: E, listener: (...args: Array<any>) => any, once: boolean = false) {
+		protected _listen<E extends PriL>(event: E, listener: (...args: any[]) => any, once: boolean = false) {
 			this._assertKeyExists(event, this._privateListenerMap);
 			if (once) {
 				this._insertOnce(this._privateListenerMap[event], listener);
@@ -70,7 +70,7 @@ namespace MonacoEditorElement {
 			}
 		}
 
-		public listen<E extends PubL>(event: E, listener: (...args: Array<any>) => any, once: boolean = false) {
+		public listen<E extends PubL>(event: E, listener: (...args: any[]) => any, once: boolean = false) {
 			this._assertKeyExists(event, this._publicListenerMap);
 			if (once) {
 				this._insertOnce(this._publicListenerMap[event], listener);
@@ -88,13 +88,13 @@ namespace MonacoEditorElement {
 			}
 		}
 
-		protected _firePrivate<R, E extends PriL = PriL>(event: E, params: Array<any>): Array<R> {
+		protected _firePrivate<R, E extends PriL = PriL>(event: E, params: any[]): R[] {
 			return !(event in this._privateListenerMap) ? [] : this._privateListenerMap[event].map((listener) => {
 				return listener(...params);
 			});
 		}
 
-		protected _firePublic<R, E extends PubL>(event: E, params: Array<any>): Array<R> {
+		protected _firePublic<R, E extends PubL>(event: E, params: any[]): R[] {
 			return !(event in this._publicListenerMap) ? [] : this._publicListenerMap[event].map((listener) => {
 				return listener(...params);
 			});
@@ -129,9 +129,9 @@ namespace MonacoEditorElement {
 		/**
 		 * Any listeners that need to be disposed of eventually
 		 */
-		protected _disposables: Array<{
+		protected _disposables: {
 			dispose(): void;
-		}> = [];
+		}[] = [];
 
 		/**
 		 * The editor that is currently being used
@@ -211,7 +211,7 @@ namespace MonacoEditorElement {
 		/**
 		 * The decorations currently being used
 		 */
-		private _decorations: Array<string> = [];
+		private _decorations: string[] = [];
 
 		/**
 		 * Whether to disable the highlight of userscript metadata at the top of the file
@@ -458,7 +458,7 @@ namespace MonacoEditorElement {
 				return false;
 			}
 
-			const keys: Array<string> = [];
+			const keys: string[] = [];
 			for (let key in prev) {
 				if (!(key in current)) {
 					return false;
@@ -483,12 +483,12 @@ namespace MonacoEditorElement {
 					return false;
 				}
 				if (prevIsArray) {
-					for (let value of prevVal as Array<any>) {
+					for (let value of prevVal as any[]) {
 						if (currentVal.indexOf(value) === -1) {
 							return false;
 						}
 					}
-					for (let value of currentVal as Array<any>) {
+					for (let value of currentVal as any[]) {
 						if (prevVal.indexOf(value) === -1) {
 							return false;
 						}
@@ -575,7 +575,7 @@ namespace MonacoEditorElement {
 			const regex = MonacoEditorMetaBlockMods._metaPropRegex;
 			const lines = content.split('\n');
 
-			const newDecorations: Array<monaco.editor.IModelDeltaDecoration> = [];
+			const newDecorations: monaco.editor.IModelDeltaDecoration[] = [];
 			for (let i = 0; i < lines.length; i++) {
 				const line = lines[i];
 				const match = regex.exec(line);
@@ -616,7 +616,7 @@ namespace MonacoEditorElement {
 			return newDecorations;
 		}
 
-		private _doDecorationUpdate(decorations: Array<monaco.editor.IModelDeltaDecoration>) {
+		private _doDecorationUpdate(decorations: monaco.editor.IModelDeltaDecoration[]) {
 			if (!this._isDiff(this._editor)) {
 				if (this._editor.getModel() === this._model) {
 				this._decorations = this._editor.deltaDecorations(this._decorations, decorations);
@@ -639,7 +639,7 @@ namespace MonacoEditorElement {
 			}
 		}
 
-		private _formatDecorations(decorations: Array<Array<monaco.editor.IModelDeltaDecoration>>) {
+		private _formatDecorations(decorations: monaco.editor.IModelDeltaDecoration[][]) {
 			if (decorations.length === 0) {
 				return [];
 			} else if (decorations.length === 1) {
@@ -652,7 +652,7 @@ namespace MonacoEditorElement {
 		}
 
 		private _doModelUpdate() {
-			const decorations = this._firePrivate<Array<monaco.editor.IModelDeltaDecoration>>('decorate', [])
+			const decorations = this._firePrivate<monaco.editor.IModelDeltaDecoration[]>('decorate', [])
 				.filter(decorationArr => decorationArr !== null);
 			
 			this._doDecorationUpdate(this._formatDecorations(decorations));
@@ -705,7 +705,7 @@ namespace MonacoEditorElement {
 		/**
 		 * All lines currently containing colors
 		 */
-		private _styleLines: Array<number> = [];
+		private _styleLines: number[] = [];
 
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
@@ -792,10 +792,10 @@ namespace MonacoEditorElement {
 
 		private _getCssRuleParts(str: string) {
 			let match: RegExpExecArray = null;
-			const ruleParts: Array<{
+			const ruleParts: {
 				text: string;
 				start: number;
-			}> = [];
+			}[] = [];
 			while ((match = MonacoEditorCSSMetaMods._cssRuleRegex.exec(str))) {
 				const startIndex = str.indexOf(match[0]);
 				const endIndex = startIndex + match[0].length;
@@ -899,10 +899,10 @@ namespace MonacoEditorElement {
 		private _getColors() {
 			const content = this._model.getValue();
 			const lines = content.split('\n');
-			const colors: Array<{
+			const colors: {
 				pos: monaco.Range;
 				color: string;
-			}> = [];
+			}[] = [];
 			for (let i = 0; i < lines.length; i++) {
 				let line = lines[i];
 
@@ -935,7 +935,7 @@ namespace MonacoEditorElement {
 		}
 
 		private _markUnderlines() {
-			const newRules: Array<[string, string]> = [];
+			const newRules: [string, string][] = [];
 			let newRulesString = '';
 
 			if (this._editor.getModel() === this._model) {
@@ -977,19 +977,19 @@ namespace MonacoEditorElement {
 	interface JSONSchemaMeta {
 		title?: string;
 		description?: string;
-		anyOf?: Array<JSONSchema>;
-		allOf?: Array<JSONSchema>;
-		oneOf?: Array<JSONSchema>;
+		anyOf?: JSONSchema[];
+		allOf?: JSONSchema[];
+		oneOf?: JSONSchema[];
 		not?: JSONSchema;
 	}
 	
 	interface JSONSchemaEnum extends JSONSchemaMeta {
-		enum: Array<string|number|boolean>;
+		enum: (string|number|boolean)[];
 	}
 
 	interface JSONSchemaString extends JSONSchemaMeta {
 		default?: string;
-		enum?: Array<string>;
+		enum?: string[];
 		type: 'string';
 		minLength?: number;
 		maxLength?: number;
@@ -999,7 +999,7 @@ namespace MonacoEditorElement {
 
 	interface JSONSchemaNumber extends JSONSchemaMeta {
 		default?: number;
-		enum?: Array<number>;
+		enum?: number[];
 		type: 'number'|'integer';
 		multipleOf?: number;
 		minimum?: number;
@@ -1010,13 +1010,13 @@ namespace MonacoEditorElement {
 
 	interface JSONSchemaBoolean extends JSONSchemaMeta {
 		default?: boolean;
-		enum?: Array<boolean>;
+		enum?: boolean[];
 		type: 'boolean';
 	}
 
 	interface JSONSchemaArray extends JSONSchemaMeta {
 		type: 'array';
-		items: JSONSchema|Array<JSONSchema>;
+		items: JSONSchema|JSONSchema[];
 		additionalItems?: false|JSONSchema;
 		minItems?: number;
 		maxItems?: number;
@@ -1028,11 +1028,11 @@ namespace MonacoEditorElement {
 			[key: string]: JSONSchema;
 		}
 		additionalProperties?: false|JSONSchema;
-		required?: Array<string>;
+		required?: string[];
 		minProperties?: number;
 		maxProperties?: number;
 		dependencies?: {
-			[key: string]: Array<string>|JSONSchemaObjectBase;
+			[key: string]: string[]|JSONSchemaObjectBase;
 		};
 		patternProperties?: {
 			[pattern: string]: JSONSchema;
@@ -1048,7 +1048,7 @@ namespace MonacoEditorElement {
 	}
 
 	interface JSONSchemaMultiType extends JSONSchemaMeta {
-		type: Array<'number'|'string'|'boolean'|'object'|'array'|'null'>;
+		type: ('number'|'string'|'boolean'|'object'|'array'|'null')[];
 	}
 
 	type JSONSchemaTypedef = JSONSchemaString|JSONSchemaNumber|JSONSchemaBoolean|
@@ -1303,7 +1303,7 @@ namespace MonacoEditorElement {
 		/**
 		 * The libraries belonging to this configuration
 		 */
-		private _libraries: Array<CRM.Library> = [];
+		private _libraries: CRM.Library[] = [];
 		
 		/**
 		 * The node this configuration is based on
@@ -1318,7 +1318,7 @@ namespace MonacoEditorElement {
 		/**
 		 * The disposables generated by registering the libraries
 		 */
-		private _registrationDisposables: Array<monaco.IDisposable> = [];
+		private _registrationDisposables: monaco.IDisposable[] = [];
 
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel,
 			{ node, isBackground }: {
@@ -1400,7 +1400,7 @@ namespace MonacoEditorElement {
 			return monaco.languages.typescript.typescriptDefaults.addExtraLib(content, `${library.name}.ts`);
 		}
 
-		private async _registerLibraries(libraries: Array<CRM.Library>) {
+		private async _registerLibraries(libraries: CRM.Library[]) {
 			return await Promise.all(libraries.map(library => this._registerLibrary(library)));
 		}
 
@@ -1469,9 +1469,9 @@ namespace MonacoEditorElement {
 	}
 
 	abstract class TextareaEditorBase implements MonacoBaseEditor {
-		protected _textareaElements: Array<HTMLTextAreaElement>;
+		protected _textareaElements: HTMLTextAreaElement[];
 		protected abstract _getValue(): string;
-		protected _models: Array<TextareaModel> = [];
+		protected _models: TextareaModel[] = [];
 		protected _model: TextareaModel|{
 			original: TextareaModel;
 			modified: TextareaModel;
@@ -1920,8 +1920,8 @@ namespace MonacoEditorElement {
 		 */
 		private static _models: {
 			[id: string]: {
-				models: Array<MonacoModel>;
-				handlers: Array<MonacoTypeHandler>;
+				models: MonacoModel[];
+				handlers: MonacoTypeHandler[];
 				state: monaco.editor.ICodeEditorViewState|monaco.editor.IDiffEditorViewState;
 				editorType: EditorConfig;
 			}
@@ -1930,7 +1930,7 @@ namespace MonacoEditorElement {
 		/**
 		 * An array of all elements created from this one
 		 */
-		private static _children: Array<MonacoEditor>;
+		private static _children: MonacoEditor[];
 
 		private static _createInfo: {
 			method: 'create';
@@ -2063,7 +2063,7 @@ namespace MonacoEditorElement {
 		/**
 		 * Merges two arrays
 		 */
-		private static _mergeArrays<T extends Array<T> | Array<U>, U>(mainArray: T, additionArray: T): T {
+		private static _mergeArrays<T extends T[]|U[], U>(mainArray: T, additionArray: T): T {
 			for (let i = 0; i < additionArray.length; i++) {
 				if (mainArray[i] && typeof additionArray[i] === 'object' &&
 					mainArray[i] !== undefined && mainArray[i] !== null) {
@@ -2402,8 +2402,8 @@ namespace MonacoEditorElement {
 		}
 		
 		static getModel(this: MonacoEditor, identifier: string): {
-			models: Array<MonacoModel>;
-			handlers: Array<MonacoTypeHandler>;
+			models: MonacoModel[];
+			handlers: MonacoTypeHandler[];
 			state: monaco.editor.ICodeEditorViewState|monaco.editor.IDiffEditorViewState;
 			editorType: EditorConfig;
 		} {
@@ -2457,7 +2457,7 @@ namespace MonacoEditorElement {
 			this._showSpinner();
 		}
 
-		private static _runJsLint(this: MonacoEditor): Array<LinterWarning> {
+		private static _runJsLint(this: MonacoEditor): LinterWarning[] {
 			const code = this.getCurrentModel().models[0].getValue();
 			const { warnings } = window.jslint(code, {}, window.app.jsLintGlobals);
 			return warnings.map((warning) => ({
@@ -2467,7 +2467,7 @@ namespace MonacoEditorElement {
 			}));
 		}
 
-		private static _runCssLint(this: MonacoEditor): Array<LinterWarning> {
+		private static _runCssLint(this: MonacoEditor): LinterWarning[] {
 			const code = this.getCurrentModel().models[0].getValue();
 			const { messages } = window.CSSLint.verify(code);
 			return messages.map((message) => ({
@@ -2477,7 +2477,7 @@ namespace MonacoEditorElement {
 			}));
 		}
 
-		private static _showLintResults(this: MonacoEditor, name: string, messages: Array<LinterWarning>) {
+		private static _showLintResults(this: MonacoEditor, name: string, messages: LinterWarning[]) {
 			if ('__textarea' in this.editor) {
 				return;
 			}
@@ -2601,10 +2601,10 @@ namespace MonacoEditorElement {
 		/**
 		 * Listeners for a changing scope
 		 */
-		private static _scopeListeners: Array<{
+		private static _scopeListeners: {
 			scope: MonacoEditor;
 			listener: () => void;
-		}> = [];
+		}[] = [];
 
 		/**
 		 * An empty model used as a transition model
@@ -2614,7 +2614,7 @@ namespace MonacoEditorElement {
 		/**
 		 * Any registered scopes
 		 */
-		private static _scopes: Array<[MonacoEditor, MonacoStandardEditor|MonacoDiffEditor]> = [];
+		private static _scopes: [MonacoEditor, MonacoStandardEditor|MonacoDiffEditor][] = [];
 
 		static Caret = class MonacoEditorCaret {
 			/**
@@ -2780,7 +2780,7 @@ namespace MonacoEditorElement {
 				insertText: '==/UserScript==',
 				detail: 'UserScript end tag',
 				documentation: 'The end tag for a UserScript metadata block'
-			}] as Array<monaco.languages.CompletionItem>;
+			}] as monaco.languages.CompletionItem[];
 			const keyCompletions = {
 				isIncomplete: true,
 				items: Object.getOwnPropertyNames(metaDataDescriptions).map((key: keyof typeof metaDataDescriptions) => {
@@ -2830,10 +2830,10 @@ namespace MonacoEditorElement {
 
 		static Completion = class MonacoEditorCompletions {
 			private static _enabledCompletions: {
-				[language: string]: Array<{
+				[language: string]: {
 					completion: monaco.languages.CompletionItemProvider;
 					disposable: monaco.IDisposable
-				}>
+				}[];
 			} = {};
 
 			static register(language: 'javascript'|'css'|'typescript'|'json', item: monaco.languages.CompletionItemProvider) {

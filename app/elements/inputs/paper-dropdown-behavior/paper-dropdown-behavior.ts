@@ -48,11 +48,11 @@ namespace PaperDropdownBehaviorNamespace {
 		/**
 		 * The listeners for this element
 		 */
-		static _listeners: Array<{
+		static _listeners: {
 			listener: PaperDropdownListener;
 			id: string;
 			thisArg: any;
-		}>;
+		}[];
 
 		/**
 		 * Whether the menu is expanded
@@ -77,7 +77,7 @@ namespace PaperDropdownBehaviorNamespace {
 		/**
 		 * The listeners on clicking the items
 		 */
-		static _elementListeners: Array<() => void> = [];
+		static _elementListeners: (() => void)[] = [];
 
 		/**
 		 * Adds a listener that fires when a new value is selected
@@ -99,12 +99,12 @@ namespace PaperDropdownBehaviorNamespace {
 			}
 		};
 
-		static onValueChange(this: PaperDropdownInstance, oldState: number|Array<number>, newState: number|Array<number>) { }
+		static onValueChange(this: PaperDropdownInstance, oldState: number|number[], newState: number|number[]) { }
 
 		/**
 		 * Fires all added listeners, triggers when a new value is selected
 		 */
-		static _fireListeners(this: PaperDropdownInstance, oldState: number|Array<number>) {
+		static _fireListeners(this: PaperDropdownInstance, oldState: number|number[]) {
 			const newState = this.selected;
 			this._listeners.forEach((listener) => {
 				if (listener.id === this.id) {
@@ -119,24 +119,24 @@ namespace PaperDropdownBehaviorNamespace {
 		}
 
 		static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
-			selector?: string, slotSelector?: string): Array<HTMLElement|Polymer.PolymerElement> | null
+			selector?: string, slotSelector?: string): (HTMLElement|Polymer.PolymerElement)[] | null
 		static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
-			selector?: K, slotSelector?: string): Array<Polymer.ElementTagNameMap[K]> | null
+			selector?: K, slotSelector?: string): (Polymer.ElementTagNameMap[K])[] | null
 		static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
-			selector?: string, slotSelector?: string): Array<HTMLElement> | null
+			selector?: string, slotSelector?: string): HTMLElement[] | null
 		static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
-			selector: K|string = null, slotSelector: string = 'slot'): Array<Polymer.ElementTagNameMap[K]|HTMLElement> | null {
+			selector: K|string = null, slotSelector: string = 'slot'): (Polymer.ElementTagNameMap[K]|HTMLElement)[] | null {
 				const selectFn = '$$' in parent ? (parent as any).$$ : parent.querySelector;
 				const slotChildren = (selectFn.bind(parent)(slotSelector) as HTMLSlotElement).assignedNodes().filter((node) => {
 					return node.nodeType !== node.TEXT_NODE;
-				}) as Array<HTMLElement>;
+				}) as HTMLElement[];
 				if (!selector) {
 					return slotChildren;
 				}
 				const result = (slotChildren.map((node: HTMLElement) => {
 					return node.querySelectorAll(selector)
 				}).reduce((prev, current) => {
-					let arr: Array<HTMLElement|Polymer.ElementTagNameMap[K]> = [];
+					let arr: (HTMLElement|Polymer.ElementTagNameMap[K])[] = [];
 					if (prev) {
 						arr = arr.concat(Array.prototype.slice.apply(prev));
 					}
@@ -144,7 +144,7 @@ namespace PaperDropdownBehaviorNamespace {
 						arr = arr.concat(Array.prototype.slice.apply(current));
 					}
 					return arr as any;
-				}) as any) as Array<Polymer.ElementTagNameMap[K]|HTMLElement>;
+				}) as any) as (Polymer.ElementTagNameMap[K]|HTMLElement)[];
 				if (!Array.isArray(result)) {
 					return Array.prototype.slice.apply(result);
 				}
@@ -406,9 +406,9 @@ namespace PaperDropdownBehaviorNamespace {
 		 * Gets the currently selected item(s)
 		 * @returns {Array} The currently selected item(s) in array form
 		 */
-		static getSelected(this: PaperDropdownInstance): Array<number> {
+		static getSelected(this: PaperDropdownInstance): number[] {
 			if (this.shadowRoot.querySelectorAll('.iron-selected.addLibrary')) {
-				(this.selected as Array<number>).pop();
+				(this.selected as number[]).pop();
 			}
 			if (typeof this.selected === 'number') {
 				return [this.selected];

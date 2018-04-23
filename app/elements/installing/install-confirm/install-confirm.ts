@@ -3,7 +3,7 @@
 namespace InstallConfirmElement {
 	export const installConfirmProperties: {
 		script: string;
-		permissions: Array<CRM.Permission>;
+		permissions: CRM.Permission[];
 	} = {
 		script: {
 			type: String,
@@ -37,14 +37,14 @@ namespace InstallConfirmElement {
 
 		static properties = installConfirmProperties;
 
-		static lengthIs(this: InstallConfirm, arr: Array<any>, length: number): boolean {
+		static lengthIs(this: InstallConfirm, arr: any[], length: number): boolean {
 			if (arr.length === 1 && arr[0] === 'none') {
 				return length === 0;
 			}
 			return arr.length === length;
 		}
 
-		private static _getCheckboxes(this: InstallConfirm): Array<HTMLPaperCheckboxElement> {
+		private static _getCheckboxes(this: InstallConfirm): HTMLPaperCheckboxElement[] {
 			return Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-checkbox'));
 		}
 
@@ -87,7 +87,7 @@ namespace InstallConfirmElement {
 						});
 						this._settings = local.settings;
 					} else {
-						const settingsJsonArray: Array<string> = [];
+						const settingsJsonArray: string[] = [];
 						const indexesLength = typeof indexes === 'number' ? 
 							indexes : (Array.isArray(indexes) ? 
 								indexes.length : 0);
@@ -109,7 +109,7 @@ namespace InstallConfirmElement {
 							indexes: string[]|number;
 						} = await browserAPI.storage.sync.get() as any;
 						const indexes = storageSync.indexes;
-						const settingsJsonArray: Array<string> = [];
+						const settingsJsonArray: string[] = [];
 						const indexesLength = typeof indexes === 'number' ? 
 							indexes : (Array.isArray(indexes) ? 
 								indexes.length : 0);
@@ -310,7 +310,7 @@ namespace InstallConfirmElement {
 		};
 
 		static completeInstall(this: InstallConfirm) {
-			const allowedPermissions: Array<CRM.Permission> = [];
+			const allowedPermissions: CRM.Permission[] = [];
 			this._getCheckboxes().forEach((checkbox) => {
 				checkbox.checked && allowedPermissions.push(checkbox.getAttribute('permission') as CRM.Permission);
 			});
@@ -335,7 +335,7 @@ namespace InstallConfirmElement {
 			}, 150);
 		}
 
-		private static _setMetaTag(this: InstallConfirm, name: keyof ModuleMap['install-confirm'], values: Array<string|number>) {
+		private static _setMetaTag(this: InstallConfirm, name: keyof ModuleMap['install-confirm'], values: (string|number)[]) {
 			let value;
 			if (values) {
 				value = values[values.length - 1];
@@ -352,7 +352,7 @@ namespace InstallConfirmElement {
 			window.installPage.$.title.innerHTML = `Installing <b>${(tags['name'] && tags['name'][0])}</b>`;
 
 			this.$.sourceValue.innerText = window.installPage.userscriptUrl;
-			const permissions = tags['grant'] as Array<CRM.Permission>;
+			const permissions = tags['grant'] as CRM.Permission[];
 			this.permissions = permissions;
 			this._metaTags = tags;
 

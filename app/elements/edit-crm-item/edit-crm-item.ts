@@ -453,7 +453,7 @@ namespace EditCrmItemElement {
 
 		private static _getOnSelectFunction(this: EditCrmItem, index: number) {
 			return () => {
-				window.app.editCRM.getCRMElementFromPath((this.item.children as Array<CRM.Node>)[index].path)._onSelect(true);
+				window.app.editCRM.getCRMElementFromPath((this.item.children as CRM.Node[])[index].path)._onSelect(true);
 			};
 		};
 
@@ -472,7 +472,7 @@ namespace EditCrmItemElement {
 
 		private static _getOnDeselectFunction(this: EditCrmItem, index: number) {
 			return () => {
-				window.app.editCRM.getCRMElementFromPath((this.item.children as Array<CRM.Node>)[index].path)._onDeselect(true);
+				window.app.editCRM.getCRMElementFromPath((this.item.children as CRM.Node[])[index].path)._onDeselect(true);
 			};
 		};
 

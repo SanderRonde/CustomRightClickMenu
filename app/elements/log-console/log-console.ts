@@ -12,15 +12,15 @@ interface ContextMenuElement extends HTMLElement {
 namespace LogConsoleElement {
 	export const logConsoleProperties: {
 		lines: number;
-		ids: Array<{
+		ids: {
 			id: string|number;
 			title: string;
-		}>;
-		tabIndexes: Array<number>;
+		}[];
+		tabIndexes: number[];
 		selectedId: number;
 		selectedTab: number;
 		selectedTabIndex: number;
-		tabs: Array<TabData>;
+		tabs: TabData[];
 		textfilter: string;
 		waitingForEval: boolean;
 		__this: LogConsole;
@@ -75,7 +75,7 @@ namespace LogConsoleElement {
 
 	export interface ContextMenuSource {
 		props: {
-			value: Array<LogLineData>|LogLineData;
+			value: LogLineData[]|LogLineData;
 			parent: React.Component<any, any> & {
 				isLine(): boolean;
 			};
@@ -234,7 +234,7 @@ namespace LogConsoleElement {
 
 		static _updateLog(this: LogConsole, selectedId: number, selectedTab: number, textfilter: string) {
 			const selected = this._getSelectedValues();
-			const lines: Array<LogListenerLine> = (this._logListener && this._logListener.update(
+			const lines: LogListenerLine[] = (this._logListener && this._logListener.update(
 					selected.id,
 					selected.tab,
 					selected.tabIndex,
@@ -255,23 +255,23 @@ namespace LogConsoleElement {
 			return this.lines;
 		};
 
-		private static _hasChanged(this: LogConsole, prev: Array<{
+		private static _hasChanged(this: LogConsole, prev: {
 			id: string|number;
 			title: string;
-		}>, current: Array<{
+		}[], current: {
 			id: string|number;
 			title: string;
-		}>) {
+		}[]) {
 			return JSON.stringify(prev) !== JSON.stringify(current);
 		}
 
 		private static _transitionSelected(this: LogConsole, prev: {
 			id: string|number;
 			title: string;
-		}, arr: Array<{
+		}, arr: {
 			id: string|number;
 			title: string;
-		}>, prop: string) {
+		}[], prop: string) {
 			//Find the previous selected value in the new batch
 			if (prev) {
 				for (let index in arr) {
@@ -284,7 +284,7 @@ namespace LogConsoleElement {
 			this.set(prop, 0);
 		}
 
-		static _getIdTabs(this: LogConsole, selectedId: string|number): Array<TabData> {
+		static _getIdTabs(this: LogConsole, selectedId: string|number): TabData[] {
 			this.async(() => {
 				this._refreshMenu(this.$.tabDropdown, this.$.tabRepeat);
 			}, 10);
@@ -304,10 +304,10 @@ namespace LogConsoleElement {
 			return this.tabs;
 		};
 
-		static _getTabsIds(this: LogConsole, selectedTab: number): Array<{
+		static _getTabsIds(this: LogConsole, selectedTab: number): {
 			id: number|string;
 			title: string;
-		}> {
+		}[] {
 			this.async(() => {
 				this._refreshMenu(this.$.idDropdown, this.$.idRepeat);
 			}, 10);
@@ -327,7 +327,7 @@ namespace LogConsoleElement {
 			return this.ids;
 		}
 
-		static _getTabIndexes(this: LogConsole, selectedId: string|number, selectedTab: number): Array<number> {
+		static _getTabIndexes(this: LogConsole, selectedId: string|number, selectedTab: number): number[] {
 			this.async(() => {
 				this._refreshMenu(this.$.tabIndexDropdown, this.$.tabIndexRepeat);
 			}, 10);
@@ -338,7 +338,7 @@ namespace LogConsoleElement {
 			if (this._bgPage) {
 				const id = selectedId === 0 ? 0 : ~~this.ids[~~selectedId - 1].id;
 				const tab = selectedTab === 0 ? -1 : this.tabs[selectedTab - 1].id;
-				this._bgPage._getCurrentTabIndex(id, tab, (newTabIndexes: Array<number>) => {
+				this._bgPage._getCurrentTabIndex(id, tab, (newTabIndexes: number[]) => {
 					this.set('tabIndexes', newTabIndexes);
 				});
 			}
@@ -455,7 +455,7 @@ namespace LogConsoleElement {
 			const sourceLine = source;
 
 			//Get the index of this element in the logLine
-			const index = (sourceLine.props.value as Array<LogLineData>).indexOf(sourceVal as LogLineData);
+			const index = (sourceLine.props.value as LogLineData[]).indexOf(sourceVal as LogLineData);
 
 			const logLine = sourceLine.props.line;
 		
