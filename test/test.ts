@@ -1315,6 +1315,11 @@ const chrome = ({
 					}
 				}
 				cb && cb(storageSync);
+			},
+			clear: function() {
+				for (let key in storageSync) {
+					delete storageSync[key];
+				}
 			}
 		},
 		local: {
@@ -1343,6 +1348,11 @@ const chrome = ({
 					storageLocal[objKey] = data[objKey];
 				}
 				cb && cb(storageLocal);
+			},
+			clear: function() {
+				for (let key in storageLocal) {
+					delete storageLocal[key];
+				}
 			}
 		},
 		onChanged: {
