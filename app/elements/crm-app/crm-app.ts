@@ -43,41 +43,259 @@ window.runOrAddAsCallback = function (toRun: Function, thisElement: HTMLElement,
 	}
 };
 
-if (!document.createElement('div').animate) {
-	HTMLElement.prototype.animate = function (this: HTMLElement, properties, options): Animation {
+(() => {
+	class RoughPromise<T> implements PromiseLike<T> {
+		private _val: T = null;
+		private _state: 'pending'|'resolved'|'rejected' = 'pending';
+		private _done: boolean = false;
+		private _resolveListeners: ((value: T) => void)[] = [];
+		private _rejectListeners: ((value: T) => void)[] = [];
+		constructor(initializer: (resolve: (value: T) => void, reject: (err: any) => void) => void) {
+			initializer((val: T) => {
+				if (this._done) {
+					return;
+				}
+				this._done = true;
+				this._val = val;
+				this._state = 'resolved';
+				this._resolveListeners.forEach((listener) => {
+					listener(val);
+				});
+			}, (err) => {
+				if (this._done) {
+					return;
+				}
+				this._done = true;
+				this._val = err;
+				this._state = 'rejected';
+				this._rejectListeners.forEach((listener) => {
+					listener(err);
+				});
+			});
+		}
+		then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): PromiseLike<TResult1 | TResult2> {
+			if (!onfulfilled) {
+				return this as any;
+			}
+			if (this._done && this._state === 'resolved') {
+				onfulfilled(this._val);
+			} else {
+				this._resolveListeners.push(onfulfilled);
+			}
+			if (!onrejected) {
+				return this as any;
+			}
+			if (this._done && this._state === 'rejected') {
+				onrejected(this._val);
+			} else {
+				this._rejectListeners.push(onrejected);
+			}
+			return this as any;
+		}
+
+		static resolve<T>(value?: T): Promise<T> {
+			return new RoughPromise<T>((resolve) => { resolve(value); }) as any;
+		}
+
+		static reject(reason: any): Promise<any> {
+			return new RoughPromise<any>((_, reject) => {
+				reject(reason);
+			}) as any;
+		}
+	}
+
+	const animateExists = !!document.createElement('div').animate;
+	const animatePolyFill = function (this: HTMLElement, properties: {
+		[key: string]: any;
+	}[], options: {
+		duration?: number;
+		easing?: string|'bez';
+		fill?: 'forwards'|'backwards'|'both';
+	}): Animation {
 		if (!properties[1]) {
-			return {
+			var skippedAnimation: Animation = {
+				currentTime: null,
 				play: function () { },
 				reverse: function () { },
+				cancel: function() { },
+				finish: function() {},
+				pause: function() {},
 				effect: {
-					target: this
-				}
+					timing: 0,
+					getComputedTiming() {
+						return {
+							endTime: 0,
+							activeDuration: 0,
+							currentIteration: 0,
+							localTime: 0,
+							progress: null
+						}
+					}
+				},
+				finished: RoughPromise.resolve(skippedAnimation),
+				pending: false,
+				startTime: Date.now(),
+				id: '',
+				ready: RoughPromise.resolve(skippedAnimation),
+				playState: 'finished',
+				playbackRate: 1.0,
+				timeline: {
+					currentTime: Date.now()
+				},
+				oncancel: null,
+				onfinish: null
 			};
+			return skippedAnimation;
 		}
 
 		const element = this;
 		let direction: 'forwards' | 'backwards' = 'forwards';
-		const returnVal: Animation = {
+		const state: {
+			isPaused: boolean;
+			currentProgress: number;
+			msRemaining: number;
+			finishedPromise: Promise<Animation>;
+			finishPromise: (animation: Animation) => void;
+			playbackRate: number;
+			playState: 'idle'|'running'|'paused'|'finished';
+			iterations: number;
+		} = {
+			isPaused: false,
+			currentProgress: 0,
+			msRemaining: 0,
+			finishedPromise: null,
+			finishPromise: null,
+			playbackRate: 1.0,
+			playState: 'idle',
+			iterations: 0
+		};
+		var returnVal: Animation = {
 			play() {
-				$(element).animate(properties[~~(direction === 'forwards')],
-					(options && options.duration) || 500, function () {
+				state.playState = 'running';
+				state.iterations++;
+
+				state.finishedPromise = new RoughPromise<Animation>((resolve) => {
+					state.finishPromise = resolve;
+				}) as any;
+
+				let duration = (options && options.duration) || 500;
+				if (state.isPaused) {
+					duration = state.msRemaining;
+				}
+				duration = duration / state.playbackRate;
+				$(element).stop().animate(properties[~~(direction === 'forwards')], {
+					duration: duration,
+					complete() {
+						state.playState = 'finished';
+						state.isPaused = false;
+						state.finishPromise && state.finishPromise(returnVal);
 						if (returnVal.onfinish) {
-							returnVal.onfinish.apply({
-								effect: {
-									target: element
-								}
+							returnVal.onfinish.apply(returnVal, {
+								currentTime: Date.now(),
+								timelineTime: null
 							});
 						}
-					});
+					},
+					progress(animation, progress, remainingMs) {
+						state.currentProgress = progress;
+						state.msRemaining = remainingMs;
+					}
+				});
+				state.isPaused = false;
 			},
-			reverse(this: Animation) {
+			reverse() {
 				direction = 'backwards';
 				this.play();
 			},
+			cancel() {
+				state.playState = 'idle';
+				$(element).stop();
+				state.isPaused = false;
+
+				//Reset to start
+				const props = properties[~~(direction !== 'forwards')];
+				for (const prop in props) {
+					element.style[prop as any] = props[prop];
+				}
+
+				returnVal.oncancel && returnVal.oncancel.apply(returnVal, {
+					currentTime: Date.now(),
+					timelineTime: null
+				});
+			},
+			finish() {
+				state.isPaused = false;
+				$(element).stop().animate(properties[~~(direction === 'forwards')], {
+					duration: 0,
+					complete() {
+						state.playState = 'finished';
+						state.finishPromise && state.finishPromise(returnVal);
+						if (returnVal.onfinish) {
+							returnVal.onfinish.apply(returnVal, {
+								currentTime: Date.now(),
+								timelineTime: null
+							});
+						}
+					}
+				});
+			},
+			pause() {
+				state.playState = 'paused';
+				$(element).stop();
+				state.isPaused = true;
+			},
+			id: '',
+			pending: false,
+			currentTime: null,
 			effect: {
-				target: this
-			}
+				timing: 0,
+				getComputedTiming() {
+					const duration = ((options && options.duration) || 500) / state.playbackRate;
+					return {
+						endTime: duration,
+						activeDuration: duration,
+						localTime: state.playState === 'running' ?
+							duration - state.msRemaining : null,
+						progress: state.playState === 'running' ?
+							state.currentProgress : null,
+						currentIteration: state.playState === 'running' ?
+							state.iterations : null
+					}
+				}
+			},
+			timeline: {
+				currentTime: null
+			},
+			startTime: Date.now(),
+			ready: RoughPromise.resolve(returnVal),
+			playbackRate: null,
+			playState: null,
+			finished: null,
+			oncancel: null,
+			onfinish: null
 		};
+		Object.defineProperty(returnVal.timeline, 'currentTime', {
+			get() {
+				return Date.now();
+			}
+		});
+		Object.defineProperties(returnVal, {
+			playbackRate: {
+				get() {
+					return state.playbackRate;
+				}
+			},
+			playState: {
+				get() {
+					return state.playState;
+				}
+			},
+			finished: {
+				get() {
+					return state.finishedPromise;
+				}
+			}
+		});
 		$(this).animate(properties[1], options.duration, function () {
 			if (returnVal.onfinish) {
 				returnVal.onfinish.apply({
@@ -89,8 +307,12 @@ if (!document.createElement('div').animate) {
 		});
 		return returnVal;
 	};
-	(HTMLElement.prototype.animate as any).isJqueryFill = true;
-}
+
+	if (!animateExists) {
+		HTMLElement.prototype.animate = animatePolyFill;
+		(HTMLElement.prototype as any).__isAnimationJqueryPolyfill = true;
+	}
+})();
 
 const properties: {
 	settings: CRM.SettingsStorage;
@@ -1126,7 +1348,8 @@ class CA {
 					});
 
 					const stopHighlighting = function (element: HTMLElement) {
-						$(element).find('.item')[0].animate([
+						const item = $(element).find('.item')[0];
+						item.animate([
 							{
 								opacity: 1
 							}, {
@@ -1136,7 +1359,7 @@ class CA {
 								duration: 250,
 								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 							}).onfinish = function (this: Animation) {
-								this.effect.target.style.opacity = '0.6';
+								item.style.opacity = '0.6';
 								window.doc.restoreChangesDialog.open();
 								$('.pageCont').animate({
 									backgroundColor: 'white'
@@ -1162,8 +1385,9 @@ class CA {
 						const editCRMItems = $($crmEditColumn).children('edit-crm-item');
 						const crmElement = editCRMItems[path[path.length - 1]];
 						//Just in case the item doesn't exist (anymore)
-						if ($(crmElement).find('.item')[0]) {
-							$(crmElement).find('.item')[0].animate([
+						const item = $(crmElement).find('.item')[0];
+						if (item) {
+							item.animate([
 								{
 									opacity: 0.6
 								}, {
@@ -1173,7 +1397,7 @@ class CA {
 									duration: 250,
 									easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 								}).onfinish = function (this: Animation) {
-									this.effect.target.style.opacity = '1';
+									item.style.opacity = '1';
 								};
 							setTimeout(function () {
 								stopHighlighting(crmElement);

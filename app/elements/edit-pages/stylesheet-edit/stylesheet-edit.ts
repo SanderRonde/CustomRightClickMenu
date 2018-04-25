@@ -624,7 +624,8 @@ class STE {
 				this.editorPlaceHolderAnimation.play();
 			}
 			else {
-				this.editorPlaceHolderAnimation = this.$.editorPlaceholder.animate([
+				const placeholder = this.$.editorPlaceholder;
+				this.editorPlaceHolderAnimation = placeholder.animate([
 					{
 						opacity: 1
 					}, {
@@ -635,7 +636,7 @@ class STE {
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				});
 				this.editorPlaceHolderAnimation.onfinish = function (this: Animation) {
-					this.effect.target.style.display = 'none';
+					placeholder.style.display = 'none';
 				};
 			}
 		}

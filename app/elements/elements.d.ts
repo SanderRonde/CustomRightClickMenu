@@ -170,16 +170,6 @@ interface LogLineContainerInterface {
 	}
 }
 
-//Animation
-interface Animation {
-	onfinish?: () => void;
-	play(): void;
-	reverse(): void;
-	effect: {
-		target: HTMLElement;
-	}
-}
-
 interface HTMLElement {
 	animate(properties: Array<{
 		[key: string]: any;

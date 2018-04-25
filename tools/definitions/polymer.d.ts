@@ -232,9 +232,17 @@ type ElementTagNameMaps = Polymer.ElementTagNameMap &
 
 interface NodeSelector {
 	querySelector<K extends keyof ElementTagNameMaps>(selectors: K): ElementTagNameMaps[K] | null;
+	querySelector(selectors: string): HTMLElement | null;
 	querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): NodeListOf<Polymer.ElementTagNameMap[K]> | null;
 }
 
+interface ParentNode {
+	querySelector<K extends keyof ElementTagNameMaps>(selectors: K): ElementTagNameMaps[K] | null;
+	querySelector(selectors: string): HTMLElement | null;
+	querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): NodeListOf<Polymer.ElementTagNameMap[K]> | null;
+	getElementsByTagName<T extends keyof ElementTagNameMaps>(tag: T): NodeListOf<ElementTagNameMaps[T]>
+}
+
 interface Document {
-	getElementsByTagName<K extends keyof ElementTagNameMaps>(name: K): NodeListOf<ElementTagNameMaps[K]>;
+	getElementsByTagName<T extends keyof ElementTagNameMaps>(tag: T): NodeListOf<ElementTagNameMaps[T]>;
 }

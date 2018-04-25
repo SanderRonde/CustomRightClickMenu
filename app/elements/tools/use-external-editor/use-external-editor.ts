@@ -440,24 +440,24 @@ class UEE {
 
 		this.EditingOverlay.generateOverlay()
 				
-		$((window.scriptEdit && window.scriptEdit.active ?
+		const wrapper = $((window.scriptEdit && window.scriptEdit.active ?
 			window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
-				.find('.CodeMirror-scroll')[0]
-				.animate([
-					{
-						bottom: '-152px',
-						right: '-350px'
-					}, {
-						bottom: 0,
-						right: 0
-					}
-				], {
-					duration: 300,
-					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-				}).onfinish = function(this: Animation) {
-					this.effect.target.style.bottom = '0';
-					this.effect.target.style.right = '0';
-				};
+				.find('.CodeMirror-scroll')[0];
+		wrapper.animate([
+				{
+					bottom: '-152px',
+					right: '-350px'
+				}, {
+					bottom: 0,
+					right: 0
+				}
+			], {
+				duration: 300,
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			}).onfinish = function(this: Animation) {
+				wrapper.style.bottom = '0';
+				wrapper.style.right = '0';
+			};
 	};
 
 	static setupExternalEditing(this: UseExternalEditor) {
