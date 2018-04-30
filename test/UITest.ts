@@ -524,7 +524,9 @@ const templates = {
 	getDefaultNodeInfo(options: CRM.NodeInfo): CRM.NodeInfo {
 		const defaultNodeInfo: CRM.NodeInfo = {
 			permissions: [],
-			source: { }
+			source: { 
+				autoUpdate: true
+			}
 		};
 
 		return templates.mergeObjects(defaultNodeInfo, options);
