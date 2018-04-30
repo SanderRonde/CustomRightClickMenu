@@ -259,6 +259,7 @@ app/manifest.temp.json
 dist/
 
 app/js/background/*.js
+app/js/installStylesheet.js
 test/UI/drivers/*.js
 test/test.js
 adapters/**/*.js
