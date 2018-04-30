@@ -701,13 +701,35 @@ namespace CodeEditBehaviorNamespace {
 			}
 			window.useOptionsCompletions = false;
 		}
-		
-		static _CEBIinit(this: CodeEditBehaviorInstance) {
-			window.addEventListener('resize', () => {
-				if (this.fullscreen && this.active) {
-					this.fullscreenEditorManager.editor.layout();
+
+		static getAutoUpdateState(this: CodeEditBehaviorInstance) {
+			if ((this.newSettings.type !== 'script' && this.newSettings.type !== 'stylesheet') ||
+				this.newSettings.nodeInfo.source === 'local') {
+				return [false, true];
+			}
+			if (this.newSettings.nodeInfo &&
+				this.newSettings.nodeInfo.source) {
+					return [this.newSettings.nodeInfo.source.autoUpdate, false];
 				}
-			});
+			
+			return [true, false];
+		}
+
+		static setUpdateIcons(this: CodeEditBehaviorInstance, enabled: boolean, hidden: boolean) {
+			if (hidden) {
+				this.$.updateIcon.style.display = 'none';
+				return;
+			}
+			if (enabled) {
+				this.$.updateEnabled.classList.remove('hidden');
+				this.$.updateDisabled.classList.add('hidden');
+			} else {
+				this.$.updateEnabled.classList.add('hidden');
+				this.$.updateDisabled.classList.remove('hidden');
+			}
+		}
+
+		static initUI(this: CodeEditBehaviorInstance) {
 			this.$.dropdownMenu.addEventListener('expansionStateChange', (({detail}: Polymer.EventType<'expansionStateChange', {
 				state: 'closing'|'closed'|'opening'|'opened';
 			}>) => {
@@ -720,6 +742,31 @@ namespace CodeEditBehaviorNamespace {
 					this.editorManager.setTempLayout();
 				}
 			}) as any);
+
+			const [ enabled, hidden ] = this.getAutoUpdateState();
+			this.setUpdateIcons(enabled, hidden);
+		}
+
+		static toggleAutoUpdate(this: CodeEditBehaviorInstance) {
+			if ((this.newSettings.type !== 'script' && this.newSettings.type !== 'stylesheet') ||
+				this.newSettings.nodeInfo.source === 'local') {
+				return;
+			}
+			if (!this.newSettings.nodeInfo) {
+				return;
+			}
+			this.newSettings.nodeInfo.source.autoUpdate = 
+				!this.newSettings.nodeInfo.source.autoUpdate;
+			this.setUpdateIcons(this.newSettings.nodeInfo.source.autoUpdate, false);
+		}
+		
+		static _CEBIinit(this: CodeEditBehaviorInstance) {
+			window.addEventListener('resize', () => {
+				if (this.fullscreen && this.active) {
+					this.fullscreenEditorManager.editor.layout();
+				}
+			});
+			this.initUI();
 		}
 	}
 

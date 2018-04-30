@@ -1803,6 +1803,11 @@ export namespace Storages {
 			});
 			fns.afterSync.push(() => {
 				modules.Util.crmForEach(modules.crm.crmTree, (node) => {
+					if (node.type === 'script' || node.type === 'stylesheet') {
+						node.nodeInfo && node.nodeInfo.source &&
+							node.nodeInfo.source !== 'local' &&
+							(node.nodeInfo.source.autoUpdate = true)	
+					}
 					if (node.type === 'script') {
 						node.value.ts = {
 							enabled: false,

@@ -162,6 +162,14 @@ declare namespace CRM {
 		 * The name of the author of the node
 		 */
 		author?: string;
+		/**
+		 * The index of this section if it's a userstyle
+		 */
+		sectionIndex?: number;
+		/**
+		 * Whether to automatically update this node from the remote
+		 */
+		autoUpdate: boolean;
 	}
 
 	/**

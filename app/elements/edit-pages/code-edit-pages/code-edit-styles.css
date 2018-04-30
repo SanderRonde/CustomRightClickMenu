@@ -497,3 +497,37 @@ input {
 #triggerOverflowContainer {
 	overflow: hidden;
 }
+
+#topRow {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: row;
+	        flex-direction: row;
+	-webkit-box-pack: justify;
+	-webkit-justify-content: space-between;
+	        justify-content: space-between;
+}
+
+#updateIcon {
+	box-shadow: 0px 4px 16px 0 rgba(0, 0, 0, 0.35);
+	background-color: #3f51b5;
+	border-radius: 50%;
+	padding: 3px;
+	cursor: pointer;
+}
+
+#updateIcon:active {
+	box-shadow: 0px 0px 16px 0 rgba(0, 0, 0, 0.35);
+}
+
+#updateEnabled {
+	-webkit-transform: rotate(45deg);
+	        transform: rotate(45deg);
+}
+
+#updateEnabled.hidden, #updateDisabled.hidden {
+	display: none;
+}

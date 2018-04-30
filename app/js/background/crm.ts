@@ -951,7 +951,8 @@ export namespace CRMNodes.Script.Updating {
 					url: updateUrl || MetaTags.getlastMetaTagValue(metaTags, 'namespace') ||
 					downloadURL,
 					author: MetaTags.getlastMetaTagValue(metaTags, 'author') ||
-					'Anonymous'
+						'Anonymous',
+					autoUpdate: true
 				},
 				isRoot: true,
 				permissions: permissions,
@@ -1056,7 +1057,8 @@ export namespace CRMNodes.Script.Updating {
 				const node = modules.crm.crmById[~~id];
 				const isRoot = node.nodeInfo && node.nodeInfo.isRoot;
 				const downloadURL = getDownloadURL(node);
-				if (downloadURL && isRoot) {
+				if (downloadURL && isRoot && node.nodeInfo.source !== 'local' &&
+					node.nodeInfo.source.autoUpdate) {
 					await checkNodeForUpdate(node, downloadURL, updated);
 				}
 				resolve(null);
@@ -1629,7 +1631,8 @@ export namespace CRMNodes.Stylesheet.Installing {
 						source: {
 							updateURL: stylesheetData.updateUrl,
 							url: stylesheetData.url,
-							author: data.author
+							author: data.author,
+							autoUpdate: true
 						},
 						permissions: [],
 						installDate: new Date().toLocaleDateString()
