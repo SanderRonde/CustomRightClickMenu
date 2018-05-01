@@ -1055,12 +1055,16 @@ export namespace CRMNodes.Script.Updating {
 		await Promise.all(Object.getOwnPropertyNames(modules.crm.crmById).map((id) => {
 			return new Promise<void>(async (resolve) => {
 				const node = modules.crm.crmById[~~id];
+				if (node.type !== 'script') {
+					resolve(null);
+					return;
+				}
 				const isRoot = node.nodeInfo && node.nodeInfo.isRoot;
 				const downloadURL = getDownloadURL(node);
 				if (downloadURL && isRoot && node.nodeInfo.source !== 'local' &&
 					node.nodeInfo.source.autoUpdate) {
-					await checkNodeForUpdate(node, downloadURL, updated);
-				}
+						await checkNodeForUpdate(node, downloadURL, updated);
+					}
 				resolve(null);
 			});
 		}));
@@ -1099,8 +1103,8 @@ export namespace CRMNodes.Script.Updating {
 			newValue: modules.storages.settingsStorage.crm
 		}]);
 
-		const { updatedScripts = [] } = await browserAPI.storage.local.get<CRM.StorageLocal>();
-		const joinedData = [...updatedScripts, ...updatedData];
+		const { updatedNodes = [] } = await browserAPI.storage.local.get<CRM.StorageLocal>();
+		const joinedData = [...updatedNodes, ...updatedData];
 		browserAPI.storage.local.set({
 			updatedScripts: joinedData
 		});
@@ -1108,57 +1112,57 @@ export namespace CRMNodes.Script.Updating {
 		return joinedData;
 	}
 
-	function checkNodeForUpdate(node: CRM.Node, downloadURL: string,
+	function checkNodeForUpdate(node: CRM.ScriptNode, downloadURL: string,
 		updatedScripts: {
 			node: CRM.Node;
 			path?: number[];
 			oldNodeId?: number;
 		}[]) {
 			return new Promise<void>((resolve) => {
-				if (node.type === 'script' || node.type === 'stylesheet') {
-					//Do a request to get that script from its download URL
-					if (downloadURL && modules.Util.endsWith(downloadURL, '.user.js')) {
-						try {
-							modules.Util.convertFileToDataURI(downloadURL, async (dataURI, dataString) => {
-								//Get the meta tags
-								try {
-									const metaTags = MetaTags.getMetaTags(dataString);
-									if (modules.Util.isNewer(metaTags['version'][0], node.nodeInfo.version)) {
-										if (!modules.Util.compareArray(node.nodeInfo.permissions,
-											metaTags['grant']) &&
-											!(metaTags['grant'].length === 0 &&
-												metaTags['grant'][0] === 'none')) {
-											//New permissions were added, notify user
-											const { addedPermissions = [] } = await browserAPI.storage.local.get<CRM.StorageLocal>();
-											addedPermissions.push({
-												node: node.id,
-												permissions: metaTags['grant'].filter((newPermission: CRM.Permission) => {
-													return node.nodeInfo.permissions.indexOf(newPermission) === -1;
-												})
-											});
-											await browserAPI.storage.local.set({
-												addedPermissions: addedPermissions
-											});
-											browserAPI.runtime.openOptionsPage();
-										}
-
-										updatedScripts.push(await installUserscript(metaTags,
-											dataString, downloadURL, node.permissions, node.id));
+				//Do a request to get that script from its download URL
+				if (downloadURL && modules.Util.endsWith(downloadURL, '.user.js')) {
+					try {
+						modules.Util.convertFileToDataURI(downloadURL, async (dataURI, dataString) => {
+							//Get the meta tags
+							try {
+								const metaTags = MetaTags.getMetaTags(dataString);
+								if (modules.Util.isNewer(metaTags['version'][0], node.nodeInfo.version)) {
+									if (!modules.Util.compareArray(node.nodeInfo.permissions,
+										metaTags['grant']) &&
+										!(metaTags['grant'].length === 0 &&
+											metaTags['grant'][0] === 'none')) {
+										//New permissions were added, notify user
+										const { addedPermissions = [] } = await browserAPI.storage.local.get<CRM.StorageLocal>();
+										addedPermissions.push({
+											node: node.id,
+											permissions: metaTags['grant'].filter((newPermission: CRM.Permission) => {
+												return node.nodeInfo.permissions.indexOf(newPermission) === -1;
+											})
+										});
+										await browserAPI.storage.local.set({
+											addedPermissions: addedPermissions
+										});
+										browserAPI.runtime.openOptionsPage();
 									}
 
-								} catch (err) {
-									window.log('Tried to update script ', node.id, ' ', node.name,
-										' but could not reach download URL');
+									updatedScripts.push(await installUserscript(metaTags,
+										dataString, downloadURL, node.permissions, node.id));
 								}
-								resolve(null);
-							}, () => {
-								resolve(null);
-							});
-						} catch (e) {
-							window.log('Tried to update script ', node.id, ' ', node.name,
-								' but could not reach download URL');
+
+							} catch (err) {
+								window.log('Tried to update script ', node.id, ' ', node.name,
+									' but could not reach download URL');
+							}
 							resolve(null);
-						}
+						}, () => {
+							window.log('Tried to update script ', node.id, ' ', node.name,
+							' but could not reach download URL');
+							resolve(null);
+						});
+					} catch (e) {
+						window.log('Tried to update script ', node.id, ' ', node.name,
+							' but could not reach download URL');
+						resolve(null);
 					}
 				}
 			});
@@ -1279,6 +1283,182 @@ export namespace CRMNodes.Link {
 				});
 			}
 		};
+	}
+}
+
+export namespace CRMNodes.Stylesheet.Updating {
+	async function removeOldNode(id: number) {
+		const children = modules.crm.crmById[id].children;
+		if (children) {
+			for (let i = 0; i < children.length; i++) {
+				await removeOldNode(children[i].id);
+			}
+		}
+
+		if (modules.background.byId[id]) {
+			modules.background.byId[id].terminate();
+			delete modules.background.byId[id];
+		}
+
+		delete modules.crm.crmById[id];
+		delete modules.crm.crmByIdSafe[id];
+
+		const contextMenuId = modules.crmValues.contextMenuIds[id];
+		if (contextMenuId !== undefined && contextMenuId !== null) {
+			await browserAPI.contextMenus.remove(contextMenuId).catch(() => {});
+		}
+	}
+	function registerNode(node: CRM.Node, oldPath?: number[]) {
+		//Update it in CRM tree
+		if (oldPath !== undefined && oldPath !== null) {
+			let currentTree = modules.storages.settingsStorage.crm;
+			for (const index of oldPath.slice(0, -1)) {
+				const { children } = currentTree[index];
+				if (!children) {
+					return;
+				}
+				currentTree = children;
+			}
+			currentTree[modules.Util.getLastItem(oldPath)] = node;
+		} else {
+			modules.storages.settingsStorage.crm.push(node);
+		}
+	}
+	function getDownloadURL({ nodeInfo }: CRM.Node) {
+		return nodeInfo && nodeInfo.source &&
+			typeof nodeInfo.source !== 'string' &&
+				(nodeInfo.source.downloadURL ||
+				nodeInfo.source.updateURL ||
+				nodeInfo.source.url);
+	}
+
+	export async function updateStylesheets() {
+		const updated: {
+			oldNodeId: number;
+			node: CRM.Node;
+			path: number[];
+		}[] = [];
+		const oldTree = JSON.parse(JSON.stringify(
+			modules.storages.settingsStorage.crm));
+		window.info('Looking for updated stylesheets...');
+		await Promise.all(Object.getOwnPropertyNames(modules.crm.crmById).map((id) => {
+			return new Promise<void>(async (resolve) => {
+				const node = modules.crm.crmById[~~id];
+				if (node.type !== 'stylesheet') {
+					resolve(null);
+					return;
+				}
+				const isRoot = node.nodeInfo && node.nodeInfo.isRoot;
+				const downloadURL = getDownloadURL(node);
+				if (downloadURL && isRoot && node.nodeInfo.source !== 'local' &&
+					node.nodeInfo.source.autoUpdate) {
+						await checkNodeForUpdate(node, downloadURL, updated);
+					}
+				resolve(null);
+			});
+		}));
+		await onNodeUpdateDone(updated, oldTree)
+	}
+
+	function checkNodeForUpdate(node: CRM.StylesheetNode, downloadURL: string,
+		updatedScripts: {
+			node: CRM.Node;
+			path?: number[];
+			oldNodeId?: number;
+		}[]) {
+			return new Promise<void>((resolve) => {
+				modules.Util.convertFileToDataURI(downloadURL, async (_, dataString) => {
+					try {
+						const parsed: {
+							md5Url :string;
+							name: string;
+							originalMd5: string;
+							updateUrl: string;
+							url: string;
+							sections: {
+								domains: string[];
+								regexps: string[];
+								urlPrefixes: string[];
+								urls: string[];
+								code: string;
+							}[];
+						} = JSON.parse(dataString);
+
+						//Just check whether everything matches
+						for (let i = 0; i < parsed.sections.length; i++) {
+							const section = parsed.sections[i];
+							const launchData = CRMNodes.Stylesheet.Installing.extractStylesheetData(
+								section);
+							
+							//Make sure the section index is correct
+							if (node.nodeInfo.source !== 'local' && 
+								node.nodeInfo.source.sectionIndex !== i) {
+									continue;
+								}
+
+							if (node.value.launchMode !== launchData.launchMode) {
+								node.value.launchMode = launchData.launchMode;
+							}
+							if (!modules.Util.compareArray(node.triggers, launchData.triggers)) {
+								node.triggers = JSON.parse(JSON.stringify(launchData.triggers));
+							}
+							if (node.value.stylesheet !== launchData.code) {
+								node.value.stylesheet = launchData.code;
+							}
+						}
+						resolve(null);
+					} catch(e) {
+						//Malformed data string or wrong URL
+						resolve(null);
+					}
+				}, () => {
+					window.log('Tried to update stylesheet ', node.id, ' ', node.name,
+						' but could not reach download URL');
+					resolve(null);
+				});
+			});
+		}
+
+	async function onNodeUpdateDone(updated: {
+		oldNodeId: number;
+		node: CRM.Node;
+		path: number[];
+	}[], oldTree: CRM.Tree) {
+		const updatedData = updated.map((updatedNode) => {
+			const oldNode = modules.crm.crmById[updatedNode.oldNodeId];
+			return {
+				name: updatedNode.node.name,
+				id: updatedNode.node.id,
+				oldVersion: (oldNode && oldNode.nodeInfo && oldNode.nodeInfo.version) ||
+					undefined,
+				newVersion: updatedNode.node.nodeInfo.version
+			};
+		});
+
+		await Promise.all(updated.map((updateNode) => {
+			return modules.Util.iipe(async () => {
+				if (updateNode.path) { //Has old node
+					await removeOldNode(updateNode.oldNodeId);
+					registerNode(updateNode.node, updateNode.path);
+				} else {
+					registerNode(updateNode.node);
+				}
+			});
+		}));
+
+		await modules.Storages.uploadChanges('settings', [{
+			key: 'crm',
+			oldValue: oldTree,
+			newValue: modules.storages.settingsStorage.crm
+		}]);
+
+		const { updatedNodes = [] } = await browserAPI.storage.local.get<CRM.StorageLocal>();
+		const joinedData = [...updatedNodes, ...updatedData];
+		browserAPI.storage.local.set({
+			updatedScripts: joinedData
+		});
+
+		return joinedData;
 	}
 }
 
@@ -1537,7 +1717,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 			match[7] || '/'
 		].join('');
 	}
-	function extractStylesheetData(data: {
+	export function extractStylesheetData(data: {
 		domains: string[];
 		regexps: string[];
 		urlPrefixes: string[];
@@ -1603,6 +1783,20 @@ export namespace CRMNodes.Stylesheet.Installing {
 		};
 	}
 
+	export function getInstalledStatus(url: string) {
+		const results: CRM.StylesheetNode[] = [];
+		modules.Util.crmForEach(modules.crm.crmTree, (node) => {
+			if (node.type !== 'stylesheet') {
+				return;
+			}
+			if (node.nodeInfo && node.nodeInfo.source &&
+				node.nodeInfo.source !== 'local' &&
+				node.nodeInfo.source.updateURL === url) {
+					results.push(node);
+				}
+		});
+		return results;
+	}
 	export function installStylesheet(data: {
 		code: EncodedString<{
 			sections: {
@@ -1620,7 +1814,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 	}) {
 		const stylesheetData = JSON.parse(data.code);
 
-		stylesheetData.sections.forEach((section) => {
+		stylesheetData.sections.forEach((section, index) => {
 			const sectionData = extractStylesheetData(section);
 			const node = modules.constants.templates
 				.getDefaultStylesheetNode({
@@ -1632,6 +1826,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 							updateURL: stylesheetData.updateUrl,
 							url: stylesheetData.url,
 							author: data.author,
+							sectionIndex: index,
 							autoUpdate: true
 						},
 						permissions: [],

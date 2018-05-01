@@ -2355,14 +2355,14 @@ namespace CRMAppElement {
 						});
 					}, 2500);
 				}
-				if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
+				if (storageLocal.updatedNodes && storageLocal.updatedNodes.length > 0) {
 					parent.$.scriptUpdatesToast.text = parent._getUpdatedScriptString(
-						storageLocal.updatedScripts[0]);
-					parent.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
+						storageLocal.updatedNodes[0]);
+					parent.$.scriptUpdatesToast.scripts = storageLocal.updatedNodes;
 					parent.$.scriptUpdatesToast.index = 0;
 					parent.$.scriptUpdatesToast.show();
 
-					if (storageLocal.updatedScripts.length > 1) {
+					if (storageLocal.updatedNodes.length > 1) {
 						parent.$.nextScriptUpdateButton.style.display = 'inline';
 					} else {
 						parent.$.nextScriptUpdateButton.style.display = 'none';
@@ -2370,7 +2370,7 @@ namespace CRMAppElement {
 					browserAPI.storage.local.set({
 						updatedScripts: []
 					});
-					storageLocal.updatedScripts = [];
+					storageLocal.updatedNodes = [];
 				}
 				if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.wasUpdated) {
 					const versionData = storageLocal.settingsVersionData;

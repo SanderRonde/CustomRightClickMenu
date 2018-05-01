@@ -1495,7 +1495,7 @@ declare namespace CRM {
 		/**
 		 * The scripts that were updated
 		 */
-		updatedScripts?: Array<{
+		updatedNodes?: Array<{
 			/**
 			 * The name of the script
 			 */

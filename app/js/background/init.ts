@@ -133,10 +133,17 @@ export namespace Init {
 				window.console.group('Checking Resources');
 				window.info('Updating resources');
 				Resources.updateResourceValues();
-				window.info('Updating scripts');
-				CRMNodes.Script.Updating.updateScripts();
+				window.info('Updating scripts and stylesheets');
+				//Dont' wait for them but do them in order
+				(async () => {
+					await CRMNodes.Script.Updating.updateScripts()
+					await CRMNodes.Stylesheet.Updating.updateStylesheets();
+				})();
 				window.setInterval(() => {
-					CRMNodes.Script.Updating.updateScripts();
+					(async () => {
+						await CRMNodes.Script.Updating.updateScripts()
+						await CRMNodes.Stylesheet.Updating.updateStylesheets();
+					})();
 				}, 6 * 60 * 60 * 1000);
 				window.console.groupEnd();
 
