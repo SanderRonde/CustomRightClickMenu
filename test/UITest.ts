@@ -1436,6 +1436,15 @@ class FoundElementPromise extends PromiseContainer<FoundElement> {
 			resolve(element);
 		});
 	}
+	geText(): webdriver.promise.Promise<string> {
+		return new webdriver.promise.Promise<string>((resolve) => {
+			this.then((element) => {
+				element.getText().then((text) => {
+					resolve(text);
+				});
+			});
+		});
+	}
 
 	static all(promises: FoundElementPromise[]): webdriver.promise.Promise<FoundElement[]> {
 		return new webdriver.promise.Promise<FoundElement[]>((resolve) => {
@@ -1677,6 +1686,21 @@ export class FoundElement implements FoundElement {
 		return new webdriver.promise.Promise<this>(async (resolve) => {
 			await awaitable;
 			resolve(this);
+		});
+	}
+	getText(): webdriver.promise.Promise<string> {
+		const selectorList = [[this.selector, this.index]];
+		let currentElement: FoundElement = this;
+		while (currentElement.parent) {
+			currentElement = currentElement.parent;
+			selectorList.push([currentElement.selector, currentElement.index]);
+		}
+		return new webdriver.promise.Promise<string>(async (resolve) => {
+			resolve(await driver.executeScript(inlineFn(() => {
+				return findElementOnPage('REPLACE.selector').innerText;
+			}, {
+				selector: JSON.stringify(selectorList.reverse())
+			}, findElementOnPage)));
 		});
 	}
 }
