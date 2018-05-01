@@ -4069,7 +4069,6 @@ describe('User entrypoints', function() {
 	});
 });
 
-
 describe('On-Page CRM', function() {
 	if (SKIP_CONTEXTMENU) {
 		return;
