@@ -1324,7 +1324,7 @@ export namespace CRMNodes.Stylesheet.Updating {
 			modules.storages.settingsStorage.crm.push(node);
 		}
 	}
-	function getDownloadURL({ nodeInfo }: CRM.Node) {
+	export function getDownloadURL({ nodeInfo }: CRM.Node) {
 		return nodeInfo && nodeInfo.source &&
 			typeof nodeInfo.source !== 'string' &&
 				(nodeInfo.source.downloadURL ||
@@ -1332,6 +1332,24 @@ export namespace CRMNodes.Stylesheet.Updating {
 				nodeInfo.source.url);
 	}
 
+	export async function updateStylesheet(nodeId: number) {
+		const node = modules.crm.crmById[nodeId] as CRM.StylesheetNode;
+		const url = getDownloadURL(node);
+		const updateData = (await CRMNodes.Stylesheet.Installing.getUpdateData(url))
+			.sections[node.nodeInfo.source !== 'local' && node.nodeInfo.source.sectionIndex];
+		const launchData = CRMNodes.Stylesheet.Installing.extractStylesheetData(
+			updateData);
+		const oldTree = JSON.parse(JSON.stringify(
+			modules.storages.settingsStorage.crm));
+		node.value.launchMode = launchData.launchMode;
+		node.triggers = JSON.parse(JSON.stringify(launchData.triggers));
+		node.value.stylesheet = launchData.code;
+		await modules.Storages.uploadChanges('settings', [{
+			key: 'crm',
+			oldValue: oldTree,
+			newValue: modules.storages.settingsStorage.crm
+		}]);
+	}
 	export async function updateStylesheets() {
 		const updated: {
 			oldNodeId: number;
@@ -1782,17 +1800,109 @@ export namespace CRMNodes.Stylesheet.Installing {
 			code: data.code
 		};
 	}
+	function canBeUpdated(node: CRM.StylesheetNode, data: {
+		md5Url :string;
+		name: string;
+		originalMd5: string;
+		updateUrl: string;
+		url: string;
+		sections: {
+			domains: string[];
+			regexps: string[];
+			urlPrefixes: string[];
+			urls: string[];
+			code: string;
+		}[];
+	}) {
 
-	export function getInstalledStatus(url: string) {
-		const results: CRM.StylesheetNode[] = [];
-		modules.Util.crmForEach(modules.crm.crmTree, (node) => {
+		//Just check whether everything matches
+		for (let i = 0; i < data.sections.length; i++) {
+			const section = data.sections[i];
+			const launchData = CRMNodes.Stylesheet.Installing.extractStylesheetData(
+				section);
+			
+			//Make sure the section index is correct
+			if (node.nodeInfo.source !== 'local' && 
+				node.nodeInfo.source.sectionIndex !== i) {
+					continue;
+				}
+
+			if (node.value.launchMode !== launchData.launchMode ||
+				!modules.Util.compareArray(node.triggers, launchData.triggers) ||
+				node.value.stylesheet !== launchData.code) {
+					return true;
+				}
+		}
+		return false;
+	}
+	export function getUpdateData(downloadURL: string) {
+		return new Promise<{
+			md5Url :string;
+			name: string;
+			originalMd5: string;
+			updateUrl: string;
+			url: string;
+			sections: {
+				domains: string[];
+				regexps: string[];
+				urlPrefixes: string[];
+				urls: string[];
+				code: string;
+			}[];
+		}>((resolve) => {
+			modules.Util.convertFileToDataURI(downloadURL, async (_, dataString) => {
+				try {
+					const parsed: {
+						md5Url :string;
+						name: string;
+						originalMd5: string;
+						updateUrl: string;
+						url: string;
+						sections: {
+							domains: string[];
+							regexps: string[];
+							urlPrefixes: string[];
+							urls: string[];
+							code: string;
+						}[];
+					} = JSON.parse(dataString);
+					resolve(parsed);
+				} catch(e) {
+					//Malformed data string or wrong URL
+					resolve(null);
+				}
+			}, () => {
+				resolve(null);
+			});
+		});
+	}
+
+	export async function getInstalledStatus(url: string) {
+		const results: {
+			node: CRM.StylesheetNode;
+			state: 'installed'|'updatable'
+		}[] = [];
+
+		const data = await getUpdateData(url);
+
+		modules.Util.crmForEachAsync(modules.crm.crmTree, async (node) => {
 			if (node.type !== 'stylesheet') {
 				return;
 			}
 			if (node.nodeInfo && node.nodeInfo.source &&
 				node.nodeInfo.source !== 'local' &&
 				node.nodeInfo.source.updateURL === url) {
-					results.push(node);
+					if (canBeUpdated(node, data)) {
+						results.push({
+							node,
+							state: 'updatable',
+						});
+					} else {
+						results.push({
+							node,
+							state: 'installed'
+						});
+					}
 				}
 		});
 		return results;
@@ -1806,7 +1916,9 @@ export namespace CRMNodes.Stylesheet.Installing {
 				urls: string[];
 				code: string;
 			}[];
+			md5Url :string;
 			name: string;
+			originalMd5: string;
 			updateUrl: string;
 			url: string;
 		}>;

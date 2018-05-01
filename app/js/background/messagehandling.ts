@@ -201,11 +201,16 @@ export namespace MessageHandling {
 					break;
 				case 'newTabCreated':
 					if (messageSender && respond) {
-						response = await modules.CRMNodes.Script.Running.executeScriptsForTab(messageSender.tab.id, respond);
+						response = await modules.CRMNodes.Script
+							.Running.executeScriptsForTab(
+								messageSender.tab.id, respond);
 					}
 					break;
 				case 'styleInstall':
 					modules.CRMNodes.Stylesheet.Installing.installStylesheet(message.data);
+					break;
+				case 'updateStylesheet':
+					modules.CRMNodes.Stylesheet.Updating.updateStylesheet(message.data.id);
 					break;
 				case 'updateScripts':
 					response = await modules.CRMNodes.Script.Updating.updateScripts();
@@ -215,6 +220,12 @@ export namespace MessageHandling {
 					break;
 				case 'applyLocalStorage':
 					localStorage.setItem(message.data.key, message.data.value);
+					break;
+				case 'getStyles':
+					if (messageSender && respond) {
+						response = await modules.CRMNodes.Stylesheet.Installing.getInstalledStatus(
+							message.data.url);
+					}
 					break;
 				case '_resetSettings':
 					modules.Storages.clearStorages();
