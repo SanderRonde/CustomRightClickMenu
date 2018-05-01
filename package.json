@@ -128,7 +128,7 @@
   },
   "license": "MIT",
   "name": "custom-right-click-menu",
-  "readme": "../README.md",
+  "readme": "README.md",
   "repository": {
     "type": "git",
     "url": "https://github.com/SanderRonde/CustomRightClickMenu.git"

@@ -17,7 +17,10 @@ const SKIP_OPTIONS_PAGE_NON_DIALOGS = hasSetting('skip-non-dialogs');
 const SKIP_OPTIONS_PAGE_DIALOGS = hasSetting('skip-dialogs');
 const SKIP_CONTEXTMENU = hasSetting('skip-contextmenu');
 const SKIP_DIALOG_TYPES_EXCEPT = getSkipDialogSetting();
-const WAIT_ON_DONE = hasSetting('wait-on-done');;
+const SKIP_EXTERNAL_TESTS = hasSetting('skip-external');
+const SKIP_USERSCRIPT_TEST = hasSetting('skip-userscript');
+const SKIP_USERSTYLE_TEST = hasSetting('skip-userstyle');
+const WAIT_ON_DONE = hasSetting('wait-on-done');
 
 function hasSetting(setting: string) {
 	return process.argv.indexOf(`--${setting}`) > -1;
@@ -470,7 +473,8 @@ before('Driver connect', async function() {
 
 	if (SKIP_ENTRYPOINTS || SKIP_OPTIONS_PAGE_NON_DIALOGS ||
 		SKIP_OPTIONS_PAGE_DIALOGS || SKIP_CONTEXTMENU ||
-		SKIP_DIALOG_TYPES_EXCEPT) {
+		SKIP_DIALOG_TYPES_EXCEPT || SKIP_EXTERNAL_TESTS ||
+		SKIP_USERSCRIPT_TEST || SKIP_USERSTYLE_TEST) {
 			console.warn('Skipping is enabled, make sure this isn\'t in a production build')
 		}
 });
@@ -4092,6 +4096,109 @@ describe('User entrypoints', function() {
 		});
 	});
 });
+
+function installScriptFromInstallPage() {
+	it('should be possible to click the "allow and install" button', async function() {
+		await findElement(webdriver.By.tagName('install-page'))
+			.findElement(webdriver.By.tagName('install-confirm'))
+			.findElement(webdriver.By.id('acceptAndInstallbutton'))
+			.click();
+	});
+}
+
+if (TEST_EXTENSION) {
+	describe('Installing from external pages', function() {
+		if (SKIP_EXTERNAL_TESTS) {
+			return;
+		}
+
+		if (!SKIP_USERSCRIPT_TEST) {
+			describe('Installing userscripts', () => {
+				describe('Installing from greasyfork', () => {
+					const URL = 'https://greasyfork.org/en/scripts/35252-google-night-mode';
+					it('should be possible to navigate to the page', async function() {
+						this.timeout(600000 * TIME_MODIFIER);
+						this.slow(600000 * TIME_MODIFIER);
+						await driver.get(URL);
+						currentTestWindow = await driver.getWindowHandle();
+						await waitFor(() => {
+							return driver.executeScript(inlineFn(() => {
+								return window.polymerElementsLoaded;
+							}));
+						}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
+							//About to time out
+							throw new Error('Failed to get elements loaded message, page load is failing');
+						});
+					});
+					it('should be possible to click the install link', async function() {
+						await findElement(webdriver.By.id('install-link')).click();
+					});
+					it('should have opened the install page', async function() {
+						await wait(1500);
+						assert.isTrue(await driver.executeScript(inlineFn(() => {
+							return location.href.indexOf('chrome-extension') >-1 &&
+								location.href.indexOf('install.html') > -1;
+						})), 'install page was loaded');
+					});
+
+					//Generic logic
+					installScriptFromInstallPage();
+
+					it('should have been installed into the CRM', async function() {
+						this.timeout(600000 * TIME_MODIFIER);
+						this.slow(600000 * TIME_MODIFIER);
+						const prefix = await getExtensionDataOnly().getExtensionURLPrefix(driver, browserCapabilities);
+						await driver.get(`${prefix}/options.html`);
+						currentTestWindow = await driver.getWindowHandle();
+						await waitFor(() => {
+							return driver.executeScript(inlineFn(() => {
+								return window.polymerElementsLoaded;
+							}));
+						}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
+							//About to time out
+							throw new Error('Failed to get elements loaded message, page load is failing');
+						});
+
+						const crm = JSON.parse(await driver.executeScript(inlineFn(() => {
+							return JSON.stringify(window.app.settings.crm);
+						})));
+						//TODO: this
+						console.log(crm);
+					});
+					it('should be applied', async function() {
+						this.timeout(600000 * TIME_MODIFIER);
+						this.slow(600000 * TIME_MODIFIER);
+						await driver.get('http://www.google.com');
+						currentTestWindow = await driver.getWindowHandle();
+						await waitFor(() => {
+							return driver.executeScript(inlineFn(() => {
+								return window.polymerElementsLoaded;
+							}));
+						}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
+							//About to time out
+							throw new Error('Failed to get elements loaded message, page load is failing');
+						});
+
+						assert.strictEqual(await driver.executeScript(inlineFn(() => {
+							return document.getElementById('viewport').style.background;
+						})), '#333', 'background color changed (script is applied)');
+					});
+				});
+				describe('installing from userscripts.org', () => {
+					const URL = 'http://userscripts-mirror.org/scripts/show/487275';
+				});
+				describe('Installing from OpenUserJS', () => {
+					const URL = 'https://openuserjs.org/scripts/xthexder/Wide_Github';
+				});
+			});
+		}
+		if (!SKIP_USERSTYLE_TEST) {
+			describe('Installing userstyles', () => {
+				
+			});
+		}
+	});
+}
 
 describe('On-Page CRM', function() {
 	if (SKIP_CONTEXTMENU) {
