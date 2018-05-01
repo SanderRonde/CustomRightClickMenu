@@ -28,7 +28,7 @@ before_install:
   -in test/UI/secrets.js.enc -out test/UI/secrets.js -d
 - npm install gulp -g
 install:
-- yarn
+- yarn --ignore-engines
 script: travis_wait sh ./scripts/pretest.sh && yarn run $TEST
 
 jobs:
