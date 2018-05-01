@@ -2122,8 +2122,15 @@ namespace MonacoEditorElement {
 			return result;
 		}
 		
+		private static _getChromeVersion() {
+			if (BrowserAPI.getBrowser() === 'chrome') {
+				return parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);	
+			}
+			return 1000;
+		}
+
 		private static _supportsMonaco() {
-			return window.app.util.getChromeVersion() >= 30;
+			return this._getChromeVersion() >= 30;
 		}
 
 		static async create(this: MonacoEditor, editorType: EditorConfig, options?: monaco.editor.IEditorConstructionOptions, 
