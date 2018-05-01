@@ -141,6 +141,7 @@ export namespace Init {
 				})();
 				window.setInterval(() => {
 					(async () => {
+						window.info('Updating scripts and stylesheets');
 						await CRMNodes.Script.Updating.updateScripts()
 						await CRMNodes.Stylesheet.Updating.updateStylesheets();
 					})();

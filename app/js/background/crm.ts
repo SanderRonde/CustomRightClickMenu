@@ -1051,7 +1051,6 @@ export namespace CRMNodes.Script.Updating {
 		}[] = [];
 		const oldTree = JSON.parse(JSON.stringify(
 			modules.storages.settingsStorage.crm));
-		window.info('Looking for updated scripts...');
 		await Promise.all(Object.getOwnPropertyNames(modules.crm.crmById).map((id) => {
 			return new Promise<void>(async (resolve) => {
 				const node = modules.crm.crmById[~~id];
@@ -1358,7 +1357,6 @@ export namespace CRMNodes.Stylesheet.Updating {
 		}[] = [];
 		const oldTree = JSON.parse(JSON.stringify(
 			modules.storages.settingsStorage.crm));
-		window.info('Looking for updated stylesheets...');
 		await Promise.all(Object.getOwnPropertyNames(modules.crm.crmById).map((id) => {
 			return new Promise<void>(async (resolve) => {
 				const node = modules.crm.crmById[~~id];
