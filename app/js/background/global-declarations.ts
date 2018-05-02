@@ -625,14 +625,23 @@ export namespace GlobalDeclarations {
 			});
 		}
 
-		function onTabUpdated(id: number, details: _browser.tabs.Tab) {
-			if (!modules.Util.canRunOnUrl(details.url)) {
-				return;
-			}
-			
-			modules.toExecuteNodes.documentStart.forEach((node) => {
-				modules.CRMNodes.Script.Running.executeNode(node, details);
-			});
+		function onTabUpdated(id: number, changeInfo: {
+			status?: 'loading'|'complete';
+			url?: string;
+			pinned?: boolean;
+			audible?: boolean;
+			discarded?: boolean;
+			autoDiscardable?: boolean;
+			mutedInfo?: any;
+			favIconUrl?: string;
+			title?: string;
+		}, tab: _browser.tabs.Tab) {
+			if (changeInfo.status && changeInfo.status === 'loading' &&
+				changeInfo.url && modules.Util.canRunOnUrl(changeInfo.url)) {
+					modules.toExecuteNodes.documentStart.forEach((node) => {
+						modules.CRMNodes.Script.Running.executeNode(node, tab);
+					});
+				}
 		}
 
 		function onTabsRemoved(tabId: number) {
