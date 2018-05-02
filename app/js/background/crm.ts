@@ -927,6 +927,11 @@ export namespace CRMNodes.Script.Updating {
 				node.id = modules.Util.generateItemId();
 			}
 
+			//If userscripts is empty something might have gone wrong, try to re-parse it
+			if (Object.getOwnPropertyNames(metaTags).length === 0) {
+				metaTags = MetaTags.getMetaTags(code);
+			}
+
 			node.name = MetaTags.getlastMetaTagValue(metaTags, 'name') || 'name';
 			createUserscriptTypeData(metaTags, code, node);
 			const { launchMode, triggers } = createUserscriptTriggers(metaTags);
