@@ -36,8 +36,10 @@ const originals: any = {
 describe = it = before = after = beforeEach = afterEach = () => {};
 import { 
 	wait, getGitHash, tryReadManifest, waitFor, 
-	inlineFn, executeAsyncScript, inlineAsyncFn, setDriver, getDialog, saveDialog, InputKeys, getCRM, findElement, FoundElement, forEachPromise 
-} from './UITest';
+	inlineFn, executeAsyncScript, inlineAsyncFn, 
+	setDriver, getDialog, saveDialog, InputKeys, 
+	getCRM, findElement, FoundElement, forEachPromise
+} from './imports';
 describe = originals.describe;
 it = originals.it;
 //@ts-ignore
