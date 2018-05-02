@@ -1181,7 +1181,7 @@ export namespace Storages.SetupHandling {
 				});
 			}).catch(async (err) => {
 				//Switch to local storage
-				window.log('Error on uploading to chrome.storage.sync', err);
+				window.log('Error on uploading to storage.sync, uploading to storage.local instead', err);
 				await browserAPI.storage.local.set({
 					useStorageSync: false
 				});
@@ -1361,7 +1361,7 @@ export namespace Storages {
 						settings: null
 					});
 				}).catch(async (err) => {
-					window.log('Error on uploading to chrome.storage.sync ', err);
+					window.log('Error on uploading to storage.sync, uploading to storage.local instead', err);
 					await browserAPI.storage.local.set({
 						useStorageSync: false
 					});
