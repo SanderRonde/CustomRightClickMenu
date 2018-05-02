@@ -130,7 +130,7 @@ function getMeta(name: string) {
 			data: {
 				url
 			}
-		}, (response: {
+		}).then((response: {
 			node: CRM.StylesheetNode;
 			state: 'installed'|'updatable';
 		}[]) => {
