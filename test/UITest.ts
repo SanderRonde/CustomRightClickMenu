@@ -39,11 +39,6 @@ function getSkipDialogSetting(): SkipOption|false {
 	return false;
 }
 
-interface ChromeLastCall {
-	api: string;
-	args: any[];
-}
-
 interface ContextMenuItem {
 	id: number;
 	createProperties: ContextMenuCreateProperties;
