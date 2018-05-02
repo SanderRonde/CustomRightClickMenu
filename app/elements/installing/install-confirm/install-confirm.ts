@@ -332,7 +332,7 @@ namespace InstallConfirmElement {
 			this.$.permissionsToggleAll.checked = true;
 			this.async(() => {
 				this.completeInstall();
-			}, 150);
+			}, 250);
 		}
 
 		private static _setMetaTag(this: InstallConfirm, name: keyof ModuleMap['install-confirm'], values: (string|number)[]) {
