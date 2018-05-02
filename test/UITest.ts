@@ -743,7 +743,7 @@ function openDialog(type: CRM.NodeType) {
 		resolve(null);
 	});
 }
- 
+
 function getTypeName(index: number): string {
 	switch (index) {
 		case 1:
@@ -3074,104 +3074,229 @@ describe('User entrypoints', function() {
 	});
 });
 
-function installScriptFromInstallPage() {
+function beforeUserscriptInstall(url: string) {
+	it('should be possible to navigate to the page', async function() {
+		this.timeout(600000 * TIME_MODIFIER);
+		this.slow(600000 * TIME_MODIFIER);
+		await driver.get(url);
+		currentTestWindow = await driver.getWindowHandle();
+	});
+}
+
+function installScriptFromInstallPage(index: number, getConfig: () => {
+	prefix: string|void;
+	url: string;
+	href: string;
+	title: string;
+}) {
+	it('should be possible to open the install page', async function() {
+		this.timeout(10000);
+		this.slow(4000);
+		const {
+			prefix, url, href
+		} = getConfig();
+		await driver.get(`${prefix}/html/install.html?i=${
+			encodeURIComponent(href)
+		}&s=${url}`);
+		await wait(1500);
+	});
+
 	it('should be possible to click the "allow and install" button', async function() {
+		this.timeout(20000);
+		this.slow(10000);
+		await wait(1500);
 		await findElement(webdriver.By.tagName('install-page'))
 			.findElement(webdriver.By.tagName('install-confirm'))
 			.findElement(webdriver.By.id('acceptAndInstallbutton'))
 			.click();
+		await wait(3000);
+	});
+
+	it('should have been installed into the CRM', async function() {
+		this.timeout(600000 * TIME_MODIFIER);
+		this.slow(600000 * TIME_MODIFIER);
+		const {
+			prefix, href, title
+		} = getConfig();
+		await driver.get(`${prefix}/html/options.html`);
+		currentTestWindow = await driver.getWindowHandle();
+
+		await wait(5000);
+
+		const code = await new webdriver.promise.Promise<string>((resolve) => {
+			request(href, (err: Error|void, res: XMLHttpRequest & {
+				statusCode: number;
+			}, body: string) => {
+				assert.ifError(err, 'Should not fail the GET request');
+
+				if (res.statusCode === 200) {
+					resolve(body);
+				} else {
+					assert.ifError(new Error('err'), 'Should get 200 statuscode' +
+						' when doing GET request');
+				}
+			}).end();
+		});
+		const crm = JSON.parse(await driver.executeScript(inlineFn(() => {
+			return JSON.stringify(window.app.settings.crm);
+		})));
+		const node = crm[index + 1] as CRM.ScriptNode;
+		assert.strictEqual(node.type, 'script', 'node is of type script');
+		assert.strictEqual(node.name, title, 'names match');
+		assert.strictEqual(node.value.script, code, 'scripts match');
 	});
 }
 
 if (TEST_EXTENSION) {
+	let prefix: string|void;
 	describe('Installing from external pages', function() {
 		if (SKIP_EXTERNAL_TESTS) {
 			return;
 		}
 
+		before('Get prefix', async function() {
+			this.timeout(20000);
+			prefix = await getExtensionDataOnly()
+				.getExtensionURLPrefix(driver, browserCapabilities);
+		});
 		if (!SKIP_USERSCRIPT_TEST) {
 			describe('Installing userscripts', () => {
 				describe('Installing from greasyfork', () => {
 					const URL = 'https://greasyfork.org/en/scripts/35252-google-night-mode';
-					it('should be possible to navigate to the page', async function() {
-						this.timeout(600000 * TIME_MODIFIER);
-						this.slow(600000 * TIME_MODIFIER);
-						await driver.get(URL);
-						currentTestWindow = await driver.getWindowHandle();
-						await waitFor(() => {
-							return driver.executeScript(inlineFn(() => {
-								return window.polymerElementsLoaded;
-							}));
-						}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
-							//About to time out
-							throw new Error('Failed to get elements loaded message, page load is failing');
-						});
-					});
+					let href: string;
+					let title: string;
+					beforeUserscriptInstall(URL);
+
 					it('should be possible to click the install link', async function() {
-						await findElement(webdriver.By.id('install-link')).click();
-					});
-					it('should have opened the install page', async function() {
-						await wait(1500);
-						assert.isTrue(await driver.executeScript(inlineFn(() => {
-							return location.href.indexOf('chrome-extension') >-1 &&
-								location.href.indexOf('install.html') > -1;
-						})), 'install page was loaded');
+						this.timeout(250);
+						this.slow(150);
+						const button = await findElement(webdriver.By.className('install-link'));
+						title = await findElement(webdriver.By.id('script-info'))
+							.findElement(webdriver.By.tagName('header'))
+							.findElement(webdriver.By.tagName('h2'))
+							.getText();
+
+						assert.exists(button, 'Install link exists');
+						href = await button.getProperty('href') as string;
+
+						const isUserScript = href.indexOf('.user.js') > -1;
+						assert.isTrue(isUserScript, 'button leads to userscript');
 					});
 
 					//Generic logic
-					installScriptFromInstallPage();
-
-					it('should have been installed into the CRM', async function() {
-						this.timeout(600000 * TIME_MODIFIER);
-						this.slow(600000 * TIME_MODIFIER);
-						const prefix = await getExtensionDataOnly().getExtensionURLPrefix(driver, browserCapabilities);
-						await driver.get(`${prefix}/options.html`);
-						currentTestWindow = await driver.getWindowHandle();
-						await waitFor(() => {
-							return driver.executeScript(inlineFn(() => {
-								return window.polymerElementsLoaded;
-							}));
-						}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
-							//About to time out
-							throw new Error('Failed to get elements loaded message, page load is failing');
-						});
-
-						const crm = JSON.parse(await driver.executeScript(inlineFn(() => {
-							return JSON.stringify(window.app.settings.crm);
-						})));
-						//TODO: this
-						console.log(crm);
+					installScriptFromInstallPage(0, () => {
+						return {
+							href,
+							title,
+							prefix,
+							url: URL
+						}
 					});
+
 					it('should be applied', async function() {
 						this.timeout(600000 * TIME_MODIFIER);
 						this.slow(600000 * TIME_MODIFIER);
 						await driver.get('http://www.google.com');
 						currentTestWindow = await driver.getWindowHandle();
-						await waitFor(() => {
-							return driver.executeScript(inlineFn(() => {
-								return window.polymerElementsLoaded;
-							}));
-						}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
-							//About to time out
-							throw new Error('Failed to get elements loaded message, page load is failing');
-						});
+
+						await wait(5000);
 
 						assert.strictEqual(await driver.executeScript(inlineFn(() => {
-							return document.getElementById('viewport').style.background;
-						})), '#333', 'background color changed (script is applied)');
+							return window.getComputedStyle(document.getElementById('viewport'))['backgroundColor'];
+						})), 'rgb(51, 51, 51)', 'background color changed (script is applied)');
 					});
 				});
 				describe('installing from userscripts.org', () => {
-					const URL = 'http://userscripts-mirror.org/scripts/show/487275';
+					const URL = 'http://userscripts-mirror.org/scripts/show/175391';
+					let href: string;
+					let title: string;
+
+					beforeUserscriptInstall(URL);
+
+					it('should be possible to click the install link', async function() {
+						this.timeout(250);
+						this.slow(150);
+						const button = await findElement(webdriver.By.id('install_script'))
+							.findElement(webdriver.By.tagName('a'));
+						title = await findElement(webdriver.By.className('title'))
+							.getText();
+
+						assert.exists(button, 'Install link exists');
+						href = await button.getProperty('href') as string;
+
+						const isUserScript = href.indexOf('.user.js') > -1;
+						assert.isTrue(isUserScript, 'button leads to userscript');
+					});
+
+					//Generic logic
+					installScriptFromInstallPage(1, () => {
+						return {
+							href,
+							title,
+							prefix,
+							url: URL
+						}
+					});
+
+					it('should be applied', async function() {
+						this.timeout(600000 * TIME_MODIFIER);
+						this.slow(600000 * TIME_MODIFIER);
+						await driver.get('https://www.youtube.com');
+						currentTestWindow = await driver.getWindowHandle();
+
+						await wait(5000);
+
+						assert.strictEqual(await driver.executeScript(inlineFn(() => {
+							return window.getComputedStyle(document.body)['backgroundColor'];
+						})), 'rgb(0, 0, 0)', 'background color changed (script is applied)');
+					});
 				});
 				describe('Installing from OpenUserJS', () => {
 					const URL = 'https://openuserjs.org/scripts/xthexder/Wide_Github';
+					let href: string;
+					let title: string;
+
+					beforeUserscriptInstall(URL);
+
+					it('should be possible to click the install link', async function() {
+						this.timeout(250);
+						this.slow(150);
+						const button = await findElement(webdriver.By.tagName('h2'))
+							.findElement(webdriver.By.tagName('a'));
+						title = await findElement(webdriver.By.className('script-name'))
+							.getText();
+
+						assert.exists(button, 'Install link exists');
+						href = await button.getProperty('href') as string;
+
+						const isUserScript = href.indexOf('.user.js') > -1;
+						assert.isTrue(isUserScript, 'button leads to userscript');
+					});
+
+					//Generic logic
+					installScriptFromInstallPage(2, () => {
+						return {
+							href,
+							title,
+							prefix,
+							url: URL
+						}
+					});
+
+					it('should be applied', async function() {
+						this.timeout(600000 * TIME_MODIFIER);
+						this.slow(600000 * TIME_MODIFIER);
+						await driver.get('https://www.github.com/login');
+						currentTestWindow = await driver.getWindowHandle();
+
+						await wait(5000);
+
+						assert.strictEqual(await driver.executeScript(inlineFn(() => {
+							const container = document.getElementsByClassName('container')[0];
+							return window.getComputedStyle(container)['minWidth'];
+						})), '980px', 'width was changed (script was applied)');
+					});
 				});
-			});
-		}
-		if (!SKIP_USERSTYLE_TEST) {
-			describe('Installing userstyles', () => {
-				
 			});
 		}
 	});
