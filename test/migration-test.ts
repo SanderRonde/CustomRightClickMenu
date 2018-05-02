@@ -498,6 +498,7 @@ async function createOptionsPageDriver(srcPath: string, isLocal: boolean) {
 
 async function setupExtensionOptionsPageInstance(srcPath: string, isLocal: boolean) {
 	const { driver, capabilties } = await createOptionsPageDriver(srcPath, isLocal);
+	setDriver(driver);
 	await chromeExtensionData.openOptionsPage(driver, capabilties);
 	return driver;
 }
@@ -627,7 +628,7 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 		describe('Loading page', () => {
 			it('should be possible to set up "from" selenium instance', async function() {
 				this.timeout(60000);
-				this.slow(5000);
+				this.slow(20000);
 				driver = await setupExtensionOptionsPageInstance(
 					path.join(ROOT, 'temp/migration/from.crx'), isLocal);
 			});
