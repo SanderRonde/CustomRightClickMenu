@@ -657,7 +657,7 @@ export class FoundElementPromise extends PromiseContainer<FoundElement> {
 			resolve(element);
 		});
 	}
-	geText(): webdriver.promise.Promise<string> {
+	getText(): webdriver.promise.Promise<string> {
 		return new webdriver.promise.Promise<string>((resolve) => {
 			this.then((element) => {
 				element.getText().then((text) => {
