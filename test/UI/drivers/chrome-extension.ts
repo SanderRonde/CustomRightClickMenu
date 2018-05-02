@@ -1,4 +1,4 @@
-import { TypedWebdriver, BrowserstackCapabilities, wait, inlineFn, findElement } from '../../UITest';
+import { TypedWebdriver, BrowserstackCapabilities, wait, inlineFn, findElement } from '../../imports';
 import * as chromeDriver from 'selenium-webdriver/chrome';
 import * as webdriver from 'selenium-webdriver';
 

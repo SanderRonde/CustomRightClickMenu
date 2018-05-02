@@ -1,4 +1,4 @@
-import { TypedWebdriver, inlineFn, BrowserstackCapabilities } from '../../UITest';
+import { TypedWebdriver, inlineFn, BrowserstackCapabilities } from '../../imports';
 import * as operaDriver from 'selenium-webdriver/opera';
 
 export function getCapabilities() {

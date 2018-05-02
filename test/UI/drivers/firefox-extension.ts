@@ -1,4 +1,4 @@
-import { TypedWebdriver, BrowserstackCapabilities } from '../../UITest';
+import { TypedWebdriver, BrowserstackCapabilities } from '../../imports';
 // import * as firefoxDriver from 'selenium-webdriver/firefox';
 // import * as webdriver from 'selenium-webdriver';
 

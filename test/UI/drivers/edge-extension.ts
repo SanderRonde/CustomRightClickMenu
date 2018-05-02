@@ -1,4 +1,4 @@
-import { TypedWebdriver, BrowserstackCapabilities } from "../../UITest";
+import { TypedWebdriver, BrowserstackCapabilities } from "../../imports";
 
 function throwErr(): never {
 	console.error('Edge extension testing is not supported, please try' +
