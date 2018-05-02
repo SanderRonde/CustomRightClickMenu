@@ -3277,8 +3277,8 @@ if (TEST_EXTENSION) {
 					beforeUserscriptInstall(URL);
 
 					it('should be possible to click the install link', async function() {
-						this.timeout(250);
-						this.slow(150);
+						this.timeout(20000);
+						this.slow(15000);
 						const button = await findElement(webdriver.By.id('install_script'))
 							.findElement(webdriver.By.tagName('a'));
 						title = await findElement(webdriver.By.className('title'))
@@ -3322,8 +3322,8 @@ if (TEST_EXTENSION) {
 					beforeUserscriptInstall(URL);
 
 					it('should be possible to click the install link', async function() {
-						this.timeout(250);
-						this.slow(150);
+						this.timeout(20000);
+						this.slow(15000);
 						const button = await findElement(webdriver.By.tagName('h2'))
 							.findElement(webdriver.By.tagName('a'));
 						title = await findElement(webdriver.By.className('script-name'))
@@ -3371,8 +3371,8 @@ if (TEST_EXTENSION) {
 					beforeUserstyleInstall(URL);
 
 					it('should be possible to click the install link', async function() {
-						this.timeout(25000);
-						this.slow(150);
+						this.timeout(20000);
+						this.slow(15000);
 
 						await wait(500);
 
