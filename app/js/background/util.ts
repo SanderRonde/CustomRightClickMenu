@@ -280,12 +280,21 @@ export namespace Util {
 		}
 		return library.code;
 	}
+	const HOUR = 1000 * 60 * 60;
+	let lastFsAccessCheck: number;
+	let fsAccessAllowed: boolean;
 	export async function canRunOnUrl(url: string): Promise<boolean> {
 		if (!url || url.indexOf('chrome://') !== -1) {
 			return false;
 		}
-		const allowed = await browserAPI.extension.isAllowedFileSchemeAccess();
-		if (allowed) {
+
+		if (Date.now() - lastFsAccessCheck > HOUR) {
+			(async () => {
+				fsAccessAllowed = await browserAPI.extension.isAllowedFileSchemeAccess();
+				lastFsAccessCheck = Date.now();
+			});
+		}
+		if (fsAccessAllowed) {
 			return true;
 		}
 		return url.indexOf('file://') !== -1;
