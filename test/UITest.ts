@@ -3147,6 +3147,69 @@ function installScriptFromInstallPage(index: number, getConfig: () => {
 	});
 }
 
+function beforeUserstyleInstall(url: string) {
+	it('should be possible to navigate to the page', async function() {
+		this.timeout(600000 * TIME_MODIFIER);
+		this.slow(600000 * TIME_MODIFIER);
+		await driver.get(url);
+		currentTestWindow = await driver.getWindowHandle();
+	});
+}
+
+function installStylesheetFromInstallPage(index: number, getConfig: () => {
+	prefix: string|void;
+	href: string;
+}) {
+	it('should have been installed into the CRM', async function() {
+		this.timeout(600000 * TIME_MODIFIER);
+		this.slow(600000 * TIME_MODIFIER);
+		const {
+			prefix, href
+		} = getConfig();
+		await driver.get(`${prefix}/html/options.html`);
+		currentTestWindow = await driver.getWindowHandle();
+
+		await wait(5000);
+
+		const descriptor = await new webdriver.promise.Promise<string>((resolve) => {
+			request(href, (err: Error|void, res: XMLHttpRequest & {
+				statusCode: number;
+			}, body: string) => {
+				assert.ifError(err, 'Should not fail the GET request');
+
+				if (res.statusCode === 200) {
+					resolve(body);
+				} else {
+					assert.ifError(new Error('err'), 'Should get 200 statuscode' +
+						' when doing GET request');
+				}
+			}).end();
+		});
+		const parsed = JSON.parse(descriptor) as {
+			md5Url :string;
+			name: string;
+			originalMd5: string;
+			updateUrl: string;
+			url: string;
+			sections: {
+				domains: string[];
+				regexps: string[];
+				urlPrefixes: string[];
+				urls: string[];
+				code: string;
+			}[];
+		};
+		const crm = JSON.parse(await driver.executeScript(inlineFn(() => {
+			return JSON.stringify(window.app.settings.crm);
+		})));
+		const node = crm[index + 1] as CRM.StylesheetNode;
+		assert.strictEqual(node.type, 'stylesheet', 'node is of type stylesheet');
+		assert.strictEqual(node.name, parsed.name, 'names match');
+		assert.strictEqual(node.value.stylesheet, parsed.sections[0].code, 
+			'stylesheets match');
+	});
+}
+
 if (TEST_EXTENSION) {
 	let prefix: string|void;
 	describe('Installing from external pages', function() {
@@ -3168,8 +3231,8 @@ if (TEST_EXTENSION) {
 					beforeUserscriptInstall(URL);
 
 					it('should be possible to click the install link', async function() {
-						this.timeout(250);
-						this.slow(150);
+						this.timeout(20000);
+						this.slow(15000);
 						const button = await findElement(webdriver.By.className('install-link'));
 						title = await findElement(webdriver.By.id('script-info'))
 							.findElement(webdriver.By.tagName('header'))
@@ -3295,6 +3358,58 @@ if (TEST_EXTENSION) {
 							const container = document.getElementsByClassName('container')[0];
 							return window.getComputedStyle(container)['minWidth'];
 						})), '980px', 'width was changed (script was applied)');
+					});
+				});
+			});
+		}
+		if (!SKIP_USERSTYLE_TEST) {
+			describe('Installing userstyles', () => {
+				describe('Userstyles.org', () => {
+					const URL = 'https://userstyles.org/styles/144028/google-clean-dark';
+					let href: string;
+
+					beforeUserstyleInstall(URL);
+
+					it('should be possible to click the install link', async function() {
+						this.timeout(25000);
+						this.slow(150);
+
+						await wait(500);
+
+						const button = await findElement(webdriver.By.id('install_style_button'));
+						assert.exists(button, 'Install link exists');
+
+						href = await driver.executeScript(inlineFn(() => {
+							var e = document.querySelector("link[rel='stylish-code-chrome']");
+							return e ? e.getAttribute("href") : null;
+						}));
+
+						await button.click();
+						await wait(5000);
+
+						const isUserStyle = href.indexOf('.json') > -1;
+						assert.isTrue(isUserStyle, 'button leads to userstyle');
+					});
+
+					//Generic logic
+					installStylesheetFromInstallPage(0, () => {
+						return {
+							href,
+							prefix
+						}
+					});
+
+					it('should be applied', async function() {
+						this.timeout(600000 * TIME_MODIFIER);
+						this.slow(600000 * TIME_MODIFIER);
+						await driver.get('http://www.google.com');
+						currentTestWindow = await driver.getWindowHandle();
+
+						await wait(5000);
+
+						assert.strictEqual(await driver.executeScript(inlineFn(() => {
+							return window.getComputedStyle(document.getElementById('viewport'))['backgroundColor'];
+						})), 'rgba(0, 0, 0)', 'background color changed (script is applied)');
 					});
 				});
 			});
