@@ -1,53 +1,52 @@
 ﻿(() => {
 	function hacksecuteScript(script: string) {
-		var tag = document.createElement('script');
+		const tag = document.createElement('script');
 		tag.innerHTML = script;
 		document.documentElement.appendChild(tag);
 		document.documentElement.removeChild(tag);
 	}
 
-	function fetchFile(file: string, callback: (response: string) => void) {
-		//Get code
-		var xhr = new XMLHttpRequest();
-		xhr.open('GET', file);
-		xhr.onreadystatechange = function() {
-			if (xhr.readyState === 4) {
-				if (xhr.status === 200) {
-					callback(xhr.responseText);
-				} else {
-					console.warn('Failed to run script because the CRM API could not be found');
+	function fetchFile(file: string) {
+		return new Promise<string>((resolve) => {
+			//Get code
+			const xhr = new XMLHttpRequest();
+			xhr.open('GET', file);
+			xhr.onreadystatechange = () => {
+				if (xhr.readyState === 4) {
+					if (xhr.status === 200) {
+						resolve(xhr.responseText);
+					} else {
+						console.warn('Failed to run script because the CRM API could not be found');
+					}
 				}
 			}
-		}
-		xhr.send();
-	}
-
-	function runCRMAPI(callback: () => void) {
-		//Get CRM API URL
-		var url = browserAPI.runtime.getURL('/js/crmapi.js');
-		fetchFile(url, function(code) {
-			hacksecuteScript(code);
-			callback();
+			xhr.send();
 		});
 	}
 
-	function executeScript(scripts: {
+	async function runCRMAPI() {
+		//Get CRM API URL
+		const url = browserAPI.runtime.getURL('/js/crmapi.js');
+		const code = await fetchFile(url);
+		hacksecuteScript(code);
+	}
+
+	async function executeScript(scripts: {
 		code?: string;
 		file?: string;
 	}[], index: number = 0) {
 		if (scripts.length > index) {
 			if (scripts[index].code) {
 				hacksecuteScript(scripts[index].code);
-				executeScript(scripts, index + 1);
+				await executeScript(scripts, index + 1);
 			} else {
-				var file = scripts[index].file;
+				let file = scripts[index].file;
 				if (file.indexOf('http') !== 0) {
 					file = browserAPI.runtime.getURL(file);
 				}
-				fetchFile(file, function(code) {
-					hacksecuteScript(code);
-					executeScript(scripts, index + 1);
-				});
+				const code = await fetchFile(file);
+				hacksecuteScript(code);
+				await executeScript(scripts, index + 1);
 			}
 		}
 	}
@@ -56,13 +55,17 @@
 		-readonly [P in keyof T]: T[P];
 	}
 
-	var matched = false;
-	var contextMenuEventKeys = ['clientX', 'clientY', 'offsetX',' offsetY', 'pageX', 'pageY', 'screenX',
-		'screenY', 'which', 'x', 'y']
-	var lastContextmenuCall: PointerEvent = null;
-	var contextElementId = 1;
+	const CONTEXT_MENU_EVENT_KEYS = [
+		'clientX', 'clientY', 'offsetX',
+		'offsetY', 'pageX', 'pageY', 'screenX',
+		'screenY', 'which', 'x', 'y'
+	];
 
-	var crmAPIExecuted = false;
+	let matched = false;
+	let contextElementId = 1;
+	let crmAPIExecuted = false;
+	let lastContextmenuCall: PointerEvent = null;
+
 	browserAPI.runtime.onMessage.addListener(function (message: {
 		type: 'checkTabStatus';
 		data: {
@@ -90,13 +93,13 @@
 				}
 				break;
 			case 'getLastClickInfo':
-				var responseObj = ({} as Partial<PointerEvent>) as Writable<PointerEvent> & {
+				const responseObj = ({} as Partial<PointerEvent>) as Writable<PointerEvent> & {
 					srcElement: number;
 					target: number;
 					toElement: number;
 				}
-				for (var key in lastContextmenuCall) {
-					if (contextMenuEventKeys.indexOf(key) !== -1) {
+				for (const key in lastContextmenuCall) {
+					if (CONTEXT_MENU_EVENT_KEYS.indexOf(key) !== -1) {
 						const pointerKey = key as keyof PointerEvent;
 						if (pointerKey !== 'button') {
 							responseObj[pointerKey] = lastContextmenuCall[pointerKey];
@@ -118,10 +121,12 @@
 				break;
 			case 'runScript':
 				if (!crmAPIExecuted) {
-					runCRMAPI(function() {
+					//Don't disturb the instantly-returning nature of this handler
+					(async () => {
+						await runCRMAPI();
 						executeScript(message.data.scripts);
-					});
-					crmAPIExecuted = true;
+						crmAPIExecuted = true;
+					})();
 				} else {
 					executeScript(message.data.scripts);
 				}
@@ -131,22 +136,25 @@
 
 	browserAPI.runtime.sendMessage({
 		type: 'newTabCreated'
-	}).then(function(response: {
+	}).then((response: {
 		matched?: boolean;
-	}) {
+	}) => {
 		if (response && response.matched) {
 			matched = true;
 		}
 	});
 
-	browserAPI.storage.local.get('useAsUserscriptInstaller').then(function(result) {
+	browserAPI.storage.local.get('useAsUserscriptInstaller').then((result) => {
 		if (result.useAsUserscriptInstaller) {
-			var installURL = browserAPI.runtime.getURL('html/install.html');
-			document.body.addEventListener('mousedown', function(e) {
-				var target = e.target as HTMLAnchorElement;
+			const installURL = browserAPI.runtime.getURL('html/install.html');
+			document.body.addEventListener('mousedown', (e) => {
+				const target = e.target as HTMLAnchorElement;
 				if (target && target.href && target.href.indexOf(installURL) === -1 && target.href.match(/.+user\.js$/)) {
-					var installPageURL = installURL + '?i=' + encodeURIComponent(target.href) + '&s=' +
-						encodeURIComponent(location.href);
+					const installPageURL = `${installURL}?i=${
+						encodeURIComponent(target.href)
+					}&s=${
+						encodeURIComponent(location.href)
+					}`;
 					target.href = installPageURL;
 					target.target = '_blank';
 				}
@@ -154,7 +162,7 @@
 		}
 	});
 
-	document.addEventListener('contextmenu', function(e) {
+	document.addEventListener('contextmenu', (e) => {
 		lastContextmenuCall = e;
 	});
 })();
