@@ -1009,10 +1009,6 @@ export namespace CRMNodes.Script.Updating {
 			});
 			browserAPI.storage.local.set({
 				requestPermissions: joinedPermissions
-			}).then(() => {
-				if (joinedPermissions.length > 0) {
-					browserAPI.runtime.openOptionsPage();
-				}
 			});
 
 			if (node.type === 'script') {
@@ -1141,7 +1137,6 @@ export namespace CRMNodes.Script.Updating {
 										await browserAPI.storage.local.set({
 											addedPermissions: addedPermissions
 										});
-										browserAPI.runtime.openOptionsPage();
 									}
 
 									updatedScripts.push(await installUserscript(metaTags,
