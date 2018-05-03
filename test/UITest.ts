@@ -977,11 +977,18 @@ async function createTab(url: string, doClear: boolean = false) {
 			if (REPLACE.doClear) {
 				REPLACE.getTestData()._clearExecutedScripts();
 			}
-			REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = {
+			const tab = {
 				id: REPLACE.fakeTabId,
 				title: 'title',
 				url: "REPLACE.url"
 			};
+			REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = tab;
+			REPLACE.getTestData()._tabUpdateListeners.forEach((listener) => {
+				listener(REPLACE.fakeTabId, {
+					status: 'loading',
+					url: "REPLACE.url"
+				}, JSON.parse(JSON.stringify(tab)) as _browser.tabs.Tab);
+			});
 			window.browserAPI.runtime.sendMessage({
 				type: 'newTabCreated'
 			}, {

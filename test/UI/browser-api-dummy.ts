@@ -357,6 +357,17 @@ interface AppChrome extends DeepPartial<Chrome> {
 	_activeTabs: ActiveTabs;
 	_executedScripts: ExecutedScripts;
 	_activatedBackgroundPages: number[];
+	_tabUpdateListeners: ((id: number, updateData: {
+		status?: 'loading'|'complete';
+		url?: string;
+		pinned?: boolean;
+		audible?: boolean;
+		discarded?: boolean;
+		autoDiscardable?: boolean;
+		mutedInfo?: any;
+		favIconUrl?: string;
+		title?: string;
+	}, tab: _browser.tabs.Tab) => void)[];
 	_clearExecutedScripts: () => void;
 	_fakeTabs: {
 		[id: number]: {
@@ -388,6 +399,7 @@ testWindow.chrome = {
 	_activeTabs: [],
 	_executedScripts: [],
 	_fakeTabs: {},
+	_tabUpdateListeners: [],
 	_activatedBackgroundPages: [],
 	_clearExecutedScripts: function() {
 		while (testWindow.chrome._executedScripts.pop()) { }
@@ -935,6 +947,7 @@ testWindow.chrome = {
 		},
 		onUpdated: {
 			addListener: function(listener: () => void) {
+				testWindow.chrome._tabUpdateListeners.push(listener);
 				checkOnlyCallback(listener, false);
 			}	
 		},

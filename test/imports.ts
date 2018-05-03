@@ -25,6 +25,17 @@ export interface TestData {
 	_activeTabs: ActiveTabs;
 	_executedScripts: ExecutedScripts;
 	_activatedBackgroundPages: number[];
+	_tabUpdateListeners: ((id: number, updateData: {
+		status?: 'loading'|'complete';
+		url?: string;
+		pinned?: boolean;
+		audible?: boolean;
+		discarded?: boolean;
+		autoDiscardable?: boolean;
+		mutedInfo?: any;
+		favIconUrl?: string;
+		title?: string;
+	}, tab: _browser.tabs.Tab) => void)[];
 	_clearExecutedScripts: () => void;
 	_fakeTabs: {
 		[id: number]: {
