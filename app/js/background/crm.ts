@@ -2153,6 +2153,13 @@ export namespace CRMNodes.NodeCreation {
 		const time = location[onDocumentStart ? 'documentStart' : 'documentEnd'];
 		time.push(node);
 	}
+	async function hasDocumentStartMetaTag(node: CRM.Node) {
+		if (node.type === 'script') {
+			const meta = Script.MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
+			return meta['run-at'] === 'document_start' || meta['run_at'] === 'document_start';
+		}
+		return false;
+	}
 	async function setupUserInteraction(node: CRM.Node,
 		rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
 			id: number|string;
@@ -2160,13 +2167,11 @@ export namespace CRMNodes.NodeCreation {
 			const launchMode = ((node.type === 'script' || node.type === 'stylesheet') &&
 				node.value.launchMode) || CRMLaunchModes.RUN_ON_CLICKING;
 
-			const isAlwaysRun = launchMode === CRMLaunchModes.ALWAYS_RUN;
-			if (node.type === 'script' && isAlwaysRun) {
-				const meta = Script.MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
-				pushToToExecute(node, true,
-					meta['run-at'] === 'document_start' || meta['run_at'] === 'document_start');
-			} else if (launchMode === CRMLaunchModes.RUN_ON_SPECIFIED || isAlwaysRun) {
-				pushToToExecute(node, isAlwaysRun, node.type === 'stylesheet');
+			if (launchMode === CRMLaunchModes.ALWAYS_RUN || launchMode === CRMLaunchModes.RUN_ON_SPECIFIED) {
+				//If always run, place in .always instead of .onUrl
+				//If it's a styesheet or has the run_at=document_start tag, run early
+				pushToToExecute(node, launchMode === CRMLaunchModes.ALWAYS_RUN, 
+					node.type === 'stylesheet' || await hasDocumentStartMetaTag(node));
 			} else if (launchMode !== CRMLaunchModes.DISABLED) {
 				await addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder);
 			}
