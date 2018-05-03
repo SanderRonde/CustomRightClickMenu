@@ -3422,7 +3422,7 @@ describe('On-Page CRM', function() {
 		return;
 	}
 	if (SKIP_ENTRYPOINTS) {
-		before('Open test page', async () => {
+		before('Open test page', async function() {
 			this.timeout(600000 * TIME_MODIFIER);
 			await openTestPageURL(browserCapabilities);
 			currentTestWindow = await driver.getWindowHandle();
