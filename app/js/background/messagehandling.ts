@@ -201,7 +201,7 @@ export namespace MessageHandling {
 					break;
 				case 'newTabCreated':
 					if (messageSender && respond) {
-						response = await modules.CRMNodes.Script
+						response = await modules.CRMNodes
 							.Running.executeScriptsForTab(
 								messageSender.tab.id, respond);
 					}
