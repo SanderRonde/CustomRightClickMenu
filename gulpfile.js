@@ -803,6 +803,7 @@ function readFile(filePath, options) {
 				.src([
 					'./js/crmapi.js',
 					'./js/installStylesheet.js',
+					'./js/sandbox.js',
 					'./js/contentscript.js',
 					'./js/polyfills/browser.js'
 				], { 
@@ -871,6 +872,7 @@ function readFile(filePath, options) {
 				.src([
 					'./js/crmapi.js',
 					'./js/installStylesheet.js',
+					'./js/sandbox.js',
 					'./js/contentscript.js',
 					'./js/polyfills/browser.js'
 				], { 
