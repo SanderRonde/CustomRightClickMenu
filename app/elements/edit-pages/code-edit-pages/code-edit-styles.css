@@ -531,3 +531,7 @@ input {
 #updateEnabled.hidden, #updateDisabled.hidden {
 	display: none;
 }
+
+#changeType {
+	margin-right: 20px;
+}

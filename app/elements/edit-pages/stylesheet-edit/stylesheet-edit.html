@@ -325,6 +325,16 @@
 		</div>
 		<div id="buttonCont">
 			<div id="buttons">
+				<paper-dropdown-menu slot="menu" overflowing indent="false" id="changeType" selected="0" fallback="CHANGE TYPE">
+					<paper-menu slot="menu" selected="0">
+						<div slot="content">
+							<paper-item on-tap="changeTypeToLink">Link</paper-item>
+							<paper-item on-tap="changeTypeToScript">Script</paper-item>
+							<paper-item on-tap="changeTypeToMenu">Menu</paper-item>
+							<paper-item on-tap="changeTypeToDivider">Divider</paper-item>
+						</div>
+					</paper-menu>
+				</paper-dropdown-menu>
 				<paper-dropdown-menu overflowing indent="false" id="exportMenu" selected="0" fallback="EXPORT AS">
 					<paper-menu slot="menu" selected="0">
 						<div slot="content">

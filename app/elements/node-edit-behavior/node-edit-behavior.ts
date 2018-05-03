@@ -350,6 +350,187 @@ namespace NodeEditBehaviorNamespace {
 			}, 500);
 		};
 
+		static matchesTypeScheme(this: NodeEditBehaviorInstance, type: CRM.NodeType, 
+			data: CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null): boolean {
+				switch (type) {
+					case 'link':
+						if (Array.isArray(data)) {
+							let objects = true;
+							data.forEach(function(linkItem) {
+								if (typeof linkItem !== 'object' || Array.isArray(linkItem)) {
+									objects = false;
+								}
+							});
+							if (objects) {
+								return true;
+							}
+						}
+						break;
+					case 'script':
+					case 'stylesheet':
+						return typeof data === 'object' && !Array.isArray(data);
+					case 'divider':
+					case 'menu':
+						return data === null;
+				}
+				return false;
+			};
+
+		static _doTypeChange(this: NodeEditBehaviorInstance, type: CRM.NodeType) {
+			const item = this.item;
+			const prevType = item.type;
+			const editCrmEl = window.app.editCRM.getCRMElementFromPath(this.item.path, true);
+
+			if (prevType === 'menu') {
+				item.menuVal = item.children;
+				delete item.children;
+			} else {
+				item[prevType + 'Val' as ('menuVal'|'linkVal'|'scriptVal'|'stylesheetVal')] =
+					item.value;
+			}
+			item.type = type;
+			if (type === 'menu') {
+				item.children = [];
+			}
+			if (item[type + 'Val' as ('menuVal'|'linkVal'|'scriptVal'|'stylesheetVal')] &&
+					this.matchesTypeScheme(type, item[type + 'Val' as ('menuVal'|'linkVal'|'scriptVal'|'stylesheetVal')] as any)) {
+				item.value = item[type + 'Val' as ('menuVal'|'linkVal'|'scriptVal'|'stylesheetVal')];
+			} else {
+				let triggers;
+				switch (item.type) {
+					case 'link':
+						item.triggers = item.triggers || [{
+							url: '*://*.example.com/*',
+							not: false
+						}];
+
+						item.value = [{
+							url: 'https://www.example.com',
+							newTab: true
+						}];
+						break;
+					case 'script':
+						triggers = triggers || item.triggers || [{
+							url: '*://*.example.com/*',
+							not: false
+						}];
+						item.value = window.app.templates.getDefaultScriptValue();
+						break;
+					case 'divider':
+						item.value = null;
+						item.triggers = item.triggers || [{
+							url: '*://*.example.com/*',
+							not: false
+						}];
+						break;
+					case 'menu':
+						item.value = null;
+						item.triggers = item.triggers || [{
+							url: '*://*.example.com/*',
+							not: false
+						}];
+						break;
+					case 'stylesheet':
+						triggers = triggers || item.triggers || [{
+							url: '*://*.example.com/*',
+							not: false
+						}];
+						item.value = window.app.templates.getDefaultStylesheetValue();
+						break;
+				}
+			}
+
+			editCrmEl.type = item.type;
+			editCrmEl.calculateType();
+
+			const typeSwitcher = editCrmEl.shadowRoot.querySelector('type-switcher');
+			typeSwitcher.onReady();
+
+			const typeChoices = Array.prototype.slice.apply(typeSwitcher.shadowRoot.querySelectorAll('.typeSwitchChoice'));
+			for (let i = 0; i < typeSwitcher.remainingTypes.length; i++) {
+				typeChoices[i].setAttribute('type', typeSwitcher.remainingTypes[i]);
+			}
+
+
+			const paperToast = window.app.$.changedToMenuToast;
+
+			function reverseMenuTypeChoice(columnCont: HTMLElement) {
+				paperToast.hide();
+				item.children = item.menuVal;
+				delete item.menuVal;
+				item.type = 'menu';
+				item.value = null;
+					
+				editCrmEl.type = prevType;
+				editCrmEl.calculateType();
+				typeSwitcher.onReady();
+				for (let i = 0; i < typeSwitcher.remainingTypes.length; i++) {
+					typeChoices[i].setAttribute('type', typeSwitcher.remainingTypes[i]);
+				}
+
+				//Un-shadow items
+				typeSwitcher.shadowColumns(columnCont, true);
+
+				window.app.shadowStart = null;
+			}
+
+			if (prevType === 'menu') {
+				//Turn children into "shadow items"
+				const column = (typeSwitcher.parentElement.parentElement.parentNode as ShadowRoot).host.parentElement as HTMLElement & {
+					index: number;
+				};
+				let columnCont = column.parentElement.parentElement;
+				columnCont = $(columnCont).next()[0];
+
+				typeSwitcher.shadowColumns(columnCont, false);
+
+				window.app.shadowStart = column.index + 1;
+
+				//Show a paper-toast
+				const listener = function() {
+					reverseMenuTypeChoice(columnCont);
+				}
+				paperToast.addEventListener('click', listener);
+				paperToast.show();
+				setTimeout(function() {
+					paperToast.removeEventListener('click', listener);
+				}, 10000);
+			}
+
+			window.app.upload();
+		}
+
+		static _changeType(this: NodeEditBehaviorInstance, type: CRM.NodeType) {
+			this._doTypeChange(type);
+			
+			//Close this dialog
+			this.cancel();
+
+			//Re-open the dialog
+			const editCrmEl = window.app.editCRM.getCRMElementFromPath(this.item.path, false);
+			editCrmEl.openEditPage();
+		}
+
+		static changeTypeToLink(this: NodeEditBehaviorInstance) {
+			this._changeType('link');
+		}
+
+		static changeTypeToScript(this: NodeEditBehaviorInstance) {
+			this._changeType('script');
+		}
+		
+		static changeTypeToStylesheet(this: NodeEditBehaviorInstance) {
+			this._changeType('stylesheet');
+		}
+
+		static changeTypeToMenu(this: NodeEditBehaviorInstance) {
+			this._changeType('menu');
+		}
+
+		static changeTypeToDivider(this: NodeEditBehaviorInstance) {
+			this._changeType('divider');
+		}
+
 		static initDropdown(this: CodeEditBehavior) {
 			this.showTriggers = (this.item.value.launchMode > 1 && this.item.value.launchMode !== 4);
 			this.showContentTypeChooser = (this.item.value.launchMode === 0 || this.item.value.launchMode === 3);
