@@ -2148,7 +2148,7 @@ export namespace CRMNodes.NodeCreation {
 				enabled: false
 			};
 		}
-	function pushToToExecute(node: CRM.Node, onDocumentStart: boolean) {
+	function pushToToExecute(node: CRM.Node, always: boolean, onDocumentStart: boolean) {
 		if (onDocumentStart) {
 			modules.toExecuteNodes.onUrl.documentStart.push(node);
 		} else {
@@ -2159,20 +2159,20 @@ export namespace CRMNodes.NodeCreation {
 		rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
 			id: number|string;
 		}) {
-		const launchMode = ((node.type === 'script' || node.type === 'stylesheet') &&
-			node.value.launchMode) || CRMLaunchModes.RUN_ON_CLICKING;
+			const launchMode = ((node.type === 'script' || node.type === 'stylesheet') &&
+				node.value.launchMode) || CRMLaunchModes.RUN_ON_CLICKING;
 
-		const isAlwaysRun = launchMode === CRMLaunchModes.ALWAYS_RUN;
-		if (node.type === 'script' && isAlwaysRun) {
-			const meta = Script.MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
-			pushToToExecute(node, 
-				meta['run-at'] === 'document_start' || meta['run_at'] === 'document_start');
-		} else if (launchMode === CRMLaunchModes.RUN_ON_SPECIFIED || isAlwaysRun) {
-			pushToToExecute(node, node.type === 'stylesheet');
-		} else if (launchMode !== CRMLaunchModes.DISABLED) {
-			await addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder);
+			const isAlwaysRun = launchMode === CRMLaunchModes.ALWAYS_RUN;
+			if (node.type === 'script' && isAlwaysRun) {
+				const meta = Script.MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
+				pushToToExecute(node, true,
+					meta['run-at'] === 'document_start' || meta['run_at'] === 'document_start');
+			} else if (launchMode === CRMLaunchModes.RUN_ON_SPECIFIED || isAlwaysRun) {
+				pushToToExecute(node, isAlwaysRun, node.type === 'stylesheet');
+			} else if (launchMode !== CRMLaunchModes.DISABLED) {
+				await addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder);
+			}
 		}
-	}
 
 	export async function createNode(node: CRM.Node, parentId: string|number) {
 		const replaceStylesheetTabs = getStylesheetReplacementTabs(node);
