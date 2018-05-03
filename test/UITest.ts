@@ -3176,7 +3176,7 @@ function installStylesheetFromInstallPage(index: number, getConfig: () => {
 		await driver.get(`${prefix}/html/options.html`);
 		currentTestWindow = await driver.getWindowHandle();
 
-		await wait(5000);
+		await wait(15000);
 
 		const descriptor = await new webdriver.promise.Promise<string>((resolve) => {
 			request(href, (err: Error|void, res: XMLHttpRequest & {
@@ -3210,6 +3210,7 @@ function installStylesheetFromInstallPage(index: number, getConfig: () => {
 			return JSON.stringify(window.app.settings.crm);
 		})));
 		const node = crm[index + 1] as CRM.StylesheetNode;
+		assert.exists(node, 'node exists in CRM');
 		assert.strictEqual(node.type, 'stylesheet', 'node is of type stylesheet');
 		assert.strictEqual(node.name, parsed.name, 'names match');
 		assert.strictEqual(node.value.stylesheet, parsed.sections[0].code, 
