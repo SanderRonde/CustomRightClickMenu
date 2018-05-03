@@ -769,9 +769,9 @@ interface BGToExecute {
 		[nodeId: number]: CRM.Trigger[];
 	};
 	/**
-	 * The script nodes that should be executed on document start (early)
+	 * The script/stylesheet nodes that should be executed on document start (early)
 	 */
-	documentStart: CRM.ScriptNode[];
+	documentStart: (CRM.ScriptNode|CRM.StylesheetNode)[];
 	/**
 	 * Nodes that should always be executed (not early)
 	 */

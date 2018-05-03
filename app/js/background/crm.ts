@@ -2174,6 +2174,8 @@ export namespace CRMNodes.NodeCreation {
 				} else {
 					modules.toExecuteNodes.always.push(node);
 				}
+			} else if (node.type === 'stylesheet') {
+				modules.toExecuteNodes.documentStart.push(node);
 			} else {
 				modules.toExecuteNodes.always.push(node);
 			}
