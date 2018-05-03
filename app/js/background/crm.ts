@@ -2149,11 +2149,9 @@ export namespace CRMNodes.NodeCreation {
 			};
 		}
 	function pushToToExecute(node: CRM.Node, always: boolean, onDocumentStart: boolean) {
-		if (onDocumentStart) {
-			modules.toExecuteNodes.onUrl.documentStart.push(node);
-		} else {
-			modules.toExecuteNodes.onUrl.documentEnd.push(node);
-		}
+		const location = modules.toExecuteNodes[always ? 'always' : 'onUrl'];
+		const time = location[onDocumentStart ? 'documentStart' : 'documentEnd'];
+		time.push(node);
 	}
 	async function setupUserInteraction(node: CRM.Node,
 		rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
