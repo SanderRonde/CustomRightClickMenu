@@ -299,7 +299,7 @@ export namespace Util {
 		if (fsAccessAllowed) {
 			return true;
 		}
-		return url.indexOf('file://') !== -1;
+		return url.indexOf('file://') === -1;
 	}
 	export async function xhr(url: string, msg?: any[]): Promise<string> {
 		return new Promise<string>((resolve, reject) => {
