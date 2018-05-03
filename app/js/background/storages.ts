@@ -1627,6 +1627,13 @@ export namespace Storages {
 				browserAPI.runtime.sendMessage({
 					type: 'idUpdate',
 					latestId: change.newValue
+				}).catch((err) => {
+					if (err.message === 'Could not establish connection. Receiving end does not exist.' ||
+						err.message === 'The message port closed before a response was received.') {
+							//Ignore this
+						} else {
+							throw err;
+						}
 				});
 			} else if (changes[i].key === 'rootName') {
 				if (updated.rootName) {
