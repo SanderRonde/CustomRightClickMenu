@@ -3392,7 +3392,7 @@ if (TEST_EXTENSION) {
 					});
 
 					//Generic logic
-					installStylesheetFromInstallPage(0, () => {
+					installStylesheetFromInstallPage(SKIP_USERSCRIPT_TEST ? 0 : 4, () => {
 						return {
 							href,
 							prefix
@@ -3409,7 +3409,7 @@ if (TEST_EXTENSION) {
 
 						assert.strictEqual(await driver.executeScript(inlineFn(() => {
 							return window.getComputedStyle(document.getElementById('viewport'))['backgroundColor'];
-						})), 'rgba(0, 0, 0)', 'background color changed (script is applied)');
+						})), 'rgba(0, 0, 0, 0)', 'background color changed (script is applied)');
 					});
 				});
 			});
