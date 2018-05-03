@@ -1924,8 +1924,8 @@ export namespace CRMNodes.Stylesheet.Installing {
 	}) {
 		const stylesheetData = JSON.parse(data.code);
 
-		await Promise.all(stylesheetData.sections.map((section, index) => {
-			return new Promise(async (resolve) => {
+		await modules.Util.promiseChain(stylesheetData.sections.map((section, index) => {
+			return async () => {
 				const sectionData = extractStylesheetData(section);
 				const node = modules.constants.templates
 					.getDefaultStylesheetNode({
@@ -1952,8 +1952,8 @@ export namespace CRMNodes.Stylesheet.Installing {
 					});
 
 				const crmFn = new modules.CRMAPICall.Instance(null, null);
-				crmFn.moveNode(node, {}, null);
-			});
+				await crmFn.moveNode(node, {}, null);
+			}
 		}));
 	}
 };

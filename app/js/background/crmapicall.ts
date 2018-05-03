@@ -224,11 +224,11 @@ export namespace CRMAPICall {
 				return true;
 			}
 		}
-		moveNode(node: CRM.Node, position: {
+		async moveNode(node: CRM.Node, position: {
 			node?: number;
 			relation?: 'firstChild' | 'firstSibling' | 'lastChild' | 'lastSibling' | 'before' |
 			'after';
-		}, removeOld: any | boolean = false): false | CRM.Node {
+		}, removeOld: any | boolean = false): Promise<false | CRM.Node> {
 			const crmFunction = this;
 
 			//Capture old CRM tree
@@ -287,7 +287,7 @@ export namespace CRMAPICall {
 			}
 
 			//Update settings
-			modules.Storages.applyChanges({
+			await modules.Storages.applyChanges({
 				type: 'optionsPage',
 				settingsChanges: [
 					{

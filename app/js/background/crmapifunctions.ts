@@ -564,7 +564,7 @@ export namespace CRMAPIFunctions.crm {
 						break;
 				}
 
-				if ((newNode = __this.moveNode(newNode, 
+				if ((newNode = await __this.moveNode(newNode, 
 					__this.message.data.options.position) as CRM.Node)) {
 						await modules.CRMNodes.updateCrm([newNode.id]);
 						__this.respondSuccess(__this.getNodeFromId(newNode.id, true, true));
@@ -613,7 +613,7 @@ export namespace CRMAPIFunctions.crm {
 					if (optionals['options.name']) {
 						newNode.name = __this.message.data.options.name;
 					}
-					const moved = __this.moveNode(newNode, __this.message.data.options.position);
+					const moved = await __this.moveNode(newNode, __this.message.data.options.position);
 					if (moved) {
 						modules.CRMNodes.updateCrm([newNode.id]).then(() => {
 							__this.respondSuccess(__this.getNodeFromId(newNode.id, true, true));
@@ -628,14 +628,14 @@ export namespace CRMAPIFunctions.crm {
 	}
 	export function moveNode(__this: CRMAPICall.Instance) {
 		__this.checkPermissions(['crmGet', 'crmWrite'], () => {
-			__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+			__this.getNodeFromId(__this.message.data.nodeId).run(async (node) => {
 				//Force path recalculation
 				modules.CRMNodes.buildNodePaths(modules.crm.crmTree);
 
 				//Remove original from CRM
 				const parentChildren = __this.lookup(node.path, modules.crm.crmTree, true);
 
-				if ((node = __this.moveNode(node, __this.message.data.position as {
+				if ((node = await __this.moveNode(node, __this.message.data.position as {
 					node: number;
 				}, {
 					children: parentChildren,
@@ -1520,7 +1520,7 @@ export namespace CRMAPIFunctions.crm.menu {
 						if (!toMove) {
 							return false;
 						}
-						__this.moveNode(toMove, {
+						await __this.moveNode(toMove, {
 							relation: 'lastChild',
 							node: __this.message.data.nodeId
 						}, {
@@ -1570,7 +1570,7 @@ export namespace CRMAPIFunctions.crm.menu {
 						if (!toMove) {
 							return false;
 						}
-						__this.moveNode(toMove, {
+						await __this.moveNode(toMove, {
 							relation: 'lastChild',
 							node: __this.message.data.nodeId
 						}, {
