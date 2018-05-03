@@ -283,7 +283,7 @@ export namespace Util {
 	const HOUR = 1000 * 60 * 60;
 	let lastFsAccessCheck: number;
 	let fsAccessAllowed: boolean;
-	export async function canRunOnUrl(url: string): Promise<boolean> {
+	export function canRunOnUrl(url: string): boolean {
 		if (!url || url.indexOf('chrome://') !== -1) {
 			return false;
 		}
