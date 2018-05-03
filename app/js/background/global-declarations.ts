@@ -539,7 +539,7 @@ export namespace GlobalDeclarations {
 
 		function getContextmenuTabOverrides(nodeId: number, tabId: number): ContextMenuOverrides {
 			const statuses = modules.crmValues.nodeTabStatuses;
-			if (!(nodeId in statuses)) {
+			if (!(nodeId in statuses) || !statuses[nodeId]) {
 				return null;
 			}
 			if (!(tabId in statuses[nodeId]) || !statuses[nodeId][tabId]) {
