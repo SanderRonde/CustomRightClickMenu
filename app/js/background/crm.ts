@@ -1168,7 +1168,7 @@ export namespace CRMNodes.Script.Updating {
 	}
 }
 
-export namespace CRMNodes.Script.Running {
+export namespace CRMNodes.Running {
 	function urlIsGlobalExcluded(url: string): boolean {
 		if (modules.storages.globalExcludes.indexOf('<all_urls>') >-1) {
 			return true;
@@ -1183,7 +1183,7 @@ export namespace CRMNodes.Script.Running {
 	}
 	export function executeNode(node: CRM.Node, tab: _browser.tabs.Tab) {
 		if (node.type === 'script') {
-			Handler.createHandler(node as CRM.ScriptNode)({
+			Script.Handler.createHandler(node as CRM.ScriptNode)({
 				pageUrl: tab.url,
 				menuItemId: 0,
 				editable: false,

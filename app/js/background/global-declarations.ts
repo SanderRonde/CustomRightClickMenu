@@ -639,7 +639,7 @@ export namespace GlobalDeclarations {
 			if (changeInfo.status && changeInfo.status === 'loading' &&
 				changeInfo.url && modules.Util.canRunOnUrl(changeInfo.url)) {
 					modules.toExecuteNodes.documentStart.forEach((node) => {
-						modules.CRMNodes.Script.Running.executeNode(node, tab);
+						modules.CRMNodes.Running.executeNode(node, tab);
 					});
 				}
 		}
