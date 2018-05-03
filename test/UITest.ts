@@ -3392,7 +3392,7 @@ if (TEST_EXTENSION) {
 					});
 
 					//Generic logic
-					installStylesheetFromInstallPage(SKIP_USERSCRIPT_TEST ? 0 : 4, () => {
+					installStylesheetFromInstallPage(SKIP_USERSCRIPT_TEST ? 0 : 3, () => {
 						return {
 							href,
 							prefix
