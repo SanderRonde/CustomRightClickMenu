@@ -3104,7 +3104,7 @@ function installScriptFromInstallPage(index: number, getConfig: () => {
 	it('should be possible to click the "allow and install" button', async function() {
 		this.timeout(20000);
 		this.slow(10000);
-		await wait(1500);
+		await wait(3000);
 		await findElement(webdriver.By.tagName('install-page'))
 			.findElement(webdriver.By.tagName('install-confirm'))
 			.findElement(webdriver.By.id('acceptAndInstallbutton'))
