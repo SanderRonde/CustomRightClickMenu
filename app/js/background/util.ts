@@ -122,12 +122,12 @@ export namespace Util {
 		_lastNumber += addition;
 		return _lastNumber;
 	}
-	export function generateItemId(): number {
+	export async function generateItemId(): Promise<number> {
 		modules.globalObject.globals.latestId = 
 			modules.globalObject.globals.latestId || 0;
 		modules.globalObject.globals.latestId++;
 		if (modules.storages.settingsStorage) {
-			modules.Storages.applyChanges({
+			await modules.Storages.applyChanges({
 				type: 'optionsPage',
 				settingsChanges: [{
 					key: 'latestId',
@@ -233,21 +233,23 @@ export namespace Util {
 		return haystack.split('').reverse().join('')
 			.indexOf(needle.split('').reverse().join('')) === 0;
 	}
-	export function isTamperMonkeyEnabled(callback: (result: boolean) => void) {
-		if ((window as any).chrome && (window as any).chrome.management) {
-			(window as any).chrome.management.getAll((installedExtensions: {
-				id: string;
-				enabled: boolean;
-			}[]) => {
-				const TMExtensions = installedExtensions.filter((extension) => {
-					return modules.constants.tamperMonkeyExtensions
-						.indexOf(extension.id) > -1 && extension.enabled;
+	export async function isTamperMonkeyEnabled(): Promise<boolean> {
+		return new Promise<boolean>((resolve) => {
+			if ((window as any).chrome && (window as any).chrome.management) {
+				(window as any).chrome.management.getAll((installedExtensions: {
+					id: string;
+					enabled: boolean;
+				}[]) => {
+					const TMExtensions = installedExtensions.filter((extension) => {
+						return modules.constants.tamperMonkeyExtensions
+							.indexOf(extension.id) > -1 && extension.enabled;
+					});
+					resolve(TMExtensions.length > 0);
 				});
-				callback(TMExtensions.length > 0);
-			});
-		} else {
-			callback(false);
-		}
+			} else {
+				resolve(false);
+			}
+		});
 	}
 	export async function execFile(path: string): Promise<void> {
 		if (_requiredFiles.indexOf(path) > -1) {

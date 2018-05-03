@@ -924,7 +924,7 @@ export namespace CRMNodes.Script.Updating {
 				hasOldNode = true;
 				node.id = oldNodeId;
 			} else {
-				node.id = modules.Util.generateItemId();
+				node.id = await modules.Util.generateItemId();
 			}
 
 			//If userscripts is empty something might have gone wrong, try to re-parse it
@@ -1905,7 +1905,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 		});
 		return results;
 	}
-	export function installStylesheet(data: {
+	export async function installStylesheet(data: {
 		code: EncodedString<{
 			sections: {
 				domains: string[];
@@ -1924,35 +1924,37 @@ export namespace CRMNodes.Stylesheet.Installing {
 	}) {
 		const stylesheetData = JSON.parse(data.code);
 
-		stylesheetData.sections.forEach((section, index) => {
-			const sectionData = extractStylesheetData(section);
-			const node = modules.constants.templates
-				.getDefaultStylesheetNode({
-					isLocal: false,
-					name: stylesheetData.name,
-					nodeInfo: {
-						version: '1',
-						source: {
-							updateURL: stylesheetData.updateUrl,
-							url: stylesheetData.url,
-							author: data.author,
-							sectionIndex: index,
-							autoUpdate: true
+		await Promise.all(stylesheetData.sections.map((section, index) => {
+			return new Promise(async (resolve) => {
+				const sectionData = extractStylesheetData(section);
+				const node = modules.constants.templates
+					.getDefaultStylesheetNode({
+						isLocal: false,
+						name: stylesheetData.name,
+						nodeInfo: {
+							version: '1',
+							source: {
+								updateURL: stylesheetData.updateUrl,
+								url: stylesheetData.url,
+								author: data.author,
+								sectionIndex: index,
+								autoUpdate: true
+							},
+							permissions: [],
+							installDate: new Date().toLocaleDateString()
 						},
-						permissions: [],
-						installDate: new Date().toLocaleDateString()
-					},
-					triggers: sectionData.triggers,
-					value: {
-						launchMode: sectionData.launchMode,
-						stylesheet: sectionData.code
-					},
-					id: modules.Util.generateItemId()
-				});
+						triggers: sectionData.triggers,
+						value: {
+							launchMode: sectionData.launchMode,
+							stylesheet: sectionData.code
+						},
+						id: await modules.Util.generateItemId()
+					});
 
-			const crmFn = new modules.CRMAPICall.Instance(null, null);
-			crmFn.moveNode(node, {}, null);
-		});
+				const crmFn = new modules.CRMAPICall.Instance(null, null);
+				crmFn.moveNode(node, {}, null);
+			});
+		}));
 	}
 };
 
@@ -2324,9 +2326,9 @@ export namespace CRMNodes {
 	}
 	export async function updateCRMValues() {
 		const crmBefore = JSON.stringify(modules.storages.settingsStorage.crm);
-		modules.Util.crmForEach(modules.storages.settingsStorage.crm, (node) => {
+		await modules.Util.crmForEachAsync(modules.storages.settingsStorage.crm, async (node) => {
 			if (!node.id && node.id !== 0) {
-				node.id = modules.Util.generateItemId();
+				node.id = await modules.Util.generateItemId();
 			}
 		});
 

@@ -528,7 +528,7 @@ export namespace CRMAPIFunctions.crm {
 					optional: true
 				}
 			], async () => {
-				const id = modules.Util.generateItemId();
+				const id = await modules.Util.generateItemId();
 				const sourceNode = __this.getNodeFromId(__this.message.id, false, true);
 				if (!sourceNode) {
 					return false;
@@ -585,13 +585,13 @@ export namespace CRMAPIFunctions.crm {
 				type: 'string',
 				optional: true
 			}], (optionals) => {
-				__this.getNodeFromId(__this.message.data.nodeId, true).run((copiedNode: CRM.Node) => {
+				__this.getNodeFromId(__this.message.data.nodeId, true).run(async (copiedNode: CRM.Node) => {
 					let newNode = JSON.parse(JSON.stringify(copiedNode));
-					newNode.id = modules.Util.generateItemId();
+					newNode.id = await modules.Util.generateItemId();
 
 					//Generate new IDs for all children
-					modules.Util.crmForEach(newNode.children || [], (node) => {
-						node.id = modules.Util.generateItemId();
+					await modules.Util.crmForEachAsync(newNode.children || [], async (node) => {
+						node.id = await modules.Util.generateItemId();
 						delete node.storage;
 						delete (node as any).file;
 					});

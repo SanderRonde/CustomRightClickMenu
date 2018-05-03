@@ -711,17 +711,16 @@ export namespace GlobalDeclarations {
 			}
 		}
 
-		function updateTamperMonkeyInstallState() {
-			modules.Util.isTamperMonkeyEnabled((isEnabled) => {
-				modules.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
-				browserAPI.storage.local.set({
-					useAsUserscriptInstaller: !isEnabled
-				});
+		async function updateTamperMonkeyInstallState() {
+			const isEnabled = modules.Util.isTamperMonkeyEnabled();
+			modules.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
+			browserAPI.storage.local.set({
+				useAsUserscriptInstaller: !isEnabled
 			});
 		}
 
-		function listenTamperMonkeyInstallState() {
-			updateTamperMonkeyInstallState();
+		async function listenTamperMonkeyInstallState() {
+			await updateTamperMonkeyInstallState();
 			if ((window as any).chrome && (window as any).chrome.management) {
 				const management: typeof _chrome.management = (window as any).chrome.management as any;
 				management.onInstalled.addListener(updateTamperMonkeyInstallState);
