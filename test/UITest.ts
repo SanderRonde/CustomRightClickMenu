@@ -3091,7 +3091,7 @@ function installScriptFromInstallPage(index: number, getConfig: () => {
 }) {
 	it('should be possible to open the install page', async function() {
 		this.timeout(10000);
-		this.slow(4000);
+		this.slow(6000);
 		const {
 			prefix, url, href
 		} = getConfig();
@@ -3103,7 +3103,7 @@ function installScriptFromInstallPage(index: number, getConfig: () => {
 
 	it('should be possible to click the "allow and install" button', async function() {
 		this.timeout(20000);
-		this.slow(10000);
+		this.slow(15000);
 		await wait(3000);
 		await findElement(webdriver.By.tagName('install-page'))
 			.findElement(webdriver.By.tagName('install-confirm'))
