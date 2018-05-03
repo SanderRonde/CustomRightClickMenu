@@ -542,7 +542,7 @@ export namespace GlobalDeclarations {
 			if (!(nodeId in statuses)) {
 				return null;
 			}
-			if (!(tabId in statuses[nodeId])) {
+			if (!(tabId in statuses[nodeId] || !statuses[nodeId][tabId])) {
 				return null;
 			}
 			return statuses[nodeId][tabId].overrides;
