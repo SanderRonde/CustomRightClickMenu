@@ -1,12 +1,11 @@
 ﻿importScripts('crmapi.js');
 
-interface Window {
+interface SandboxWindow extends Window {
 	log(...args: any[]): void;
 	logNoStack(...args: any[]): void;	
-	console: {
-		log(...args: any[]): void;
-	}
 }
+
+const _self = self as SandboxWindow;
 
 (() => {
 
@@ -18,7 +17,7 @@ interface Window {
 		});
 	}
 
-	self.log = (...args: any[]) => {
+	_self.log = (...args: any[]) => {
 		let err = (new Error()).stack.split('\n')[2];
 		if (err.indexOf('eval') > -1) {
 			err = (new Error()).stack.split('\n')[3];
@@ -27,16 +26,16 @@ interface Window {
 		log(args, errSplit.slice(1, errSplit.length).join('at'));
 	};
 
-	self.logNoStack = (...args: any[]) => {
+	_self.logNoStack = (...args: any[]) => {
 		log(args);
 	};
 
-	self.console = {
-		log: self.log
+	(_self as any).console = {
+		log: _self.log
 	};
 
-	self.onerror = function (name, source, lineNo, colNo, error) {
-		self.log(error.name + ' occurred in background page', error.stack);
+	_self.onerror = function (name, source, lineNo, colNo, error) {
+		_self.log(error.name + ' occurred in background page', error.stack);
 	}
 
 	var handshakeData: {
@@ -52,7 +51,7 @@ interface Window {
 				secretKey: secretKey,
 				handler: handler
 			};
-			(self.postMessage as any)({
+			(_self.postMessage as any)({
 				type: 'handshake',
 				data: JSON.stringify({
 					id: id,
@@ -63,7 +62,7 @@ interface Window {
 			});
 			return {
 				postMessage: function(data: any) {
-					(self.postMessage as any)({
+					(_self.postMessage as any)({
 						type: 'crmapi',
 						data: JSON.stringify(data),
 						key: secretKey
@@ -72,7 +71,7 @@ interface Window {
 			};
 		};
 
-	Object.defineProperty(self, 'handshake', {
+	Object.defineProperty(_self, 'handshake', {
 		get: () => {
 			return handshake;
 		}
@@ -83,7 +82,7 @@ interface Window {
 			handshakeData.id + 'verified';
 	}
 
-	self.addEventListener('message', function (e) {
+	_self.addEventListener('message', function (e) {
 		var data = e.data as {
 			type: 'init';
 			id: number;
@@ -107,13 +106,13 @@ interface Window {
 				var loadedLibraries = true;
 				(() => {
 					//@ts-ignore
-					var window = self;
+					var window = _self;
 					data.libraries.forEach(function(library) {
 						try {
 							importScripts(library);
 						} catch (error) {
 							loadedLibraries = false;
-							self.logNoStack([
+							_self.logNoStack([
 								error.name,
 								' occurred in loading library ',
 								library.split(/(\/|\\)/).pop(),
@@ -134,7 +133,7 @@ interface Window {
 						eval(['(function(window) {', script, '}(typeof window === \'undefined\' ? self : window));'].join(''));
 						log('Succesfully launched script');
 					} catch (error) {
-						self.logNoStack([
+						_self.logNoStack([
 							error.name,
 							' occurred in executing background script',
 							'\n',
@@ -144,7 +143,7 @@ interface Window {
 							error.stack);
 						log('Script boot failed');
 					}
-				})(data.script, self.log);
+				})(data.script, _self.log);
 				break;
 			case 'verify':
 			case 'message':
