@@ -50,9 +50,14 @@ export namespace Global {
 			nodeTabStatuses: {}
 		},
 		toExecuteNodes: {
-			onUrl: {},
-			always: [],
-			documentStart: []
+			onUrl: {
+				documentStart: [],
+				documentEnd: []
+			},
+			always: {
+				documentStart: [],
+				documentEnd: []
+			}
 		},
 		sendCallbackMessage: (tabId: number, tabIndex: number, id: number, data: {
 			err: boolean;

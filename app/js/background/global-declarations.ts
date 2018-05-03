@@ -638,9 +638,15 @@ export namespace GlobalDeclarations {
 		}, tab: _browser.tabs.Tab) {
 			if (changeInfo.status && changeInfo.status === 'loading' &&
 				changeInfo.url && modules.Util.canRunOnUrl(changeInfo.url)) {
-					modules.toExecuteNodes.documentStart.forEach((node) => {
+					for (const node of modules.toExecuteNodes.always.documentStart) {
 						modules.CRMNodes.Running.executeNode(node, tab);
-					});
+					}
+					for (const node of modules.toExecuteNodes.onUrl.documentStart) {
+						const { triggers } = node;
+						if (modules.URLParsing.matchesUrlSchemes(triggers, tab.url)) {
+							modules.CRMNodes.Running.executeNode(node, tab);
+						}
+					}
 				}
 		}
 

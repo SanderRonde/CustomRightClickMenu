@@ -1216,27 +1216,13 @@ export namespace CRMNodes.Running {
 				};
 				modules.Logging.Listeners.updateTabAndIdLists();
 				if (!urlIsGlobalExcluded(tab.url)) {
-					const toExecute: {
-						node: CRM.Node;
-						tab: _browser.tabs.Tab;
-					}[] = [];
 					const { toExecuteNodes } = modules;
-					for (let nodeId in toExecuteNodes.onUrl) {
-						if (toExecuteNodes.onUrl[nodeId]) {
-							if (modules.URLParsing.matchesUrlSchemes(toExecuteNodes.onUrl[nodeId], tab.url)) {
-								toExecute.push({
-									node: modules.crm.crmById[nodeId],
-									tab: tab
-								});
-							}
-						}
-					}
+					const toExecute = toExecuteNodes.onUrl.documentEnd.filter(({triggers}) => {
+						return modules.URLParsing.matchesUrlSchemes(triggers, tab.url);
+					});
 
-					for (let i = 0; i < toExecuteNodes.always.length; i++) {
-						executeNode(toExecuteNodes.always[i], tab);
-					}
-					for (let i = 0; i < toExecute.length; i++) {
-						executeNode(toExecute[i].node, toExecute[i].tab);
+					for (const node of toExecuteNodes.always.documentEnd.concat(toExecute)) {
+						executeNode(node, tab);
 					}
 					return {
 						matched: toExecute.length > 0
@@ -2045,10 +2031,10 @@ export namespace CRMNodes.NodeCreation {
 		if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
 			if (launchMode === CRMLaunchModes.ALWAYS_RUN ||
 				launchMode === CRMLaunchModes.RUN_ON_CLICKING) {
-					modules.toExecuteNodes.always.push(node);
+					modules.toExecuteNodes.always.documentEnd.push(node);
 				} else if (launchMode === CRMLaunchModes.RUN_ON_SPECIFIED ||
 					launchMode === CRMLaunchModes.SHOW_ON_SPECIFIED) {
-						modules.toExecuteNodes.onUrl[node.id] = node.triggers;
+						modules.toExecuteNodes.onUrl.documentEnd.push(node);
 					}
 		}
 	}
@@ -2162,27 +2148,27 @@ export namespace CRMNodes.NodeCreation {
 				enabled: false
 			};
 		}
+	function pushToToExecute(node: CRM.Node, onDocumentStart: boolean) {
+		if (onDocumentStart) {
+			modules.toExecuteNodes.onUrl.documentStart.push(node);
+		} else {
+			modules.toExecuteNodes.onUrl.documentEnd.push(node);
+		}
+	}
 	async function setupUserInteraction(node: CRM.Node,
 		rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
 			id: number|string;
 		}) {
 		const launchMode = ((node.type === 'script' || node.type === 'stylesheet') &&
 			node.value.launchMode) || CRMLaunchModes.RUN_ON_CLICKING;
-		if (launchMode === CRMLaunchModes.ALWAYS_RUN) {
-			if (node.type === 'script') {
-				const meta = Script.MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
-				if (meta['run-at'] === 'document_start' || meta['run_at'] === 'document_start') {
-					modules.toExecuteNodes.documentStart.push(node);
-				} else {
-					modules.toExecuteNodes.always.push(node);
-				}
-			} else if (node.type === 'stylesheet') {
-				modules.toExecuteNodes.documentStart.push(node);
-			} else {
-				modules.toExecuteNodes.always.push(node);
-			}
-		} else if (launchMode === CRMLaunchModes.RUN_ON_SPECIFIED) {
-			modules.toExecuteNodes.onUrl[node.id] = node.triggers;
+
+		const isAlwaysRun = launchMode === CRMLaunchModes.ALWAYS_RUN;
+		if (node.type === 'script' && isAlwaysRun) {
+			const meta = Script.MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
+			pushToToExecute(node, 
+				meta['run-at'] === 'document_start' || meta['run_at'] === 'document_start');
+		} else if (launchMode === CRMLaunchModes.RUN_ON_SPECIFIED || isAlwaysRun) {
+			pushToToExecute(node, node.type === 'stylesheet');
 		} else if (launchMode !== CRMLaunchModes.DISABLED) {
 			await addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder);
 		}
@@ -2411,9 +2397,14 @@ export namespace CRMNodes {
 					contexts: ['all']
 				});
 				modules.toExecuteNodes = {
-					onUrl: {},
-					always: [],
-					documentStart: []
+					onUrl: {
+						documentStart: [],
+						documentEnd: []
+					},
+					always: {
+						documentStart: [],
+						documentEnd: []
+					}
 				};
 				modules.Util.promiseChain(modules.crm.crmTree.map((node, index) => {
 					return () => {

@@ -755,6 +755,17 @@ interface BGCRMValues {
 	};
 }
 
+interface ToExecuteListener {
+	/**
+	 * The nodes to run on document start (before loading is done)
+	 */
+	documentStart: CRM.Node[];
+	/**
+	 * The nodes to run on document end (on contentscript load)
+	 */
+	documentEnd: CRM.Node[];
+}
+
 /**
  * On what pages and when which nodes need to be executed
  */
@@ -762,20 +773,11 @@ interface BGToExecute {
 	/**
 	 * Data about whether to show or to not show nodes on given URLs by node ID
 	 */
-	onUrl: {
-		/**
-		 * The URLs on which to show or not to show this node
-		 */
-		[nodeId: number]: CRM.Trigger[];
-	};
+	onUrl: ToExecuteListener;
 	/**
-	 * The script/stylesheet nodes that should be executed on document start (early)
+	 * Nodes that should always be executed
 	 */
-	documentStart: (CRM.ScriptNode|CRM.StylesheetNode)[];
-	/**
-	 * Nodes that should always be executed (not early)
-	 */
-	always: (CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode)[];
+	always: ToExecuteListener;
 }
 
 /**
