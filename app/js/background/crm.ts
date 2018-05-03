@@ -2315,7 +2315,7 @@ export namespace CRMNodes {
 		}]);
 		TS.compileAllInTree();
 		await updateCRMValues();
-		buildPageCRM();
+		await buildPageCRM();
 		await modules.MessageHandling.signalNewCRM();
 
 		toUpdate && await modules.Storages.checkBackgroundPagesForChange({
