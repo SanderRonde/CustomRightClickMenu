@@ -60,6 +60,7 @@ const _self = self as SandboxWindow;
 				}),
 				key: secretKey
 			});
+			handshake = null;
 			return {
 				postMessage: function(data: any) {
 					(_self.postMessage as any)({
@@ -71,7 +72,7 @@ const _self = self as SandboxWindow;
 			};
 		};
 
-	Object.defineProperty(_self, 'handshake', {
+	Object.defineProperty(self, 'handshake', {
 		get: () => {
 			return handshake;
 		}
@@ -124,7 +125,6 @@ const _self = self as SandboxWindow;
 						}
 					});
 				})();
-				handshake = null;
 				if (!loadedLibraries) {
 					return;
 				}
