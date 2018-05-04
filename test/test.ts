@@ -2,6 +2,11 @@
 /// <reference path="../tools/definitions/crmapi.d.ts" />
 /// <reference path="../app/js/background.ts" />
 
+process.on('unhandledRejection', err => {
+    console.log("Caught unhandledRejection");
+    console.log(err);
+});
+
 'use strict';
 // @ts-ignore
 const mochaSteps = require('mocha-steps');
