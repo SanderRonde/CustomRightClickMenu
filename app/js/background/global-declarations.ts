@@ -718,7 +718,7 @@ export namespace GlobalDeclarations {
 		}
 
 		async function updateTamperMonkeyInstallState() {
-			const isEnabled = modules.Util.isTamperMonkeyEnabled();
+			const isEnabled = await modules.Util.isTamperMonkeyEnabled();
 			modules.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
 			browserAPI.storage.local.set({
 				useAsUserscriptInstaller: !isEnabled
