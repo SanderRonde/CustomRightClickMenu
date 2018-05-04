@@ -260,7 +260,8 @@ namespace ScriptEditElement {
 			this.editorManager.destroy();
 			this.fullscreenEditorManager && 
 				this.fullscreenEditorManager.destroy();
-			this._changeTab('main');
+			this.editorMode = 'main';
+			this._enableButtons();
 			this.active = false;
 		};
 
