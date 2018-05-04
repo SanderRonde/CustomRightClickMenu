@@ -71,6 +71,7 @@ export class SandboxWorker implements SandboxWorkerInterface {
 					this.worker.postMessage({
 						type: 'verify',
 						instances: this._getInstances(),
+						currentInstance: null,
 						message: JSON.stringify({}),
 						key: this.secretKey.join('') + this.id + 'verified'
 					});

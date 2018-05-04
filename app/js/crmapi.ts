@@ -2013,8 +2013,13 @@ type CRMAPIMessage = {
 							tabIndex: number;
 						};
 					}>);
-					this.__privates._instanceId = currentInstance.id;
-					this.instanceId = currentInstance.id;
+					if (currentInstance === null) {
+						this.__privates._instanceId = -1;
+						this.instanceId = -1;
+					} else {
+						this.__privates._instanceId = currentInstance.id;
+						this.instanceId = currentInstance.id;
+					}
 					for (let i = 0; i < instances.length; i++) {
 						this.__privates._instances.add({
 							id: instances[i].id,
