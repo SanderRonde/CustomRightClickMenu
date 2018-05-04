@@ -2240,8 +2240,11 @@ export namespace CRMNodes.TS {
 
 	async function compileTree(tree: CRM.Tree) {
 		const length = tree.length;
-		for (let i= 0; i < length; i++) {
+		for (let i = 0; i < length; i++) {
 			const node = tree[i];
+			if (!node) {
+				continue;
+			}
 
 			if (node.type === 'script') {
 				await compileNode(node);
