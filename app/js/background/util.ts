@@ -286,7 +286,7 @@ export namespace Util {
 	let lastFsAccessCheck: number;
 	let fsAccessAllowed: boolean;
 	export function canRunOnUrl(url: string): boolean {
-		if (!url || url.indexOf('chrome://') === -1) {
+		if (!url || url.indexOf('chrome://') !== -1) {
 			return false;
 		}
 
