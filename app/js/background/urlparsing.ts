@@ -93,10 +93,7 @@ export namespace URLParsing {
 		url: string;
 	}[], url: string) {
 		let matches = false;
-		for (let i = 0; i < matchPatterns.length; i++) {
-			const not = matchPatterns[i].not;
-			const matchPattern = matchPatterns[i].url;
-
+		for (const { not, url: matchPattern } of matchPatterns) {
 			if (matchPattern.indexOf('/') === 0 &&
 				modules.Util.endsWith(matchPattern, '/')) {
 				//It's regular expression
@@ -109,7 +106,7 @@ export namespace URLParsing {
 					}
 				}
 			} else {
-				if (new RegExp(`^${matchPattern.replace(/\*/g, '(.+)')}$`).test(url)) {
+				if (new RegExp(`^${matchPattern.replace(/\*/g, '(.*)')}$`).test(url)) {
 					if (not) {
 						return false;
 					} else {
