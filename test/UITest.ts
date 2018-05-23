@@ -245,9 +245,9 @@ function getCapabilities(): BrowserstackCapabilities {
 		return {} as any;
 	}
 	console.error('Please specify a browser version to test');
-	console.log('Choose from:');
-	console.log('\n--chrome-latest\n--chrome-{version}\n--firefox-quantum')
-	console.log('--firefox-latest\n--edge-16\n--edge-latest\n--opera-51\n--opera-latest')
+	console.error('Choose from:');
+	console.error('\n--chrome-latest\n--chrome-{version}\n--firefox-quantum')
+	console.error('--firefox-latest\n--edge-16\n--edge-latest\n--opera-51\n--opera-latest')
 	process.exit(1);
 	return {} as any;
 }
