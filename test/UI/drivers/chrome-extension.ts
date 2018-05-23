@@ -41,7 +41,7 @@ export async function getExtensionURLPrefix(driver: TypedWebdriver, capabilities
 					.findElement(webdriver.By.className('options-link'))
 					.getAttribute('href');
 				
-				return href.split('/options.html')[0];
+				return href.split('/html/options.html')[0];
 			}
 		}
 	} else {

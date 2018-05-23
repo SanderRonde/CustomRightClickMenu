@@ -32,7 +32,7 @@ export async function getExtensionURLPrefix(_driver: TypedWebdriver, _capabiliti
 	// 	if ((await title.getText()).indexOf('Custom Right-Click Menu') > -1) {
 	// 		const uuid = await addon.findElement(
 	// 			webdriver.By.css('.internal-uuid > *')).getText();
-	// 		return `moz-extension://${uuid}/html`;
+	// 		return `moz-extension://${uuid}`;
 	// 	}
 	// }
 	// console.error('Failed to find extension options page');
