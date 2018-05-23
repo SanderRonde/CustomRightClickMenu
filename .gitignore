@@ -269,3 +269,4 @@ test/test.js
 adapters/**/*.js
 !adapters/gulpfile.js
 test/migration-test.js
+test/installation-test.js
