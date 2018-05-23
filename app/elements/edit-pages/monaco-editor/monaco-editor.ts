@@ -2466,7 +2466,7 @@ namespace MonacoEditorElement {
 
 		private static _runJsLint(this: MonacoEditor): LinterWarning[] {
 			const code = this.getCurrentModel().models[0].getValue();
-			const { warnings } = window.jslint(code, {}, window.app.jsLintGlobals);
+			const { warnings } = window.jslint(code, {}, [...window.app.jsLintGlobals]);
 			return warnings.map((warning) => ({
 				col: warning.column,
 				line: warning.line,

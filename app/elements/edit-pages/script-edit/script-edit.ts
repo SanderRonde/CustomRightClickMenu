@@ -59,11 +59,11 @@ namespace ScriptEditElement {
 
 		static jsLintGlobalsChange(this: NodeEditBehaviorScriptInstance) {
 			this.async(() => {
-				const globals = this.$.editorJSLintGlobalsInput.$$('input').value.split(',').map(global => global.trim());
+				const jsLintGlobals = this.$.editorJSLintGlobalsInput.$$('input').value.split(',').map(val => val.trim());
 				browserAPI.storage.local.set({
-					jsLintGlobals: globals
+					jsLintGlobals
 				});
-				window.app.jsLintGlobals = globals;
+				window.app.jsLintGlobals = jsLintGlobals;
 			}, 0);
 		}
 
