@@ -654,8 +654,8 @@ function readFile(filePath, options) {
 									'?Object[\'setPrototype\' + \'Of\']($1,$4):$1.__proto__ = $4'
 							))
 							.pipe(replace(
-								/typeof l\.global\.define/g,
-								'typeof (l.global = l.global || {}).define'
+								/typeof (\w+)\.global\.define/g,
+								'typeof ($1.global = $1.global || {}).define'
 							))
 							.pipe(replace(
 								/use strict/g,
