@@ -1051,3 +1051,49 @@ export function setDriver(newDriver: TypedWebdriver) {
 export function setTimeModifier(modifier: number) {
 	TIME_MODIFIER = modifier;
 }
+
+export async function waitForCRM(timeRemaining: number) {
+	await waitFor(() => {
+		return driver.executeScript(inlineFn(() => {
+			const crmItem = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])')[0];
+			return !!crmItem;
+		}));
+	}, 250, timeRemaining);
+}
+
+export function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done: (...args: any[]) => void): void;
+export function resetSettings(__this?: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext): webdriver.promise.Promise<void>; 
+export function resetSettings(__this?: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, 
+	done?: (...args: any[]) => void): webdriver.promise.Promise<any>|void {
+		__this && __this.timeout(30000 * TIME_MODIFIER);
+		const promise = new webdriver.promise.Promise<void>(async (resolve) => {
+			const result = await executeAsyncScript(inlineAsyncFn((done) => {
+				try {
+					window.browserAPI.storage.local.clear().then(() => {
+						window.browserAPI.storage.sync.clear().then(() => {
+							window.app.refreshPage().then(() => {
+								done(null);
+							});
+						});
+					});
+				} catch(e) {
+					done({
+						message: e.message,
+						stack: e.stack
+					});
+				};
+			}));
+			if (result) {
+				console.log(result);
+				throw result;
+			}
+			await waitForCRM(5000);
+			await wait(1500);
+			resolve(null);
+		});
+		if (done) {
+			promise.then(done);
+		} else {
+			return promise;
+		}
+	}
