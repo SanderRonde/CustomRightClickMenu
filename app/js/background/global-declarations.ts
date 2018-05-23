@@ -839,9 +839,9 @@ export namespace GlobalDeclarations {
 						return RestoreTabStatus.IGNORED;
 					}
 				}),
-				new window.Promise<RestoreTabStatus>(async () => {
+				new window.Promise<RestoreTabStatus>(async (resolve) => {
 					await modules.Util.wait(2500);
-					return RestoreTabStatus.FROZEN;
+					resolve(RestoreTabStatus.FROZEN);
 				})
 			]);
 			switch (state) {
