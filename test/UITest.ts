@@ -3277,51 +3277,6 @@ if (TEST_EXTENSION) {
 						})), 'rgb(51, 51, 51)', 'background color changed (script is applied)');
 					});
 				});
-				describe('installing from userscripts.org', () => {
-					const URL = 'http://userscripts-mirror.org/scripts/show/175391';
-					let href: string;
-					let title: string;
-
-					beforeUserscriptInstall(URL);
-
-					it('should be possible to click the install link', async function() {
-						this.timeout(20000);
-						this.slow(15000);
-						const button = await findElement(webdriver.By.id('install_script'))
-							.findElement(webdriver.By.tagName('a'));
-						title = await findElement(webdriver.By.className('title'))
-							.getText();
-
-						assert.exists(button, 'Install link exists');
-						href = await button.getProperty('href') as string;
-
-						const isUserScript = href.indexOf('.user.js') > -1;
-						assert.isTrue(isUserScript, 'button leads to userscript');
-					});
-
-					//Generic logic
-					installScriptFromInstallPage(1, () => {
-						return {
-							href,
-							title,
-							prefix,
-							url: URL
-						}
-					});
-
-					it('should be applied', async function() {
-						this.timeout(600000 * TIME_MODIFIER);
-						this.slow(600000 * TIME_MODIFIER);
-						await driver.get('https://www.youtube.com');
-						currentTestWindow = await driver.getWindowHandle();
-
-						await wait(5000);
-
-						assert.strictEqual(await driver.executeScript(inlineFn(() => {
-							return window.getComputedStyle(document.body)['backgroundColor'];
-						})), 'rgb(0, 0, 0)', 'background color changed (script is applied)');
-					});
-				});
 				describe('Installing from OpenUserJS', () => {
 					const URL = 'https://openuserjs.org/scripts/xthexder/Wide_Github';
 					let href: string;
@@ -3345,7 +3300,7 @@ if (TEST_EXTENSION) {
 					});
 
 					//Generic logic
-					installScriptFromInstallPage(2, () => {
+					installScriptFromInstallPage(1, () => {
 						return {
 							href,
 							title,
@@ -3368,6 +3323,53 @@ if (TEST_EXTENSION) {
 						})), '980px', 'width was changed (script was applied)');
 					});
 				});
+				//This crashes the browserstack chrome driver,
+				// skip this test for now
+				// describe('installing from userscripts.org', () => {
+				// 	const URL = 'http://userscripts-mirror.org/scripts/show/175391';
+				// 	let href: string;
+				// 	let title: string;
+
+				// 	beforeUserscriptInstall(URL);
+
+				// 	it('should be possible to click the install link', async function() {
+				// 		this.timeout(20000);
+				// 		this.slow(15000);
+				// 		const button = await findElement(webdriver.By.id('install_script'))
+				// 			.findElement(webdriver.By.tagName('a'));
+				// 		title = await findElement(webdriver.By.className('title'))
+				// 			.getText();
+
+				// 		assert.exists(button, 'Install link exists');
+				// 		href = await button.getProperty('href') as string;
+
+				// 		const isUserScript = href.indexOf('.user.js') > -1;
+				// 		assert.isTrue(isUserScript, 'button leads to userscript');
+				// 	});
+
+				// 	//Generic logic
+				// 	installScriptFromInstallPage(2, () => {
+				// 		return {
+				// 			href,
+				// 			title,
+				// 			prefix,
+				// 			url: URL
+				// 		}
+				// 	});
+
+				// 	it('should be applied', async function() {
+				// 		this.timeout(600000 * TIME_MODIFIER);
+				// 		this.slow(600000 * TIME_MODIFIER);
+				// 		await driver.get('https://www.youtube.com');
+				// 		currentTestWindow = await driver.getWindowHandle();
+
+				// 		await wait(5000);
+
+				// 		assert.strictEqual(await driver.executeScript(inlineFn(() => {
+				// 			return window.getComputedStyle(document.body)['backgroundColor'];
+				// 		})), 'rgb(0, 0, 0)', 'background color changed (script is applied)');
+				// 	});
+				// });
 			});
 		}
 		if (!SKIP_USERSTYLE_TEST) {
