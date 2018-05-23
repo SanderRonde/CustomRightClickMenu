@@ -34,6 +34,13 @@ export namespace CRMAPICall {
 		REQUIRED = 0
 	}
 
+	const enum MoveTarget {
+		NOT_PLACED,
+		NOT_SAME_TREE,
+		SAME_TREE_PLACED_BEFORE,
+		SAME_TREE_PLACED_AFTER
+	}
+
 	type GetNodeFromIdCallback<T> = {
 		run: (callback: (node: T) => void) => void;
 	};
@@ -62,27 +69,33 @@ export namespace CRMAPICall {
 		}
 
 		lookup<T>(path: number[],
-			data: CRMParent<T>[]): CRMParent<T> | boolean;
-		lookup<T>(path: number[], data: CRMParent<T>[], hold: boolean):
-			CRMParent<T>[] | CRMParent<T> | boolean | void;
+			data: CRMParent<T>[]): T | boolean;
+		lookup<T>(path: number[], data: CRMParent<T>[], hold: true):
+			T[] | boolean | void;
+		lookup<T>(path: number[], data: CRMParent<T>[], hold: false):
+			T | boolean | void;
 		lookup<T>(path: number[], data: CRMParent<T>[],
 			hold: boolean = false):
-			CRMParent<T>[] | CRMParent<T> | boolean | void {
-			if (path === null || typeof path !== 'object' || !Array.isArray(path)) {
-				this.respondError('Supplied path is not of type array');
-				return true;
-			}
-			const length = path.length - 1;
-			for (let i = 0; i < length; i++) {
-				const next = data[path[i]];
-				if (data && next && next.children) {
-					data = next.children;
+			T | T[] | boolean | void {
+				if (path === null || typeof path !== 'object' || !Array.isArray(path)) {
+					this.respondError('Supplied path is not of type array');
+					return true;
+				}
+				const length = path.length - 1;
+				for (let i = 0; i < length; i++) {
+					const next = data[path[i]];
+					if (data && next && next.children) {
+						data = next.children;
+					} else {
+						return false;
+					}
+				}
+				if (hold) {
+					return (data as T[]) || false;
 				} else {
-					return false;
+					return (data[path[length]] as T) || false;
 				}
 			}
-			return (hold ? data : data[path[length]]) || false;
-		}
 		checkType(toCheck: any, type: TypeCheckTypes,
 			name?: string,
 			optional: TypecheckOptional = TypecheckOptional.REQUIRED,
@@ -133,102 +146,153 @@ export namespace CRMAPICall {
 		}
 
 		private static readonly MoveNode = class MoveNode {
-			static before(isRoot: boolean, node: CRM.Node, 
-				removeOld: any | boolean, relativeNode: any,
-				__this: Instance) {
+			private static _targetIndex(tree: CRM.Node[], node: CRM.Node) {
+				for (let i = 0; i < tree.length; i++) {
+					if (tree[i].id === node.id) {
+						return i
+					}
+				}
+				return -1;
+			}
+
+			private static _genMoveTargetReturn(index: number, placedAfter: boolean): MoveTarget {
+				if (index !== -1) {
+					if (placedAfter) {
+						return MoveTarget.SAME_TREE_PLACED_AFTER;
+					}
+					return MoveTarget.SAME_TREE_PLACED_BEFORE;
+				}
+				return MoveTarget.NOT_SAME_TREE;
+			}
+
+			static before(isRoot: boolean, node: CRM.Node, relativeNode: any,
+				__this: Instance): MoveTarget {
 					if (isRoot) {
+						const targetIndex = this._targetIndex(modules.crm.crmTree, node);
 						modules.Util.pushIntoArray(node, 0, modules.crm.crmTree);
-						if (removeOld && modules.crm.crmTree === removeOld.children) {
-							removeOld.index++;
-						}
+						return this._genMoveTargetReturn(targetIndex, false);
 					} else {
 						const parentChildren = __this.lookup(relativeNode.path, 
 							modules.crm.crmTree, true) as CRM.Node[];
+						const targetIndex = this._targetIndex(parentChildren, node);
 						modules.Util.pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
-						if (removeOld && parentChildren === removeOld.children) {
-							removeOld.index++;
-						}
+						return this._genMoveTargetReturn(targetIndex, 
+							relativeNode.path[relativeNode.path.length - 1] > targetIndex);
 					}
 				}
-			static firstSibling(isRoot: boolean, node: CRM.Node,
-				removeOld: any | boolean, relativeNode: any,
-				__this: Instance) {
+			static firstSibling(isRoot: boolean, node: CRM.Node, relativeNode: any,
+				__this: Instance): MoveTarget {
 					if (isRoot) {
+						const targetIndex = this._targetIndex(modules.crm.crmTree, node);
 						modules.Util.pushIntoArray(node, 0, modules.crm.crmTree);
-						if (removeOld && modules.crm.crmTree === removeOld.children) {
-							removeOld.index++;
-						}
+						return this._genMoveTargetReturn(targetIndex, false);
 					} else {
 						const parentChildren = __this.lookup((relativeNode as any).path, 
 							modules.crm.crmTree, true) as CRM.Node[];
+						const targetIndex = this._targetIndex(parentChildren, node);
 						modules.Util.pushIntoArray(node, 0, parentChildren);
-						if (removeOld && parentChildren === removeOld.children) {
-							removeOld.index++;
-						}
+						return this._genMoveTargetReturn(targetIndex, false);
 					}
 				}
-			static after(isRoot: boolean, node: CRM.Node, relativeNode: any, __this: Instance) {
+			static after(isRoot: boolean, node: CRM.Node, relativeNode: any, __this: Instance): MoveTarget {
 				if (isRoot) {
+					const targetIndex = this._targetIndex(modules.crm.crmTree, node);
 					modules.Util.pushIntoArray(node, modules.crm.crmTree.length,
 						modules.crm.crmTree);
+					return this._genMoveTargetReturn(targetIndex, true);
 				} else {
 					const parentChildren = __this.lookup(relativeNode.path, 
 						modules.crm.crmTree, true) as CRM.Node[];
+					const targetIndex = this._targetIndex(parentChildren, node);
 					if (relativeNode.path.length > 0) {
 						modules.Util.pushIntoArray(node, 
 							relativeNode.path[relativeNode.path.length - 1] + 1,
 							parentChildren);
+						return this._genMoveTargetReturn(targetIndex, 
+							relativeNode.path[relativeNode.path.length - 1] >= targetIndex);
 					}
+					return MoveTarget.NOT_PLACED;
 				}
 			}
-			static lastSibling(isRoot: boolean, node: CRM.Node, relativeNode: any, __this: Instance) {
+			static lastSibling(isRoot: boolean, node: CRM.Node, relativeNode: any, __this: Instance): MoveTarget {
 				if (isRoot) {
+					const targetIndex = this._targetIndex(modules.crm.crmTree, node);
 					modules.Util.pushIntoArray(node, modules.crm.crmTree.length,
 						modules.crm.crmTree);
+					return this._genMoveTargetReturn(targetIndex, true);
 				} else {
 					const parentChildren = __this.lookup((relativeNode as any).path, 
-						modules.crm.crmTree, true) as CRM.Node[];
+					modules.crm.crmTree, true) as CRM.Node[];
+					const targetIndex = this._targetIndex(parentChildren, node);
 					modules.Util.pushIntoArray(node, parentChildren.length, parentChildren);
+					return this._genMoveTargetReturn(targetIndex, true);
 				}
 			}
-			static firstChild(isRoot: boolean, node: CRM.Node, removeOld: any | boolean, relativeNode: any,
-				__this: Instance) {
-				if (isRoot) {
-					modules.Util.pushIntoArray(node, 0, modules.crm.crmTree);
-					if (removeOld && modules.crm.crmTree === removeOld.children) {
-						removeOld.index++;
+			static firstChild(isRoot: boolean, node: CRM.Node, relativeNode: any,
+				__this: Instance): {
+					target: MoveTarget;
+					success: boolean;
+				} {
+					if (isRoot) {
+						const targetIndex = this._targetIndex(modules.crm.crmTree, node);
+						modules.Util.pushIntoArray(node, 0, modules.crm.crmTree);
+						return {
+							success: true,
+							target: this._genMoveTargetReturn(targetIndex, false)
+						}
+					} else if ((relativeNode as CRM.Node).type === 'menu') {
+						const { children } = relativeNode as CRM.MenuNode;
+						const targetIndex = this._targetIndex(children, node);
+						modules.Util.pushIntoArray(node, 0, children);
+						return {
+							success: true,
+							target: this._genMoveTargetReturn(targetIndex, false)
+						}
+					} else {
+						__this.respondError('Supplied node is not of type "menu"');
+						return {
+							success: false,
+							target: MoveTarget.NOT_PLACED
+						}
 					}
-				} else if ((relativeNode as CRM.Node).type === 'menu') {
-					const { children } = relativeNode as CRM.MenuNode;
-					modules.Util.pushIntoArray(node, 0, children);
-					if (removeOld && children === removeOld.children) {
-						removeOld.index++;
-					}
-				} else {
-					__this.respondError('Supplied node is not of type "menu"');
-					return false;
 				}
-				return true;
-			}
-			static lastChild(isRoot: boolean, node: CRM.Node, relativeNode: any, __this: Instance) {
+			static lastChild(isRoot: boolean, node: CRM.Node, relativeNode: any, __this: Instance): {
+				target: MoveTarget;
+				success: boolean;
+			} {
 				if (isRoot) {
+					const targetIndex = this._targetIndex(modules.crm.crmTree, node);
 					modules.Util.pushIntoArray(node, modules.crm.crmTree.length,
 						modules.crm.crmTree);
+					return {
+						success: true,
+						target: this._genMoveTargetReturn(targetIndex, true)
+					}
 				} else if ((relativeNode as CRM.MenuNode).type === 'menu') {
 					const { children } = relativeNode as CRM.MenuNode;
+					const targetIndex = this._targetIndex(children, node);
 					modules.Util.pushIntoArray(node, children.length, children);
+					return {
+						success: true,
+						target: this._genMoveTargetReturn(targetIndex, true)
+					}
 				} else {
 					__this.respondError('Supplied node is not of type "menu"');
-					return false;
+					return {
+						success: false,
+						target: MoveTarget.NOT_PLACED
+					}
 				}
-				return true;
 			}
 		}
 		async moveNode(node: CRM.Node, position: {
 			node?: number;
 			relation?: 'firstChild' | 'firstSibling' | 'lastChild' | 'lastSibling' | 'before' |
 			'after';
-		}, removeOld: any | boolean = false): Promise<false | CRM.Node> {
+		}, removeOld?: {
+			children: CRM.Node[];
+			id: number;
+		}): Promise<false | CRM.Node> {
 			const crmFunction = this;
 
 			//Capture old CRM tree
@@ -256,34 +320,62 @@ export namespace CRMAPICall {
 
 			const isRoot = relativeNode === modules.crm.crmTree;
 
+			let target: MoveTarget;
 			switch (position.relation) {
 				case 'before':
-					Instance.MoveNode.before(isRoot, node, removeOld, relativeNode, this);
+					target = Instance.MoveNode.before(isRoot, node, relativeNode, this);
 					break;
 				case 'firstSibling':
-					Instance.MoveNode.firstSibling(isRoot, node, removeOld, relativeNode, this);
+					target = Instance.MoveNode.firstSibling(isRoot, node, relativeNode, this);
 					break;
 				case 'after':
-					Instance.MoveNode.after(isRoot, node, relativeNode, this);
+					target = Instance.MoveNode.after(isRoot, node, relativeNode, this);
 					break;
 				case 'lastSibling':
-					Instance.MoveNode.lastSibling(isRoot, node, relativeNode, this);
+					target = Instance.MoveNode.lastSibling(isRoot, node, relativeNode, this);
 					break;
 				case 'firstChild':
-					if (!Instance.MoveNode.firstChild(isRoot, node, removeOld, relativeNode, this)) {
+					const { 
+						success: successFirstChild, 
+						target: targetFirstChild 
+					} = Instance.MoveNode.firstChild(isRoot, node, relativeNode, this);
+					target = targetFirstChild;
+					if (!successFirstChild) {
 						return false;
 					}
 					break;
 				default:
 				case 'lastChild':
-					if (!Instance.MoveNode.lastChild(isRoot, node, relativeNode, this)) {
+					const { 
+						success: successLastChild, 
+						target: targetLastChild 
+					} = Instance.MoveNode.lastChild(isRoot, node, relativeNode, this);
+					target = targetLastChild;
+					if (!successLastChild) {
 						return false;
 					}
 					break;
 			}
 
-			if (removeOld) {
-				removeOld.children.splice(removeOld.index, 1);
+			if (removeOld && target !== MoveTarget.NOT_PLACED) {
+				let foundFirst: boolean = false;
+				for (let i = 0; i < removeOld.children.length; i++) {
+					if (removeOld.children[i].id === removeOld.id) {
+						if (target === MoveTarget.NOT_SAME_TREE ||
+							target === MoveTarget.SAME_TREE_PLACED_AFTER) {
+								removeOld.children.splice(i, 1);
+								break;
+							}
+						if (target === MoveTarget.SAME_TREE_PLACED_BEFORE) {
+							if (foundFirst) {
+								removeOld.children.splice(i, 1);
+								break;		
+							} else {
+								foundFirst = true;
+							}
+						}
+					}
+				}
 			}
 
 			//Update settings

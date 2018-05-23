@@ -1938,7 +1938,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 					});
 
 				const crmFn = new modules.CRMAPICall.Instance(null, null);
-				await crmFn.moveNode(node, {}, null);
+				await crmFn.moveNode(node, {});
 			}
 		}));
 	}

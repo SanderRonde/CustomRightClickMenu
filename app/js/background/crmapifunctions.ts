@@ -634,12 +634,16 @@ export namespace CRMAPIFunctions.crm {
 
 				//Remove original from CRM
 				const parentChildren = __this.lookup(node.path, modules.crm.crmTree, true);
+				if (typeof parentChildren === 'boolean' || !parentChildren) {
+					__this.respondError('Something went wrong removing the source node');
+					return;
+				}
 
 				if ((node = await __this.moveNode(node, __this.message.data.position as {
 					node: number;
 				}, {
 					children: parentChildren,
-					index: node.path[node.path.length - 1]
+					id: node.id
 				}) as CRM.Node)) {
 					modules.CRMNodes.updateCrm().then(() => {
 						__this.respondSuccess(__this.getNodeFromId(node.id, true, true));
@@ -694,8 +698,7 @@ export namespace CRMAPIFunctions.crm {
 							__this.message.data.options.type !== 'stylesheet' &&
 							__this.message.data.options.type !== 'menu' &&
 							__this.message.data.options.type !== 'divider') {
-							__this
-								.respondError('Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider');
+							__this.respondError('Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider');
 							return false;
 						} else {
 							const oldType = node.type.toLowerCase();
@@ -1520,13 +1523,18 @@ export namespace CRMAPIFunctions.crm.menu {
 						if (!toMove) {
 							return false;
 						}
+						const parentChildren = __this.lookup(toMove.path, modules.crm.crmTree, true);
+						if (typeof parentChildren === 'boolean' || !parentChildren) {
+							__this.respondError('Something went wrong removing the source node');
+							return false;
+						}
+
 						await __this.moveNode(toMove, {
 							relation: 'lastChild',
 							node: __this.message.data.nodeId
 						}, {
-							children: __this.lookup(toMove.path, 
-								modules.crm.crmTree, true),
-							index: toMove.path[toMove.path.length - 1]
+							children: parentChildren,
+							id: toMove.id
 						});
 					}
 
@@ -1570,13 +1578,19 @@ export namespace CRMAPIFunctions.crm.menu {
 						if (!toMove) {
 							return false;
 						}
+
+						const parentChildren = __this.lookup(toMove.path, modules.crm.crmTree, true);
+						if (typeof parentChildren === 'boolean' || !parentChildren) {
+							__this.respondError('Something went wrong removing the source node');
+							return false;
+						}
+
 						await __this.moveNode(toMove, {
 							relation: 'lastChild',
 							node: __this.message.data.nodeId
 						}, {
-							children: __this.lookup(toMove.path, 
-								modules.crm.crmTree, true),
-							index: toMove.path[toMove.path.length - 1]
+							children: parentChildren,
+							id: toMove.id
 						});
 					}
 
