@@ -16,8 +16,16 @@ env:
 - TEST=test-migration
 - TEST=test:chrome:old:page
 - TEST=test:chrome:old:extension
+- TEST=test:chrome:old:install:greasyfork
+- TEST=test:chrome:old:install:openuserjs
+- TEST=test:chrome:old:install:userscriptsorg
+- TEST=test:chrome:old:install:userstylesorg
 - TEST=test:chrome:latest:page
 - TEST=test:chrome:latest:extension
+- TEST=test:chrome:latest:install:greasyfork
+- TEST=test:chrome:latest:install:openuserjs
+- TEST=test:chrome:latest:install:userscriptsorg
+- TEST=test:chrome:latest:install:userstylesorg
 - TEST=test:firefox:quantum
 - TEST=test:firefox:latest
 - TEST=test:edge:16
