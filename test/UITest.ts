@@ -244,7 +244,7 @@ function getCapabilities(): BrowserstackCapabilities {
 	if (TEST_LOCAL) {
 		return {} as any;
 	}
-	console.error('Please specify a chrome version to test');
+	console.error('Please specify a browser version to test');
 	console.log('Choose from:');
 	console.log('\n--chrome-latest\n--chrome-{version}\n--firefox-quantum')
 	console.log('--firefox-latest\n--edge-16\n--edge-latest\n--opera-51\n--opera-latest')
