@@ -1314,7 +1314,7 @@ export namespace Storages {
 	}
 	async function uploadSync(changes: StorageChange[]) {
 		const settingsJson = JSON.stringify(modules.storages.settingsStorage);
-		browserAPI.storage.local.set({
+		await browserAPI.storage.local.set({
 			settingsVersionData: {
 				current: {
 					hash: window.md5(settingsJson),
@@ -1327,13 +1327,13 @@ export namespace Storages {
 		if (!modules.storages.storageLocal.useStorageSync) {
 			await browserAPI.storage.local.set({
 				settings: modules.storages.settingsStorage
-			}).then(() => {
-				changeCRMValuesIfSettingsChanged(changes);
+			}).then(async () => {
+				await changeCRMValuesIfSettingsChanged(changes);
+				await browserAPI.storage.sync.set({
+					indexes: -1
+				});
 			}).catch((e) => {
 				window.log('Error on uploading to chrome.storage.local ', e);
-			});
-			await browserAPI.storage.sync.set({
-				indexes: -1
 			});
 		} else {
 			//Using chrome.storage.sync
@@ -1346,9 +1346,9 @@ export namespace Storages {
 				//Cut up all data into smaller JSON
 				const obj = cutData(settingsJson);
 				await browserAPI.storage.sync.clear();
-				await browserAPI.storage.sync.set(obj as any).then(() => {
-					changeCRMValuesIfSettingsChanged(changes);
-					browserAPI.storage.local.set({
+				await browserAPI.storage.sync.set(obj as any).then(async () => {
+					await changeCRMValuesIfSettingsChanged(changes);
+					await browserAPI.storage.local.set({
 						settings: null
 					});
 				}).catch(async (err) => {
@@ -1366,7 +1366,7 @@ export namespace Storages {
 		useStorageSync: boolean = null) {
 			switch (type) {
 				case 'local':
-					browserAPI.storage.local.set(modules.storages.storageLocal);
+					await browserAPI.storage.local.set(modules.storages.storageLocal);
 					for (let i = 0; i < changes.length; i++) {
 						if (changes[i].key === 'useStorageSync') {
 							const change = changes[i] as StorageLocalChange<'useStorageSync'>;
