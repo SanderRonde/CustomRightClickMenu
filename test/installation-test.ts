@@ -625,4 +625,14 @@ function doUserStylesOrgTest(prefix: () => string|void) {
 			doUserStylesOrgTest(() => prefix);
 			break;
 	}
+
+	after('quit driver', function() {
+		this.timeout(210000);
+		return new webdriver.promise.Promise<void>((resolve) => {
+			resolve(null);
+			setTimeout(() => {
+				driver && driver.quit();
+			}, 600000);
+		});
+	});
 })();
