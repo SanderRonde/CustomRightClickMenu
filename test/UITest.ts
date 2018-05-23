@@ -1098,7 +1098,7 @@ describe('User entrypoints', function() {
 					this.timeout(600000 * TIME_MODIFIER);
 					this.slow(600000 * TIME_MODIFIER);
 					const prefix = await getExtensionDataOnly().getExtensionURLPrefix(driver, browserCapabilities);
-					await driver.get(`${prefix}/logging.html`);
+					await driver.get(`${prefix}/html/logging.html`);
 					currentTestWindow = await driver.getWindowHandle();
 					await waitFor(() => {
 						return driver.executeScript(inlineFn(() => {
@@ -1117,7 +1117,7 @@ describe('User entrypoints', function() {
 					this.timeout(600000 * TIME_MODIFIER);
 					this.slow(600000 * TIME_MODIFIER);
 					const prefix = await getExtensionDataOnly().getExtensionURLPrefix(driver, browserCapabilities);
-					await driver.get(`${prefix}/install.html`);
+					await driver.get(`${prefix}/html/install.html`);
 					currentTestWindow = await driver.getWindowHandle();
 					await waitFor(() => {
 						return driver.executeScript(inlineFn(() => {
