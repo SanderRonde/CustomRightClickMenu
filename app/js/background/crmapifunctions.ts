@@ -181,7 +181,7 @@ export namespace CRMAPIFunctions.contextMenuItem {
 			type: 'boolean',
 			optional: true
 		}], () => {
-			__this.getNodeFromId(__this.message.data.nodeId).run((node: CRM.ScriptNode) => {
+			__this.getNodeFromId(__this.message.id).run((node: CRM.ScriptNode) => {
 				const { isVisible, allTabs = false } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
 					isVisible: boolean;
 					allTabs?: boolean;
