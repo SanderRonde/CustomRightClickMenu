@@ -462,7 +462,8 @@ function doOpenUserJsTest(prefix: () => string|void) {
 			await wait(5000);
 
 			assert.strictEqual(await driver.executeScript(inlineFn(() => {
-				const container = document.getElementsByClassName('container')[0];
+				const containers = document.getElementsByClassName('container');
+				const container = containers[containers.length - 1];
 				return window.getComputedStyle(container)['minWidth'];
 			})), '980px', 'width was changed (script was applied)');
 		});
