@@ -13,13 +13,13 @@ namespace LogConsoleElement {
 	export const logConsoleProperties: {
 		lines: number;
 		ids: {
-			id: string|number;
+			id: string|CRM.GenericNodeId;
 			title: string;
 		}[];
-		tabIndexes: number[];
-		selectedId: number;
-		selectedTab: number;
-		selectedTabIndex: number;
+		tabIndexes: TabIndex[];
+		selectedId: CRM.GenericNodeId;
+		selectedTab: TabId;
+		selectedTabIndex: TabIndex;
 		tabs: TabData[];
 		textfilter: string;
 		waitingForEval: boolean;
@@ -199,14 +199,14 @@ namespace LogConsoleElement {
 
 		private static _getSelectedItems(this: LogConsole): {
 			id: {
-				id: string|number;
+				id: string|CRM.GenericNodeId;
 				title: string;
 			};
 			tab: {
-				id: string|number;
+				id: string|TabId;
 				title: string;
 			};
-			tabIndex: number;
+			tabIndex: TabIndex;
 		} {
 			const tabVal = (this.tabs && this.tabs[~~this.selectedTab - 1]) || {
 					id: 'all',
@@ -232,7 +232,7 @@ namespace LogConsoleElement {
 			};
 		};
 
-		static _updateLog(this: LogConsole, selectedId: number, selectedTab: number, textfilter: string) {
+		static _updateLog(this: LogConsole, selectedId: CRM.GenericNodeId, selectedTab: number, textfilter: string) {
 			const selected = this._getSelectedValues();
 			const lines: LogListenerLine[] = (this._logListener && this._logListener.update(
 					selected.id,
@@ -256,10 +256,10 @@ namespace LogConsoleElement {
 		};
 
 		private static _hasChanged(this: LogConsole, prev: {
-			id: string|number;
+			id: string|number|CRM.GenericNodeId;
 			title: string;
 		}[], current: {
-			id: string|number;
+			id: string|number|CRM.GenericNodeId;
 			title: string;
 		}[]) {
 			return JSON.stringify(prev) !== JSON.stringify(current);
@@ -284,13 +284,13 @@ namespace LogConsoleElement {
 			this.set(prop, 0);
 		}
 
-		static _getIdTabs(this: LogConsole, selectedId: string|number): TabData[] {
+		static _getIdTabs(this: LogConsole, selectedId: string|CRM.GenericNodeId): TabData[] {
 			this.async(() => {
 				this._refreshMenu(this.$.tabDropdown, this.$.tabRepeat);
 			}, 10);
 
 			if (this._bgPage) {
-				const id = selectedId === 0 ? 0 : ~~this.ids[~~selectedId - 1].id;
+				const id = selectedId === 0 ? 0 as CRM.GenericNodeId : ~~this.ids[~~selectedId - 1].id as CRM.GenericNodeId;
 				this._bgPage._getIdsAndTabs(id, -1, ({tabs}) => {
 					if (!this._hasChanged(this.tabs, tabs)) {
 						return;
@@ -313,8 +313,8 @@ namespace LogConsoleElement {
 			}, 10);
 
 			if (this._bgPage) {
-				const tab = selectedTab === 0 ? -1 : this.tabs[selectedTab - 1].id;
-				this._bgPage._getIdsAndTabs(0, tab, ({ids}) => {
+				const tab: TabId|'background' = selectedTab === 0 ? -1 : this.tabs[selectedTab - 1].id;
+				this._bgPage._getIdsAndTabs(0 as CRM.GenericNodeId, tab, ({ids}) => {
 					if (!this._hasChanged(this.ids, ids)) {
 						return;
 					}
@@ -327,7 +327,7 @@ namespace LogConsoleElement {
 			return this.ids;
 		}
 
-		static _getTabIndexes(this: LogConsole, selectedId: string|number, selectedTab: number): number[] {
+		static _getTabIndexes(this: LogConsole, selectedId: string|CRM.GenericNodeId, selectedTab: TabId): TabIndex[] {
 			this.async(() => {
 				this._refreshMenu(this.$.tabIndexDropdown, this.$.tabIndexRepeat);
 			}, 10);
@@ -336,9 +336,9 @@ namespace LogConsoleElement {
 				return [];
 			}
 			if (this._bgPage) {
-				const id = selectedId === 0 ? 0 : ~~this.ids[~~selectedId - 1].id;
+				const id = selectedId === 0 ? 0 as CRM.GenericNodeId : ~~this.ids[~~selectedId - 1].id as CRM.GenericNodeId;
 				const tab = selectedTab === 0 ? -1 : this.tabs[selectedTab - 1].id;
-				this._bgPage._getCurrentTabIndex(id, tab, (newTabIndexes: number[]) => {
+				this._bgPage._getCurrentTabIndex(id, tab, (newTabIndexes: TabIndex[]) => {
 					this.set('tabIndexes', newTabIndexes);
 				});
 			}

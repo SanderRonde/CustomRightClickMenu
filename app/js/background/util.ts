@@ -97,7 +97,7 @@ export namespace Util {
 	export function safe(node: CRM.StylesheetNode): CRM.SafeStylesheetNode;
 	export function safe(node: CRM.Node): CRM.SafeNode;
 	export function safe(node: CRM.Node): CRM.SafeNode {
-		return modules.crm.crmByIdSafe.get(node.id);
+		return modules.crm.crmByIdSafe.get(node.id as CRM.NodeId<CRM.SafeNode>);
 	}
 
 	const keys: {
@@ -122,7 +122,7 @@ export namespace Util {
 		_lastNumber += addition;
 		return _lastNumber;
 	}
-	export async function generateItemId(): Promise<number> {
+	export async function generateItemId(): Promise<CRM.GenericNodeId> {
 		modules.globalObject.globals.latestId = 
 			modules.globalObject.globals.latestId || 0;
 		modules.globalObject.globals.latestId++;
@@ -136,7 +136,7 @@ export namespace Util {
 				}]
 			});
 		}
-		return modules.globalObject.globals.latestId;
+		return modules.globalObject.globals.latestId as CRM.GenericNodeId;
 	}
 	export function convertFileToDataURI(url: string, callback: (dataURI: string,
 		dataString: string) => void,
@@ -309,7 +309,7 @@ export namespace Util {
 		});
 		return obj;
 	}
-	export function removeTab(tabId: number) {
+	export function removeTab(tabId: TabId) {
 		const nodeStatusses = modules.crmValues.nodeTabStatuses;
 		
 		iterateMap(nodeStatusses, (_, { tabs }) => {

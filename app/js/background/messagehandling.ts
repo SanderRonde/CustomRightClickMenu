@@ -6,9 +6,9 @@ import { ModuleData } from "./moduleTypes";
 export namespace MessageHandling.Instances {
 	export function respond(message: {
 		onFinish: any;
-		id: number;
-		tabIndex: number;
-		tabId: number;
+		id: CRM.GenericNodeId;
+		tabIndex: TabIndex;
+		tabId: TabId;
 	}, status: string, data?: any) {
 		const msg = {
 			type: status,
@@ -31,21 +31,21 @@ export namespace MessageHandling.Instances {
 		}
 	}
 	export function sendMessage(message: {
-		id: number;
+		id: CRM.GenericNodeId;
 		type: string;
-		tabId: number;
-		tabIndex: number;
+		tabId: TabId;
+		tabIndex: TabIndex;
 		onFinish: {
 			maxCalls: number;
 			fn: number;
 		};
 		data: {
-			id: number;
-			tabIndex: number;
-			toTabIndex: number;
+			id: CRM.GenericNodeId;
+			tabIndex: TabIndex;
+			toTabIndex: TabIndex;
 			toInstanceId: number;
 			message: any;
-			tabId: number;
+			tabId: TabId;
 		}
 	}) {
 		const data = message.data;
@@ -81,9 +81,9 @@ export namespace MessageHandling.Instances {
 
 export namespace MessageHandling.BackgroundPageMessage {
 	export function send(message: {
-		id: number;
-		tabId: number;
-		tabIndex: number;
+		id: CRM.GenericNodeId;
+		tabId: TabId;
+		tabIndex: TabIndex;
 		response: number;
 		message: any;
 	}) {
@@ -106,10 +106,10 @@ export namespace MessageHandling.NotificationListener {
 	export async function listen(message: CRMAPIMessageInstance<string, {
 		notificationId: number;
 		onClick: number;
-		tabIndex: number;
+		tabIndex: TabIndex;
 		onDone: number;
-		id: number;
-		tabId: number;
+		id: CRM.GenericNodeId;
+		tabId: TabId;
 	}>) {
 		const data = message.data;
 		const eventListeners = modules.globalObject.globals.eventListeners;
@@ -162,9 +162,9 @@ export namespace MessageHandling {
 				case 'displayHints':
 					modules.Logging.LogExecution.displayHints(message as CRMAPIMessageInstance<'displayHints', {
 						hints: string[];
-						id: number;
+						id: CRM.GenericNodeId;
 						callbackIndex: number;
-						tabId: number;
+						tabId: TabId;
 					}>);
 					break;
 				case 'logCrmAPIValue':

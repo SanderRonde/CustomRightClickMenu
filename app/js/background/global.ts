@@ -22,62 +22,30 @@ export namespace Global {
 			resources: null
 		},
 		background: {
-			byId: new window.Map<number, SandboxWorkerInterface>()
+			byId: new window.Map()
 		},
 		crm: {
 			crmTree: [],
-			crmById: new window.Map<number, 
-				CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | 
-				CRM.StylesheetNode | CRM.ScriptNode>(),
+			crmById: new window.Map(),
 			safeTree: [],
-			crmByIdSafe:new window.Map<number, CRM.SafeNode>()
+			crmByIdSafe:new window.Map()
 		},
 		availablePermissions: [],
 		crmValues: {
-			tabData: new window.Map<number, {
-				nodes: Map<number, {
-					secretKey: number[];
-					port?: _browser.runtime.Port | {
-						postMessage(message: Object): void;
-					};
-					usesLocalStorage: boolean;
-				}[]>;
-				libraries: Map<string, boolean>;
-			}>([[0, {
-				nodes: new window.Map<number, {
-					secretKey: number[];
-					port?: _browser.runtime.Port | {
-						postMessage(message: Object): void;
-					};
-					usesLocalStorage: boolean;
-				}[]>(),
-				libraries: new window.Map<string, boolean>()
+			tabData: new window.Map([[0, {
+				nodes: new window.Map(),
+				libraries: new window.Map()
 			}]]),
 			rootId: null,
-			contextMenuIds: new window.Map<number, string|number>(),
-			nodeInstances: new window.Map<number, Map<number, {
-				hasHandler: boolean;
-			}[]>>(),
-			contextMenuInfoById: new window.Map<string|number, {
-				path: number[];
-				settings: ContextMenuSettings;
-				enabled: boolean;
-			}>(),
+			contextMenuIds: new window.Map(),
+			nodeInstances: new window.Map(),
+			contextMenuInfoById: new window.Map(),
 			contextMenuItemTree: [],
 			userAddedContextMenus: [],
-			userAddedContextMenusById: new window.Map<string|number, UserAddedContextMenu>(),
-			contextMenuGlobalOverrides: new window.Map<number, ContextMenuOverrides>(),
-			hideNodesOnPagesData: new window.Map<number, {
-				not: boolean;
-				url: string;
-			}[]>(),
-			nodeTabStatuses: new window.Map<number, {
-				tabs: Map<number, {
-					checked?: boolean;
-					overrides?: ContextMenuOverrides;
-				}>;
-				defaultCheckedValue?: boolean;
-			}>()
+			userAddedContextMenusById: new window.Map(),
+			contextMenuGlobalOverrides: new window.Map(),
+			hideNodesOnPagesData: new window.Map(),
+			nodeTabStatuses: new window.Map()
 		},
 		toExecuteNodes: {
 			onUrl: {
@@ -89,7 +57,7 @@ export namespace Global {
 				documentEnd: []
 			}
 		},
-		sendCallbackMessage: (tabId: number, tabIndex: number, id: number, data: {
+		sendCallbackMessage: (tabId: TabId, tabIndex: TabIndex, id: CRM.GenericNodeId, data: {
 			err: boolean;
 			errorMessage?: string;
 			args?: any[];
@@ -117,18 +85,8 @@ export namespace Global {
 			}
 		},
 		eventListeners: {
-			notificationListeners: new window.Map<string, {
-				id: number;
-				tabId: number;
-				tabIndex: number;
-				notificationId: number;
-				onDone: number;
-				onClick: number;
-			}>(),
-			shortcutListeners: new window.Map<string, {
-				shortcut: string;
-				callback(): void;
-			}[]>()
+			notificationListeners: new window.Map(),
+			shortcutListeners: new window.Map()
 		},
 		logging: {
 			filter: {

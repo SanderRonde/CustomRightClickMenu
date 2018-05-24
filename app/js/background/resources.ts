@@ -7,7 +7,7 @@ export namespace Resources.Resource {
 		type: string;
 		name: string;
 		url: string;
-		scriptId: number;
+		scriptId: CRM.NodeId<CRM.ScriptNode>;
 	}) {
 		Resources.handle(message, message.name);
 	}
@@ -18,7 +18,7 @@ export namespace Resources.Anonymous {
 		type: string;
 		name: string;
 		url: string;
-		scriptId: number;
+		scriptId: CRM.NodeId<CRM.ScriptNode>;
 	}) {
 		Resources.handle(message, message.url);
 	}
@@ -35,7 +35,7 @@ export namespace Resources {
 		type: string;
 		name: string;
 		url: string;
-		scriptId: number;
+		scriptId: CRM.NodeId<CRM.ScriptNode>;
 	}, name: string) {
 		switch (message.type) {
 			case 'register':
@@ -54,7 +54,7 @@ export namespace Resources {
 		}
 	}
 
-	function getUrlData(scriptId: number, url: string, callback: (dataURI: string,
+	function getUrlData(scriptId: CRM.NodeId<CRM.ScriptNode>, url: string, callback: (dataURI: string,
 		dataString: string) => void) {
 		//First check if the data has already been fetched
 		if (modules.storages.urlDataPairs.get(url)) {
@@ -159,7 +159,7 @@ export namespace Resources {
 		}
 		return false;
 	}
-	function registerResource(name: string, url: string, scriptId: number) {
+	function registerResource(name: string, url: string, scriptId: CRM.NodeId<CRM.ScriptNode>) {
 		const registerHashes = getHashes(url);
 		if (window.navigator.onLine) {
 			getUrlData(scriptId, url, (dataURI, dataString) => {
@@ -198,7 +198,7 @@ export namespace Resources {
 			resourceKeys: resourceKeys
 		});
 	}
-	function removeResource(name: string, scriptId: number) {
+	function removeResource(name: string, scriptId: CRM.NodeId<CRM.ScriptNode>) {
 		for (let i = 0; i < modules.storages.resourceKeys.length; i++) {
 			if (modules.storages.resourceKeys[i].name === name &&
 				modules.storages.resourceKeys[i].scriptId === scriptId) {
@@ -240,7 +240,7 @@ export namespace Resources {
 			algorithm: string;
 			hash: string;
 		}[];
-		scriptId: number;
+		scriptId: CRM.NodeId<CRM.ScriptNode>;
 	}) {
 		const resources = modules.storages.resources;
 		modules.Util.convertFileToDataURI(key.sourceUrl, (dataURI, dataString) => {
@@ -269,7 +269,7 @@ export namespace Resources {
 			algorithm: string;
 			hash: string;
 		}[];
-		scriptId: number;
+		scriptId: CRM.NodeId<CRM.ScriptNode>;
 	}) {
 		return () => {
 			window.info('Attempting resource update');

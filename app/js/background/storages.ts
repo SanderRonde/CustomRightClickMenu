@@ -789,42 +789,43 @@ export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace {
 			browserAPI.storage.local.set({ upgradeErrors } as any);
 		};
 	};
-	export function convertScriptFromLegacy(script: string, id: number, method: SCRIPT_CONVERSION_TYPE): string {
-		//Remove execute locally
-		let usedExecuteLocally = false;
-		const lineIndex = script.indexOf('/*execute locally*/');
-		if (lineIndex !== -1) {
-			script = script.replace('/*execute locally*/\n', '');
-			if (lineIndex === script.indexOf('/*execute locally*/')) {
-				script = script.replace('/*execute locally*/', '');
+	export function convertScriptFromLegacy(script: string, id: CRM.GenericNodeId, 
+		method: SCRIPT_CONVERSION_TYPE): string {
+			//Remove execute locally
+			let usedExecuteLocally = false;
+			const lineIndex = script.indexOf('/*execute locally*/');
+			if (lineIndex !== -1) {
+				script = script.replace('/*execute locally*/\n', '');
+				if (lineIndex === script.indexOf('/*execute locally*/')) {
+					script = script.replace('/*execute locally*/', '');
+				}
+				usedExecuteLocally = true;
 			}
-			usedExecuteLocally = true;
-		}
 
-		try {
-			switch (method) {
-				case SCRIPT_CONVERSION_TYPE.CHROME:
-					script = ChromeCallsReplace.replace(script,
-						generateScriptUpgradeErrorHandler(id));
-					break;
-				case SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE:
-					script = usedExecuteLocally ?
-						LocalStorageReplace.replaceCalls(script.split('\n')) : script;
-					break;
-				case SCRIPT_CONVERSION_TYPE.BOTH:
-					const localStorageConverted = usedExecuteLocally ?
-						LocalStorageReplace.replaceCalls(script.split('\n')) : script;
-					script = ChromeCallsReplace.replace(localStorageConverted,
-						generateScriptUpgradeErrorHandler(id)
-					);
-					break;
+			try {
+				switch (method) {
+					case SCRIPT_CONVERSION_TYPE.CHROME:
+						script = ChromeCallsReplace.replace(script,
+							generateScriptUpgradeErrorHandler(id));
+						break;
+					case SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE:
+						script = usedExecuteLocally ?
+							LocalStorageReplace.replaceCalls(script.split('\n')) : script;
+						break;
+					case SCRIPT_CONVERSION_TYPE.BOTH:
+						const localStorageConverted = usedExecuteLocally ?
+							LocalStorageReplace.replaceCalls(script.split('\n')) : script;
+						script = ChromeCallsReplace.replace(localStorageConverted,
+							generateScriptUpgradeErrorHandler(id)
+						);
+						break;
+				}
+			} catch (e) {
+				return script;
 			}
-		} catch (e) {
+
 			return script;
 		}
-
-		return script;
-	}
 };
 
 export namespace Storages.SetupHandling.TransferFromOld {
@@ -887,7 +888,7 @@ export namespace Storages.SetupHandling.TransferFromOld {
 				}
 				node = modules.constants.templates.getDefaultLinkNode({
 					name: name,
-					id: await modules.Util.generateItemId(),
+					id: await modules.Util.generateItemId() as CRM.NodeId<CRM.LinkNode>,
 					value: split.map(function (url) {
 						return {
 							newTab: openInNewTab,
@@ -899,14 +900,14 @@ export namespace Storages.SetupHandling.TransferFromOld {
 			case 'divider':
 				node = modules.constants.templates.getDefaultDividerNode({
 					name: name,
-					id: await modules.Util.generateItemId(),
+					id: await modules.Util.generateItemId() as CRM.NodeId<CRM.DividerNode>,
 					isLocal: true
 				});
 				break;
 			case 'menu':
 				node = modules.constants.templates.getDefaultMenuNode({
 					name: name,
-					id: await modules.Util.generateItemId(),
+					id: await modules.Util.generateItemId() as CRM.NodeId<CRM.MenuNode>,
 					children: (nodeData as any) as CRM.Tree,
 					isLocal: true
 				});
@@ -1023,7 +1024,7 @@ export namespace Storages.SetupHandling {
 			},
 			crm: [
 				modules.constants.templates.getDefaultLinkNode({
-					id: await modules.Util.generateItemId(),
+					id: await modules.Util.generateItemId() as CRM.NodeId<CRM.LinkNode>,
 					isLocal: true
 				})
 			],
@@ -1131,7 +1132,7 @@ export namespace Storages.SetupHandling {
 		});
 	}
 
-	function chainPromise<T>(promiseInitializers: (() =>Promise<T>)[], index: number = 0): Promise<T> {
+	function chainPromise<T>(promiseInitializers: (() => Promise<T>)[], index: number = 0): Promise<T> {
 		return new Promise<T>((resolve, reject) => {
 			promiseInitializers[index]().then((value) => {
 				if (index + 1 >= promiseInitializers.length) {
@@ -1214,7 +1215,7 @@ export namespace Storages {
 			newValue: any;
 			oldValue: any;
 		};
-		toUpdate?: number[]
+		toUpdate?: CRM.GenericNodeId[]
 	}) {
 		await toUpdate && toUpdate.map((id) => {
 			return new Promise(async (resolve) => {
@@ -1269,11 +1270,11 @@ export namespace Storages {
 				same: []
 			}
 		}
-		const previousIds: number[] = [];
+		const previousIds: CRM.GenericNodeId[] = [];
 		modules.Util.crmForEach(previous, (node) => {
 			previousIds.push(node.id);
 		});
-		const currentIds: number[] = [];
+		const currentIds: CRM.GenericNodeId[] = [];
 		modules.Util.crmForEach(current, (node) => {
 			currentIds.push(node.id);
 		});
@@ -1299,7 +1300,7 @@ export namespace Storages {
 			same
 		}
 	}
-	function findNodeWithId(tree: CRM.Tree, id: number): CRM.Node {
+	function findNodeWithId(tree: CRM.Tree, id: CRM.GenericNodeId): CRM.Node {
 		for (const node of tree) {
 			if (node.id === id) {
 				return node;
@@ -1397,8 +1398,8 @@ export namespace Storages {
 		settingsChanges?: StorageChange[];
 		libraries?: CRM.InstalledLibrary[];
 		nodeStorageChanges?: StorageChange[];
-		id?: number;
-		tabId?: number;
+		id?: CRM.GenericNodeId;
+		tabId?: TabId;
 		isSync?: boolean;
 	}) {
 		switch (data.type) {
@@ -1479,15 +1480,29 @@ export namespace Storages {
 					[nodeId: number]: any;
 				}));
 			modules.storages.resourceKeys = setIfNotSet(chromeStorageLocal,
-				'resourceKeys', []);
+				'resourceKeys', []) as {
+					name: string;
+					sourceUrl: string;
+					hashes: {
+						algorithm: string;
+						hash: string;
+					}[];
+					scriptId: CRM.NodeId<CRM.ScriptNode>;
+				}[];
 			modules.storages.urlDataPairs = toMap(setIfNotSet(chromeStorageLocal,
 				'urlDataPairs', {} as {
 					[key: string]: {
 						dataString: string;
-						refs: number[];
+						refs: CRM.GenericNodeId[];
 						dataURI: string;
 					}
-				}));
+				}) as {
+					[key: string]: {
+						dataString: string;
+						refs: CRM.GenericNodeId[];
+						dataURI: string;
+					}
+				});
 
 			window.info('Building CRM representations');
 			await modules.CRMNodes.updateCRMValues();
@@ -1676,7 +1691,7 @@ export namespace Storages {
 			}
 		}
 	}
-	function notifyNodeStorageChanges(id: number, tabId: number,
+	function notifyNodeStorageChanges(id: CRM.GenericNodeId, tabId: TabId,
 		changes: StorageChange[], isSync: boolean) {
 		//Update in storage
 		const node = modules.crm.crmById.get(id);

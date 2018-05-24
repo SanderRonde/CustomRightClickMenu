@@ -6,9 +6,9 @@ declare const window: BackgroundpageWindow;
 export namespace Logging.LogExecution {
 	export function executeCRMCode(message: {
 		code: any,
-		id: number,
-		tabIndex: number;
-		tab: number,
+		id: CRM.GenericNodeId,
+		tabIndex: TabIndex;
+		tab: TabId,
 		logListener: LogListenerObject;
 	}, type: 'executeCRMCode' | 'getCRMHints' | 'createLocalLogVariable') {
 		//Get the port
@@ -26,9 +26,9 @@ export namespace Logging.LogExecution {
 	}
 	export function displayHints(message: CRMAPIMessageInstance<'displayHints', {
 		hints: string[];
-		id: number;
+		id: CRM.GenericNodeId;
 		callbackIndex: number;
-		tabId: number;
+		tabId: TabId;
 	}>) {
 		modules.listeners.log[message.data.callbackIndex].listener({
 			id: message.id,
@@ -41,9 +41,9 @@ export namespace Logging.LogExecution {
 };
 
 export namespace Logging.Listeners {
-	export function getIds(filterTabId: number = -1) {
+	export function getIds(filterTabId: TabId = -1 as TabId) {
 		const tabData = modules.crmValues.tabData;
-		const ids: number[] = [];
+		const ids: CRM.GenericNodeId[] = [];
 		modules.Util.iterateMap(tabData, (tabId, tab) => {
 			if (filterTabId !== -1 && filterTabId !== tabId) {
 				return;
@@ -74,7 +74,7 @@ export namespace Logging.Listeners {
 			}
 		}
 	}
-	export function getTabs(nodeId: number = 0): Promise<TabData[]> {
+	export function getTabs(nodeId: CRM.GenericNodeId = 0 as CRM.GenericNodeId): Promise<TabData[]> {
 		return new Promise<TabData[]>(async (resolveOuter) => {
 			const tabData = modules.crmValues.tabData;
 			const tabs: Promise<TabData>[] = [];
@@ -107,7 +107,7 @@ export namespace Logging.Listeners {
 	}
 	export async function updateTabAndIdLists(): Promise<{
 		ids: {
-			id: number;
+			id: CRM.GenericNodeId;
 			title: string;
 		}[];
 		tabs: TabData[]
@@ -134,7 +134,7 @@ export namespace Logging {
 		modules = _modules;
 	}
 
-	export function log(nodeId: number, tabId: number | string, ...args: any[]) {
+	export function log(nodeId: CRM.GenericNodeId, tabId: TabId | string, ...args: any[]) {
 		const filter = modules.globalObject.globals.logging.filter;
 		if (filter.id !== null && nodeId === filter.id && filter.tabId !== null) {
 			if (tabId === '*' || tabId === filter.tabId) {
@@ -145,7 +145,7 @@ export namespace Logging {
 		}
 	}
 	export function backgroundPageLog(this: Window | typeof Logging, 
-		id: number, sourceData: [string, number], ...args: any[]) {
+		id: CRM.GenericNodeId, sourceData: [string, number], ...args: any[]) {
 			sourceData = sourceData || [undefined, undefined];
 
 			const srcObjDetails = {
@@ -182,10 +182,10 @@ export namespace Logging {
 		}
 	export async function logHandler(message: {
 		type: string;
-		id: number;
+		id: CRM.GenericNodeId;
 		lineNumber: string;
-		tabId: number;
-		tabIndex: number;
+		tabId: TabId;
+		tabIndex: TabIndex;
 		logId: number;
 		callbackIndex?: number;
 		timestamp?: string;
@@ -238,7 +238,7 @@ export namespace Logging {
 		}
 	}
 
-	function prepareLog(nodeId: number, tabId: number) {
+	function prepareLog(nodeId: CRM.GenericNodeId, tabId: TabId) {
 		if (modules.globalObject.globals.logging[nodeId]) {
 			if (!modules.globalObject.globals.logging[nodeId][tabId]) {
 				modules.globalObject.globals.logging[nodeId][tabId] = {};
@@ -269,19 +269,19 @@ export namespace Logging {
 	}
 	async function logHandlerLog(message: {
 		type: string;
-		id: number;
+		id: CRM.GenericNodeId;
 		data: string;
 		lineNumber: string;
-		tabIndex: number;
-		tabId: number;
+		tabIndex: TabIndex;
+		tabId: TabId;
 		logId: number;
 		callbackIndex?: number;
 		timestamp?: string;
 	}) {
 		const srcObj: {
-			id: number;
-			tabId: number;
-			tabIndex: number;
+			id: CRM.GenericNodeId;
+			tabId: TabId;
+			tabIndex: TabIndex;
 			tab: _browser.tabs.Tab;
 			url: string;
 			tabTitle: string;

@@ -213,11 +213,11 @@ namespace BrowserAPI {
 	type ActiveTabs = {
 		type: 'create'|'update';
 		data: any;
-		id?: number;
+		id?: TabId;
 	}[];
 	
 	interface ExecutedScript {
-		id: number;
+		id: TabId;
 		code: string;
 	}
 	
@@ -260,8 +260,8 @@ namespace BrowserAPI {
 		_currentContextMenu: ContextMenu;
 		_activeTabs: ActiveTabs;
 		_executedScripts: ExecutedScripts;
-		_activatedBackgroundPages: number[];
-		_tabUpdateListeners: ((id: number, updateData: {
+		_activatedBackgroundPages: CRM.GenericNodeId[];
+		_tabUpdateListeners: ((id: TabId, updateData: {
 			status?: 'loading'|'complete';
 			url?: string;
 			pinned?: boolean;
@@ -275,12 +275,12 @@ namespace BrowserAPI {
 		_clearExecutedScripts: () => void;
 		_fakeTabs: {
 			[id: number]: {
-				id: number;
+				id: TabId;
 				title: string;
 				url: string;
 			};
 			[id: string]: {
-				id: number;
+				id: TabId;
 				title: string;
 				url: string;
 			};
@@ -575,7 +575,7 @@ namespace BrowserAPI {
 				active?: boolean,
 				cookieStoreId?: string,
 				index?: number,
-				openerTabId?: number,
+				openerTabId?: TabId,
 				pinned?: boolean,
 				// deprecated: selected: boolean,
 				url?: string,
@@ -596,7 +596,7 @@ namespace BrowserAPI {
 					});
 				});
 			},
-			get(tabId: number) {
+			get(tabId: TabId) {
 				return createPromise<_browser.tabs.Tab>((handler) => {
 					__srcBrowser.tabs.get(tabId, handler);
 				});
@@ -618,13 +618,13 @@ namespace BrowserAPI {
 						}
 					});
 				},
-			async update(tabIdOrOptions: number|{
+			async update(tabIdOrOptions: TabId|{
 				active?: boolean,
 				// unsupported: autoDiscardable?: boolean,
 				// unsupported: highlighted?: boolean,
 				loadReplace?: boolean,
 				muted?: boolean,
-				openerTabId?: number,
+				openerTabId?: TabId,
 				pinned?: boolean,
 				// deprecated: selected?: boolean,
 				url?: string,
@@ -634,7 +634,7 @@ namespace BrowserAPI {
 				// unsupported: highlighted?: boolean,
 				loadReplace?: boolean,
 				muted?: boolean,
-				openerTabId?: number,
+				openerTabId?: TabId,
 				pinned?: boolean,
 				// deprecated: selected?: boolean,
 				url?: string,
@@ -647,13 +647,13 @@ namespace BrowserAPI {
 							// unsupported: highlighted?: boolean,
 							loadReplace?: boolean,
 							muted?: boolean,
-							openerTabId?: number,
+							openerTabId?: TabId,
 							pinned?: boolean,
 							// deprecated: selected?: boolean,
 							url?: string,
 						}, handler);
 					} else {
-						__srcBrowser.tabs.update(tabIdOrOptions as number, options, handler);
+						__srcBrowser.tabs.update(tabIdOrOptions as TabId, options, handler);
 					}
 
 					if (loggingEnabled) {
@@ -672,19 +672,19 @@ namespace BrowserAPI {
 					__srcBrowser.tabs.query(queryInfo, handler);
 				});
 			},
-			executeScript(tabIdOrDetails: number|_browser.extensionTypes.InjectDetails, 
+			executeScript(tabIdOrDetails: TabId|_browser.extensionTypes.InjectDetails, 
 				details?: _browser.extensionTypes.InjectDetails) {
 					return createPromise<any[]>(async (handler) => {
 						if (!details) {
 							__srcBrowser.tabs.executeScript(tabIdOrDetails as _browser.extensionTypes.InjectDetails, handler);
 						} else {
-							__srcBrowser.tabs.executeScript(tabIdOrDetails as number, details, handler);
+							__srcBrowser.tabs.executeScript(tabIdOrDetails as TabId, details, handler);
 						}
 
 						const settings = typeof tabIdOrDetails === 'number' ?
 							details : tabIdOrDetails;
 						if (settings.code) {
-							let id: number = undefined;
+							let id: TabId = undefined;
 							if (typeof tabIdOrDetails === 'number') {
 								id = tabIdOrDetails;
 							} else {
@@ -703,7 +703,7 @@ namespace BrowserAPI {
 						}
 					});
 				},
-			sendMessage<R>(tabId: number, message: any, options?: {
+			sendMessage<R>(tabId: TabId, message: any, options?: {
 				frameId: number;
 			}) {
 				return createPromise<void|R>(({ __resolve, __reject }) => {
@@ -740,7 +740,7 @@ namespace BrowserAPI {
 					formData?: { [key: string]: string[] },
 					raw?: _browser.webRequest.UploadData[],
 				},
-				tabId: number,
+				tabId: TabId,
 				type: _browser.webRequest.ResourceType,
 				timeStamp: number,
 				originUrl: string,

@@ -39,12 +39,12 @@ const _self = self as SandboxWindow;
 	}
 
 	var handshakeData: {
-		id: number;
+		id: CRM.GenericNodeId;
 		secretKey: number[];
 		handler: any;
 	} = null;
 
-	var handshake = function(id: number, secretKey: number[], 
+	var handshake = function(id: CRM.GenericNodeId, secretKey: number[], 
 		handler: (message: any) => void) {
 			handshakeData = {
 				id: id,
@@ -86,14 +86,14 @@ const _self = self as SandboxWindow;
 	_self.addEventListener('message', function (e) {
 		var data = e.data as {
 			type: 'init';
-			id: number;
+			id: CRM.GenericNodeId;
 			script: string;
 			libraries: string[];
 		}|{
 			type: 'verify';
 			instances: {
 				id: string;
-				tabIndex: number;
+				tabIndex: TabIndex;
 			}[];
 			key: string;
 			message: any;

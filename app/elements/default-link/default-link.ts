@@ -52,7 +52,7 @@ if (query) {
 				});
 			} else {
 				newItem = window.app.templates.getDefaultLinkNode({
-					id: window.app.generateItemId(),
+					id: window.app.generateItemId() as CRM.NodeId<CRM.LinkNode>,
 					name: name,
 					value: [
 						{

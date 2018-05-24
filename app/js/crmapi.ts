@@ -6,10 +6,10 @@ interface Window {
 }
 
 type CRMAPIMessage = {
-	id: number;
+	id: CRM.GenericNodeId;
 	type: 'logCrmAPIValue';
-	tabId: number;
-	tabIndex: number;
+	tabId: TabId;
+	tabIndex: TabIndex;
 	data: {
 		type: 'evalResult';
 		value: {
@@ -23,75 +23,75 @@ type CRMAPIMessage = {
 				message: string;
 			}
 		};
-		id: number;
-		tabIndex: number;
+		id: CRM.GenericNodeId;
+		tabIndex: TabIndex;
 		callbackIndex: number;
 		lineNumber: string;
 		timestamp: string;
-		tabId: number;
+		tabId: TabId;
 	}
 }|{
-	id: number;
+	id: CRM.GenericNodeId;
 	type: 'displayHints';
-	tabId: number;
-	tabIndex: number;
+	tabId: TabId;
+	tabIndex: TabIndex;
 	data: {
 		hints: string[];
-		id: number;
-		tabIndex: number;
+		id: CRM.GenericNodeId;
+		tabIndex: TabIndex;
 		callbackIndex: number;
-		tabId: number;
+		tabId: TabId;
 	}
 }|{
-	id: number;
-	tabIndex: number;
-	tabId: number;
+	id: CRM.GenericNodeId;
+	tabIndex: TabIndex;
+	tabId: TabId;
 	type: 'applyLocalStorage';
 	data: {
-		tabIndex: number;
+		tabIndex: TabIndex;
 		key: string;
 		value: any;
 	}
 }|{
-	id: number;
-	tabIndex: number;
+	id: CRM.GenericNodeId;
+	tabIndex: TabIndex;
 	type: 'respondToBackgroundMessage',
 	data: {
 		message: any,
-		id: number;
-		tabIndex: number;
-		tabId: number;
+		id: CRM.GenericNodeId;
+		tabIndex: TabIndex;
+		tabId: TabId;
 		response: number;
 	},
-	tabId: number;
+	tabId: TabId;
 }|{
-	id: number;
+	id: CRM.GenericNodeId;
 	type: 'sendInstanceMessage';
 	data: {
 		toInstanceId: number;
-		toTabIndex: number;
-		tabIndex: number;
+		toTabIndex: TabIndex;
+		tabIndex: TabIndex;
 		message: any;
-		id: number;
-		tabId: number;
+		id: CRM.GenericNodeId;
+		tabId: TabId;
 	}
-	tabId: number;
-	tabIndex: number;
+	tabId: TabId;
+	tabIndex: TabIndex;
 	onFinish: {
 		maxCalls: number;
 		fn: number;
 	}
 }|{
-	id: number;
+	id: CRM.GenericNodeId;
 	type: 'changeInstanceHandlerStatus';
-	tabIndex: number;
+	tabIndex: TabIndex;
 	data: {
-		tabIndex: number;
+		tabIndex: TabIndex;
 		hasHandler: boolean;
 	};
-	tabId: number;
+	tabId: TabId;
 }|{
-	id: number;
+	id: CRM.GenericNodeId;
 	type: 'updateStorage';
 	data: {
 		type: 'nodeStorage';
@@ -100,16 +100,16 @@ type CRMAPIMessage = {
 			oldValue: any;
 			newValue: any;
 		}[];
-		id: number;
-		tabIndex: number;
-		tabId: number;
+		id: CRM.GenericNodeId;
+		tabIndex: TabIndex;
+		tabId: TabId;
 	};
-	tabIndex: number;
-	tabId: number;
+	tabIndex: TabIndex;
+	tabId: TabId;
 }|{
-	id: number;
+	id: CRM.GenericNodeId;
 	type: 'crmapi';
-	tabIndex: number;
+	tabIndex: TabIndex;
 	action: string;
 	crmPath: number[];
 	data: any[];
@@ -118,11 +118,11 @@ type CRMAPIMessage = {
 		maxCalls: number;
 		fn: number;
 	};
-	tabId: number;
+	tabId: TabId;
 }|{
 	type: 'chrome';
-	id: number;
-	tabIndex: number;
+	id: CRM.GenericNodeId;
+	tabIndex: TabIndex;
 	api: string;
 	args: ({
 		type: "fn";
@@ -135,12 +135,12 @@ type CRMAPIMessage = {
 		type: "return";
 		val: number;
 	})[];
-	tabId: number;
+	tabId: TabId;
 	requestType: 'GM_download'|'GM_notification'|undefined;
 }|{
 	type: 'browser';
-	id: number;
-	tabIndex: number;
+	id: CRM.GenericNodeId;
+	tabIndex: TabIndex;
 	api: string;
 	args: ({
 		type: "fn";
@@ -153,46 +153,46 @@ type CRMAPIMessage = {
 		type: "return";
 		val: number;
 	})[];
-	tabId: number;
+	tabId: TabId;
 	requestType: 'GM_download'|'GM_notification'|undefined;
 }|{
-	id: number;
+	id: CRM.GenericNodeId;
 	type: 'addNotificationListener';
 	data: {
 		notificationId: number;
 		onClick: number;
-		tabIndex: number;
+		tabIndex: TabIndex;
 		onDone: number;
-		id: number;
-		tabId: number;
+		id: CRM.GenericNodeId;
+		tabId: TabId;
 	};
-	tabIndex: number;
-	tabId: number;
+	tabIndex: TabIndex;
+	tabId: TabId;
 }|{
-	id: number;
+	id: CRM.GenericNodeId;
 	type: 'sendBackgroundpageMessage';
 	data: {
 		message: any;
-		id: number;
-		tabId: number;
-		tabIndex: number;
+		id: CRM.GenericNodeId;
+		tabId: TabId;
+		tabIndex: TabIndex;
 		response: number;
 	},
-	tabIndex: number;
-	tabId: number;
+	tabIndex: TabIndex;
+	tabId: TabId;
 }|{
-	id: number;
+	id: CRM.GenericNodeId;
 	type: 'logCrmAPIValue',
-	tabId: number;
-	tabIndex: number;
+	tabId: TabId;
+	tabIndex: TabIndex;
 	data: {
 		type: 'log',
 		data: EncodedString<string[]>,
-		id: number;
+		id: CRM.GenericNodeId;
 		logId: number;
-		tabIndex: number;
+		tabIndex: TabIndex;
 		lineNumber: number;
-		tabId: number;
+		tabId: TabId;
 	}
 };
 
@@ -270,8 +270,8 @@ type CRMAPIMessage = {
 	type ModifiedSymbolTypes = SymbolType|'array';
 
 	interface CommInstance {
-		id: number;
-		tabIndex: number;
+		id: TabId;
+		tabIndex: TabIndex;
 		sendMessage(message: any, callback: (data: {
 			error: true;
 			success: false;
@@ -283,7 +283,7 @@ type CRMAPIMessage = {
 	}
 
 	interface Relation {
-		node?: number;
+		node?: CRM.GenericNodeId;
 		relation?: 'firstChild'|'firstSibling'|'lastChild'|'lastSibling'|'before'|'after';
 	}
 
@@ -590,11 +590,11 @@ type CRMAPIMessage = {
 		const thisArgs: Object[] = [];
 
 		return class extends target {
-			constructor(node: CRM.Node, id: number, tabData: _browser.tabs.Tab,
+			constructor(node: CRM.Node, id: CRM.GenericNodeId, tabData: _browser.tabs.Tab,
 				clickData: _browser.contextMenus.OnClickData, secretKey: number[],
 				nodeStorage: CRM.NodeStorage, contextData: EncodedContextData,
 				greasemonkeyData: GreaseMonkeyData, isBackground: boolean, 
-				options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: number, 
+				options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: TabIndex, 
 				extensionId: string, supportedAPIs: string, nodeStorageSync: CRM.NodeStorage) {
 					super(node, id, tabData, clickData, secretKey, nodeStorage,
 						contextData, greasemonkeyData, isBackground,
@@ -633,7 +633,7 @@ type CRMAPIMessage = {
 	 * 
 	 * @class
 	 * @param {Object} node - The item currently being edited
-	 * @param {number} id - The id of the current item
+	 * @param {CRM.GenericNodeId} id - The id of the current item
 	 * @param {Object} tabData - Any data about the tab the script is currently running on
 	 * @param {Object} clickData - Any data associated with clicking this item in the
 	 *		context menu, only available if launchMode is equal to 0 (on click)
@@ -646,7 +646,7 @@ type CRMAPIMessage = {
 	 * @param {Boolean} isBackground - If true, this page is functioning as a background page
 	 * @param {Object} _options - The options the user has entered for this script/stylesheet
 	 * @param {boolean} enableBackwardsCompatibility - Whether the localStorage object should reflect nodes
-	 * @param {number} tabIndex - The index of this script (with this id) running on this tab
+	 * @param {TabIndex} tabIndex - The index of this script (with this id) running on this tab
 	 * @param {string} extensionId - The id of the extension
 	 * @param {string} supportedAPIs - The supported browser APIs
 	 */
@@ -655,7 +655,7 @@ type CRMAPIMessage = {
 		@makePrivate
 		private __privates: {
 			_node: CRM.Node,
-			_id: number,
+			_id: CRM.GenericNodeId,
 			_tabData: _browser.tabs.Tab,
 			_clickData: _browser.contextMenus.OnClickData,
 			_secretKey: number[];
@@ -666,7 +666,7 @@ type CRMAPIMessage = {
 			_isBackground: boolean;
 			_options: CRM.Options;
 			_enableBackwardsCompatibility: boolean;
-			_tabIndex: number;
+			_tabIndex: TabIndex;
 			_instanceId: number;
 			_extensionId: string;
 			_supportedAPIs: string;
@@ -795,8 +795,8 @@ type CRMAPIMessage = {
 			_generateBackgroundResponse(message: Message<{
 				message: any;
 				respond: number;
-				tabId: number;
-				id: number;
+				tabId: TabId;
+				id: CRM.GenericNodeId;
 			}>): (data: any) => void;
 
 			_backgroundPageListeners: CallbackStorageInterface<RespondableInstanceListener>;
@@ -804,8 +804,8 @@ type CRMAPIMessage = {
 			_backgroundPageMessageHandler(message: Message<{
 				message: any;
 				respond: number;
-				tabId: number
-				id: number;
+				tabId: TabId
+				id: CRM.GenericNodeId;
 			}>): void;
 
 			_createVariable(log: {
@@ -836,7 +836,7 @@ type CRMAPIMessage = {
 				logId: number;
 			};
 
-			_generateSendInstanceMessageFunction(instanceId: number, tabIndex: number): (message: any, callback: (result: {
+			_generateSendInstanceMessageFunction(instanceId: number, tabIndex: TabIndex): (message: any, callback: (result: {
 				error: true;
 				success: false;
 				message: any;
@@ -845,7 +845,7 @@ type CRMAPIMessage = {
 				success: true;
 			}) => void) => void;
 
-			_sendInstanceMessage(instanceId: number, tabIndex: number, message: any, callback: (result: {
+			_sendInstanceMessage(instanceId: number, tabIndex: TabIndex, message: any, callback: (result: {
 				error: true;
 				success: false;
 				message: any;
@@ -1745,10 +1745,10 @@ type CRMAPIMessage = {
 
 			_instancesChange(this: CrmAPIInstance, change: {
 				type: 'removed';
-				value: number;
+				value: CRM.GenericNodeId;
 			}|{
 				type: 'added';
-				value: number;
+				value: CRM.GenericNodeId;
 				tabIndex: number;
 			}) {
 				switch (change.type) {
@@ -1917,8 +1917,8 @@ type CRMAPIMessage = {
 			_generateBackgroundResponse(this: CrmAPIInstance, message: Message<{
 				message: any;
 				respond: number;
-				tabId: number;
-				id: number;
+				tabId: TabId;
+				id: CRM.GenericNodeId;
 			}>): (data: any) => void {
 				return (data: any) => {
 					this.__privates._sendMessage({
@@ -1942,8 +1942,8 @@ type CRMAPIMessage = {
 			_backgroundPageMessageHandler(this: CrmAPIInstance, message: Message<{
 				message: any;
 				respond: number;
-				tabId: number
-				id: number;
+				tabId: TabId
+				id: CRM.GenericNodeId;
 			}>) {
 				this.__privates._backgroundPageListeners.forEach((listener) => {
 					listener && typeof listener === 'function' &&
@@ -2005,12 +2005,12 @@ type CRMAPIMessage = {
 					const { instances, currentInstance } = (message as Message<{
 						data: 'connected';
 						instances: {
-							id: number;
-							tabIndex: number;
+							id: TabId;
+							tabIndex: TabIndex;
 						}[];
 						currentInstance: {
-							id: number;
-							tabIndex: number;
+							id: TabId;
+							tabIndex: TabIndex;
 						};
 					}>);
 					if (currentInstance === null) {
@@ -2115,7 +2115,7 @@ type CRMAPIMessage = {
 			},
 
 			_generateSendInstanceMessageFunction(this: CrmAPIInstance, instanceId: number, 
-				tabIndex: number): (message: any, callback: (result: {
+				tabIndex: TabIndex): (message: any, callback: (result: {
 					error: true;
 					success: false;
 					message: any;
@@ -2135,7 +2135,7 @@ type CRMAPIMessage = {
 				};
 			},
 
-			_sendInstanceMessage(this: CrmAPIInstance, instanceId: number, tabIndex: number, message: any, callback: (result: {
+			_sendInstanceMessage(this: CrmAPIInstance, instanceId: number, tabIndex: TabIndex, message: any, callback: (result: {
 				error: true;
 				success: false;
 				message: any;
@@ -3144,7 +3144,7 @@ type CRMAPIMessage = {
 		 * Generates the class
 		 * 
 		 * @param {Object} node - The item currently being edited
-		 * @param {number} id - The id of the current item
+		 * @param {CRM.GenericNodeId} id - The id of the current item
 		 * @param {Object} tabData - Any data about the tab the script is currently running on
 		 * @param {Object} clickData - Any data associated with clicking this item in the
 		 *		context menu, only available if launchMode is equal to 0 (on click)
@@ -3157,16 +3157,16 @@ type CRMAPIMessage = {
 		 * @param {Boolean} isBackground - If true, this page is functioning as a background page
 		 * @param {Object} options - The options the user has entered for this script/stylesheet
  		 * @param {boolean} enableBackwardsCompatibility - Whether the localStorage object should reflect nodes
-		 * @param {number} tabIndex - The index of this script (with this id) running on this tab
+		 * @param {TabId} tabIndex - The index of this script (with this id) running on this tab
 		 * @param {string} extensionId - The id of the extension
 		 * @param {string} supportedAPIs - The supported browser APIs
 		 * @param {CRM.NodeStorage} nodeStorageSync - Synced node storage 
 		 */
-		constructor(node: CRM.Node, id: number, tabData: _browser.tabs.Tab,
+		constructor(node: CRM.Node, id: CRM.GenericNodeId, tabData: _browser.tabs.Tab,
 			clickData: _browser.contextMenus.OnClickData, secretKey: number[],
 			nodeStorage: CRM.NodeStorage, contextData: EncodedContextData,
 			greasemonkeyData: GreaseMonkeyData, isBackground: boolean, 
-			options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: number, 
+			options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: TabId, 
 			extensionId: string, supportedAPIs: string, nodeStorageSync: CRM.NodeStorage) { 
 				this.__privates._node = node;
 				this.__privates._id = id;
@@ -3206,11 +3206,11 @@ type CRMAPIMessage = {
 				this.__privates._setupBrowserAPI(this);
 			}
 
-		_init(node: CRM.Node, id: number, tabData: _browser.tabs.Tab,
+		_init(node: CRM.Node, id: CRM.GenericNodeId, tabData: _browser.tabs.Tab,
 			clickData: _browser.contextMenus.OnClickData, secretKey: number[],
 			nodeStorage: CRM.NodeStorage, contextData: EncodedContextData,
 			greasemonkeyData: GreaseMonkeyData, isBackground: boolean, 
-			options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: number, 
+			options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: TabId, 
 			extensionId: string, supportedAPIs: string) {
 				if (!enableBackwardsCompatibility) {
 					localStorageProxy = typeof localStorage === 'undefined' ? {} : localStorage;
@@ -3235,7 +3235,7 @@ type CRMAPIMessage = {
 		 *
 		 * @type boolean
 		 */
-		errors = true;
+		errors: boolean = true;
 
 		/**
 		 * If true, when an error occurs anywhere in the script, opens the
@@ -3245,7 +3245,7 @@ type CRMAPIMessage = {
 		 *
 		 * @type boolean
 		 */
-		debugOnerror = false;
+		debugOnerror: boolean = false;
 
 		/**
 		 * Is set if a chrome call triggered an error, otherwise unset
@@ -3289,16 +3289,16 @@ type CRMAPIMessage = {
 		/**
 		 * The tab ID for the tab this script was executed on (0 if backgroundpage)
 		 * 
-		 * @type {number}
+		 * @type {TabId}
 		 */
-		tabId: number;
+		tabId: TabId;
 		
 		/**
 		 * The tab index for this tab relative to its parent window
 		 * 
-		 * @type {number}
+		 * @type {TabIndex}
 		 */
-		currentTabIndex: number;
+		currentTabIndex: TabIndex;
 
 		/**
 		 * The ID of this instance of this script. Can be used to filter it
@@ -3318,9 +3318,9 @@ type CRMAPIMessage = {
 		/**
 		 * The id of this script
 		 * 
-		 * @type {number}
+		 * @type {CRM.GenericNodeId}
 		 */
-		id: number;
+		id: CRM.GenericNodeId;
 
 		/**
 		 * The context data for the click on the page (if any)
@@ -3774,7 +3774,7 @@ type CRMAPIMessage = {
 			static lookup<T extends {
 				[key: string]: T|U;
 				[key: number]: T|U;
-			}, U>(path: (string|number)[], data: T, hold: boolean = false) {
+			}, U>(path: (string|number)[], data: T, hold: boolean = false): T|U {
 				this.checkType(path, 'array', 'path');
 				this.checkType(data, 'object', 'data');
 				let length = path.length;
@@ -3875,7 +3875,7 @@ type CRMAPIMessage = {
 			 * Sends a message to given instance
 			 *
 			 * @param {CommInstance|number} instance - The instance to send the message to
-			 * @param {number} tabIndex - The index in which it ran on the tab.
+			 * @param {TabIndex} tabIndex - The index in which it ran on the tab.
 			 * 		When a script is ran multiple times on the same tab,
 			 * 		it gets added to the tabIndex array (so it starts at 0)
 			 * @param {Object} message - The message to send
@@ -3892,22 +3892,23 @@ type CRMAPIMessage = {
 			 *		the message key of that object will be filled with the reason
 			 *		it failed ("instance no longer exists" or "no listener exists")
 			 */
-			sendMessage(this: CrmAPIInstance, instance: CommInstance|number, tabIndex: number, message: any, callback?: InstanceCallback): Promise<InstanceCallback> {
-				let instanceObj: CommInstance;
-				if (typeof instance === "number") {
-					instanceObj = this.__privates._instances.get(instance);
-				} else {
-					instanceObj = instance;
-				}
-				return new Promise<any>((resolve) => {
-					if (CrmAPIInstance._helpers.isFn(instanceObj.sendMessage)) {
-						instanceObj.sendMessage(message, (response: any) => {
-							callback && callback(response);
-							resolve(response);
-						});
+			sendMessage(this: CrmAPIInstance, instance: CommInstance|number, tabIndex: TabIndex, 
+					message: any, callback?: InstanceCallback): Promise<InstanceCallback> {
+					let instanceObj: CommInstance;
+					if (typeof instance === "number") {
+						instanceObj = this.__privates._instances.get(instance);
+					} else {
+						instanceObj = instance;
 					}
-				});
-			},
+					return new Promise<any>((resolve) => {
+						if (CrmAPIInstance._helpers.isFn(instanceObj.sendMessage)) {
+							instanceObj.sendMessage(message, (response: any) => {
+								callback && callback(response);
+								resolve(response);
+							});
+						}
+					});
+				},
 			/**
 			 * Adds a listener for any comm-messages sent from other instances of
 			 * this script
@@ -3915,7 +3916,7 @@ type CRMAPIMessage = {
 			 * @param {function} listener - The listener that gets called with the message
 			 * @returns {number} An id that can be used to remove the listener
 			 */
-			addListener(this: CrmAPIInstance, listener: InstanceListener) {
+			addListener(this: CrmAPIInstance, listener: InstanceListener): number {
 				const prevLength = this.__privates._commListeners.length;
 				const idx = this.__privates._commListeners.add(listener);
 				if (prevLength === 0) {
@@ -4167,7 +4168,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
 			 * 	went wrong
 			 */
-			setType(this: CrmAPIInstance, itemType: CRM.ContextMenuItemType, allTabs: boolean = false) {
+			setType(this: CrmAPIInstance, itemType: CRM.ContextMenuItemType, allTabs: boolean = false): Promise<void> {
 				return this.__privates._sendPromiseMessage.call(this,
 					'contextMenuItem.setType', {
 						itemType,
@@ -4184,7 +4185,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
 			 * 	went wrong
 			 */
-			setChecked(this: CrmAPIInstance, checked: boolean, allTabs: boolean = false) {
+			setChecked(this: CrmAPIInstance, checked: boolean, allTabs: boolean = false): Promise<void> {
 				return this.__privates._sendPromiseMessage.call(this,
 					'contextMenuItem.setChecked', {
 						checked,
@@ -4202,7 +4203,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
 			 * 	went wrong
 			 */
-			setContentTypes(this: CrmAPIInstance, contentTypes: CRM.ContentTypeString[], allTabs: boolean = false) {
+			setContentTypes(this: CrmAPIInstance, contentTypes: CRM.ContentTypeString[], allTabs: boolean = false): Promise<void> {
 				return this.__privates._sendPromiseMessage.call(this,
 					'contextMenuItem.setContentTypes', {
 						contentTypes,
@@ -4221,7 +4222,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
 			 * 	went wrong
 			 */
-			setVisibility(this: CrmAPIInstance, isVisible: boolean, allTabs: boolean = false) {
+			setVisibility(this: CrmAPIInstance, isVisible: boolean, allTabs: boolean = false): Promise<void> {
 				return this.__privates._sendPromiseMessage.call(this,
 					'contextMenuItem.setVisibility', {
 						isVisible,
@@ -4237,7 +4238,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
 			 * 	went wrong
 			 */
-			setDisabled(this: CrmAPIInstance, isDisabled: boolean, allTabs: boolean = false) {
+			setDisabled(this: CrmAPIInstance, isDisabled: boolean, allTabs: boolean = false): Promise<void> {
 				return this.__privates._sendPromiseMessage.call(this,
 					'contextMenuItem.setDisabled', {
 						isDisabled,
@@ -4256,7 +4257,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
 			 * 	went wrong
 			 */
-			setName(this: CrmAPIInstance, name: string, allTabs: boolean = false) {
+			setName(this: CrmAPIInstance, name: string, allTabs: boolean = false): Promise<void> {
 				return this.__privates._sendPromiseMessage.call(this,
 					'contextMenuItem.setName', {
 						name,
@@ -4270,7 +4271,7 @@ type CRMAPIMessage = {
 			 * @returns {Promise<void>} A promise that resolves with nothing and throws if something
 			 * 	went wrong
 			 */
-			resetName(this: CrmAPIInstance, allTabs: boolean = false) {
+			resetName(this: CrmAPIInstance, allTabs: boolean = false): Promise<void> {
 				return this.__privates._sendPromiseMessage.call(this,
 					'contextMenuItem.resetName', {
 						allTabs

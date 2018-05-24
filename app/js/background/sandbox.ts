@@ -11,9 +11,9 @@ interface SandboxWorkerMessage {
 		type: 'handshake';
 		key: number[];
 		data: EncodedString<{
-			id: number;
+			id: CRM.GenericNodeId;
 			key: number[];
-			tabId: number;
+			tabId: TabId;
 		}>;
 	}|{
 		type: 'crmapi';
@@ -30,10 +30,10 @@ export class SandboxWorker implements SandboxWorkerInterface {
 		postMessage: this._postMessage.bind(this)
 	});
 
-	constructor(public id: number, public script: string, libraries: string[],
+	constructor(public id: CRM.GenericNodeId, public script: string, libraries: string[],
 		public secretKey: number[], private _getInstances: () => {
-			id: string|number;
-			tabIndex: number;
+			id: string|TabId;
+			tabIndex: TabIndex;
 		}[]) {
 			this.worker.addEventListener('message', (e: SandboxWorkerMessage) => {
 				this._onMessage(e);
@@ -104,9 +104,9 @@ export class SandboxWorker implements SandboxWorkerInterface {
 	private _verifyKey(message: {
 		key: number[];
 		data: EncodedString<{
-			id: number;
+			id: CRM.GenericNodeId;
 			key: number[];
-			tabId: number;
+			tabId: TabIndex;
 		}>|EncodedString<CRMAPIMessage>;
 	}, callback: (data: any, port?: any) => void) {
 		if (message.key.join('') === this.secretKey.join('')) {
@@ -119,10 +119,10 @@ export class SandboxWorker implements SandboxWorkerInterface {
 }
 
 export namespace Sandbox {
-	export function sandbox(id: number, script: string, libraries: string[],
+	export function sandbox(id: CRM.GenericNodeId, script: string, libraries: string[],
 		secretKey: number[], getInstances: () => {
-			id: number|string;
-			tabIndex: number;
+			id: TabId|string;
+			tabIndex: TabIndex;
 		}[],
 		callback: (worker: SandboxWorker) => void) {
 			callback(new SandboxWorker(id, script, libraries, secretKey, getInstances));

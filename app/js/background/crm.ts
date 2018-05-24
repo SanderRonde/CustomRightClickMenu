@@ -145,7 +145,7 @@ export namespace CRMNodes.Script.Handler {
 			return undefined;
 		};
 	}
-	function getResourcesArrayForScript(scriptId: number): {
+	function getResourcesArrayForScript(scriptId: CRM.NodeId<CRM.ScriptNode>): {
 		name: string;
 		sourceUrl: string;
 		matchesHashes: boolean;
@@ -169,7 +169,7 @@ export namespace CRMNodes.Script.Handler {
 		}
 		return resourcesArray;
 	}
-	function ensureRunAt(id: number, script: {
+	function ensureRunAt(id: CRM.GenericNodeId, script: {
 		code?: string;
 		file?: string;
 		runAt: string;
@@ -202,7 +202,7 @@ export namespace CRMNodes.Script.Handler {
 
 		return newScript;
 	}
-	function executeScripts(nodeId: number, tabId: number, scripts: {		
+	function executeScripts(nodeId: CRM.NodeId<CRM.ScriptNode>, tabId: TabId, scripts: {		
 		code?: string;		
 		file?: string;		
 		runAt: _browser.extensionTypes.RunAt;		
@@ -310,7 +310,7 @@ export namespace CRMNodes.Script.Handler {
 			includes
 		}
 	}
-	export function genTabData(tabId: number, key: number[], nodeId: number, script: string) {
+	export function genTabData(tabId: TabId, key: number[], nodeId: CRM.NodeId<CRM.ScriptNode>, script: string) {
 		modules.Util.setMapDefault(modules.crmValues.tabData, tabId, {
 			libraries: new window.Map(),
 			nodes: new window.Map()
@@ -593,8 +593,8 @@ export namespace CRMNodes.Script.Background {
 
 			modules.Sandbox.sandbox(node.id, code, libraries, key, () => {
 				const instancesArr: {
-					id: number|string;
-					tabIndex: number;
+					id: TabId|string;
+					tabIndex: TabIndex;
 				}[] = [];
 				const nodeInstances = modules.crmValues.nodeInstances.get(node.id);
 				modules.Util.iterateMap(nodeInstances, (tabId, instance) => {
@@ -718,7 +718,7 @@ export namespace CRMNodes.Script.MetaTags {
 }
 
 export namespace CRMNodes.Script.Updating {
-	export async function removeOldNode(id: number) {
+	export async function removeOldNode(id: CRM.GenericNodeId) {
 		const { children } = modules.crm.crmById.get(id);
 		if (children) {
 			for (let i = 0; i < children.length; i++) {
@@ -757,7 +757,7 @@ export namespace CRMNodes.Script.Updating {
 	}
 	function deduceLaunchmode(metaTags: {
 		[key: string]: any;
-	}, triggers: CRM.Triggers): number {
+	}, triggers: CRM.Triggers): CRMLaunchModes {
 		//if it's explicitly set in a metatag, use that value
 		if (MetaTags.getlastMetaTagValue(metaTags, 'CRM_LaunchMode')) {
 			return MetaTags.getlastMetaTagValue(metaTags, 'CRM_LaunchMode');
@@ -809,7 +809,7 @@ export namespace CRMNodes.Script.Updating {
 		[key: string]: any;
 	}, code: string, node: Partial<CRM.Node>) {
 		node.type = 'script';
-		node = node as CRM.ScriptNode;
+		const scriptNode = node as CRM.ScriptNode;
 
 		//Libraries
 		let libs: {
@@ -856,13 +856,13 @@ export namespace CRMNodes.Script.Updating {
 				type: 'register',
 				name: anonymousLib.url,
 				url: anonymousLib.url,
-				scriptId: node.id
+				scriptId: scriptNode.id
 			});
 		});
 
 		libs = libs.concat(anonymousLibs as any);
 
-		node.value = modules.constants.templates.getDefaultScriptValue({
+		scriptNode.value = modules.constants.templates.getDefaultScriptValue({
 			script: code,
 			libraries: libs
 		});
@@ -906,15 +906,17 @@ export namespace CRMNodes.Script.Updating {
 	}) {
 		const oldTree = JSON.parse(JSON.stringify(
 			modules.storages.settingsStorage.crm));
-		const newScript = await Updating.installUserscript(message.metaTags, message.script,
+		const {
+			path, oldNodeId, node
+		} = await Updating.installUserscript(message.metaTags, message.script,
 			message.downloadURL, message.allowedPermissions);
 
-		if (newScript.path) { //Has old node
-			const nodePath = newScript.path as number[];
-			await removeOldNode(newScript.oldNodeId);
-			registerNode(newScript.node, nodePath);
+		if (path) { //Has old node
+			const nodePath = path as number[];
+			await removeOldNode(oldNodeId);
+			registerNode(node, nodePath);
 		} else {
-			registerNode(newScript.node);
+			registerNode(node);
 		}
 
 		await modules.Storages.uploadChanges('settings', [{
@@ -926,10 +928,10 @@ export namespace CRMNodes.Script.Updating {
 	export async function installUserscript(metaTags: {
 		[key: string]: any;
 	}, code: string, downloadURL: string, allowedPermissions: CRM.Permission[],
-		oldNodeId?: number): Promise<{
+		oldNodeId?: CRM.NodeId<CRM.ScriptNode>): Promise<{
 			node: CRM.ScriptNode | CRM.StylesheetNode,
 			path?: number[],
-			oldNodeId?: number,
+			oldNodeId?: CRM.NodeId<CRM.ScriptNode>,
 		}> {
 			let node: Partial<CRM.ScriptNode | CRM.StylesheetNode> = {};
 			let hasOldNode = false;
@@ -937,7 +939,9 @@ export namespace CRMNodes.Script.Updating {
 				hasOldNode = true;
 				node.id = oldNodeId;
 			} else {
-				node.id = await modules.Util.generateItemId();
+				node.id = await modules.Util.generateItemId() as 
+					CRM.NodeId<CRM.ScriptNode>|
+					CRM.NodeId<CRM.StylesheetNode>
 			}
 
 			//If userscripts is empty something might have gone wrong, try to re-parse it
@@ -1009,7 +1013,7 @@ export namespace CRMNodes.Script.Updating {
 						type: 'register',
 						name: resourceName,
 						url: resourceUrl,
-						scriptId: node.id
+						scriptId: node.id as CRM.NodeId<CRM.ScriptNode>
 					});
 				});
 			}
@@ -1058,7 +1062,7 @@ export namespace CRMNodes.Script.Updating {
 	}
 	export async function updateScripts() {
 		const updated: {
-			oldNodeId: number;
+			oldNodeId: CRM.NodeId<CRM.ScriptNode>;
 			node: CRM.Node;
 			path: number[];
 		}[] = [];
@@ -1079,7 +1083,7 @@ export namespace CRMNodes.Script.Updating {
 		await onNodeUpdateDone(updated, oldTree)
 	}
 	async function onNodeUpdateDone(updated: {
-		oldNodeId: number;
+		oldNodeId: CRM.NodeId<CRM.ScriptNode>;
 		node: CRM.Node;
 		path: number[];
 	}[], oldTree: CRM.Tree) {
@@ -1124,7 +1128,7 @@ export namespace CRMNodes.Script.Updating {
 		updatedScripts: {
 			node: CRM.Node;
 			path?: number[];
-			oldNodeId?: number;
+			oldNodeId?: CRM.NodeId<CRM.ScriptNode>;
 		}[]) {
 			return new Promise<void>((resolve) => {
 				//Do a request to get that script from its download URL
@@ -1214,7 +1218,7 @@ export namespace CRMNodes.Running {
 		}
 	}
 
-	export async function executeScriptsForTab(tabId: number, respond: (message: any) => void) {
+	export async function executeScriptsForTab(tabId: TabId, respond: (message: any) => void) {
 		try {
 			const tab = await browserAPI.tabs.get(tabId);
 			if (tab.url && tab.url.indexOf('chrome') !== 0) {
@@ -1288,7 +1292,7 @@ export namespace CRMNodes.Stylesheet.Updating {
 				nodeInfo.source.url);
 	}
 
-	export async function updateStylesheet(nodeId: number) {
+	export async function updateStylesheet(nodeId: CRM.NodeId<CRM.StylesheetNode>) {
 		const node = modules.crm.crmById.get(nodeId) as CRM.StylesheetNode;
 		const url = getDownloadURL(node);
 		const updateData = (await CRMNodes.Stylesheet.Installing.getUpdateData(url))
@@ -1308,7 +1312,7 @@ export namespace CRMNodes.Stylesheet.Updating {
 	}
 	export async function updateStylesheets() {
 		const updated: {
-			oldNodeId: number;
+			oldNodeId: CRM.NodeId<CRM.StylesheetNode>;
 			node: CRM.Node;
 			path: number[];
 		}[] = [];
@@ -1332,7 +1336,7 @@ export namespace CRMNodes.Stylesheet.Updating {
 		updatedScripts: {
 			node: CRM.Node;
 			path?: number[];
-			oldNodeId?: number;
+			oldNodeId?: CRM.NodeId<CRM.StylesheetNode>;
 		}[]) {
 			return new Promise<void>((resolve) => {
 				modules.Util.convertFileToDataURI(downloadURL, async (_, dataString) => {
@@ -1388,7 +1392,7 @@ export namespace CRMNodes.Stylesheet.Updating {
 		}
 
 	async function onNodeUpdateDone(updated: {
-		oldNodeId: number;
+		oldNodeId: CRM.NodeId<CRM.StylesheetNode>;
 		node: CRM.Node;
 		path: number[];
 	}[], oldTree: CRM.Tree) {
@@ -1969,12 +1973,12 @@ export namespace CRMNodes.Stylesheet {
 
 export namespace CRMNodes.NodeCreation {
 	function getStylesheetReplacementTabs(node: CRM.Node): {
-		id: number;
+		id: TabId;
 	}[] {
 		const replaceOnTabs: {
-			id: number;
+			id: TabId;
 		}[] = [];
-		const crmNode = modules.crm.crmById.get(node.id);
+		const crmNode: CRM.Node = modules.crm.crmById.get(node.id as CRM.GenericNodeId);
 		if (modules.crmValues.contextMenuIds.get(node.id) && //Node already exists
 			crmNode.type === 'stylesheet' &&
 			node.type === 'stylesheet' && //Node type stayed stylesheet
@@ -2059,23 +2063,25 @@ export namespace CRMNodes.NodeCreation {
 					break;
 			}
 		}
-	async function handleContextMenuError(options: ContextMenuCreateProperties, e: _chrome.runtime.LastError|string, idHolder: {
-		id: number|string;
-	}) {
-		if (options.documentUrlPatterns) {
-			console.log('An error occurred with your context menu, attempting again with no url matching.', e);
-			delete options.documentUrlPatterns;
-			idHolder.id = await browserAPI.contextMenus.create(options, async () => {
-				idHolder.id = await browserAPI.contextMenus.create({
-					title: 'ERROR',
-					onclick: createOptionsPageHandler()
+	async function handleContextMenuError(options: ContextMenuCreateProperties, 
+		e: _chrome.runtime.LastError|string, idHolder: {
+			id: number|string;
+		}) {
+			if (options.documentUrlPatterns) {
+				console.log('An error occurred with your context menu,' + 
+					' attempting again with no url matching.', e);
+				delete options.documentUrlPatterns;
+				idHolder.id = await browserAPI.contextMenus.create(options, async () => {
+					idHolder.id = await browserAPI.contextMenus.create({
+						title: 'ERROR',
+						onclick: createOptionsPageHandler()
+					});
+					window.log('Another error occured with your context menu!', e);
 				});
-				window.log('Another error occured with your context menu!', e);
-			});
-		} else {
-			window.log('An error occured with your context menu!', e);
+			} else {
+				window.log('An error occured with your context menu!', e);
+			}
 		}
-	}
 	async function generateContextMenuItem(rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
 		id: number|string;
 	}) {
@@ -2281,7 +2287,7 @@ export namespace CRMNodes {
 	export type ClickHandler = (clickData: _browser.contextMenus.OnClickData,
 		tabInfo: _browser.tabs.Tab, isAutoActivate?: boolean) => void;
 
-	export async function updateCrm(toUpdate?: number[]) {
+	export async function updateCrm(toUpdate?: CRM.GenericNodeId[]) {
 		await modules.Storages.uploadChanges('settings', [{
 			key: 'crm',
 			newValue: JSON.parse(JSON.stringify(modules.crm.crmTree)),

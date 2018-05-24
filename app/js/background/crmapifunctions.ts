@@ -36,13 +36,13 @@ export namespace CRMAPIFunctions {
 }
 
 export namespace CRMAPIFunctions.contextMenuItem {
-	function applyContextmenuChange(nodeId: number, tabId: number, 
+	function applyContextmenuChange(nodeId: CRM.GenericNodeId, tabId: TabId, 
 		override: ContextMenuOverrides, update: ContextMenuUpdateProperties,
 		allTabs: boolean) {
 			if (!allTabs) {
 				if (!modules.crmValues.nodeTabStatuses.has(nodeId)) {
 					modules.crmValues.nodeTabStatuses.set(nodeId, {
-						tabs: new window.Map<number, {
+						tabs: new window.Map<CRM.GenericNodeId, {
 							checked?: boolean;
 							overrides?: ContextMenuOverrides;
 						}>([[tabId, {
@@ -286,7 +286,7 @@ export namespace CRMAPIFunctions.crm {
 		__this.checkPermissions(['crmGet'], () => {
 			const nodeId = __this.message.data.nodeId;
 			if (typeof nodeId === 'number') {
-				const node = modules.crm.crmByIdSafe.get(nodeId);
+				const node = modules.crm.crmByIdSafe.get(nodeId as CRM.GenericNodeId);
 				if (node) {
 					__this.respondSuccess([node]);
 				} else {
@@ -301,7 +301,7 @@ export namespace CRMAPIFunctions.crm {
 		__this.checkPermissions(['crmGet'], () => {
 			const nodeId = __this.message.data.nodeId;
 			if (typeof nodeId === 'number') {
-				const node = modules.crm.crmByIdSafe.get(nodeId);
+				const node = modules.crm.crmByIdSafe.get(nodeId as CRM.GenericNodeId);
 				if (node) {
 					__this.respondSuccess(node);
 				} else {
@@ -353,7 +353,7 @@ export namespace CRMAPIFunctions.crm {
 			], (optionals) => {
 				const query = __this.message.data.query as {
 					type: string;
-					inSubTree: number;
+					inSubTree: CRM.GenericNodeId;
 					name: string;
 				};
 
@@ -643,7 +643,7 @@ export namespace CRMAPIFunctions.crm {
 				}
 
 				if ((node = await __this.moveNode(node, __this.message.data.position as {
-					node: number;
+					node: CRM.GenericNodeId;
 				}, {
 					children: parentChildren,
 					id: node.id
@@ -1503,7 +1503,7 @@ export namespace CRMAPIFunctions.crm.menu {
 					modules.CRMNodes.buildNodePaths(modules.crm.crmTree);
 
 					const { childrenIds } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-						childrenIds: number[];
+						childrenIds: CRM.GenericNodeId[];
 					};
 
 					if (node.type !== 'menu') {
@@ -1561,7 +1561,7 @@ export namespace CRMAPIFunctions.crm.menu {
 				modules.CRMNodes.buildNodePaths(modules.crm.crmTree);
 				
 				const { childrenIds } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-					childrenIds: number[];
+					childrenIds: CRM.GenericNodeId[];
 				};
 
 				__this.getNodeFromId(__this.message.data.nodeId, true).run(async (node) => {
@@ -1659,7 +1659,7 @@ export namespace CRMAPIFunctions.crm.background {
 	}
 	function removeDuplicateTabs(tabs: _browser.tabs.Tab[]): _browser.tabs.Tab[] {
 		const nonDuplicates: _browser.tabs.Tab[] = [];
-		const ids: number[] = [];
+		const ids: TabId[] = [];
 		for (const tab of tabs) {
 			const { id } = tab;
 			if (ids.indexOf(id) > -1) {
@@ -1675,14 +1675,14 @@ export namespace CRMAPIFunctions.crm.background {
 
 	type MaybeArray<T> = T | T[];
 
-	async function doRunScript(__this: CRMAPICall.Instance, id: number, options: BrowserTabsQueryInfo & {
-		tabId?: MaybeArray<number>;
+	async function doRunScript(__this: CRMAPICall.Instance, id: CRM.GenericNodeId, options: BrowserTabsQueryInfo & {
+		tabId?: MaybeArray<TabId>;
 	}) {
 		if (typeof options.tabId === 'number') {
 			options.tabId = [options.tabId];
 		}
 
-		const tabIds: number[] = options.tabId;
+		const tabIds: TabId[] = options.tabId;
 		delete options.tabId;
 
 		//Get results from tab query
@@ -1777,9 +1777,9 @@ export namespace CRMAPIFunctions.crm.background {
 				optional: true
 			}], async () => {
 				const { options, id } = __this.message.data as MessageHandling.CRMFunctionDataBase & {
-					id: number;
+					id: CRM.GenericNodeId;
 					options: BrowserTabsQueryInfo & {
-						tabId?: MaybeArray<number>;
+						tabId?: MaybeArray<TabId>;
 					}
 				};
 
@@ -1863,7 +1863,7 @@ export namespace CRMAPIFunctions.crm.background {
 			}], async () => {
 				const { options }  = __this.message.data as MessageHandling.CRMFunctionDataBase & {
 					options: {
-						tabId?: number[] | number;
+						tabId?: MaybeArray<TabId>;
 						url?: string;
 					}
 				};

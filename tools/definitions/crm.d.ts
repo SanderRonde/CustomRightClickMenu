@@ -439,10 +439,28 @@ declare namespace CRM {
 	type NodeType = 'script'|'link'|'divider'|'menu'|'stylesheet';
 
 	/**
-	 * The id of a node, has the source node encoded in typing to keep association
+	 * A node ID for any of the node types
 	 */
-	type NodeId<T = CRM.Node> = number & {
-		__srcNode?: T;
+	type GenericNodeId = NodeId<CRM.DividerNode>|
+		NodeId<CRM.LinkNode>|
+		NodeId<CRM.MenuNode>|
+		NodeId<CRM.ScriptNode>|
+		NodeId<CRM.StylesheetNode>
+
+	/**
+	 * A node id for any of the safe node types
+	 */
+	type GenericSafeNodeId = NodeId<CRM.SafeDividerNode>|
+		NodeId<CRM.SafeLinkNode>|
+		NodeId<CRM.SafeMenuNode>|
+		NodeId<CRM.SafeScriptNode>|
+		NodeId<CRM.SafeStylesheetNode>
+
+	/**
+	 * The ID of a CRM.Node
+	 */
+	type NodeId<N extends CRM.Node|CRM.SafeNode> = number & {
+		__srcNode: N;
 	}
 
 	/**
@@ -452,7 +470,7 @@ declare namespace CRM {
 		/**
 		 * The unique ID for the node
 		 */
-		id: NodeId<this>;
+		id: number;
 		/**
 		 * The path to this node
 		 */
@@ -552,7 +570,7 @@ declare namespace CRM {
 		/**
 		 * The unique ID of this node
 		 */
-		id: NodeId<this>;
+		id: number;
 		/**
 		 * The path to this node
 		 */
@@ -820,6 +838,10 @@ declare namespace CRM {
 		 * The value of this node when it was a script (none, as it is one now)
 		 */
 		scriptVal: void;
+		/**
+		 * The unique ID of this script node
+		 */
+		id: NodeId<ScriptNode>;
 	}
 
 	/**
@@ -884,6 +906,10 @@ declare namespace CRM {
 		 * The value of this node when it was a stylesheet (none as it is one now)
 		 */
 		stylesheetVal: void;
+		/**
+		 * The unique ID of this stylesheet node
+		 */
+		id: NodeId<StylesheetNode>;
 	}
 
 	/**
@@ -948,6 +974,10 @@ declare namespace CRM {
 		 * The value of this node when it was still a link (none as it is one now)
 		 */
 		linkVal: void;
+		/**
+		 * The unique ID of this link node
+		 */
+		id: NodeId<LinkNode>;
 	}
 
 	/**
@@ -998,6 +1028,10 @@ declare namespace CRM {
 		 * The node's children (non-safe)
 		 */
 		children: Tree;
+		/**
+		 * The unique ID of this menu node
+		 */
+		id: NodeId<MenuNode>;
 	}
 
 	/**
@@ -1028,6 +1062,10 @@ declare namespace CRM {
 		 * The value of this node when it was still a stylesheet
 		 */
 		stylesheetVal: StylesheetVal|void;
+		/**
+		 * The unique ID of this divider node
+		 */
+		id: NodeId<DividerNode>;
 	}
 
 	/**
@@ -1046,23 +1084,48 @@ declare namespace CRM {
 	/**
 	 * A safe script node
 	 */
-	type SafeScriptNode = MakeNodeSafe<ScriptNode>;
+	type SafeScriptNode = MakeNodeSafe<ScriptNode> & {
+		/**
+		 * The unique ID of this safe script node
+		 */
+		id: NodeId<SafeScriptNode>
+	};
 	/**
 	 * A safe stylesheet node
 	 */
-	type SafeStylesheetNode = MakeNodeSafe<StylesheetNode>;
+	type SafeStylesheetNode = MakeNodeSafe<StylesheetNode> & {
+		/**
+		 * The unique ID of this safe stylesheet node
+		 */
+		id: NodeId<SafeStylesheetNode>
+	};
 	/**
 	 * A safe link node
 	 */
-	type SafeLinkNode = MakeNodeSafe<LinkNode>;
+	type SafeLinkNode = MakeNodeSafe<LinkNode> & {
+		/**
+		 * The unique ID of this safe link node
+		 */
+		id: NodeId<SafeLinkNode>
+	};
 	/**
 	 * A safe menu node
 	 */
-	type SafeMenuNode = MakeNodeSafe<SafeMenuNodeBase>;
+	type SafeMenuNode = MakeNodeSafe<SafeMenuNodeBase> & {
+		/**
+		 * The unique ID of this safe menu node
+		 */
+		id: NodeId<SafeMenuNode>
+	};
 	/**
 	 * A safe divider node
 	 */
-	type SafeDividerNode = MakeNodeSafe<DividerNode>;
+	type SafeDividerNode = MakeNodeSafe<DividerNode> & {
+		/**
+		 * The unique ID of this safe divider node
+		 */
+		id: NodeId<SafeDividerNode>
+	};
 
 	/**
 	 * A safe node

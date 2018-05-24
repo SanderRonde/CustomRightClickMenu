@@ -23,7 +23,7 @@ namespace CRMAppElement {
 		bez(curve: number[]): string;
 	}
 
-	type TypeCheckTypes = 'string' | 'function' | 'number' | 'object' | 'array' | 'boolean';
+	type TypeCheckTypes = 'string' | 'function' | '' | 'object' | 'array' | 'boolean';
 
 	interface TypeCheckConfig {
 		val: string;
@@ -565,7 +565,7 @@ namespace CRMAppElement {
 		/**
 		 * The last-used unique ID
 		 */
-		private static _latestId: number = -1;
+		private static _latestId: CRM.GenericNodeId = -1 as CRM.GenericNodeId;
 
 		/**
 		 * The value of the storage.local
@@ -586,9 +586,7 @@ namespace CRMAppElement {
 		 * The nodes in an object where the key is the ID and the
 		 * value is the node
 		 */
-		private static _nodesById: {
-			[key: number]: CRM.Node
-		} = {};
+		private static _nodesById: CRMStore = new window.Map();
 
 		/**
 		 * The column index of the "shadow" node, if any
@@ -772,17 +770,18 @@ namespace CRMAppElement {
 			return this.templates.getPermissionDescription;
 		};
 
-		static _getNodeName(this: CrmApp, nodeId: number) {
-			return window.app._nodesById[nodeId].name;
+		static _getNodeName(this: CrmApp, nodeId: CRM.GenericNodeId) {
+			return window.app._nodesById.get(nodeId).name;
 		};
 
-		static _getNodeVersion(this: CrmApp, nodeId: number) {
-			return (window.app._nodesById[nodeId].nodeInfo && window.app._nodesById[nodeId].nodeInfo.version) ||
-				'1.0';
+		static _getNodeVersion(this: CrmApp, nodeId: CRM.GenericNodeId) {
+			return (window.app._nodesById.get(nodeId).nodeInfo && 
+				window.app._nodesById.get(nodeId).nodeInfo.version) ||
+					'1.0';
 		};
 
-		static _placeCommas(this: CrmApp, number: number): string {
-			const split = this._reverseString(number.toString()).match(/[0-9]{1,3}/g);
+		static _placeCommas(this: CrmApp, num: number): string {
+			const split = this._reverseString(num.toString()).match(/[0-9]{1,3}/g);
 			return this._reverseString(split.join(','));
 		};
 
@@ -1109,7 +1108,7 @@ namespace CRMAppElement {
 		 * Generates an ID for a node
 		 */
 		static generateItemId(this: CrmApp) {
-			this._latestId = this._latestId || 0;
+			this._latestId = this._latestId || 0 as CRM.GenericNodeId;
 			this._latestId++;
 
 			if (this.settings) {
@@ -1491,7 +1490,7 @@ namespace CRMAppElement {
 				type: 'array'
 			}, {
 				val: 'selectedCrmType',
-				type: 'number',
+				type: '',
 			}, {
 				val: 'jsLintGlobals',
 				type: 'array'
@@ -1554,7 +1553,7 @@ namespace CRMAppElement {
 				type: 'array',
 				forChildren: [{
 					val: 'node',
-					type: 'number'
+					type: ''
 				}, {
 					val: 'permissions',
 					type: 'array'
@@ -1591,7 +1590,7 @@ namespace CRMAppElement {
 				type: 'object'
 			}, {
 				val: 'settingsLastUpdatedAt',
-				type: 'number',
+				type: '',
 			}, {
 				val: 'crm',
 				type: 'array',
@@ -1600,7 +1599,7 @@ namespace CRMAppElement {
 					type: 'string'
 				}, {
 					val: 'index',
-					type: 'number',
+					type: '',
 					optional: true
 				}, {
 					val: 'isLocal',
@@ -1610,7 +1609,7 @@ namespace CRMAppElement {
 					type: 'array'
 				}, {
 					val: 'id',
-					type: 'number'
+					type: ''
 				}, {
 					val: 'path',
 					type: 'array'
@@ -1632,7 +1631,7 @@ namespace CRMAppElement {
 				}]
 			}, {
 				val: 'latestId',
-				type: 'number'
+				type: ''
 			}, {
 				val: 'rootName',
 				type: 'string'
@@ -1903,7 +1902,8 @@ namespace CRMAppElement {
 						}
 						node = this.parent().templates.getDefaultLinkNode({
 							name: name,
-							id: this.parent().generateItemId(),
+							id: this.parent().generateItemId() as 
+								CRM.NodeId<CRM.LinkNode>,
 							value: split.map(function (url) {
 								return {
 									newTab: openInNewTab,
@@ -1915,13 +1915,15 @@ namespace CRMAppElement {
 					case 'divider':
 						node = this.parent().templates.getDefaultDividerNode({
 							name: name,
-							id: this.parent().generateItemId()
+							id: this.parent().generateItemId() as
+								CRM.NodeId<CRM.DividerNode>
 						});
 						break;
 					case 'menu':
 						node = this.parent().templates.getDefaultMenuNode({
 							name: name,
-							id: this.parent().generateItemId(),
+							id: this.parent().generateItemId() as 
+								CRM.NodeId<CRM.MenuNode>,
 							children: nodeData as any
 						});
 						break;
@@ -2055,12 +2057,12 @@ namespace CRMAppElement {
 		 */
 		private static _setup = class CRMAppSetup {
 			private static async _restoreUnsavedInstances(editingObj: {
-				id: number;
+				id: CRM.GenericNodeId;
 				mode: string;
 				val: string;
 				crmType: number;
 			}) {
-				const crmItem = this.parent()._nodesById[editingObj.id] as CRM.ScriptNode | CRM.StylesheetNode;
+				const crmItem = this.parent()._nodesById.get(editingObj.id) as CRM.ScriptNode | CRM.StylesheetNode;
 				const code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
 					crmItem.value.script : crmItem.value.backgroundScript) :
 					(crmItem.value.stylesheet));
@@ -2131,7 +2133,7 @@ namespace CRMAppElement {
 					};
 				};
 
-				const path = this.parent()._nodesById[editingObj.id].path;
+				const path = this.parent()._nodesById.get(editingObj.id).path;
 				const highlightItem = () => { 
 					document.body.style.pointerEvents = 'none';
 					const columnConts = this.parent().editCRM.$.CRMEditColumnsContainer.children;
@@ -2263,9 +2265,9 @@ namespace CRMAppElement {
 					parent._setup.orderNodesById(items.crm);
 					parent._setup.buildNodePaths(items.crm, []);
 					if (parent.settings.latestId) {
-						parent._latestId = items.latestId;
+						parent._latestId = items.latestId as CRM.GenericNodeId;
 					} else {
-						parent._latestId = 0;
+						parent._latestId = 0 as CRM.GenericNodeId;
 					}
 					window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal
 						.CRMOnPage);
@@ -2291,10 +2293,15 @@ namespace CRMAppElement {
 					}
 				}
 				if (storageLocal.editing) {
-					const editing = storageLocal.editing;
+					const editing = storageLocal.editing as {
+						val: string;
+						id: CRM.GenericNodeId;
+						mode: string;
+						crmType: number;	
+					};
 					setTimeout(function () {
 						//Check out if the code is actually different
-						const node = parent._nodesById[editing.id] as CRM.ScriptNode | CRM.StylesheetNode;
+						const node = parent._nodesById.get(editing.id) as CRM.ScriptNode | CRM.StylesheetNode;
 						const nodeCurrentCode = (node.type === 'script' ? node.value.script :
 							node.value.stylesheet);
 						if (nodeCurrentCode.trim() !== editing.val.trim()) {
@@ -2510,7 +2517,7 @@ namespace CRMAppElement {
 			static orderNodesById(tree: CRM.Tree) {
 				for (let i = 0; i < tree.length; i++) {
 					const node = tree[i];
-					this.parent()._nodesById[node.id] = node;
+					this.parent()._nodesById.set(node.id, node);
 					node.children && this.orderNodesById(node.children);
 				}
 			};
@@ -2588,7 +2595,7 @@ namespace CRMAppElement {
 						}
 					}
 				} else if (val1 !== val2) {
-					//They are both normal string/number/bool values, do a normal comparison
+					//They are both normal string//bool values, do a normal comparison
 					return true;
 				}
 				return false;
@@ -2748,7 +2755,7 @@ namespace CRMAppElement {
 								return true;
 							}
 							return this.findExpression(expression.alternate, data, strToFind, onFind);
-						case 'IfStatement': ;
+						case 'IfStatement':
 							if (this.findExpression(expression.consequent, data, strToFind, onFind)) {
 								return true;
 							}
@@ -2921,11 +2928,11 @@ namespace CRMAppElement {
 				}
 				private static _getLineIndexFromTotalIndex(lines: string[], line: number, index:
 					number): number {
-					for (let i = 0; i < line; i++) {
-						index -= lines[i].length + 1;
+						for (let i = 0; i < line; i++) {
+							index -= lines[i].length + 1;
+						}
+						return index;
 					}
-					return index;
-				}
 				private static _replaceChromeFunction(data: ChromePersistentData, expr: Tern.Expression, callLine:
 					{
 						from: {
@@ -3286,16 +3293,15 @@ namespace CRMAppElement {
 					return false;
 				}
 				private static _generateOnError(container: TransferOnErrorError[][]): (
-					position: TransferOnErrorError, passes: number
-				) => void {
-					return (position: TransferOnErrorError, passes: number) => {
-						if (!container[passes]) {
-							container[passes] = [position];
-						} else {
-							container[passes].push(position);
-						}
-					};
-				}
+					position: TransferOnErrorError, passes: number) => void {
+						return (position: TransferOnErrorError, passes: number) => {
+							if (!container[passes]) {
+								container[passes] = [position];
+							} else {
+								container[passes].push(position);
+							}
+						};
+					}
 				private static _replaceChromeCalls(lines: string[], passes: number,
 					onError: TransferOnError): string {
 					//Analyze the file
@@ -3412,7 +3418,7 @@ namespace CRMAppElement {
 					return script;
 				}
 			}
-			static generateScriptUpgradeErrorHandler(id: number): ScriptUpgradeErrorHandler {
+			static generateScriptUpgradeErrorHandler(id: CRM.GenericNodeId): ScriptUpgradeErrorHandler {
 				return function (oldScriptErrors, newScriptErrors, parseError) {
 					browserAPI.storage.local.get<CRM.StorageLocal>().then((keys) => {
 						if (!keys.upgradeErrors) {
@@ -3441,7 +3447,7 @@ namespace CRMAppElement {
 					});
 				};
 			};
-			static convertScriptFromLegacy(script: string, id: number, method: SCRIPT_CONVERSION_TYPE): string {
+			static convertScriptFromLegacy(script: string, id: CRM.GenericNodeId, method: SCRIPT_CONVERSION_TYPE): string {
 				//Remove execute locally
 				let usedExecuteLocally = false;
 				const lineIndex = script.indexOf('/*execute locally*/');
@@ -3551,7 +3557,7 @@ namespace CRMAppElement {
 
 			static iconSwitch(e: Polymer.ClickEvent, type: {
 				x?: any;
-			} | number) {
+			}|number) {
 				let i;
 				let crmEl;
 				let selectedType = this.parent().crmType;
@@ -3993,7 +3999,8 @@ namespace CRMAppElement {
 					window.doc.addedPermissionsTabContainer
 						.querySelectorAll('.nodeAddedPermissionsCont'));
 				panels.forEach((panel: HTMLElement) => { 
-					const node = this.parent()._nodesById[(panel.getAttribute('data-id') as any) as number] as CRM.ScriptNode;
+					const node = this.parent()._nodesById
+						.get(~~(panel.getAttribute('data-id') as any) as CRM.GenericNodeId) as CRM.ScriptNode;
 					const permissions = Array.prototype.slice.apply(panel.querySelectorAll('paper-checkbox'))
 						.map(function (checkbox: HTMLPaperCheckboxElement) {
 							if (checkbox.checked) {
@@ -4609,10 +4616,10 @@ namespace CRMAppElement {
 				return (returnArray ? result.children : result);
 			};
 
-			private static _lookupId(id: number, returnArray: boolean, node: CRM.Node): CRM.Node[] | CRM.Node | void;
-			private static _lookupId(id: number, returnArray: false, node: CRM.Node): CRM.Node;
-			private static _lookupId(id: number, returnArray: true, node: CRM.Node): CRM.Node[];
-			private static _lookupId(id: number, returnArray: boolean, node: CRM.Node): CRM.Node[] | CRM.Node | void {
+			private static _lookupId(id: CRM.GenericNodeId, returnArray: boolean, node: CRM.Node): CRM.Node[] | CRM.Node | void;
+			private static _lookupId(id: CRM.GenericNodeId, returnArray: false, node: CRM.Node): CRM.Node;
+			private static _lookupId(id: CRM.GenericNodeId, returnArray: true, node: CRM.Node): CRM.Node[];
+			private static _lookupId(id: CRM.GenericNodeId, returnArray: boolean, node: CRM.Node): CRM.Node[] | CRM.Node | void {
 				const nodeChildren = node.children;
 				if (nodeChildren) {
 					let el;
@@ -4629,12 +4636,12 @@ namespace CRMAppElement {
 				return null;
 			};
 
-			static lookupId(id: number, returnArray: boolean): CRM.Node[] | CRM.Node;
-			static lookupId(id: number, returnArray: true): CRM.Node[];
-			static lookupId(id: number, returnArray: false): CRM.Node;
-			static lookupId(id: number, returnArray: boolean): CRM.Node[] | CRM.Node {
+			static lookupId(id: CRM.GenericNodeId, returnArray: boolean): CRM.Node[] | CRM.Node;
+			static lookupId(id: CRM.GenericNodeId, returnArray: true): CRM.Node[];
+			static lookupId(id: CRM.GenericNodeId, returnArray: false): CRM.Node;
+			static lookupId(id: CRM.GenericNodeId, returnArray: boolean): CRM.Node[] | CRM.Node {
 				if (!returnArray) {
-					return window.app._nodesById[id];
+					return window.app._nodesById.get(id);
 				}
 
 				let el;

@@ -674,7 +674,7 @@ namespace EditCrmElement {
 
 		private static _addItem(this: EditCrm, path: number[]) {
 			const newItem = window.app.templates.getDefaultLinkNode({
-				id: window.app.generateItemId()
+				id: window.app.generateItemId() as CRM.NodeId<CRM.LinkNode>
 			});
 
 			const container = window.app.crm.lookup(path, true);
@@ -686,13 +686,13 @@ namespace EditCrmElement {
 			window.app.upload();
 		};
 
-		private static _getSelected(this: EditCrm): number[] {
-			const selected = [];
+		private static _getSelected(this: EditCrm): CRM.GenericNodeId[] {
+			const selected: CRM.GenericNodeId[] = [];
 			const editCrmItems = this.getItems();
 			let i;
 			for (i = 0; i < editCrmItems.length; i++) {
 				if (editCrmItems[i].$.itemCont.classList.contains('highlighted')) {
-					selected.push(editCrmItems[i].item.id);
+					selected.push(editCrmItems[i].item.id as CRM.GenericNodeId);
 				}
 			}
 			return selected;
@@ -721,15 +721,16 @@ namespace EditCrmElement {
 			return newNode as CRM.SafeNode;
 		};
 
-		private static _extractUniqueChildren(this: EditCrm, node: CRM.Node, toExportIds: number[], results: CRM.Node[]) {
-			if (toExportIds.indexOf(node.id) > -1) {
-				results.push(node);
-			} else {
-				for (let i = 0; node.children && i < node.children.length; i++) {
-					this._extractUniqueChildren(node.children[i], toExportIds, results);
+		private static _extractUniqueChildren(this: EditCrm, node: CRM.Node, toExportIds: 
+			CRM.GenericNodeId[], results: CRM.Node[]) {
+				if (toExportIds.indexOf(node.id) > -1) {
+					results.push(node);
+				} else {
+					for (let i = 0; node.children && i < node.children.length; i++) {
+						this._extractUniqueChildren(node.children[i], toExportIds, results);
+					}
 				}
-			}
-		};
+			};
 
 		private static _changeAuthor(this: EditCrm, node: CRM.Node|CRM.SafeNode, authorName: string) {
 			if (node.nodeInfo.source !== 'local') {
@@ -1038,7 +1039,7 @@ namespace EditCrmElement {
 			}
 		};
 
-		private static _exportGivenNodeIDs(this: EditCrm, toExport: number[]) {
+		private static _exportGivenNodeIDs(this: EditCrm, toExport: CRM.GenericNodeId[]) {
 			const exports: CRM.Node[] = [];
 			for (let i = 0; i < window.app.settings.crm.length; i++) {
 				this._extractUniqueChildren(window.app.settings.crm[i], toExport, exports);

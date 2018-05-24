@@ -16,7 +16,7 @@ export namespace GlobalDeclarations {
 		window.getID = (searchedName: string) => {
 			searchedName = searchedName.toLowerCase();
 			const matches: {
-				id: number;
+				id: CRM.GenericNodeId;
 				node: CRM.ScriptNode;
 			}[] = [];
 			modules.Util.iterateMap(modules.crm.crmById, (id, node) => {
@@ -25,9 +25,9 @@ export namespace GlobalDeclarations {
 					return;
 				}
 				if (node.type === 'script' && searchedName === name.toLowerCase()) {
-					matches.push({
-						id: (id as any) as number,
-						node: node
+					matches.push({ 
+						id: id as CRM.GenericNodeId, 
+						node 
 					});
 				}
 			});
@@ -45,15 +45,15 @@ export namespace GlobalDeclarations {
 			}
 		};
 
-		window.filter = (nodeId: number | string, tabId: string | number | void) => {
+		window.filter = (nodeId: CRM.GenericNodeId | string, tabId: string | TabId | void) => {
 			modules.globalObject.globals.logging.filter = {
-				id: ~~nodeId,
+				id: ~~nodeId as CRM.GenericNodeId,
 				tabId: tabId !== undefined ? ~~tabId : null
 			};
 		};
 
 		window._listenIds = (listener: (ids: {
-			id: number;
+			id: CRM.GenericNodeId;
 			title: string;
 		}[]) => void) => {
 			modules.Logging.Listeners.updateTabAndIdLists().then(({ids}) => {
@@ -95,7 +95,7 @@ export namespace GlobalDeclarations {
 				});
 			}
 
-		function getLog(id: string | number, tab: string | number, text: string): LogListenerLine[] {
+		function getLog(id: string | CRM.GenericNodeId, tab: string | TabId, text: string): LogListenerLine[] {
 			let messages: LogListenerLine[] = [];
 			const logging = modules.globalObject.globals.logging;
 			if (id === 'all') {
@@ -107,7 +107,7 @@ export namespace GlobalDeclarations {
 					}
 				}
 			} else {
-				const idLogs = logging[id as number];
+				const idLogs = logging[id as CRM.GenericNodeId];
 				messages = (idLogs && idLogs.logMessages) || [];
 			}
 			if (tab === 'all') {
@@ -119,8 +119,8 @@ export namespace GlobalDeclarations {
 			}
 		};
 
-		function updateLog (this: LogListenerObject, id: number | 'ALL', 
-			tab: number | 'ALL' | 'background', 
+		function updateLog (this: LogListenerObject, id: CRM.GenericNodeId | 'ALL', 
+			tab: TabId | 'ALL' | 'background', 
 			textFilter: string): LogListenerLine[] {
 				if (id === 'ALL' || id === 0) {
 					this.id = 'all';
@@ -163,28 +163,30 @@ export namespace GlobalDeclarations {
 				return getLog('all', 'all', '');
 			};
 
-		window._getIdsAndTabs = async (selectedId: number, selectedTab: number|'background', callback: (result: {
-			ids: {
-				id: string|number;
-				title: string;
-			}[];
-			tabs: TabData[];
-		}) => void) => {
-			callback({
-				ids: modules.Logging.Listeners.getIds(selectedTab === 'background' ? 0 : selectedTab),
-				tabs: await modules.Logging.Listeners.getTabs(selectedId)
-			});
-		}
-		window._getCurrentTabIndex = (id: number, currentTab: number|'background', listener: (newTabIndexes: number[]) => void) => {
-			if (currentTab === 'background') {
-				listener([0]);
-			} else {
-				listener(modules.crmValues.tabData.get(currentTab as number)
-					.nodes.get(id).map((element, index) => {
-						return index;
-					}));
+		window._getIdsAndTabs = async (selectedId: CRM.GenericNodeId, selectedTab: TabId|'background', 
+			callback: (result: {
+				ids: {
+					id: string|CRM.GenericNodeId;
+					title: string;
+				}[];
+				tabs: TabData[];
+			}) => void) => {
+				callback({
+					ids: modules.Logging.Listeners.getIds(selectedTab === 'background' ? 0 : selectedTab),
+					tabs: await modules.Logging.Listeners.getTabs(selectedId)
+				});
 			}
-		}
+		window._getCurrentTabIndex = (id: CRM.GenericNodeId, currentTab: TabId|'background', 
+			listener: (newTabIndexes: TabIndex[]) => void) => {
+				if (currentTab === 'background') {
+					listener([0]);
+				} else {
+					listener(modules.crmValues.tabData.get(currentTab as TabId)
+						.nodes.get(id).map((element, index) => {
+							return index;
+						}));
+				}
+			}
 	}
 	function permissionsChanged(available: _browser.permissions.Permissions) {
 		modules.globalObject.globals.availablePermissions = available.permissions;
@@ -223,17 +225,17 @@ export namespace GlobalDeclarations {
 						modules.Util.setMapDefault(nodeInstances, message.id, new window.Map());
 
 						const instancesArr: {
-							id: number;
-							tabIndex: number;
+							id: TabId;
+							tabIndex: TabIndex;
 						}[] = [];
 						const currentInstance: {
-							id: number;
-							tabIndex: number;
+							id: TabId;
+							tabIndex: TabIndex;
 						} = {
-							id: ~~message.tabId,
+							id: message.tabId,
 							tabIndex: tabData.get(message.tabId).nodes.get(message.id).length - 1
 						}
-						modules.Util.iterateMap(nodeInstances.get(message.id), (tabId, instance) => {
+						modules.Util.iterateMap(nodeInstances.get(message.id), (tabId) => {
 							try {
 								tabData.get(tabId).nodes.get(message.id).forEach((tabInstance, index, arr) => {
 									if (tabId === message.tabId && index === arr.length - 1) {
@@ -312,7 +314,7 @@ export namespace GlobalDeclarations {
 			return Infinity;
 		}
 
-		async function reCreateNode (parentId: string|number, node: ContextMenuItemTreeItem, changes: {
+		async function reCreateNode (parentId: string|number, item: ContextMenuItemTreeItem, changes: {
 			[contextMenuId: string]: {
 				node: CRM.Node;
 				type: 'hide' | 'show';
@@ -322,11 +324,11 @@ export namespace GlobalDeclarations {
 				type: 'hide' | 'show';
 			}
 		}) {
-			const oldId = node.id;
-			node.enabled = true;
-			const { settings } = modules.crmValues.contextMenuInfoById.get(node.id);
-			if (node.node && node.node.type === 'stylesheet' && node.node.value.toggle) {
-				settings.checked = node.node.value.defaultOn;
+			const oldId = item.id;
+			item.enabled = true;
+			const { settings } = modules.crmValues.contextMenuInfoById.get(item.id);
+			if (item.node && item.node.type === 'stylesheet' && item.node.value.toggle) {
+				settings.checked = item.node.value.defaultOn;
 			}
 			settings.parentId = parentId;
 
@@ -335,17 +337,17 @@ export namespace GlobalDeclarations {
 			const id = await browserAPI.contextMenus.create(settings);
 
 			//Update ID
-			node.id = id;
-			if (node.node) {
-				modules.crmValues.contextMenuIds.set(node.node.id, id);
+			item.id = id;
+			if (item.node) {
+				modules.crmValues.contextMenuIds.set(item.node.id, id);
 			}
 			modules.crmValues.contextMenuInfoById.set(id, 
 				modules.crmValues.contextMenuInfoById.get(oldId));
 			modules.crmValues.contextMenuInfoById.delete(oldId);
 			modules.crmValues.contextMenuInfoById.get(id).enabled = true;
 
-			if (node.children) {
-				await buildSubTreeFromNothing(id, node.children, changes);
+			if (item.children) {
+				await buildSubTreeFromNothing(id, item.children, changes);
 			}
 		}
 
@@ -533,7 +535,7 @@ export namespace GlobalDeclarations {
 			});
 		}
 
-		function getContextmenuTabOverrides(nodeId: number, tabId: number): ContextMenuOverrides {
+		function getContextmenuTabOverrides(nodeId: CRM.GenericNodeId, tabId: TabId): ContextMenuOverrides {
 			const statuses = modules.crmValues.nodeTabStatuses;
 			if (!statuses.has(nodeId) || !statuses.get(nodeId)) {
 				return null;
@@ -546,7 +548,7 @@ export namespace GlobalDeclarations {
 		}
 
 		async function tabChangeListener(changeInfo: {
-			tabIds: number[];
+			tabIds: TabId[];
 			windowId?: number;
 		}) {
 			//Horrible workaround that allows the hiding of nodes on certain url's that
@@ -606,7 +608,7 @@ export namespace GlobalDeclarations {
 					checked: typeof currentValue === 'boolean' ?
 						currentValue : defaultCheckedValue
 				} : null;
-				const overrides = getContextmenuTabOverrides(~~nodeId, currentTabId);
+				const overrides = getContextmenuTabOverrides(nodeId, currentTabId);
 
 				if (!base && !overrides) {
 					return true;
@@ -632,7 +634,7 @@ export namespace GlobalDeclarations {
 			});
 		}
 
-		function onTabUpdated(id: number, changeInfo: {
+		function onTabUpdated(id: TabId, changeInfo: {
 			status?: 'loading'|'complete';
 			url?: string;
 			pinned?: boolean;
@@ -658,17 +660,17 @@ export namespace GlobalDeclarations {
 				}
 		}
 
-		function onTabsRemoved(tabId: number) {
+		function onTabsRemoved(tabId: TabId) {
 			//Delete all data for this tabId
 			modules.Util.iterateMap(modules.crmValues.nodeTabStatuses, (_, nodeStatus) => {
 				nodeStatus.tabs.delete(tabId);
 			});
 
 			//Delete this instance if it exists
-			const deleted: number[] = [];
+			const deleted: CRM.GenericNodeId[] = [];
 			modules.Util.iterateMap(modules.crmValues.nodeInstances, (nodeId, nodeStatus) => {
 				if (nodeStatus && nodeStatus.has(tabId)) {
-					deleted.push((nodeId as any) as number);
+					deleted.push(nodeId);
 					nodeStatus.delete(tabId);
 				}
 			});
@@ -793,7 +795,7 @@ export namespace GlobalDeclarations {
 			const split = details.url
 				.split(`https://www.localhost.io/resource/`)[1].split('/');
 			const name = split[0];
-			const scriptId = ~~split[1];
+			const scriptId = ~~split[1] as CRM.NodeId<CRM.ScriptNode>;
 			return {
 				redirectUrl: getResourceData(name, scriptId)
 			};
@@ -806,7 +808,7 @@ export namespace GlobalDeclarations {
 		setupResourceProxy();
 	}
 
-	export function getResourceData(name: string, scriptId: number) {
+	export function getResourceData(name: string, scriptId: CRM.NodeId<CRM.ScriptNode>) {
 		if (modules.storages.resources.get(scriptId)[name] &&
 			modules.storages.resources.get(scriptId)[name].matchesHashes) {
 				return modules.storages.urlDataPairs.get(

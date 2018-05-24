@@ -286,12 +286,12 @@ export namespace CRMAPICall {
 			}
 		}
 		async moveNode(node: CRM.Node, position: {
-			node?: number;
+			node?: CRM.GenericNodeId;
 			relation?: 'firstChild' | 'firstSibling' | 'lastChild' | 'lastSibling' | 'before' |
 			'after';
 		}, removeOld?: {
 			children: CRM.Node[];
-			id: number;
+			id: CRM.GenericNodeId;
 		}): Promise<false | CRM.Node> {
 			const crmFunction = this;
 
@@ -393,24 +393,24 @@ export namespace CRMAPICall {
 			return node;
 		}
 
-		getNodeFromId(id: number, makeSafe: true, synchronous: true, _forceValid: true): CRM.SafeNode;
-		getNodeFromId(id: number, makeSafe: true, synchronous: true, _forceValid: boolean): CRM.SafeNode | false;
-		getNodeFromId(id: number, makeSafe: true, synchronous: true): CRM.SafeNode | false;
-		getNodeFromId(id: number, makeSafe: true, synchronous: false): GetNodeFromIdCallback<CRM.SafeNode>;
-		getNodeFromId(id: number, makeSafe: false, synchronous: true, _forceValid: true): CRM.Node;
-		getNodeFromId(id: number, makeSafe: false, synchronous: true, _forceValid: boolean): CRM.Node | false;
-		getNodeFromId(id: number, makeSafe: false, synchronous: true): CRM.Node | false;
-		getNodeFromId(id: number, makeSafe: false, synchronous: false): GetNodeFromIdCallback<CRM.SafeNode>;
-		getNodeFromId(id: number, makeSafe: boolean, synchronous: boolean): GetNodeFromIdCallback<CRM.Node>|GetNodeFromIdCallback<CRM.SafeNode> | CRM.Node | CRM.SafeNode | false;
-		getNodeFromId(id: number, makeSafe: boolean, synchronous: true, _forceValid: true): CRM.Node | CRM.SafeNode;
-		getNodeFromId(id: number, makeSafe: boolean, synchronous: true, _forceValid: boolean): CRM.Node | CRM.SafeNode | false;
-		getNodeFromId(id: number, makeSafe: boolean, synchronous: true): CRM.Node | CRM.SafeNode | false;
-		getNodeFromId(id: number, makeSafe: boolean, synchronous: false): GetNodeFromIdCallback<CRM.Node>|GetNodeFromIdCallback<CRM.SafeNode>;
-		getNodeFromId(id: number, makeSafe: boolean): GetNodeFromIdCallback<CRM.Node>|GetNodeFromIdCallback<CRM.SafeNode>;
-		getNodeFromId(id: number, makeSafe: true): GetNodeFromIdCallback<CRM.SafeNode>;
-		getNodeFromId(id: number, makeSafe: false): GetNodeFromIdCallback<CRM.Node>;
-		getNodeFromId(id: number): GetNodeFromIdCallback<CRM.Node>;
-		getNodeFromId(id: number, makeSafe: boolean = false, synchronous: boolean = false, _forceValid = false):
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: true, synchronous: true, _forceValid: true): CRM.SafeNode;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: true, synchronous: true, _forceValid: boolean): CRM.SafeNode | false;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: true, synchronous: true): CRM.SafeNode | false;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: true, synchronous: false): GetNodeFromIdCallback<CRM.SafeNode>;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: false, synchronous: true, _forceValid: true): CRM.Node;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: false, synchronous: true, _forceValid: boolean): CRM.Node | false;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: false, synchronous: true): CRM.Node | false;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: false, synchronous: false): GetNodeFromIdCallback<CRM.SafeNode>;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: boolean, synchronous: boolean): GetNodeFromIdCallback<CRM.Node>|GetNodeFromIdCallback<CRM.SafeNode> | CRM.Node | CRM.SafeNode | false;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: boolean, synchronous: true, _forceValid: true): CRM.Node | CRM.SafeNode;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: boolean, synchronous: true, _forceValid: boolean): CRM.Node | CRM.SafeNode | false;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: boolean, synchronous: true): CRM.Node | CRM.SafeNode | false;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: boolean, synchronous: false): GetNodeFromIdCallback<CRM.Node>|GetNodeFromIdCallback<CRM.SafeNode>;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: boolean): GetNodeFromIdCallback<CRM.Node>|GetNodeFromIdCallback<CRM.SafeNode>;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: true): GetNodeFromIdCallback<CRM.SafeNode>;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: false): GetNodeFromIdCallback<CRM.Node>;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId): GetNodeFromIdCallback<CRM.Node>;
+		getNodeFromId(id: CRM.GenericNodeId|CRM.GenericSafeNodeId, makeSafe: boolean = false, synchronous: boolean = false, _forceValid = false):
 			GetNodeFromIdCallback<CRM.Node> | GetNodeFromIdCallback<CRM.SafeNode> | CRM.Node | CRM.SafeNode | false {
 			const node = (makeSafe ? modules.crm.crmByIdSafe : modules.crm.crmById).get(id);
 			if (node) {

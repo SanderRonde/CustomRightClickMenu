@@ -2,9 +2,9 @@
 /// <reference path="../../../tools/definitions/specialJSON.d.ts" />
 /// <reference path="../polyfills/weakmap.ts" />
 interface CRMAPIMessageInstance<T, TD> {
-	id: number;
-	tabId: number;
-	tabIndex: number;
+	id: CRM.GenericNodeId;
+	tabId: TabId;
+	tabIndex: TabIndex;
 	type: T;
 	data: TD;
 	onFinish: any;
@@ -12,9 +12,9 @@ interface CRMAPIMessageInstance<T, TD> {
 }
 
 interface LogListenerLine {
-	id: number | string;
-	tabId: number | string;
-	tabInstanceIndex: number;
+	id: CRM.GenericNodeId | string;
+	tabId: TabId | string;
+	tabInstanceIndex: TabIndex;
 	nodeTitle?: string;
 	tabTitle?: string;
 	data?: LogLineData[];
@@ -45,6 +45,16 @@ interface LogLineData {
 }
 
 /**
+ * The ID of a tab
+ */
+type TabId = number;
+
+/**
+ * The ID of a node's instances on a tab
+ */
+type TabIndex = number;
+
+/**
  * A log line listener
  */
 type LogListener = (newLine: LogListenerLine) => void;
@@ -60,15 +70,15 @@ interface LogListenerObject {
 	/**
 	 * The node ID for which to show messages
 	 */
-	id: number | string;
+	id: CRM.GenericNodeId | string;
 	/**
 	 * The tab ID for which to show messages
 	 */
-	tab: number | string;
+	tab: TabId | string;
 	/**
 	 * A function that can be used to update the filters etc
 	 */
-	update: (id: string | number, tab: string | number, tabIndex: number, textFilter: string) => LogListenerLine[];
+	update: (id: string | CRM.GenericNodeId, tab: string | TabId, tabIndex: TabIndex, textFilter: string) => LogListenerLine[];
 	/**
 	 * The text to filter for
 	 */
@@ -76,7 +86,7 @@ interface LogListenerObject {
 	/**
 	 * The tab index to filter for
 	 */
-	index: number;
+	index: TabIndex;
 }
 
 /**
@@ -86,7 +96,7 @@ interface TabData {
 	/**
 	 * The ID of the tab
 	 */
-	id: number | 'background';
+	id: TabId | 'background';
 	/**
 	 * The title of the tab
 	 */
@@ -98,7 +108,7 @@ interface TabData {
  */
 interface ContextMenuItemTreeItem {
 	/**
-	 * The index of thisitem in its parent's children
+	 * The index of this item in its parent's children
 	 */
 	index: number;
 	/**
@@ -245,11 +255,11 @@ interface MessageLogging {
 		/**
 		 * The node ID for which to show logs
 		 */
-		id: number;
+		id: CRM.GenericNodeId;
 		/**
 		 * The tab ID for which to show logs
 		 */
-		tabId: number;
+		tabId: TabId;
 	};
 }
 
@@ -259,18 +269,18 @@ type BackgroundpageWindow = Window & SharedWindow & {
 	createHandlerFunction: (port: {
 		postMessage: (message: Object) => void;
 	}|_browser.runtime.Port) => (message: any) => Promise<void>;
-	backgroundPageLog: (id: number, sourceData: [string, number], ...params: any[]) => void;
+	backgroundPageLog: (id: CRM.GenericNodeId, sourceData: [string, number], ...params: any[]) => void;
 	filter: (nodeId: any, tabId: any) => void;
-	_getCurrentTabIndex: (id: number, currentTab: number|'background', callback: (newTabIndexes: number[]) => void) => void;
-	_getIdsAndTabs: (selectedId: number, selectedTab: number|'background', callback: (result: {
+	_getCurrentTabIndex: (id: CRM.GenericNodeId, currentTab: TabId|'background', callback: (newTabIndexes: TabIndex[]) => void) => void;
+	_getIdsAndTabs: (selectedId: CRM.GenericNodeId, selectedTab: TabId|'background', callback: (result: {
 		ids: {
-			id: string|number;
+			id: string|CRM.GenericNodeId;
 			title: string;
 		}[];
 		tabs: TabData[];
 	}) => void) => void;
 	_listenIds: (listener: (newIds: {
-		id: number;
+		id: CRM.GenericNodeId;
 		title: string;
 	}[]) => void) => void;
 	_listenTabs: (listener: (newTabs: TabData[]) => void) => void;
@@ -357,7 +367,7 @@ interface BGStorages {
 		/**
 		 * The script that uses it
 		 */
-		scriptId: number;
+		scriptId: CRM.NodeId<CRM.ScriptNode>;
 	}[];
 	/**
 	 * An object with URLs as keys and resources as values
@@ -370,7 +380,7 @@ interface BGStorages {
 		/**
 		 * All nodes that use this resource
 		 */
-		refs: number[];
+		refs: CRM.GenericNodeId[];
 		/**
 		 * A data URI
 		 */
@@ -383,15 +393,15 @@ interface BGStorages {
 	/**
 	 * Nodes' storage. Indexed by ID
 	 */
-	nodeStorage: Map<number, any>;
+	nodeStorage: Map<CRM.GenericNodeId, any>;
 	/**
 	 * Nodes' storage. Indexed by ID
 	 */
-	nodeStorageSync: Map<number, any>;
+	nodeStorageSync: Map<CRM.GenericNodeId, any>;
 	/**
 	 * Registered resources by the script ID
 	 */
-	resources: Map<number, CRM.CRMResources>;
+	resources: Map<CRM.GenericNodeId, CRM.CRMResources>;
 	/**
 	 * Any messages about scripts trying to access permissions they don't have
 	 */
@@ -400,7 +410,7 @@ interface BGStorages {
 	 * Tab lookups that failed as a result of inaccessible pages such as
 	 * chrome extension pages, file:// pages etc
 	 */
-	failedLookups: (number|string)[];
+	failedLookups: (TabId|string)[];
 }
 
 interface SandboxWorkerInterface {
@@ -418,7 +428,7 @@ interface BGBackground {
 	/**
 	 * The background pages ordered by node ID
 	 */
-	byId: Map<number, SandboxWorkerInterface>;
+	byId: Map<CRM.GenericNodeId, SandboxWorkerInterface>;
 }
 
 /**
@@ -432,7 +442,7 @@ interface BGCRM {
 	/**
 	 * CRM nodes ordered by ID
 	 */
-	crmById: Map<number, CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode>;
+	crmById: CRMStore;
 	/**
 	 * The CRM tree made safe (stripped of all sensitive data)
 	 */
@@ -440,7 +450,7 @@ interface BGCRM {
 	/**
 	 * Safe CRM nodes ordered by ID
 	 */
-	crmByIdSafe: Map<number, CRM.SafeNode>;
+	crmByIdSafe: SafeCRMStore;
 }
 
 interface ContextMenuCreateProperties {
@@ -480,7 +490,7 @@ interface UserAddedContextMenu {
 	/**
 	 * The node that created this contextmenu item
 	 */
-	sourceNodeId: number;
+	sourceNodeId: CRM.GenericNodeId;
 	/**
 	 * The properties that were used to create this contextmenu item
 	 */
@@ -541,11 +551,11 @@ interface BGCRMValues {
 	/**
 	 * Tab-specific data
 	 */
-	tabData: Map<number, {
+	tabData: Map<TabId, {
 		/**
 		 * The nodes that are currently running on this tab by ID
 		 */
-		nodes: Map<number, {
+		nodes: Map<CRM.GenericNodeId, {
 			/**
 			 * The secret key for this CRM API instance
 			 */
@@ -573,15 +583,15 @@ interface BGCRMValues {
 	/**
 	 * Contextmenu IDs by the node ID that created them
 	 */
-	contextMenuIds: Map<number, string|number>;
+	contextMenuIds: Map<CRM.GenericNodeId, string|number>;
 	/**
 	 * All active instances of nodes by node ID
 	 */
-	nodeInstances: Map<number, 
+	nodeInstances: Map<CRM.GenericNodeId, 
 		/**
 		 * All instances of this node by their tab ID
 		 */
-		Map<number, {
+		Map<TabId, {
 			/**
 			 * Whether this instance has a handler associated with it yet
 			 */
@@ -619,11 +629,11 @@ interface BGCRMValues {
 	/**
 	 * Contextmenu settings overrides for items on all tabs (global) by the node ID
 	 */
-	contextMenuGlobalOverrides: Map<number, ContextMenuOverrides>;
+	contextMenuGlobalOverrides: Map<CRM.GenericNodeId, ContextMenuOverrides>;
 	/**
 	 * Data about on which pages to show or hide contextmenu items by ID
 	 */
-	hideNodesOnPagesData: Map<number, {
+	hideNodesOnPagesData: Map<CRM.GenericNodeId, {
 		/**
 		 * Whether to not show the node on given URL
 		 */
@@ -636,11 +646,11 @@ interface BGCRMValues {
 	/**
 	 * Info about the status of a node on given tab by ID
 	 */
-	nodeTabStatuses: Map<number, {
+	nodeTabStatuses: Map<CRM.GenericNodeId, {
 		/**
 		 * Data by each tab the node is running in
 		 */
-		tabs: Map<number, {
+		tabs: Map<TabId, {
 			/**
 			 * Whether the checkbox is checked
 			 */
@@ -669,7 +679,7 @@ interface ToExecuteNode {
 	/**
 	 * The ID of the node
 	 */
-	id: number;
+	id: CRM.GenericNodeId;
 }
 
 interface ToExecuteListener {
@@ -700,7 +710,7 @@ interface BGToExecute {
 /**
  * A function used to send a response as a callback to a page
  */
-type SendCallbackMessage = (tabId: number, tabIndex: number, id: number, data: {
+type SendCallbackMessage = (tabId: TabId, tabIndex: TabIndex, id: CRM.GenericNodeId, data: {
 	err: boolean,
 	errorMessage?: string;
 	args?: any[];
@@ -751,16 +761,16 @@ interface Globals {
 			/**
 			 * The ID of the node that created the notification
 			 */
-			id: number;
+			id: CRM.GenericNodeId;
 			/**
 			 * The ID of the tab from which a node created the notification
 			 */
-			tabId: number;
+			tabId: TabId;
 			/**
 			 * The index of the script on the tab that created it (if 3 instances
 			 * of the script are running, their tabIndexes are 0, 1 and 2 respectively)
 			 */
-			tabIndex: number;
+			tabIndex: TabIndex;
 			/**
 			 * The ID of the notification
 			 */
@@ -862,7 +872,7 @@ interface BGListeners {
 		/**
 		 * The ID of this node
 		 */
-		id: number;
+		id: CRM.GenericNodeId;
 		/**
 		 * The name of this node
 		 */
@@ -879,7 +889,7 @@ interface BGListeners {
 		/**
 		 * The node ID
 		 */
-		id: number;
+		id: CRM.GenericNodeId;
 		/**
 		 * The name of the node
 		 */

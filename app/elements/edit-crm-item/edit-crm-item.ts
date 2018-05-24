@@ -144,7 +144,7 @@ namespace EditCrmItemElement {
 		private static _initRootNode(this: EditCrmItem) {
 			this.item = window.app.templates.getDefaultDividerNode({
 				name: 'Custom Menu',
-				id: -1,
+				id: -1 as CRM.NodeId<CRM.DividerNode>,
 				index: -1,
 				path: [-1],
 				onContentTypes: [true, true, true, true, true, true]

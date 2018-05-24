@@ -80,8 +80,8 @@ export namespace APIMessaging {
 	export function sendThroughComm(message: BrowserHandler.ChromeAPIMessage|BrowserHandler.BrowserAPIMessage) {
 		const instancesObj = modules.crmValues.nodeInstances.get(message.id);
 		const instancesArr: {
-			id: number;
-			tabIndex: number;
+			id: TabId;
+			tabIndex: TabIndex;
 			instance: {
 				hasHandler: boolean;
 			}
