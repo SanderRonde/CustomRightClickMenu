@@ -657,8 +657,18 @@ interface BGCRMValues {
 	}>;
 }
 
+/**
+ * A descriptor for a node that should execute on document start/end
+ * basically a cut-down version of a CRM node
+ */
 interface ToExecuteNode {
+	/**
+	 * The triggers for this node to run
+	 */
 	triggers: CRM.Trigger[];
+	/**
+	 * The ID of the node
+	 */
 	id: number;
 }
 
