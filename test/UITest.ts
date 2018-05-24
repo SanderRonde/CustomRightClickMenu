@@ -296,12 +296,40 @@ function getAdditionalCapabilities() {
 	return getBrowserExtensionData().getCapabilities();
 }
 
+async function enableTestLogging() {
+	await driver.executeScript(inlineFn(() => {
+		BrowserAPI && BrowserAPI.enableLogging();
+	}));
+	await executeAsyncScript(inlineAsyncFn((ondone, onreject) => {
+		let done: boolean;
+		if (window.browserAPI) {
+			window.browserAPI.runtime.getBackgroundPage().then((page: Window & {
+				BrowserAPI: typeof BrowserAPI;
+			}) => {
+				page && page.BrowserAPI && page.BrowserAPI.enableLogging();
+				done = true;
+				ondone(null);
+			}).catch(() => {
+				onreject(null);
+			});
+		} else {
+			ondone(null);
+		}
+		window.setTimeout(() => {
+			if (!done) {
+				ondone(null);
+			}
+		}, 5000);
+	}));
+}
+
 async function openTestPageURL(capabilities: BrowserstackCapabilities) {
 	if (TEST_EXTENSION) {
 		await getExtensionDataOnly().openOptionsPage(driver, capabilities);
 	} else {
 		await driver.get(`http://localhost:${PORT}/build/html/UITest.html#test-noBackgroundInfo`);
 	}
+	await enableTestLogging();
 }
 
 before('Driver connect', async function() {
@@ -606,6 +634,7 @@ async function doFullRefresh(__this?: Mocha.ISuiteCallbackContext|Mocha.IHookCal
 	__this && __this.timeout(120000 * TIME_MODIFIER);
 
 	await driver.navigate().refresh();
+	await enableTestLogging();
 	await waitFor(() => {
 		return driver.executeScript(inlineFn(() => {
 			return window.polymerElementsLoaded;
@@ -1092,6 +1121,7 @@ describe('User entrypoints', function() {
 		describe('Loading', function() {
 			it('should finish loading', async function() {
 				this.timeout(600000 * TIME_MODIFIER);
+				this.slow(15000);
 				await openTestPageURL(browserCapabilities);
 				currentTestWindow = await driver.getWindowHandle();
 
