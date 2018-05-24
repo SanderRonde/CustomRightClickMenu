@@ -2068,7 +2068,7 @@ export namespace CRMNodes.NodeCreation {
 			id: number|string;
 		}) {
 			if (options.documentUrlPatterns) {
-				console.log('An error occurred with your context menu,' + 
+				window.log('An error occurred with your context menu,' + 
 					' attempting again with no url matching.', e);
 				delete options.documentUrlPatterns;
 				idHolder.id = await browserAPI.contextMenus.create(options, async () => {
