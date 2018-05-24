@@ -22,32 +22,62 @@ export namespace Global {
 			resources: null
 		},
 		background: {
-			byId: {}
+			byId: new window.Map<number, SandboxWorkerInterface>()
 		},
 		crm: {
 			crmTree: [],
-			crmById: {},
+			crmById: new window.Map<number, 
+				CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | 
+				CRM.StylesheetNode | CRM.ScriptNode>(),
 			safeTree: [],
-			crmByIdSafe: {}
+			crmByIdSafe:new window.Map<number, CRM.SafeNode>()
 		},
 		availablePermissions: [],
 		crmValues: {
-			tabData: {
-				0: {
-					nodes: {},
-					libraries: {}
-				}
-			},
+			tabData: new window.Map<number, {
+				nodes: Map<number, {
+					secretKey: number[];
+					port?: _browser.runtime.Port | {
+						postMessage(message: Object): void;
+					};
+					usesLocalStorage: boolean;
+				}[]>;
+				libraries: Map<string, boolean>;
+			}>([[0, {
+				nodes: new window.Map<number, {
+					secretKey: number[];
+					port?: _browser.runtime.Port | {
+						postMessage(message: Object): void;
+					};
+					usesLocalStorage: boolean;
+				}[]>(),
+				libraries: new window.Map<string, boolean>()
+			}]]),
 			rootId: null,
-			contextMenuIds: {},
-			nodeInstances: {},
-			contextMenuInfoById: {},
+			contextMenuIds: new window.Map<number, string|number>(),
+			nodeInstances: new window.Map<number, Map<number, {
+				hasHandler: boolean;
+			}[]>>(),
+			contextMenuInfoById: new window.Map<string|number, {
+				path: number[];
+				settings: ContextMenuSettings;
+				enabled: boolean;
+			}>(),
 			contextMenuItemTree: [],
 			userAddedContextMenus: [],
-			userAddedContextMenusById: {},
-			contextMenuGlobalOverrides: {},
-			hideNodesOnPagesData: {},
-			nodeTabStatuses: {}
+			userAddedContextMenusById: new window.Map<string|number, UserAddedContextMenu>(),
+			contextMenuGlobalOverrides: new window.Map<number, ContextMenuOverrides>(),
+			hideNodesOnPagesData: new window.Map<number, {
+				not: boolean;
+				url: string;
+			}[]>(),
+			nodeTabStatuses: new window.Map<number, {
+				tabs: Map<number, {
+					checked?: boolean;
+					overrides?: ContextMenuOverrides;
+				}>;
+				defaultCheckedValue?: boolean;
+			}>()
 		},
 		toExecuteNodes: {
 			onUrl: {
@@ -74,21 +104,31 @@ export namespace Global {
 
 			const tabData = globals.crmValues.tabData;
 			try {
-				modules.Util.postMessage(tabData[tabId].nodes[id][tabIndex].port, message);
+				modules.Util.postMessage(tabData.get(tabId).nodes.get(id)[tabIndex].port, message);
 			} catch (e) {
 				if (e.message === 'Converting circular structure to JSON') {
 					message.data = 'Converting circular structure to JSON, ' + 
 						'getting a response from this API will not work';
 					message.type = 'error';
-					modules.Util.postMessage(tabData[tabId].nodes[id][tabIndex].port, message);
+					modules.Util.postMessage(tabData.get(tabId).nodes.get(id)[tabIndex].port, message);
 				} else {
 					throw e;
 				}
 			}
 		},
 		eventListeners: {
-			notificationListeners: {},
-			shortcutListeners: {}
+			notificationListeners: new window.Map<string, {
+				id: number;
+				tabId: number;
+				tabIndex: number;
+				notificationId: number;
+				onDone: number;
+				onClick: number;
+			}>(),
+			shortcutListeners: new window.Map<string, {
+				shortcut: string;
+				callback(): void;
+			}[]>()
 		},
 		logging: {
 			filter: {

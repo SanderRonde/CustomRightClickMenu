@@ -40,33 +40,36 @@ export namespace CRMAPIFunctions.contextMenuItem {
 		override: ContextMenuOverrides, update: ContextMenuUpdateProperties,
 		allTabs: boolean) {
 			if (!allTabs) {
-				if (!(nodeId in modules.crmValues.nodeTabStatuses)) {
-					modules.crmValues.nodeTabStatuses[nodeId] = {
-						[tabId]: {
+				if (!modules.crmValues.nodeTabStatuses.has(nodeId)) {
+					modules.crmValues.nodeTabStatuses.set(nodeId, {
+						tabs: new window.Map<number, {
+							checked?: boolean;
+							overrides?: ContextMenuOverrides;
+						}>([[tabId, {
 							overrides: {}
-						}
-					};
-				} else if (!(tabId in modules.crmValues.nodeTabStatuses[nodeId])) {
-					modules.crmValues.nodeTabStatuses[nodeId][tabId] = {
+						}]])
+					});
+				} else if (!modules.crmValues.nodeTabStatuses.get(nodeId).tabs.has(tabId)) {
+					modules.crmValues.nodeTabStatuses.get(nodeId).tabs.set(tabId, {
 						overrides: {}
-					};
-				} else if (!modules.crmValues.nodeTabStatuses[nodeId][tabId].overrides) {
-					modules.crmValues.nodeTabStatuses[nodeId][tabId].overrides = {};
+					});
+				} else if (!modules.crmValues.nodeTabStatuses.get(nodeId).tabs.get(tabId).overrides) {
+					modules.crmValues.nodeTabStatuses.get(nodeId).tabs.get(tabId).overrides = {};
 				}
 			} else {
-				modules.crmValues.contextMenuGlobalOverrides[nodeId] = 
-					modules.crmValues.contextMenuGlobalOverrides[nodeId] || {};
+				modules.Util.setMapDefault(modules.crmValues.contextMenuGlobalOverrides,
+					nodeId, {});
 			}
 			const destination = allTabs ?
-				modules.crmValues.contextMenuGlobalOverrides[nodeId] :
-				modules.crmValues.nodeTabStatuses[nodeId][tabId].overrides;
+				modules.crmValues.contextMenuGlobalOverrides.get(nodeId) :
+				modules.crmValues.nodeTabStatuses.get(nodeId).tabs.get(tabId).overrides;
 				
 			for (const key in override) {
 				const overrideKey = key as keyof ContextMenuOverrides;
 				destination[overrideKey] = override[overrideKey];
 			}
 
-			const contextmenuId = modules.crmValues.contextMenuIds[nodeId];
+			const contextmenuId = modules.crmValues.contextMenuIds.get(nodeId);
 			if (!contextmenuId) {
 				return;
 			}
@@ -116,10 +119,10 @@ export namespace CRMAPIFunctions.contextMenuItem {
 				allTabs?: boolean;
 			};
 
-			const globalOverride = modules.crmValues.contextMenuGlobalOverrides[__this.message.id];
-			const tabOverride = (modules.crmValues.nodeTabStatuses[__this.message.id] &&
-				modules.crmValues.nodeTabStatuses[__this.message.id][__this.message.tabId] &&
-				modules.crmValues.nodeTabStatuses[__this.message.id][__this.message.tabId].overrides) || {};
+			const globalOverride = modules.crmValues.contextMenuGlobalOverrides.get(__this.message.id);
+			const tabOverride = (modules.crmValues.nodeTabStatuses.get(__this.message.id) &&
+				modules.crmValues.nodeTabStatuses.get(__this.message.id).tabs.get(__this.message.tabId) &&
+				modules.crmValues.nodeTabStatuses.get(__this.message.id).tabs.get(__this.message.tabId).overrides) || {};
 			const joinedOverrides = {...globalOverride, ...tabOverride};
 
 			const shouldConvertToCheckbox = joinedOverrides.type !== 'checkbox' && 
@@ -283,7 +286,7 @@ export namespace CRMAPIFunctions.crm {
 		__this.checkPermissions(['crmGet'], () => {
 			const nodeId = __this.message.data.nodeId;
 			if (typeof nodeId === 'number') {
-				const node = modules.crm.crmByIdSafe[nodeId];
+				const node = modules.crm.crmByIdSafe.get(nodeId);
 				if (node) {
 					__this.respondSuccess([node]);
 				} else {
@@ -298,7 +301,7 @@ export namespace CRMAPIFunctions.crm {
 		__this.checkPermissions(['crmGet'], () => {
 			const nodeId = __this.message.data.nodeId;
 			if (typeof nodeId === 'number') {
-				const node = modules.crm.crmByIdSafe[nodeId];
+				const node = modules.crm.crmByIdSafe.get(nodeId);
 				if (node) {
 					__this.respondSuccess(node);
 				} else {
@@ -354,10 +357,10 @@ export namespace CRMAPIFunctions.crm {
 					name: string;
 				};
 
-				const crmArray = [];
-				for (let id in modules.crm.crmById) {
-					crmArray.push(modules.crm.crmByIdSafe[id]);
-				}
+				const crmArray: CRM.Node[] = [];
+				modules.Util.iterateMap(modules.crm.crmById, (_, node) => {
+					crmArray.push(node);
+				});
 
 				let searchScope = null as any;
 				if (optionals['query.inSubTree']) {
@@ -660,8 +663,8 @@ export namespace CRMAPIFunctions.crm {
 
 				const parentChildren = __this.lookup(node.path, modules.crm.crmTree, true) as CRM.Node[];
 				parentChildren.splice(node.path[node.path.length - 1], 1);
-				if (modules.crmValues.contextMenuIds[node.id] !== undefined) {
-					await browserAPI.contextMenus.remove(modules.crmValues.contextMenuIds[node.id]);
+				if (modules.crmValues.contextMenuIds.get(node.id) !== undefined) {
+					await browserAPI.contextMenus.remove(modules.crmValues.contextMenuIds.get(node.id));
 					await modules.CRMNodes.updateCrm([__this.message.data.nodeId]);
 					__this.respondSuccess(true);
 				} else {
@@ -761,7 +764,7 @@ export namespace CRMAPIFunctions.crm {
 					node.showOnSpecified = true;
 					await modules.CRMNodes.updateCrm();
 					const matchPatterns: string[] = [];
-					modules.crmValues.hideNodesOnPagesData[node.id] = [];
+					modules.crmValues.hideNodesOnPagesData.set(node.id, []);
 					if ((node.type === 'script' || node.type === 'stylesheet') &&
 						node.value.launchMode === CRMLaunchModes.RUN_ON_SPECIFIED) {
 							for (const trigger of triggers) {
@@ -782,7 +785,7 @@ export namespace CRMAPIFunctions.crm {
 							url = modules.URLParsing.prepareTrigger(url);
 							if (isShowOnSpecified) {
 								if (not) {
-									modules.crmValues.hideNodesOnPagesData[node.id].push({
+									modules.crmValues.hideNodesOnPagesData.get(node.id).push({
 										not: false,
 										url
 									});
@@ -796,9 +799,9 @@ export namespace CRMAPIFunctions.crm {
 					if (matchPatterns.length === 0) {
 						matchPatterns[0] = '<all_urls>';
 					}
-					if (modules.crmValues.contextMenuIds[node.id]) {
+					if (modules.crmValues.contextMenuIds.has(node.id)) {
 						await browserAPI.contextMenus.update(
-							modules.crmValues.contextMenuIds[node.id], {
+							modules.crmValues.contextMenuIds.get(node.id), {
 								documentUrlPatterns: matchPatterns
 							});
 					}
@@ -835,9 +838,9 @@ export namespace CRMAPIFunctions.crm {
 						node.type === 'divider') {
 							node.showOnSpecified = msg.useTriggers;
 							await modules.CRMNodes.updateCrm();
-							if (modules.crmValues.contextMenuIds[node.id]) {
+							if (modules.crmValues.contextMenuIds.has(node.id)) {
 								browserAPI.contextMenus.update(
-									modules.crmValues.contextMenuIds[node.id], {
+									modules.crmValues.contextMenuIds.get(node.id), {
 										documentUrlPatterns: ['<all_urls>']
 									});
 							}
@@ -887,7 +890,7 @@ export namespace CRMAPIFunctions.crm {
 					node.onContentTypes[msg.index as number] = msg.value;
 					await modules.CRMNodes.updateCrm();
 					await browserAPI.contextMenus.update(
-						modules.crmValues.contextMenuIds[node.id], {
+						modules.crmValues.contextMenuIds.get(node.id), {
 							contexts: modules.CRMNodes.getContexts(node.onContentTypes)
 						});
 					await modules.CRMNodes.updateCrm();
@@ -930,7 +933,7 @@ export namespace CRMAPIFunctions.crm {
 
 					node.onContentTypes = contentTypes;
 					await browserAPI.contextMenus.update(
-						modules.crmValues.contextMenuIds[node.id], {
+						modules.crmValues.contextMenuIds.get(node.id), {
 							contexts: modules.CRMNodes.getContexts(node.onContentTypes)
 						});
 					await modules.CRMNodes.updateCrm();
@@ -1884,7 +1887,7 @@ export namespace CRMAPIFunctions.crm.background {
 			const shortcuts = modules.globalObject.globals.
 				eventListeners.shortcutListeners;
 			const key = msg.key.toLowerCase();
-			shortcuts[key] = shortcuts[key] || [];
+			modules.Util.setMapDefault(shortcuts, key, []);
 			const listenerObject = {
 				shortcut: key,
 				callback: () => {
@@ -1892,12 +1895,12 @@ export namespace CRMAPIFunctions.crm.background {
 						__this.respondSuccess();
 					} catch (e) {
 						//Port/tab was closed
-						const index = shortcuts[key].indexOf(listenerObject);
-						shortcuts[key].splice(index, 1);
+						const index = shortcuts.get(key).indexOf(listenerObject);
+						shortcuts.get(key).splice(index, 1);
 					}
 				}
 			};
-			shortcuts[key].push(listenerObject);
+			shortcuts.get(key).push(listenerObject);
 		});
 	}
 }

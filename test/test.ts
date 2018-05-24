@@ -11,6 +11,7 @@ process.on('unhandledRejection', err => {
 // @ts-ignore
 const mochaSteps = require('mocha-steps');
 const step: Mocha.ITestDefinition = mochaSteps.step;
+const Map: typeof MapPolyfill = (global as any).Map;
 import * as request from 'request';
 import { assert } from 'chai';
 import * as path from 'path';
@@ -2690,12 +2691,12 @@ describe('CRMAPI', () => {
 		step('CrmAPIInit class can be created', () => {
 			let result;
 			assert.doesNotThrow(() => {
-				window.globals.crmValues.tabData[0].nodes[node.id] = [{
+				window.globals.crmValues.tabData.get(0).nodes.set(node.id, [{
 					secretKey: secretKey,
 					usesLocalStorage: false
-				}];
+				}]);
 				window.globals.availablePermissions = ['sessions'];
-				window.globals.crm.crmById[2] = node;
+				window.globals.crm.crmById.set(2, node);
 
 				//Actual code
 				var code = 'new (window._crmAPIRegistry.pop())(' +
@@ -2843,13 +2844,13 @@ describe('CRMAPI', () => {
 					};
 					var secretKey = createSecretKey();
 					assert.doesNotThrow(() => {
-						window.globals.crmValues.tabData[tabId] = {
-							nodes: { },
-							libraries: {}
-						};
-						window.globals.crmValues.tabData[tabId].nodes[node.id] = 
-							window.globals.crmValues.tabData[tabId].nodes[node.id] || [];
-						window.globals.crmValues.tabData[tabId].nodes[node.id].push({
+						window.globals.crmValues.tabData.set(tabId, {
+							nodes: new Map(),
+							libraries: new Map()
+						});
+						window.globals.crmValues.tabData.get(tabId).nodes.set(node.id,
+							window.globals.crmValues.tabData.get(tabId).nodes.get(node.id) || []);
+						window.globals.crmValues.tabData.get(tabId).nodes.get(node.id).push({
 							secretKey: secretKey,
 							usesLocalStorage: false
 						});
@@ -2858,7 +2859,7 @@ describe('CRMAPI', () => {
 						var code = 'new (window._crmAPIRegistry.pop())(' +
 							[node, node.id, tabData, clickData, secretKey, {
 								testKey: createSecretKey() }, {}, greaseMonkeyData, false, {}, false, 
-								window.globals.crmValues.tabData[tabId].nodes[node.id].length - 1, 
+								window.globals.crmValues.tabData.get(tabId).nodes.get(node.id).length - 1, 
 								'abcdefg', 'browser,chrome']
 							.map(function(param) {
 								if (param === void 0) {
@@ -3207,8 +3208,8 @@ describe('CRMAPI', () => {
 						url: 'http://www.somesite.com'
 					}]
 				});
-				assert.isDefined(window.globals.crm.crmById[node.id], 'node exists in crmById');
-				assert.isDefined(window.globals.crm.crmByIdSafe[node.id], 'node exists in crmByIdSafe');
+				assert.isDefined(window.globals.crm.crmById.get(node.id), 'node exists in crmById');
+				assert.isDefined(window.globals.crm.crmByIdSafe.get(node.id), 'node exists in crmByIdSafe');
 				assert.isDefined(window.globals.crm.crmTree[node.path[0]], 'node is in the crm tree');
 				assert.isDefined(window.globals.crm.safeTree[node.path[0]], 'node is in the safe crm tree');
 			});
@@ -3451,17 +3452,17 @@ describe('CRMAPI', () => {
 					crmByIdEntries++;
 				}
 				assert.strictEqual(crmByIdEntries, 1, 'crmById is almost empty');
-				assert.isDefined(window.globals.crm.crmById[2], 'current node is still defined');
-				assert.isObject(window.globals.crm.crmById[2], 'current node is object');
+				assert.isDefined(window.globals.crm.crmById.get(2), 'current node is still defined');
+				assert.isObject(window.globals.crm.crmById.get(2), 'current node is object');
 
 				var comparisonCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
 				comparisonCopy.path = [0];
-				assert.deepEqual(window.globals.crm.crmByIdSafe[2], comparisonCopy, 
+				assert.deepEqual(window.globals.crm.crmByIdSafe.get(2), comparisonCopy, 
 						'remaining node matches expected');
 			});
 			it('should remove passed node when it\'s a valid node id (menu)', async () => {
 				await crmAPI.crm.deleteNode(safeTestCRMTree[5].children[0].id);
-				assert.isUndefined(window.globals.crm.crmById[safeTestCRMTree[5].children[0].id], 
+				assert.isUndefined(window.globals.crm.crmById.get(safeTestCRMTree[5].children[0].id), 
 					'removed node is removed from crmById');
 				assert.isUndefined((window.globals.crm.crmTree[5] as CRM.MenuNode).children[0], 
 					'removed node is removed from crmTree');
@@ -3574,9 +3575,13 @@ describe('CRMAPI', () => {
 			});
 
 			it('should correctly get the triggers for all nodes', async () => {
-				for (const nodeId in window.globals.crm.crmByIdSafe) {
-					const { id, triggers } = window.globals.crm.crmByIdSafe[nodeId];
-					const callTriggers = await crmAPI.crm.getTriggers(id);
+				const pairs: [number, CRM.SafeNode][] = [];
+				window.globals.crm.crmByIdSafe.forEach((node, nodeId) => {
+					pairs.push([nodeId, node]);
+				});
+				for (const [ nodeId, node] of pairs) {
+					const { triggers } = node;
+					const callTriggers = await crmAPI.crm.getTriggers(nodeId);
 					assert.deepEqual(callTriggers, triggers,
 						'triggers match expected');
 				}
@@ -4689,13 +4694,13 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(async () => {
 					await crmAPI.contextMenuItem.setType('checkbox');
 
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID),
 						'node specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID),
 						'tab specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides,
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides,
 						'override object was created');
-					assert.deepEqual(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides, {
+					assert.deepEqual(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides, {
 						type: 'checkbox'
 					}, 'type was overridden');
 				}, 'setting type does not throw');
@@ -4704,9 +4709,9 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(async () => {
 					await crmAPI.contextMenuItem.setType('separator', true);
 
-					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID],
+					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID),
 						'node specific status was created');
-					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID], {
+					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID), {
 						type: 'separator'
 					}, 'type was overridden');
 				}, 'setting type does not throw');
@@ -4719,12 +4724,12 @@ describe('CRMAPI', () => {
 					'setting type throws if type is incorrect');
 			});
 			afterEach('Clear Override', () => {
-				window.globals.crmValues.nodeTabStatuses[NODE_ID] && 
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID] &&
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides && 
-					(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides = {});
-				window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] &&
-					(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] = {});
+				window.globals.crmValues.nodeTabStatuses.get(NODE_ID) && 
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID) &&
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides && 
+					(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides = {});
+				window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID) &&
+					(window.globals.crmValues.contextMenuGlobalOverrides.set(NODE_ID, {}));
 			});
 		});
 		describe('#setChecked()', () => {
@@ -4732,13 +4737,13 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(async () => {
 					await crmAPI.contextMenuItem.setChecked(true);
 
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID),
 						'node specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID),
 						'tab specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides,
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides,
 						'override object was created');
-					assertDeepContains(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides, {
+					assertDeepContains(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides, {
 						checked: true
 					}, 'checked status was overridden');
 				}, 'setting checked status does not throw');
@@ -4747,9 +4752,9 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(async () => {
 					await crmAPI.contextMenuItem.setChecked(false, true);
 
-					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID],
+					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID),
 						'node specific status was created');
-					assertDeepContains(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID], {
+					assertDeepContains(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID), {
 						checked: false
 					}, 'checked status was overridden');
 				}, 'setting checked status does not throw');
@@ -4758,9 +4763,9 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(async () => {
 					await crmAPI.contextMenuItem.setChecked(true, true);
 
-					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID],
+					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID),
 						'node specific status was created');
-					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID], {
+					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID), {
 						checked: true,
 						type: 'checkbox'
 					}, 'type was changed to checkbox');
@@ -4771,21 +4776,21 @@ describe('CRMAPI', () => {
 					await crmAPI.contextMenuItem.setType('radio');
 					await crmAPI.contextMenuItem.setChecked(true, true);
 
-					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID],
+					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID),
 						'node specific status was created');
-					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID], {
+					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID), {
 						checked: true,
 						type: 'radio'
 					}, 'type was not changed');
 				}, 'setting checked status does not throw');
 			});
 			afterEach('Clear Override', () => {
-				window.globals.crmValues.nodeTabStatuses[NODE_ID] && 
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID] &&
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides && 
-					(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides = {});
-				window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] &&
-					(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] = {});
+				window.globals.crmValues.nodeTabStatuses.get(NODE_ID) && 
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID) &&
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides && 
+					(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides = {});
+				window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID) &&
+					(window.globals.crmValues.contextMenuGlobalOverrides.set(NODE_ID, {}));
 			});
 		});
 		describe('#setContentTypes()', () => {
@@ -4793,13 +4798,13 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(async () => {
 					await crmAPI.contextMenuItem.setContentTypes(['page']);
 
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID),
 						'node specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID),
 						'tab specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides,
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides,
 						'override object was created');
-					assert.deepEqual(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides, {
+					assert.deepEqual(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides, {
 						contentTypes: ['page']
 					}, 'content type was overridden');
 				}, 'setting content types does not throw');
@@ -4808,9 +4813,9 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(async () => {
 					await crmAPI.contextMenuItem.setContentTypes(['audio'], true);
 
-					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID],
+					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID),
 						'node specific status was created');
-					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID], {
+					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID), {
 						contentTypes: ['audio']
 					}, 'content type was overridden');
 				}, 'setting content types does not throw');
@@ -4823,12 +4828,12 @@ describe('CRMAPI', () => {
 					'setting content types throws if type is incorrect');
 			});
 			afterEach('Clear Override', () => {
-				window.globals.crmValues.nodeTabStatuses[NODE_ID] && 
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID] &&
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides && 
-					(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides = {});
-				window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] &&
-					(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] = {});
+				window.globals.crmValues.nodeTabStatuses.get(NODE_ID) && 
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID) &&
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides && 
+					(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides = {});
+				window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID) &&
+					(window.globals.crmValues.contextMenuGlobalOverrides.set(NODE_ID, {}));
 			});
 		});
 		describe('#setVisiblity()', () => {
@@ -4836,13 +4841,13 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(async () => {
 					await crmAPI.contextMenuItem.setVisibility(true);
 
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID),
 						'node specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID),
 						'tab specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides,
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides,
 						'override object was created');
-					assert.deepEqual(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides, {
+					assert.deepEqual(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides, {
 						isVisible: true
 					}, 'visibility was overridden');
 				}, 'setting type does not throw');
@@ -4851,20 +4856,20 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(async () => {
 					await crmAPI.contextMenuItem.setVisibility(false, true);
 
-					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID],
+					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID),
 						'node specific status was created');
-					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID], {
+					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID), {
 						isVisible: false
 					}, 'visibility was overridden');
 				}, 'setting type does not throw');
 			});
 			afterEach('Clear Override', () => {
-				window.globals.crmValues.nodeTabStatuses[NODE_ID] && 
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID] &&
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides && 
-					(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides = {});
-				window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] &&
-					(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] = {});
+				window.globals.crmValues.nodeTabStatuses.get(NODE_ID) && 
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID) &&
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides && 
+					(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides = {});
+				window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID) &&
+					(window.globals.crmValues.contextMenuGlobalOverrides.set(NODE_ID, {}));
 			});
 		});
 		describe('#setDisabled()', () => {
@@ -4872,13 +4877,13 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(async () => {
 					await crmAPI.contextMenuItem.setDisabled(true);
 
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID),
 						'node specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID),
 						'tab specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides,
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides,
 						'override object was created');
-					assert.deepEqual(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides, {
+					assert.deepEqual(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides, {
 						isDisabled: true
 					}, 'disabled status was overridden');
 				}, 'setting type does not throw');
@@ -4887,20 +4892,20 @@ describe('CRMAPI', () => {
 				await asyncDoesNotThrow(async () => {
 					await crmAPI.contextMenuItem.setDisabled(false, true);
 
-					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID],
+					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID),
 						'node specific status was created');
-					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID], {
+					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID), {
 						isDisabled: false
 					}, 'disabled status was overridden');
 				}, 'setting type does not throw');
 			});
 			afterEach('Clear Override', () => {
-				window.globals.crmValues.nodeTabStatuses[NODE_ID] && 
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID] &&
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides && 
-					(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides = {});
-				window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] &&
-					(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] = {});
+				window.globals.crmValues.nodeTabStatuses.get(NODE_ID) && 
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID) &&
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides && 
+					(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides = {});
+				window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID) &&
+					(window.globals.crmValues.contextMenuGlobalOverrides.set(NODE_ID, {}));
 			});
 		});
 		describe('#setName()', () => {
@@ -4909,13 +4914,13 @@ describe('CRMAPI', () => {
 					const name = generateRandomString();
 					await crmAPI.contextMenuItem.setName(name);
 
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID),
 						'node specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID),
 						'tab specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides,
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides,
 						'override object was created');
-					assert.deepEqual(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides, {
+					assert.deepEqual(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides, {
 						name
 					}, 'name was overridden');
 				}, 'setting type does not throw');
@@ -4925,20 +4930,20 @@ describe('CRMAPI', () => {
 					const name = generateRandomString();
 					await crmAPI.contextMenuItem.setName(name, true);
 
-					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID],
+					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID),
 						'node specific status was created');
-					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID], {
+					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID), {
 						name
 					}, 'name was overridden');
 				}, 'setting type does not throw');
 			});
 			afterEach('Clear Override', () => {
-				window.globals.crmValues.nodeTabStatuses[NODE_ID] && 
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID] &&
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides && 
-					(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides = {});
-				window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] &&
-					(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] = {});
+				window.globals.crmValues.nodeTabStatuses.get(NODE_ID) && 
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID) &&
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides && 
+					(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides = {});
+				window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID) &&
+					(window.globals.crmValues.contextMenuGlobalOverrides.set(NODE_ID, {}));
 			});
 		});
 		describe('#resetName()', () => {
@@ -4948,13 +4953,13 @@ describe('CRMAPI', () => {
 					await crmAPI.contextMenuItem.setName(changedName);
 					await crmAPI.contextMenuItem.resetName();
 
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID),
 						'node specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID],
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID),
 						'tab specific status was created');
-					assert.exists(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides,
+					assert.exists(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides,
 						'override object was created');
-					assert.deepEqual(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides, {
+					assert.deepEqual(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides, {
 						name: NODE_NAME
 					}, 'name was reset');
 				}, 'setting type does not throw');
@@ -4965,20 +4970,20 @@ describe('CRMAPI', () => {
 					await crmAPI.contextMenuItem.setName(changedName, true);
 					await crmAPI.contextMenuItem.resetName(true);
 
-					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID],
+					assert.exists(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID),
 						'node specific status was created');
-					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID], {
+					assert.deepEqual(window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID), {
 						name: NODE_NAME
 					}, 'name was overridden');
 				}, 'setting type does not throw');
 			});
 			afterEach('Clear Override', () => {
-				window.globals.crmValues.nodeTabStatuses[NODE_ID] && 
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID] &&
-					window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides && 
-					(window.globals.crmValues.nodeTabStatuses[NODE_ID][TAB_ID].overrides = {});
-				window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] &&
-					(window.globals.crmValues.contextMenuGlobalOverrides[NODE_ID] = {});
+				window.globals.crmValues.nodeTabStatuses.get(NODE_ID) && 
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID) &&
+					window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides && 
+					(window.globals.crmValues.nodeTabStatuses.get(NODE_ID).tabs.get(TAB_ID).overrides = {});
+				window.globals.crmValues.contextMenuGlobalOverrides.get(NODE_ID) &&
+					(window.globals.crmValues.contextMenuGlobalOverrides.set(NODE_ID, {}));
 			});
 		});
 	});

@@ -224,7 +224,7 @@ export namespace BrowserHandler.ForbiddenCalls {
 	function isCreatedByCurrentNode(message: ChromeAPIMessage|BrowserAPIMessage) {
 		const id = getTargetId(message);
 		const byId = modules.crmValues.userAddedContextMenusById;
-		return byId[id] && byId[id].sourceNodeId === message.id;
+		return byId.has(id) && byId.get(id).sourceNodeId === message.id;
 	}
 	function getTargetId(message: ChromeAPIMessage|BrowserAPIMessage) {
 		return message.args[0].val;
@@ -252,7 +252,7 @@ export namespace BrowserHandler.ForbiddenCalls {
 		parent.children.splice(parent.children.indexOf(descriptor), 1);
 
 		//Remove from ById
-		delete modules.crmValues.userAddedContextMenusById[generatedId];
+		modules.crmValues.userAddedContextMenusById.delete(generatedId);
 
 		//Remove children
 		for (const child of children) {
@@ -282,7 +282,7 @@ export namespace BrowserHandler.ForbiddenCalls {
 			if (isCreatedByCurrentNode(message)) {
 				const id = getTargetId(message);
 				await removeContextMenuItem(
-					modules.crmValues.userAddedContextMenusById[id])
+					modules.crmValues.userAddedContextMenusById.get(id))
 				respondSuccess(message, 1, []);
 			} else {
 				respondError(message, 
@@ -303,9 +303,9 @@ export namespace BrowserHandler.ForbiddenCalls {
 			const byId = modules.crmValues.userAddedContextMenusById;
 			const createProperties = message.args[0].val;
 			const { parentId } = createProperties;
-			if (parentId && byId[parentId]) {
+			if (parentId && byId.has(parentId)) {
 				//Map mapped value to actual value
-				createProperties.parentId = byId[parentId].actualId;
+				createProperties.parentId = byId.get(parentId).actualId;
 			}
 			const actualId = await browserAPI.contextMenus.create(createProperties, 
 				modules.CRMNodes.handleUserAddedContextMenuErrors);
@@ -318,12 +318,12 @@ export namespace BrowserHandler.ForbiddenCalls {
 				generatedId: fakeId,
 				createProperties,
 				children: [],
-				parent: parentId ? byId[parentId] : null
+				parent: parentId ? byId.get(parentId) : null
 			};
 			modules.crmValues.userAddedContextMenus.push(descriptor);
-			byId[fakeId] = descriptor;
+			byId.set(fakeId, descriptor);
 			if (parentId) {
-				byId[parentId].children.push(descriptor);
+				byId.get(parentId).children.push(descriptor);
 			}
 		} else {
 			//Let it be handled normally
@@ -449,7 +449,7 @@ export namespace BrowserHandler {
 	}
 
 	function hasPermission(message: ChromeAPIMessage|BrowserAPIMessage, apiPermission: CRM.Permission) {
-		const node = modules.crm.crmById[message.id];
+		const node = modules.crm.crmById.get(message.id);
 		if (!node.isLocal) {
 			let apiFound: boolean;
 			let baseFound = node.permissions.indexOf('chrome') !== -1 || 

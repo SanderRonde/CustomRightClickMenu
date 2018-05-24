@@ -57,20 +57,20 @@ export namespace Resources {
 	function getUrlData(scriptId: number, url: string, callback: (dataURI: string,
 		dataString: string) => void) {
 		//First check if the data has already been fetched
-		if (modules.storages.urlDataPairs[url]) {
-			if (modules.storages.urlDataPairs[url].refs.indexOf(scriptId) === -1) {
-				modules.storages.urlDataPairs[url].refs.push(scriptId);
+		if (modules.storages.urlDataPairs.get(url)) {
+			const dataPairs = modules.storages.urlDataPairs.get(url);
+			if (dataPairs.refs.indexOf(scriptId) === -1) {
+				dataPairs.refs.push(scriptId);
 			}
-			callback(modules.storages.urlDataPairs[url].dataURI,
-				modules.storages.urlDataPairs[url].dataString);
+			callback(dataPairs.dataURI, dataPairs.dataString);
 		} else {
 			modules.Util.convertFileToDataURI(url, (dataURI, dataString) => {
 				//Write the data away to the url-data-pairs object
-				modules.storages.urlDataPairs[url] = {
+				modules.storages.urlDataPairs.set(url, {
 					dataURI: dataURI,
 					dataString: dataString,
 					refs: [scriptId]
-				};
+				});
 				callback(dataURI, dataString);
 			});
 		}
@@ -164,8 +164,8 @@ export namespace Resources {
 		if (window.navigator.onLine) {
 			getUrlData(scriptId, url, (dataURI, dataString) => {
 				const resources = modules.storages.resources;
-				resources[scriptId] = resources[scriptId] || {};
-				resources[scriptId][name] = {
+				modules.Util.setMapDefault(resources, scriptId, {});
+				resources.get(scriptId)[name] = {
 					name: name,
 					sourceUrl: url,
 					dataURI: dataURI,
@@ -175,8 +175,8 @@ export namespace Resources {
 					crmUrl: `https://www.localhost.io/resource/${scriptId}/${name}`
 				};
 				browserAPI.storage.local.set({
-					resources: resources,
-					urlDataPairs: modules.storages.urlDataPairs
+					resources: modules.Util.fromMap(resources),
+					urlDataPairs: modules.Util.fromMap(modules.storages.urlDataPairs)
 				});
 			});
 		}
@@ -206,31 +206,31 @@ export namespace Resources {
 					break;
 				}
 		}
-		if (!modules.storages.resources[scriptId] ||
-			!modules.storages.resources[scriptId][name] ||
-			!modules.storages.resources[scriptId][name].sourceUrl) {
+		if (!modules.storages.resources.has(scriptId) ||
+			!modules.storages.resources.get(scriptId)[name] ||
+			!modules.storages.resources.get(scriptId)[name].sourceUrl) {
 				//It's already been removed, skip
 				return;
 			}
-		const { sourceUrl } = modules.storages.resources[scriptId][name];
-		const urlDataLink = modules.storages.urlDataPairs[sourceUrl];
+		const { sourceUrl } = modules.storages.resources.get(scriptId)[name];
+		const urlDataLink = modules.storages.urlDataPairs.get(sourceUrl);
 		if (urlDataLink) {
 			urlDataLink.refs.splice(urlDataLink.refs.indexOf(scriptId), 1);
 			if (urlDataLink.refs.length === 0) {
 				//No more refs, clear it
-				delete modules.storages.urlDataPairs[sourceUrl];
+				modules.storages.urlDataPairs.delete(sourceUrl);
 			}
 		}
 		if (modules.storages.resources &&
-			modules.storages.resources[scriptId] &&
-			modules.storages.resources[scriptId][name]) {
-				delete modules.storages.resources[scriptId][name];
+			modules.storages.resources.has(scriptId) &&
+			modules.storages.resources.get(scriptId)[name]) {
+				delete modules.storages.resources.get(scriptId)[name];
 			}
 
 		browserAPI.storage.local.set({
 			resourceKeys: modules.storages.resourceKeys,
-			resources: modules.storages.resources,
-			urlDataPairs: modules.storages.urlDataPairs
+			resources: modules.Util.fromMap(modules.storages.resources),
+			urlDataPairs: modules.Util.fromMap(modules.storages.urlDataPairs)
 		});
 	}
 	function compareResource(key: {
@@ -244,18 +244,19 @@ export namespace Resources {
 	}) {
 		const resources = modules.storages.resources;
 		modules.Util.convertFileToDataURI(key.sourceUrl, (dataURI, dataString) => {
-			if (!(resources[key.scriptId] && resources[key.scriptId][key.name]) ||
-				resources[key.scriptId][key.name].dataURI !== dataURI) {
+			if (!(resources.has(key.scriptId) && resources.get(key.scriptId)[key.name]) ||
+				resources.get(key.scriptId)[key.name].dataURI !== dataURI) {
 					//Check if the hashes still match, if they don't, reject it
-					const resourceData = resources[key.scriptId][key.name];
+					const resourceData = resources.get(key.scriptId)[key.name];
 					if (matchesHashes(resourceData.hashes, dataString)) {
 						//Data URIs do not match, just update the url ref
-						modules.storages.urlDataPairs[key.sourceUrl].dataURI = dataURI;
-						modules.storages.urlDataPairs[key.sourceUrl].dataString = dataString;
+						const data = modules.storages.urlDataPairs.get(key.sourceUrl);
+						data.dataURI = dataURI;
+						data.dataString = dataString;
 
 						browserAPI.storage.local.set({
-							resources: resources,
-							urlDataPairs: modules.storages.urlDataPairs
+							resources: modules.Util.fromMap(resources),
+							urlDataPairs: modules.Util.fromMap(modules.storages.urlDataPairs)
 						});
 					}
 				}

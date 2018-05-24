@@ -308,6 +308,15 @@ interface MatchPattern {
 	invalid?: boolean;
 }
 
+type ObjectifiedMap<K, V> = K extends string ? {
+	[key: string]: V;
+} : K extends number ? {
+	[key: number]: V;
+} : {
+	[key: string]: V;
+	[key: number]: V;
+}
+
 /**
  * Storage data
  */
@@ -353,25 +362,20 @@ interface BGStorages {
 	/**
 	 * An object with URLs as keys and resources as values
 	 */
-	urlDataPairs: {
+	urlDataPairs: Map<string, {
 		/**
-		 * A resource data object
+		 * The data in string form
 		 */
-		[url: string]: {
-			/**
-			 * The data in string form
-			 */
-			dataString: string;
-			/**
-			 * All nodes that use this resource
-			 */
-			refs: number[];
-			/**
-			 * A data URI
-			 */
-			dataURI: string;
-		};
-	};
+		dataString: string;
+		/**
+		 * All nodes that use this resource
+		 */
+		refs: number[];
+		/**
+		 * A data URI
+		 */
+		dataURI: string;
+	}>;
 	/**
 	 * The local storage data (not synced)
 	 */
@@ -379,30 +383,15 @@ interface BGStorages {
 	/**
 	 * Nodes' storage. Indexed by ID
 	 */
-	nodeStorage: {
-		/**
-		 * The storage for given node Id
-		 */
-		[nodeId: number]: any;
-	};
+	nodeStorage: Map<number, any>;
 	/**
 	 * Nodes' storage. Indexed by ID
 	 */
-	nodeStorageSync: {
-		/**
-		 * The storage for given node Id
-		 */
-		[nodeId: number]: any;
-	};
+	nodeStorageSync: Map<number, any>;
 	/**
 	 * Registered resources by the script ID
 	 */
-	resources: 	{
-		/**
-		* A script's resources by name
-		*/
-		[scriptId: number]: CRM.CRMResources;
-	}
+	resources: Map<number, CRM.CRMResources>;
 	/**
 	 * Any messages about scripts trying to access permissions they don't have
 	 */
@@ -429,12 +418,7 @@ interface BGBackground {
 	/**
 	 * The background pages ordered by node ID
 	 */
-	byId: {
-		/**
-		 * The sandbox worker for this node ID
-		 */
-		[nodeId: number]: SandboxWorkerInterface;
-	};
+	byId: Map<number, SandboxWorkerInterface>;
 }
 
 /**
@@ -448,12 +432,7 @@ interface BGCRM {
 	/**
 	 * CRM nodes ordered by ID
 	 */
-	crmById: {
-		/**
-		 * The CRM node for this ID
-		 */
-		[id: number]: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
-	};
+	crmById: Map<number, CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode>;
 	/**
 	 * The CRM tree made safe (stripped of all sensitive data)
 	 */
@@ -461,12 +440,7 @@ interface BGCRM {
 	/**
 	 * Safe CRM nodes ordered by ID
 	 */
-	crmByIdSafe: {
-		/**
-		 * The safe CRM node for this ID
-		 */
-		[id: number]: CRM.SafeNode;
-	};
+	crmByIdSafe: Map<number, CRM.SafeNode>;
 }
 
 interface ContextMenuCreateProperties {
@@ -567,46 +541,31 @@ interface BGCRMValues {
 	/**
 	 * Tab-specific data
 	 */
-	tabData: {
+	tabData: Map<number, {
 		/**
-		 * The data for given tab
+		 * The nodes that are currently running on this tab by ID
 		 */
-		[tabId: number]: {
+		nodes: Map<number, {
 			/**
-			 * The nodes that are currently running on this tab by ID
+			 * The secret key for this CRM API instance
 			 */
-			nodes: {
-				/**
-				 * An instance of a CRM script
-				 */
-				[nodeId: number]: {
-					/**
-					 * The secret key for this CRM API instance
-					 */
-					secretKey: number[];
-					/**
-					 * The runtime.port object associated with it
-					 */
-					port?: _browser.runtime.Port | {
-						postMessage(message: Object): void;
-					};
-					/**
-					 * Whether this instance uses local storage
-					 */
-					usesLocalStorage: boolean;
-				}[];
+			secretKey: number[];
+			/**
+			 * The runtime.port object associated with it
+			 */
+			port?: _browser.runtime.Port | {
+				postMessage(message: Object): void;
 			};
 			/**
-			 * Any libraries that are active on the tab by name
+			 * Whether this instance uses local storage
 			 */
-			libraries: {
-				/**
-				 * Whether given library is active on this page (true if it is)
-				 */
-				[library: string]: boolean;
-			};
-		};
-	};
+			usesLocalStorage: boolean;
+		}[]>;
+		/**
+		 * Any libraries that are active on the tab by name
+		 */
+		libraries: Map<string, boolean>;
+	}>;
 	/**
 	 * The ID of the root contextmenu item
 	 */
@@ -614,70 +573,37 @@ interface BGCRMValues {
 	/**
 	 * Contextmenu IDs by the node ID that created them
 	 */
-	contextMenuIds: {
-		/**
-		 * The ID of the contextmenu item
-		 */
-		[nodeId: number]: string|number;
-	};
+	contextMenuIds: Map<number, string|number>;
 	/**
 	 * All active instances of nodes by node ID
 	 */
-	nodeInstances: {
+	nodeInstances: Map<number, 
 		/**
-		 * All instances of this node by their instance ID
+		 * All instances of this node by their tab ID
 		 */
-		[nodeId: number]: {
+		Map<number, {
 			/**
-			 * Instances by their instance ID
+			 * Whether this instance has a handler associated with it yet
 			 */
-			[instanceId: number]: {
-				/**
-				 * Whether this instance has a handler associated with it yet
-				 */
-				hasHandler: boolean;
-			}[];
-		};
-	};
+			hasHandler: boolean;
+		}[]>>;
 	/**
 	 * Info about a contextmenu item by contextmenu item ID
 	 */
-	contextMenuInfoById: {
+	contextMenuInfoById: Map<string|number, {
 		/**
-		 * Data about this contextmenu item
+		 * The path to this item as an array of numbers
 		 */
-		[contextMenuId: number]: {
-			/**
-			 * The path to this item as an array of numbers
-			 */
-			path: number[];
-			/**
-			 * The settings used to create this contextmenu item
-			 */
-			settings: ContextMenuSettings;
-			/**
-			 * Whether this contextmenu item is enabled
-			 */
-			enabled: boolean;
-		};
+		path: number[];
 		/**
-		 * Data about this contextmenu item
+		 * The settings used to create this contextmenu item
 		 */
-		[contextMenuId: string]: {
-			/**
-			 * The path to this item as an array of numbers
-			 */
-			path: number[];
-			/**
-			 * The settings used to create this contextmenu item
-			 */
-			settings: ContextMenuSettings;
-			/**
-			 * Whether this contextmenu item is enabled
-			 */
-			enabled: boolean;
-		};
-	};
+		settings: ContextMenuSettings;
+		/**
+		 * Whether this contextmenu item is enabled
+		 */
+		enabled: boolean;
+	}>;
 	/**
 	 * The contextmenu items in tree form
 	 */
@@ -689,81 +615,62 @@ interface BGCRMValues {
 	/**
 	 * Contextmenus added by the user sorted by their mapped ID
 	 */
-	userAddedContextMenusById: {
-		/**
-		 * The contextmenu item that was added by the user
-		 */
-		[mappedId: string]: UserAddedContextMenu;
-		/**
-		 * The contextmenu item that was added by the user
-		 */
-		[mappedId: number]: UserAddedContextMenu;
-	},
+	userAddedContextMenusById: Map<string|number, UserAddedContextMenu>;
 	/**
 	 * Contextmenu settings overrides for items on all tabs (global) by the node ID
 	 */
-	contextMenuGlobalOverrides: {
-		/**
-		 * The override settings
-		 */
-		[nodeId: number]: ContextMenuOverrides;
-	},
+	contextMenuGlobalOverrides: Map<number, ContextMenuOverrides>;
 	/**
 	 * Data about on which pages to show or hide contextmenu items by ID
 	 */
-	hideNodesOnPagesData: {
+	hideNodesOnPagesData: Map<number, {
 		/**
-		 * A configuration about the URL and whether to hide the node on it
+		 * Whether to not show the node on given URL
 		 */
-		[nodeId: number]: {
-			/**
-			 * Whether to not show the node on given URL
-			 */
-			not: boolean;
-			/**
-			 * The URL on which to show or not show the node
-			 */
-			url: string;
-		}[];
-	};
+		not: boolean;
+		/**
+		 * The URL on which to show or not show the node
+		 */
+		url: string;
+	}[]>;
 	/**
 	 * Info about the status of a node on given tab by ID
 	 */
-	nodeTabStatuses: {
+	nodeTabStatuses: Map<number, {
 		/**
-		 * The data about given node by tab ID
+		 * Data by each tab the node is running in
 		 */
-		[nodeId: number]: {
+		tabs: Map<number, {
 			/**
-			 * Data by each tab the node is running in
+			 * Whether the checkbox is checked
 			 */
-			[tabId: number]: {
-				/**
-				 * Whether the checkbox is checked
-				 */
-				checked?: boolean;
-				/**
-				 * Tab-specific contextmenu overrides
-				 */
-				overrides?: ContextMenuOverrides;
-			};
+			checked?: boolean;
 			/**
-			 * The default checked status of the node
+			 * Tab-specific contextmenu overrides
 			 */
-			defaultCheckedValue?: boolean;
-		};
-	};
+			overrides?: ContextMenuOverrides;
+		}>;
+		/**
+		 * The default checked status of the node
+		 */
+		defaultCheckedValue?: boolean;
+	}>;
+}
+
+interface ToExecuteNode {
+	triggers: CRM.Trigger[];
+	id: number;
 }
 
 interface ToExecuteListener {
 	/**
 	 * The nodes to run on document start (before loading is done)
 	 */
-	documentStart: CRM.Node[];
+	documentStart: ToExecuteNode[];
 	/**
 	 * The nodes to run on document end (on contentscript load)
 	 */
-	documentEnd: CRM.Node[];
+	documentEnd: ToExecuteNode[];
 }
 
 /**
@@ -830,56 +737,46 @@ interface Globals {
 		/**
 		 * Event listeners for the browser.notifications API
 		 */
-		notificationListeners: {
+		notificationListeners: Map<string|number, {
 			/**
-			 * The notification's data
+			 * The ID of the node that created the notification
 			 */
-			[notificationId: string]: {
-				/**
-				 * The ID of the node that created the notification
-				 */
-				id: number;
-				/**
-				 * The ID of the tab from which a node created the notification
-				 */
-				tabId: number;
-				/**
-				 * The index of the script on the tab that created it (if 3 instances
-				 * of the script are running, their tabIndexes are 0, 1 and 2 respectively)
-				 */
-				tabIndex: number;
-				/**
-				 * The ID of the notification
-				 */
-				notificationId: number;
-				/**
-				 * A callback ID for an onDone listener
-				 */
-				onDone: number;
-				/**
-				 * A callback ID for an onClick listener
-				 */
-				onClick: number;
-			};
-		};
+			id: number;
+			/**
+			 * The ID of the tab from which a node created the notification
+			 */
+			tabId: number;
+			/**
+			 * The index of the script on the tab that created it (if 3 instances
+			 * of the script are running, their tabIndexes are 0, 1 and 2 respectively)
+			 */
+			tabIndex: number;
+			/**
+			 * The ID of the notification
+			 */
+			notificationId: number;
+			/**
+			 * A callback ID for an onDone listener
+			 */
+			onDone: number;
+			/**
+			 * A callback ID for an onClick listener
+			 */
+			onClick: number;
+		}>;
 		/**
 		 * Event listeners for the browser's keyboard shortcut API
 		 */
-		shortcutListeners: {
+		shortcutListeners: Map<string, {
 			/**
-			 * The keyboard shortcut's description
+			 * The keyboard shortcut (as keys)
 			 */
-			[shortcut: string]: {
-				/**
-				 * The keyboard shortcut (as keys)
-				 */
-				shortcut: string;
-				/**
-				 * The function to run when it's pressed
-				 */
-				callback(): void;
-			}[];
-		};
+			shortcut: string;
+			/**
+			 * The function to run when it's pressed
+			 */
+			callback(): void;
+		}[]>;
 	};
 	/**
 	 * Data about script logging for the logging page

@@ -1140,12 +1140,7 @@ declare namespace CRM {
 		/**
 		 * Nodes' storage. Indexed by ID
 		 */
-		nodeStorageSync: {
-			/**
-			 * The storage for given node Id
-			 */
-			[nodeId: number]: any;
-		};
+		nodeStorageSync: ObjectifiedMap<number, any>;
 		
 		indexes?: number;
 		[index: string]: any;
@@ -1332,18 +1327,11 @@ declare namespace CRM {
 		/**
 		 * Registered resources by the script ID
 		 */
-		resources: 	{
-			/**
-			* A script's resources by name
-			*/
-			[scriptId: number]: CRMResources;
-		}
+		resources: ObjectifiedMap<number, CRMResources>;
 		/**
 		 * Storage for all nodes (not synced)
 		 */
-		nodeStorage: {
-			[nodeId: number]: any;
-		}
+		nodeStorage: ObjectifiedMap<number, any>;
 		/**
 		 * Registered resources
 		 */
@@ -1377,25 +1365,20 @@ declare namespace CRM {
 		/**
 		 * An object with URLs as keys and resources as values
 		 */
-		urlDataPairs: {
+		urlDataPairs: ObjectifiedMap<string, {
 			/**
-			 * A resource data object
+			 * The data in string form
 			 */
-			[url: string]: {
-				/**
-				 * The data in string form
-				 */
-				dataString: string;
-				/**
-				 * All nodes that use this resource
-				 */
-				refs: number[];
-				/**
-				 * The original data URI
-				 */
-				dataURI: string;
-			};
-		};
+			dataString: string;
+			/**
+			 * All nodes that use this resource
+			 */
+			refs: number[];
+			/**
+			 * The original data URI
+			 */
+			dataURI: string;
+		}>;
 		/**
 		 * Whether this is not the first time the extension was launched
 		 */

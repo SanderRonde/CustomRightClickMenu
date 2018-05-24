@@ -3624,7 +3624,7 @@ describe('On-Page CRM', function() {
 				await resetSettings(this);
 				await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 					browserAPI.runtime.getBackgroundPage().then((backgroundPage: GlobalObject) => {
-						backgroundPage.globals.crmValues.tabData = {};
+						backgroundPage.globals.crmValues.tabData = new (global as any).Map();
 						window.app.settings.crm = REPLACE.crm;
 						window.app.upload();
 						ondone(null);
@@ -4149,7 +4149,7 @@ describe('On-Page CRM', function() {
 				await resetSettings(this);
 				await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 					browserAPI.runtime.getBackgroundPage().then((backgroundPage: GlobalObject) => {
-						backgroundPage.globals.crmValues.tabData = {};
+						backgroundPage.globals.crmValues.tabData = new (global as any).Map();
 						window.app.settings.crm = REPLACE.crm;
 						window.app.upload();
 						ondone(null);

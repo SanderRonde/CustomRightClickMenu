@@ -30,8 +30,8 @@ export namespace APIMessaging.CRMMessage {
 		} : data);
 		try {
 			const tabData = modules.crmValues.tabData;
-			const nodes = tabData[message.tabId].nodes;
-			const { port } = nodes[message.id][message.tabIndex];
+			const { nodes } = tabData.get(message.tabId);
+			const { port } = nodes.get(message.id)[message.tabIndex];
 			modules.Util.postMessage(port, msg);
 		} catch (e) {
 			if (e.message === 'Converting circular structure to JSON') {
@@ -78,7 +78,7 @@ export namespace APIMessaging {
 		};
 	}
 	export function sendThroughComm(message: BrowserHandler.ChromeAPIMessage|BrowserHandler.BrowserAPIMessage) {
-		const instancesObj = modules.crmValues.nodeInstances[message.id];
+		const instancesObj = modules.crmValues.nodeInstances.get(message.id);
 		const instancesArr: {
 			id: number;
 			tabIndex: number;
@@ -86,17 +86,15 @@ export namespace APIMessaging {
 				hasHandler: boolean;
 			}
 		}[] = [];
-		for (let tabInstance in instancesObj) {
-			if (instancesObj.hasOwnProperty(tabInstance)) {
-				instancesObj[tabInstance].forEach((tabIndexInstance, index) => {
-					instancesArr.push({
-						id: (tabInstance as any) as number,
-						tabIndex: index,
-						instance: instancesObj[tabInstance][index]
-					});
+		modules.Util.iterateMap(instancesObj, (tabId, tabInstance) => {
+			tabInstance.forEach((tabIndexInstance, index) => {
+				instancesArr.push({
+					id: tabId,
+					tabIndex: index,
+					instance: tabIndexInstance
 				});
-			}
-		}
+			});
+		});
 
 		let args: {
 			type: string;
@@ -119,8 +117,8 @@ export namespace APIMessaging {
 
 		for (let i = 0; i < instancesArr.length; i++) {
 			const tabData = modules.crmValues.tabData;
-			const nodes = tabData[instancesArr[i].id].nodes;
-			const { port } = nodes[message.id][instancesArr[i].tabIndex];
+			const nodes = tabData.get(instancesArr[i].id).nodes;
+			const { port } = nodes.get(message.id)[instancesArr[i].tabIndex];
 			modules.Util.postMessage(port, {
 				messageType: 'instanceMessage',
 				message: args[0]

@@ -19,11 +19,10 @@ export namespace GlobalDeclarations {
 				id: number;
 				node: CRM.ScriptNode;
 			}[] = [];
-			for (let id in modules.crm.crmById) {
-				const node = modules.crm.crmById[id];
+			modules.Util.iterateMap(modules.crm.crmById, (id, node) => {
 				const { name } = node;
 				if (!name) {
-					continue;
+					return;
 				}
 				if (node.type === 'script' && searchedName === name.toLowerCase()) {
 					matches.push({
@@ -31,7 +30,7 @@ export namespace GlobalDeclarations {
 						node: node
 					});
 				}
-			}
+			});
 
 			if (matches.length === 0) {
 				window.log('Unfortunately no matches were found, please try again');
@@ -180,8 +179,8 @@ export namespace GlobalDeclarations {
 			if (currentTab === 'background') {
 				listener([0]);
 			} else {
-				listener(modules.crmValues.tabData[currentTab as number]
-					.nodes[id].map((element, index) => {
+				listener(modules.crmValues.tabData.get(currentTab as number)
+					.nodes.get(id).map((element, index) => {
 						return index;
 					}));
 			}
@@ -214,16 +213,14 @@ export namespace GlobalDeclarations {
 				const tabData = crmValues.tabData;
 				const nodeInstances = crmValues.nodeInstances;
 				const tabNodeData = modules.Util.getLastItem(
-					tabData[message.tabId].nodes[message.id]
+					tabData.get(message.tabId).nodes.get(message.id)
 				);
 				if (!tabNodeData.port) {
 					if (modules.Util.compareArray(tabNodeData.secretKey, message.key)) {
 						delete tabNodeData.secretKey;
 						tabNodeData.port = port;
 
-						if (!nodeInstances[message.id]) {
-							nodeInstances[message.id] = {};
-						}
+						modules.Util.setMapDefault(nodeInstances, message.id, new window.Map());
 
 						const instancesArr: {
 							id: number;
@@ -234,39 +231,35 @@ export namespace GlobalDeclarations {
 							tabIndex: number;
 						} = {
 							id: ~~message.tabId,
-							tabIndex: tabData[message.tabId].nodes[message.id].length - 1
+							tabIndex: tabData.get(message.tabId).nodes.get(message.id).length - 1
 						}
-						for (let instance in nodeInstances[message.id]) {
-							if (nodeInstances[message.id].hasOwnProperty(instance) &&
-								nodeInstances[message.id][instance]) {
-
-								try {
-									tabData[instance].nodes[message.id].forEach((tabInstance, index, arr) => {
-										if (~~instance === message.tabId && index === arr.length - 1) {
-											return;
-										}
-										instancesArr.push({
-											id: ~~instance,
-											tabIndex: index
-										});
-										modules.Util.postMessage(tabInstance.port, {
-											change: {
-												type: 'added',
-												value: currentInstance.id,
-												tabIndex: currentInstance.tabIndex
-											},
-											messageType: 'instancesUpdate'
-										});
+						modules.Util.iterateMap(nodeInstances.get(message.id), (tabId, instance) => {
+							try {
+								tabData.get(tabId).nodes.get(message.id).forEach((tabInstance, index, arr) => {
+									if (~~instance === message.tabId && index === arr.length - 1) {
+										return;
+									}
+									instancesArr.push({
+										id: ~~instance,
+										tabIndex: index
 									});
-								} catch (e) {
-									delete nodeInstances[message.id][instance];
-								}
+									modules.Util.postMessage(tabInstance.port, {
+										change: {
+											type: 'added',
+											value: currentInstance.id,
+											tabIndex: currentInstance.tabIndex
+										},
+										messageType: 'instancesUpdate'
+									});
+								});
+							} catch (e) {
+								nodeInstances.get(message.id).delete(tabId);
 							}
-						}
+						});
 
-						nodeInstances[message.id][message.tabId] =
-							nodeInstances[message.id][message.tabId] || [];
-						nodeInstances[message.id][message.tabId].push({
+						modules.Util.setMapDefault(nodeInstances.get(message.id),
+							message.tabId, []);
+						nodeInstances.get(message.id).get(message.tabId).push({
 							hasHandler: false
 						});
 
@@ -331,7 +324,7 @@ export namespace GlobalDeclarations {
 		}) {
 			const oldId = node.id;
 			node.enabled = true;
-			const settings = modules.crmValues.contextMenuInfoById[node.id].settings;
+			const { settings } = modules.crmValues.contextMenuInfoById.get(node.id);
 			if (node.node && node.node.type === 'stylesheet' && node.node.value.toggle) {
 				settings.checked = node.node.value.defaultOn;
 			}
@@ -344,12 +337,12 @@ export namespace GlobalDeclarations {
 			//Update ID
 			node.id = id;
 			if (node.node) {
-				modules.crmValues.contextMenuIds[node.node.id] = id;
+				modules.crmValues.contextMenuIds.set(node.node.id, id);
 			}
-			modules.crmValues.contextMenuInfoById[id] = 
-				modules.crmValues.contextMenuInfoById[oldId];
-			modules.crmValues.contextMenuInfoById[oldId] = undefined;
-			modules.crmValues.contextMenuInfoById[id].enabled = true;
+			modules.crmValues.contextMenuInfoById.set(id, 
+				modules.crmValues.contextMenuInfoById.get(oldId));
+			modules.crmValues.contextMenuInfoById.delete(oldId);
+			modules.crmValues.contextMenuInfoById.get(id).enabled = true;
 
 			if (node.children) {
 				await buildSubTreeFromNothing(id, node.children, changes);
@@ -372,7 +365,7 @@ export namespace GlobalDeclarations {
 						!changes[item.id]) {
 							await reCreateNode(parentId, item, changes);
 						} else {
-							modules.crmValues.contextMenuInfoById[item.id]
+							modules.crmValues.contextMenuInfoById.get(item.id)
 								.enabled = false;
 						}
 				}
@@ -490,19 +483,20 @@ export namespace GlobalDeclarations {
 					//It's one of the options contextmenu items
 					return null;
 				}
-				const hideOn = modules.crmValues.hideNodesOnPagesData[node.id];
-				if (hideOn && modules.URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
-					//Don't hide on current url
-					return {
-						node,
-						id,
-						type: 'hide'
-					} as {
-						node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
-						id: string | number;
-						type: 'hide';
-					};
-				}
+				if (modules.crmValues.hideNodesOnPagesData.has(node.id) && 
+					modules.URLParsing.matchesUrlSchemes(
+						modules.crmValues.hideNodesOnPagesData.get(node.id), tab.url)) {
+							//Don't hide on current url
+							return {
+								node,
+								id,
+								type: 'hide'
+							} as {
+								node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
+								id: string | number;
+								type: 'hide';
+							};
+						}
 				return null;
 			}).filter(val => !!val)
 		}
@@ -517,8 +511,9 @@ export namespace GlobalDeclarations {
 					//It's one of the options contextmenu items
 					return null;
 				}
-				const hideOn = modules.crmValues.hideNodesOnPagesData[node.id];
-				if (!hideOn || !modules.URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
+				if (!modules.crmValues.hideNodesOnPagesData.has(node.id) || 
+					!modules.URLParsing.matchesUrlSchemes(
+						modules.crmValues.hideNodesOnPagesData.get(node.id), tab.url)) {
 					//Don't hide on current url
 					return {
 						node,
@@ -532,20 +527,22 @@ export namespace GlobalDeclarations {
 				}
 				return null;
 			}).filter(val => !!val).filter(({node}) => {
-				const hideOn = modules.crmValues.hideNodesOnPagesData[node.id];
-				return !hideOn || !modules.URLParsing.matchesUrlSchemes(hideOn, tab.url);
+				return !modules.crmValues.hideNodesOnPagesData.has(node.id) || 
+					!modules.URLParsing.matchesUrlSchemes(
+						modules.crmValues.hideNodesOnPagesData.get(node.id), tab.url);
 			});
 		}
 
 		function getContextmenuTabOverrides(nodeId: number, tabId: number): ContextMenuOverrides {
 			const statuses = modules.crmValues.nodeTabStatuses;
-			if (!(nodeId in statuses) || !statuses[nodeId]) {
+			if (!statuses.has(nodeId) || !statuses.get(nodeId)) {
 				return null;
 			}
-			if (!(tabId in statuses[nodeId]) || !statuses[nodeId][tabId]) {
-				return null;
-			}
-			return statuses[nodeId][tabId].overrides;
+			if (!statuses.get(nodeId).tabs.has(tabId) || 
+				!statuses.get(nodeId).tabs.get(tabId)) {
+					return null;
+				}
+			return statuses.get(nodeId).tabs.get(tabId).overrides;
 		}
 
 		async function tabChangeListener(changeInfo: {
@@ -602,26 +599,26 @@ export namespace GlobalDeclarations {
 			const statuses = modules.crmValues.nodeTabStatuses;
 			const ids = modules.crmValues.contextMenuIds;
 
-			for (let nodeId in statuses) {
-				const isStylesheet = modules.crm.crmById[nodeId].type === 'stylesheet';
-				const status = statuses[nodeId];
-				const currentValue = status[currentTabId];
+			modules.Util.asyncIterateMap(statuses, async (nodeId, { tabs, defaultCheckedValue }) => {
+				const isStylesheet = modules.crm.crmById.get(nodeId).type === 'stylesheet';
+				const currentValue = tabs.get(currentTabId);
 				const base = isStylesheet ? {
 					checked: typeof currentValue === 'boolean' ?
-						currentValue : status.defaultCheckedValue
+						currentValue : defaultCheckedValue
 				} : null;
 				const overrides = getContextmenuTabOverrides(~~nodeId, currentTabId);
 
 				if (!base && !overrides) {
-					break;
+					return true;
 				}
 
-				await browserAPI.contextMenus.update(ids[nodeId], 
+				await browserAPI.contextMenus.update(ids.get(nodeId), 
 					modules.Util.applyContextmenuOverride(base || {},
 						overrides || {})).catch((err) => {
 							window.log(err.message);
-						});
-			}
+						})
+				return void 0;
+			});
 		}
 
 		function setupResourceProxy() {
@@ -648,13 +645,14 @@ export namespace GlobalDeclarations {
 		}, tab: _browser.tabs.Tab) {
 			if (changeInfo.status && changeInfo.status === 'loading' &&
 				changeInfo.url && modules.Util.canRunOnUrl(changeInfo.url)) {
-					for (const node of modules.toExecuteNodes.always.documentStart) {
-						modules.CRMNodes.Running.executeNode(node, tab);
+					for (const { id } of modules.toExecuteNodes.always.documentStart) {
+						modules.CRMNodes.Running.executeNode(
+							modules.crm.crmById.get(id), tab);
 					}
-					for (const node of modules.toExecuteNodes.onUrl.documentStart) {
-						const { triggers } = node;
+					for (const { id, triggers } of modules.toExecuteNodes.onUrl.documentStart) {
 						if (modules.URLParsing.matchesUrlSchemes(triggers, tab.url)) {
-							modules.CRMNodes.Running.executeNode(node, tab);
+							modules.CRMNodes.Running.executeNode(
+								modules.crm.crmById.get(id), tab);
 						}
 					}
 				}
@@ -662,47 +660,43 @@ export namespace GlobalDeclarations {
 
 		function onTabsRemoved(tabId: number) {
 			//Delete all data for this tabId
-			for (let node in modules.crmValues.nodeTabStatuses) {
-				if (modules.crmValues.nodeTabStatuses[node]) {
-					modules.crmValues.nodeTabStatuses[node][tabId] = undefined;
-				}
-			}
+			modules.Util.iterateMap(modules.crmValues.nodeTabStatuses, (_, nodeStatus) => {
+				nodeStatus.tabs.delete(tabId);
+			});
 
 			//Delete this instance if it exists
 			const deleted: number[] = [];
-			for (let node in modules.crmValues.nodeInstances) {
-				if (modules.crmValues.nodeInstances[node]) {
-					if (modules.crmValues.nodeInstances[node][tabId]) {
-						deleted.push((node as any) as number);
-						modules.crmValues.nodeInstances[node][tabId] = undefined;
-					}
+			modules.Util.iterateMap(modules.crmValues.nodeInstances, (nodeId, nodeStatus) => {
+				if (nodeStatus && nodeStatus.has(tabId)) {
+					deleted.push((nodeId as any) as number);
+					nodeStatus.delete(tabId);
 				}
-			}
+			});
 
 			for (let i = 0; i < deleted.length; i++) {
 				if ((deleted[i] as any).node && (deleted[i] as any).node.id !== undefined) {
-					modules.crmValues.tabData[tabId].nodes[(deleted[i] as any).node.id].forEach((tabInstance) => {
-						modules.Util.postMessage(tabInstance.port, {
-							change: {
-								type: 'removed',
-								value: tabId
-							},
-							messageType: 'instancesUpdate'
+					modules.crmValues.tabData.get(tabId).nodes.get((deleted[i] as any).node.id)
+						.forEach((tabInstance) => {
+							modules.Util.postMessage(tabInstance.port, {
+								change: {
+									type: 'removed',
+									value: tabId
+								},
+								messageType: 'instancesUpdate'
+							});
 						});
-					});
 				}
 			}
 
-			delete modules.crmValues.tabData[tabId];
+			modules.crmValues.tabData.delete(tabId);
 			modules.Logging.Listeners.updateTabAndIdLists();
 		}
 
 		function listenNotifications() {
-			const notificationListeners = modules.globalObject.globals.eventListeners
-				.notificationListeners;
+			const { notificationListeners } = modules.globalObject.globals.eventListeners;
 			if (browserAPI.notifications) {
 				browserAPI.notifications.onClicked.addListener((notificationId: string) => {
-					const notification = notificationListeners[notificationId];
+					const notification = notificationListeners.get(notificationId);
 					if (notification && notification.onClick !== undefined) {
 						modules.globalObject.globals.sendCallbackMessage(notification.tabId, notification.tabIndex,
 							notification.id, {
@@ -713,7 +707,7 @@ export namespace GlobalDeclarations {
 					}
 				});
 				browserAPI.notifications.onClosed.addListener((notificationId, byUser?) => {
-					const notification = notificationListeners[notificationId];
+					const notification = notificationListeners.get(notificationId);
 					if (notification && notification.onDone !== undefined) {
 						modules.globalObject.globals.sendCallbackMessage(notification.tabId, notification.tabIndex,
 							notification.id, {
@@ -722,7 +716,7 @@ export namespace GlobalDeclarations {
 								callbackId: notification.onClick
 							});
 					}
-					delete notificationListeners[notificationId];
+					notificationListeners.delete(notificationId);
 				});
 			}
 		}
@@ -779,10 +773,13 @@ export namespace GlobalDeclarations {
 						const permutations = permute(keys.split('+'));
 						permutations.forEach((permutation) => {
 							const permutationKey = permutation.join('+');
-							shortcutListeners[permutationKey] && 
-								shortcutListeners[permutationKey].forEach((listener) => {
-									listener.callback();
-								});
+							if (shortcutListeners.has(permutationKey) &&
+								shortcutListeners.get(permutationKey)) {
+									shortcutListeners.get(permutationKey)
+										.forEach((listener) => {
+											listener.callback();
+										});
+								}
 						});
 					}
 				});
@@ -810,11 +807,11 @@ export namespace GlobalDeclarations {
 	}
 
 	export function getResourceData(name: string, scriptId: number) {
-		if (modules.storages.resources[scriptId][name] &&
-			modules.storages.resources[scriptId][name].matchesHashes) {
-			return modules.storages.urlDataPairs[
-				modules.storages.resources[scriptId][name].sourceUrl].dataURI;
-		}
+		if (modules.storages.resources.get(scriptId)[name] &&
+			modules.storages.resources.get(scriptId)[name].matchesHashes) {
+				return modules.storages.urlDataPairs.get(
+					modules.storages.resources.get(scriptId)[name].sourceUrl).dataURI;
+			}
 		return null;
 	}
 

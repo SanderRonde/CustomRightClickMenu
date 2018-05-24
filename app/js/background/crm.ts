@@ -30,15 +30,16 @@ export namespace CRMNodes.Script.Handler {
 		if (BrowserAPI.isBrowserAPISupported('browser')) {
 			supportedBrowserAPIs.push('browser');
 		}
-		modules.storages.nodeStorageSync[node.id] = 
-			modules.storages.nodeStorageSync[node.id] || {};
+
+		modules.Util.setMapDefault(modules.storages.nodeStorageSync,
+			node.id, {});
 		return [		
 			[		
 				`var crmAPI = new (window._crmAPIRegistry.pop())(${[		
 					safeNode, node.id, tab, info, key, nodeStorage,		
 					contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},		
 					enableBackwardsCompatibility, tabIndex, browserAPI.runtime.id, supportedBrowserAPIs.join(','),
-					modules.storages.nodeStorageSync[node.id]
+					modules.storages.nodeStorageSync.get(node.id)
 				].map((param) => {		
 					if (param === void 0) {		
 						return JSON.stringify(null);		
@@ -107,9 +108,9 @@ export namespace CRMNodes.Script.Handler {
 					//Resource hasn't been registered with its name, try if it's an anonymous one		
 					if (!node.value.libraries[i].name) {		
 						//Check if the value has been registered as a resource		
-						if (urlDataPairs[node.value.libraries[i].url as any]) {		
+						if (urlDataPairs.get(node.value.libraries[i].url as any)) {		
 							lib = {		
-								code: urlDataPairs[node.value.libraries[i].url as any].dataString		
+								code: urlDataPairs.get(node.value.libraries[i].url as any).dataString		
 							};		
 						}		
 					}		
@@ -157,7 +158,7 @@ export namespace CRMNodes.Script.Handler {
 		}[];
 	}[] {
 		const resourcesArray = [];
-		const scriptResources = modules.storages.resources[scriptId];
+		const scriptResources = modules.storages.resources.get(scriptId);
 		if (!scriptResources) {
 			return [];
 		}
@@ -289,7 +290,7 @@ export namespace CRMNodes.Script.Handler {
 				scriptHandler: 'Custom Right-Click Menu',
 				version: (await browserAPI.runtime.getManifest()).version
 			},
-			resources: modules.storages.resources[node.id] || {}
+			resources: modules.storages.resources.get(node.id) || {}
 		};
 	}
 	export function getInExcludes(node: CRM.ScriptNode): { excludes: string[], includes: string[] } {
@@ -310,14 +311,13 @@ export namespace CRMNodes.Script.Handler {
 		}
 	}
 	export function genTabData(tabId: number, key: number[], nodeId: number, script: string) {
-		modules.crmValues.tabData[tabId] =
-			modules.crmValues.tabData[tabId] || {
-				libraries: {},
-				nodes: {}
-			};
-		modules.crmValues.tabData[tabId].nodes[nodeId] =
-			modules.crmValues.tabData[tabId].nodes[nodeId] || [];
-		modules.crmValues.tabData[tabId].nodes[nodeId].push({
+		modules.Util.setMapDefault(modules.crmValues.tabData, tabId, {
+			libraries: new window.Map(),
+			nodes: new window.Map()
+		});
+		modules.Util.setMapDefault(modules.crmValues.tabData.get(tabId).nodes,
+			nodeId, []);
+		modules.crmValues.tabData.get(tabId).nodes.get(nodeId).push({
 			secretKey: key,
 			usesLocalStorage: script.indexOf('localStorageProxy') > -1
 		});
@@ -352,11 +352,13 @@ export namespace CRMNodes.Script.Handler {
 					}
 				}), new window.Promise<[any, GreaseMonkeyData, string, string, string, number]>(async (resolve) => {
 					const globalNodeStorage = modules.storages.nodeStorage;
-					const nodeStorage = globalNodeStorage[node.id];
+					const nodeStorage = globalNodeStorage.get(node.id);
 					genTabData(tab.id, key, node.id, await modules.Util.getScriptNodeScript(node))
 
-					globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
-					const tabIndex = modules.crmValues.tabData[tab.id].nodes[node.id].length - 1;
+					modules.Util.setMapDefault(globalNodeStorage, node.id, {});
+					const tabIndex = modules.crmValues.tabData
+						.get(tab.id).nodes
+						.get(node.id).length - 1;
 					modules.Logging.Listeners.updateTabAndIdLists();
 
 					const metaData: {
@@ -430,9 +432,9 @@ export namespace CRMNodes.Script.Background {
 						//Resource hasn't been registered with its name, try if it's an anonymous one
 						if (node.value.libraries[i].name === null) {
 							//Check if the value has been registered as a resource
-							if (urlDataPairs[node.value.libraries[i].url as any]) {
+							if (urlDataPairs.get(node.value.libraries[i].url as any)) {
 								lib = {
-									code: urlDataPairs[node.value.libraries[i].url as any].dataString
+									code: urlDataPairs.get(node.value.libraries[i].url as any).dataString
 								};
 							}
 						}
@@ -480,8 +482,9 @@ export namespace CRMNodes.Script.Background {
 		if (BrowserAPI.isBrowserAPISupported('browser')) {
 			supportedBrowserAPIs.push('browser');
 		}
-		modules.storages.nodeStorageSync[node.id] = 
-			modules.storages.nodeStorageSync[node.id] || {};
+
+		modules.Util.setMapDefault(modules.storages.nodeStorageSync,
+			node.id, {});
 		return [
 			code.join('\n'), [
 				`var crmAPI = new (window._crmAPIRegistry.pop())(${[
@@ -489,7 +492,7 @@ export namespace CRMNodes.Script.Background {
 					nodeStorage, null,
 					greaseMonkeyData, true, fixOptionsErrors((node.value && node.value.options) || {}),
 					enableBackwardsCompatibility, 0, browserAPI.runtime.id, supportedBrowserAPIs.join(','),
-					modules.storages.nodeStorageSync[node.id]
+					modules.storages.nodeStorageSync.get(node.id)
 				]
 					.map((param) => {
 						if (param === void 0) {
@@ -518,21 +521,26 @@ export namespace CRMNodes.Script.Background {
 		].join('\n')
 	}
 
-	export async function createBackgroundPage(node: CRM.ScriptNode) {
-		if (!node ||
-			node.type !== 'script' ||
+	async function isValidBackgroundPage(node: CRM.ScriptNode) {
+		if (!node || node.type !== 'script' ||
 			!await modules.Util.getScriptNodeScript(node, 'background') ||
 			await modules.Util.getScriptNodeScript(node, 'background') === '') {
+				return false;
+			}
+		return true;
+	}
+	export async function createBackgroundPage(node: CRM.ScriptNode) {
+		if (!await isValidBackgroundPage(node)) {
 			return;
 		}
 
 		let isRestart = false;
-		if (modules.background.byId[node.id]) {
+		if (modules.background.byId.has(node.id)) {
 			isRestart = true;
 
 			modules.Logging.backgroundPageLog(node.id, null,
 				'Restarting background page...');
-			modules.background.byId[node.id].terminate();
+			modules.background.byId.get(node.id).terminate();
 			modules.Logging.backgroundPageLog(node.id, null,
 				'Terminated background page...');
 		}
@@ -551,9 +559,9 @@ export namespace CRMNodes.Script.Background {
 		}
 		if (!err) {
 			const globalNodeStorage = modules.storages.nodeStorage;
-			const nodeStorage = globalNodeStorage[node.id];
+			const nodeStorage = globalNodeStorage.get(node.id);
 
-			globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
+			modules.Util.setMapDefault(globalNodeStorage, node.id, {});
 
 			Handler.genTabData(0, key, node.id, await modules.Util.getScriptNodeScript(node, 'background'));
 			modules.Logging.Listeners.updateTabAndIdLists();
@@ -585,36 +593,32 @@ export namespace CRMNodes.Script.Background {
 
 			modules.Sandbox.sandbox(node.id, code, libraries, key, () => {
 				const instancesArr: {
-					id: string;
+					id: number|string;
 					tabIndex: number;
 				}[] = [];
-				const nodeInstances = modules.crmValues.nodeInstances[node.id];
-				for (let instance in nodeInstances) {
-					if (nodeInstances.hasOwnProperty(instance) &&
-						nodeInstances[instance]) {
-
-							try {
-								modules.crmValues.tabData[instance].nodes[node.id]
-									.forEach((tabIndexInstance, index) => {
-										modules.Util.postMessage(tabIndexInstance.port, {
-											messageType: 'dummy'
-										});
-										instancesArr.push({
-											id: instance,
-											tabIndex: index
-										});
-									});
-							} catch (e) {
-								delete nodeInstances[instance];
-							}
-						}
-				}
+				const nodeInstances = modules.crmValues.nodeInstances.get(node.id);
+				modules.Util.iterateMap(nodeInstances, (tabId, instance) => {
+					try {
+						modules.crmValues.tabData.get(tabId).nodes.get(node.id)
+							.forEach((tabIndexInstance, index) => {
+								modules.Util.postMessage(tabIndexInstance.port, {
+									messageType: 'dummy'
+								});
+								instancesArr.push({
+									id: tabId,
+									tabIndex: index
+								});
+							});
+					} catch (e) {
+						nodeInstances.delete(tabId);
+					}
+				});
 				return instancesArr;
 			}, (worker) => {
-				if (modules.background.byId[node.id]) {
-					modules.background.byId[node.id].terminate();
+				if (modules.background.byId.has(node.id)) {
+					modules.background.byId.get(node.id).terminate();
 				}
-				modules.background.byId[node.id] = worker;
+				modules.background.byId.set(node.id, worker);
 				if (isRestart) {
 					modules.Logging.log(node.id, '*', `Background page [${node.id}]: `,
 						'Restarted background page...');
@@ -628,15 +632,14 @@ export namespace CRMNodes.Script.Background {
 	}
 	export async function createBackgroundPages() {
 		//Iterate through every node
-		for (let nodeId in modules.crm.crmById) {
-			if (modules.crm.crmById.hasOwnProperty(nodeId)) {
-				const node = modules.crm.crmById[nodeId];
-				if (node.type === 'script') {
+		modules.Util.asyncIterateMap(modules.crm.crmById, async (nodeId, node) => {
+			if (node.type === 'script' && node.value.backgroundScript.length > 0) {
+				if (isValidBackgroundPage(node)) {
 					window.info('Creating backgroundpage for node', node.id);
-					await createBackgroundPage(node);
 				}
+				await createBackgroundPage(node);
 			}
-		}
+		});
 	}
 
 }
@@ -715,28 +718,28 @@ export namespace CRMNodes.Script.MetaTags {
 }
 
 export namespace CRMNodes.Script.Updating {
-	async function removeOldNode(id: number) {
-		const children = modules.crm.crmById[id].children;
+	export async function removeOldNode(id: number) {
+		const { children } = modules.crm.crmById.get(id);
 		if (children) {
 			for (let i = 0; i < children.length; i++) {
 				await removeOldNode(children[i].id);
 			}
 		}
 
-		if (modules.background.byId[id]) {
-			modules.background.byId[id].terminate();
-			delete modules.background.byId[id];
+		if (modules.background.byId.has(id)) {
+			modules.background.byId.get(id).terminate();
+			modules.background.byId.delete(id)
 		}
 
-		delete modules.crm.crmById[id];
-		delete modules.crm.crmByIdSafe[id];
+		modules.crm.crmById.delete(id);
+		modules.crm.crmByIdSafe.delete(id);
 
-		const contextMenuId = modules.crmValues.contextMenuIds[id];
+		const contextMenuId = modules.crmValues.contextMenuIds.get(id);
 		if (contextMenuId !== undefined && contextMenuId !== null) {
 			await browserAPI.contextMenus.remove(contextMenuId).catch(() => {});
 		}
 	}
-	function registerNode(node: CRM.Node, oldPath?: number[]) {
+	export function registerNode(node: CRM.Node, oldPath?: number[]) {
 		//Update it in CRM tree
 		if (oldPath !== undefined && oldPath !== null) {
 			let currentTree = modules.storages.settingsStorage.crm;
@@ -976,10 +979,9 @@ export namespace CRMNodes.Script.Updating {
 			};
 
 			if (hasOldNode) {
-				node.nodeInfo.installDate = (modules.crm.crmById[oldNodeId] &&
-					modules.crm.crmById[oldNodeId].nodeInfo &&
-					modules.crm.crmById[oldNodeId].nodeInfo.installDate) ||
-					node.nodeInfo.installDate;
+				node.nodeInfo.installDate = modules.Util.accessPath(
+					modules.crm.crmById.get(oldNodeId),
+					'nodeInfo', 'installDate') || node.nodeInfo.installDate;
 			}
 
 			//Content types
@@ -1033,7 +1035,7 @@ export namespace CRMNodes.Script.Updating {
 			}
 
 			if (hasOldNode) {
-				const path = modules.crm.crmById[oldNodeId].path;
+				const { path } = modules.crm.crmById.get(oldNodeId);
 				return {
 					node: node as CRM.ScriptNode | CRM.StylesheetNode,
 					path: path,
@@ -1062,21 +1064,17 @@ export namespace CRMNodes.Script.Updating {
 		}[] = [];
 		const oldTree = JSON.parse(JSON.stringify(
 			modules.storages.settingsStorage.crm));
-		await Promise.all(Object.getOwnPropertyNames(modules.crm.crmById).map((id) => {
-			return new Promise<void>(async (resolve) => {
-				const node = modules.crm.crmById[~~id];
-				if (node.type !== 'script') {
-					resolve(null);
-					return;
+		
+		await Promise.all(modules.Util.mapToArr(modules.crm.crmById).map(async ([id, node]) => {
+			if (node.type !== 'script') {
+				return;
+			}
+			const isRoot = node.nodeInfo && node.nodeInfo.isRoot;
+			const downloadURL = getDownloadURL(node);
+			if (downloadURL && isRoot && node.nodeInfo.source !== 'local' &&
+				node.nodeInfo.source.autoUpdate) {
+					await checkNodeForUpdate(node, downloadURL, updated);
 				}
-				const isRoot = node.nodeInfo && node.nodeInfo.isRoot;
-				const downloadURL = getDownloadURL(node);
-				if (downloadURL && isRoot && node.nodeInfo.source !== 'local' &&
-					node.nodeInfo.source.autoUpdate) {
-						await checkNodeForUpdate(node, downloadURL, updated);
-					}
-				resolve(null);
-			});
 		}));
 		await onNodeUpdateDone(updated, oldTree)
 	}
@@ -1086,7 +1084,7 @@ export namespace CRMNodes.Script.Updating {
 		path: number[];
 	}[], oldTree: CRM.Tree) {
 		const updatedData = updated.map((updatedScript) => {
-			const oldNode = modules.crm.crmById[updatedScript.oldNodeId];
+			const oldNode = modules.crm.crmById.get(updatedScript.oldNodeId);
 			return {
 				name: updatedScript.node.name,
 				id: updatedScript.node.id,
@@ -1220,19 +1218,19 @@ export namespace CRMNodes.Running {
 		try {
 			const tab = await browserAPI.tabs.get(tabId);
 			if (tab.url && tab.url.indexOf('chrome') !== 0) {
-				modules.crmValues.tabData[tab.id] = {
-					libraries: {},
-					nodes: {}
-				};
+				modules.crmValues.tabData.set(tab.id, {
+					libraries: new window.Map(),
+					nodes: new window.Map()
+				});
 				modules.Logging.Listeners.updateTabAndIdLists();
 				if (!urlIsGlobalExcluded(tab.url)) {
 					const { toExecuteNodes } = modules;
-					const toExecute = toExecuteNodes.onUrl.documentEnd.filter(({triggers}) => {
+					const toExecute = toExecuteNodes.onUrl.documentEnd.filter(({ id, triggers }) => {
 						return modules.URLParsing.matchesUrlSchemes(triggers, tab.url);
 					});
 
-					for (const node of toExecuteNodes.always.documentEnd.concat(toExecute)) {
-						executeNode(node, tab);
+					for (const { id } of toExecuteNodes.always.documentEnd.concat(toExecute)) {
+						executeNode(modules.crm.crmById.get(id), tab);
 					}
 					return {
 						matched: toExecute.length > 0
@@ -1282,43 +1280,6 @@ export namespace CRMNodes.Link {
 }
 
 export namespace CRMNodes.Stylesheet.Updating {
-	async function removeOldNode(id: number) {
-		const children = modules.crm.crmById[id].children;
-		if (children) {
-			for (let i = 0; i < children.length; i++) {
-				await removeOldNode(children[i].id);
-			}
-		}
-
-		if (modules.background.byId[id]) {
-			modules.background.byId[id].terminate();
-			delete modules.background.byId[id];
-		}
-
-		delete modules.crm.crmById[id];
-		delete modules.crm.crmByIdSafe[id];
-
-		const contextMenuId = modules.crmValues.contextMenuIds[id];
-		if (contextMenuId !== undefined && contextMenuId !== null) {
-			await browserAPI.contextMenus.remove(contextMenuId).catch(() => {});
-		}
-	}
-	function registerNode(node: CRM.Node, oldPath?: number[]) {
-		//Update it in CRM tree
-		if (oldPath !== undefined && oldPath !== null) {
-			let currentTree = modules.storages.settingsStorage.crm;
-			for (const index of oldPath.slice(0, -1)) {
-				const { children } = currentTree[index];
-				if (!children) {
-					return;
-				}
-				currentTree = children;
-			}
-			currentTree[modules.Util.getLastItem(oldPath)] = node;
-		} else {
-			modules.storages.settingsStorage.crm.push(node);
-		}
-	}
 	export function getDownloadURL({ nodeInfo }: CRM.Node) {
 		return nodeInfo && nodeInfo.source &&
 			typeof nodeInfo.source !== 'string' &&
@@ -1328,7 +1289,7 @@ export namespace CRMNodes.Stylesheet.Updating {
 	}
 
 	export async function updateStylesheet(nodeId: number) {
-		const node = modules.crm.crmById[nodeId] as CRM.StylesheetNode;
+		const node = modules.crm.crmById.get(nodeId) as CRM.StylesheetNode;
 		const url = getDownloadURL(node);
 		const updateData = (await CRMNodes.Stylesheet.Installing.getUpdateData(url))
 			.sections[node.nodeInfo.source !== 'local' && node.nodeInfo.source.sectionIndex];
@@ -1352,22 +1313,17 @@ export namespace CRMNodes.Stylesheet.Updating {
 			path: number[];
 		}[] = [];
 		const oldTree = JSON.parse(JSON.stringify(
-			modules.storages.settingsStorage.crm));
-		await Promise.all(Object.getOwnPropertyNames(modules.crm.crmById).map((id) => {
-			return new Promise<void>(async (resolve) => {
-				const node = modules.crm.crmById[~~id];
-				if (node.type !== 'stylesheet') {
-					resolve(null);
-					return;
+				modules.storages.settingsStorage.crm));
+		await Promise.all(modules.Util.mapToArr(modules.crm.crmById).map(async ([id, node]) => {
+			if (node.type !== 'stylesheet') {
+				return;
+			}
+			const isRoot = node.nodeInfo && node.nodeInfo.isRoot;
+			const downloadURL = getDownloadURL(node);
+			if (downloadURL && isRoot && node.nodeInfo.source !== 'local' &&
+				node.nodeInfo.source.autoUpdate) {
+					await checkNodeForUpdate(node, downloadURL, updated);
 				}
-				const isRoot = node.nodeInfo && node.nodeInfo.isRoot;
-				const downloadURL = getDownloadURL(node);
-				if (downloadURL && isRoot && node.nodeInfo.source !== 'local' &&
-					node.nodeInfo.source.autoUpdate) {
-						await checkNodeForUpdate(node, downloadURL, updated);
-					}
-				resolve(null);
-			});
 		}));
 		await onNodeUpdateDone(updated, oldTree)
 	}
@@ -1437,12 +1393,12 @@ export namespace CRMNodes.Stylesheet.Updating {
 		path: number[];
 	}[], oldTree: CRM.Tree) {
 		const updatedData = updated.map((updatedNode) => {
-			const oldNode = modules.crm.crmById[updatedNode.oldNodeId];
+			const oldNode = modules.crm.crmById.get(updatedNode.oldNodeId);
 			return {
 				name: updatedNode.node.name,
 				id: updatedNode.node.id,
-				oldVersion: (oldNode && oldNode.nodeInfo && oldNode.nodeInfo.version) ||
-					undefined,
+				oldVersion: modules.Util.accessPath(oldNode,
+					'nodeInfo', 'version') || undefined,
 				newVersion: updatedNode.node.nodeInfo.version
 			};
 		});
@@ -1450,10 +1406,10 @@ export namespace CRMNodes.Stylesheet.Updating {
 		await Promise.all(updated.map((updateNode) => {
 			return modules.Util.iipe(async () => {
 				if (updateNode.path) { //Has old node
-					await removeOldNode(updateNode.oldNodeId);
-					registerNode(updateNode.node, updateNode.path);
+					await Script.Updating.removeOldNode(updateNode.oldNodeId);
+					Script.Updating.registerNode(updateNode.node, updateNode.path);
 				} else {
-					registerNode(updateNode.node);
+					Script.Updating.registerNode(updateNode.node);
 				}
 			});
 		}));
@@ -1976,10 +1932,10 @@ export namespace CRMNodes.Stylesheet {
 					'document.head.appendChild(CRMSSInsert);'
 				].join('');
 			}
-			if (!(tab.id in modules.crmValues.nodeTabStatuses[node.id])) {
-				modules.crmValues.nodeTabStatuses[node.id][tab.id] = {};
+			if (!modules.crmValues.nodeTabStatuses.get(node.id).tabs.has(tab.id)) {
+				modules.crmValues.nodeTabStatuses.get(node.id).tabs.set(tab.id, {});
 			}
-			modules.crmValues.nodeTabStatuses[node.id][tab.id].checked = info.checked;
+			modules.crmValues.nodeTabStatuses.get(node.id).tabs.get(tab.id).checked = info.checked;
 			browserAPI.tabs.executeScript(tab.id, {
 				code: code,
 				allFrames: true
@@ -2018,33 +1974,35 @@ export namespace CRMNodes.NodeCreation {
 		const replaceOnTabs: {
 			id: number;
 		}[] = [];
-		const crmNode = modules.crm.crmById[node.id];
-		if (modules.crmValues.contextMenuIds[node.id] && //Node already exists
+		const crmNode = modules.crm.crmById.get(node.id);
+		if (modules.crmValues.contextMenuIds.get(node.id) && //Node already exists
 			crmNode.type === 'stylesheet' &&
 			node.type === 'stylesheet' && //Node type stayed stylesheet
 			crmNode.value.stylesheet !== node.value.stylesheet) { //Value changed
 
-			//Update after creating a new node
-			const statusses = modules.crmValues.nodeTabStatuses;
-			for (let key in statusses[node.id]) {
-				if (statusses[node.id][key] && key !== 'defaultValue') {
+				//Update after creating a new node
+				const statusses = modules.crmValues.nodeTabStatuses;
+				modules.Util.iterateMap(statusses.get(node.id).tabs, (tabId, tab) => {
 					replaceOnTabs.push({
-						id: (key as any) as number
+						id: tabId
 					});
-				}
+				});
 			}
-		}
 		return replaceOnTabs;
+	}
+	function extractToExecuteNode(node: CRM.Node): ToExecuteNode {
+		const { triggers, id } = node;
+		return { triggers, id }
 	}
 	function pushToGlobalToExecute(node: CRM.Node, launchMode: CRMLaunchModes) {
 		//On by default
 		if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
 			if (launchMode === CRMLaunchModes.ALWAYS_RUN ||
 				launchMode === CRMLaunchModes.RUN_ON_CLICKING) {
-					modules.toExecuteNodes.always.documentEnd.push(node);
+					modules.toExecuteNodes.always.documentEnd.push(extractToExecuteNode(node));
 				} else if (launchMode === CRMLaunchModes.RUN_ON_SPECIFIED ||
 					launchMode === CRMLaunchModes.SHOW_ON_SPECIFIED) {
-						modules.toExecuteNodes.onUrl.documentEnd.push(node);
+						modules.toExecuteNodes.onUrl.documentEnd.push(extractToExecuteNode(node));
 					}
 		}
 	}
@@ -2054,12 +2012,12 @@ export namespace CRMNodes.NodeCreation {
 			node.type === 'menu')) ||
 			launchMode === CRMLaunchModes.SHOW_ON_SPECIFIED) {
 			rightClickItemOptions.documentUrlPatterns = [];
-			modules.crmValues.hideNodesOnPagesData[node.id] = [];
+			modules.crmValues.hideNodesOnPagesData.set(node.id, []);
 			for (let i = 0; i < node.triggers.length; i++) {
 				const prepared = modules.URLParsing.prepareTrigger(node.triggers[i].url);
 				if (prepared) {
 					if (node.triggers[i].not) {
-						modules.crmValues.hideNodesOnPagesData[node.id]
+						modules.crmValues.hideNodesOnPagesData.get(node.id)
 							.push({
 								not: false,
 								url: prepared
@@ -2094,9 +2052,10 @@ export namespace CRMNodes.NodeCreation {
 						rightClickItemOptions.onclick = 
 							Stylesheet.createClickHandler(node);
 					}
-					modules.crmValues.nodeTabStatuses[node.id] = {
-						defaultCheckedValue: node.value.defaultOn
-					};
+					modules.crmValues.nodeTabStatuses.set(node.id, {
+						defaultCheckedValue: node.value.defaultOn,
+						tabs: new window.Map()
+					});
 					break;
 			}
 		}
@@ -2138,7 +2097,7 @@ export namespace CRMNodes.NodeCreation {
 		}
 	}
 	function getContextmenuGlobalOverrides(node: CRM.Node): ContextMenuOverrides {
-		return modules.crmValues.contextMenuGlobalOverrides[node.id];
+		return modules.crmValues.contextMenuGlobalOverrides.get(node.id);
 	}
 	async function addRightClickItemClick(node: CRM.Node, launchMode: CRMLaunchModes,
 		rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
@@ -2152,16 +2111,27 @@ export namespace CRMNodes.NodeCreation {
 				rightClickItemOptions, getContextmenuGlobalOverrides(node));
 			await generateContextMenuItem(rightClickItemOptions, idHolder);
 
-			modules.crmValues.contextMenuInfoById[idHolder.id] = {
+			modules.crmValues.contextMenuInfoById.set(idHolder.id, {
 				settings: rightClickItemOptions,
 				path: node.path,
 				enabled: false
-			};
+			});
 		}
 	function pushToToExecute(node: CRM.Node, always: boolean, onDocumentStart: boolean) {
-		const location = modules.toExecuteNodes[always ? 'always' : 'onUrl'];
-		const time = location[onDocumentStart ? 'documentStart' : 'documentEnd'];
-		time.push(node);
+		const toExecute = extractToExecuteNode(node);
+		if (always) {
+			if (onDocumentStart) {
+				modules.toExecuteNodes.always.documentStart.push(toExecute);
+			} else {
+				modules.toExecuteNodes.always.documentEnd.push(toExecute);
+			}
+		} else {
+			if (onDocumentStart) {
+				modules.toExecuteNodes.onUrl.documentStart.push(toExecute);
+			} else {
+				modules.toExecuteNodes.onUrl.documentEnd.push(toExecute);
+			}
+		}
 	}
 	async function hasDocumentStartMetaTag(node: CRM.Node) {
 		if (node.type === 'script') {
@@ -2216,7 +2186,7 @@ export namespace CRMNodes.NodeCreation {
 					allFrames: true
 				});
 				const statusses = modules.crmValues.nodeTabStatuses;
-				statusses[node.id][replaceStylesheetTabs[i].id].checked = true;
+				statusses.get(node.id).tabs.get(replaceStylesheetTabs[i].id).checked = true;
 			}
 		}
 
@@ -2390,9 +2360,9 @@ export namespace CRMNodes {
 		for (const menu of menus) {
 			const { children, createProperties } = menu;
 			const { parentId } = createProperties;
-			if (parentId && byId[parentId]) {
+			if (parentId && byId.get(parentId)) {
 				//Map mapped value to actual value
-				createProperties.parentId = byId[parentId].actualId;
+				createProperties.parentId = byId.get(parentId).actualId;
 			}
 			const actualId = await browserAPI.contextMenus.create(createProperties, 
 				handleUserAddedContextMenuErrors);
@@ -2406,7 +2376,7 @@ export namespace CRMNodes {
 	}
 	export function buildPageCRM() {
 		return new Promise<void>((resolve) => {
-			modules.crmValues.nodeTabStatuses = {};
+			modules.crmValues.nodeTabStatuses = new window.Map();
 			browserAPI.contextMenus.removeAll().then(async () => {
 				modules.crmValues.rootId = await browserAPI.contextMenus.create({
 					title: modules.storages.settingsStorage.rootName || 'Custom Menu',
@@ -2629,7 +2599,7 @@ export namespace CRMNodes {
 			parentTree?: ContextMenuItemTreeItem[];
 		}> {
 		const id = await NodeCreation.createNode(node, parentId);
-		modules.crmValues.contextMenuIds[node.id] = id;
+		modules.crmValues.contextMenuIds.set(node.id, id);
 		if (id !== null) {
 			const children = [];
 			if (node.children) {
@@ -2648,7 +2618,7 @@ export namespace CRMNodes {
 					}
 				}
 			}
-			modules.crmValues.contextMenuInfoById[id].path = path;
+			modules.crmValues.contextMenuInfoById.get(id).path = path;
 			return {
 				id: id,
 				path: path,
@@ -2661,9 +2631,11 @@ export namespace CRMNodes {
 	}
 
 	function parseNode(node: CRM.Node, isSafe: boolean = false) {
-		modules.crm[isSafe ? 'crmByIdSafe' : 'crmById'][node.id] = (
-			isSafe ? makeSafe(node) : node
-		);
+		if (isSafe) {
+			modules.crm.crmByIdSafe.set(node.id, makeSafe(node));
+		} else {
+			modules.crm.crmById.set(node.id, node);
+		}
 		if (node.children && node.children.length > 0) {
 			for (let i = 0; i < node.children.length; i++) {
 				parseNode(node.children[i], isSafe);
@@ -2672,8 +2644,8 @@ export namespace CRMNodes {
 	}
 
 	function buildByIdObjects() {
-		modules.crm.crmById = {};
-		modules.crm.crmByIdSafe = {};
+		modules.crm.crmById = new window.Map();
+		modules.crm.crmByIdSafe = new window.Map();
 		for (let i = 0; i < modules.crm.crmTree.length; i++) {
 			parseNode(modules.crm.crmTree[i]);
 			parseNode(modules.crm.safeTree[i] as any, true);

@@ -412,7 +412,7 @@ export namespace CRMAPICall {
 		getNodeFromId(id: number): GetNodeFromIdCallback<CRM.Node>;
 		getNodeFromId(id: number, makeSafe: boolean = false, synchronous: boolean = false, _forceValid = false):
 			GetNodeFromIdCallback<CRM.Node> | GetNodeFromIdCallback<CRM.SafeNode> | CRM.Node | CRM.SafeNode | false {
-			const node = (makeSafe ? modules.crm.crmByIdSafe : modules.crm.crmById)[id];
+			const node = (makeSafe ? modules.crm.crmByIdSafe : modules.crm.crmById).get(id);
 			if (node) {
 				if (synchronous) {
 					return node;
@@ -609,7 +609,7 @@ export namespace CRMAPICall {
 				const optional: any[] = [];
 				let permitted = true;
 				let node: CRM.Node;
-				if (!(node = modules.crm.crmById[this.message.id])) {
+				if (!(node = modules.crm.crmById.get(this.message.id))) {
 					this.respondError('The node you are running this script from no longer exist, no CRM API calls are allowed');
 					return false;
 				}

@@ -12,12 +12,12 @@ export namespace Logging.LogExecution {
 		logListener: LogListenerObject;
 	}, type: 'executeCRMCode' | 'getCRMHints' | 'createLocalLogVariable') {
 		//Get the port
-		if (!modules.crmValues.tabData[message.tab]) {
+		if (!modules.crmValues.tabData.has(message.tab)) {
 			return;
 		}
 		const tabData = modules.crmValues.tabData;
-		const nodes = tabData[message.tab].nodes;
-		const { port } = nodes[message.id][message.tabIndex];
+		const { nodes } = tabData.get(message.tab);
+		const { port } = nodes.get(message.id)[message.tabIndex];
 		modules.Util.postMessage(port, {
 			messageType: type,
 			code: message.code,
@@ -41,22 +41,14 @@ export namespace Logging.LogExecution {
 };
 
 export namespace Logging.Listeners {
-	function iterateInt<T>(target: {
-		[key: number]: T;
-	}, callback: (key: number, value: T) => void) {
-		for (const key in target) {
-			callback(~~key, target[key]);
-		}
-	}
-
 	export function getIds(filterTabId: number = -1) {
 		const tabData = modules.crmValues.tabData;
 		const ids: number[] = [];
-		iterateInt(tabData, (tabId, tab) => {
+		modules.Util.iterateMap(tabData, (tabId, tab) => {
 			if (filterTabId !== -1 && filterTabId !== tabId) {
 				return;
 			}
-			iterateInt(tab.nodes, (nodeId) => {
+			modules.Util.iterateMap(tab.nodes, (nodeId) => {
 				if (ids.indexOf(nodeId) === -1) {
 					ids.push(nodeId);
 				}
@@ -67,7 +59,7 @@ export namespace Logging.Listeners {
 			return a - b;
 		}).map((id) => ({
 			id,
-			title: modules.crm.crmById[id].name
+			title: modules.crm.crmById.get(id).name
 		}));
 	}
 	function compareToCurrent<T extends U[], U>(current: T, previous: T, changeListeners: ((result: T) => void)[], type: 'id'|'tab') {
@@ -86,8 +78,8 @@ export namespace Logging.Listeners {
 		return new Promise<TabData[]>(async (resolveOuter) => {
 			const tabData = modules.crmValues.tabData;
 			const tabs: Promise<TabData>[] = [];
-			iterateInt(tabData, (tabId, tab) => {
-				if (!tab.nodes[nodeId] && nodeId !== 0) {
+			modules.Util.iterateMap(tabData, (tabId, tab) => {
+				if (!tab.nodes.get(nodeId) && nodeId !== 0) {
 					return;
 				}
 				if (tabId === 0) {
@@ -158,7 +150,7 @@ export namespace Logging {
 
 			const srcObjDetails = {
 				tabId: 'background',
-				nodeTitle: modules.crm.crmById[id].name,
+				nodeTitle: modules.crm.crmById.get(id).name,
 				tabTitle: 'Background Page',
 				data: args,
 				lineNumber: sourceData[0],
@@ -218,7 +210,7 @@ export namespace Logging {
 					id: message.id,
 					tabId: message.tabId,
 					tabInstanceIndex: message.tabIndex,
-					nodeTitle: modules.crm.crmById[message.id].name,
+					nodeTitle: modules.crm.crmById.get(message.id).name,
 					tabTitle: tab.title,
 					type: 'evalResult',
 					lineNumber: message.lineNumber,
@@ -324,7 +316,7 @@ export namespace Logging {
 		srcObj.url = tab.url;
 		srcObj.tabIndex = message.tabIndex;
 		srcObj.tabTitle = tab.title;
-		srcObj.node = modules.crm.crmById[message.id];
+		srcObj.node = modules.crm.crmById.get(message.id);
 		srcObj.nodeName = srcObj.node.name;
 
 		logValue.tabTitle = tab.title;

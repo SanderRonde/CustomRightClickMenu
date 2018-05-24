@@ -1199,7 +1199,7 @@ export namespace Storages {
 		oldValue: CRM.StorageLocal[K];
 		newValue: CRM.StorageLocal[K];
 	}
-	
+
 	type StorageSyncChange<K extends keyof CRM.SettingsStorage = keyof CRM.SettingsStorage> = {
 		key: K;
 		oldValue: CRM.SettingsStorage[K];
@@ -1219,7 +1219,7 @@ export namespace Storages {
 		await toUpdate && toUpdate.map((id) => {
 			return new Promise(async (resolve) => {
 				await modules.CRMNodes.Script.Background.createBackgroundPage(
-					modules.crm.crmById[id] as CRM.ScriptNode);
+					modules.crm.crmById.get(id) as CRM.ScriptNode);
 				resolve(null);
 			});
 		});
@@ -1230,7 +1230,7 @@ export namespace Storages {
 		//Check if any background page updates occurred
 		const { same, additions, removals } = diffCRM(change.oldValue, change.newValue);
 		for (const node of same) {
-			const currentValue = modules.crm.crmById[node.id];
+			const currentValue = modules.crm.crmById.get(node.id)
 			if (node.type === 'script' && (currentValue && currentValue.type === 'script' &&
 				await modules.Util.getScriptNodeScript(currentValue, 'background') !== 
 				await modules.Util.getScriptNodeScript(node, 'background'))) {
@@ -1246,9 +1246,10 @@ export namespace Storages {
 		for (const node of removals) {
 			if (node.type === 'script' && node.value.backgroundScript && 
 				node.value.backgroundScript.length > 0) {
-					modules.background.byId[node.id] && 
-						modules.background.byId[node.id].terminate();
-					delete modules.background.byId[node.id];
+					if (modules.background.byId.has(node.id)) {
+						modules.background.byId.get(node.id).terminate()
+						modules.background.byId.delete(node.id);
+					}
 				}
 		}
 	}
@@ -1415,40 +1416,46 @@ export namespace Storages {
 				break;
 			case 'libraries':
 				const compiled = await modules.CRMNodes.TS.compileAllLibraries(data.libraries);
+				const oldLibs = modules.storages.storageLocal.libraries;
+				modules.storages.storageLocal.libraries = compiled;
 				applyChangeForStorageType(modules.storages.storageLocal, [{
 					key: 'libraries',
 					newValue: compiled,
-					oldValue: modules.storages.storageLocal.libraries
+					oldValue: oldLibs
 				}]);
 				break;
 			case 'nodeStorage':
-				modules.storages.nodeStorage[data.id] =
-					modules.storages.nodeStorage[data.id] || {};
+				modules.Util.setMapDefault(modules.storages.nodeStorage, data.id, {});
 				if (data.isSync) {
-					applyChangeForStorageType(modules.storages.nodeStorageSync[data.id],
+					applyChangeForStorageType(modules.storages.nodeStorageSync.get(data.id),
 						data.nodeStorageChanges, true);
+					modules.storages.settingsStorage.nodeStorageSync =
+						modules.Util.fromMap(modules.storages.nodeStorageSync);
 				} else {
-					applyChangeForStorageType(modules.storages.nodeStorage[data.id],
+					applyChangeForStorageType(modules.storages.nodeStorage.get(data.id),
 						data.nodeStorageChanges, true);
+					modules.storages.storageLocal.nodeStorage =
+						modules.Util.fromMap(modules.storages.nodeStorage);
 				}
 				notifyNodeStorageChanges(data.id, data.tabId, data.nodeStorageChanges,
 					data.isSync);
 				if (data.isSync) {
 					await uploadChanges('settings', [{
 						key: 'nodeStorageSync',
-						newValue: modules.storages.nodeStorageSync,
+						newValue: modules.Util.fromMap(modules.storages.nodeStorageSync),
 						oldValue: undefined
 					}]);
 				} else {
 					await uploadChanges('local', [{
 						key: 'nodeStorage',
-						newValue: modules.storages.nodeStorage,
+						newValue: modules.Util.fromMap(modules.storages.nodeStorage),
 						oldValue: undefined
 					}]);
 				}
 				break;
 		}
 	}
+
 	export async function setStorages(storageLocalCopy: CRM.StorageLocal, settingsStorage: CRM.SettingsStorage,
 		chromeStorageLocal: CRM.StorageLocal, callback?: () => void) {
 			window.info('Setting global data stores');
@@ -1460,26 +1467,27 @@ export namespace Storages {
 				.filter((pattern) => {
 					return pattern !== null;
 				}) as MatchPattern[];
-			modules.storages.resources = setIfNotSet(chromeStorageLocal,
-				'resources', {});
-			modules.storages.nodeStorage = setIfNotSet(chromeStorageLocal,
+			const toMap = modules.Util.toMap;
+			modules.storages.resources = toMap(setIfNotSet(chromeStorageLocal,
+				'resources', {}));
+			modules.storages.nodeStorage = toMap(setIfNotSet(chromeStorageLocal,
 				'nodeStorage', {} as {
 					[nodeId: number]: any;
-				});
-			modules.storages.nodeStorageSync = setIfNotSet(settingsStorage,
+				}));
+			modules.storages.nodeStorageSync = toMap(setIfNotSet(settingsStorage,
 				'nodeStorageSync', {} as {
 					[nodeId: number]: any;
-				});
+				}));
 			modules.storages.resourceKeys = setIfNotSet(chromeStorageLocal,
 				'resourceKeys', []);
-			modules.storages.urlDataPairs = setIfNotSet(chromeStorageLocal,
+			modules.storages.urlDataPairs = toMap(setIfNotSet(chromeStorageLocal,
 				'urlDataPairs', {} as {
 					[key: string]: {
 						dataString: string;
 						refs: number[];
 						dataURI: string;
 					}
-				});
+				}));
 
 			window.info('Building CRM representations');
 			await modules.CRMNodes.updateCRMValues();
@@ -1671,30 +1679,28 @@ export namespace Storages {
 	function notifyNodeStorageChanges(id: number, tabId: number,
 		changes: StorageChange[], isSync: boolean) {
 		//Update in storage
-		modules.crm.crmById[id].storage = modules.storages
-			.nodeStorage[id];
+		const node = modules.crm.crmById.get(id);
+		node.storage = modules.storages.nodeStorage.get(id);
 		browserAPI.storage.local.set({
-			nodeStorage: modules.storages.nodeStorage
+			nodeStorage: modules.Util.fromMap(modules.storages.nodeStorage)
 		});
 
 		//Notify all pages running that node
 		const tabData = modules.crmValues.tabData;
-		for (let tab in tabData) {
-			if (tabData.hasOwnProperty(tab) && tabData[tab]) {
-				if (~~tab !== tabId) {
-					const nodes = tabData[tab].nodes;
-					if (nodes[id]) {
-						nodes[id].forEach((tabIndexInstance) => {
-							modules.Util.postMessage(tabIndexInstance.port, {
-								changes: changes,
-								isSync: isSync,
-								messageType: 'storageUpdate'
-							});
+
+		modules.Util.iterateMap(tabData, (tab, { nodes }) => {
+			if (tab !== tabId) {
+				if (nodes.has(id)) {
+					nodes.get(id).forEach((tabIndexInstance) => {
+						modules.Util.postMessage(tabIndexInstance.port, {
+							changes: changes,
+							isSync: isSync,
+							messageType: 'storageUpdate'
 						});
-					}
+					});
 				}
 			}
-		}
+		});
 	}
 	function getVersionObject(version: string): {
 		major: number;

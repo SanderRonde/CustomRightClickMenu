@@ -18,8 +18,8 @@ export namespace MessageHandling.Instances {
 		};
 		try {
 			const tabData = modules.crmValues.tabData;
-			const nodes = tabData[message.tabId].nodes;
-			const { port } = nodes[message.id][message.tabIndex];
+			const { nodes } = tabData.get(message.tabId);
+			const { port } = nodes.get(message.id)[message.tabIndex];
 			modules.Util.postMessage(port, msg);
 		} catch (e) {
 			if (e.message === 'Converting circular structure to JSON') {
@@ -50,13 +50,13 @@ export namespace MessageHandling.Instances {
 	}) {
 		const data = message.data;
 		const tabData = modules.crmValues.tabData;
-		const tabInstance = tabData[data.toInstanceId];
+		const tabInstance = tabData.get(data.toInstanceId);
 		const nodeInstances = modules.crmValues.nodeInstances;
-		const nodeInstance = nodeInstances[data.id][data.toInstanceId];
-		if (nodeInstance && tabInstance && tabInstance.nodes[data.id]) {
+		const nodeInstance = nodeInstances.get(data.id).get(data.toInstanceId);
+		if (nodeInstance && tabInstance && tabInstance.nodes.has(data.id)) {
 			if (nodeInstance[data.toTabIndex].hasHandler) {
 				const nodes = tabInstance.nodes;
-				const { port } = nodes[data.id][data.toTabIndex];
+				const { port } = nodes.get(data.id)[data.toTabIndex];
 				modules.Util.postMessage(port, {
 					messageType: 'instanceMessage',
 					message: data.message
@@ -74,7 +74,7 @@ export namespace MessageHandling.Instances {
 		hasHandler: boolean;
 	}>) {
 		const nodeInstances = modules.crmValues.nodeInstances;
-		const tabInstance = nodeInstances[message.id][message.tabId];
+		const tabInstance = nodeInstances.get(message.id).get(message.tabId);
 		tabInstance[message.tabIndex].hasHandler = message.data.hasHandler;
 	}
 };
@@ -90,7 +90,7 @@ export namespace MessageHandling.BackgroundPageMessage {
 		const msg = message.message;
 		const cb = message.response;
 
-		modules.background.byId[message.id].post({
+		modules.background.byId.get(message.id).post({
 			type: 'comm',
 			message: {
 				type: 'backgroundMessage',
@@ -113,14 +113,14 @@ export namespace MessageHandling.NotificationListener {
 	}>) {
 		const data = message.data;
 		const eventListeners = modules.globalObject.globals.eventListeners;
-		eventListeners.notificationListeners[data.notificationId] = {
+		eventListeners.notificationListeners.set(data.notificationId, {
 			id: data.id,
 			tabId: data.tabId,
 			tabIndex: data.tabIndex,
 			notificationId: data.notificationId,
 			onDone: data.onDone,
 			onClick: data.onClick
-		};
+		});
 	}
 }
 
@@ -268,22 +268,22 @@ export namespace MessageHandling {
 		const storage = await modules.CRMNodes.converToLegacy();
 
 		const tabData = modules.crmValues.tabData;
-		for (let tabId in tabData) {
-			for (let nodeId in tabData[tabId].nodes) {
-				tabData[tabId].nodes[nodeId].forEach((tabInstance) => {
+		modules.Util.iterateMap(tabData, (tabId, { nodes }) => {
+			modules.Util.iterateMap(nodes, (nodeId, tab) => {
+				tab.forEach((tabInstance) => {
 					if (tabInstance.usesLocalStorage &&
-						modules.crm.crmById[nodeId].isLocal) {
-						try {
-							modules.Util.postMessage(tabInstance.port, {
-								messageType: 'localStorageProxy',
-								message: storage
-							});
-						} catch (e) {
-							//Looks like it's closed
+						modules.crm.crmById.get(nodeId).isLocal) {
+							try {
+								modules.Util.postMessage(tabInstance.port, {
+									messageType: 'localStorageProxy',
+									message: storage
+								});
+							} catch (e) {
+								//Looks like it's closed
+							}
 						}
-					}
 				});
-			}
-		}
+			});
+		});
 	}
 }

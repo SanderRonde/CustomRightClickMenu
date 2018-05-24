@@ -97,7 +97,7 @@ export namespace Util {
 	export function safe(node: CRM.StylesheetNode): CRM.SafeStylesheetNode;
 	export function safe(node: CRM.Node): CRM.SafeNode;
 	export function safe(node: CRM.Node): CRM.SafeNode {
-		return modules.crm.crmByIdSafe[node.id];
+		return modules.crm.crmByIdSafe.get(node.id);
 	}
 
 	const keys: {
@@ -209,15 +209,116 @@ export namespace Util {
 			}
 		}
 	}
-	export function removeTab(tabId: number) {
-		const nodeStatusses = modules.crmValues.nodeTabStatuses;
-		for (let nodeId in nodeStatusses) {
-			if (nodeStatusses[nodeId][tabId]) {
-				delete nodeStatusses[nodeId][tabId];
+	export function iterateMap<K, V>(map: Map<K, V>, handler: (key: K, val: V) => void|true) {
+		let breakLoop: boolean = false;
+		map.forEach((value, key) => {
+			if (breakLoop) {
+				return;
+			}
+			if (handler(key, value)) {
+				breakLoop = true;
+			}
+		});
+	}
+	export function mapToArr<K, V>(map: Map<K, V>): [K, V][] {
+		const pairs: [K,V][] = [];
+		map.forEach((value, key) => {
+			pairs.push([key, value]);
+		});
+		return pairs;
+	}
+	export async function asyncIterateMap<K, V>(map: Map<K, V>, handler: (key: K, val: V) => Promise<void|true>) {
+		for (const [ key, value ] of mapToArr(map)) {
+			if (await handler(key, value)) {
+				return;
 			}
 		}
+	}
+	export function setMapDefault<K, V>(map: Map<K, V>, key: K, defaultValue: V): boolean {
+		if (!map.has(key)) {
+			map.set(key, defaultValue);
+			return true;
+		}
+		return false;
+	}
+	export function accessPath<B, K1 extends keyof B, 
+		K2 extends keyof B[K1], 
+		K3 extends keyof B[K1][K2], 
+		K4 extends keyof B[K1][K2][K3], 
+		K5 extends keyof B[K1][K2][K3][K4]>(base: B, key1: K1): B[K1] | void;
+	export function accessPath<B, K1 extends keyof B, 
+		K2 extends keyof B[K1], 
+		K3 extends keyof B[K1][K2], 
+		K4 extends keyof B[K1][K2][K3], 
+		K5 extends keyof B[K1][K2][K3][K4]>(base: B, key1: K1,
+			key2: K2): B[K1][K2] | void;
+	export function accessPath<B, K1 extends keyof B, 
+		K2 extends keyof B[K1], 
+		K3 extends keyof B[K1][K2], 
+		K4 extends keyof B[K1][K2][K3], 
+		K5 extends keyof B[K1][K2][K3][K4]>(base: B, key1: K1,
+			key2: K2, key3: K3): B[K1][K2][K3] | void;
+	export function accessPath<B, K1 extends keyof B, 
+		K2 extends keyof B[K1], 
+		K3 extends keyof B[K1][K2], 
+		K4 extends keyof B[K1][K2][K3], 
+		K5 extends keyof B[K1][K2][K3][K4]>(base: B, key1: K1,
+			key2: K2, key3: K3, key4: K4): B[K1][K2][K3][K4] | void;
+	export function accessPath<B, K1 extends keyof B, 
+		K2 extends keyof B[K1], 
+		K3 extends keyof B[K1][K2], 
+		K4 extends keyof B[K1][K2][K3], 
+		K5 extends keyof B[K1][K2][K3][K4]>(base: B, key1: K1,
+			key2: K2, key3: K3, key4: K4, key5: K5): B[K1][K2][K3][K4][K5] | void;
+	export function accessPath<B, K1 extends keyof B, 
+		K2 extends keyof B[K1], 
+		K3 extends keyof B[K1][K2], 
+		K4 extends keyof B[K1][K2][K3], 
+		K5 extends keyof B[K1][K2][K3][K4]>(base: B, key1: K1,
+			key2?: K2, key3?: K3, key4?: K4, key5?: K5): B[K1][K2][K3][K4][K5]|
+				B[K1][K2][K3][K4]|B[K1][K2][K3]|B[K1][K2]|B[K1]|void {
+					const v1 = base[key1];
+					if (!v1) { return undefined; }
+					if (!key2) { return v1; }
 
-		delete modules.crmValues.tabData[tabId];
+					const v2 = v1[key2];
+					if (!v2) { return undefined; }
+					if (!key3) { return v2; }
+
+					const v3 = v2[key3];
+					if (!v3) { return undefined; }
+					if (!key4) { return v3; }
+
+					const v4 = v3[key4];
+					if (!v4) { return undefined; }
+					if (!key5) { return v4; }
+
+					const v5 = v4[key5];
+					if (!v5) { return undefined; }
+					return v5;
+				}
+	export function toMap<V, K extends string|number, O extends ObjectifiedMap<K, V>>(obj: O): Map<K, V> {
+		return new window.Map<K, V>(Object.getOwnPropertyNames(obj).map((key: keyof O) => {
+			return [key, obj[key]];
+		}));
+	}
+	export function fromMap<K, V>(map: Map<K, V>): ObjectifiedMap<K, V> {
+		const obj: ObjectifiedMap<K, V> = {} as any;
+		map.forEach((val, key) => {
+			(obj as any)[key] = val;
+		});
+		return obj;
+	}
+	export function removeTab(tabId: number) {
+		const nodeStatusses = modules.crmValues.nodeTabStatuses;
+		
+		iterateMap(nodeStatusses, (_, { tabs }) => {
+			if (tabs.has(tabId)) {
+				tabs.delete(tabId);
+			}
+		});
+
+		modules.crmValues.tabData.delete(tabId);
 	}
 	export function leftPad(char: string, amount: number): string {
 		let res = '';

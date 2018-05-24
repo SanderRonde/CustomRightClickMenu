@@ -32,7 +32,7 @@ export class SandboxWorker implements SandboxWorkerInterface {
 
 	constructor(public id: number, public script: string, libraries: string[],
 		public secretKey: number[], private _getInstances: () => {
-			id: string;
+			id: string|number;
 			tabIndex: number;
 		}[]) {
 			this.worker.addEventListener('message', (e: SandboxWorkerMessage) => {
@@ -121,7 +121,7 @@ export class SandboxWorker implements SandboxWorkerInterface {
 export namespace Sandbox {
 	export function sandbox(id: number, script: string, libraries: string[],
 		secretKey: number[], getInstances: () => {
-			id: string;
+			id: number|string;
 			tabIndex: number;
 		}[],
 		callback: (worker: SandboxWorker) => void) {
