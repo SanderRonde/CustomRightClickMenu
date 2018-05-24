@@ -10,4 +10,6 @@ interface Window {
 	WeakMap: typeof WeakMapPolyfill;
 }
 
+interface WeakMap<K extends object, V> extends WeakMapPolyfill<K, V> { };
+
 window.WeakMap = window.WeakMap || WeakMapPolyfill;
