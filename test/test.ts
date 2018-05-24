@@ -330,7 +330,7 @@ const testCRMTree = [{
 		"url": "*://*.example.com/*",
 		"not": true
 	}],
-	"id": 2,
+	"id": 2 as CRM.GenericNodeId,
 	"path": [2],
 	"index": 2,
 	"linkVal": [{
@@ -2625,7 +2625,7 @@ describe('CRMAPI', () => {
 		[Math.round(Math.random() * 100)]: Math.round(Math.random() * 100)
 	} as any;
 	const TAB_ID = 0;
-	const NODE_ID = 2;
+	const NODE_ID = 2 as CRM.GenericNodeId;
 	const NODE_NAME = "script";
 	describe('setup', function() {
 		var node = {
@@ -2660,7 +2660,7 @@ describe('CRMAPI', () => {
 					"backgroundScript": {}
 				}
 			},
-			"id": NODE_ID,
+			"id": NODE_ID as CRM.GenericNodeId,
 			"path": [2],
 			"index": 2,
 			"linkVal": [{
@@ -2696,7 +2696,7 @@ describe('CRMAPI', () => {
 					usesLocalStorage: false
 				}]);
 				window.globals.availablePermissions = ['sessions'];
-				window.globals.crm.crmById.set(2, node);
+				window.globals.crm.crmById.set(2 as CRM.GenericNodeId, node);
 
 				//Actual code
 				var code = 'new (window._crmAPIRegistry.pop())(' +
@@ -2791,7 +2791,7 @@ describe('CRMAPI', () => {
 								enabled: false
 							}
 						},
-						"id": 2,
+						"id": 2 as CRM.GenericNodeId,
 						"expanded": false,
 						"path": [2],
 						"index": 2,
@@ -3162,7 +3162,7 @@ describe('CRMAPI', () => {
 					}
 				}
 				var expected: Partial<CRM.LinkNode> = JSON.parse(JSON.stringify(nodeSettings)) as any;
-				expected.id = 7;
+				expected.id = 7 as CRM.NodeId<CRM.LinkNode>;
 				expected.onContentTypes = [true, true, true, false, false, false];
 				expected.showOnSpecified = false;
 				expected.triggers = [{
@@ -3208,7 +3208,7 @@ describe('CRMAPI', () => {
 						url: 'http://www.somesite.com'
 					}]
 				});
-				assert.isDefined(window.globals.crm.crmById.get(node.id), 'node exists in crmById');
+				assert.isDefined(window.globals.crm.crmById.get(node.id as CRM.GenericNodeId), 'node exists in crmById');
 				assert.isDefined(window.globals.crm.crmByIdSafe.get(node.id), 'node exists in crmByIdSafe');
 				assert.isDefined(window.globals.crm.crmTree[node.path[0]], 'node is in the crm tree');
 				assert.isDefined(window.globals.crm.safeTree[node.path[0]], 'node is in the safe crm tree');
@@ -3217,7 +3217,7 @@ describe('CRMAPI', () => {
 		describe('#copyNode()', () => {
 			it('should match the copied node', async () => {
 				var expected = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
-				expected.id = 9;
+				expected.id = 9 as CRM.NodeId<CRM.SafeMenuNode>;
 				expected.path = [8];
 				expected.nodeInfo = {
 					permissions: []
@@ -3452,17 +3452,17 @@ describe('CRMAPI', () => {
 					crmByIdEntries++;
 				}
 				assert.strictEqual(crmByIdEntries, 1, 'crmById is almost empty');
-				assert.isDefined(window.globals.crm.crmById.get(2), 'current node is still defined');
-				assert.isObject(window.globals.crm.crmById.get(2), 'current node is object');
+				assert.isDefined(window.globals.crm.crmById.get(2 as CRM.GenericNodeId), 'current node is still defined');
+				assert.isObject(window.globals.crm.crmById.get(2 as CRM.GenericNodeId), 'current node is object');
 
 				var comparisonCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
 				comparisonCopy.path = [0];
-				assert.deepEqual(window.globals.crm.crmByIdSafe.get(2), comparisonCopy, 
+				assert.deepEqual(window.globals.crm.crmByIdSafe.get(2 as CRM.GenericNodeId), comparisonCopy, 
 						'remaining node matches expected');
 			});
 			it('should remove passed node when it\'s a valid node id (menu)', async () => {
 				await crmAPI.crm.deleteNode(safeTestCRMTree[5].children[0].id);
-				assert.isUndefined(window.globals.crm.crmById.get(safeTestCRMTree[5].children[0].id), 
+				assert.isUndefined(window.globals.crm.crmById.get(safeTestCRMTree[5].children[0].id as CRM.GenericNodeId), 
 					'removed node is removed from crmById');
 				assert.isUndefined((window.globals.crm.crmTree[5] as CRM.MenuNode).children[0], 
 					'removed node is removed from crmTree');
