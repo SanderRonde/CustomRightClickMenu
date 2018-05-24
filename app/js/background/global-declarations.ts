@@ -236,11 +236,11 @@ export namespace GlobalDeclarations {
 						modules.Util.iterateMap(nodeInstances.get(message.id), (tabId, instance) => {
 							try {
 								tabData.get(tabId).nodes.get(message.id).forEach((tabInstance, index, arr) => {
-									if (~~instance === message.tabId && index === arr.length - 1) {
+									if (tabId === message.tabId && index === arr.length - 1) {
 										return;
 									}
 									instancesArr.push({
-										id: ~~instance,
+										id: tabId,
 										tabIndex: index
 									});
 									modules.Util.postMessage(tabInstance.port, {
