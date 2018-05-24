@@ -633,6 +633,16 @@ export namespace CRMAPICall {
 					}
 
 					if (!permitted) {
+						if (modules.storages.insufficientPermissions.length > 1000) {
+							let removed: number = 0;
+							while (modules.storages.insufficientPermissions.pop()) {
+								removed++;
+								if (removed === 500) {
+									break;
+								}
+							}
+							modules.storages.insufficientPermissions.push('Cleaning up last 500 array items because size exceeded 1000...');
+						}
 						modules.storages.insufficientPermissions.push(
 							`Script id ${this.message.id} asked for and was rejected permission${
 								notPermitted.length === 1 ?

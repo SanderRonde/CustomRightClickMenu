@@ -411,7 +411,7 @@ interface BGStorages {
 	 * Tab lookups that failed as a result of inaccessible pages such as
 	 * chrome extension pages, file:// pages etc
 	 */
-	failedLookups: number[];
+	failedLookups: (number|string)[];
 }
 
 interface SandboxWorkerInterface {

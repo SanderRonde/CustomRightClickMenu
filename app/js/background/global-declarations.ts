@@ -557,6 +557,16 @@ export namespace GlobalDeclarations {
 			const currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
 			const tab = await browserAPI.tabs.get(currentTabId).catch((err) => {
 				if (err.message.indexOf('No tab with id:') > -1) {
+					if (modules.storages.failedLookups.length > 1000) {
+						let removed: number = 0;
+						while (modules.storages.failedLookups.pop()) {
+							removed++;
+							if (removed === 500) {
+								break;
+							}
+						}
+						modules.storages.failedLookups.push('Cleaning up last 500 array items because size exceeded 1000...');
+					}
 					modules.storages.failedLookups.push(currentTabId);
 				} else {
 					window.log(err.message);
