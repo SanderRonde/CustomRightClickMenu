@@ -49,6 +49,18 @@ declare namespace CRM {
 	}
 
 	/**
+	 * A map object turned into an object
+	 */
+	type ObjectifiedMap<K, V> = K extends string ? {
+		[key: string]: V;
+	} : K extends number ? {
+		[key: number]: V;
+	} : {
+		[key: string]: V;
+		[key: number]: V;
+	}
+
+	/**
 	 * The chrome permission descriptions
 	 */
 	interface ChromePermissionDescriptions {

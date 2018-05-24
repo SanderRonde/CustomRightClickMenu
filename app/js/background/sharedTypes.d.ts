@@ -318,15 +318,6 @@ interface MatchPattern {
 	invalid?: boolean;
 }
 
-type ObjectifiedMap<K, V> = K extends string ? {
-	[key: string]: V;
-} : K extends number ? {
-	[key: number]: V;
-} : {
-	[key: string]: V;
-	[key: number]: V;
-}
-
 /**
  * Storage data
  */
