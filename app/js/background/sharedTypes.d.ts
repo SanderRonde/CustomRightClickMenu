@@ -367,7 +367,7 @@ interface BGStorages {
 			 */
 			refs: number[];
 			/**
-			 * The original data URI
+			 * A data URI
 			 */
 			dataURI: string;
 		};
