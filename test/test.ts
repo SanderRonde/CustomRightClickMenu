@@ -1053,6 +1053,8 @@ const chrome = ({
 				type: 'function',
 				optional: true
 			}]);
+
+			return 0;
 		},
 		update: function(id: number|string, data: _chrome.tabs.UpdateProperties, callback?: () => void) {
 			typeCheck({
