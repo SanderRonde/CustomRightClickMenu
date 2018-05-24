@@ -675,12 +675,21 @@ export namespace CRMNodes.Script.MetaTags {
 		const lines = script.split('\n');
 		return lines.splice(startPlusOne, (metaEnd - startPlusOne));
 	}
-	export function getMetaTags(script: string, fromCache: any = true): {
+
+	const cachedData: Map<string, {
+		[key: string]: any;
+	}> = new window.Map<string, {
+		[key: string]: any;
+	}>();
+
+	export function getMetaTags(script: string): {
 		[key: string]: any
 	} {
-		if (fromCache) {
-			return modules.Caches.cacheCall(getMetaTags, arguments, true);
+		const hash = window.md5(script);
+		if (cachedData.has(hash)) {
+			return cachedData.get(hash);
 		}
+
 		const metaLines = getMetaLines(script);
 
 		const metaTags: {
@@ -695,6 +704,7 @@ export namespace CRMNodes.Script.MetaTags {
 			}
 		}
 
+		cachedData.set(hash, metaTags);
 		return metaTags;
 	}
 	export function getlastMetaTagValue(metaTags: {
