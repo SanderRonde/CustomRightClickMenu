@@ -943,6 +943,7 @@ function readFile(filePath, options) {
 					theme: 'docs/theme',
 					name: 'CRM API',
 					readme: 'none',
+					ignoreCompilerErrors: true
 				});
 				
 				const src = app.expandInputFiles(['./tools/definitions/crmapi.d.ts']);
