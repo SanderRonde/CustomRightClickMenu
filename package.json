@@ -119,7 +119,6 @@
     "supports-color": "^3.1.2",
     "through2": "^2.0.3",
     "tty": "^1.0.1",
-    "typedoc": "^0.11.1",
     "typescript": "^2.8.1",
     "util": "^0.10.3",
     "vinyl-fs": "^2.4.4",
