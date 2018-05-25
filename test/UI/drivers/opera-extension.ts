@@ -70,3 +70,5 @@ export async function openOptionsPage(driver: TypedWebdriver, _capabilities: Bro
 		await driver.switchTo().window(nonCurrentTabs[0]);
 	}
 }
+
+export async function reloadBackgroundPage(_driver: TypedWebdriver, _capabilities: BrowserstackCapabilities) { }

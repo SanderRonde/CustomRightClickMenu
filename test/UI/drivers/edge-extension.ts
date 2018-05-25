@@ -19,3 +19,7 @@ export function getCapabilities(): never {
 export async function openOptionsPage(_driver: TypedWebdriver, _capabilities: BrowserstackCapabilities) {
 	return throwErr();
 }
+
+export async function reloadBackgroundPage(_driver: TypedWebdriver, _capabilities: BrowserstackCapabilities) { 
+	return throwErr();
+}
