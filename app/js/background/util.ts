@@ -390,6 +390,7 @@ export namespace Util {
 	let fsAccessAllowed: boolean;
 	export function canRunOnUrl(url: string): boolean {
 		if (!url || url.indexOf('chrome://') !== -1 ||
+			url.indexOf('chrome-extension://') !== -1 ||
 			url.indexOf('chrome-devtools://') !== -1) {
 				return false;
 			}
