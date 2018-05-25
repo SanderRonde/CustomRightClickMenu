@@ -3450,9 +3450,9 @@ describe('CRMAPI', () => {
 				}));
 				assert.lengthOf(window.globals.crm.crmTree, 1, 'crmTree is almost empty');
 				var crmByIdEntries = 0;
-				for (var _id in window.globals.crm.crmById) {
+				window.globals.crm.crmById.forEach(() => {
 					crmByIdEntries++;
-				}
+				});
 				assert.strictEqual(crmByIdEntries, 1, 'crmById is almost empty');
 				assert.isDefined(window.globals.crm.crmById.get(2 as CRM.GenericNodeId), 'current node is still defined');
 				assert.isObject(window.globals.crm.crmById.get(2 as CRM.GenericNodeId), 'current node is object');
