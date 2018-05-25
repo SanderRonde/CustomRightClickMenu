@@ -1213,7 +1213,7 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 		describe('Loading "to" version', () => {
 			it('should be possible to set up "to" selenium instance', async function() {
 				this.timeout(60000);
-				this.slow(10000);
+				this.slow(250000);
 
 				const val = await setupExtensionOptionsPageInstance(
 					path.join(ROOT, 'temp/migration/to.crx'), isLocal);
@@ -1270,7 +1270,7 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 		});
 		it('should be possible to reload the background page', async function() {
 			this.timeout(30000);
-			this.slow(15000);
+			this.slow(25000);
 			
 			await chromeExtensionData.reloadBackgroundPage(driver, capabilties);
 			await wait(2000);
