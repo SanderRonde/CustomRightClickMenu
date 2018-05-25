@@ -67,6 +67,16 @@ interface QueryInfo {
 }
 
 /**
+ * The ID of a tab
+ */
+type TabId = number;
+
+/**
+ * The ID of a node's instances on a tab
+ */
+type TabIndex = number;
+
+/**
  * Definitions for the CRM extension
  */
 declare namespace CRM {	

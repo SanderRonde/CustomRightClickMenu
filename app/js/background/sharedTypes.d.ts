@@ -45,16 +45,6 @@ interface LogLineData {
 }
 
 /**
- * The ID of a tab
- */
-type TabId = number;
-
-/**
- * The ID of a node's instances on a tab
- */
-type TabIndex = number;
-
-/**
  * A log line listener
  */
 type LogListener = (newLine: LogListenerLine) => void;
