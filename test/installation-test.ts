@@ -256,15 +256,15 @@ function installScriptFromInstallPage(getConfig: () => {
 	title: string;
 }) {
 	it('should be possible to open the install page', async function() {
-		this.timeout(10000);
-		this.slow(6000);
+		this.timeout(20000);
+		this.slow(20000);
 		const {
 			prefix, url, href
 		} = getConfig();
 		await driver.get(`${prefix}/html/install.html?i=${
 			encodeURIComponent(href)
 		}&s=${url}`);
-		await wait(1500);
+		await wait(5000);
 	});
 
 	it('should be possible to click the "allow and install" button', async function() {
@@ -275,7 +275,7 @@ function installScriptFromInstallPage(getConfig: () => {
 			.findElement(webdriver.By.tagName('install-confirm'))
 			.findElement(webdriver.By.id('acceptAndInstallbutton'))
 			.click();
-		await wait(3000);
+		await wait(5000);
 	});
 
 	it('should have been installed into the CRM', async function() {
