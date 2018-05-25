@@ -357,8 +357,8 @@ export namespace CRMAPIFunctions.crm {
 					name: string;
 				};
 
-				const crmArray: CRM.Node[] = [];
-				modules.Util.iterateMap(modules.crm.crmById, (_, node) => {
+				const crmArray: CRM.SafeNode[] = [];
+				modules.Util.iterateMap(modules.crm.crmByIdSafe, (_, node) => {
 					crmArray.push(node);
 				});
 
@@ -366,9 +366,9 @@ export namespace CRMAPIFunctions.crm {
 				if (optionals['query.inSubTree']) {
 					const searchScopeObj = __this.getNodeFromId(query.inSubTree,
 						true, true);
-					let searchScopeObjChildren: CRM.Node[] = [];
+					let searchScopeObjChildren: CRM.SafeNode[] = [];
 					if (searchScopeObj) {
-						const menuSearchScopeObj = searchScopeObj as CRM.MenuNode;
+						const menuSearchScopeObj = searchScopeObj as CRM.SafeMenuNode;
 						searchScopeObjChildren = menuSearchScopeObj.children;
 					}
 
@@ -377,7 +377,7 @@ export namespace CRMAPIFunctions.crm {
 						modules.Util.flattenCrm(searchScope, child);
 					});
 				}
-				searchScope = searchScope as any[] | void || crmArray;
+				searchScope = searchScope as (any[] | void) || crmArray;
 				let searchScopeArr = searchScope as any[];
 
 				if (optionals['query.type']) {

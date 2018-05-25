@@ -201,8 +201,10 @@ export namespace Util {
 		}
 		return target;
 	}
-	export function flattenCrm(searchScope: CRM.Node[], obj: CRM.Node) {
-		searchScope.push(obj);
+	export function flattenCrm(searchScope: CRM.Node[], obj: CRM.Node): void;
+	export function flattenCrm(searchScope: CRM.SafeNode[], obj: CRM.SafeNode): void;
+	export function flattenCrm(searchScope: (CRM.Node[])|(CRM.SafeNode[]), obj: CRM.Node|CRM.SafeNode) {
+		(searchScope as any).push(obj as any);
 		if (obj.type === 'menu' && obj.children) {
 			for (const child of obj.children) {
 				flattenCrm(searchScope, child);
