@@ -61,7 +61,6 @@ namespace ChangeLogElement {
 					state.startIndex = i;
 					state.inBlock = true;
 					buf = '';
-					continue;
 				} else if (char === ']') {
 					state.inBlock = false;
 					state.blockContents = buf;
@@ -69,12 +68,11 @@ namespace ChangeLogElement {
 				} else if (char === '(') {
 					buf = '';
 					state.inBrackets = true;
-					continue;
 				} else if (char === ')') {
 					state.inBrackets = false;
 					if (state.blockContents) {
 						return this._convertLinks(this._stringSplice(change, state.startIndex,
-							i, this._makeLink(state.blockContents, buf)));
+							i + 1, this._makeLink(state.blockContents, buf)));
 					}
 				} else if (state.inBlock || state.inBrackets) {
 					buf += char;
