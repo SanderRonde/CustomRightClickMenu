@@ -91,13 +91,14 @@
 			'Fixed type switching animation'
 		],
 		'2.1.0': [
-			'Uses polymer 2 instead of polymer 1 (25% faster loading)',
+			'Uses polymer 2 instead of polymer 1 (~25% faster loading)',
 			'Works on multiple browsers now (chrome, firefox, edge and opera)',
-			'Uses the monaco editor instead of codemirror, featuring better code completion and features overall',
+			'Uses the monaco editor instead of codemirror, featuring better code completion and more features overall',
 			'Supports writing scripts in [typescript](https://www.typescriptlang.org/) and compiling them in-extension',
 			'Supports typescript libraries and includes code completion for them as well',
 			'Added a "libraries" tab in the script dialog for quick toggling of libraries',
 			'Libraries can be edited and/or removed',
+			'You can now change the name of the root node',
 			'Uses [TypeDoc](http://typedoc.org/) for documentation instead',
 			'Added the ' + 
 				'[crmAPI.storageSync](https://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html#storagesync)' + 
@@ -107,7 +108,7 @@
 				' API which combines the [webExtensions](https://developer.mozilla.org/nl/Add-ons/WebExtensions)' + 
 				' and [crmAPI.chrome](https://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html#chrome)' + 
 				' functionalities',
-			'All callback-based crmAPI functions now also return a promise',
+			'All callback-based crmAPI functions now also return a promise as well',
 			'Added the ' +
 				'[crmAPI.contextMenuItem](https://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html#contextmenuitem)' + 
 				' API for changing the contextmenu item\'s look,' +
@@ -121,7 +122,8 @@
 			'Added some more options to the "get page property" ribbon tool',
 			'Added support for a more programmatic way of editing the CRM through window.consoleInfo()',
 			'Reversed changelog order so the newest changes are on top',
-			'Plenty of bug fixes and improvements to code legibility and documentation'
+			'Plenty of changes/improvements to the UI',
+			'A lot of bug fixes and improvements to code legibility and documentation'
 		]
 	};
 
