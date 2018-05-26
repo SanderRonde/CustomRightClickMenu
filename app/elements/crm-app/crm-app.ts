@@ -4110,34 +4110,6 @@ namespace CRMAppElement {
 				this.parent().upload();
 			}
 
-			private static _getLocalStorageKey(key: string): any {
-				const data = localStorage.getItem(key);
-				if (data === undefined || data === null) {
-					return false;
-				}
-				return data;
-			};
-
-
-			static exportToLegacy() {
-				let data = ["all", this._getLocalStorageKey('firsttime'),
-					this._getLocalStorageKey('options'),
-					this._getLocalStorageKey('firsttime'),
-					this._getLocalStorageKey('firsttime'),
-					this._getLocalStorageKey('firsttime'),
-					localStorage.getItem('optionson'),
-					localStorage.getItem('waitforsearch'),
-					localStorage.getItem('whatpage'),
-					localStorage.getItem('numberofrows')].join('%146%');
-
-				const rows = localStorage.getItem('numberofrows') || 0;
-				for (let i = 1; i <= rows; i++) {
-					data += "%146%" + localStorage.getItem(i + '');
-				}
-
-				window.doc.exportToLegacyOutput.value = data;
-			};
-
 			static exitFullscreen() {
 				window.app.util.getDialog().exitFullScreen();
 			}
