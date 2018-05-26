@@ -15,12 +15,12 @@ namespace EditCrmElement {
 		},
 		crmLoading: {
 			type: Boolean,
-			value: false,
+			value: true,
 			notify: true
 		},
 		crmEmpty: {
 			type: Boolean,
-			value: true,
+			value: false,
 			notify: true,
 			computed: '_isCrmEmpty(crm, crmLoading)'
 		},
