@@ -93,6 +93,15 @@ paper-ripple {
 	background-color: black;
 	opacity: 0;
 	z-index: 5;
+	pointer-events: all;
+}
+
+.backdropCont.visible {
+	display: block;
+}
+
+.backdropCont.clickthrough {
+	pointer-events: none;
 }
 
 #menuSwitchUndoButton, #externalEditorTryAgainButton, #externalEditoOpenLocationInBrowser, .toastLink {

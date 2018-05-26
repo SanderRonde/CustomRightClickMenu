@@ -128,7 +128,8 @@ namespace CrmEditPageElement {
 
 		private static _onAnimationDone(this: CrmEditPage) {
 			if (!this._opened) {
-				this._backdropEl.style.display = 'none';
+				this._backdropEl.classList.remove('visible');
+				this._backdropEl.classList.remove('clickthrough');
 				this.$.overlayCont.style.display = 'none';
 				document.body.style.overflow = 'auto';
 				document.body.style.marginRight = '0';
@@ -145,7 +146,7 @@ namespace CrmEditPageElement {
 		};
 
 		private static _animateIn(this: CrmEditPage) {
-			this._backdropEl.style.display = 'block';
+			this._backdropEl.classList.add('visible');
 			this._backdropEl.animate([
 				{
 					opacity: 0
@@ -187,6 +188,9 @@ namespace CrmEditPageElement {
 				fill: 'both',
 				easing: 'bez'
 			});
+
+			//Make it clickthrough-able already
+			this._backdropEl.classList.add('clickthrough');
 			
 			const animation = window.animateTransform(this.$.overlayCont, {
 				propName: 'scale',
