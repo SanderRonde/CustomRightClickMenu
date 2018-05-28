@@ -3800,6 +3800,7 @@ namespace CRMAppElement {
 						return;
 					}
 				}
+				this.parent().util.showToast('Successfully imported your data');
 			};
 
 			static exportData() {
