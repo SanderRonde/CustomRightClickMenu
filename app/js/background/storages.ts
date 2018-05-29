@@ -1152,39 +1152,43 @@ export namespace Storages.SetupHandling {
 	async function uploadStorageSyncInitial(data: CRM.SettingsStorage) {
 		const settingsJson = JSON.stringify(data);
 
-		if (settingsJson.length >= 101400) {
-			await browserAPI.storage.local.set({
-				useStorageSync: false
-			});
-			await browserAPI.storage.local.set({
-				settings: data
-			});
-			await browserAPI.storage.sync.set({
-				indexes: -1
-			});
-		} else {
-			//Cut up all data into smaller JSON
-			await browserAPI.storage.sync.clear();
-			const obj = Storages.cutData(settingsJson);
-			await browserAPI.storage.sync.set(obj).then(() => {
-				browserAPI.storage.local.set({
-					settings: null
-				});
-			}).catch(async (err) => {
-				//Switch to local storage
-				window.log('Error on uploading to storage.sync, uploading to storage.local instead', err);
-				modules.storages.storageLocal.useStorageSync = false;
+		if (settingsJson.length >= 101400 || !('sync' in BrowserAPI.getSrc().storage && 
+			'get' in BrowserAPI.getSrc().storage.sync)) {
 				await browserAPI.storage.local.set({
 					useStorageSync: false
 				});
 				await browserAPI.storage.local.set({
 					settings: data
 				});
-				await browserAPI.storage.sync.set({
-					indexes: -1
+				if ('sync' in BrowserAPI.getSrc().storage && 
+					'get' in BrowserAPI.getSrc().storage.sync) {
+						await browserAPI.storage.sync.set({
+							indexes: -1
+						});
+					}
+			} else {
+				//Cut up all data into smaller JSON
+				await browserAPI.storage.sync.clear();
+				const obj = Storages.cutData(settingsJson);
+				await browserAPI.storage.sync.set(obj).then(() => {
+					browserAPI.storage.local.set({
+						settings: null
+					});
+				}).catch(async (err) => {
+					//Switch to local storage
+					window.log('Error on uploading to storage.sync, uploading to storage.local instead', err);
+					modules.storages.storageLocal.useStorageSync = false;
+					await browserAPI.storage.local.set({
+						useStorageSync: false
+					});
+					await browserAPI.storage.local.set({
+						settings: data
+					});
+					await browserAPI.storage.sync.set({
+						indexes: -1
+					});
 				});
-			});
-		}
+			}
 	}
 }
 
@@ -1326,43 +1330,45 @@ export namespace Storages {
 				wasUpdated: modules.storages.storageLocal.settingsVersionData.wasUpdated
 			}
 		});
-		if (!modules.storages.storageLocal.useStorageSync) {
-			await browserAPI.storage.local.set({
-				settings: modules.storages.settingsStorage
-			}).then(async () => {
-				await changeCRMValuesIfSettingsChanged(changes);
-				await browserAPI.storage.sync.set({
-					indexes: -1
-				});
-			}).catch((e) => {
-				window.log('Error on uploading to chrome.storage.local ', e);
-			});
-		} else {
-			//Using chrome.storage.sync
-			if (settingsJson.length >= 101400) {
+		if (!modules.storages.storageLocal.useStorageSync || !('sync' in BrowserAPI.getSrc().storage && 
+			'get' in BrowserAPI.getSrc().storage.sync)) {
 				await browserAPI.storage.local.set({
-					useStorageSync: false
-				});
-				await uploadChanges('settings', changes);
-			} else {
-				//Cut up all data into smaller JSON
-				const obj = cutData(settingsJson);
-				await browserAPI.storage.sync.clear();
-				await browserAPI.storage.sync.set(obj as any).then(async () => {
+					settings: modules.storages.settingsStorage
+				}).then(async () => {
 					await changeCRMValuesIfSettingsChanged(changes);
-					await browserAPI.storage.local.set({
-						settings: null
+					await browserAPI.storage.sync.set({
+						indexes: -1
 					});
-				}).catch(async (err) => {
-					window.log('Error on uploading to storage.sync, uploading to storage.local instead', err);
-					modules.storages.storageLocal.useStorageSync = false;
-					await browserAPI.storage.local.set({
-						useStorageSync: false
-					});
-					await uploadChanges('settings', changes);
+				}).catch((e) => {
+					window.log('Error on uploading to chrome.storage.local ', e);
 				});
+			} else {
+				//Using chrome.storage.sync
+				if (settingsJson.length >= 101400 || !('sync' in BrowserAPI.getSrc().storage && 
+					'get' in BrowserAPI.getSrc().storage.sync)) {
+						await browserAPI.storage.local.set({
+							useStorageSync: false
+						});
+						await uploadChanges('settings', changes);
+					} else {
+						//Cut up all data into smaller JSON
+						const obj = cutData(settingsJson);
+						await browserAPI.storage.sync.clear();
+						await browserAPI.storage.sync.set(obj as any).then(async () => {
+							await changeCRMValuesIfSettingsChanged(changes);
+							await browserAPI.storage.local.set({
+								settings: null
+							});
+						}).catch(async (err) => {
+							window.log('Error on uploading to storage.sync, uploading to storage.local instead', err);
+							modules.storages.storageLocal.useStorageSync = false;
+							await browserAPI.storage.local.set({
+								useStorageSync: false
+							});
+							await uploadChanges('settings', changes);
+						});
+					}
 			}
-		}
 	}
 	export async function uploadChanges(type: 'local' | 'settings' | 'libraries', changes: StorageChange[],
 		useStorageSync: boolean = null) {
@@ -1529,7 +1535,9 @@ export namespace Storages {
 				[key: string]: string
 			} & {
 				indexes: number|string[];
-			} = await browserAPI.storage.sync.get() as any;
+			} = 'sync' in BrowserAPI.getSrc().storage && 
+				'get' in BrowserAPI.getSrc().storage.sync ? 
+					await browserAPI.storage.sync.get() as any : {};
 			window.info('Loading local storage data');
 			const storageLocal: CRM.StorageLocal & {
 				settings?: CRM.SettingsStorage;
