@@ -13,7 +13,8 @@ stages:
 env:
 - TEST=test-build
 - TEST=test-local
-- TEST=test-migration
+- TEST=test-migration:2.0.12-2.0.17
+- TEST=test:migration:2.0.18-2.0.19
 - TEST=test:chrome:old:page
 - TEST=test:chrome:old:extension
 - TEST=test:chrome:old:install:greasyfork
