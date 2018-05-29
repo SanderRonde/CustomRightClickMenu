@@ -1109,6 +1109,16 @@ function readFile(filePath, options) {
 	}
 
 	/**
+	 * Replace the short name of the extension from CRM-dev to CRM
+	 */
+	function replaceShortName() {
+		return gulp
+			.src('manifest.json', { cwd: './build/', base: './build/' })
+			.pipe(replace(/CRM-dev/g, 'CRM'))
+			.pipe(gulp.dest('./build'));
+	}
+
+	/**
 	 * Moves the /build directory to the /dist/{browser} directory
 	 * 
 	 * @param {string} browser - The name of the browser
@@ -1182,25 +1192,41 @@ function readFile(filePath, options) {
 				.pipe(gulp.dest('./app'));
 		}));
 
-	gulp.task(genTask('Copies the /build folder to the /dist/chrome folder',
-		function chromeToDist() {
-			return moveToDist('chrome');
-		}));
+	gulp.task('chromeToDist', genTask('Copies the /build folder to the /dist/chrome folder',
+		gulp.series(
+			function replaceName() {
+				return replaceShortName();
+			},
+			function copy() {
+				return moveToDist('chrome');
+			})));
 
-	gulp.task(genTask('Copies the /build folder to the /dist/firefox folder',
-		function firefoxToDist() {
-			return moveToDist('firefox');
-		}));
+	gulp.task('firefoxToDist', genTask('Copies the /build folder to the /dist/firefox folder',
+		gulp.series(
+			function replaceName() {
+				return replaceShortName();
+			},
+			function copy() {
+				return moveToDist('firefox');
+			})));
 
-	gulp.task(genTask('Copies the /build folder to the /dist/edge folder',
-		function edgeToDist() {
-			return moveToDist('edge');
-		}));
+	gulp.task('edgeToDist', genTask('Copies the /build folder to the /dist/edge folder',
+		gulp.series(
+			function replaceName() {
+				return replaceShortName();
+			},
+			function copy() {
+				return moveToDist('edge');
+			})));
 
-	gulp.task(genTask('Copies the /build folder to the /dist/opera folder',
-		function operaToDist() {
-			return moveToDist('opera');
-		}));
+	gulp.task('operaToDist', genTask('Copies the /build folder to the /dist/opera folder',
+		gulp.series(
+			function replaceName() {
+				return replaceShortName();
+			},
+			function copy() {
+				return moveToDist('opera');
+			})));
 
 	gulp.task(genTask('Generates a crx file and places it in the /dist/packed folder',
 		function genCRX() {
