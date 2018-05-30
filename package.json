@@ -135,7 +135,7 @@
   "scripts": {
     "pretest": "yarn pretest:main && yarn pretest:dist && yarn pretest:post",
     "pretest:main": "gulp stashBrowser && gulp browserChrome && gulp cleanDist && gulp buildTest",
-    "pretest:dist": "yarn pretest:dist:chrome-copy:chrome-copy && yarn pretest:dist:chrome-copy:firefox-copy && yarn pretest:dist:chrome-copy:edge-copy && yarn pretest:dist:chrome-copy:opera-copy",
+    "pretest:dist": "yarn pretest:dist:chrome-copy && yarn pretest:dist:firefox-copy && yarn pretest:dist:edge-copy && yarn pretest:dist:opera-copy",
     "pretest:dist:chrome-copy": "gulp browserChromeBuild && gulp chromeToDistTest",
     "pretest:dist:firefox-copy": "gulp browserFirefoxBuild && gulp firefoxToDistTest",
     "pretest:dist:edge-copy": "gulp browserEdgeBuild && gulp edgeToDistTest",
