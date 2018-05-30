@@ -1153,40 +1153,40 @@ export namespace Storages.SetupHandling {
 		const settingsJson = JSON.stringify(data);
 
 		if (settingsJson.length >= 101400 || !supportsStorageSync()) {
+			await browserAPI.storage.local.set({
+				useStorageSync: false
+			});
+			await browserAPI.storage.local.set({
+				settings: data
+			});
+			if (supportsStorageSync()) {
+				await browserAPI.storage.sync.set({
+					indexes: -1
+				});
+			}
+		} else {
+			//Cut up all data into smaller JSON
+			await browserAPI.storage.sync.clear();
+			const obj = Storages.cutData(settingsJson);
+			await browserAPI.storage.sync.set(obj).then(() => {
+				browserAPI.storage.local.set({
+					settings: null
+				});
+			}).catch(async (err) => {
+				//Switch to local storage
+				window.log('Error on uploading to storage.sync, uploading to storage.local instead', err);
+				modules.storages.storageLocal.useStorageSync = false;
 				await browserAPI.storage.local.set({
 					useStorageSync: false
 				});
 				await browserAPI.storage.local.set({
 					settings: data
 				});
-				if (supportsStorageSync()) {
-					await browserAPI.storage.sync.set({
-						indexes: -1
-					});
-				}
-			} else {
-				//Cut up all data into smaller JSON
-				await browserAPI.storage.sync.clear();
-				const obj = Storages.cutData(settingsJson);
-				await browserAPI.storage.sync.set(obj).then(() => {
-					browserAPI.storage.local.set({
-						settings: null
-					});
-				}).catch(async (err) => {
-					//Switch to local storage
-					window.log('Error on uploading to storage.sync, uploading to storage.local instead', err);
-					modules.storages.storageLocal.useStorageSync = false;
-					await browserAPI.storage.local.set({
-						useStorageSync: false
-					});
-					await browserAPI.storage.local.set({
-						settings: data
-					});
-					await browserAPI.storage.sync.set({
-						indexes: -1
-					});
+				await browserAPI.storage.sync.set({
+					indexes: -1
 				});
-			}
+			});
+		}
 	}
 }
 
@@ -1338,9 +1338,11 @@ export namespace Storages {
 					settings: modules.storages.settingsStorage
 				}).then(async () => {
 					await changeCRMValuesIfSettingsChanged(changes);
-					await browserAPI.storage.sync.set({
-						indexes: -1
-					});
+					if (supportsStorageSync()) {
+						await browserAPI.storage.sync.set({
+							indexes: -1
+						});
+					}
 				}).catch((e) => {
 					window.log('Error on uploading to chrome.storage.local ', e);
 				});
