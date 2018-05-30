@@ -47,7 +47,7 @@ class GenericOptimizeTransform extends stream.Transform {
 		if (file.contents) {
 			let contents = file.contents.toString();
 			contents = this.optimizer(contents, this.optimizerOptions);
-			file.contents = new Buffer(contents);
+			file.contents = Buffer.from(contents);
 		}
 		callback(null, file);
 	}
