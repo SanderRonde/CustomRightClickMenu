@@ -1192,6 +1192,30 @@ function readFile(filePath, options) {
 				.pipe(gulp.dest('./app'));
 		}));
 
+	gulp.task('chromeToDistTest', genTask('Copies the /build folder to the /dist/chrome folder with a test manifest',
+		gulp.series(
+			function copy() {
+				return moveToDist('chrome');
+			})));
+
+	gulp.task('firefoxToDistTest', genTask('Copies the /build folder to the /dist/firefox folder with a test manifest',
+		gulp.series(
+			function copy() {
+				return moveToDist('firefox');
+			})));
+
+	gulp.task('edgeToDistTest', genTask('Copies the /build folder to the /dist/edge folder with a test manifest',
+		gulp.series(
+			function copy() {
+				return moveToDist('edge');
+			})));
+
+	gulp.task('operaToDistTest', genTask('Copies the /build folder to the /dist/opera folder with a test manifest',
+		gulp.series(
+			function copy() {
+				return moveToDist('opera');
+			})));
+
 	gulp.task('chromeToDist', genTask('Copies the /build folder to the /dist/chrome folder',
 		gulp.series(
 			function replaceName() {
