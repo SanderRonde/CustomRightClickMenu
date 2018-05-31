@@ -67,10 +67,6 @@ namespace LinkEditElement {
 			window.register(LE);
 		});
 	}
-
-	static isFirstItem(index: number) {
-		return index === 0;
-	}
 }
 
 type LinkEdit = Polymer.El<'link-edit', typeof LinkEditElement.LE & typeof LinkEditElement.linkEditProperties>;
