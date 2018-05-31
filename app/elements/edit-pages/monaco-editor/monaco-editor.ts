@@ -34,7 +34,13 @@ namespace MonacoEditorElement {
 		'run_at': 'The moment the script is injected (document-start, document-body, document-end, document-idle or document-menu)',
 		'run-at': 'The moment the script is injected (document-start, document-body, document-end, document-idle or document-menu)',
 		grant: 'Whitelists given `GM_*` functions',
-		noframes: 'Makes the script run on the main page but not in iframes'
+		noframes: 'Makes the script run on the main page but not in iframes',
+		CRM_contentTypes: 'The content types on which to run this script as a 6 items long boolean array (e.g. [true, false, true, false, true, false]) (CRM ONLY)',
+		CRM_launchMode: 'When to run this script. 0 = Run on clicking, 1 = always run, 2 = run on specified, 3 = show on specified, 4 = disabled. (CRM ONLY)',
+		CRM_stylesheet: 'Interpret this as a stylesheet (userstyle) instead of a script (userscript). (CRM ONLY)',
+		CRM_toggle: 'A boolean value (true/false) indicating whether to allow toggling this stylesheet on or off. Only used when @CRM_stylesheet is present. (CRM ONLY)',
+		CRM_defaultOn: 'A boolean value (true/false) indicating whether this stylesheet is toggled on by default. Only used when @CRM_stylesheet and @CRM_toggle are present. (CRM ONLY)',
+		CRM_libraries: 'An array containing stringified objects with a "url" and a "name" key, pointing to external libraries used in this script.'
 	};
 
 	abstract class EventEmitter<PubL extends string, PriL extends string> {
