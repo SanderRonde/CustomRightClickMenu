@@ -1,19 +1,25 @@
 #codeEditCont {
 	max-height: 100vh;
 	max-width: 100vw;
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
 }
 
 #codeEditorCont {
 	margin-left: 30px;
 	width: 500px;
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
 	overflow: hidden;
 }
 
@@ -33,6 +39,7 @@ input {
 }
 
 #settingsCont {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
 	padding-bottom: 11px;
@@ -43,23 +50,31 @@ input {
 }
 
 .executionTrigger {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
 }
 
 .triggerInput {
 	display: inline-block;
+	-webkit-box-flex: 5;
 	-webkit-flex-grow: 5;
-	flex-grow: 5;
+	        flex-grow: 5;
 }
 
-#container, #flexRow, #flexColumn, #editorCont, .CodeMirror, .CodeMirror-scroll, #editorPlaceholder {
+#codeTabContentContainer, #container, #flexRow,
+#flexColumn, #editorCont, #editorPlaceholder, 
+#librariesTabContent {
+	-webkit-box-flex: 100;
 	-webkit-flex-grow: 100;
-	flex-grow: 100;
+	        flex-grow: 100;
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
 }
 
 .CodeMirror, .CodeMirror-focused {
@@ -67,24 +82,16 @@ input {
 }
 
 .CodeMirror {
-	-moz-animation-name: borderblur;
-	-o-animation-name: borderblur;
 	-webkit-animation-name: borderblur;
 	animation-name: borderblur;
-	-moz-animation-duration: 300ms;
-	-o-animation-duration: 300ms;
 	-webkit-animation-duration: 300ms;
 	animation-duration: 300ms;
 	border: 1px solid rgb(195, 214, 255);
 }
 
 .CodeMirror-focused {
-	-moz-animation-name: borderfocus;
-	-o-animation-name: borderfocus;
 	-webkit-animation-name: borderfocus;
 	animation-name: borderfocus;
-	-moz-animation-duration: 300ms;
-	-o-animation-duration: 300ms;
 	-webkit-animation-duration: 300ms;
 	animation-duration: 300ms;
 	border: 1px solid rgb(76, 139, 255);
@@ -92,16 +99,6 @@ input {
 
 .CodeMirror-linenumber {
 	border-right: 1px solid rgb(190,190,190);
-}
-
-@-moz-keyframes borderfocus {
-	from {
-		border: 1px solid rgb(195, 214, 255);
-	}
-
-	to {
-		border: 1px solid rgb(76, 139, 255);
-	}
 }
 
 @-webkit-keyframes borderfocus {
@@ -124,6 +121,16 @@ input {
 	}
 }
 
+@-webkit-keyframes borderblur {
+	from {
+		border: 1px solid rgb(76, 139, 255);
+	}
+
+	to {
+		border: 1px solid rgb(195, 214, 255);
+	}
+}
+
 @keyframes borderblur {
 	from {
 		border: 1px solid rgb(76, 139, 255);
@@ -135,44 +142,9 @@ input {
 }
 
 #buttonsContainer {
-	z-index: 50;
-	overflow:hidden;
-	padding:2px;
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
-	margin-top:-2px;
-	margin-right:-1px;
-	opacity: 0.3;
-}
-
-#buttonsContainer:hover {
-	opacity: 1.0;
-}
-
-#editorPlaceholder paper-spinner {
-	width: 50px;
-	height: 50px;
-}
-
-#editorPlaceholder, #editorPlaceHolderCenterer {
-	-webkit-justify-content: center;
-	justify-content: center;
-}
-
-#editorPlaceholder {
-	background-color: rgb(240,240,240);
-	z-index: 50;
-}
-
-#editorPlaceHolderCenterer {
-	display: -webkit-flex;
-	display: flex;
-	-webkit-flex-direction: row;
-	flex-direction: row;
-}
-
-#editorCont {
-	min-height: 302px;
 }
 
 #executionTriggersContainer {
@@ -181,35 +153,44 @@ input {
 }
 
 #editorSettings svg {
-	padding: 7px;
-}
-
-#editorFullScreen svg {
 	padding: 4px;
 }
 
-#editorFullScreen, #editorSettings {
+#editorFullScreen svg {
+	padding: 1px;
+}
+
+#editorFullScreen, #editorSettings, #editorTypescript {
 	cursor: pointer;
 	background-color: white;
 }
 
-	#editorFullScreen:hover, #editorSettings:hover {
-		background-color: rgb(230,230,230);
+#editorTypescript[active] {
+	background-color: rgb(200, 200, 200);
+	color: #2699f4;
+}
+
+	#editorFullScreen:hover, #editorSettings:hover, #editorTypescript:hover {
+		background-color: rgb(230, 230, 230);
 	}
+
+.editorTopOption {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-pack: justify;
+	-webkit-justify-content: space-between;
+	        justify-content: space-between;
+	margin-top: 4px;
+}
+
+#buttonsContainer {
+	box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14), 0 1px 8px 0 rgba(0, 0, 0, 0.12), 0 3px 3px -2px rgba(0, 0, 0, 0.4);
+	margin-right: 1px;
+}
 
 #addTrigger {
 	font-size: 125%;
-}
-
-#editorOptionsContainer {
-	overflow: hidden;
-	height: 250vh;
-	pointer-events: all;
-}
-
-#editorSettings {
-	height: 41px;
-	z-index:60;
 }
 
 #editorOptions {
@@ -217,16 +198,9 @@ input {
 	background-color: rgb(255, 255, 255);
 	font-family: 'Roboto';
 	padding: 10px;
+	height: -webkit-calc(100% - 137px);
 	height: calc(100% - 137px);
-	margin-left:-400px;
 	font-size:15px;
-}
-
-#buttonShadow {
-	display: inline-block;
-	right: -1px;
-	position: absolute;
-	z-index: 50;
 }
 
 #settingsShadow {
@@ -292,7 +266,6 @@ input {
 #bubbleCont {
 	width: 508px !important;
 	height: 100%!important;
-	position: absolute;
 	overflow: hidden;
 	right: 0;
 	pointer-events: none;
@@ -303,12 +276,16 @@ input {
 }
 
 #editorJSLintGlobalsFlexCont {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	        flex-direction: row;
+	-webkit-box-pack: start;
 	-webkit-justify-content: flex-start;
-	justify-content: flex-start;
+	        justify-content: flex-start;
 }
 
 #editorJSLintGlobalsDefault {
@@ -320,10 +297,13 @@ input {
 }
 
 #editorThemeFontSize {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	        flex-direction: row;
 	padding-bottom:10px;
 }
 
@@ -455,4 +435,103 @@ input {
 	font-size:15.6px;
 	font-weight:normal;
 	cursor: default;
+}
+
+.editorTabsCont {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+}
+
+.editorTab {
+	font-size: 150%;
+	position: relative;
+	text-transform: uppercase;
+	padding: 5px;
+	box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14), 0 1px 8px 0 rgba(0, 0, 0, 0.12), 0 3px 3px -2px rgba(0, 0, 0, 0.4);
+	cursor: pointer;
+}
+
+	.editorTab.active {
+		background-color: rgb(190,190,190);
+		box-shadow: none;
+	}
+
+.userScriptGutterHighlight {
+	background: lightblue;
+}
+
+#settingsAnimationPositioner {
+	position: absolute;
+}
+
+#editorOptionsContainer {
+	overflow-y: scroll;
+	overflow-x: hidden;
+	pointer-events: all;
+	background-color: white;
+}
+
+.paper-material {
+	display: inline;
+}
+
+#editor {
+	min-height: 360px;
+}
+
+.executionTriggerCheckboxCenterer {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	        justify-content: center;
+	margin-right: 10px;
+}
+
+#triggerOverflowContainer {
+	overflow: hidden;
+}
+
+#topRow {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: row;
+	        flex-direction: row;
+	-webkit-box-pack: justify;
+	-webkit-justify-content: space-between;
+	        justify-content: space-between;
+}
+
+#updateIcon {
+	box-shadow: 0px 4px 16px 0 rgba(0, 0, 0, 0.35);
+	background-color: #3f51b5;
+	border-radius: 50%;
+	padding: 3px;
+	cursor: pointer;
+}
+
+#updateIcon:active {
+	box-shadow: 0px 0px 16px 0 rgba(0, 0, 0, 0.35);
+}
+
+#updateEnabled {
+	-webkit-transform: rotate(45deg);
+	        transform: rotate(45deg);
+}
+
+#updateEnabled.hidden, #updateDisabled.hidden {
+	display: none;
+}
+
+#changeType {
+	margin-right: 20px;
 }

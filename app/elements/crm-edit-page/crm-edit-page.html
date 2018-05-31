@@ -1,9 +1,10 @@
 ﻿<!DOCTYPE HTML>
 <dom-module id="crm-edit-page" attributes="item">
 	<template>
-		<!-- build:css inline crm-edit-page.css -->
-		<link rel="stylesheet" href="crm-edit-page.css" />
+		<!-- build:css inline ../../elements/crm-edit-page/crm-edit-page.css -->
+		<link rel="stylesheet" href="../elements/crm-edit-page/crm-edit-page.css" />
 		<!-- /build -->
+		<style is="custom-style" include="paper-material-styles"></style>
 		<div id="horizontalCenterer">
 			<div id="verticalCenterer">
 				<div id="overlayCont">
@@ -15,20 +16,20 @@
 							</svg>
 						</div>
 						<div id="scriptUpdateMessage">
-							This script has been updated to use the new CRM API, read up about it <a href="../../html/crmAPIDocs.html" target="_blank">over here</a>. Depending on howmany chrome APIs you used, some issues may have occurred.
+							This script has been updated to use the new CRM API, read up about it <a href="'http://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.crmapiinstance.html'" rel="noopener" target="_blank">over here</a>. Depending on howmany chrome APIs you used, some issues may have occurred.
 							<div id="scriptUpdateStatus">[[getScriptUpdateStatus(item)]]</div> Click <span class="scriptUpdateTextButton" id="scriptUpdateShowDiff" on-tap="showScriptUpdateDiff">here</span> to compare the new and the old version and/or resolve any issues migrating or click <span class="scriptUpdateTextButton" id="scriptUpdateDismiss" on-tap="hideUpdateMergeDialog">here</span> to dismiss this dialog permanently.
 						</div>
 						<div id="scriptUpdateHideDialog">
 							<paper-icon-button on-tap="hideUpdateMergeDialog" id="scriptUpdateHideDialogButton" icon="clear"></paper-icon-button>
 						</div>
 					</div>
-					<paper-material elevation="5" id="editPageCont">
+					<div class="paper-material" elevation="5" id="editPageCont">
 						<link-edit hidden$="[[!isLink]]" item="{{linkItem}}"></link-edit>
 						<script-edit hidden$="[[!isScript]]" item="{{scriptItem}}"></script-edit>
 						<stylesheet-edit hidden$="[[!isStylesheet]]" item="{{stylesheetItem}}"></stylesheet-edit>
 						<divider-edit hidden$="[[!isDivider]]" item="{{dividerItem}}"></divider-edit>
 						<menu-edit hidden$="[[!isMenu]]" item="{{menuItem}}"></menu-edit>
-					</paper-material>
+					</div>
 					<div id="nodeInfo">
 						<div id="nodeInfoData">
 							<span id="nodeInfoName">
@@ -40,7 +41,7 @@
 									Created by <b title$="[[nodeInfo.source.author]]" id="nodeInfoAuthorCont">[[nodeInfo.source.author]]</b></span>,
 									installed from <span id="nodeInfoFrom">
 									<b>
-										<a id="nodeInfoUrl" title$="[[nodeInfo.source.url]]" target="_blank" href$="[[nodeInfo.source.url]]">(url)</a>
+										<a id="nodeInfoUrl" title$="[[nodeInfo.source.url]]" target="_blank" rel="noopener" href$="[[nodeInfo.source.url]]">(url)</a>
 									</b>
 								</span>
 							</span>
@@ -70,4 +71,6 @@
 		</div>
 	</template>
 </dom-module>
+<!-- build:js inline -->
 <script src="crm-edit-page.js"></script>
+<!-- /build -->

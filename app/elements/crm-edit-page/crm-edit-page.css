@@ -1,17 +1,22 @@
-﻿#editPageCont {
+#editPageCont {
 	background-color: white;
 	padding: 10px;
 	pointer-events: all;
 }
 
 #horizontalCenterer {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
-	flex-direction: row;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
+	        flex-direction: row;
 	flex-direction: row;
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
+	width: -webkit-calc(100vw - 20px);
 	width: calc(100vw - 20px);
 	height: 100vh;
 	position: fixed;
@@ -19,14 +24,17 @@
 }
 
 #verticalCenterer {
-	display: -webkit-flex;
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
-	flex-direction: column;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
+	        flex-direction: column;
 	flex-direction: column;
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
 }
 
 #nodeInfo, #scriptUpdateNotice {
@@ -35,10 +43,12 @@
     font-size: 125%;
     padding: 5px 8px;
 	pointer-events: all;
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+    -webkit-box-pack: justify;
     -webkit-justify-content: space-between;
-    justify-content: space-between;
+            justify-content: space-between;
 }
 
 #scriptUpdateNotice {
@@ -46,10 +56,39 @@
 	max-width:890px;
 }
 
+a {
+	position: relative;
+	text-decoration: none;
+	color: rgb(44, 161, 220);
+}
+
+a:focus {
+	outline: none;
+}
+
+a:focus::before {
+	background-color: rgba(0,0,0,.1);
+	border-radius: 2px;
+	bottom: -4px;
+	content: ' ';
+	left: -4px;
+	margin: auto;
+	padding: 4px;
+	position: absolute;
+	right: -4px;
+	top: -4px;
+}
+
 	#nodeInfo a, #scriptUpdateNotice a {
 		color: white;
 		text-decoration: underline;
 	}
+
+#nodeInfo span::-moz-selection, #nodeInfo b::-moz-selection, #nodeInfo a::-moz-selection, #nodeInfo div::-moz-selection,
+#scriptUpdateNotice span::-moz-selection, #scriptUpdateNotice b::-moz-selection, #scriptUpdateNotice a::-moz-selection, #scriptUpdateNotice div::-moz-selection {
+    background-color: white;
+    color: black;
+}
 
 #nodeInfo span::selection, #nodeInfo b::selection, #nodeInfo a::selection, #nodeInfo div::selection,
 #scriptUpdateNotice span::selection, #scriptUpdateNotice b::selection, #scriptUpdateNotice a::selection, #scriptUpdateNotice div::selection {
@@ -62,12 +101,16 @@
 }
 
 #scriptUpdateWarningIcon {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
 	fill: white;
 	padding-right: 8px;
 }
@@ -89,10 +132,13 @@
 	}
 
 menu-edit, divider-edit, link-edit {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
 }
 
 #nodeInfo > div {
@@ -111,4 +157,8 @@ menu-edit, divider-edit, link-edit {
 
 #nodeInfoByYou {
 	text-decoration: underline;
+}
+
+*[hidden] {
+	display: none!important;
 }

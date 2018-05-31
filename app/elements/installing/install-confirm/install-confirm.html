@@ -1,70 +1,111 @@
-﻿<dom-module id="install-confirm" attributes="script">
-	<link rel="import" href="../../../bower_components/paper-button/paper-button.html"/>
-	<link rel="import" href="../../../bower_components/paper-checkbox/paper-checkbox.html"/>
+﻿<!DOCTYPE HTML>
+<link rel="import" href="../../../bower_components/paper-button/paper-button.html"/>
+<link rel="import" href="../../../bower_components/paper-checkbox/paper-checkbox.html"/>
+<link rel="import" href="../../../elements/edit-pages/monaco-editor/monaco-editor.html"/>
+<dom-module id="install-confirm" attributes="script">
 	<template>
-		<link rel="stylesheet" href="install-confirm.css"/>
-		<div id="scriptInstalled">
-			<center-element width="100vw" height="calc(100vh - 64px)">
-				<paper-material elevation="2" id="scriptInstalledBackground">
-					<div id="scriptInstalledCenterCont">
-						<div id="scriptInstalledCheckmarkCont">
-							<div id="scriptInstalledCheckmark"></div>
-						</div>
-						<div id="scriptInstalledText">Installed!</div>
-					</div>
-				</paper-material>
-			</center-element>
-		</div>
-		<div id="scriptInfo">
-			<div id="scriptInfoMeta">
-				<div class="infoData" id="descriptionInfo">
-					<div class="infoName">Description</div>
-					<div id="descriptionValue" class="infoValue"></div>
-				</div>
-				<div class="infoData" id="authorInfo">
-					<div class="infoName">Author</div>
-					<div id="authorValue" class="infoValue"></div>
-				</div>
-				<div class="infoData" id="sourceInfo">
-					<div class="infoName">Source</div>
-					<div id="sourceValue" class="infoValue"></div>
-				</div>
-			</div>
-			<div id="scriptInfoPermissions">
-				<div class="infoData" id="permissionInfo">
-					<div class="infoName">Permissions</div>
-					<div class="infoValue">
-						<template is="dom-repeat" id="permissionValue" class="infoValue" as="permission">
-							<div class="infoPermissionContainer">
-								<div class="infoPermissionToggleContainer">
-									<div class="infoPermission">
-										<b>{{permission}}</b>
-									</div>
-									<div on-tap="showPermissionDescription" class="infoPermissionArrow">
-										<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
-									</div>
-									<paper-checkbox permission$="{{permission}}" on-tap="checkPermission" disabled$="{{isNonePermission(permission)}}" class="infoPermissionCheckbox">Allow</paper-checkbox>
-								</div>
-								<div class="infoPermissionExtraText">{{getDescription(permission)}}</div>
-							</div>
-						</template>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div id="editorCont"></div>
-		<div id="installButtons">
-			<paper-button on-tap="completeInstall" class="installButton" raised id="installButton">install</paper-button>
-			<paper-button on-tap="cancelInstall" class="installButton" raised id="cancelButton">cancel</paper-button>
-			<paper-button on-tap="cancelInstall" class="installButton" raised id="closePage">close</paper-button>
-		</div>
-		<!-- build:js ../../../js/libraries/codemirror/codeMirrorFile.min.js -->
-		<script src="../../../js/libraries/codemirror/codemirror.js"></script>
-		<script src="../../../js/libraries/diff_match_patch.js"></script>
-		<script src="../../../js/libraries/codemirror/codeMirrorAddons.js"></script>
-		<script src="../../../js/libraries/codemirror/codemirrorJs.js"></script>
-		<script src="../../../js/userscriptMetadataCodemirror.js"></script>
+		<!-- build:css inline ../../../elements/installing/install-confirm/install-confirm.css -->
+		<link rel="stylesheet" href="../../elements/installing/install-confirm/install-confirm.css"/>
 		<!-- /build -->
+		<style is="custom-style" include="paper-material-styles"></style>
+		<div id="installConfirmContainer">
+			<div id="scriptInstalled">
+				<center-element width="100vw" height="calc(100vh - 64px)">
+					<div class="paper-material" elevation="2" id="scriptInstalledBackground">
+						<div id="scriptInstalledCenterCont">
+							<div id="scriptInstalledCheckmarkCont">
+								<div id="scriptInstalledCheckmark"></div>
+							</div>
+							<div id="scriptInstalledText">Installed!</div>
+						</div>
+					</div>
+				</center-element>
+			</div>
+			<div id="scriptInfo">
+				<table id="scriptInfoMeta">
+					<tr class="infoData" id="descriptionInfo">
+						<td class="infoName">Description:</td>
+						<td id="descriptionValue" class="infoValue">?</td>
+					</tr>
+					<tr class="infoData" id="authorInfo">
+						<td class="infoName">Author:</td>
+						<td id="authorValue" class="infoValue">?</td>
+					</tr>
+					<tr class="infoData" id="sourceInfo">
+						<td class="infoName">Source:</td>
+						<td id="sourceValue" class="infoValue">?</td>
+					</tr>
+				</table>
+				<div id="scriptInfoPermissions">
+					<div class="infoData" id="permissionInfo">
+						<div class="infoName">
+							<span class="permissionsTitleText">Permissions:</span>
+							<div id="permissionsInfoCont">
+								<svg class="inactive" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+									<path d="M0 0h24v24H0z" fill="none" />
+									<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"
+									/>
+								</svg>
+								<svg class="active" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+									<path d="M0 0h24v24H0z" fill="none" />
+									<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+								</svg>
+								<div class="paper-material" id="permissionsInfoTxtCont" elevation="3">
+									<div id="permissionsInfoText">
+										Not accepting a permission might lead to scripts silently failing.
+										You can re-enable them at any time by going to the options page, editing
+										the node and clicking the "manager permissions" button.
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="infoValue">
+							<template is="dom-if" if="{{lengthIs(permissions, 0)}}">
+								<div class="infoPermissionContainer">
+									<div class="infoPermissionToggleContainer">
+										<div class="infoPermission">
+											<b>None</b>
+										</div>
+										<div on-tap="showPermissionDescription" class="infoPermissionArrow">
+											<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
+										</div>
+										<paper-checkbox permission$="{{permission}}" on-tap="checkPermission" disabled class="infoPermissionCheckbox">Allow</paper-checkbox>
+									</div>
+									<div class="infoPermissionExtraText">No permissions required</div>
+								</div>
+							</template>
+							<div hidden="{{lengthIs(permissions, 0)}}">
+								<template is="dom-repeat" id="permissionValue" class="infoValue" as="permission" items="{{permissions}}">
+									<div class="infoPermissionContainer">
+										<div class="infoPermissionToggleContainer">
+											<div class="infoPermission">
+												<b>{{permission}}</b>
+											</div>
+											<div on-tap="showPermissionDescription" class="infoPermissionArrow">
+												<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
+											</div>
+											<paper-checkbox permission$="{{permission}}" on-tap="checkPermission" class="infoPermissionCheckbox">Allow</paper-checkbox>
+										</div>
+										<div class="infoPermissionExtraText">{{getDescription(permission)}}</div>
+									</div>
+								</template>
+								<paper-checkbox id="permissionsToggleAll" on-tap="toggleAll">Toggle All</paper-checkbox>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<monaco-editor id="editorCont"></monaco-editor>
+			<div id="installButtons">
+				<paper-button on-tap="acceptAndCompleteInstall" class="installButton" raised id="acceptAndInstallbutton">Allow all and install</paper-button>
+				<paper-button on-tap="completeInstall" class="installButton" raised id="installButton">install</paper-button>
+				<paper-button on-tap="cancelInstall" class="installButton" raised id="cancelButton">cancel</paper-button>
+				<paper-button on-tap="cancelInstall" class="installButton" raised id="closePage">close</paper-button>
+			</div>
+		</div>
 	</template>
 </dom-module>
+<!-- build:js inline -->
+<script src="../../../elements/edit-pages/monaco-editor/src/min/vs/loader.js"></script>
 <script src="install-confirm.js"></script>
+<!-- /build -->

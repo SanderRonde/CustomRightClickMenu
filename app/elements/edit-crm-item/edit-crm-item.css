@@ -1,4 +1,4 @@
-﻿#itemCont {
+#itemCont {
 	position: relative;
 	-webkit-user-select: none;
 	-moz-user-select: none;
@@ -14,15 +14,15 @@
 	background-color: black;
 }
 
-	edit-crm-item[shadow] #itemCont {
+	#itemCont[shadow] {
 		opacity: 0.5;
 	}
 
-	edit-crm-item.dragging {
+	:host(.dragging) {
 		outline: none;
 	}
 
-edit-crm-item.draggingFiller .item {
+#itemCont.draggingFiller {
 	background-color: #78d3ff;
 }
 
@@ -37,7 +37,6 @@ edit-crm-item.draggingFiller .item {
 .CRMItemTitle {
 	white-space: nowrap;
 	overflow: hidden;
-	-o-text-overflow: ellipsis;
 	-ms-text-overflow: ellipsis;
 	text-overflow: ellipsis;
 	position:relative;
@@ -57,14 +56,23 @@ edit-crm-item.draggingFiller .item {
 		width: 288px;
 	}
 
+#itemCont.selecting .CRMItemTitle[iscode] {
+	width: 258px;
+}
+
 .codeSettingsButton {
 	position: relative;
 	right: 0;
+	display: -webkit-box;
 	display: flex;
 	display: -webkit-flex;
-	flex-direction: column;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
 }
 
 .codeSettingsButton:hover {
@@ -76,6 +84,16 @@ edit-crm-item.draggingFiller .item {
 	right: 0;
 	width: 20px;
 	height: 50px;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	        justify-content: center;
 }
 
 	.menuArrowCont:hover {
@@ -122,7 +140,7 @@ edit-crm-item.draggingFiller .item {
 	height:30px;
 	width:20px;
 	margin-left:5px;
-	margin-top:8px;
+	padding-top: 10px;
 }
 
 .item {
@@ -130,46 +148,51 @@ edit-crm-item.draggingFiller .item {
 	background-color: white;
 	fill: black;
 	height: 50px;
-	transition: background-color 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000), color 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000), fill 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000);
+	-webkit-transition: background-color 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000), 
+		color 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000), 
+		fill 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000);
+	transition: background-color 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000), 
+		color 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000), 
+		fill 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000);
 }
 
 	.item:hover {
 		background-color: rgb(230,230,230);
 	}
 
-edit-crm-item.highlighted .item {
+:host(.browser-edge) .item {
+	transform: translateY(-34px);
+}
+
+#itemCont.highlighted .item {
 	background-color:#3E3E3E;
 	color:white;
 	fill: white;
 }
 
-edit-crm-item.highlighted .menuArrowCont {
+#itemCont.highlighted .menuArrowCont {
 	background-color: #3E3E3E;
 }
 
-edit-crm-item #checkboxCont {
+#itemCont #checkboxCont {
 	display:none;
+	margin-left: 4px;
 }
 
-edit-crm-item #dragger {
+#itemCont .dragger {
 	display:block;
 }
 
-edit-crm-item.selecting #checkboxCont {
+#itemCont.selecting #checkboxCont {
 	display:block;
 }
 
-edit-crm-item.selecting #dragger {
-	display:none;
+#itemCont.selecting .dragger {
+	display: none;
 }
 
-edit-crm-item.pulse .item {
-	background-color: #91ff9f;
-}
-
-paper-checkbox {
-	margin-left: 9px;
-    margin-right: 3px;
+#itemCont.selecting .codeSettingsButton  {
+	display: none;
 }
 
 #rootNodeTypeColor {
@@ -183,4 +206,14 @@ paper-checkbox {
 	border: none;
 	background-color: transparent;
 	outline: none;
+	margin-top: 5px;
+}
+
+.menuArrow {
+	margin-top: -30px;
+}
+
+paper-button.blue {
+    background-color: #3F51B5;
+    color: white;
 }

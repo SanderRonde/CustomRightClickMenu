@@ -1,4 +1,4 @@
-﻿.TSContainer {
+.TSContainer {
 	width: 300px;
 	margin-left:-293px;
 	height:50px;
@@ -28,7 +28,7 @@
 
 .typeSwitchChoice {
 	width: 300px;
-	height:50px;
+	height: 50px;
 	color:white;
 	text-align: center;
 }
@@ -39,9 +39,6 @@
 }
 
 #typeSwitchArrow {
-	-moz-transform: rotate(180deg);
-	-ms-transform: rotate(180deg);
-	-o-transform: rotate(180deg);
 	-webkit-transform: rotate(180deg);
 	transform: rotate(180deg);
 	width: 15px;

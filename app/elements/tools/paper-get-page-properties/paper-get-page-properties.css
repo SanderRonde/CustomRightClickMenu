@@ -1,3 +1,8 @@
-﻿paper-item {
+paper-item {
 	font-weight: normal !important;
+}
+
+#topBorder {
+	border-top: 1px solid rgb(239, 239, 239);
+	padding-top: 8px;
 }

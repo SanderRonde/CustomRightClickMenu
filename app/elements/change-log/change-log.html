@@ -1,27 +1,24 @@
-﻿<html>
-<head>
-</head>
-<body>
-	<dom-module id="change-log">
-		<template>
-			<!-- build:css inline change-log.css -->
-			<link rel="stylesheet" href="change-log.css"/>
-			<!-- /build -->
-			<template is="dom-repeat" items="{{changelog}}" as="changelogItem">
-				<div class="changelogItem">
-					<div class="changelogVersion">{{changelogItem.version}}</div>
-					<ul class="changelogChanges">
-						<template is="dom-repeat" items="{{changelogItem.changes}}" as="change">
-							<li>
-								<echo-html html$="{{change}}" class="changelogChange"></echo-html>
-							</li>
-						</template>
-					</ul>
-				</div>
-			</template>
+﻿<!DOCTYPE HTML>
+<dom-module id="change-log">
+	<template>
+		<!-- build:css inline ../../elements/change-log/change-log.css -->
+		<link rel="stylesheet" href="../elements/change-log/change-log.css"/>
+		<!-- /build -->
+		<template is="dom-repeat" items="{{changelog}}" as="changelogItem">
+			<div class="changelogItem">
+				<div class="changelogVersion">{{changelogItem.version}}</div>
+				<ul class="changelogChanges">
+					<template is="dom-repeat" items="{{changelogItem.changes}}" as="change">
+						<li>
+							<echo-html html$="{{change}}" class="changelogChange"></echo-html>
+						</li>
+					</template>
+				</ul>
+			</div>
 		</template>
-	</dom-module>
-	<script src="changelog.js"></script>
-	<script src="change-log.js"></script>
-</body>
-</html>
+	</template>
+</dom-module>
+<!-- build:js inline -->
+<script src="changelog.js"></script>
+<script src="change-log.js"></script>
+<!-- /build -->

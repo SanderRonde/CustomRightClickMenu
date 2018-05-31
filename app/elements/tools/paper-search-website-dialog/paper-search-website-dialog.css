@@ -1,4 +1,4 @@
-﻿#chooseDefaultSearchWindow, #manuallyInputSearchWebsiteWindow, #processedListWindow, #howToOpenWindow, #confirmationWindow, #successWindow, #loadingWindow {
+#chooseDefaultSearchWindow, #manuallyInputSearchWebsiteWindow, #processedListWindow, #howToOpenWindow, #confirmationWindow, #successWindow, #loadingWindow {
 	display: none;
 	max-width: 650px;
 }
@@ -31,6 +31,7 @@
 
 #testUrlLink, #testResultContainer span {
 	display: inline-block;
+	margin-left: 10px;
 }
 
 #paperSearchWebsiteDialog paper-spinner {
@@ -62,4 +63,124 @@
 
 .searchOptionCheckbox {
 	margin: 20px 21px 0 21px;
+}
+
+.textAndInputContainer paper-input-container[disabled], #listInputSearchList paper-input-container[disabled]{
+	opacity: 1;
+}
+
+#successWindow {
+	width: 300px;
+	height: 350px;
+	background-color: white;
+	-webkit-transition: background-color 0.3s ease;
+	transition: background-color 0.3s ease;
+	margin: 0;
+}
+
+	#successWindow.visible {
+		background-color: rgb(38,153,244);
+	}
+
+#paperSearchWebsiteDialog #successWindow.visible .checkmark {
+	animation: delayed-expand-checkmark 440ms ease-out forwards;
+}
+
+@keyframes delayed-expand-checkmark {
+	0% {
+		top: 180px;
+		left: 120px;
+		width: 0;
+		height: 0;
+	}
+	100% {
+		top: -20px;
+		left: 80px;
+		width: 100px;
+		height: 200px;
+	}
+}
+
+#manualInputListChoiceInput iron-autogrow-textarea {
+	max-height: 200px;
+}
+
+#paperSearchWebsiteDialog .checkmark {
+	-webkit-transform: rotate(45deg);
+	transform: rotate(45deg);
+	position: absolute;
+	top: -1px;
+	left: 4px;
+	width: 5px;
+	height: 10px;
+	border: none rgb(0, 200, 10);
+	border-right: 20px solid;
+	border-bottom: 20px solid;
+	margin-left: 42px;
+	margin-top: 16px;
+	color: white;
+}
+
+#paperSearchWebsiteDialog .checkmark.animateIn {
+	animation: expand-checkmark 140ms ease-out forwards;
+}
+
+@keyframes expand-checkmark {
+	0% {
+		top: 180px;
+		left: 120px;
+		width: 0;
+		height: 0;
+	}
+	100% {
+		top: -20px;
+		left: 80px;
+		width: 100px;
+		height: 200px;
+	}
+}
+
+.buttons {
+	color: rgb(38, 153, 244);
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: row;
+	flex-direction: row;
+	-webkit-justify-content: flex-end;
+	justify-content: flex-end;
+	position: relative;
+	padding: 8px 8px 8px 24px;
+	margin: 0;
+}
+
+.successText {
+	text-align: center;
+	width: 300px;
+	position: absolute;
+	margin-top: 267px;
+	color:white;
+	font-size:250%;
+}
+
+a {
+	position: relative;
+	text-decoration: none;
+	color: rgb(44, 161, 220);
+}
+
+a:focus {
+	outline: none;
+}
+
+a:focus::before {
+	background-color: rgba(0,0,0,.1);
+	border-radius: 2px;
+	bottom: -4px;
+	content: ' ';
+	left: -4px;
+	margin: auto;
+	padding: 4px;
+	position: absolute;
+	right: -4px;
+	top: -4px;
 }

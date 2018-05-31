@@ -1,5 +1,6 @@
 .arrayInputLine {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 }
 
@@ -23,9 +24,11 @@
 	border-top: 1px solid #c3c3c3;
 	padding-top: 5px;
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	-webkit-justify-content: space-between;
-	justify-content: space-between;
+	-webkit-box-pack: justify;
+	        justify-content: space-between;
 }
 
 #arrayInputNoItemsMessage {
@@ -36,6 +39,7 @@
 	color: #ff3614;
 	font-weight: bold;
 	opacity: 0;
+	-webkit-transition: opacity 250ms ease-in-out;
 	transition: opacity 250ms ease-in-out;
 } 
 
@@ -45,8 +49,17 @@
 
 #maxElementsReachedCenterer {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	-webkit-justify-content: flex-end;
-	justify-content: flex-end;
-	flex-direction: column;
+	-webkit-box-pack: end;
+	        justify-content: flex-end;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	        flex-direction: column;
+}
+
+.arrayInputLine paper-input {
+	width: 288px;
 }

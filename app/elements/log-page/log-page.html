@@ -1,15 +1,39 @@
-﻿<dom-module id="log-page">
-	<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html" />
-	<link rel="import" href="../../elements/center-element/center-element.html" />
-	<link rel="import" href="../../elements/log-console/log-console.html" />
+﻿<!DOCTYPE HTML>
+<link rel="import" href="../../elements/center-element/center-element.html" />
+<link rel="import" href="../../elements/log-console/log-console.html" />
+<link rel="import" href="../../bower_components/app-layout/app-layout.html"/>
+<link rel="import" href="../../bower_components/app-layout/app-header-layout/app-header-layout.html"/>
+<link rel="import" href="../../bower_components/app-layout/app-header/app-header.html"/>
+<link rel="import" href="../../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
+<link rel="import" href="../../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html"/>
+<link rel="import" href="../../bower_components/paper-button/paper-button.html"/>
+<dom-module id="log-page">
 	<template>
-		<link rel="stylesheet" href="log-page.css" />
+		<!-- build:css inline ../../elements/log-page/log-page.css -->
+		<link rel="stylesheet" href="../elements/log-page/log-page.css" />
+		<!-- /build -->
+		<style>
+			.title {
+				@apply --layout;
+				@apply --layout-flex-auto;
+				@apply --layout-center-center;
+			}
+		</style>
 		<div id="pageContainer">
-			<paper-toolbar id="toolbar">
-				<div flex title class="title" id="title">Logs</div>
-			</paper-toolbar>
-			<log-console></log-console>
+			<app-header-layout>
+				<app-header slot="header" reveals effects="waterfall">
+					<app-toolbar>
+						<div main-title class="title">Logs</div>
+					</app-toolbar>
+				</app-header>
+				<div class="container">
+					<log-console></log-console>
+				</div>
+			</app-header-layout>
 		</div>
 	</template>
 </dom-module>
+<!-- build:js inline -->
+<script src="../../js/shared.js"></script>
 <script src="log-page.js"></script>
+<!-- /build -->

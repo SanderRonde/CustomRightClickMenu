@@ -74,7 +74,7 @@ window.logElements = (() => {
 
 	class StringElement extends LogElement {
 		componentDidMount() {
-			if (!this.props.nolistener) {
+			if (!this.props.noListener) {
 				this.refs.cont.addEventListener('contextmenu', this.showContextMenu.bind(this));
 			}
 		}
@@ -223,15 +223,14 @@ window.logElements = (() => {
 			if (!this.props.expanded && !this.props.renderedExpanded) {
 				this.props.renderedExpanded = true;
 
-				const _this = this;
 				const expandedElements: Array<JSX.Element> = [];
 				const pairs = getKeyValuePairs(this.props.value, true);
 				const lastElementIndex = pairs.length - 1;
-				pairs.forEach(function(item, i) {
+				pairs.forEach((item, i) => {
 					expandedElements.push(
 						<div className="expandedObjectElement">
 							<div className="expandedObjectElementIndex">{item.index}:</div>
-							<div className="expandedObjectElementValue">{getTag(item.value, _this, {
+							<div className="expandedObjectElementValue">{getTag(item.value, this, {
 								isProto: item.index === '__proto__'
 							})}</div>
 							{i < lastElementIndex ? <span className="arrayComma">,</span> : null}
@@ -337,7 +336,7 @@ window.logElements = (() => {
 								return (
 									<span className="objectElementValueCont">
 										{dataType === 'object' ? <span className="objectElementKey">{index}:</span> : null}
-										<StringElement nolistener={"true"} value={data}/>
+										<StringElement noListener={"true"} value={data}/>
 										{i < lastElIndex ? <span className="arrayComma">,</span> : null}
 									</span>
 								);;
@@ -350,6 +349,73 @@ window.logElements = (() => {
 					</div>
 				</div>
 			);;
+		}
+	}
+
+	class LogSource extends React.Component<{
+		line: LogListenerLine;
+	}, {}> {
+		constructor(props: {
+			line: LogListenerLine;
+		}) {
+			super(props);
+		}
+		async takeToTab() {
+			if (this.props.line.tabId === 'background') {
+				window.logConsole.$.genericToast.text = 'Can\'t open a background page';
+				window.logConsole.$.genericToast.show();
+			} else {
+				const tab = await browserAPI.tabs.get(~~this.props.line.tabId).catch((err) => {
+					window.logConsole.$.genericToast.text = 'Tab has been closed';
+					window.logConsole.$.genericToast.show();
+				});
+				if (!tab) {
+					return;
+				}
+
+				if ('highlight' in browserAPI.tabs) {
+					const chromeTabs: typeof _chrome.tabs = browserAPI.tabs as any;
+					if (!chromeTabs.highlight) {
+						return;
+					}
+					await chromeTabs.highlight({
+						windowId: tab.windowId,
+						tabs: tab.index
+					}, () => {
+						if ((window as any).chrome.runtime.lastError) {
+							console.log((window as any).chrome.runtime.lastError);
+							console.log('Something went wrong highlighting the tab');
+						}
+					});
+				}
+			}
+		}
+		getLineNumber() {
+			return (this.props.line.lineNumber && this.props.line.lineNumber.trim()) || '?';
+		}
+		listenClick<T extends () => void>(fn: T) {
+			return (target: HTMLElement|null) => {
+				if (target !== null) {
+					target.addEventListener('click', fn);
+				}
+			}
+		}
+		render() {
+			return (
+				<div className="lineSource">
+					<span className="lineSourceIdCont" title={`Node name: ${this.props.line.nodeTitle}`}>
+						[id-<span className="lineSourceId">{this.props.line.id}</span>]
+					</span>
+					<span className="lineSourceTabCont">
+						[<span ref={this.listenClick(this.takeToTab.bind(this))} className="lineSourceTabsInner" title={`Tab name: ${this.props.line.tabTitle}, instance: ${this.props.line.tabInstanceIndex || 0}`} tabIndex={1}>
+							tab-<span className="lineSourceTab">{this.props.line.tabId}</span>:{this.props.line.tabInstanceIndex || 0}
+						</span>]
+					</span>
+					<span title="Log source file and line number" className="lineSourceLineCont">@
+						<span className="lineSourceLineNumber">{this.getLineNumber()}</span>
+					</span>
+				</div>
+			);
 		}
 	}
 
@@ -366,42 +432,45 @@ window.logElements = (() => {
 		isLine() {
 			return true;
 		}
-		takeToTab() {
-			chrome.tabs.get(~~this.props.line.tabId, function(tab) {
-				if (chrome.runtime.lastError) {
-					window.logConsole.$['genericToast'].text = 'Tab has been closed';
-					window.logConsole.$['genericToast'].show();
+		async takeToTab() {
+			const tab = await browserAPI.tabs.get(~~this.props.line.tabId).catch((err) => {
+				window.logConsole.$.genericToast.text = 'Tab has been closed';
+				window.logConsole.$.genericToast.show();
+			});
+			if (!tab) {
+				return;
+			}
+
+			if ('highlight' in browserAPI.tabs) {
+				const chromeTabs: typeof _chrome.tabs = browserAPI.tabs as any;
+				if (!chromeTabs.highlight) {
 					return;
 				}
-
-				chrome.tabs.highlight({
+				await chromeTabs.highlight({
 					windowId: tab.windowId,
 					tabs: tab.index
 				}, () => {
-					if (chrome.runtime.lastError) {
-						console.log(chrome.runtime.lastError);
+					if ((window as any).chrome.runtime.lastError) {
+						console.log((window as any).chrome.runtime.lastError);
 						console.log('Something went wrong highlighting the tab');
 					}
 				});
-			});
+			}
 		}
 		render() {
-			const takeToTab = this.takeToTab.bind(this);
 			return (
 				<div data-error={this.props.line.isError} className="logLine">
 					<div className="lineData">
 						<div className="lineTimestamp">{this.props.line.timestamp}</div>
 						<div className="lineContent">
-							{this.props.value.map((value: any) => {
+							{this.props.value.map((value: LogLineData) => {
 								return getTag(value, this, {
 									isEval: this.props.line.isEval
 								});
 							})}
 						</div>
 					</div>
-					<div className="lineSource">
-						<span className="lineSourceIdCont" title={this.props.line.nodeTitle}>[id-<span className="lineSourceId">{this.props.line.id}</span>]</span><span className="lineSourceTabCont" onClick={takeToTab} tabIndex={1} title={this.props.line.tabTitle}>[tab-<span className="lineSourceTab">{this.props.line.tabId}</span>][{this.props.line.tabIndex}]</span><span className="lineSourceLineCont">@<span className="lineSourceLineNumber">{this.props.line.lineNumber.trim()}</span></span>
-					</div>
+					<LogSource line={this.props.line} />
 				</div>
 			);
 		}
@@ -419,7 +488,7 @@ window.logElements = (() => {
 		constructor(props: {}) {
 			super(props);
 		}
-		add(lineData: Array<LogLineData>, line: LogListenerLine): void {
+		add(lineData: Array<LogLineData> = [], line: LogListenerLine): void {
 			this.setState({
 				lines: this.state.lines.concat([{
 					data: lineData,

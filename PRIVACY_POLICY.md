@@ -3,4 +3,3 @@ This extension uses your browser's  [browser.storage.sync](https://developer.moz
 to sync your data across devices. This data only consists of 
 your custom right-click menu and its settings.
 This means that these settings are stored on your browser manufacturer's servers.
-To turn off this feature, disable the "use storage sync" checkbox at the top of this page.

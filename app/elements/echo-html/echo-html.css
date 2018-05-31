@@ -1,0 +1,22 @@
+a {
+	position: relative;
+	text-decoration: none;
+	color: rgb(44, 161, 220);
+}
+
+a:focus {
+	outline: none;
+}
+
+a:focus::before {
+	background-color: rgba(0,0,0,.1);
+	border-radius: 2px;
+	bottom: -4px;
+	content: ' ';
+	left: -4px;
+	margin: auto;
+	padding: 4px;
+	position: absolute;
+	right: -4px;
+	top: -4px;
+}

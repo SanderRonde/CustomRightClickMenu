@@ -1,32 +1,34 @@
-﻿/*console*/
+/*console*/
 #copySource {
 	opacity: 0;
 }
 
 #consoleCont {
-	margin: 10px;
+	width: -webkit-calc(100vw - 20px);
 	width: calc(100vw - 20px);
+	height: -webkit-calc(100vh - 84px);
 	height: calc(100vh - 84px);
 	background-color: rgb(40,40,40);
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	        flex-direction: column;
 	-webkit-justify-content: flex-start;
-	justify-content: flex-start;
+	-webkit-box-pack: start;
+	        justify-content: flex-start;
 }
 
 #consoleFiller {
 	-webkit-flex-grow: 100;
-	flex-grow: 100;
+	-webkit-box-flex: 100;
+	        flex-grow: 100;
 }
 
 #linesCont {
 	font-family: 'Consolas';
-	overflow-y: scroll;
-	overflow-x: hidden;
-	padding: 0 10px;
-	max-height: calc(100vh - 114px);
 }
 
 .line:first-child {
@@ -52,17 +54,21 @@
 	border-bottom: 1px solid rgb(60,60,60);
 	margin: 3px 0;
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	-webkit-justify-content: space-between;
-	justify-content: space-between;
+	-webkit-box-pack: justify;
+	        justify-content: space-between;
 }
 
 #consoleInfo {
 	height: 30px;
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	-webkit-justify-content: space-between;
-	justify-content: space-between;
+	-webkit-box-pack: justify;
+	        justify-content: space-between;
 	color: white;
 	font-size: 150%;
 	padding: 0 10px;
@@ -71,18 +77,24 @@
 #filterCont {
 	z-index: 500;
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	-webkit-justify-content: flex-start;
-	justify-content: flex-start;
+	-webkit-box-pack: start;
+	        justify-content: flex-start;
 }
 
 .centerVertical {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	-webkit-justify-content: center;
-	justify-content: center;
+	-webkit-box-pack: center;
+	        justify-content: center;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	        flex-direction: column;
 	height: 100%;
 }
 
@@ -98,11 +110,13 @@
 
 #whatIsThis .inactive {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 }
 
 #whatIsThis:hover .active, #whatIsThis:hover #consoleInfoTxtCont {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 }
 
@@ -133,11 +147,15 @@
 
 #consoleStats {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
+	        flex-direction: row;
 	-webkit-justify-content: flex-end;
-	justify-content: flex-end;
+	-webkit-box-pack: end;
+	        justify-content: flex-end;
 }
 
 #consoleStats > * {
@@ -163,13 +181,20 @@
 	color: white;
 }
 
-.dropdownFilter paper-item {
-	color: white;
+paper-item {
+	width: 125px;
+	color: black;
 	display: block;
 	padding: 8px;
 }
 
+paper-item:hover {
+	background-color: rgb(238, 238, 238);
+}
+
 .dropdownFilter .menuSelectedCheckmark {
+	display: inline;
+	-webkit-transform: translateY(2px);
 	transform: translateY(2px);
 }
 
@@ -177,20 +202,20 @@
 	color: white;
 }
 
-.lineSourceTabCont {
+.lineSourceTabsInner {
 	cursor: pointer;
 	position: relative;
 }
 
-.lineSourceTabCont:hover {
+.lineSourceTabsInner:hover {
 	text-decoration: underline;
 }
 
-.lineSourceTabCont:focus {
+.lineSourceTabsInner:focus {
 	outline: none;
 }
 
-.lineSourceTabCont:focus::before {
+.lineSourceTabsInner:focus::before {
 	background-color: rgba(0,0,0,.1);
 	border-radius: 2px;
 	bottom: -4px;
@@ -221,7 +246,8 @@
 	outline: none;
 	color: white;
 	-webkit-flex-grow: 100;
-	flex-grow: 100;
+	-webkit-box-flex: 100;
+	        flex-grow: 100;
 	font-family: 'Consolas';
 	margin-left: 5px;
 	padding: 0;
@@ -238,9 +264,11 @@
 
 #inputFieldCont {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	-webkit-justify-content: flex-start;
-	justify-content: flex-start;
+	-webkit-box-pack: start;
+	        justify-content: flex-start;
 	margin-bottom: 8px;
 	position: relative;
 }
@@ -250,9 +278,13 @@
 	position: absolute;
 	margin-left: 10px;
 	opacity: 0;
+	-webkit-transition: opacity 150ms ease-in;
 	transition: opacity 150ms ease-in;
 	pointer-events: none;
-	user-select: none;
+	-webkit-user-select: none;
+	   -moz-user-select: none;
+	    -ms-user-select: none;
+	        user-select: none;
 }
 
 #inputFieldWarning.visible {
@@ -277,46 +309,59 @@
 /*object*/
 .objectElementValueCont {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	margin-right: 3px;
 }
 
 .objectElementPreviewArea, .objectElementPreviewCont {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 }
 
 .objectElementExpandArrow {
 	cursor: pointer;
-	transition: transform 150ms linear;
+	-webkit-transition: transform 150ms linear, -webkit-transform 150ms linear;
+	transition: transform 150ms linear, -webkit-transform 150ms linear;
 	fill: white;
-	user-select: none;
+	-webkit-user-select: none;
+	   -moz-user-select: none;
+	    -ms-user-select: none;
+	        user-select: none;
 }
 
 .objectElementExpandArrow.toggled {
+	-webkit-transform: rotate(90deg);
 	transform: rotate(90deg);
 }
 
 .expandedObjectElement {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 }
 
 .expandedObjectElementIndex {
 	direction: flex;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	        flex-direction: column;
 } 
 
 .objectElementExpanded {
 	margin-left: 17px;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	        flex-direction: column;
 	display: none;
 }
 
 .objectElementExpanded.visible {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 }
 
@@ -357,12 +402,15 @@
 .functionElementExpanded {
 	margin-left: 17px;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	        flex-direction: column;
 	display: none;
 }
 
 .functionElementExpanded.visible {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 }
 
@@ -376,13 +424,18 @@
 
 .functionElementPreviewArea {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 }
 
 .functionElement {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
-	flex-direction: column
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	        flex-direction: column
 }
 /*function end*/
 
@@ -432,4 +485,23 @@
 
 .evalElementStatus paper-spinner .circle {
 	border-width: 2px;
+}
+
+#inputFieldPrefix[hidden] {
+	display: none!important;
+}
+
+#lines {
+	overflow-y: scroll;
+	overflow-x: hidden;
+	max-height: -webkit-calc(100vh - 130px);
+	max-height: calc(100vh - 130px);
+	padding: 0 15px;
+}
+
+.lineSource {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	 -ms-user-select: none;
+	     user-select: none;
 }

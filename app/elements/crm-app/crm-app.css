@@ -1,12 +1,15 @@
-﻿.bigTxt {
+.bigTxt {
 	font-size: 300%;
 }
 
 .container {
 	font-size:150%;
 	width: 1000px;
-	padding-left: calc((100vw - 1000px) / 2);
-	padding-right: calc((100vw - 1000px) / 2);
+	padding-left: -webkit-calc((100vw - 1020px) / 2);
+	padding-left: calc((100vw - 1020px) / 2);
+	padding-right: -webkit-calc((100vw - 1020px) / 2);
+	padding-right: calc((100vw - 1020px) / 2);
+	margin-top: 64px;
 }
 
 .contextMenu {
@@ -28,7 +31,7 @@
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
-	user-select: none;
+	    user-select: none;
 }
 
 .CRMEditCont:first-child {
@@ -58,8 +61,8 @@ paper-shadow {
 
 .title {
 	text-align: center;
-	font-size:300%!important;
-	height:35px;
+	font-size: 200%!important;
+	height: 40px;
 }
 
 paper-checkbox #ink[checked] {
@@ -80,7 +83,7 @@ paper-ripple {
 	z-index:10;
 }
 
-.overlayCont {
+.backdropCont {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -90,6 +93,15 @@ paper-ripple {
 	background-color: black;
 	opacity: 0;
 	z-index: 5;
+	pointer-events: all;
+}
+
+.backdropCont.visible {
+	display: block;
+}
+
+.backdropCont.clickthrough {
+	pointer-events: none;
 }
 
 #menuSwitchUndoButton, #externalEditorTryAgainButton, #externalEditoOpenLocationInBrowser, .toastLink {
@@ -101,8 +113,13 @@ paper-ripple {
 #fullscreenEditor {
 	position: fixed;
 	z-index:100;
+	-moz-flex-direction: column;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
+	width: 100vw;
+	display: none;
 }
 
 #editorCurrentScriptTitle {
@@ -114,42 +131,61 @@ paper-ripple {
 	margin-top: -51px;
 	margin-left:-200px;
 	display: none;
+	-moz-flex-direction: row;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	        flex-direction: row;
+	-webkit-box-pack: justify;
 	-webkit-justify-content: space-between;
-	justify-content: space-between;
+	        justify-content: space-between;
 	-webkit-user-select:none;
-	user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	    user-select: none;
 }
 
 .editorCurrentScriptTitle span {
-	-webkit-user-select:initial;
-	user-select: initial;
+	-webkit-user-select: initial;
+	-moz-user-select: initial;
+	-ms-user-select: initial;
+	    user-select: initial;
 }
 
 #fullscreenEditorHorizontal {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	        flex-direction: row;
+	-webkit-box-flex: 100;
 	-webkit-flex-grow: 100;
-	flex-grow: 100;
+	        flex-grow: 100;
 }
 
 #editorToolsRibbonContainer {
 	margin-left: -200px;
 	width: 200px;
 	background-color: white;
+	-webkit-box-pack: justify;
 	-webkit-justify-content: space-between;
-	justify-content: space-between;
+	        justify-content: space-between;
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
+	position: absolute;
+	height: 100%;
 }
 
-paper-toolbar {
-	background: rgb(255, 87, 34)!important;
+app-header {
+	background-color: rgb(255, 87, 34)!important;
+	color: white;
 }
 
 #addLibraryManualInput {
@@ -159,8 +195,8 @@ paper-toolbar {
 }
 
 #addLibraryConfirmationInput {
+	height: 250px;
 	max-width: 300px;
-	max-height: 250px;
 }
 
 paper-dialog {
@@ -201,19 +237,26 @@ iron-overlay-backdrop {
 	display: none;
 	height: 300px;
 	width: 300px;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
 }
 
 #addLibraryLoadingDialogCenterer {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	        flex-direction: row;
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
 }
 
 #addLibraryDialogSucces {
@@ -224,11 +267,8 @@ iron-overlay-backdrop {
 	background-color:white;
 }
 
-#addLibraryDialog .checkmark, #paperSearchWebsiteDialog .checkmark {
+#addLibraryDialog .checkmark {
 	-webkit-transform: rotate(45deg);
-	-moz-transform: rotate(45deg);
-	-ms-transform: rotate(45deg);
-	-o-transform: rotate(45deg);
 	transform: rotate(45deg);
 	position: absolute;
 	top: -1px;
@@ -244,8 +284,24 @@ iron-overlay-backdrop {
 }
 
 	#addLibraryDialog .checkmark.animateIn {
+		-webkit-animation: expand-checkmark 140ms ease-out forwards;
 		animation: expand-checkmark 140ms ease-out forwards;
 	}
+
+@-webkit-keyframes expand-checkmark {
+	0% {
+		top: 180px;
+		left: 120px;
+		width: 0;
+		height: 0;
+	}
+	100% {
+		top: -20px;
+		left: 80px;
+		width: 100px;
+		height: 200px;
+	}
+}
 
 @keyframes expand-checkmark {
 	0% {
@@ -275,17 +331,22 @@ iron-overlay-backdrop {
 	border-top: 1px solid rgb(239, 239, 239);
 }
 
-#paperSearchWebsitesToolTrigger, #externalEditorDialogTrigger, #runJsLintButton, #runCssLintButton, #showCssTipsButton {
+#paperSearchWebsitesToolTrigger, #externalEditorDialogTrigger, 
+#runJsLintButton, #runCssLintButton, #showCssTipsButton {
 	color: rgb(38, 153, 244);
 	height: 75px;
 	font-size: 196%;
 	vertical-align: middle;
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
 	padding-left: 16px;
 	font-weight: 500;
 	cursor: pointer;
@@ -337,25 +398,33 @@ a:focus::before {
 #chooseFileMerger {
 	display: none;
 	height: 100%;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
 	padding-top: 5px;
 }
 
 #chooseFileMergerPlaceholder, #chooseFileMergerEditor {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-flex: 100;
 	-webkit-flex-grow: 100;
-	flex-grow: 100;
+	        flex-grow: 100;
 }
 
 	#chooseFileMergerPlaceholder center-element {
+		-webkit-box-flex: 100;
 		-webkit-flex-grow: 100;
-		flex-grow: 100;
+		        flex-grow: 100;
 	}
 
 	#chooseFileMergerPlaceholder paper-spinner {
@@ -364,10 +433,12 @@ a:focus::before {
 	}
 
 #chooseFileMergerEditor, .CodeMirror-merge-3pane .CodeMirror-merge-pane, .CodeMirror-merge-3pane .CodeMirror-merge-gap {
+	height: -webkit-calc(100vh - 148px);
 	height: calc(100vh - 148px);
 }
 
 .updateMerge #chooseFileMergerEditor, .updateMerge .CodeMirror-merge-3pane .CodeMirror-merge-pane, .updateMerge .CodeMirror-merge-3pane .CodeMirror-merge-gap {
+	height: -webkit-calc(100vh - 164px);
 	height: calc(100vh - 164px);
 }
 
@@ -390,20 +461,26 @@ a:focus::before {
 }
 
 #chooseFilemergerContainer {
+	-webkit-box-flex: 100;
 	-webkit-flex-grow: 100;
-	flex-grow: 100;
+	        flex-grow: 100;
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
 	display: none;
 }
 
 #chooseFileMergerText {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-pack: justify;
 	-webkit-justify-content: space-between;
-	justify-content: space-between;
+	        justify-content: space-between;
 	margin: 0 -33px 10px -33px;
 }
 
@@ -478,8 +555,10 @@ paper-toast {
 	display: none;
 	width: 800px;
 	height: 600px;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
 }
 
 .restoreChangesOption {
@@ -493,38 +572,43 @@ paper-toast {
 	}
 
 #restoreChangesOldCodeCont, #restoreChangeUnsaveddCodeCont {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-flex: 100;
 	-webkit-flex-grow: 100;
-	flex-grow: 100;
+	        flex-grow: 100;
 }
 
 	#restoreChangesOldCodeCont .CodeMirror, #restoreChangeUnsaveddCodeCont .CodeMirror {
+		-webkit-box-flex: 100;
 		-webkit-flex-grow: 100;
-		flex-grow: 100;
+		        flex-grow: 100;
 	}
 
-body.editingStylesheet .CodeMirror-hint {
-	padding-left: 0;
-}
-
-body.editingStylesheet .jsTool {
+#editorToolsRibbonContainer.editingStylesheet .jsTool {
 	display: none!important;
 }
 
-body.editingScript .cssTool {
+#editorToolsRibbonContainer.editingScript .cssTool {
 	display: none!important;
 }
 
 #showCssTipsButton {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	        flex-direction: row;
+	-webkit-box-pack: start;
 	-webkit-justify-content: flex-start;
-	justify-content: flex-start;
+	        justify-content: flex-start;
 	font-size: 200%;
 	text-align: center;
 	vertical-align: middle;
@@ -542,8 +626,9 @@ body.editingScript .cssTool {
 	}
 
 .CodeMirror-sizer {
+	-webkit-box-flex: 100;
 	-webkit-flex-grow: 100;
-	flex-grow: 100;
+	        flex-grow: 100;
 }
 
 #cssEditorInfoDialog {
@@ -588,6 +673,8 @@ body.editingScript .cssTool {
 .requestPermissionButton, .requestPermissionsShowBot {
 	float: right;
 	margin-top: 5px;
+	width: 36px;
+	height: 14px;
 }
 
 .requestPermissionsShowBot {
@@ -597,6 +684,7 @@ body.editingScript .cssTool {
 }
 
 .requestPermissionsSvg {
+	-webkit-transform: rotate(90deg);
 	transform: rotate(90deg);
 }
 
@@ -606,6 +694,7 @@ body.editingScript .cssTool {
 }
 
 .requestPermissionsPermissions {
+	max-height: -webkit-calc(100vh - 400px);
 	max-height: calc(100vh - 400px);
 	overflow-y: auto;
 	box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.4);
@@ -622,17 +711,23 @@ body.editingScript .cssTool {
 }
 
 #requestPermissionsLineCont {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	        flex-direction: row;
+	-webkit-box-pack: end;
 	-webkit-justify-content: flex-end;
-	justify-content: flex-end;
+	        justify-content: flex-end;
 	margin-bottom:20px;
 }
 
 #requestPermissionsSplitter {
-	flex-grow:100;
+	-webkit-box-flex:100;
+	-webkit-flex-grow:100;
+	        flex-grow:100;
 	border-bottom: 1px solid black;
 	display:inline-block;
 }
@@ -649,12 +744,21 @@ body.editingScript .cssTool {
 }
 
 #shrinkTitleRibbonButtonCont, #showHideToolsRibbonCont {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: end;
 	-webkit-justify-content: flex-end;
-	justify-content: flex-end;
+	        justify-content: flex-end;
+}
+
+#showHideToolsRibbonCont {
+	-webkit-transform: translateX(200px);
+	transform: translateX(200px);
 }
 
 #shrinkTitleRibbonButton {
@@ -664,7 +768,9 @@ body.editingScript .cssTool {
 .crmType {
 	display: inline-block;
 	-webkit-user-select:none;
-	user-select: none;
+	-moz-user-select: none;
+	     -ms-user-select: none;
+	    user-select: none;
 	margin-left:-5px;
 	cursor:pointer;
 	position: relative;
@@ -696,9 +802,12 @@ body.editingScript .cssTool {
 
 #crmTypeSelector {
 	margin-bottom: -1px;
+	display: -webkit-box;
+	display: -webkit-flex;
 	display: flex;
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
 	position: relative;
 	right: -5px;
 }
@@ -720,10 +829,12 @@ body.editingScript .cssTool {
 }
 
 #crmEditPageTopTextContainer {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-pack: justify;
 	-webkit-justify-content: space-between;
-	justify-content: space-between;
+	        justify-content: space-between;
 }
 
 	#crmEditPageTopTextContainer .bigTxt {
@@ -748,7 +859,7 @@ body.editingScript .cssTool {
 }
 
 paper-button.blue {
-    background: #3F51B5;
+    background-color: #3F51B5;
     color: white;
 }
 
@@ -780,12 +891,14 @@ textarea {
 .paperTextArea {
 	padding: 0;
 	margin: 0 24px;
+	width: -webkit-calc(100% - 48px);
 	width: calc(100% - 48px);
 	outline: none;
 	border: none;
 	border-bottom: 2px solid rgb(60,60,60);
 	padding-bottom: 2px;
 	resize: none;
+	-webkit-transition: border-color 150ms ease-in-out;
 	transition: border-color 150ms ease-in-out;
 }
 
@@ -799,11 +912,6 @@ textarea#exportJSONData:focus {
 
 #crmButtons {
 	width: 1028px;
-}
-
-#crmButtonsContainer {
-	display: -webkit-flex;
-	display: flex;
 }
 
 .importSettingsCont paper-checkbox, .exportSettingsCont paper-checkbox {
@@ -830,18 +938,22 @@ edit-crm-item:focus .CRMItemTitle[isroot] {
 }
 
 .globalExcludeContainer {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
 }
 
 .globalExcludeInput {
+	-webkit-box-flex: 100;
 	-webkit-flex-grow: 100;
-	flex-grow: 100;
+	        flex-grow: 100;
 }
 
 #editorToolsRibbon {
 	-webkit-user-select: none;
-	user-select: none;
+	-moz-user-select: none;
+	     -ms-user-select: none;
+	    user-select: none;
 }
 
 .CodeMirror-merge .CodeMirror {
@@ -853,16 +965,13 @@ edit-crm-item:focus .CRMItemTitle[isroot] {
 	font-weight:bold;
 	cursor:pointer;
 	-webkit-user-select: none;
-	user-select: none;
+	-moz-user-select: none;
+	     -ms-user-select: none;
+	    user-select: none;
 }
 
 #updateMergeRightNextError:hover, #updateMergeLeftNextError:hover {
 	text-decoration:underline;
-}
-
-html {
-	overflow-y: visible;
-	overflow-x: hidden;
 }
 
 #versionUpdateDialog {
@@ -878,9 +987,10 @@ html {
 }
 
 #versionUpdateTabSlider {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
-	transition: transform 500ms ease-in-out;
+	transition: transform 500ms ease-in-out, -webkit-transform 500ms ease-in-out;
 }
 
 .versionUpdateTab {
@@ -897,22 +1007,27 @@ html {
 	}
 
 #versionUpdateTabContainer[tab="0"] #versionUpdateTabSlider {
+	-webkit-transform: translateX(0);
 	transform: translateX(0);
 }
 
 #versionUpdateTabContainer[tab="1"] #versionUpdateTabSlider {
+	-webkit-transform: translateX(-713.5px);
 	transform: translateX(-713.5px);
 }
 
 #versionUpdateTabContainer[tab="2"] #versionUpdateTabSlider {
+	-webkit-transform: translateX(-1427px);
 	transform: translateX(-1427px);
 }
 
 #versionUpdateTabContainer[tab="3"] #versionUpdateTabSlider {
+	-webkit-transform: translateX(-2140.5px);
 	transform: translateX(-2140.5px);
 }
 
 #versionUpdateTabContainer[tab="4"] #versionUpdateTabSlider {
+	-webkit-transform: translateX(-2854px);
 	transform: translateX(-2854px);
 }
 
@@ -966,10 +1081,12 @@ html {
 }
 
 #exportInputLine {
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-pack: justify;
 	-webkit-justify-content: space-between;
-	justify-content: space-between;
+	        justify-content: space-between;
 }
 
 .nodeAddedHeader {
@@ -986,6 +1103,7 @@ html {
 
 #addedPermissionsTabContainer {
 	width: 10000px;
+	-webkit-transition: margin-left 400ms ease-in-out;
 	transition: margin-left 400ms ease-in-out;
 }
 
@@ -1021,10 +1139,6 @@ paper-toggle-option #checkboxLabel {
 	width: 29px;
 }
 
-#codeSettingsDialog {
-	overflow-y: scroll;
-}
-
 .chromeCallsDeprecated {
 	color: #E91E63!important;
 	text-decoration: underline;
@@ -1044,12 +1158,16 @@ paper-toggle-option #checkboxLabel {
 }
 
 .exportSettingsSpinnerHorizontalCenterer {
+	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	justify-content: center;
+	        justify-content: center;
+	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	        flex-direction: row;
 }
 
 #exportCopyButton {
@@ -1057,27 +1175,216 @@ paper-toggle-option #checkboxLabel {
 }
 
 #showHideToolsRibbonButton {
-	width: 25px;
-	height: 25px;
-}
-
-#showHideToolsRibbonButton iron-icon {
-	margin-top: -25px;
-}
-
-#showHideToolsRibbonButton.hidden {
-	width: 15px;
-	height: 15px;
-}
-
-#showHideToolsRibbonButton.hidden iron-icon {
-	margin-top: -33px;
+	padding: 0 8px!important;
 }
 
 #ribbonScriptName, #ribbonStylesheetName {
 	vertical-align: middle;
+	display: -webkit-box;
+	display: -webkit-flex;
 	display: flex;
 	height: 100%;
-	flex-direction: column;
-	justify-content: center;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	        justify-content: center;
+}
+
+#ribbonScriptName[hidden], #ribbonStylesheetName[hidden] {
+	display: none!important;
+}
+
+crm-edit-page[hidden] {
+	display: none!important;
+}
+
+paper-checkbox {
+	margin-left: 9px;
+}
+
+.buttons {
+	color: rgb(38, 153, 244);
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: row;
+	        flex-direction: row;
+	-webkit-box-pack: end;
+	-webkit-justify-content: flex-end;
+	        justify-content: flex-end;
+	position: relative;
+	padding: 8px 8px 8px 24px;
+	margin: 0;
+}
+
+#fullscreenEditorButtons, #titleRibbonEnd {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+}
+
+#fullscreenEditorButtons {
+	margin-right: 20px;
+	height: 39px;
+	padding: 0 5px;
+}
+
+#fullscreenEditorButtons > div {
+	padding: 0 6px;
+	padding-top: 4px;
+	cursor: pointer;
+	background-color: white;
+}
+
+#fullscreenEditorButtons > div:hover {
+	background-color: #dbdbdb;
+}
+
+#fullscreenEditorToggle {
+	margin-top: -3px;
+}
+
+#fullscreenEditorSettings {
+	margin-top: 5px;
+}
+
+#fullscreenEditorSettings svg {
+	-webkit-transform: translateY(-10px);
+	transform: translateY(-10px);
+}
+
+.paper-material {
+	display: inline;
+}
+
+#editorThemeSettingTxt, #editorThemeSettingChoicesCont, .editorThemeSetting, #editorTabsOrSpacesTxt, #editorTabsOrSpacesCheckbox, #editorUseLineNumbersCheckbox, #editorUseLineNumbersTxt {
+	display: inline-block;
+}
+
+.editorThemeSetting {
+	border: 2px solid rgb(128,128,128);
+	width: 16px;
+	height: 16px;
+	margin-left: 5px;
+	margin-bottom: -3px;
+	cursor: pointer;
+}
+
+	.editorThemeSetting.currentTheme {
+		border: 2px solid rgb(255,165,0);
+	}
+
+#editorThemeSettingWhite {
+	background-color: white;
+}
+
+#editorThemeSettingDark {
+	background-color: rgb(30,30,30);
+}
+
+.editorSettingsTxt {
+	font-size: 250%;
+	font-weight: 500;
+	padding-bottom: 10px;
+}
+
+#editorTabsOrSpacesTxt, #editorUseLineNumbersTxt {
+	margin-left: 10px;
+}
+
+#editorTabSizeInput {
+	width: 250px;
+}
+
+#editorOptions {
+	z-index: 30;
+	background-color: rgb(255, 255, 255);
+	font-family: 'Roboto';
+	padding: 10px;
+	font-size:15px;
+	width: 500px;
+	height: 100vh;
+}
+
+#fullscreenSettingsContainer {
+	right: 0;
+	-webkit-transform: translateX(500px);
+	transform: translateX(500px);
+	position: absolute;
+	z-index: 500;
+	transition: transform 300ms ease-in, -webkit-transform 300ms ease-in;
+	width: 500px;
+	height: 100vh;
+}
+
+*[hidden] {
+	display: none!important;
+}
+
+#restoreChangesEditor {
+	height: -webkit-calc(100vh - 500px);
+	height: calc(100vh - 500px);
+	width: -webkit-calc(100vw - 500px);
+	width: calc(100vw - 500px);
+}
+
+.halfDivider {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+}
+
+.half {
+	width: 50%;
+}
+
+#restoreChangesDialog #restoreChangesHeader h2 {
+	margin: 0;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+#editorTypescript {
+	font-size: 70%;
+}
+
+#editorTypescript.active {
+	background-color: rgb(200, 200, 200);
+	color: #2699f4;
+}
+
+#editorTypescript:hover {
+	background-color: rgb(230, 230, 230);
+}
+
+app-header {
+	right: 0!important;
+}
+
+.optionMetaDescr {
+	font-weight: bold;
+	font-size: 150%;
+}
+
+.optionPading {
+	margin-top: 8px;
+}
+
+#codeSettingsOptions {
+	max-height: 60vh;
+	overflow-y: scroll;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.badBrowserBanner {
+	text-align: center;
+	background-color: #ff4f00;
 }

@@ -1,4 +1,4 @@
-﻿script-edit #settingsContainer {
+script-edit #settingsContainer {
 	width: 477px;
 	height: 376px;
 	overflow-y:scroll;
@@ -31,26 +31,50 @@
 	height: 45px;
 }
 
-.editorTabsCont {
-	display: -webkit-flex;
-	display: flex;
-	margin-left: 57px;
-}
-
-.editorTab {
-	font-size: 150%;
-	position: relative;
-	text-transform: uppercase;
-	padding: 5px;
-	box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14), 0 1px 8px 0 rgba(0, 0, 0, 0.12), 0 3px 3px -2px rgba(0, 0, 0, 0.4);
-	cursor: pointer;
-}
-
-	.editorTab.active {
-		background-color: rgb(190,190,190);
-		box-shadow: none;
-	}
-
 #triggerOverflowContainer {
 	overflow: hidden;
+}
+
+paper-button.blue {
+    background-color: #3F51B5;
+    color: white;
+}
+
+.editorTitle {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-justify-content: space-between;
+	justify-content: space-between;
+}
+
+#docsLink {
+	font-size: 130%;
+}
+
+#editorTypescript {
+	width: 27px;
+	height: 28px;
+	font-size: 180%;
+	text-align: right;
+	vertical-align: bottom;
+	padding: 4px;
+}
+
+#librariesTabContent {
+	display: none;
+	max-height: 330px;
+	overflow-y: scroll;
+}
+
+#codeTabContentContainer.showLibs #librariesTabContent {
+	display: block;
+}
+
+#codeTabContentContainer.showLibs #container {
+	display: none;
+}
+
+#paperLibrariesShowbackground {
+	margin-left: 20px;
+	margin-bottom: 12px;
 }

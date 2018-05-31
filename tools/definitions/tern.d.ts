@@ -1,3 +1,23 @@
+interface LinePosition {
+	from: {
+		line: number;
+	};
+	to: {
+		line: number;
+	};
+}
+
+interface CursorPosition extends LinePosition {
+	from: {
+		line: number;
+		index: number;
+	};
+	to: {
+		line: number;
+		index: number;
+	}
+}
+
 declare namespace Tern {
 	interface BaseExpression {
 		start: number;
@@ -124,10 +144,14 @@ declare namespace Tern {
 		body: Array<Expression>;
 	}
 
-	export interface File {
-		new(name: string): File;
+	export class File {
+		parent: any;
+		scope: any;
 		text: string;
-		ast: ParsedFile;
+		ast: Tern.ParsedFile;
+		lineOffsets: Array<number>;
+
+		constructor(name: string);
 	}
 
 	type Context = any;
@@ -150,17 +174,7 @@ declare namespace Tern {
 		}): ServerInstance;
 	}
 
-	interface ServerInstance {
-		complete(cm: CodeMirrorInstance): void;
-		showType(cm: CodeMirrorInstance): void;
-		showDocs(cm: CodeMirrorInstance): void;
-		jumpToDef(cm: CodeMirrorInstance): void;
-		jumpBack(cm: CodeMirrorInstance): void;
-		rename(cm: CodeMirrorInstance): void;
-		selectName(cm: CodeMirrorInstance): void;
-
-		updateArgHints(cm: CodeMirrorInstance): void;
-		
+	interface ServerInstance {		
 		cx: Context;
 		server: ServerServer
 		passes: number;
@@ -181,9 +195,9 @@ declare namespace Tern {
 type JSDefinitions = any;
 
 interface Window {
+	CodeMirror: {
+		TernServer: Tern.Server;
+	}
 	TernFile: Tern.File;
 	tern: Tern.Tern;
-	ecma5: JSDefinitions;
-	ecma6: JSDefinitions;
-	browserDefs: JSDefinitions;
 }

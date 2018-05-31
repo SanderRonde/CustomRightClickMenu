@@ -30,9 +30,15 @@ declare const enum CRMLaunchModes {
 declare namespace CRM {
 	
 	/**
+	 * The possible types of contextmenu items
+	 */
+	type ContextMenuItemType = 'normal'|'checkbox'|'radio'|'separator';
+
+	/**
 	 * Permissions related to the CRM API
 	 */
-	type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
+	type CRMPermission = 'crmGet' | 'crmWrite' | 'crmRun' |
+		'crmContextmenu' | 'chrome' | 'browser';
 
 	/**
 	 * An extendable object
@@ -40,6 +46,18 @@ declare namespace CRM {
 	interface Extendable<T> { 
 		[key: string]: any;
 		[key: number]: any;
+	}
+
+	/**
+	 * A map object turned into an object
+	 */
+	type ObjectifiedMap<K, V> = K extends string ? {
+		[key: string]: V;
+	} : K extends number ? {
+		[key: number]: V;
+	} : {
+		[key: string]: V;
+		[key: number]: V;
 	}
 
 	/**
@@ -88,13 +106,15 @@ declare namespace CRM {
 		crmGet: string;
 		crmWrite: string;
 		crmRun: string;
+		crmContextmenu: string;
 		chrome: string;
+		browser: string;
 	}
 
 	/**
 	 * The GreaseMonkey permissions descriptions
 	 */
-	interface GMPermissioNDescriptions {
+	interface GMPermissionDescriptions {
 		GM_addStyle: string;
 		GM_deleteValue: string;
 		GM_listValues: string;
@@ -122,7 +142,7 @@ declare namespace CRM {
 	/**
 	 * The permission descriptions
 	 */
-	type PermissionDescriptions = ChromePermissionDescriptions & CRMPermissionDescriptions & GMPermissioNDescriptions;
+	type PermissionDescriptions = ChromePermissionDescriptions & CRMPermissionDescriptions & GMPermissionDescriptions;
 
 	/**
 	 * The chrome permissions
@@ -154,6 +174,14 @@ declare namespace CRM {
 		 * The name of the author of the node
 		 */
 		author?: string;
+		/**
+		 * The index of this section if it's a userstyle
+		 */
+		sectionIndex?: number;
+		/**
+		 * Whether to automatically update this node from the remote
+		 */
+		autoUpdate: boolean;
 	}
 
 	/**
@@ -353,6 +381,11 @@ declare namespace CRM {
 	type ContentTypes = [boolean, boolean, boolean, boolean, boolean, boolean];
 
 	/**
+	 * The context type strings that the boolean array is translated into
+	 */
+	type ContentTypeString = 'page'|'link'|'selection'|'image'|'video'|'audio';
+
+	/**
 	 * A trigger on which to show or not show a node
 	 */
 	interface Trigger {
@@ -386,12 +419,12 @@ declare namespace CRM {
 		/**
 		 * The url of the library
 		 */
-		url: null;
+		url: void;
 	}|{
 		/**
 		 * The name of the library
 		 */
-		name: null;
+		name: void;
 		/**
 		 * The url of the library
 		 */
@@ -416,6 +449,31 @@ declare namespace CRM {
 	 * The type of a node
 	 */
 	type NodeType = 'script'|'link'|'divider'|'menu'|'stylesheet';
+
+	/**
+	 * A node ID for any of the node types
+	 */
+	type GenericNodeId = NodeId<CRM.DividerNode>|
+		NodeId<CRM.LinkNode>|
+		NodeId<CRM.MenuNode>|
+		NodeId<CRM.ScriptNode>|
+		NodeId<CRM.StylesheetNode>
+
+	/**
+	 * A node id for any of the safe node types
+	 */
+	type GenericSafeNodeId = NodeId<CRM.SafeDividerNode>|
+		NodeId<CRM.SafeLinkNode>|
+		NodeId<CRM.SafeMenuNode>|
+		NodeId<CRM.SafeScriptNode>|
+		NodeId<CRM.SafeStylesheetNode>
+
+	/**
+	 * The ID of a CRM.Node
+	 */
+	type NodeId<N extends CRM.Node|CRM.SafeNode> = number & {
+		__srcNode: N;
+	}
 
 	/**
 	 * A safe CRM node
@@ -607,6 +665,38 @@ declare namespace CRM {
 	type SafeCRMBaseNode = MakeNodeSafe<SafeBaseNodeBase>;
 
 	/**
+	 * Data about a compiled typescript script
+	 */
+	interface TypescriptCompilationData {
+		/**
+		 * The compiled typescript string
+		 */
+		compiled?: string;
+		/**
+		 * The hash of the source code for the latest compilation
+		 */
+		sourceHash?: string;
+	}
+
+	/**
+	 * Data about the usage of typescript for a given script
+	 */
+	interface TypescriptData {
+		/**
+		 * Whether typescript is enabled for this node
+		 */
+		enabled: boolean;
+		/**
+		 * Compilation data about the script
+		 */
+		script: TypescriptCompilationData;
+		/**
+		 * Compilation data about the background script
+		 */
+		backgroundScript: TypescriptCompilationData;
+	}
+
+	/**
 	 * The value of a script node
 	 */
 	interface ScriptVal {
@@ -643,13 +733,13 @@ declare namespace CRM {
 		 */
 		oldScript?: string;
 		/**
-		 * Whether the metaTags are hidden in the editor
-		 */
-		metaTagsHidden?: boolean;
-		/**
 		 * The options for this script
 		 */
 		options: Options|string;
+		/**
+		 * Data about the state of typescript in this node
+		 */
+		ts: TypescriptData;
 	}
 
 	/**
@@ -760,6 +850,10 @@ declare namespace CRM {
 		 * The value of this node when it was a script (none, as it is one now)
 		 */
 		scriptVal: void;
+		/**
+		 * The unique ID of this script node
+		 */
+		id: NodeId<ScriptNode>;
 	}
 
 	/**
@@ -824,6 +918,10 @@ declare namespace CRM {
 		 * The value of this node when it was a stylesheet (none as it is one now)
 		 */
 		stylesheetVal: void;
+		/**
+		 * The unique ID of this stylesheet node
+		 */
+		id: NodeId<StylesheetNode>;
 	}
 
 	/**
@@ -888,6 +986,10 @@ declare namespace CRM {
 		 * The value of this node when it was still a link (none as it is one now)
 		 */
 		linkVal: void;
+		/**
+		 * The unique ID of this link node
+		 */
+		id: NodeId<LinkNode>;
 	}
 
 	/**
@@ -938,6 +1040,10 @@ declare namespace CRM {
 		 * The node's children (non-safe)
 		 */
 		children: Tree;
+		/**
+		 * The unique ID of this menu node
+		 */
+		id: NodeId<MenuNode>;
 	}
 
 	/**
@@ -968,6 +1074,10 @@ declare namespace CRM {
 		 * The value of this node when it was still a stylesheet
 		 */
 		stylesheetVal: StylesheetVal|void;
+		/**
+		 * The unique ID of this divider node
+		 */
+		id: NodeId<DividerNode>;
 	}
 
 	/**
@@ -986,23 +1096,48 @@ declare namespace CRM {
 	/**
 	 * A safe script node
 	 */
-	type SafeScriptNode = MakeNodeSafe<ScriptNode>;
+	type SafeScriptNode = MakeNodeSafe<ScriptNode> & {
+		/**
+		 * The unique ID of this safe script node
+		 */
+		id: NodeId<SafeScriptNode>
+	};
 	/**
 	 * A safe stylesheet node
 	 */
-	type SafeStylesheetNode = MakeNodeSafe<StylesheetNode>;
+	type SafeStylesheetNode = MakeNodeSafe<StylesheetNode> & {
+		/**
+		 * The unique ID of this safe stylesheet node
+		 */
+		id: NodeId<SafeStylesheetNode>
+	};
 	/**
 	 * A safe link node
 	 */
-	type SafeLinkNode = MakeNodeSafe<LinkNode>;
+	type SafeLinkNode = MakeNodeSafe<LinkNode> & {
+		/**
+		 * The unique ID of this safe link node
+		 */
+		id: NodeId<SafeLinkNode>
+	};
 	/**
 	 * A safe menu node
 	 */
-	type SafeMenuNode = MakeNodeSafe<SafeMenuNodeBase>;
+	type SafeMenuNode = MakeNodeSafe<SafeMenuNodeBase> & {
+		/**
+		 * The unique ID of this safe menu node
+		 */
+		id: NodeId<SafeMenuNode>
+	};
 	/**
 	 * A safe divider node
 	 */
-	type SafeDividerNode = MakeNodeSafe<DividerNode>;
+	type SafeDividerNode = MakeNodeSafe<DividerNode> & {
+		/**
+		 * The unique ID of this safe divider node
+		 */
+		id: NodeId<SafeDividerNode>
+	};
 
 	/**
 	 * A safe node
@@ -1018,33 +1153,13 @@ declare namespace CRM {
 	 */
 	interface KeyBindings {
 		/**
-		 * A keybinding to complete this value
-		 */
-		autocomplete: string;
-		/**
-		 * A keybinding to show the type of this value
-		 */
-		showType: string;
-		/**
-		 * A keybinding to show the docs for this value
-		 */
-		showDocs: string;
-		/**
 		 * A keybinding to go to the definition of a value
 		 */
 		goToDef: string;
 		/**
-		 * A keybinding to jump back
-		 */
-		jumpBack: string;
-		/**
 		 * A keybinding to rename this value
 		 */
 		rename: string;
-		/**
-		 * A keybinding to select all instances of this value
-		 */
-		selectName: string;
 	}
 
 	/**
@@ -1052,17 +1167,9 @@ declare namespace CRM {
 	 */
 	interface EditorSettings {
 		/**
-		 * Whether to use tabs (spaces if false)
-		 */
-		useTabs: boolean;
-		/**
-		 * The size of tabs
-		 */
-		tabSize: number;
-		/**
 		 * The theme to use for the editor
 		 */
-		theme: string;
+		theme: 'white'|'dark';
 		/**
 		 * The zoom on the editor (in percentage)
 		 */
@@ -1071,6 +1178,14 @@ declare namespace CRM {
 		 * The keybindings for the editor
 		 */
 		keyBindings: KeyBindings;
+		/**
+		 * Whether to disable the underlining of css colors
+		 */
+		cssUnderlineDisabled: boolean;
+		/**
+		 * Whether to disable the highlight of userscript metadata at the top of the file
+		 */
+		disabledMetaDataHighlight: boolean;
 	}
 
 	/**
@@ -1097,7 +1212,147 @@ declare namespace CRM {
 		 * The name of the root node
 		 */
 		rootName: string;
+		/**
+		 * Nodes' storage. Indexed by ID
+		 */
+		nodeStorageSync: ObjectifiedMap<number, any>;
+		
+		indexes?: number;
+		[index: string]: any;
 	}
+
+	/**
+	 * A library added to this extension
+	 */
+	interface InstalledLibrary {
+		/**
+		 * The name of the library
+		 */
+		name?: string;
+		/**
+		 * The URL of the library
+		 */
+		url?: string;
+		/**
+		 * The code of the library
+		 */
+		code: string;
+		/**
+		 * Data about typescript usage in this library
+		 */
+		ts: {
+			/**
+			 * Whether typescript is enabled
+			 */
+			enabled: boolean;
+			/**
+			 * The code related to the library
+			 */
+			code: TypescriptCompilationData;
+		}
+	}
+
+	/**
+	 * The position of a line selection
+	 */
+	interface LinePosition {
+		/**
+		 * The starting position
+		 */
+		from: {
+			/**
+			 * The line of the position
+			 */
+			line: number;
+		};
+		/**
+		 * The starting position
+		 */
+		to: {
+			/**
+			 * The line of the position
+			 */
+			line: number;
+		};
+	}
+	
+	/**
+	 * The position of a cursor selection
+	 */
+	interface CursorPosition extends LinePosition {
+		/**
+		 * The starting position
+		 */
+		from: {
+			/**
+			 * The line of the position
+			 */
+			line: number;
+			/**
+			 * The char of the position
+			 */
+			index: number;
+		};
+		/**
+		 * The end position
+		 */
+		to: {
+			/**
+			 * The line of the position
+			 */
+			line: number;
+			/**
+			 * The char of the position
+			 */
+			index: number;
+		}
+	}
+
+	/**
+	 * A CRM resource
+	 */
+	interface Resource {
+		/**
+		 * The name of the resource
+		 */
+		name: string;
+		/**
+		 * The URL the resource points to
+		 */
+		sourceUrl: string;
+		/**
+		 * Whether the hashes match the content
+		 */
+		matchesHashes: boolean;
+		/**
+		 * The original data URI
+		 */
+		dataURI: string;
+		/**
+		 * The data in string form
+		 */
+		dataString: string;
+		/**
+		 * A url that points to this resource through a local non-existent.
+		 * For example: https://www.localhost.io/resource/${scriptId}/${name}
+		 */
+		crmUrl: string;
+		/**
+		 * Hashes calculated over the content
+		 */
+		hashes: {
+			/**
+			 * The algorithm used to calculate the hash
+			 */
+			algorithm: string;
+			/**
+			 * The calculated hash
+			 */
+			hash: string;
+		}[];
+	}
+	
+	type CRMResources = { [name: string]: Resource };
 
 	/**
 	 * Local Storage (not synced)
@@ -1106,20 +1361,7 @@ declare namespace CRM {
 		/**
 		 * Any installed libraries
 		 */
-		libraries: Array<{
-			/**
-			 * The name of the library
-			 */
-			name?: string;
-			/**
-			 * The URL of the library
-			 */
-			url?: string;
-			/**
-			 * The code of the library
-			 */
-			code: string;
-		}>;
+		libraries: Array<InstalledLibrary>;
 		/**
 		 * The permissions to be requested
 		 */
@@ -1158,6 +1400,61 @@ declare namespace CRM {
 		 */
 		globalExcludes: Array<string>;
 		/**
+		 * Registered resources by the script ID
+		 */
+		resources: ObjectifiedMap<number, CRMResources>;
+		/**
+		 * Storage for all nodes (not synced)
+		 */
+		nodeStorage: ObjectifiedMap<number, any>;
+		/**
+		 * Registered resources
+		 */
+		resourceKeys: {
+			/**
+			 * The name of the resource
+			 */
+			name: string;
+			/**
+			 * The URL the resource points to
+			 */
+			sourceUrl: string;
+			/**
+			 * Hashes calculated over the content
+			 */
+			hashes: {
+				/**
+				 * The algorithm used to calculate the hash
+				 */
+				algorithm: string;
+				/**
+				 * The calculated hash
+				 */
+				hash: string;
+			}[];
+			/**
+			 * The script that uses it
+			 */
+			scriptId: number;
+		}[];
+		/**
+		 * An object with URLs as keys and resources as values
+		 */
+		urlDataPairs: ObjectifiedMap<string, {
+			/**
+			 * The data in string form
+			 */
+			dataString: string;
+			/**
+			 * All nodes that use this resource
+			 */
+			refs: number[];
+			/**
+			 * The original data URI
+			 */
+			dataURI: string;
+		}>;
+		/**
 		 * Whether this is not the first time the extension was launched
 		 */
 		notFirstTime: boolean;
@@ -1174,17 +1471,17 @@ declare namespace CRM {
 		 */
 		recoverUnsavedData: boolean;
 		/**
-		 * Whether to use this extension to install your userscripts
-		 */
-		useAsUserscriptInstaller: boolean;
-		/**
-		 * Whether to show a preview of the CRM on the options page
+		 * Use your custom right-click menu on this page as a preview instead of chrome's regular one.
 		 */
 		CRMOnPage: boolean;
 		/**
-		 * Whether to open the edit pages when clicked in the page preview
+		 * Edit the custom right-click Menu by clicking on the respective elements when right-clicking on this page
 		 */
 		editCRMInRM: boolean;
+		/**
+		 * Whether to use this extension to install your userscripts
+		 */
+		useAsUserscriptInstaller: boolean;
 		/**
 		 * Whether to hide the tools ribbon in fullscreen mode
 		 */
@@ -1240,7 +1537,6 @@ declare namespace CRM {
 			 */
 			wasUpdated: boolean;
 		};
-
 		/**
 		 * Permissions that were added
 		 */
@@ -1257,7 +1553,7 @@ declare namespace CRM {
 		/**
 		 * The scripts that were updated
 		 */
-		updatedScripts?: Array<{
+		updatedNodes?: Array<{
 			/**
 			 * The name of the script
 			 */

@@ -5,14 +5,47 @@ branches:
   only:
   - master
   - beta
+  - polymer-2
+stages:
+- test
+- name: deploy website
+  if: branch = master
+
+env:
+- TEST=test-build
+- TEST=test-local
+- TEST=test-migration:2.0.12-2.0.17
+- TEST=test:migration:2.0.18-2.0.19
+- TEST=test:chrome:old:page
+- TEST=test:chrome:old:extension
+- TEST=test:chrome:old:install:greasyfork
+- TEST=test:chrome:old:install:openuserjs
+- TEST=test:chrome:old:install:userscriptsorg
+- TEST=test:chrome:old:install:userstylesorg
+- TEST=test:chrome:latest:page
+- TEST=test:chrome:latest:extension
+- TEST=test:chrome:latest:install:greasyfork
+- TEST=test:chrome:latest:install:openuserjs
+- TEST=test:chrome:latest:install:userscriptsorg
+- TEST=test:chrome:latest:install:userstylesorg
+- TEST=test:firefox:quantum
+- TEST=test:firefox:latest
+- TEST=test:edge:16
+- TEST=test:edge:latest
 
 before_install:
 - openssl aes-256-cbc -K $encrypted_6cd0c378df83_key -iv $encrypted_6cd0c378df83_iv
   -in test/UI/secrets.js.enc -out test/UI/secrets.js -d
-- npm install grunt -g
+- npm install gulp -g
 install:
-- npm install
-script: sh ./build.sh
+- yarn --ignore-engines
+script: travis_wait sh ./scripts/pretest.sh && yarn run $TEST || ./scripts/do_rerun.sh $TEST
+
+jobs:
+  include:
+  - stage: deploy website
+    script: sh ./scripts/deploy-website.sh
+    env: TEST=none
 
 notifications:
   email:

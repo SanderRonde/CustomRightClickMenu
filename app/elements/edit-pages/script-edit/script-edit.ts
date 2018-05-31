@@ -1,1391 +1,732 @@
-﻿/// <reference path="../../elements.d.ts" />
+/// <reference path="../../elements.d.ts" />
 
-const scriptEditProperties: {
-	item: CRM.ScriptNode;
-} = {
-	item: {
-		type: Object,
-		value: {},
-		notify: true
-	}
-} as any;
+namespace ScriptEditElement {
+	export const scriptEditProperties: {
+		item: CRM.ScriptNode;
+	} = {
+		item: {
+			type: Object,
+			value: {},
+			notify: true
+		}
+	} as any;
 
-type ChangeType = 'removed'|'added'|'changed';
+	export class SCE {
+		static is: string = 'script-edit';
 
-class SCE {
-	static is: string = 'script-edit';
+		static behaviors = [Polymer.NodeEditBehavior, Polymer.CodeEditBehavior];
 
-	static behaviors = [Polymer.NodeEditBehavior, Polymer.CodeEditBehavior];
+		static properties = scriptEditProperties;
 
-	static properties = scriptEditProperties;
+		private static _permissionDialogListeners: (() => void)[] = [];
 
-	private static markers: Array<CodeMirrorTextMarker> = [];
-
-	static openDocs() {
-		window.open(chrome.runtime.getURL('/html/crmAPIDocs.html'), '_blank');
-	}
-
-	static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
-		if (this.querySelectorAll('.executionTrigger').length === 1) {
-			window.doc.messageToast.text = 'You need to have at least one trigger';
-			window.doc.messageToast.show();
-			return;
+		static isTsEnabled(this: NodeEditBehaviorScriptInstance) {
+			return this.item.value && this.item.value.ts && this.item.value.ts.enabled;
 		}
 
-		(this as NodeEditBehavior).clearTrigger(e);
-	};
+		static toggleBackgroundLibs(this: NodeEditBehaviorScriptInstance) {
+			this.async(() => {
+				const backgroundEnabled = this.$.paperLibrariesShowbackground.checked;
+				if (backgroundEnabled) {
+					this.$.paperLibrariesSelector.updateLibraries(this.item.value.backgroundLibraries as any,
+						this.newSettings as CRM.ScriptNode, 'background');
+				} else {
+					this.$.paperLibrariesSelector.updateLibraries(this.item.value.libraries as any,
+						this.newSettings as CRM.ScriptNode, 'main');
+				}
+			}, 0);
+		}
 
-	private static triggerCheckboxChange(this: NodeEditBehaviorScriptInstance, element: HTMLPaperCheckboxElement) {
-		const oldValue = !element.checked;
-		const inputValue = ($(element).parent().children('.triggerInput')[0] as HTMLPaperInputElement).value;
+		static getKeyBindingValue(binding: {
+			name: string;
+			defaultKey: string;
+			monacoKey: string;
+			storageKey: keyof CRM.KeyBindings;
+		}) {
+			return (window.app.settings && 
+				window.app.settings.editor.keyBindings[binding.storageKey]) ||
+					binding.defaultKey;
+		}
 
-		const line = this.editor.removeMetaTags(this.editor, oldValue ? 'exclude' : 'match', inputValue);
-		this.editor.addMetaTags(this.editor, oldValue ? 'match' : 'exclude', inputValue, line);
-	};
-
-	static addTriggerAndAddListeners(this: NodeEditBehaviorScriptInstance) {
-		this.addTrigger();
-	};
-
-	static contentCheckboxChanged(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
-		const element = window.app.util.findElementWithTagname(e.path, 'paper-checkbox');
-
-		const elements = $('script-edit .showOnContentItemCheckbox');
-		const elementType = element.classList[1].split('Type')[0];
-		let state = !(element as HTMLPaperCheckboxElement).checked;
-
-		const states = [];
-		const oldStates = [];
-		const types = ['page', 'link', 'selection', 'image', 'video', 'audio'];
-		for (let i = 0; i < elements.length; i++) {
-			const checkbox = elements[i] as HTMLPaperCheckboxElement;
-			if (types[i] === elementType) {
-				states[i] = state;
-				oldStates[i] = !state;
+		private static _toggleTypescriptButton(this: NodeEditBehaviorScriptInstance) {
+			const isEnabled = !!(this.$.editorTypescript.getAttribute('active') !== null);
+			if (isEnabled) {
+				this.$.editorTypescript.removeAttribute('active');
 			} else {
-				states[i] = checkbox.checked;
-				oldStates[i] = checkbox.checked;
+				this.$.editorTypescript.setAttribute('active', 'active');
 			}
 		}
-	};
 
-	private static addDialogToMetaTagUpdateListeners(this: NodeEditBehaviorScriptInstance) {
-		const __this = this;
-		$('.executionTriggerNot').on('change', function(this: HTMLElement) {
-			__this.triggerCheckboxChange.apply(__this, [this]);
-		});
-	};
+		static jsLintGlobalsChange(this: NodeEditBehaviorScriptInstance) {
+			this.async(() => {
+				const jsLintGlobals = this.$.editorJSLintGlobalsInput.$$('input').value.split(',').map(val => val.trim());
+				browserAPI.storage.local.set({
+					jsLintGlobals
+				});
+				window.app.jsLintGlobals = jsLintGlobals;
+			}, 0);
+		}
 
-	private static disableButtons(this: NodeEditBehaviorScriptInstance) {
-		this.$.dropdownMenu.disable();
-	};
+		static toggleTypescript(this: NodeEditBehaviorScriptInstance) {
+			const shouldBeEnabled = !(this.$.editorTypescript.getAttribute('active') !== null);
+			this._toggleTypescriptButton();
+			
+			if (this.newSettings.value.ts) {
+				this.newSettings.value.ts.enabled = shouldBeEnabled;
+			} else {
+				this.newSettings.value.ts = {
+					enabled: shouldBeEnabled,
+					backgroundScript: {},
+					script: {}
+				};
+			}
+			this.getEditorInstance().setTypescript(shouldBeEnabled);
+		}
 
-	private static enableButtons(this: NodeEditBehaviorScriptInstance) {
-		this.$.dropdownMenu.enable();
-	};
+		static openDocs(this: NodeEditBehaviorScriptInstance) {
+			const docsUrl = 'http://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html';
+			window.open(docsUrl, '_blank');
+		}
 
-	private static changeTab(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background') {
-		if (mode !== this.editorMode) {
-			if (mode === 'main') {
-				if (this.editorMode === 'background') {
-					this.newSettings.value.backgroundScript = this.editor.getValue();
+		static onKeyBindingKeyDown(this: NodeEditBehaviorScriptInstance, e: Polymer.PolymerKeyDownEvent) {
+			const input = window.app.util.findElementWithTagname(e, 'paper-input');
+			const index = ~~input.getAttribute('data-index');
+			this._createKeyBindingListener(input, this.keyBindings[index]);
+		}
+
+		static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
+			if (this.shadowRoot.querySelectorAll('.executionTrigger').length === 1) {
+				window.doc.messageToast.text = 'You need to have at least one trigger';
+				window.doc.messageToast.show();
+				return;
+			}
+
+			(this as NodeEditBehaviorInstance).clearTrigger(e);
+		};
+
+		private static _disableButtons(this: NodeEditBehaviorScriptInstance) {
+			this.$.dropdownMenu.disable();
+		};
+
+		private static _enableButtons(this: NodeEditBehaviorScriptInstance) {
+			this.$.dropdownMenu.enable();
+		};
+
+		private static _saveEditorContents(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background'|'options'|'libraries') {
+			if (this.editorMode === 'background') {
+				this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
+			} else if (this.editorMode === 'main') {
+				this.newSettings.value.script = this.editorManager.editor.getValue();
+			} else if (this.editorMode === 'options') {
+				try {
+					this.newSettings.value.options = JSON.parse(this.editorManager.editor.getValue());
+				} catch(e) {
+					this.newSettings.value.options = this.editorManager.editor.getValue();
 				}
-				this.editorMode = 'main';
-				this.enableButtons();
-				this.editor.setValue(this.newSettings.value.script);
-			} else if (mode === 'background') {
+			}
+		}
+
+		private static _changeTab(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background') {
+			if (mode !== this.editorMode) {
+				const isTs = this.item.value.ts && this.item.value.ts.enabled;
+				if (mode === 'main') {
+					if (this.editorMode === 'background') {
+						this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
+					}
+					this.editorMode = 'main';
+					this._enableButtons();
+					this.editorManager.switchToModel('default', this.newSettings.value.script, 
+						isTs ? this.editorManager.EditorMode.TS_META : 
+							this.editorManager.EditorMode.JS_META);
+				} else if (mode === 'background') {
+					if (this.editorMode === 'main') {
+						this.newSettings.value.script = this.editorManager.editor.getValue();
+					}
+					this.editorMode = 'background';
+					this._disableButtons();
+					this.editorManager.switchToModel('background', this.newSettings.value.backgroundScript || '', 
+						isTs ? this.editorManager.EditorMode.TS_META : 
+							this.editorManager.EditorMode.JS_META);
+				}
+
+				const element = window.scriptEdit.shadowRoot.querySelector(mode === 'main' ? '.mainEditorTab' : '.backgroundEditorTab');
+				Array.prototype.slice.apply(window.scriptEdit.shadowRoot.querySelectorAll('.editorTab')).forEach(
+					function(tab: HTMLElement) {
+						tab.classList.remove('active');
+					});
+				element.classList.add('active');
+			}
+		};
+
+		static switchBetweenScripts(this: NodeEditBehaviorScriptInstance, element: Polymer.PolymerElement) {
+			element.classList.remove('optionsEditorTab');
+			if (this.editorMode === 'options') {
+				try {
+					this.newSettings.value.options = JSON.parse(this.editorManager.editor.getValue());
+				} catch(e) {
+					this.newSettings.value.options = this.editorManager.editor.getValue();
+				}
+			}
+			this.hideCodeOptions();
+			this._initKeyBindings();
+		}
+
+		static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
+			const element = window.app.util.findElementWithClassName(e, 'editorTab');
+
+			const isMain = element.classList.contains('mainEditorTab');
+			const isBackground = element.classList.contains('backgroundEditorTab');
+			const isLibraries = element.classList.contains('librariesTab');
+			const isOptions = element.classList.contains('optionsTab');
+
+			if (!isLibraries) {
+				this.$.codeTabContentContainer.classList.remove('showLibs');
+			}
+			if (isMain && this.editorMode !== 'main') {
+				this.switchBetweenScripts(element);
+				this._changeTab('main');
+			} else if (isBackground && this.editorMode !== 'background') {
+				this.switchBetweenScripts(element);
+				this._changeTab('background');
+			} else if (isOptions && this.editorMode !== 'options') {
 				if (this.editorMode === 'main') {
-					this.newSettings.value.script = this.editor.getValue();
+					this.newSettings.value.script = this.editorManager.editor.getValue();
+				} else if (this.editorMode === 'background') {
+					this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
 				}
-				this.editorMode = 'background';
-				this.disableButtons();
-				this.editor.setValue(this.newSettings.value.backgroundScript || '');
+				this.showCodeOptions();
+				this.editorMode = 'options';
+			} else if (isLibraries && this.editorMode !== 'libraries') {
+				this.$.codeTabContentContainer.classList.add('showLibs');
+				this.$.paperLibrariesSelector.updateLibraries(
+					this.newSettings.value.libraries as any, this.newSettings as CRM.ScriptNode,
+					'main');
+				this.editorMode = 'libraries';
 			}
 
-			const element = document.querySelector(mode === 'main' ? '.mainEditorTab' : '.backgroundEditorTab');
-			Array.prototype.slice.apply(document.querySelectorAll('.editorTab')).forEach(
-			function(tab: HTMLElement) {
-				tab.classList.remove('active');
-			});
+			Array.prototype.slice.apply(window.scriptEdit.shadowRoot.querySelectorAll('.editorTab')).forEach(
+				function(tab: HTMLElement) {
+					tab.classList.remove('active');
+				});
 			element.classList.add('active');
-		}
-	};
+		};
 
-	static switchBetweenScripts(this: NodeEditBehaviorScriptInstance, element: Polymer.Element) {
-		element.classList.remove('optionsEditorTab');
-		if (this.editorMode === 'options') {
-			try {
-				this.newSettings.value.options = JSON.parse(this.editor.getValue());
-			} catch(e) {
-				this.newSettings.value.options = this.editor.getValue();
+		private static _getExportData(this: NodeEditBehaviorScriptInstance) {
+			const settings = {};
+			this.save(null, settings);
+			this.$.dropdownMenu.selected = 0;
+			return settings as CRM.ScriptNode;
+		};
+
+		static exportScriptAsCRM(this: NodeEditBehaviorScriptInstance) {
+			window.app.editCRM.exportSingleNode(this._getExportData(), 'CRM');
+		};
+
+		static exportScriptAsUserscript(this: NodeEditBehaviorScriptInstance) {
+			window.app.editCRM.exportSingleNode(this._getExportData(), 'Userscript');
+		};
+
+		static cancelChanges(this: NodeEditBehaviorScriptInstance) {
+			if (this.fullscreen) {
+				this.exitFullScreen();
 			}
-		}
-		this.hideCodeOptions();
-		this.initTernKeyBindings();
-	}
+			window.setTimeout(() => {
+				this.finishEditing();
+				window.externalEditor.cancelOpenFiles();
+				this.editorManager.destroy();
+				this.fullscreenEditorManager && 
+					this.fullscreenEditorManager.destroy();
+				this.active = false;
+			}, this.fullscreen ? 500 : 0);
+		};
 
-	static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
-		const element = window.app.util.findElementWithClassName(e.path, 'editorTab');
+		/**
+		 * Gets the values of the metatag block
+		 */
+		private static _getMetaTagValues(this: NodeEditBehaviorScriptInstance) {
+			const typeHandler = this.editorManager.getModel('default').handlers[0] as MonacoEditorElement.MonacoEditorScriptMetaMods;
+			return typeHandler && 
+				typeHandler.getMetaBlock && 
+				typeHandler.getMetaBlock() && 
+				typeHandler.getMetaBlock().content;
+		};
 
-		const isMain = element.classList.contains('mainEditorTab');
-		const isBackground = element.classList.contains('backgroundEditorTab');
-		if (isMain && this.editorMode !== 'main') {
-			this.switchBetweenScripts(element);
-			this.changeTab('main');
-		} else if (!isMain && isBackground && this.editorMode !== 'background') {
-			this.switchBetweenScripts(element);
-			this.changeTab('background');
-		} else if (!isBackground && this.editorMode !== 'options') {
-			element.classList.add('optionsEditorTab');
-			if (this.editorMode === 'main') {
-				this.newSettings.value.script = this.editor.getValue();
-			} else if (this.editorMode === 'background') {
-				this.newSettings.value.backgroundScript = this.editor.getValue();
-			}
-			this.showCodeOptions();
-			this.editorMode = 'options';
-		}
-
-		Array.prototype.slice.apply(document.querySelectorAll('.editorTab')).forEach(
-			function(tab: HTMLElement) {
-				tab.classList.remove('active');
-			});
-		element.classList.add('active');
-	};
-
-	private static getExportData(this: NodeEditBehaviorScriptInstance) {
-		($('script-edit #exportMenu paper-menu')[0] as HTMLPaperMenuElement).selected = 0;
-		const settings = {};
-		this.save(null, settings);
-		return settings as CRM.ScriptNode;
-	};
-
-	static exportScriptAsCRM(this: NodeEditBehaviorScriptInstance) {
-		window.app.editCRM.exportSingleNode(this.getExportData(), 'CRM');
-	};
-
-	static exportScriptAsUserscript(this: NodeEditBehaviorScriptInstance) {
-		window.app.editCRM.exportSingleNode(this.getExportData(), 'Userscript');
-	};
-
-	static cancelChanges(this: NodeEditBehaviorScriptInstance) {
-		if (this.fullscreen) {
-			this.exitFullScreen();
-		}
-		window.setTimeout(() => {
+		static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<CRM.ScriptNode>) {
+			resultStorage.value.metaTags = this._getMetaTagValues() || {};
+			resultStorage.value.launchMode = this.$.dropdownMenu.selected;
+			this._saveEditorContents(this.editorMode);
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
+			this.editorManager.destroy();
+			this.fullscreenEditorManager && 
+				this.fullscreenEditorManager.destroy();
+			this.editorMode = 'main';
+			this._enableButtons();
 			this.active = false;
-		}, this.fullscreen ? 500 : 0);
-	};
+		};
 
-	private static getMetaTagValues(this: NodeEditBehaviorScriptInstance) {
-		return this.editor.metaTags.metaTags;
-	};
-
-	static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<CRM.ScriptNode>) {
-		resultStorage.value.metaTags = this.getMetaTagValues();
-		this.finishEditing();
-		window.externalEditor.cancelOpenFiles();
-		this.changeTab('main');
-		this.active = false;
-	};
-
-	private static onPermissionsDialogOpen(extensionWideEnabledPermissions: Array<string>,
-		settingsStorage: Partial<CRM.ScriptNode>) {
-			let el, svg;
-			$('.requestPermissionsShowBot').off('click').on('click', function(this: HTMLElement) {
-				el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0] as HTMLElement & {
-					animation: Animation;
-				};
-				svg = $(this).find('.requestPermissionsSvg')[0];
-				svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
-				if (el.animation) {
-					el.animation.reverse();
-				} else {
-					el.animation = el.animate([
-						{
-							height: 0
-						}, {
-							height: el.scrollHeight + 'px'
-						}
-					], {
-						duration: 250,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-						fill: 'both'
+		private static _onPermissionsDialogOpen(extensionWideEnabledPermissions: string[],
+			settingsStorage: Partial<CRM.ScriptNode>) {
+				let el, svg;
+				const showBotEls = Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.requestPermissionsShowBot'));
+				const newListeners: (() => void)[] = [];
+				showBotEls.forEach((showBotEl: HTMLElement) => {
+					this._permissionDialogListeners.forEach((listener) => {
+						showBotEl.removeEventListener('click', listener);
 					});
-				}
-			});
+					const listener = () => {
+						el = $(showBotEl).parent().parent().children('.requestPermissionsPermissionBotCont')[0] as HTMLElement & {
+							animation: Animation;
+						};
+						svg = $(showBotEl).find('.requestPermissionsSvg')[0];
+						if ((svg as any).__rotated) {
+							window.setTransform(svg, 'rotate(90deg)');
+							(svg as any).rotated = false;
+						} else {
+							window.setTransform(svg, 'rotate(270deg)');
+							(svg as any).rotated = true;
+						}
+						if (el.animation && el.animation.reverse) {
+							el.animation.reverse();
+						} else {
+							el.animation = el.animate([
+								{
+									height: 0
+								}, {
+									height: el.scrollHeight + 'px'
+								}
+							], {
+								duration: 250,
+								easing: 'bez',
+								fill: 'both'
+							});
+						}
+					};
+					newListeners.push(listener);
+					showBotEl.addEventListener('click', listener);
+				});
+				this._permissionDialogListeners = newListeners;
 
-			let permission: CRM.Permission;
-			$('.requestPermissionButton').off('click').on('click', function(this: HTMLPaperCheckboxElement) {
-				permission = this.previousElementSibling.previousElementSibling.textContent as CRM.Permission;
-				const slider = this;
-				if (this.checked) {
-					if (Array.prototype.slice.apply(extensionWideEnabledPermissions).indexOf(permission) === -1) {
-						chrome.permissions.request({
-							permissions: [permission]
-						}, function(accepted) {
-							if (!accepted) {
-								//The user didn't accept, don't pretend it's active when it's not, turn it off
-								slider.checked = false;
-							} else {
-								//Accepted, remove from to-request permissions if it's there
-								chrome.storage.local.get(function(e: CRM.StorageLocal) {
-									const permissionsToRequest = e.requestPermissions;
-									permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
-									chrome.storage.local.set({
-										requestPermissions: permissionsToRequest
-									});
+				let permission: CRM.Permission;
+				const requestPermissionButtonElements = Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.requestPermissionButton'));
+				requestPermissionButtonElements.forEach((requestPermissionButton: HTMLPaperToggleButtonElement) => {
+					requestPermissionButton.removeEventListener('click');
+					requestPermissionButton.addEventListener('click', () => {
+						permission = requestPermissionButton.previousElementSibling.previousElementSibling.textContent as CRM.Permission;
+						const slider = requestPermissionButton;
+						if (requestPermissionButton.checked) {
+							if (Array.prototype.slice.apply(extensionWideEnabledPermissions).indexOf(permission) === -1) {
+								if (!(browserAPI.permissions)) {
+									window.app.util.showToast(`Not asking for permission ${permission} as your browser does not support asking for permissions`);
+									return;
+								}
+
+								browserAPI.permissions.request({
+									permissions: [permission as _browser.permissions.Permission]
+								}).then((accepted) => {
+									if (!accepted) {
+										//The user didn't accept, don't pretend it's active when it's not, turn it off
+										slider.checked = false;
+									} else {
+										//Accepted, remove from to-request permissions if it's there
+										browserAPI.storage.local.get<CRM.StorageLocal>().then((e) => {
+											const permissionsToRequest = e.requestPermissions;
+											permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
+											browserAPI.storage.local.set({
+												requestPermissions: permissionsToRequest
+											});
+										});
+
+										//Add to script's permissions
+										settingsStorage.permissions = settingsStorage.permissions || [];
+										settingsStorage.permissions.push(permission);
+									}
 								});
-
+							} else {
 								//Add to script's permissions
 								settingsStorage.permissions = settingsStorage.permissions || [];
 								settingsStorage.permissions.push(permission);
 							}
-						});
-					} else {
-						//Add to script's permissions
-						settingsStorage.permissions = settingsStorage.permissions || [];
-						settingsStorage.permissions.push(permission);
-					}
-				} else {
-					//Remove from script's permissions
-					settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
-				}
-			});
-		}
-
-	static openPermissionsDialog(this: NodeEditBehaviorScriptInstance, item: Polymer.ClickEvent|CRM.ScriptNode,
-			callback: () => void) {
-		let nodeItem: CRM.ScriptNode;
-		let settingsStorage: Partial<CRM.ScriptNode>;
-		if (!item || item.type === 'tap') {
-			//It's an event, ignore it
-			nodeItem = this.item;
-			settingsStorage = this.newSettings;
-		} else {
-			nodeItem = item;
-			settingsStorage = item;
-		}
-		//Prepare all permissions
-		chrome.permissions.getAll(({permissions}) => {
-			if (!nodeItem.permissions) {
-				nodeItem.permissions = [];
-			}
-			const scriptPermissions = nodeItem.permissions;
-			const crmPermissions = window.app.templates.getScriptPermissions();
-
-			const askedPermissions = (nodeItem.nodeInfo &&
-				nodeItem.nodeInfo.permissions) || [];
-
-			const requiredActive: Array<{
-				name: string;
-				toggled: boolean;
-				required: boolean;
-				description: string;
-			}> = [];
-			const requiredInactive: Array<{
-				name: string;
-				toggled: boolean;
-				required: boolean;
-				description: string;
-			}> = [];
-			const nonRequiredActive: Array<{
-				name: string;
-				toggled: boolean;
-				required: boolean;
-				description: string;
-			}> = [];
-			const nonRequiredNonActive: Array<{
-				name: string;
-				toggled: boolean;
-				required: boolean;
-				description: string;
-			}> = [];
-
-			let isAsked;
-			let isActive;
-			let permissionObj;
-			crmPermissions.forEach(function(permission) {
-				isAsked = askedPermissions.indexOf(permission) > -1;
-				isActive = scriptPermissions.indexOf(permission as CRM.Permission) > -1;
-
-				permissionObj = {
-					name: permission,
-					toggled: isActive,
-					required: isAsked,
-					description: window.app.templates.getPermissionDescription(permission)
-				};
-
-				if (isAsked && isActive) {
-					requiredActive.push(permissionObj);
-				} else if (isAsked && !isActive) {
-					requiredInactive.push(permissionObj);
-				} else if (!isAsked && isActive) {
-					nonRequiredActive.push(permissionObj);
-				} else {
-					nonRequiredNonActive.push(permissionObj);
-				}
-			});
-
-			const permissionList = nonRequiredActive;
-			permissionList.push.apply(permissionList, requiredActive);
-			permissionList.push.apply(permissionList, requiredInactive);
-			permissionList.push.apply(permissionList, nonRequiredNonActive);
-
-			($('#scriptPermissionsTemplate')[0] as HTMLDomRepeatElement).items = permissionList;
-			$('.requestPermissionsScriptName')[0].innerHTML = 'Managing permisions for script "' + nodeItem.name;
-			const scriptPermissionDialog = $('#scriptPermissionDialog')[0] as HTMLPaperDialogElement;
-			scriptPermissionDialog.addEventListener('iron-overlay-opened', () => {
-				this.onPermissionsDialogOpen(permissions, settingsStorage);
-			});
-			scriptPermissionDialog.addEventListener('iron-overlay-closed', callback);
-			scriptPermissionDialog.open();
-		});
-	};
-
-	/**
-	 * Fills the editor-tools-ribbon on the left of the editor with elements
-	 */
-	private static initToolsRibbon(this: NodeEditBehaviorScriptInstance) {
-		const _this = this;
-		(window.app.$.paperLibrariesSelector as PaperLibrariesSelector).init();
-		(window.app.$.paperGetPageProperties as PaperGetPageProperties).init(function (snippet: string) {
-			_this.insertSnippet(_this, snippet);
-		});
-	};
-
-	/**
-	 * Pops in the ribbons with an animation
-	 */
-	private static popInRibbons(this: NodeEditBehaviorScriptInstance) {
-		//Introduce title at the top
-		const scriptTitle = window.app.$.editorCurrentScriptTitle;
-		let titleRibbonSize;
-		if (window.app.storageLocal.shrinkTitleRibbon) {
-			window.doc.editorTitleRibbon.style.fontSize = '40%';
-			scriptTitle.style.padding = '0';
-			titleRibbonSize = '-18px';
-		} else {
-			titleRibbonSize = '-51px';
-		}
-		scriptTitle.style.display = 'flex';
-		scriptTitle.style.marginTop = titleRibbonSize;
-		const scriptTitleAnimation: [{
-			[key: string]: string | number;
-		}, {
-			[key: string]: string | number;
-		}] = [
-			{
-				marginTop: titleRibbonSize
-			}, {
-				marginTop: 0
-			}
-		];
-		const margin = (window.app.storageLocal.hideToolsRibbon ? '-200px' : '0');
-		scriptTitle.style.marginLeft = '-200px';
-		scriptTitleAnimation[0]['marginLeft'] = '-200px';
-		scriptTitleAnimation[1]['marginLeft'] = 0;
-
-		this.initToolsRibbon();
-		setTimeout(function() {
-			window.doc.editorToolsRibbonContainer.style.display = 'flex';
-			window.doc.editorToolsRibbonContainer.animate([
-				{
-					marginLeft: '-200px'
-				}, {
-					marginLeft: margin
-				}
-			], {
-				duration: 500,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			}).onfinish = function() {
-				window.doc.editorToolsRibbonContainer.style.marginLeft = margin;
-				window.doc.editorToolsRibbonContainer.classList.add('visible');
-			};
-		}, 200);
-		setTimeout(function() {
-			window.doc.dummy.style.height = '0';
-			$(window.doc.dummy).animate({
-				height: '50px'
-			}, {
-				duration: 500,
-				easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
-				step: (now: number) => {
-					window.doc.fullscreenEditorHorizontal.style.height = 'calc(100vh - ' + now + 'px)';
-				}
-			});
-			scriptTitle.animate(scriptTitleAnimation, {
-				duration: 500,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			}).onfinish = function() {
-				scriptTitle.style.marginTop = '0';
-				if (scriptTitleAnimation[0]['marginLeft'] !== undefined) {
-					scriptTitle.style.marginLeft = '0';
-				}
-			};
-		}, 200);
-	};
-
-	/**
-	 * Pops out the ribbons with an animation
-	 */
-	private static popOutRibbons(this: NodeEditBehaviorScriptInstance) {
-		const scriptTitle = window.app.$.editorCurrentScriptTitle;
-		const toolsRibbon = window.app.$.editorToolsRibbonContainer;
-
-		const toolsVisible = !window.app.storageLocal.hideToolsRibbon &&
-			toolsRibbon &&
-			toolsRibbon.classList.contains('visible');
-
-		const titleExpanded = scriptTitle.getBoundingClientRect().height > 20;
-
-		const titleAnimation = [{
-			marginTop: 0,
-			marginLeft: 0
-		}, {
-			marginTop: titleExpanded ? '-51px' : '-18px',
-			marginLeft: (toolsVisible ? '-200px' : 0)
-		}];
-
-
-		if (toolsVisible) {
-			scriptTitle.animate(titleAnimation, {
-				duration: 800,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			}).onfinish = function() {
-				scriptTitle.style.marginTop = titleAnimation[1].marginTop + '';
-				scriptTitle.style.marginLeft = titleAnimation[1].marginLeft + '';
-			};
-			toolsRibbon.animate([
-				{
-					marginLeft: 0
-				}, {
-					marginLeft: '-200px'
-				}
-			], {
-				duration: 800,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			}).onfinish = function() {
-				scriptTitle.style.display = 'none';
-				toolsRibbon.style.display = 'none';
-				toolsRibbon.style.marginLeft = '-200px';
-			};
-		} else {
-			window.doc.dummy.style.height = (titleExpanded ? '50px' : '18px');
-			$(window.doc.dummy).animate({
-				height: 0
-			}, {
-				duration: 800,
-				easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
-				step: (now: number) => {
-					window.doc.fullscreenEditorHorizontal.style.height = 'calc(100vh - ' + now + 'px)';
-				}
-			});
-			scriptTitle.animate([
-				{
-					marginTop: 0
-				}, {
-					marginTop: titleExpanded ? '-51px' : '-18px'
-				}
-			], {
-				duration: 800,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			}).onfinish = function() {
-				scriptTitle.style.display = 'none';
-				toolsRibbon.style.display = 'none';
-				scriptTitle.style.marginTop = (titleExpanded ? '-51px' : '-18px');
-			};
-		}
-	};
-
-	/**
-	 * Enters fullscreen mode for the editor
-	 */
-	static enterFullScreen(this: NodeEditBehaviorScriptInstance) {
-		if (this.fullscreen) {
-			return;
-		}
-		this.fullscreen = true;
-
-		const rect = this.editor.display.wrapper.getBoundingClientRect();
-		const editorCont = window.doc.fullscreenEditor;
-		const editorContStyle = editorCont.style;
-		editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left + 'px';
-		editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top + 'px';
-		editorContStyle.height = this.preFullscreenEditorDimensions.height = rect.height + 'px';
-		editorContStyle.width = this.preFullscreenEditorDimensions.width = rect.width + 'px';
-		window.paperLibrariesSelector.updateLibraries((this.editorMode === 'main' ?
-			this.newSettings.value.libraries : this.newSettings.value.backgroundLibraries || [])), this.editorMode;
-		this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
-		//this.fullscreenEl.style.display = 'none';
-		const $editorWrapper = $(this.editor.display.wrapper);
-		const buttonShadow = $editorWrapper.find('#buttonShadow')[0];
-		buttonShadow.style.position = 'absolute';
-		buttonShadow.style.right = '-1px';
-		this.editor.display.wrapper.classList.add('fullscreen');
-		this.editor.display.wrapper.classList.remove('small');
-
-		$editorWrapper.appendTo(window.doc.fullscreenEditorHorizontal);
-		const $horizontalCenterer = $('#horizontalCenterer');
-		const viewportWidth = $horizontalCenterer.width() + 20;
-		const viewPortHeight = $horizontalCenterer.height();
-
-		if (window.app.storageLocal.hideToolsRibbon !== undefined) {
-			if (window.app.storageLocal.hideToolsRibbon) {
-				window.doc.showHideToolsRibbonButton.classList.add('hidden');
-			} else {
-				window.doc.showHideToolsRibbonButton.classList.remove('hidden');
-			}
-		} else {
-			chrome.storage.local.set({
-				hideToolsRibbon: false
-			});
-			window.app.storageLocal.hideToolsRibbon = false;
-			window.doc.showHideToolsRibbonButton.classList.add('hidden');
-		}
-		if (window.app.storageLocal.shrinkTitleRibbon !== undefined) {
-			if (window.app.storageLocal.shrinkTitleRibbon) {
-				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
-			} else {
-				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
-			}
-		} else {
-			chrome.storage.local.set({
-				shrinkTitleRibbon: false
-			});
-			window.app.storageLocal.shrinkTitleRibbon = false;
-			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
-		}
-
-
-		$editorWrapper[0].style.height = 'auto';
-		document.documentElement.style.overflow = 'hidden';
-
-		editorCont.style.display = 'flex';
-		//Animate to corners
-		$(editorCont).animate({
-			width: viewportWidth,
-			height: viewPortHeight,
-			marginTop: 0,
-			marginLeft: 0
-		}, {
-			duration: 500,
-			easing: 'easeOutCubic',
-			complete: () =>  {
-				this.editor.refresh();
-				this.style.width = '100vw';
-				this.style.height = '100vh';
-				buttonShadow.style.position = 'fixed';
-				window.app.$.fullscreenEditorHorizontal.style.height = '100vh';
-				this.popInRibbons();
-			}
-		});
-	};
-
-	/**
-	 * Exits the editor's fullscreen mode
-	 */
-	static exitFullScreen(this: NodeEditBehaviorScriptInstance) {
-		if (!this.fullscreen) {
-			return;
-		}
-		this.fullscreen = false;
-
-		const _this = this;
-		this.popOutRibbons();
-		const $wrapper = $(_this.editor.display.wrapper);
-		const $buttonShadow = $wrapper.find('#buttonShadow');
-		$buttonShadow[0].style.position = 'absolute';
-		setTimeout(function() {
-			_this.editor.display.wrapper.classList.remove('fullscreen');
-			_this.editor.display.wrapper.classList.add('small');
-			const editorCont = window.doc.fullscreenEditor;
-			_this.fullscreenEl.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
-			$(editorCont).animate({
-				width: _this.preFullscreenEditorDimensions.width,
-				height: _this.preFullscreenEditorDimensions.height,
-				marginTop: _this.preFullscreenEditorDimensions.marginTop,
-				marginLeft: _this.preFullscreenEditorDimensions.marginLeft
-			}, {
-				duration: 500,
-				easing: 'easeOutCubic',
-				complete: () => {
-					editorCont.style.marginLeft = '0';
-					editorCont.style.marginTop = '0';
-					editorCont.style.width = '0';
-					editorCont.style.height = '0';
-					$(_this.editor.display.wrapper).appendTo(_this.$.editorCont).css({
-						height: _this.preFullscreenEditorDimensions.height,
-						marginTop: 0,
-						marginLeft: 0
+						} else {
+							//Remove from script's permissions
+							settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
+						}
 					});
+				});
+			}
+
+		static openPermissionsDialog(this: NodeEditBehaviorScriptInstance, item: Polymer.ClickEvent|CRM.ScriptNode) {
+			return new Promise(async (resolve) => {
+				let nodeItem: CRM.ScriptNode;
+				let settingsStorage: Partial<CRM.ScriptNode>;
+				if (!item || item.type === 'tap') {
+					//It's an event, ignore it
+					nodeItem = this.item;
+					settingsStorage = this.newSettings;
+				} else {
+					nodeItem = item as CRM.ScriptNode;
+					settingsStorage = item as CRM.ScriptNode;
 				}
+				//Prepare all permissions
+				const { permissions } = browserAPI.permissions ? await browserAPI.permissions.getAll() : {
+					permissions: []
+				};
+				if (!(browserAPI.permissions)) {
+					window.app.util.showToast('Not toggling for browser permissions as your browser does not support them');
+				}
+				if (!nodeItem.permissions) {
+					nodeItem.permissions = [];
+				}
+				const scriptPermissions = nodeItem.permissions;
+				const crmPermissions = window.app.templates.getScriptPermissions();
+
+				const askedPermissions = (nodeItem.nodeInfo &&
+					nodeItem.nodeInfo.permissions) || [];
+
+				const requiredActive: {
+					name: string;
+					toggled: boolean;
+					required: boolean;
+					description: string;
+				}[] = [];
+				const requiredInactive: {
+					name: string;
+					toggled: boolean;
+					required: boolean;
+					description: string;
+				}[] = [];
+				const nonRequiredActive: {
+					name: string;
+					toggled: boolean;
+					required: boolean;
+					description: string;
+				}[] = [];
+				const nonRequiredNonActive: {
+					name: string;
+					toggled: boolean;
+					required: boolean;
+					description: string;
+				}[] = [];
+
+				let isAsked;
+				let isActive;
+				let permissionObj;
+				crmPermissions.forEach(function(permission) {
+					isAsked = askedPermissions.indexOf(permission) > -1;
+					isActive = scriptPermissions.indexOf(permission as CRM.Permission) > -1;
+
+					permissionObj = {
+						name: permission,
+						toggled: isActive,
+						required: isAsked,
+						description: window.app.templates.getPermissionDescription(permission)
+					};
+
+					if (isAsked && isActive) {
+						requiredActive.push(permissionObj);
+					} else if (isAsked && !isActive) {
+						requiredInactive.push(permissionObj);
+					} else if (!isAsked && isActive) {
+						nonRequiredActive.push(permissionObj);
+					} else {
+						nonRequiredNonActive.push(permissionObj);
+					}
+				});
+
+				const permissionList = nonRequiredActive;
+				permissionList.push.apply(permissionList, requiredActive);
+				permissionList.push.apply(permissionList, requiredInactive);
+				permissionList.push.apply(permissionList, nonRequiredNonActive);
+
+				window.app.$.scriptPermissionsTemplate.items = permissionList;
+				window.app.shadowRoot.querySelector('.requestPermissionsScriptName').innerHTML = 'Managing permisions for script "' + nodeItem.name;
+				const scriptPermissionDialog = window.app.$.scriptPermissionDialog;
+				scriptPermissionDialog.addEventListener('iron-overlay-opened', () => {
+					this._onPermissionsDialogOpen(permissions, settingsStorage);
+				});
+				scriptPermissionDialog.addEventListener('iron-overlay-closed', () => {
+					resolve(null);
+				});
+				scriptPermissionDialog.open();
 			});
-		}, 800);
-	};
+		};
 
-	/**
-	 * Shows the options for the editor
-	 */
-	static showOptions(this: NodeEditBehaviorScriptInstance) {
-		const _this = this;
-		this.optionsShown = true;
-		this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
-		const editorWidth = $('.script-edit-codeMirror').width();
-		const editorHeight = $('.script-edit-codeMirror').height();
-		let circleRadius;
-
-		//Add a bit just in case
-		if (this.fullscreen) {
-			circleRadius = Math.sqrt((250000) + (editorHeight * editorHeight)) + 100;
-		} else {
-			circleRadius = Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight)) + 200;
-		}
-		const negHalfRadius = -circleRadius;
-		circleRadius = circleRadius * 2;
-		this.settingsShadow.parentElement.style.width = editorWidth + '';
-		this.settingsShadow.parentElement.style.height = editorHeight + '';
-		this.fullscreenEl.style.display = 'none';
-		const settingsInitialMarginLeft = -500;
-		($('#editorThemeFontSizeInput')[0] as HTMLPaperInputElement).value = window.app.settings.editor.zoom;
-		$(this.settingsShadow).css({
-			width: '50px',
-			height: '50px',
-			borderRadius: '50%',
-			marginTop: '-25px',
-			marginRight: '-25px'
-		}).animate({
-			width: circleRadius,
-			height: circleRadius,
-			marginTop: negHalfRadius,
-			marginRight: negHalfRadius
-		}, {
-			duration: 500,
-			easing: 'linear',
-			progress: (animation: any) => {
-				_this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
-				_this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
-			},
-			complete: () => {
-				if (_this.fullscreen) {
-					const settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
-					settingsCont.style.overflow = 'scroll';
-					settingsCont.style.overflowX = 'hidden';
-					settingsCont.style.height = 'calc(100vh - 66px)';
-					const bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
-					bubbleCont.style.position = 'fixed';
-					bubbleCont.style.zIndex = '50';
+		/**
+		 * Reloads the editor completely (to apply new settings)
+		 */
+		static reloadEditor(this: NodeEditBehaviorScriptInstance, disable: boolean = false) {
+			if (this.editorManager) {
+				if (this.editorMode === 'main') {
+					this.newSettings.value.script = this.editorManager.editor.getValue();
+				} else if (this.editorMode === 'background') {
+					this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
+				} else {
+					try {
+						this.newSettings.value.options = JSON.parse(this.editorManager.editor.getValue());
+					} catch(e) {
+						this.newSettings.value.options = this.editorManager.editor.getValue();
+					}
 				}
 			}
-		});
-	};
 
-	/**
-	 * Hides the options for the editor
-	 */
-	static hideOptions(this: NodeEditBehaviorScriptInstance) {
-		const _this = this;
-		this.optionsShown = false;
-		const settingsInitialMarginLeft = -500;
-		this.fullscreenEl.style.display = 'block';
-		$(this.settingsShadow).animate({
-			width: 0,
-			height: 0,
-			marginTop: 0,
-			marginRight: 0
-		}, {
-			duration: 500,
-			easing: 'linear',
-			progress: (animation: any) => {
-				_this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
-				_this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
-			},
-			complete: () => {
-				const zoom = window.app.settings.editor.zoom;
-				const prevZoom = _this.unchangedEditorSettings.zoom;
-				_this.unchangedEditorSettings.zoom = zoom;
-				if (JSON.stringify(_this.unchangedEditorSettings) !== JSON.stringify(window.app.settings.editor)) {
-					_this.reloadEditor();
-				}
-				if (zoom !== prevZoom) {
-					window.app.updateEditorZoom();
-				}
-
-				if (_this.fullscreen) {
-					const settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
-					settingsCont.style.height = '345px';
-					settingsCont.style.overflowX = 'hidden';
-					const bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
-					bubbleCont.style.position = 'absolute';
-					bubbleCont.style.zIndex = 'auto';
-				}
-			}
-		});
-	};
-
-	/**
-	 * Reloads the editor completely (to apply new settings)
-	 */
-	static reloadEditor(this: NodeEditBehaviorScriptInstance, disable: boolean = false) {
-		if (this.editor) {
-			$(this.editor.display.wrapper).remove();
-			this.$.editorPlaceholder.style.display = 'flex';
-			this.$.editorPlaceholder.style.opacity = '1';
-			this.$.editorPlaceholder.style.position = 'absolute';
-
+			let value: string;
 			if (this.editorMode === 'main') {
-				this.newSettings.value.script = this.editor.doc.getValue();
+				value = this.newSettings.value.script;
 			} else if (this.editorMode === 'background') {
-				this.newSettings.value.backgroundScript = this.editor.doc.getValue();
+				value = this.newSettings.value.backgroundScript;
 			} else {
-				try {
-					this.newSettings.value.options = JSON.parse(this.editor.doc.getValue());
-				} catch(e) {
-					this.newSettings.value.options = this.editor.doc.getValue();
+				if (typeof this.newSettings.value.options === 'string') {
+					value = this.newSettings.value.options;
+				} else {
+					value = JSON.stringify(this.newSettings.value.options);
 				}
 			}
-		}
-		this.editor = null;
 
-		let value;
-		if (this.editorMode === 'main') {
-			value = this.newSettings.value.script;
-		} else if (this.editorMode === 'background') {
-			value = this.newSettings.value.backgroundScript;
-		} else {
-			if (typeof this.newSettings.value.options === 'string') {
-				value = this.newSettings.value.options;
+			if (this.fullscreen) {
+				this.fullscreenEditorManager.reset();
+				const editor = this.fullscreenEditorManager.editor;
+				if (!this.fullscreenEditorManager.isDiff(editor)) {
+					editor.setValue(value);
+				}
 			} else {
-				value = JSON.stringify(this.newSettings.value.options);
+				this.editorManager.reset();
+				const editor = this.editorManager.editor;
+				if (!this.editorManager.isDiff(editor)) {
+					editor.setValue(value);
+				}
 			}
-		}
-		if (this.fullscreen) {
-			this.loadEditor(window.doc.fullscreenEditorHorizontal, value, disable);
-		} else {
-			this.loadEditor(this.$.editorCont, value, disable);
-		}
-	};
+		};
 
-	private static createKeyBindingListener(this: NodeEditBehaviorScriptInstance, element: HTMLPaperInputElement & {
-			lastValue: string;
-		}, binding: {
+		private static _createKeyBindingListener(this: NodeEditBehaviorScriptInstance, element: HTMLPaperInputElement, keyBinding: {
 			name: string;
 			defaultKey: string;
+			monacoKey: string;
 			storageKey: keyof CRM.KeyBindings;
-			fn(cm: CodeMirrorInstance): void;
 		}) {
-		return (event: KeyboardEvent) => {
-			event.preventDefault();
-			//Make sure it's not just one modifier key being pressed and nothing else
-			if (event.keyCode < 16 || event.keyCode > 18) {
-				//Make sure at least one modifier is being pressed
-				if (event.altKey || event.shiftKey || event.ctrlKey) {
-					const values = [];
-					if (event.ctrlKey) {
-						values.push('Ctrl');
-					}
-					if (event.altKey) {
-						values.push('Alt');
-					}
-					if (event.shiftKey) {
-						values.push('Shift');
-					}
-
-					values.push(String.fromCharCode(event.keyCode));
-					const value = element.value = values.join('-');
-					element.lastValue = value;
-					window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {
-						autocomplete: this.keyBindings[0].defaultKey,
-						showType: this.keyBindings[0].defaultKey,
-						showDocs: this.keyBindings[1].defaultKey,
-						goToDef: this.keyBindings[2].defaultKey,
-						jumpBack: this.keyBindings[3].defaultKey,
-						rename: this.keyBindings[4].defaultKey,
-						selectName: this.keyBindings[5].defaultKey,
-					};
-					const prevValue = window.app.settings.editor.keyBindings[binding.storageKey];
-					if (prevValue) {
-						//Remove previous one
-						const prevKeyMap: {
-							[key: string]: (cm: CodeMirrorInstance) => void;
-						} = {};
-						prevKeyMap[prevValue] = binding.fn;
-						window.scriptEdit.editor.removeKeyMap(prevKeyMap);
-					}
-
-					const keyMap: {
-						[key: string]: (cm: CodeMirrorInstance) => void;
-					} = {};
-					keyMap[value] = binding.fn;
-					window.scriptEdit.editor.addKeyMap(keyMap);
-
-					window.app.settings.editor.keyBindings[binding.storageKey] = value;
-				}
-			}
-
-			element.value = element.lastValue || '';
-			return;
-		};
-	};
-
-	static keyBindings: Array<{
-		name: string;
-		defaultKey: string;
-		storageKey: keyof CRM.KeyBindings;
-		fn(cm: CodeMirrorInstance): void;
-	}> = [
-		{
-			name: 'AutoComplete',
-			defaultKey: 'Ctrl-Space',
-			storageKey: 'autocomplete',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.complete(cm);
-			}
-		}, {
-			name: 'Show Type',
-			defaultKey: 'Ctrl-I',
-			storageKey: 'showType',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.showType(cm);
-			}
-		}, {
-			name: 'Show Docs',
-			defaultKey: 'Ctrl-O',
-			storageKey: 'showDocs',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.showDocs(cm);
-			}
-		}, {
-			name: 'Go To Definition',
-			defaultKey: 'Alt-.',
-			storageKey: 'goToDef',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.jumpToDef(cm);
-			}
-		}, {
-			name: 'Jump Back',
-			defaultKey: 'Alt-,',
-			storageKey: 'jumpBack',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.jumpBack(cm);
-			}
-		}, {
-			name: 'Rename',
-			defaultKey: 'Ctrl-Q',
-			storageKey: 'rename',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.rename(cm);
-			}
-		}, {
-			name: 'Select Name',
-			defaultKey: 'Ctrl-.',
-			storageKey: 'selectName',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.selectName(cm);
-			}
-		}
-	];
-
-	/**
- 	 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
-	 */
-	private static fillEditorOptions(this: NodeEditBehaviorScriptInstance, container: HTMLElement) {
-		const clone = (document.querySelector('#editorOptionsTemplate') as HTMLTemplateElement).content;
-
-		if (window.app.settings.editor.theme === 'white') {
-			clone.querySelector('#editorThemeSettingWhite').classList.add('currentTheme');
-		} else {
-			clone.querySelector('#editorThemeSettingWhite').classList.remove('currentTheme');
-		}
-		if (window.app.settings.editor.theme === 'dark') {
-			clone.querySelector('#editorThemeSettingDark').classList.add('currentTheme');
-		} else {
-			clone.querySelector('#editorThemeSettingDark').classList.remove('currentTheme');
-		}
-
-		(clone.querySelector('#editorTabSizeInput paper-input-container input') as HTMLInputElement)
-			.setAttribute('value', window.app.settings.editor.tabSize + '');
-
-		const cloneCheckbox = clone.querySelector('#editorTabsOrSpacesCheckbox');
-		if (window.app.settings.editor.useTabs) {
-			cloneCheckbox.setAttribute('checked', 'checked');
-		} else {
-			cloneCheckbox.removeAttribute('checked');
-		}
-
-		const cloneTemplate = document.importNode(clone, true);
-		container.appendChild(cloneTemplate);
-		const importedElement = container;
-
-		//White theme
-		importedElement.querySelector('#editorThemeSettingWhite').addEventListener('click', () => {
-			const themes = importedElement.querySelectorAll('.editorThemeSetting');
-			themes[0].classList.add('currentTheme');
-			themes[1].classList.remove('currentTheme');
-			window.app.settings.editor.theme = 'white';
-			window.app.upload();
-		});
-
-		//The dark theme option
-		importedElement.querySelector('#editorThemeSettingDark').addEventListener('click', () => {
-			const themes = importedElement.querySelectorAll('.editorThemeSetting');
-			themes[0].classList.remove('currentTheme');
-			themes[1].classList.add('currentTheme');
-			window.app.settings.editor.theme = 'dark';
-			window.app.upload();
-		});
-
-
-		const zoomEl = importedElement.querySelector('#editorThemeFontSizeInput');
-		function updateZoomEl() {
-			setTimeout(function() {
-				window.app.settings.editor.zoom = zoomEl.querySelector('input').value;
-				window.app.upload();
-			}, 0);
-		};
-		zoomEl.addEventListener('change', function() {
-			updateZoomEl();
-		});
-		this._updateZoomEl = updateZoomEl;
-
-		importedElement.querySelector('#editorTabsOrSpacesCheckbox').addEventListener('click', () => {
-			window.app.settings.editor.useTabs = !window.app.settings.editor.useTabs;
-			window.app.upload();
-		});
-
-		function updateTabSizeEl() {
-			setTimeout(function() {
-				window.app.settings.editor.tabSize = 
-					~~(importedElement.querySelector('#editorTabSizeInput paper-input-container input') as HTMLInputElement)
-						.value;
-				window.app.upload();
-			}, 0);
-		}
-
-		//The main input for the size of tabs option
-		(importedElement.querySelector('#editorTabSizeInput paper-input-container input') as HTMLInputElement)
-			.addEventListener('change', () => {
-				updateTabSizeEl();
-			});	
-		this._updateTabSizeEl = updateTabSizeEl;
-
-		importedElement.querySelector('#editorJSLintGlobalsInput')
-			.addEventListener('keypress', function() {
-				const _this = importedElement.querySelector('#editorJSLintGlobalsInput') as HTMLPaperInputElement;
-				setTimeout(function() {
-					const val = _this.value;
-					const globals = val.split(',');
-					chrome.storage.local.set({
-						jsLintGlobals: globals
-					});
-					window.app.jsLintGlobals = globals;
-				}, 0);
-			});
-
-		window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {
-			autocomplete: this.keyBindings[0].defaultKey,
-			showType: this.keyBindings[0].defaultKey,
-			showDocs: this.keyBindings[1].defaultKey,
-			goToDef: this.keyBindings[2].defaultKey,
-			jumpBack: this.keyBindings[3].defaultKey,
-			rename: this.keyBindings[4].defaultKey,
-			selectName: this.keyBindings[5].defaultKey,
-		};
-		const settingsContainer = importedElement.querySelector('#settingsContainer');
-		for (let i = 0; i < this.keyBindings.length; i++) {
-			const keyBindingClone = (document.querySelector('#keyBindingTemplate') as HTMLTemplateElement).content;
-			
-			const input = keyBindingClone.querySelector('paper-input') as HTMLPaperInputElement & {
-				lastValue: string;
-			};
-			const value = window.app.settings.editor.keyBindings[this.keyBindings[i].storageKey] ||
-				this.keyBindings[i].defaultKey;
-			input.setAttribute('label', this.keyBindings[i].name);
-			input.setAttribute('value', value);
-
-			const keyBindingCloneTemplate = document.importNode(keyBindingClone, true);
-			settingsContainer.insertBefore(keyBindingCloneTemplate, settingsContainer.querySelector('#afterEditorSettingsSpacing'));
-			settingsContainer.querySelector('paper-input')
-				.addEventListener('keydown', this.createKeyBindingListener(input, this.keyBindings[i]));
-		}
-	};
-
-	/**
-	 * Initializes the keybindings for the editor
-	 */
-	private static initTernKeyBindings(this: NodeEditBehaviorScriptInstance) {
-		const keySettings: {
-			[key: string]: (cm: CodeMirrorInstance) => void;
-		} = {};
-		for (let i = 0; i < this.keyBindings.length; i++) {
-			keySettings[window.app.settings.editor.keyBindings[this.keyBindings[i].storageKey]] = this.keyBindings[i].fn;
-		}
-		this.editor.setOption('extraKeys', keySettings);
-		this.editor.on('cursorActivity', function(cm: CodeMirrorInstance) {
-			window.app.ternServer.updateArgHints(cm);
-		});
-	};
-
-	private static _posToIndex(this: NodeEditBehaviorScriptInstance, pos: CodeMirrorPos, lines: Array<string>): number {
-		let chars = 0;
-		for (let i = 0; i < lines.length; i++) {
-			if (i < pos.line) {
-				chars += lines[i].length;
-			} else {
-				chars += pos.ch;
-				return chars;
-			}
-			chars++;
-		}
-		return chars;
-	}
-
-	private static _indexToPos(this: NodeEditBehaviorScriptInstance, index: number, lines: Array<string>): {
-		line: number;
-		ch: number;
-	} {
-		let chars = 0;
-		for (let i = 0; i < lines.length; i++) {
-			chars += lines[i].length;
-			if (chars >= index) {
-				return {
-					line: i,
-					ch: index - (chars - lines[i].length)
-				}
-			}
-			chars++;
-		}
-		return {
-			line: 0,
-			ch: index
-		}
-	}
-
-	private static _posInRange(this: NodeEditBehaviorScriptInstance, val: {
-		start: number;
-		end: number;
-		lines: Array<string>;
-	}, lower: CodeMirrorPos, upper: CodeMirrorPos): boolean {
-		const lowerIndex = this._posToIndex(lower, val.lines);
-		const upperIndex = this._posToIndex(upper, val.lines);
-
-		return (val.end >= lowerIndex && val.end <= upperIndex) ||
-			(val.start >= lowerIndex && val.start <= upperIndex) ||
-			(val.start <= lowerIndex && val.end >= upperIndex)
-	}
-
-	static findChromeBaseExpression(this: NodeEditBehaviorScriptInstance, from: CodeMirrorPos, to: CodeMirrorPos) {
-		const code = this.editor.getValue();
-		const file = {
-			name: '[doc]',
-			text: code,
-			type: 'full'
-		};
-		const lines = code.split('\n');
-		const lastLine = lines.pop();
-		window.app.ternServer.server.request({
-			query: {
-				docs: true,
-				end: window.CodeMirror.Pos(lines.length - 1, lastLine.length - 1),
-				file: '[doc]',
-				lineCharPositions: true,
-				type: 'type',
-				types: true,
-				urls: true
-			},
-			files: [file]
-		}, (e) => {
-			this.markers.forEach(marker => marker.clear());
-
-			let passedStart: boolean = false;
-			const file = window.app.ternServer.server.files[0];
-			const persistentData: PersistentData = {
-				lineSeperators: window.app.legacyScriptReplace.localStorageReplace.getLineSeperators(lines),
-				script: file.text,
-				lines: lines
-			}
-			for (let i = 0; i < file.ast.body.length; i++) {
-				const inRange = this._posInRange({
-					lines: lines,
-					start: file.ast.body[i].start,
-					end: file.ast.body[i].end
-				}, from, to);
-				if (!passedStart && inRange) {
-					passedStart = true;
-				} else if (passedStart && !inRange) {
-					return;
-				}
-				if (inRange) {
-					window.app.legacyScriptReplace.localStorageReplace.findExpression(file.ast.body[i],
-						persistentData, 'chrome', (data, expression) => {
-							//If the sibling is not window, ignore
-							if (data.isObj || data.siblingExpr.type === 'Identifier' && 
-								data.siblingExpr.name === 'window') {
-									this.markers.push(this.editor.doc.markText(this._indexToPos(expression.start, lines),
-										this._indexToPos(expression.end, lines), {
-											className: 'chromeCallsDeprecated',
-											inclusiveLeft: false,
-											inclusiveRight: false,
-											atomic: false,
-											clearOnEnter: false,
-											clearWhenEmpty: true,
-											readOnly: false,
-											title: 'Direct chrome calls are deprecated, please use the CRM API for chrome calls (documentation can be' + 
-												' found at the "docs" button)'
-										}));
-								}
-						});
-				}
-			}
-		});
-	}
-
-	/**
-	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
-	 */
-	static cmLoaded(this: NodeEditBehaviorScriptInstance, editor: CodeMirrorInstance) {
-		this.editor = editor;
-		editor.refresh();
-		editor.on('metaTagChanged', (changes: {
-			changed?: Array<{
-				key: string;
-				value: string | number;
-				oldValue: string | number;
-			}>;
-			removed?: Array<{
-				key: string;
-				value: string | number;
-				oldValue?: string | number;
-			}>;
-			added?: Array<{
-				key: string;
-				value: string | number;
-				oldValue?: string | number;
-			}>;
-		}, metaTags: {
-			[key: string]: string|number;
-		}) => {
-			if (this.editorMode === 'main') {
-				this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
-			}
-		});
-		this.$.mainEditorTab.classList.add('active');
-		this.$.backgroundEditorTab.classList.remove('active');
-		editor.on('metaDisplayStatusChanged', (info: {
-			status: string
-		}) => {
-			this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
-		});
-		editor.performLint();
-		let newChanges: Array<{
-			from: CodeMirrorPos;
-			to: CodeMirrorPos;
-			removed: string[];
-			text: string[];
-			origin: string;
-			time: number;
-		}> = [];
-		editor.on('changes', (cm, changes) => {
-			newChanges = newChanges.concat(changes.map((change) => {
-				return {
-					from: change.from,
-					to: change.to,
-					removed: change.removed,
-					text: change.text,
-					origin: change.origin,
-					time: Date.now()
-				}
-			}));
-		});
-		const interval = window.setInterval(() => {
-			if (!this.active) {
-				window.clearInterval(interval);
-			} else {
-				//Make sure no typing happened in the last second
-				if (newChanges.length > 0 && Date.now() - newChanges.slice(-1)[0].time > 1000) {
-					editor.performLint();
-					newChanges.forEach((change) => {
-						this.findChromeBaseExpression(change.from, change.to);
-					});
-					newChanges = [];
-				}
-			}
-		}, 1000);
-		if (this.newSettings.value.metaTagsHidden) {
-			editor.doc.markText({
-				line: editor.metaTags.metaStart.line,
-				ch: editor.metaTags.metaStart.ch - 2
-			}, {
-				line: editor.metaTags.metaStart.line,
-				ch: editor.metaTags.metaStart.ch + 27
-			}, {
-				className: 'metaTagHiddenText',
-				inclusiveLeft: false,
-				inclusiveRight: false,
-				atomic: true,
-				readOnly: true,
-				addToHistory: true
-			});
-			editor.metaTags.metaTags = this.newSettings.value.metaTags;
-		}
-
-		editor.display.wrapper.classList.remove('stylesheet-edit-codeMirror');
-		editor.display.wrapper.classList.add('script-edit-codeMirror');
-		editor.display.wrapper.classList.add('small');
-
-		const cloneTemplate = document.importNode((document.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
-		editor.display.sizer.insertBefore(cloneTemplate, editor.display.sizer.children[0]);
-		const clone = editor.display.sizer;
-		
-		this.settingsShadow = clone.querySelector('#settingsShadow') as HTMLElement;
-		this.editorOptions = clone.querySelector('#editorOptions') as HTMLElement;
-		this.fillEditorOptions(this.editorOptions);
-
-		this.fullscreenEl = clone.querySelector('#editorFullScreen') as HTMLElement;
-		this.fullscreenEl.addEventListener('click', () => {
-			this.toggleFullScreen.apply(this);
-		});
-
-		this.settingsEl = clone.querySelector('#editorSettings') as HTMLElement;
-		this.settingsEl.addEventListener('click', () => {
-			this.toggleOptions.apply(this);
-		});
-		if (editor.getOption('readOnly') === 'nocursor') {
-			editor.display.wrapper.style.backgroundColor = 'rgb(158, 158, 158)';
-		}
-		const buttonShadow = editor.display.sizer.querySelector('#buttonShadow') as HTMLElement;
-
-		if (this.fullscreen) {
-			editor.display.wrapper.style.height = 'auto';
-			this.$.editorPlaceholder.style.display = 'none';
-			buttonShadow.style.right = '-1px';
-			buttonShadow.style.position = 'absolute';
-			this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
-		} else {
-			this.$.editorPlaceholder.style.height = this.editorHeight + 'px';
-			this.$.editorPlaceholder.style.width = this.editorWidth + 'px';
-			this.$.editorPlaceholder.style.position = 'absolute';
-			if (this.editorPlaceHolderAnimation) {
-				this.editorPlaceHolderAnimation.play();
-			} else {
-				const placeholder = this.$.editorPlaceholder;
-				this.editorPlaceHolderAnimation = placeholder.animate([
-					{
-						opacity: 1
-					}, {
-						opacity: 0
-					}
-				], {
-					duration: 300,
-					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-				});
-				this.editorPlaceHolderAnimation.onfinish = function(this: Animation) {
-					placeholder.style.display = 'none';
-				};
-			}
-		}
-		this.initTernKeyBindings();
-	};
-
-	/**
-	 * Loads the codeMirror editor
-	 */
-	private static loadEditor(this: NodeEditBehaviorScriptInstance, container: HTMLElement, content: string = this.item.value.script,
-			disable: boolean = false) {
-		const placeHolder = $(this.$.editorPlaceholder);
-		this.editorHeight = placeHolder.height();
-		this.editorWidth = placeHolder.width();
-		!window.app.settings.editor && (window.app.settings.editor = {
-			useTabs: true,
-			theme: 'dark',
-			zoom: '100',
-			tabSize: 4,
-			keyBindings: {
-				autocomplete: this.keyBindings[0].defaultKey,
-				showType: this.keyBindings[0].defaultKey,
-				showDocs: this.keyBindings[1].defaultKey,
-				goToDef: this.keyBindings[2].defaultKey,
-				jumpBack: this.keyBindings[3].defaultKey,
-				rename: this.keyBindings[4].defaultKey,
-				selectName: this.keyBindings[5].defaultKey,
-			}
-		});
-		this.editor = window.CodeMirror(container, {
-			lineNumbers: true,
-			value: content,
-			scrollbarStyle: 'simple',
-			lineWrapping: true,
-			mode: 'javascript',
-			foldGutter: true,
-			readOnly: (disable ? 'nocursor' : false),
-			theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-			indentUnit: window.app.settings.editor.tabSize,
-			indentWithTabs: window.app.settings.editor.useTabs,
-			messageScriptEdit: true,
-			gutters: ['CodeMirror-lint-markers', 'CodeMirror-foldgutter'],
-			lint: window.CodeMirror.lint.optionsJSON,
-			undoDepth: 500
-		});
-	};
-
-	static init(this: NodeEditBehaviorScriptInstance) {
-		const _this = this;
-		this._init();
-		this.$.dropdownMenu.init();
-		this.$.exportMenu.init();
-		this.$.exportMenu.querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
-		this.initDropdown();
-		this.selectorStateChange(0, this.newSettings.value.launchMode);
-		this.addDialogToMetaTagUpdateListeners();
-		window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
-			defs: [window.ecma5, window.ecma6, window.browserDefs, window.crmAPIDefs]
-		});
-		document.body.classList.remove('editingStylesheet');
-		document.body.classList.add('editingScript');
-		window.scriptEdit = this;
-		this.$.editorPlaceholder.style.display = 'flex';
-		this.$.editorPlaceholder.style.opacity = '1';
-		window.externalEditor.init();
-		if (window.app.storageLocal.recoverUnsavedData) {
-			chrome.storage.local.set({
-				editing: {
-					val: this.item.value.script,
-					id: this.item.id,
-					mode: _this.editorMode,
-					crmType: window.app.crmType
-				}
-			});
-			this.savingInterval = window.setInterval(function() {
-				if (_this.active && _this.editor) {
-					//Save
-					const val = _this.editor.getValue();
-					chrome.storage.local.set({
-						editing: {
-							val: val,
-							id: _this.item.id,
-							mode: _this.editorMode,
-							crmType: window.app.crmType
+			return (event: KeyboardEvent) => {
+				event.preventDefault();
+				//Make sure it's not just one modifier key being pressed and nothing else
+				if (event.keyCode < 16 || event.keyCode > 18) {
+					//Make sure at least one modifier is being pressed
+					if (event.altKey || event.shiftKey || event.ctrlKey) {
+						const values = [];
+						if (event.ctrlKey) {
+							values.push('Ctrl');
 						}
-						// ReSharper disable once WrongExpressionStatement
-					}, function() { chrome.runtime.lastError; });
-				} else {
-					//Stop this interval
-					chrome.storage.local.set({
-						editing: false
-					});
-					window.clearInterval(_this.savingInterval);
+						if (event.altKey) {
+							values.push('Alt');
+						}
+						if (event.shiftKey) {
+							values.push('Shift');
+						}
+
+						values.push(String.fromCharCode(event.keyCode));
+						const value = element.value = values.join('-');
+						element.setAttribute('data-prev-value', value);
+						window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {
+							goToDef: this.keyBindings[0].defaultKey,
+							rename: this.keyBindings[1].defaultKey
+						};
+
+						window.app.settings.editor.keyBindings[keyBinding.storageKey] = value;
+						this._initKeyBinding(keyBinding);
+					}
 				}
-			}, 5000);
+
+				element.value = element.getAttribute('data-prev-value') || '';
+				return;
+			};
+		};
+
+		static keyBindings: {
+			name: string;
+			defaultKey: string;
+			monacoKey: string;
+			storageKey: keyof CRM.KeyBindings;
+		}[] = [{
+				name: 'Go To Type Definition',
+				defaultKey: 'Ctrl-F12',
+				monacoKey: 'editor.action.goToTypeDefinition',
+				storageKey: 'goToDef'
+			}, {
+				name: 'Rename Symbol',
+				defaultKey: 'Ctrl-F2',
+				monacoKey: 'editor.action.rename',
+				storageKey: 'rename'
+			}
+		];
+
+		private static _translateKeyCombination(this: NodeEditBehaviorScriptInstance, keys: string): number[] {
+			const monacoKeys: number[] = [];
+			for (const key of keys.split('-')) {
+				if (key === 'Ctrl') {
+					monacoKeys.push(monaco.KeyMod.CtrlCmd);
+				} else if (key === 'Alt') {
+					monacoKeys.push(monaco.KeyMod.Alt);
+				} else if (key === 'Shift') {
+					monacoKeys.push(monaco.KeyMod.Shift);
+				} else {
+					if (monaco.KeyCode[`KEY_${key.toUpperCase()}` as any]) {
+						monacoKeys.push(monaco.KeyCode[`KEY_${key.toUpperCase()}` as any] as any);
+					}
+				}
+			}
+			return monacoKeys;
 		}
-		this.active = true;
-		setTimeout(function() {
-			_this.loadEditor(_this.$.editorCont);
-		}, 750);
+
+		private static _initKeyBinding(this: NodeEditBehaviorScriptInstance, keyBinding: {
+			name: string;
+			defaultKey: string;
+			monacoKey: string;
+			storageKey: "goToDef" | "rename";
+		}, key: string = keyBinding.defaultKey) {
+			const editor = this.editorManager.getEditorAsMonaco();
+			if (!this.editorManager.isTextarea(editor) && !this.editorManager.isDiff(editor)) {
+				const oldAction = editor.getAction(keyBinding.monacoKey) as monaco.editor.IEditorAction & {
+					_precondition: {
+						expr: {
+							key: string;
+							defaultValue: boolean;
+						}[];
+					}
+				}
+				editor.addAction({
+					id: keyBinding.monacoKey,
+					label: keyBinding.name,
+					run: () => {
+						oldAction.run();
+					},
+					keybindings: this._translateKeyCombination(key),
+					precondition: oldAction._precondition.expr.map((condition) => {
+						return condition.key;
+					}).join('&&')
+				});
+			}
+		}
+
+		/**
+		 * Initializes the keybindings for the editor
+		 */
+		private static _initKeyBindings(this: NodeEditBehaviorScriptInstance) {
+			for (const keyBinding of this.keyBindings) {
+				this._initKeyBinding(keyBinding);
+			}
+		};
+
+		/**
+		 * Triggered when the monaco editor has been loaded, fills it with the options and fullscreen element
+		 */
+		static editorLoaded(this: NodeEditBehaviorScriptInstance) {
+			const editorManager = this.editorManager;
+			(editorManager.getTypeHandler() as any)[0].listen('metaChange', (oldMetaTags: MonacoEditorElement.MetaBlock, newMetaTags: MonacoEditorElement.MetaBlock) => {
+				if (this.editorMode === 'main') {
+					this.newSettings.value.metaTags = JSON.parse(JSON.stringify(newMetaTags)).content;
+				}
+			});
+			this.$.mainEditorTab.classList.add('active');
+			this.$.backgroundEditorTab.classList.remove('active');
+
+			editorManager.editor.getDomNode().classList.remove('stylesheet-edit-codeMirror');
+			editorManager.editor.getDomNode().classList.add('script-edit-codeMirror');
+			editorManager.editor.getDomNode().classList.add('small');
+
+			if (this.fullscreen) {
+				this.$.editorFullScreen.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
+			}
+			this._initKeyBindings();
+		};
+
+		/**
+		 * Loads the monaco editor
+		 */
+		private static async loadEditor(this: NodeEditBehaviorScriptInstance, content: string = this.item.value.script,
+				disable: boolean = false) {
+			const placeHolder = $(this.$.editor);
+			this.editorHeight = placeHolder.height();
+			this.editorWidth = placeHolder.width();
+			!window.app.settings.editor && (window.app.settings.editor = {
+				theme: 'dark',
+				zoom: '100',
+				keyBindings: {
+					goToDef: this.keyBindings[0].defaultKey,
+					rename: this.keyBindings[1].defaultKey
+				},
+				cssUnderlineDisabled: false,
+				disabledMetaDataHighlight: false
+			});
+
+			const isTs = this.item.value.ts && this.item.value.ts.enabled;
+			const type = isTs ? this.$.editor.EditorMode.TS_META : 
+			this.$.editor.EditorMode.JS_META;
+			this.editorManager = await this.$.editor.create(type, {
+				value: content,
+				language: isTs ? 'typescript' : 'javascript',
+				theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
+				wordWrap: 'off',
+				fontSize: (~~window.app.settings.editor.zoom / 100) * 14,
+				folding: true
+			});
+			this.editorLoaded();
+		};
+
+		static init(this: NodeEditBehaviorScriptInstance) {
+			this._init();
+			this._CEBIinit();
+			this.$.dropdownMenu.init();
+			this.$.exportMenu.init();
+			this.$.exportMenu.$.dropdownSelected.innerText = 'EXPORT AS';
+			this.initDropdown();
+			this.selectorStateChange(0, this.newSettings.value.launchMode);
+			window.app.$.editorToolsRibbonContainer.classList.remove('editingStylesheet');
+			window.app.$.editorToolsRibbonContainer.classList.add('editingScript');
+			window.scriptEdit = this;
+			window.externalEditor.init();
+			if (window.app.storageLocal.recoverUnsavedData) {
+				browserAPI.storage.local.set({
+					editing: {
+						val: this.item.value.script,
+						id: this.item.id,
+						mode: this.editorMode,
+						crmType: window.app.crmType
+					}
+				});
+				this.savingInterval = window.setInterval(() => {
+					if (this.active && this.editorManager) {
+						//Save
+						const val = this.editorManager.editor.getValue();
+						browserAPI.storage.local.set({
+							editing: {
+								val: val,
+								id: this.item.id,
+								mode: this.editorMode,
+								crmType: window.app.crmType
+							}
+						}).catch(() => {});
+					} else {
+						//Stop this interval
+						browserAPI.storage.local.set({
+							editing: false
+						});
+						window.clearInterval(this.savingInterval);
+					}
+				}, 5000);
+			}
+			this.active = true;
+			setTimeout(() => {
+				this.loadEditor();
+			}, 750);
+		}
+	}
+
+	ScriptEditElement
+	if (window.objectify) {
+		window.register(SCE);
+	} else {
+		window.addEventListener('RegisterReady', () => {
+			window.register(SCE);
+		});
 	}
 }
 
-type ScriptEdit = Polymer.El<'script-edit', typeof SCE & typeof scriptEditProperties>;
-
-Polymer(SCE);
+type ScriptEdit = Polymer.El<'script-edit', typeof ScriptEditElement.SCE &
+	typeof ScriptEditElement.scriptEditProperties>;

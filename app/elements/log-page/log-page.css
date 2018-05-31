@@ -1,14 +1,16 @@
-﻿body {
+body {
 	overflow: hidden;
 }
 
-#toolbar {
-	background: rgb(255, 87, 34)!important;
+app-header {
+	left: 0!important;
+	background-color: rgb(255, 87, 34)!important;
+	color: white;
 }
 
-#title {
+.title {
 	text-align: center;
-	font-size: 300% !important;
+	font-size: 200% !important;
 	height: 35px;
 	margin-left: 0!important;
 }
@@ -29,13 +31,16 @@
 
 #spinnerCenterer {
 	display: -webkit-flex;
+	display: -webkit-box;
 	display: flex;
 	-webkit-justify-content: center;
-	justify-content: center;
+	-webkit-box-pack: center;
+	        justify-content: center;
 	width:100%;
 }
 
 #loadingContainer {
+	-webkit-transition: opacity 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
 	transition: opacity 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
 	position: absolute;
 	opacity:1;

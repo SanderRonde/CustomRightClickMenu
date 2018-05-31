@@ -13,7 +13,8 @@
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
         "noUnusedLocals": true,
-        "target": "es5"
+        "target": "es5",
+        "experimentalDecorators": true
 	}, 
     "allowJs": true,
     "compileOnSave": true,

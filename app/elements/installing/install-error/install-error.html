@@ -1,16 +1,23 @@
-﻿<dom-module id="install-error">
+﻿<!DOCTYPE HTML>
+<dom-module id="install-error">
 	<template>
-		<link rel="stylesheet" href="install-error.css"/>
+		<!-- build:css inline ../../../elements/installing/install-error/install-error.css -->
+		<link rel="stylesheet" href="../../elements/installing/install-error/install-error.css"/>
+		<!-- /build -->
+		<style is="custom-style" include="paper-material-styles"></style>
 		<center-element id="installErrorContainer" width="100vw" height="calc(100vh - 64px)">
-			<paper-material elevation="5">
+			<div class="paper-material" elevation="5">
 				<div id="errorContainer">
 					<div id="errorText">
 						Userscript<br />
-						Not Found
+						Not Found<br/>
+						<span id="errCode"></span>
 					</div>
 				</div>
-			</paper-material>
+			</div>
 		</center-element>
 	</template>
 </dom-module>
+<!-- build:js inline -->
 <script src="install-error.js"></script>
+<!-- /build -->

@@ -1,18 +1,19 @@
 <!DOCTYPE HTML>
 <dom-module id="edit-crm">
 	<template>
-		<!-- build:css inline edit-crm.css -->
-		<link rel="stylesheet" href="edit-crm.css" />
+		<!-- build:css inline ../../elements/edit-crm/edit-crm.css -->
+		<link rel="stylesheet" href="../elements/edit-crm/edit-crm.css" />
 		<!-- /build -->
+		<style is="custom-style" include="paper-material-styles"></style>
 		<div id="editCrmShadingCont">
 			<div cid="rootNodeContainer">
 				<div class="CRMEditColumnCont">
-					<paper-material elevation="5">
+					<div class="paper-material" elevation="5">
 						<div class="CRMEditColumn">
 							<edit-crm-item id="rootCRMItem" role="button" tabindex="0" title="Root node" root-node></edit-crm-item>
 							<div id="rootNodePadding"></div>
 						</div>
-					</paper-material>
+					</div>
 				</div>
 			</div>
 			<div id="mainCont">
@@ -20,7 +21,7 @@
 					It seems like there is no right-click menu for this type, try something else or add a node!
 				</div>
 				<div id="crmLoadingPage" hidden$="[[!crmLoading]]">
-					<center-element fullscreen="true">
+					<center-element fill="true">
 						<paper-spinner active></paper-spinner>
 					</center-element>
 				</div>
@@ -30,7 +31,7 @@
 							<template is="dom-repeat" items="{{column.indent}}" restamp="true">
 								<div class="indentFiller"></div>
 							</template>
-							<paper-material elevation="5" is-empty$="{{_isColumnEmpty(column)}}">
+							<div class="paper-material" elevation="5" is-empty$="{{_isColumnEmpty(column)}}">
 								<div class="CRMEditColumn" index="{{column.index}}" items="{{column.list}}">
 									<template is="dom-repeat" items="{{column.list}}" as="row" observe="*" restamp="true">
 										<edit-crm-item expanded="{{row.expanded}}" role="button" tabindex="0" aria-label$="{{_getAriaLabel(row)}}" title="{{row.name}}" shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" item="{{row}}"></edit-crm-item>
@@ -46,7 +47,7 @@
 										</div>
 									</template>
 								</div>
-							</paper-material>
+							</div>
 						</div>
 					</template>
 				</div>
@@ -77,7 +78,7 @@
 					<path d="M0 0h24v24H0z" fill="none"/>
 					<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
 				</svg>
-				<paper-material class="infoDiv" elevation="3">
+				<div class="paper-material infoDiv" elevation="3">
 					<div class="infoDivText">
 						<ul>
 							<li>
@@ -98,10 +99,12 @@
 							</li>
 						</ul>
 					</div>
-				</paper-material>
+				</div>
 			</div>
 		</div>
 	</template>
 </dom-module>
+<!-- build:js inline -->
 <script src="../../js/libraries/sortable.js"></script>
 <script src="edit-crm.js"></script>
+<!-- /build -->

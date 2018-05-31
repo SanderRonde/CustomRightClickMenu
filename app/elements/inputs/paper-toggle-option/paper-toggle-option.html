@@ -1,12 +1,12 @@
-﻿<html>
-<head>
-</head>
-<body>
+﻿<!DOCTYPE HTML>
 <dom-module id="paper-toggle-option" attributes="toggled disabled showmessage">
-	<link rel="stylesheet" href="paper-toggle-option.css">
 	<template>
-		<paper-checkbox id="checkbox" checked$="{{toggled}}" on-tap="onClick">
-			<content></content>
+		<!-- build:css inline ../../../elements/inputs/paper-toggle-option/paper-toggle-option.css -->
+		<link rel="stylesheet" href="../../elements/inputs/paper-toggle-option/paper-toggle-option.css">
+		<!-- /build -->
+		<style is="custom-style" include="paper-material-styles"></style>
+		<paper-checkbox id="checkbox" checked="{{toggled}}" on-tap="onClick">
+			<slot></slot>
 		</paper-checkbox>
 		<template is="dom-if" if="[[_showMessage(disabled, showmessage)]]">
 			<div id="disabledContainer">
@@ -19,14 +19,14 @@
 						<path d="M0 0h24v24H0z" fill="none"/>
 						<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
 					</svg>
-					<paper-material class="infoDiv" elevation="3">
+					<div class="paper-material infoDiv" elevation="3">
 						<div class="infoDivText">[[disabledreason]]</div>
-					</paper-material>
+					</div>
 				</div>
 			</div>
 		</template>
 	</template>
 </dom-module>
+<!-- build:js inline -->
 <script src="paper-toggle-option.js"></script>
-</body>
-</html>
+<!-- /build -->

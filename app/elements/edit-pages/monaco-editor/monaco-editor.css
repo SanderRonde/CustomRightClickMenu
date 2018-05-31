@@ -1,0 +1,106 @@
+:host {
+	position: relative;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+	-webkit-flex-grow: 100000;
+	flex-grow: 100000;
+}
+
+#placeholder {
+	opacity: 1;
+	-webkit-transition: opacity 500ms ease-in-out;
+	transition: opacity 500ms ease-in-out;
+	position: absolute;
+	z-index: 100;
+	pointer-events: none;
+}
+
+#spacer, #container, #placeholder {
+	width: 100%;
+	height: 100%;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+	-webkit-flex-grow: 100;
+	flex-grow: 100;
+}
+
+#spacer {
+	height: 360px;
+}
+
+#editorElement {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-grow: 100;
+	flex-grow: 100;
+}
+
+#placeholder.hidden {
+	opacity: 0;
+}
+
+.userScriptKeyHighlight {
+	color: #569cd6!important;
+}
+
+.userScriptValueHighlight {
+	color: rgb(149, 243, 255)!important;
+}
+
+.userScriptGutterHighlight {
+	background: #52ffd742;
+	width: 5px!important;
+	left: 3px;
+}
+
+.userScriptColorUnderline::before {
+	content: " ";
+	padding-left: 0.6em;
+	font-size: 70%;
+	margin-bottom: 0.15em;
+	margin-right: 1px;
+	margin-left: 6px;
+}
+
+.vs-dark .userScriptColorUnderline::before {
+	border: 2px solid white;
+}
+
+.vs .userScriptColorUnderline::before {
+	border: 2px solid black;
+}
+
+#editorElement > * {
+	-webkit-flex-grow: 100;
+	flex-grow: 100;
+	height: auto!important;
+}
+
+.monacoTextareaContainer {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+}
+
+.monacoEditorTextarea {
+	width: 100%;
+	height: 100%;
+	resize: none;
+	-webkit-flex-grow: 100;
+	flex-grow: 100;
+}
+
+.monacoEditorTextarea.dark-theme {
+	background-color: #262525;
+	color: #dad1d1;
+}
+
+.monacoTextareaContainer.diffContainer {
+	display: -webkit-flex;
+	display: flex;
+}

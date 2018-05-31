@@ -1,30 +1,24 @@
-﻿<html>
-<head>
-</head>
-<body>
-	<dom-module id="default-link" attributes="href defaultName searchEngine">
-		<template>
-			<!-- build:css inline default-link.css -->
-			<link rel="stylesheet" href="default-link.css"/>
-			<!-- /build -->
-			<div class="defaultLinkCont">
-				<div class="defaultLinkLinkCont" searchengine$="[[searchEngine]]">
-					<div class="defaultLinkLink">
-						<a class="defaultLinkHref" href="{{href}}" target="_blank">{{href}}</a>
-					</div>
-				</div>
-				<div class="defaultLinkName" flex>
-					<paper-input-container>
-						<label>Name</label>
-						<input is="iron-input" id="input" bind-value="{{defaultName}}" value="{{defaultName}}" />
-					</paper-input-container>
-				</div>
-				<div class="defaultLinkButton">
-					<paper-button class="blue" raised on-tap="onClick">ADD</paper-button>
+﻿<!DOCTYPE HTML>
+<dom-module id="default-link" attributes="href defaultName searchEngine">
+	<template>
+		<!-- build:css inline ../../elements/default-link/default-link.css -->
+		<link rel="stylesheet" href="../elements/default-link/default-link.css"/>
+		<!-- /build -->
+		<div class="defaultLinkCont">
+			<div class="defaultLinkLinkCont" searchengine$="[[searchEngine]]">
+				<div class="defaultLinkLink">
+					<a class="defaultLinkHref" href="{{href}}" rel="noopener" target="_blank">{{href}}</a>
 				</div>
 			</div>
-		</template>
-	</dom-module>
-	<script src="default-link.js"></script>
-</body>
-</html>
+			<div class="defaultLinkName" flex>
+				<paper-input id="input" label="Name" value="{{defaultName}}"></paper-input>
+			</div>
+			<div class="defaultLinkButton">
+				<paper-button class="blue" raised on-tap="onClick">ADD</paper-button>
+			</div>
+		</div>
+	</template>
+</dom-module>
+<!-- build:js inline -->
+<script src="default-link.js"></script>
+<!-- /build -->

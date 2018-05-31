@@ -1,4 +1,4 @@
-﻿.CodeMirror-wrap {
+.CodeMirror-wrap {
 	height: calc(100vh - 294px);
 }
 
@@ -8,11 +8,11 @@
 
 .infoName {
 	font-weight: 500;
-	width: 100px;
+	min-width: 100px;
 }
 
 .infoValue {
-	margin-left:10px;
+	padding-left: 15px;
 }
 
 #scriptInfo {
@@ -36,9 +36,7 @@
 
 .infoData {
 	font-size: 150%;
-	margin-bottom:15px;
-	display: -webkit-flex;
-	display: flex;
+	margin-bottom: 15px;
 }
 
 html {
@@ -53,13 +51,16 @@ html {
 }
 
 #installButtons {
-	margin-bottom: 10px;
-	margin-right:10px;
-	float: right;
+	margin-top: 10px;
+	margin-bottom: 20px;
+	margin-right: 20px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
 	color:white;
 }
 
-#installButton {
+#installButton, #acceptAndInstallbutton {
 	background: #4CAF50;
 }
 
@@ -77,10 +78,12 @@ html {
 
 .infoPermissionArrow svg {
 	margin-bottom: -4px;
+	-webkit-transform: rotate(90deg);
 	transform: rotate(90deg);
 }
 
 	.infoPermissionArrow svg.shown {
+		-webkit-transform: rotate(-90deg);
 		transform: rotate(-90deg);
 	}
 
@@ -203,11 +206,9 @@ paper-checkbox #checkbox.checked.paper-checkbox {
 	display: none;
 }
 
-#installButtons.installed #installButton {
-	display: none;
-}
-
-#installButtons.installed #cancelButton {
+#installButtons.installed #installButton, 
+#installButtons.installed #cancelButton,
+#installButtons.installed #acceptAndInstallbutton {
 	display: none;
 }
 
@@ -217,4 +218,52 @@ paper-checkbox #checkbox.checked.paper-checkbox {
 
 #closePage {
 	background: rgb(33, 150, 243);
+}
+
+#installConfirmContainer {
+	height: calc(100vh - 64px);
+	display: flex;
+	flex-direction: column;
+}
+
+#permissionsInfoCont {
+	cursor: pointer;
+	margin-bottom: -5px;
+	display: inline-block;
+}
+
+#permissionsInfoCont .active,
+#permissionsInfoCont #permissionsInfoTxtCont {
+	display: none;
+}
+
+#permissionsInfoCont .inactive {
+	display: block;
+}
+
+#permissionsInfoCont:hover .active,
+#permissionsInfoCont:hover #permissionsInfoTxtCont {
+	display: block;
+}
+
+#permissionsInfoCont:hover .inactive {
+	display:none;
+}
+
+#permissionsInfoText {
+	position: absolute;
+    z-index: 10000;
+    margin-top: -24px;
+    margin-left: 24px;
+    width: 250px;
+    background-color: white;
+    border: 1px solid black;
+    padding: 5px;
+	font-size:15.6px;
+	font-weight:normal;
+	cursor: default;
+}
+
+#permissionsToggleAll {
+	margin-top: 15px;
 }
