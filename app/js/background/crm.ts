@@ -805,7 +805,7 @@ export namespace CRMNodes.Script.Updating {
 			launchMode: deduceLaunchmode(metaTags, triggers)
 		}
 	}
-	function createUserscriptScriptData(metaTags: {
+	async function createUserscriptScriptData(metaTags: {
 		[key: string]: any;
 	}, code: string, node: Partial<CRM.Node>) {
 		node.type = 'script';
@@ -823,11 +823,9 @@ export namespace CRMNodes.Script.Updating {
 			}>[]).forEach(item => {
 				try {
 					libs.push(JSON.parse(item));
-				} catch (e) {
-				}
+				} catch (e) { }
 			});
 		}
-		metaTags['CRM_libraries'] = libs;
 
 		const requires: string[] = metaTags['require'] || [];
 		const anonymousLibs: CRM.Library[] = [];
@@ -860,6 +858,36 @@ export namespace CRMNodes.Script.Updating {
 			});
 		});
 
+		const { libraries } = await browserAPI.storage.local.get('libraries');
+
+		//Install all libraries
+		const newLibs: CRM.InstalledLibrary[] = [
+			...libraries, 
+			...(await Promise.all(libs.map(({ name, url }) => {
+				return new Promise<CRM.InstalledLibrary>(async (resolve) => {
+					const code = await modules.Util.xhr(url).catch(() => {
+						resolve(null);
+					});
+					if (!code) {
+						resolve(null);
+					}
+					resolve({
+						name, code, url,
+						ts: {
+							enabled: false,
+							code: {}
+						}
+					});
+				});
+			}))).filter(val => !!val)];
+		await browserAPI.storage.local.set({
+			libraries: newLibs
+		});
+		await modules.Storages.applyChanges({
+			type: 'libraries',
+			libraries: newLibs
+		});
+
 		libs = libs.concat(anonymousLibs as any);
 
 		scriptNode.value = modules.constants.templates.getDefaultScriptValue({
@@ -886,14 +914,14 @@ export namespace CRMNodes.Script.Updating {
 			convertedStylesheet: null
 		};
 	}
-	function createUserscriptTypeData(metaTags: {
+	async function createUserscriptTypeData(metaTags: {
 		[key: string]: any;
 	}, code: string, node: Partial<CRM.Node>) {
 		if (MetaTags.getlastMetaTagValue(metaTags,
 			'CRM_stylesheet')) {
 			createUserscriptStylesheetData(metaTags, code, node);
 		} else {
-			createUserscriptScriptData(metaTags, code, node);
+			await createUserscriptScriptData(metaTags, code, node);
 		}
 	}
 	export async function install(message: {
@@ -950,7 +978,7 @@ export namespace CRMNodes.Script.Updating {
 			}
 
 			node.name = MetaTags.getlastMetaTagValue(metaTags, 'name') || 'name';
-			createUserscriptTypeData(metaTags, code, node);
+			await createUserscriptTypeData(metaTags, code, node);
 			const { launchMode, triggers } = createUserscriptTriggers(metaTags);
 			node.triggers = triggers;
 			node.value.launchMode = launchMode;
