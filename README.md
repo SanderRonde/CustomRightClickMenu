@@ -51,7 +51,11 @@ you clicked on (page, link, selection, image, video or audio).
 
 ### Installing from your browser's web store
 
-[Chrome Webstore](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj)
+* [Chrome Webstore](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj)
+* [Firefox Add-on](https://addons.mozilla.org/nl/firefox/addon/custom-right-click-menu/)
+* Edge Extension - Under certification for initial release
+* Opera extension - Under certification for initial release
+
 
 ### Installing from repo
 
