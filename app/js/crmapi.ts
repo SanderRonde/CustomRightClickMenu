@@ -3818,7 +3818,7 @@ type CRMAPIMessage = {
 			static mergeObjects<T extends {
 				[key: string]: any;
 				[key: number]: any;
-			}, Y extends Partial<T>>(mainObject: T, additions: Y): T & Y {
+			}, Y extends Partial<T> & Object>(mainObject: T, additions: Y): T & Y {
 				for (const key in additions) {
 					if (additions.hasOwnProperty(key)) {
 						if (typeof additions[key] === 'object' &&
