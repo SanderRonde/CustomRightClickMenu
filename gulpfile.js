@@ -994,6 +994,10 @@ function readFile(filePath, options) {
 		console.log('Done!');
 	}
 
+	gulp.task(genTask('Removes the app/bower_components dir', async function removeBowerComponents() {
+		await del('./app/bower_components');
+	}));
+
 	gulp.task(genTask('Extracts the files needed for the documentationWebsite' + 
 		' and places them in build/website',
 			async function documentationWebsite(done) {
