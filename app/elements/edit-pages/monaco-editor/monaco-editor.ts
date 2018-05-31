@@ -32,6 +32,7 @@ namespace MonacoEditorElement {
 		resource: 'Preloads resources that can be accessed by `GM_getResourceURL` and `GM_getResourceText` by the script',
 		connect: 'Domains which are allowed to be retrieved by `GM_xmlhttpRequest`',
 		'run_at': 'The moment the script is injected (document-start, document-body, document-end, document-idle or document-menu)',
+		'run-at': 'The moment the script is injected (document-start, document-body, document-end, document-idle or document-menu)',
 		grant: 'Whitelists given `GM_*` functions',
 		noframes: 'Makes the script run on the main page but not in iframes'
 	};
