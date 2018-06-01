@@ -1866,7 +1866,7 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 								return;
 							}
 						}
-						if (searchEngineScript[1].indexOf('var url = "') === -1) {
+						if (script[1].indexOf('var url = "') === -1) {
 							return;
 						}
 						script[8] = `window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');`;
