@@ -1287,6 +1287,11 @@ export namespace CRMNodes.Link {
 		return url;
 	}
 
+	function substituteSearch(url: string, 
+		clickData: _browser.contextMenus.OnClickData) {
+			return url.replace(/%s/g, clickData.selectionText || '');
+		}
+
 	export function createHandler(node: CRM.LinkNode): ClickHandler {
 		return (clickData: _browser.contextMenus.OnClickData,
 			tabInfo: _browser.tabs.Tab) => {
@@ -1295,7 +1300,9 @@ export namespace CRMNodes.Link {
 				if (node.value[i].newTab) {
 					browserAPI.tabs.create({
 						windowId: tabInfo.windowId,
-						url: sanitizeUrl(node.value[i].url),
+						url: substituteSearch(
+							sanitizeUrl(node.value[i].url), 
+							clickData),
 						openerTabId: tabInfo.id
 					});
 				} else {
@@ -1304,7 +1311,9 @@ export namespace CRMNodes.Link {
 			}
 			if (finalUrl) {
 				browserAPI.tabs.update(tabInfo.id, {
-					url: sanitizeUrl(finalUrl)
+					url: substituteSearch(
+						sanitizeUrl(finalUrl),
+						clickData)
 				});
 			}
 		};
