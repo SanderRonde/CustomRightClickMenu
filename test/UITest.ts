@@ -1490,7 +1490,7 @@ describe('User entrypoints', function() {
 		});
 	
 		function testNameInput(type: CRM.NodeType) {
-			const defaultName = 'name';
+			const defaultName = `My ${type[0].toUpperCase() + type.slice(1)}`;
 			describe('Name Input', function() {
 				this.timeout(20000 * TIME_MODIFIER);
 				this.slow(20000 * TIME_MODIFIER);
