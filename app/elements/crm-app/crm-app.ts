@@ -465,7 +465,7 @@ namespace CRMAppElement {
 			thisElement: HTMLElement;
 			params: any[];
 		}[];
-		crmType: number;
+		crmTypes: boolean[];
 		settingsJsonLength: number;
 		globalExcludes: string[];
 		versionUpdateTab: number;
@@ -478,7 +478,7 @@ namespace CRMAppElement {
 			type: Array,
 			value: []
 		},
-		crmType: Number,
+		crmType: Array,
 		settingsJsonLength: {
 			type: Number,
 			notify: true,
@@ -1509,7 +1509,7 @@ namespace CRMAppElement {
 				type: 'array'
 			}, {
 				val: 'selectedCrmType',
-				type: '',
+				type: 'array',
 			}, {
 				val: 'jsLintGlobals',
 				type: 'array'
@@ -2079,7 +2079,7 @@ namespace CRMAppElement {
 				id: CRM.GenericNodeId;
 				mode: string;
 				val: string;
-				crmType: number;
+				crmType: boolean[];
 			}) {
 				const crmItem = this.parent()._nodesById.get(editingObj.id) as CRM.ScriptNode | CRM.StylesheetNode;
 				const code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
@@ -2316,7 +2316,7 @@ namespace CRMAppElement {
 						val: string;
 						id: CRM.GenericNodeId;
 						mode: string;
-						crmType: number;	
+						crmType: boolean[];	
 					};
 					setTimeout(function () {
 						//Check out if the code is actually different
@@ -2333,14 +2333,14 @@ namespace CRMAppElement {
 					}, 2500);
 				}
 				if (storageLocal.selectedCrmType !== undefined) {
-					parent.crmType = storageLocal.selectedCrmType;
+					parent.crmTypes = storageLocal.selectedCrmType;
 					parent._setup.switchToIcons(storageLocal.selectedCrmType);
 				} else {
 					browserAPI.storage.local.set({
-						selectedCrmType: 0
+						selectedCrmType: [true, true, true, true, true, true]
 					});
-					parent.crmType = 0;
-					parent._setup.switchToIcons(0);
+					parent.crmTypes = [true, true, true, true, true, true];
+					parent._setup.switchToIcons([true, true, true, true, true, true]);
 				}
 				if (storageLocal.jsLintGlobals) {
 					parent.jsLintGlobals = storageLocal.jsLintGlobals;
@@ -2549,18 +2549,18 @@ namespace CRMAppElement {
 				}
 			};
 
-			static switchToIcons(index: number) {
+			static switchToIcons(indexes: boolean[]) {
 				let i;
 				let element;
 				const crmTypes = this.parent().shadowRoot.querySelectorAll('.crmType');
 				for (i = 0; i < 6; i++) {
-					if (index === i) {
+					if (indexes[i]) {
 						element = crmTypes[i] as HTMLElement;
 						element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 						element.classList.add('toggled');
 
 						const child = document.createElement('div');
-						if (index === 5) {
+						if (i === 5) {
 							child.classList.add('crmTypeShadowMagicElementRight');
 						} else {
 							child.classList.add('crmTypeShadowMagicElement');
@@ -2568,7 +2568,7 @@ namespace CRMAppElement {
 						element.appendChild(child);
 					}
 				}
-				this.parent().crmType = index;
+				this.parent().crmTypes = [...indexes];
 				this.parent().fire('crmTypeChanged', {});
 			};
 
@@ -3582,16 +3582,16 @@ namespace CRMAppElement {
 				}
 			};
 
-			static iconSwitch(e: Polymer.ClickEvent, type: {
+			static iconSwitch(e: Polymer.ClickEvent, types: {
 				x?: any;
-			}|number) {
+			}|boolean[]) {
 				let i;
 				let crmEl;
-				let selectedType = this.parent().crmType;
-				if (typeof type === 'number') {
+				let selectedTypes = this.parent().crmTypes;
+				if (Array.isArray(types)) {
 					for (i = 0; i < 6; i++) {
 						crmEl = this.parent().shadowRoot.querySelectorAll('.crmType')[i] as HTMLElement;
-						if (i === type) {
+						if (types[i]) {
 							crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 							crmEl.style.backgroundColor = 'rgb(243,243,243)';
 							crmEl.classList.add('toggled');
@@ -3603,8 +3603,6 @@ namespace CRMAppElement {
 								child.classList.add('crmTypeShadowMagicElement');
 							}
 							crmEl.appendChild(child);
-
-							selectedType = i;
 						} else {
 							//Drop an element for some magic
 							crmEl.style.boxShadow = 'none';
@@ -3614,42 +3612,51 @@ namespace CRMAppElement {
 							$(crmEl).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
 						}
 					}
+					selectedTypes = types;
 				} else {
 					const element = this.parent().util.findElementWithClassName(e, 'crmType');
 					const crmTypes = this.parent().shadowRoot.querySelectorAll('.crmType');
 					for (i = 0; i < 6; i++) {
 						crmEl = crmTypes[i] as HTMLElement;
 						if (crmEl === element) {
-							crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
-							crmEl.style.backgroundColor = 'rgb(243,243,243)';
-							crmEl.classList.add('toggled');
+							//Toggle this element
+							if (!selectedTypes[i]) {
+								//Toggle it on
+								crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
+								crmEl.style.backgroundColor = 'rgb(243,243,243)';
+								crmEl.classList.add('toggled');
 
-							const child = document.createElement('div');
-							if (i === 5) {
-								child.classList.add('crmTypeShadowMagicElementRight');
+								const child = document.createElement('div');
+								if (i === 5) {
+									child.classList.add('crmTypeShadowMagicElementRight');
+								} else {
+									child.classList.add('crmTypeShadowMagicElement');
+								}
+								crmEl.appendChild(child);
 							} else {
-								child.classList.add('crmTypeShadowMagicElement');
+								//Toggle it off
+								//Drop an element for some magic
+								crmEl.style.boxShadow = 'none';
+								crmEl.style.backgroundColor = 'white';
+								crmEl.classList.remove('toggled');
+
+								$(crmEl).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
 							}
-							crmEl.appendChild(child);
-
-							selectedType = i;
-						} else {
-							//Drop an element for some magic
-							crmEl.style.boxShadow = 'none';
-							crmEl.style.backgroundColor = 'white';
-							crmEl.classList.remove('toggled');
-
-							$(crmEl).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
+							selectedTypes[i] = !selectedTypes[i];
 						}
 					}
 				}
+
 				browserAPI.storage.local.set({
-					selectedCrmType: selectedType
+					selectedCrmType: selectedTypes
 				});
-				if (this.parent().crmType !== selectedType) {
-					this.parent().crmType = selectedType;
-					this.parent().fire('crmTypeChanged', {});
+				for (let i = 0; i < 6; i++) {
+					if (this.parent().crmTypes[i] !== selectedTypes[i]) {
+						this.parent().fire('crmTypeChanged', {});
+						break;
+					}
 				}
+				this.parent().crmTypes = selectedTypes;
 			};
 
 			private static _getDownloadPermission() {
@@ -4712,6 +4719,15 @@ namespace CRMAppElement {
 		 * Various util functions
 		 */
 		static util = class CRMAppUtil {
+			static arraysOverlap<T>(arr1: T[], arr2: T[]): boolean {
+				for (let i = 0; i < arr1.length; i++) {
+					if (arr1[i] && arr2[i]) {
+						return true;
+					}
+				}
+				return false;
+			}
+
 			static createArray(length: number): void[] {
 				const arr = [];
 				for (let i = 0; i < length; i++) {
@@ -5277,7 +5293,11 @@ namespace CRMAppElement {
 				this._setMenuPosition(menu, e);
 				if (window.app.util.findElementWithId(e, 'mainCont')) {
 					//Get the current content type
-					menu.classList.remove(`hidden${window.app.crmType}`);
+					for (let i = 0; i < 6; i++) {
+						if (window.app.crmTypes[i]) {
+							menu.classList.remove(`hidden${i}`);
+						}
+					}
 					menu.classList.remove('rootHidden');
 				} else {
 					this._setAllContentTypeClasses(menu, 'remove');

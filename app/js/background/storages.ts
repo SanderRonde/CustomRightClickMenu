@@ -976,7 +976,7 @@ export namespace Storages.SetupHandling {
 		return [{
 			requestPermissions: [],
 			editing: null,
-			selectedCrmType: 0,
+			selectedCrmType: [true, true, true, true, true, true],
 			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
 			globalExcludes: [''],
 			useStorageSync: true,
@@ -1756,6 +1756,11 @@ export namespace Storages {
 
 		return true;
 	}
+	function crmTypeNumberToArr(crmType: number): boolean[] {
+		const arr = [false, false, false, false, false, false];
+		arr[crmType] = true;
+		return arr;
+	}
 	async function upgradeVersion(oldVersion: string, newVersion: string): Promise<{
 		beforeSyncLoad: ((local: Partial<CRM.StorageLocal>) => void)[];
 		afterSyncLoad: ((sync: Partial<CRM.SettingsStorage>) => Partial<CRM.SettingsStorage>)[];
@@ -1826,6 +1831,13 @@ export namespace Storages {
 						enabled: false,
 						code: {}
 					}
+				}
+
+				if (typeof local.selectedCrmType === 'number') {
+					local.selectedCrmType = crmTypeNumberToArr(local.selectedCrmType);
+				}
+				if (local.editing && typeof local.editing.crmType === 'number') {
+					local.editing.crmType = crmTypeNumberToArr(local.editing.crmType);
 				}
 				return local;
 			});

@@ -1385,12 +1385,12 @@ declare namespace CRM {
 			/**
 			 * The CRM type that was on when it was being edited
 			 */
-			crmType: number;
+			crmType: boolean[];
 		} | void;
 		/**
 		 * The current CRM type
 		 */
-		selectedCrmType: number;
+		selectedCrmType: boolean[];
 		/**
 		 * Global variables for jslint
 		 */

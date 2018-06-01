@@ -162,7 +162,7 @@ namespace StylesheetEditElement {
 					editing: {
 						val: this.item.value.stylesheet,
 						id: this.item.id,
-						crmType: window.app.crmType
+						crmType: window.app.crmTypes
 					}
 				});
 				this.savingInterval = window.setInterval(() => {
@@ -175,7 +175,7 @@ namespace StylesheetEditElement {
 								editing: {
 									val: val,
 									id: this.item.id,
-									crmType: window.app.crmType
+									crmType: window.app.crmTypes
 								}
 							});
 						} catch (e) { }

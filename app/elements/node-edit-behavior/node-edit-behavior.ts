@@ -115,7 +115,7 @@ namespace NodeEditBehaviorNamespace {
 			newSettings.name = this.$.nameInput.$$('input').value;
 			itemInEditPage.itemName = newSettings.name;
 
-			if (!newSettings.onContentTypes[window.app.crmType]) {
+			if (!window.app.util.arraysOverlap(newSettings.onContentTypes, window.app.crmTypes)) {
 				window.app.editCRM.build({
 					setItems: window.app.editCRM.setMenus
 				});
@@ -126,7 +126,7 @@ namespace NodeEditBehaviorNamespace {
 					(newSettings as CRM.ScriptNode|CRM.StylesheetNode).value.launchMode !== 0) {
 					(newSettings as CRM.ScriptNode|CRM.StylesheetNode).onContentTypes = [true, true, true, true, true, true];
 				} else {
-					if (!newSettings.onContentTypes[window.app.crmType]) {
+					if (!window.app.util.arraysOverlap(newSettings.onContentTypes, window.app.crmTypes)) {
 						window.app.editCRM.build({
 							setItems: window.app.editCRM.setMenus
 						});

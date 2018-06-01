@@ -687,7 +687,7 @@ namespace ScriptEditElement {
 						val: this.item.value.script,
 						id: this.item.id,
 						mode: this.editorMode,
-						crmType: window.app.crmType
+						crmType: window.app.crmTypes
 					}
 				});
 				this.savingInterval = window.setInterval(() => {
@@ -699,7 +699,7 @@ namespace ScriptEditElement {
 								val: val,
 								id: this.item.id,
 								mode: this.editorMode,
-								crmType: window.app.crmType
+								crmType: window.app.crmTypes
 							}
 						}).catch(() => {});
 					} else {
