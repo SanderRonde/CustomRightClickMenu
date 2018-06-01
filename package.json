@@ -177,6 +177,7 @@
     "build-firefox": "gulp stashBrowser && gulp browserFirefox && gulp build && gulp firefoxToDist",
     "build-edge": "gulp stashBrowser && gulp browserEdge && gulp build && gulp edgeToDist",
     "build-opera": "gulp stashBrowser && gulp browserOpera && gulp build && gulp operaToDist",
+    "dist": "yarn build && yarn package",
     "test-local": "yarn pretest && yarn test:global",
     "test-build": "gulp stashBrowser && gulp browserChrome && gulp testBuild",
     "test-migration:2.0.12-2.0.17": "mocha test/migration-test.js --chrome-latest --from-all 2.0.12 --to-all 2.0.17 --target current",
