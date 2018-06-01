@@ -51,7 +51,7 @@
 							<div on-tap="domListener" data-on-tap="launchExternalEditorDialog" class="ribbonTool" id="externalEditorDialogTrigger">Use External Editor</div>
 							<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool jsTool" usedlibraries="[[scriptItem.value.libraries]]"></paper-libraries-selector>
 							<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool jsTool"></paper-get-page-properties>
-							<div on-tap="domListener" data-on-tap="launchSearchWebsiteTool" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
+							<div on-tap="domListener" data-on-tap="launchSearchWebsiteToolScript" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
 							<div on-tap="domListener" data-on-tap="runLint" class="ribbonTool" id="runCssLintButton">
 								<span class="cssTool">
 									Run CSSLint
@@ -283,7 +283,7 @@
 					<br /><br />
 					<div class="defaultCRMSearchEngines">
 						<div class="bigTxt">
-							Commonly Used Search Engines
+							Search Engines
 						</div>
 						<div class="defaultsDescr">
 							These are some commonly used search-engines.
@@ -299,6 +299,7 @@
 							<default-link search-engine href="https://www.youtube.com/results?search_query=%s" default-name="Search Youtube for %s"></default-link>
 							<default-link search-engine href="https://www.amazon.com/s/?url=search-alias%3Daps&field-keywords=%s" default-name="Search Amazon for %s"></default-link>
 						</div>
+						<paper-button class="blue topoffset" id="removeButton" on-tap="domListener" data-on-tap="launchSearchWebsiteToolLink" raised>ADD CUSTOM WEBSITE</paper-button>
 					</div>
 					<br /><br />
 					<div class="URIScheme">
@@ -332,7 +333,7 @@
 						<div class="URISchemeGenerator">
 							<paper-input id="URISchemeFilePath" label="File path including name" value="C:\files\my_file.exe"></paper-input>
 							<paper-input id="URISchemeSchemeName" pattern="(\w|\d|_|\.|-)*" auto-validate="true" error-message="This is not a valid scheme" label="URI scheme name" value="myscheme"></paper-input>
-							<paper-button raised class="blue" on-tap="domListener" data-on-tap="_generateRegexFile">GENERATE</paper-button>
+							<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="_generateRegexFile">GENERATE</paper-button>
 						</div>
 					</div>
 					<br /><br />
@@ -356,7 +357,7 @@
 									<paper-icon-button hidden$="[[_isOnlyGlobalExclude(globalExcludes)]]" icon="clear" on-tap="domListener" data-on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
 								</div>
 							</template>
-							<paper-button raised class="blue" on-tap="domListener" data-on-tap="addGlobalExcludeField">ADD</paper-button>
+							<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="addGlobalExcludeField">ADD</paper-button>
 						</div>
 					</div>
 					<br /><br />
@@ -422,7 +423,7 @@
 							only your logs. <br />
 							To make your logs show up there, use <code class="codeSynthax">crmAPI.log</code> in your code.
 						</div>
-						<paper-button class="blue" raised on-tap="domListener" data-on-tap="_openLogging">Logging</paper-button>
+						<paper-button class="blue topoffset" raised on-tap="domListener" data-on-tap="_openLogging">Logging</paper-button>
 					</div>
 					<br/><br/>
 					<div class="privacyPolicyCont">
@@ -450,7 +451,7 @@
 							on top of every other dialog so you can always use it. To toggle it on/off use
 							the button below or hit <code class="codeSynthax">ctrl</code> 3 times in a row quickly.
 						</div>
-						<paper-button raised class="blue" on-tap="domListener" data-on-tap="_toggleBugReportingTool">TOGGLE</paper-button>
+						<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="_toggleBugReportingTool">TOGGLE</paper-button>
 					</div>
 					<br /><br />
 					<div class="contactCont">

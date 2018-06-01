@@ -3548,12 +3548,20 @@ namespace CRMAppElement {
 				window.app.upload();
 			};
 
-			static launchSearchWebsiteTool() {
+			static launchSearchWebsiteToolScript() {
 				if (this.parent().item && this.parent().item.type === 'script' && window.scriptEdit) {
 					const paperSearchWebsiteDialog = this.parent().$.paperSearchWebsiteDialog;
 					paperSearchWebsiteDialog.init();
+					paperSearchWebsiteDialog.setOutputType('script');
 					paperSearchWebsiteDialog.show();
 				}
+			};
+
+			static launchSearchWebsiteToolLink() {
+				const paperSearchWebsiteDialog = this.parent().$.paperSearchWebsiteDialog;
+				paperSearchWebsiteDialog.init();
+				paperSearchWebsiteDialog.setOutputType('link');
+				paperSearchWebsiteDialog.show();
 			};
 
 			static launchExternalEditorDialog() {
@@ -4714,6 +4722,14 @@ namespace CRMAppElement {
 		 * Various util functions
 		 */
 		static util = class CRMAppUtil {
+			static wait(time: number) {
+				return new Promise<void>((resolve) => {
+					window.setTimeout(() => {
+						resolve(null);
+					}, time);
+				});
+			}
+
 			static arraysOverlap<T>(arr1: T[], arr2: T[]): boolean {
 				for (let i = 0; i < arr1.length; i++) {
 					if (arr1[i] && arr2[i]) {

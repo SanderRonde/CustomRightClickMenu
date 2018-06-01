@@ -89,19 +89,23 @@ namespace PaperSearchWebsiteDialog {
 		static fitted: boolean = true;
 
 		/**
+		 * Whether to output it as a script or a link search engine
+		 */
+		static outputType: 'link'|'script' = 'script';
+
+		/**
 		 * All the windows' id's of this dialog
 		 */
-		static windows: PaperSearchWebsiteDialogWindow[] =
-			[
-				'initialWindow',
-				'chooseDefaultSearchWindow',
-				'manuallyInputSearchWebsiteWindow',
-				'processedListWindow',
-				'confirmationWindow',
-				'howToOpenWindow',
-				'successWindow',
-				'loadingWindow'
-			];
+		static windows: PaperSearchWebsiteDialogWindow[] = [
+			'initialWindow',
+			'chooseDefaultSearchWindow',
+			'manuallyInputSearchWebsiteWindow',
+			'processedListWindow',
+			'confirmationWindow',
+			'howToOpenWindow',
+			'successWindow',
+			'loadingWindow'
+		];
 
 		static properties = paperSearchWebsiteDialogProperties;
 
@@ -144,12 +148,31 @@ namespace PaperSearchWebsiteDialog {
 			this.fit();
 		};
 
+		static createSearchWebsiteLinkNode(this: PaperSearchWebsiteDialog) {
+			window.app.crm.add(window.app.templates.getDefaultLinkNode({
+				id: window.app.generateItemId() as CRM.NodeId<CRM.LinkNode>,
+				name: `Search ${new URL(this.chosenUrl).hostname} for %s`,
+				value: [{
+					url: this.chosenUrl,
+					newTab: this.$.howToOpenLink.selected !== 'currentTab'
+				}]
+			}));
+		}
+
+		static applySearchWebsite(this: PaperSearchWebsiteDialog) {
+			if (this.outputType === 'script') {
+				this.insertCode();
+			} else {
+				this.createSearchWebsiteLinkNode();
+			}
+		}
+
 		/**
 		 * Switches to given window, hiding the rest
 		 */
-		static switchToWindow(this: PaperSearchWebsiteDialog, window: PaperSearchWebsiteDialogWindow) {
-			this.hideAllWindows(window);
-			if (window === 'successWindow') {
+		static async switchToWindow(this: PaperSearchWebsiteDialog, dialogWindow: PaperSearchWebsiteDialogWindow) {
+			this.hideAllWindows(dialogWindow);
+			if (dialogWindow === 'successWindow') {
 				this.$.successWindow.setAttribute('style', 'display:block;');
 				this.$.successWindow.classList.add('visible');
 				this.$.successWindow.querySelector('.checkmark').classList.add('animateIn');
@@ -159,12 +182,14 @@ namespace PaperSearchWebsiteDialog {
 					duration: 300,
 					easing: 'easeOutCubic'
 				});
-				this.insertCode();
+				this.applySearchWebsite();
+				await window.app.util.wait(2500);
+				this.doHide();
 			} else {
-				this.$[window].style.display = 'block';
-				this.$[window].classList.add('visible');
+				this.$[dialogWindow].style.display = 'block';
+				this.$[dialogWindow].classList.add('visible');
 			}
-			this.windowPath.push(this.windows.indexOf(window));
+			this.windowPath.push(this.windows.indexOf(dialogWindow));
 			this.fit();
 		};
 
@@ -197,6 +222,17 @@ namespace PaperSearchWebsiteDialog {
 		};
 
 		/**
+		 * Do the hiding and reset the checkmark and dialog behind it
+		 */
+		static doHide(this: PaperSearchWebsiteDialog) {
+			this.hide();
+			setTimeout(() => {
+				this.$.successWindow.querySelector('.checkmark').classList.remove('animateIn');
+				this.switchToWindow('initialWindow');
+			}, 500);
+		}
+
+		/**
 		 * Inserts the chosen code and closes the dialog
 		 */
 		static insertCode(this: PaperSearchWebsiteDialog) {
@@ -209,13 +245,6 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 	`window.open(toOpen, '_blank');`
 }`;
 			window.scriptEdit.insertSnippet(window.scriptEdit, code, true);
-			setTimeout(() => {
-				this.hide();
-				setTimeout(() => {
-					this.$.successWindow.querySelector('.checkmark').classList.remove('animateIn');
-					this.switchToWindow('initialWindow');
-				}, 500);
-			}, 2500);
 		};
 
 		/**
@@ -335,7 +364,9 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 		 * Clears all inputted information
 		 */
 		static clear(this: PaperSearchWebsiteDialog) {
-			this.$.initialWindowChoicesCont.selected = 'defaults';
+			this.$.initialWindowChoicesCont.selected = 'manual';
+			this.$.manualInputURLInput.value = '';
+			this.$.queryInput.value = '';
 			this.switchToWindow('initialWindow');
 			this.searchList = [];
 		};
@@ -354,6 +385,10 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 			this.clear();
 			this.fit();
 		};
+
+		static setOutputType(this: PaperSearchWebsiteDialog, outputType: 'link'|'script') {
+			this.outputType = outputType;
+		}
 
 		static opened(this: PaperSearchWebsiteDialog) {
 			return this.$.paperSearchWebsiteDialog.opened;
