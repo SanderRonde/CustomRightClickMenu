@@ -3587,7 +3587,7 @@ namespace CRMAppElement {
 			}|boolean[]) {
 				let i;
 				let crmEl;
-				let selectedTypes = this.parent().crmTypes;
+				let selectedTypes = [...this.parent().crmTypes];
 				if (Array.isArray(types)) {
 					for (i = 0; i < 6; i++) {
 						crmEl = this.parent().shadowRoot.querySelectorAll('.crmType')[i] as HTMLElement;
@@ -3790,9 +3790,7 @@ namespace CRMAppElement {
 						} else {
 							this.parent()._addImportedNodes(data.crm);
 						}
-						this.parent().editCRM.build({
-							superquick: true
-						});
+						this.parent().editCRM.build();
 					}
 					//Apply settings
 					this.parent()._setup.initCheckboxes(this.parent().storageLocal);
@@ -3815,9 +3813,7 @@ namespace CRMAppElement {
 
 							const crm = await this.parent()._transferCRMFromOld(settingsArr[4], new LocalStorageWrapper());
 							this.parent().settings.crm = crm;
-							this.parent().editCRM.build({
-								superquick: true
-							});
+							this.parent().editCRM.build();
 							this.parent()._setup.initCheckboxes(this.parent().storageLocal);
 							this.parent().upload();
 						} else {
@@ -4680,8 +4676,7 @@ namespace CRMAppElement {
 				}
 				window.app.upload();
 				window.app.editCRM.build({
-					setItems: window.app.editCRM.setMenus,
-					superquick: true
+					setItems: window.app.editCRM.setMenus
 				});
 			};
 

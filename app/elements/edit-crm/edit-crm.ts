@@ -56,6 +56,7 @@ namespace EditCrmElement {
 			name: string;
 			shadow: boolean;
 			index: number;	
+			hiddenOnCrmType: boolean;
 		})[];
 		dragging: boolean;
 		draggingItem: EditCrmItem;
@@ -68,6 +69,7 @@ namespace EditCrmElement {
 			name: string;
 			shadow: boolean;
 			index: number;	
+			hiddenOnCrmType: boolean;
 		})[];
 	}
 
@@ -78,6 +80,7 @@ namespace EditCrmElement {
 			shadow: boolean;
 			index: number;	
 			isPossibleAddLocation?: boolean;
+			hiddenOnCrmType: boolean;
 		})[];
 		menuPath: number[];
 		indent: void[];
@@ -258,7 +261,7 @@ namespace EditCrmElement {
 			//Find last menu to auto-expand
 			if (list) {
 				list.forEach(function(item, index) {
-					if ((item.type === 'menu' || (window.app.shadowStart && item.menuVal)) && !hidden[item.id]) {
+					if ((item.type === 'menu' || (window.app.shadowStart && item.menuVal))) {
 						item.children = item.children || [];
 						if (exclude === undefined || index !== exclude) {
 							lastMenu = index;
@@ -278,33 +281,19 @@ namespace EditCrmElement {
 		/**
 		 * Returns whether the node is visible or not (1 if it's visible)
 		 */
-		private static _isNodeVisible(this: EditCrm, result: {
+		private static _setInvisibleNodes(this: EditCrm, result: {
 			[nodeId: number]: boolean;
-		}, node: CRM.Node, showContentTypes: boolean[]): 0|1 {
+		}, node: CRM.Node, showContentTypes: boolean[]) {
 			let length;
 			if (node.children && node.children.length > 0) {
 				length = node.children.length;
 				for (let i = 0; i < length; i++) {
-					this._isNodeVisible(result, node.children[i], showContentTypes);
+					this._setInvisibleNodes(result, node.children[i], showContentTypes);
 				}
 			}
 			if (!window.app.util.arraysOverlap(node.onContentTypes, showContentTypes)) {
 				result[node.id] = true;
-				return 0;
 			}
-			return 1;
-		};
-
-		private static _getIndent(this: EditCrm, data: CRM.Node[], lastMenu: number, hiddenNodes: {
-			[nodeId: number]: boolean;
-		}): number {
-			let visibleIndent = lastMenu;
-			for (let i = 0; i < lastMenu; i++) {
-				if (hiddenNodes[data[i].id]) {
-					visibleIndent--;
-				}
-			}
-			return visibleIndent;
 		};
 
 		/**
@@ -322,13 +311,6 @@ namespace EditCrmElement {
 			let column: CRMBuilderColumn;
 			let indent: number;
 			const path: number[] = [];
-			let columnCopy: (CRM.Node & {
-				expanded: boolean;
-				name: string;
-				shadow: boolean;
-				index: number;
-				isPossibleAddLocation?: boolean;
-			})[];
 			let columnNum: number = 0;
 			let lastMenu: number = -2;
 			let indentTop: number = 0;
@@ -347,22 +329,20 @@ namespace EditCrmElement {
 			const hiddenNodes: {
 				[nodeId: number]: boolean;
 			} = {};
-			let shown: number = 0;
 			for (let i = 0; i < list.length; i++) {
-				shown += this._isNodeVisible(hiddenNodes, list[i], showContentTypes);
+				this._setInvisibleNodes(hiddenNodes, list[i], showContentTypes);
 			}
 
-			if (shown || this.isAdding) {
+			if (list.length) {
 				while (lastMenu !== -1) {
-					if (setMenusLength > columnNum && setMenus[columnNum] !== -1 &&
-							!hiddenNodes[list[setMenus[columnNum]].id]) {
+					if (setMenusLength > columnNum && setMenus[columnNum] !== -1) {
 						lastMenu = setMenus[columnNum];
 					} else {
 						lastMenu = this._getLastMenu(list, hiddenNodes, unsetMenus[columnNum]);
 					}
 					newSetMenus[columnNum] = lastMenu;
 
-					indent = this._getIndent(list, lastMenu, hiddenNodes);
+					indent = lastMenu;
 					const columnIndent = [];
 					columnIndent[indentTop - 1] = undefined;
 
@@ -394,21 +374,15 @@ namespace EditCrmElement {
 						}
 					}
 
-					column.list.map(function(currentVal, index) {
-						currentVal.path = [];
-						path.forEach(function(item, pathIndex) {
-							currentVal.path[pathIndex] = item;
-						});
-						currentVal.index = index;
-						currentVal.isPossibleAddLocation = false;
-						currentVal.path.push(index);
-						return currentVal;
-					});
+					column.list = column.list.map((currentVal, index) => ({
+						...currentVal, ...{
+							path: [...path, index],
+							index,
+							isPossibleAddLocation: false,
+							hiddenOnCrmType: !!hiddenNodes[currentVal.id]
+						}
+					}));
 					
-					columnCopy = column.list.filter((item) => {
-						return !hiddenNodes[item.id];
-					});
-					column.list = columnCopy;
 					path.push(lastMenu);
 					crmEditObj.push(column);
 					columnNum++;
@@ -571,20 +545,17 @@ namespace EditCrmElement {
 			setItems?: number[];
 			unsetItems?: number[];
 			quick?: boolean;
-			superquick?: boolean;
 		} = {
 			setItems: [],
 			unsetItems: [],
 			quick: false,
-			superquick: false
 		}): CRMBuilder {
 			let {
-				setItems, unsetItems, quick, superquick
+				setItems, unsetItems, quick
 			} = settings;
 			setItems = setItems || [];
 			unsetItems = unsetItems || [];
 			quick = quick || false;
-			superquick = superquick || false;
 
 			const obj = this._buildCRMEditObj(setItems, unsetItems);
 			this.setMenus = obj.setMenus;
@@ -607,7 +578,7 @@ namespace EditCrmElement {
 			this.crmLoading = true;
 			this._columns = null;
 
-			function func(this: EditCrm) {
+			const func = () => {
 				this.crm = crmBuilder;
 				this.notifyPath('crm', this.crm);
 				this._currentTimeout = null;
@@ -623,11 +594,7 @@ namespace EditCrmElement {
 				}, 50);
 			}
 
-			if (superquick) {
-				func.apply(this);
-			} else {
-				this._currentTimeout = window.setTimeout(func.bind(this), quick ? 150 : 1000);
-			}
+			this._currentTimeout = window.setTimeout(func, quick ? 150 : 1000);
 			return crmBuilder;
 		};
 
@@ -652,8 +619,7 @@ namespace EditCrmElement {
 			if (this.isAdding) {
 				this.isAdding = false;
 				this.build({
-					setItems: this._setItems,
-					superquick: true
+					setItems: this._setItems
 				});
 			}
 		};
@@ -664,8 +630,7 @@ namespace EditCrmElement {
 				this.isAdding = true;
 
 				this.build({
-					setItems: this._setItems,
-					superquick: true
+					setItems: this._setItems
 				});
 			} else {
 				this.cancelAdding();
@@ -680,8 +645,7 @@ namespace EditCrmElement {
 			const container = window.app.crm.lookup(path, true);
 			container.push(newItem);
 			window.app.editCRM.build({
-				setItems: window.app.editCRM.setMenus,
-				superquick: true
+				setItems: window.app.editCRM.setMenus
 			});
 			window.app.upload();
 		};
@@ -1108,8 +1072,7 @@ namespace EditCrmElement {
 				if (this.setMenus[i] !== path[i]) {
 					if (showPath) {
 						this.build({
-							setItems: path,
-							superquick: true
+							setItems: path
 						});
 						break;
 					} else {

@@ -34,7 +34,7 @@
 							<div class="paper-material" elevation="5" is-empty$="{{_isColumnEmpty(column)}}">
 								<div class="CRMEditColumn" index="{{column.index}}" items="{{column.list}}">
 									<template is="dom-repeat" items="{{column.list}}" as="row" observe="*" restamp="true">
-										<edit-crm-item expanded="{{row.expanded}}" role="button" tabindex="0" aria-label$="{{_getAriaLabel(row)}}" title="{{row.name}}" shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" item="{{row}}"></edit-crm-item>
+										<edit-crm-item expanded="{{row.expanded}}" role="button" tabindex="0" aria-label$="{{_getAriaLabel(row)}}" title="{{row.name}}" shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" crm-type-hidden$="{{row.hiddenOnCrmType}}" item="{{row}}"></edit-crm-item>
 									</template>
 									<template is="dom-if" if="[[isAdding]]">
 										<div on-tap="addToPosition" class="addingItemPlaceholder" data-path$="{{column.menuPath}}">

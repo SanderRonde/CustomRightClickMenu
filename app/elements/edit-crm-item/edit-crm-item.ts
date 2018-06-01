@@ -37,6 +37,10 @@ namespace EditCrmItemElement {
 		rootNode: {
 			type: Boolean,
 			notify: true
+		},
+		crmTypeHidden: {
+			type: Boolean,
+			notify: true
 		}
 	} as any;
 
@@ -211,8 +215,7 @@ namespace EditCrmItemElement {
 
 		static openMenu(this: EditCrmItem) {
 			window.app.editCRM.build({
-				setItems: this.item.path,
-				superquick: true
+				setItems: this.item.path
 			});
 		};
 
@@ -255,6 +258,8 @@ namespace EditCrmItemElement {
 		static getTitle(this: EditCrmItem): string {
 			if (this.rootNode) {
 				return 'Click to edit root node name';
+			} else if (this.hasAttribute('crm-type-hidden')) {
+				return 'This node won\'t be visible on this content type (select a different one on the top-right)';
 			} else {
 				return 'Click to edit node';
 			}
