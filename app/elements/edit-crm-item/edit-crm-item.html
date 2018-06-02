@@ -29,7 +29,7 @@
 						</div>
 					</div>
 				</template>
-				<div class="CRMItemTitle" title$="{{getTitle(rootNode)}}" isroot$="{{rootNode}}" ismenu$="{{isMenu}}" iscode$="{{isCode}}" on-tap="checkClickType">
+				<div class="CRMItemTitle" title$="{{getTitle(rootNode)}}" isroot$="{{rootNode}}" ismenu$="{{isMenu}}" has-code-settings$="{{hasCodeSettings}}" on-tap="checkClickType">
 					<template is="dom-if" if="{{rootNode}}">
 						<input id="rootNameTitle" on-change="rootNameChange" value$="{{itemName}}">
 					</template>
@@ -48,7 +48,7 @@
 						</div>
 					</div>
 				</template>
-				<template is="dom-if" if="{{isCode}}">
+				<template is="dom-if" if="{{hasCodeSettings}}">
 					<div title="Open options" class="codeSettingsButton" on-tap="_openCodeSettings">
 						<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24">
 							<path d="M0 0h24v24H0z" fill="none"/>

@@ -48,7 +48,7 @@
 		width: 245px;
 	}
 
-	.CRMItemTitle[iscode] {
+	.CRMItemTitle[has-code-settings] {
 		width: 233px;
 	}
 
@@ -56,7 +56,7 @@
 		width: 288px;
 	}
 
-#itemCont.selecting .CRMItemTitle[iscode] {
+#itemCont.selecting .CRMItemTitle[has-code-settings] {
 	width: 258px;
 }
 

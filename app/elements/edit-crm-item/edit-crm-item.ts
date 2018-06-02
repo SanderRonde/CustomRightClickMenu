@@ -7,7 +7,7 @@ namespace EditCrmItemElement {
 		shadow: boolean;
 		itemName: string;
 		isMenu: boolean;
-		isCode: boolean;
+		hasCodeSettings: boolean;
 		rootNode: boolean;
 	} = {
 		item: {
@@ -30,7 +30,7 @@ namespace EditCrmItemElement {
 			type: Boolean,
 			notify: true
 		},
-		isCode: {
+		hasCodeSettings: {
 			type: Boolean,
 			notify: true
 		},
@@ -411,7 +411,7 @@ namespace EditCrmItemElement {
 				(this._isDivider = false)) || 
 			(this._isDivider = true);
 
-			this.isCode = this._isScript || this._isStylesheet;
+			this.hasCodeSettings = this._isScript || this._isStylesheet;
 		};
 
 		static typeIndicatorMouseOver(this: EditCrmItem) {
