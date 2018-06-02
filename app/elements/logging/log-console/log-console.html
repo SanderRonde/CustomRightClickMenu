@@ -1,0 +1,184 @@
+﻿<!DOCTYPE HTML>
+<link rel="import" href="../../../bower_components/paper-spinner/paper-spinner.html" />
+<link rel="import" href="../../../bower_components/paper-input/paper-input.html" />
+<link rel="import" href="../../../bower_components/iron-menu-behavior/iron-menu-behavior.html" />
+<link rel="import" href="../../../bower_components/paper-item/paper-item.html"/>
+<link rel="import" href="../../../bower_components/paper-toast/paper-toast.html" />
+<link rel="import" href="../../../elements/options/inputs/paper-menu/paper-menu.html"/>
+<link rel="import" href="../../../elements/options/inputs/paper-dropdown-menu/paper-dropdown-menu.html" />
+<link rel="import" href="../../../elements/util/echo-html/echo-html.html" />
+<dom-module id="log-console">
+	<template>
+		<!-- build:css inline ../../../elements/logging/log-console/log-console.css -->
+		<link rel="stylesheet" href="../../elements/logging/log-console/log-console.css" />
+		<!-- /build -->
+		<style is="custom-style" include="paper-material-styles"></style>
+		<div class="paper-material" id="consoleCont" elevation="5">
+			<div id="console">
+				<div class="paper-material" elevation="2">
+					<div id="consoleInfo">
+						<div id="filterCont">
+							<div id="idFilter" class="dropdownFilter centerVertical">
+								<paper-dropdown-menu inline id="idDropdown" label="ID" overflowing indent="false" selected="{{selectedId}}">
+									<paper-menu slot="menu" selected="0">
+										<div slot="content">
+											<paper-item>
+												<div class="menuSelectedCheckmark">
+													<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+														<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
+													</svg>
+												</div>
+												<span class="menuOptionName">ALL</span>
+											</paper-item>
+											<template id="idRepeat" is="dom-repeat" items="{{_getTabsIds(selectedTab, ids)}}" as="id">
+												<paper-item>
+													<div class="menuSelectedCheckmark">
+														<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+															<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
+														</svg>
+													</div>
+													<span title$="[[id.title]]" class="menuOptionName">[[id.id]]</span>
+												</paper-item>
+											</template>
+										</div>
+									</paper-menu>
+								</paper-dropdown-menu>
+							</div>
+							<div id="tabFilter" class="dropdownFilter centerVertical">
+								<paper-dropdown-menu inline id="tabDropdown" label="Tab" overflowing indent="false" selected="{{selectedTab}}">
+									<paper-menu slot="menu" selected="0">
+										<div slot="content">
+											<paper-item>
+												<div class="menuSelectedCheckmark">
+													<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+														<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
+													</svg>
+												</div>
+												<span class="menuOptionName">ALL</span>
+											</paper-item>
+											<template id="tabRepeat" is="dom-repeat" items="{{_getIdTabs(selectedId, tabs)}}" as="tab">
+												<paper-item>
+													<div class="menuSelectedCheckmark">
+														<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+															<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
+														</svg>
+													</div>
+													<span title$="[[tab.title]]" class="menuOptionName">[[tab.id]]</span>
+												</paper-item>
+											</template>
+										</div>
+									</paper-menu>
+								</paper-dropdown-menu>
+							</div>
+							<div id="tabIndexFilter" class="dropdownFilter centerVertical">
+								<paper-dropdown-menu inline id="tabIndexDropdown" label="TabIndex" overflowing indent="false" selected="0">
+									<paper-menu slot="menu" selected="0">
+										<div slot="content">
+											<paper-item>
+												<div class="menuSelectedCheckmark">
+													<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+														<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
+													</svg>
+												</div>
+												<span class="menuOptionName">ALL</span>
+											</paper-item>
+											<template id="tabIndexRepeat" is="dom-repeat" items="{{_getTabIndexes(selectedId, selectedTab)}}" as="tabIndex">
+												<paper-item>
+													<div class="menuSelectedCheckmark">
+														<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+															<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
+														</svg>
+													</div>
+													<span title$="[[tabIndex]]" class="menuOptionName">[[tabIndex]]</span>
+												</paper-item>
+											</template>
+										</div>
+									</paper-menu>
+								</paper-dropdown-menu>
+							</div>
+							<div id="textFilterCont">
+								<paper-input label="filter" id="textFilter" no-label-float="true" value="{{textfilter}}" on-change="_textFilterChange"></paper-input>
+							</div>
+						</div>
+						<div id="consoleStats">
+							<div id="whatIsThis">
+								<div class="centerVertical inactive">
+									<svg fill="#FFFFFF" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+										<path d="M0 0h24v24H0z" fill="none"/>
+										<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/>
+									</svg>
+								</div>
+								<div class="centerVertical active">
+									<svg fill="#FFFFFF" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+										<path d="M0 0h24v24H0z" fill="none"/>
+										<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+									</svg>
+								</div>
+								<div class="paper-material" id="consoleInfoTxtCont" elevation="3">
+									<div id="consoleInfoTxt" class="expandLeft">
+										This page serves as a sort of devTools for specific instances of scripts on tabs.
+										You can choose to view logs for all instances, specific nodes, specific tabs, or a combination
+										of both. You can access a specific instance's variables and get/set them just as you would
+										in the chrome dev tools, to do this simply select an ID and a tab ID. 
+									</div>
+								</div>
+							</div>
+							<div class="centerVertical">
+								<div id="totalLines">
+									<span id="totalLinesNumber">[[_getTotalLines(lines)]]</span> lines
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="linesCont">
+					<div id="lines"></div>
+					<div id="inputFieldCont">
+						<div id="inputFieldPrefix" hidden$="[[waitingForEval]]">
+							&gt;
+						</div>
+						<div id="inputFieldWarning">
+							Running code is not possible in the current context (select both an ID and a tab)
+						</div>
+						<textarea rows="1" style="resize:none;"
+							type="text" id="consoleInput"
+							on-keydown="_inputKeypress"
+							disabled$="[[waitingForEval]]"></textarea>
+					</div>
+				</div>
+			</div>
+			<div id="consoleFiller" on-tap="_focusInput"></div>
+		</div>
+		<div id="contextMenu" data-element-type="ContextMenuElement">
+			<div on-tap="_contextStoreAsLocal" id="storeAsLocal" class="contextMenuElement">
+				Store as local variable
+			</div>
+			<div on-tap="_contextLogValue" id="logValue" class="contextMenuElement">
+				Log this
+			</div>
+			<div on-tap="_contextCopyAsJSON" id="copyAsJSON" class="contextMenuElement">
+				Copy as JSON
+			</div>
+			<div on-tap="_contextCopyPath" id="copyPath" class="contextMenuElement">
+				Copy path
+			</div>
+			<div on-tap="_contextClearConsole" id="clearConsole" class="contextMenuElement">
+				Clear console
+			</div>
+		</div>
+		<span id="copySource"></span>
+		<paper-toast id="genericToast" text="">
+			<span class="toastLink" on-tap="_hideGenericToast" role="button">DISMISS</span>
+		</paper-toast>
+	</template>
+</dom-module>
+<!-- build:js inline -->
+<script src="../../../js/libraries/jquery/jquery-2.0.3.js"></script>
+<script src="../../../js/libraries/jquery/jquery-ui.min.js"></script>
+<script src="../../../js/libraries/jquery/jquery.requestAnimationFrame.min.js"></script>
+<script src="../../../js/libraries/jquery/jquery.bez.js"></script>
+<script src="../../../js/libraries/react/react.js"></script>
+<script src="../../../js/libraries/react/react-dom.js"></script>
+<script src="log-elements.js"></script>
+<script src="log-console.js"></script>
+<!-- /build -->

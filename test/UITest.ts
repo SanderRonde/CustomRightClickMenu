@@ -1,6 +1,6 @@
 /// <reference path="../tools/definitions/webExtensions.d.ts" />
 /// <reference path="../tools/definitions/crm.d.ts" />
-/// <reference path="../app/elements/edit-crm-item/edit-crm-item.ts" />
+/// <reference path="../app/elements/options/edit-crm-item/edit-crm-item.ts" />
 /// <reference path="../tools/definitions/chrome.d.ts" />
 
 const PORT: number = 1250;

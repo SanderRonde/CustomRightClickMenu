@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<dom-module id="monaco-editor" attributes="no-spinner">
+	<template>
+		<!-- build:css inline ../../../../../node_modules/monaco-editor/min/vs/editor/editor.main.css -->
+		<link rel="stylesheet" href="../../elements/options/editpages/monaco-editor/src/min/vs/editor/editor.main.css"/>
+		<!-- /build -->
+		<!-- build:css inline ../../../../elements/options/editpages/monaco-editor/monaco-editor.css -->
+		<link rel="stylesheet" href="../../elements/options/editpages/monaco-editor/monaco-editor.css"/>
+		<!-- /build -->
+		<div id="spacer">
+			<div id="placeholder">
+				<template is="dom-if" if="[[!noSpinner]]">
+					<center-element fill>
+						<paper-spinner active id="spinner"></paper-spinner>
+					</center-element>
+				</template>
+			</div>
+			<div id="container">
+				<div id="editorElement"></div>
+			</div>
+		</div>
+	</template>
+</dom-module>
+<!-- build:js inline -->
+<script src="monaco-editor.js"></script>
+<!-- /build -->

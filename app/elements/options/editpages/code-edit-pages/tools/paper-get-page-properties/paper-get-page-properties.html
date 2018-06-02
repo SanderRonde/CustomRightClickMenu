@@ -1,0 +1,22 @@
+﻿<!DOCTYPE HTML>
+<link rel="import" href="../../../../../options/inputs/paper-dropdown-behavior/paper-dropdown-behavior.html"/>
+<dom-module id="paper-get-page-properties">
+	<template>
+		<!-- build:css inline ../../../../../../elements/options/editpages/code-edit-pages/tools/paper-get-page-properties/paper-get-page-properties.css -->
+		<link rel="stylesheet" href="../../elements/options/editpages/code-edit-pages/tools/paper-get-page-properties/paper-get-page-properties.css"/>
+		<!-- /build -->
+		<div id="topBorder"></div>
+		<paper-dropdown-menu id="dropdown" selected="0" unselectable slot="menu" fallback="Get page property">
+			<paper-menu slot="menu" id="menu" role="menu">
+				<div slot="content">
+					<template is="dom-repeat" items="{{options}}" as="option">
+						<paper-item on-tap="_click" id$="[[option.id]]" tabindex="-1">[[option.name]]</paper-item>
+					</template>
+				</div>
+			</paper-menu>
+		</paper-dropdown-menu>
+	</template>
+</dom-module>
+<!-- build:js inline -->
+<script src="paper-get-page-properties.js"></script>
+<!-- /build -->
