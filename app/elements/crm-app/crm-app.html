@@ -330,30 +330,6 @@
 						</div>
 					</div>
 					<br /><br />
-					<div class="globalExcludes">
-						<div class="bigTxt">
-							Global Excludes
-						</div>
-						<div class="globalExcludesDescr">
-							There are some sites on which you don't want any 
-							script to run on such as paypal and your bank's website, 
-							below you can enter these sites to make sure that no 
-							CRM script is ever ran on that page unless you 
-							specifically clicked on it. URLs must be specified 
-							as follows 
-							<a href="https://developer.chrome.com/extensions/match_patterns" rel="noopener" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
-						</div>
-						<div class="globalExcludesItems">
-							<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
-								<div class="globalExcludeContainer">
-									<paper-input on-change="domListener" data-on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern to exclude" error-message="This is not a valid URL pattern!" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
-									<paper-icon-button hidden$="[[_isOnlyGlobalExclude(globalExcludes)]]" icon="clear" on-tap="domListener" data-on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
-								</div>
-							</template>
-							<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="addGlobalExcludeField">ADD</paper-button>
-						</div>
-					</div>
-					<br /><br />
 					<div class="importSettingsCont">
 						<div class="bigTxt">
 							Importing your settings
@@ -406,45 +382,16 @@
 						<paper-button class="blue" raised id="exportButton" on-tap="domListener" data-on-tap="exportData">Export</paper-button>
 					</div>
 					<br/><br/>
-					<div class="loggingButtonCont">
+					<div class="helpCont">
 						<div class="bigTxt">
-							Checking your scripts' logs
+							Help/Tutorials
 						</div>
-						<div class="loggingDescr">
-							Clicking on this button will take you to a page where you can monitor your scripts' logs
-							from one central place. Think of it as a dev tools for all your scripts and with
-							only your logs. <br />
-							To make your logs show up there, use <code class="codeSynthax">crmAPI.log</code> in your code.
+						<div class="helpDescr">
+							If you need help with anything or you would simply like a step by step plan of how to do something, please check
+							out the <a rel="noopener" href="https://github.com/SanderRonde/CustomRightClickMenu/wiki" target="_blank">wiki</a>. 
+							If you feel like there's a missing tutorial, please
+							<a rel="noopener" href="https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=[wiki]" target="_blank">create an issue</a>.
 						</div>
-						<paper-button class="blue topoffset" raised on-tap="domListener" data-on-tap="_openLogging">Logging</paper-button>
-					</div>
-					<br/><br/>
-					<div class="privacyPolicyCont">
-						<div class="bigTxt">
-							Privacy Policy
-						</div>
-						<div class="privacyPolicyDescr">
-							This extension does not store any personally identifiable information.
-							This extension uses your browser's 
-							<a href="https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/storage/sync" rel="noopener" target="_blank">browser.storage.sync</a> 
-							to sync your data across devices. This data only consists of 
-							your custom right-click menu and its settings.
-							This means that these settings are stored on your browser manufacturer's servers.
-							To turn off this feature, disable the "use storage sync" checkbox at the top of this page.
-						</div>
-					</div>
-					<br /><br />
-					<div class="bugReportingCont">
-						<div class="bigTxt">
-							Bugs
-						</div>
-						<div class="bugReportingDescr">
-							If you would like to report any bugs, you can do so by using the bug reporting tool.
-							This is a screen overlay that will be visible when you toggle it. It is overlayed
-							on top of every other dialog so you can always use it. To toggle it on/off use
-							the button below or hit <code class="codeSynthax">ctrl</code> 3 times in a row quickly.
-						</div>
-						<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="_toggleBugReportingTool">TOGGLE</paper-button>
 					</div>
 					<br /><br />
 					<div class="contactCont">
@@ -466,18 +413,71 @@
 						</div>
 					</div>
 					<br /><br />
-					<div class="helpCont">
+					<div class="bugReportingCont">
 						<div class="bigTxt">
-							Help/Tutorials
+							Bugs
 						</div>
-						<div class="helpDescr">
-							If you need help with anything or you would simply like a step by step plan of how to do something, please check
-							out the <a rel="noopener" href="https://github.com/SanderRonde/CustomRightClickMenu/wiki" target="_blank">wiki</a>. 
-							If you feel like there's a missing tutorial, please
-							<a rel="noopener" href="https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=[wiki]" target="_blank">create an issue</a>.
+						<div class="bugReportingDescr">
+							If you would like to report any bugs, you can do so by using the bug reporting tool.
+							This is a screen overlay that will be visible when you toggle it. It is overlayed
+							on top of every other dialog so you can always use it. To toggle it on/off use
+							the button below or hit <code class="codeSynthax">ctrl</code> 3 times in a row quickly.
+						</div>
+						<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="_toggleBugReportingTool">TOGGLE</paper-button>
+					</div>
+					<br /><br />
+					<div class="globalExcludes">
+						<div class="bigTxt">
+							Global Excludes
+						</div>
+						<div class="globalExcludesDescr">
+							There are some sites on which you don't want any 
+							script to run on such as paypal and your bank's website, 
+							below you can enter these sites to make sure that no 
+							CRM script is ever ran on that page unless you 
+							specifically clicked on it. URLs must be specified 
+							as follows 
+							<a href="https://developer.chrome.com/extensions/match_patterns" rel="noopener" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
+						</div>
+						<div class="globalExcludesItems">
+							<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
+								<div class="globalExcludeContainer">
+									<paper-input on-change="domListener" data-on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern to exclude" error-message="This is not a valid URL pattern!" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
+									<paper-icon-button hidden$="[[_isOnlyGlobalExclude(globalExcludes)]]" icon="clear" on-tap="domListener" data-on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
+								</div>
+							</template>
+							<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="addGlobalExcludeField">ADD</paper-button>
 						</div>
 					</div>
 					<br /><br />
+					<div class="loggingButtonCont">
+						<div class="bigTxt">
+							Checking your scripts' logs
+						</div>
+						<div class="loggingDescr">
+							Clicking on this button will take you to a page where you can monitor your scripts' logs
+							from one central place. Think of it as a dev tools for all your scripts and with
+							only your logs. <br />
+							To make your logs show up there, use <code class="codeSynthax">crmAPI.log</code> in your code.
+						</div>
+						<paper-button class="blue topoffset" raised on-tap="domListener" data-on-tap="_openLogging">Logging</paper-button>
+					</div>
+					<br /><br />
+					<div class="privacyPolicyCont">
+						<div class="bigTxt">
+							Privacy Policy
+						</div>
+						<div class="privacyPolicyDescr">
+							This extension does not store any personally identifiable information.
+							This extension uses your browser's 
+							<a href="https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/storage/sync" rel="noopener" target="_blank">browser.storage.sync</a> 
+							to sync your data across devices. This data only consists of 
+							your custom right-click menu and its settings.
+							This means that these settings are stored on your browser manufacturer's servers.
+							To turn off this feature, disable the "use storage sync" checkbox at the top of this page.
+						</div>
+					</div>
+					<br/><br/>
 					<div class="changelogCont">
 						<div class="bigTxt">
 							Changelog
