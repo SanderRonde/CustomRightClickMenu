@@ -1223,8 +1223,50 @@ namespace CRMAppElement {
 					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal.CRMOnPage);
 					this.pageDemo.create();
 				}
+				if (key === 'simpleMode') {
+					this.setSimpleMode(value as boolean);
+				}
 			});
 		};
+
+		static animateElementOut(this: CrmApp, element: HTMLElement) {
+			const height = element.scrollHeight;
+			const styles = window.getComputedStyle(element);
+			element.animate([{
+				transform: 'translateY(0)', 
+				opacity: 1, 
+				height: `${height}px`,
+				marginTop: styles.marginTop,
+				marginBottom: styles.marginBottom,
+				paddingTop: styles.paddingTop,
+				paddingBottom: styles.paddingBottom,
+			}, {
+				transform: 'translateY(-8px)', 
+				opacity: 0.7
+			}, {
+				transform: 'translateY(-15px)', 
+				opacity: 0, 
+				height: 0,
+				marginTop: 0,
+				marginBottom: 0,
+				paddingTop: 0,
+				paddingBottom: 0,
+			}], {
+				duration: 300,
+				easing: 'bez',
+				fill: 'both'
+			}).onfinish = () => {
+				element.style.display = 'none';
+			}
+		}
+
+		static setSimpleMode(this: CrmApp, enabled: boolean) {
+			//Hide/show checkboxes
+			this.animateElementOut(window.app.$.catchErrors);
+			this.animateElementOut(window.app.$.recoverUnsavedData);
+			this.animateElementOut(window.app.$.CRMOnPage);
+			this.animateElementOut(window.app.$.editCRMInRM);
+		}
 
 		static async refreshPage(this: CrmApp) {
 			//Reset dialog
@@ -4242,6 +4284,22 @@ namespace CRMAppElement {
 				return mainObject as T & Y;
 			};
 
+			static mergeArraysWithoutAssignment<T extends T[] | U[], U>(mainArray: T, additionArray: T) {
+				for (let i = 0; i < additionArray.length; i++) {
+					if (mainArray[i] && typeof additionArray[i] === 'object' &&
+						mainArray[i] !== undefined && mainArray[i] !== null) {
+						if (Array.isArray(additionArray[i])) {
+							this.mergeArraysWithoutAssignment<T, U>(mainArray[i] as T,
+								additionArray[i] as T);
+						} else {
+							this.mergeObjectsWithoutAssignment(mainArray[i], additionArray[i]);
+						}
+					} else {
+						mainArray[i] = additionArray[i];
+					}
+				}
+			}
+
 			static mergeObjectsWithoutAssignment<T extends {
 				[key: string]: any;
 				[key: number]: any;
@@ -4252,9 +4310,9 @@ namespace CRMAppElement {
 							mainObject[key] !== undefined &&
 							mainObject[key] !== null) {
 							if (Array.isArray(additions[key])) {
-								this.mergeArrays(mainObject[key], additions[key]);
+								this.mergeArraysWithoutAssignment(mainObject[key], additions[key]);
 							} else {
-								this.mergeObjects(mainObject[key], additions[key]);
+								this.mergeObjectsWithoutAssignment(mainObject[key], additions[key]);
 							}
 						} else {
 							mainObject[key] = additions[key];
