@@ -97,7 +97,7 @@ namespace NodeEditBehaviorNamespace {
 			let usesDefaultStorage = false;
 			if (resultStorage === null || resultStorage === undefined ||
 				typeof (resultStorage as MouseEvent).x === 'number') {
-					resultStorage = this.item;
+					resultStorage = window.app.nodesById.get(this.item.id);
 					usesDefaultStorage = true;
 				}
 
