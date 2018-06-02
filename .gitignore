@@ -238,7 +238,7 @@ app/bower_components
 
 *.tmp.txt
 
-app/elements/edit-pages/monaco-editor/src/
+app/elements/options/editpages/monaco-editor/src/
 app/js/shared.js
 
 docs/website/
