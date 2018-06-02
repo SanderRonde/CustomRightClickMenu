@@ -247,6 +247,30 @@ function readFile(filePath, options) {
 			await del('./build');	
 		}, 
 		//Copy from /app to /temp
+		function copyMonacoTemp() {
+			return gulp
+				.src([
+					'**/**',
+					'!vs/basic-languages/src/**',
+					'vs/basic-languages/src/css.js'
+				], {
+					base: 'node_modules/monaco-editor/min',
+					cwd: 'node_modules/monaco-editor/min'
+				})
+				.pipe(gulp.dest('temp/elements/options/editpages/monaco-editor/src/min/'));
+		},
+		function copyMonaco() {
+			return gulp
+				.src([
+					'**/**',
+					'!vs/basic-languages/src/**',
+					'vs/basic-languages/src/css.js'
+				], {
+					base: 'node_modules/monaco-editor/min',
+					cwd: 'node_modules/monaco-editor/min'
+				})
+				.pipe(gulp.dest('app/elements/options/editpages/monaco-editor/src/min/'));
+		},
 		gulp.parallel(
 			function manifest() {
 				return gulp
@@ -364,32 +388,8 @@ function readFile(filePath, options) {
 					})
 					.pipe(gulp.dest('./temp/js/libraries'));
 			},
-			function copyMonacoTemp() {
-				return gulp
-					.src([
-						'**/**',
-						'!vs/basic-languages/src/**',
-						'vs/basic-languages/src/css.js'
-					], {
-						base: 'node_modules/monaco-editor/min',
-						cwd: 'node_modules/monaco-editor/min'
-					})
-					.pipe(gulp.dest('temp/elements/options/editpages/monaco-editor/src/min/'));
-			},
 			gulp.series(
 				//entrypointPrefix.html specific stuff
-				function copyMonaco() {
-					return gulp
-						.src([
-							'**/**',
-							'!vs/basic-languages/src/**',
-							'vs/basic-languages/src/css.js'
-						], {
-							base: 'node_modules/monaco-editor/min',
-							cwd: 'node_modules/monaco-editor/min'
-						})
-						.pipe(gulp.dest('app/elements/options/editpages/monaco-editor/src/min/'));
-				},
 				function processHTMLApp() {
 					return gulp
 						.src([
@@ -1280,3 +1280,19 @@ function readFile(filePath, options) {
 gulp.task('default', gulp.series('build'));
 gulp.task('testBuild', genTask('Attempts to build everything',
 	gulp.series('clean', 'build', 'clean', 'documentationWebsite', 'clean')));
+
+gulp.task('test', () => {
+	function copyMonaco() {
+		return gulp
+			.src([
+				'**/**',
+				'!vs/basic-languages/src/**',
+				'vs/basic-languages/src/css.js'
+			], {
+				base: 'node_modules/monaco-editor/min',
+				cwd: 'node_modules/monaco-editor/min'
+			})
+			.pipe(gulp.dest('app/elements/options/editpages/monaco-editor/src/min/'));
+	}
+	return copyMonaco();
+});
