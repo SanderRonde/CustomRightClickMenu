@@ -2462,6 +2462,9 @@ namespace CRMAppElement {
 					browserAPI.storage.local.set({
 						isTransfer: false
 					});
+					//Lazyload the image
+					window.app.$.stylesheetGif.src =
+						window.app.$.stylesheetGif.getAttribute('data-src');
 					window.doc.versionUpdateDialog.open();
 				}
 
