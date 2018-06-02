@@ -411,7 +411,8 @@ namespace EditCrmItemElement {
 				(this._isDivider = false)) || 
 			(this._isDivider = true);
 
-			this.hasCodeSettings = this._isScript || this._isStylesheet;
+			this.hasCodeSettings = (this.item.type === 'script' || this.item.type === 'stylesheet') &&
+				window.app.generateCodeOptionsArray(this.item.value.options).length > 0;
 		};
 
 		static typeIndicatorMouseOver(this: EditCrmItem) {

@@ -710,7 +710,7 @@ namespace CRMAppElement {
 			return 1000;
 		}
 
-		private static _generateCodeOptionsArray<T extends CRM.Options>(this: CrmApp, settings: T|string): {
+		static generateCodeOptionsArray<T extends CRM.Options>(this: CrmApp, settings: T|string): {
 			key: keyof T;
 			value: T[keyof T]
 		}[] {
@@ -1089,7 +1089,7 @@ namespace CRMAppElement {
 			this.$.codeSettingsDialog.item = node;
 			this.$.codeSettingsNodeName.innerText = node.name;
 
-			this.$.codeSettingsRepeat.items = this._generateCodeOptionsArray(node.value.options);
+			this.$.codeSettingsRepeat.items = this.generateCodeOptionsArray(node.value.options);
 			this.$.codeSettingsNoItems.if = this.$.codeSettingsRepeat.items.length === 0;
 			this.$.codeSettingsRepeat.render();
 			this.async(() => {
