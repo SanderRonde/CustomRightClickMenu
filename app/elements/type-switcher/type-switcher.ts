@@ -184,7 +184,7 @@ namespace TypeSwitcherElement {
 				}
 			}
 			const editCrmEl: EditCrmItem = this.getRootNode().host as any;
-			const item = editCrmEl.item;
+			const item = window.app.nodesById.get(editCrmEl.item.id);
 			const prevType = item.type;
 
 			if (prevType === 'menu') {
