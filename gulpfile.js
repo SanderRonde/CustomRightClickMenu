@@ -1,3 +1,4 @@
+const manifoldjs = require('manifoldjs/commands');
 const processhtml = require('gulp-processhtml');
 const joinPages = require('./tools/joinPages');
 const polymerBuild = require('./tools/build');
@@ -44,6 +45,23 @@ function genTask(description, toRun) {
 }
 
 /**
+ * Creates a directory
+ * 
+ * @param {string} dirPath - The path to the dir to create
+ */
+function assertDir(dirPath) {
+	return new Promise((resolve, reject) => {
+		mkdirp(dirPath, (err) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve();
+			}
+		})
+	});
+}
+
+/**
  * Write a file
  * 
  * @param {string} filePath - The location to write to
@@ -52,29 +70,26 @@ function genTask(description, toRun) {
  */
 function writeFile(filePath, data, options) {
 	return new Promise(async (resolve, reject) => {
-		mkdirp(path.dirname(filePath), (err) => {
-			if (err) {
-				reject(err);
-			} else {
-				if (!options) {
-					fs.writeFile(filePath, data, (err) => {
-						if (err) {
-							reject(err);
-						} else {
-							resolve();
-						}
-					});
+		await assertDir(path.dirname(filePath)).catch((err) => {
+			resolve(err);
+		});
+		if (!options) {
+			fs.writeFile(filePath, data, (err) => {
+				if (err) {
+					reject(err);
 				} else {
-					fs.writeFile(filePath, data, options, (err) => {
-						if (err) {
-							reject(err);
-						} else {
-							resolve();
-						}
-					});
+					resolve();
 				}
-			}
-		})
+			});
+		} else {
+			fs.writeFile(filePath, data, options, (err) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve();
+				}
+			});
+		}
 	});
 }
 
@@ -1271,10 +1286,105 @@ function readFile(filePath, options) {
 				.pipe(gulp.dest('./dist/packed/'));
 		}));
 
-		gulp.task(genTask('Generates an xpi file and places it in the /dist/packed folder',
-			async function genXPI() {
-				await xpi('./dist/packed/Custom Right-Click Menu.xpi', './dist/firefox');
-			}));
+	gulp.task(genTask('Generates an xpi file and places it in the /dist/packed folder',
+		async function genXPI() {
+			await xpi('./dist/packed/Custom Right-Click Menu.xpi', './dist/firefox');
+		}));
+
+	gulp.task('genAppX', genTask('Generates the .appx file for edge and places it in the /dist/packed folder',
+		gulp.series(
+			async function generate() {
+				//Create dir for output to be placed in
+				const outputDir = path.join(__dirname, 'dist/temp/');
+				const manifestDir = path.join(__dirname, 'dist/edge/manifest.json');
+				await assertDir(outputDir);
+
+				//Overwrite import source to make sure utils.getRootPackagePath() returns 
+				// manifoldjs and not gulp
+				const originalRoot = require.main.filename;
+				require.main.filename = path.join(__dirname, 'node_modules', 'manifoldjs/index.js');
+
+				//Overwrite process.argv because manifoldjs-edgeextension checks it manually
+				const originalArgv = process.argv;
+				process.argv = ['manifoldjs', '-m', manifestDir]
+
+				await manifoldjs.generate({
+					platforms: 'edgeextension',
+					forceManifestFormat: 'edgeextension',
+					manifest: manifestDir,
+					loglevel: 'debug',
+					directory: outputDir,
+					args: []
+				});
+
+				//Reset it
+				require.main.filename = originalRoot;
+				process.argv = originalArgv;
+			},
+			async function replaceAppXImages() {
+				//Replace the image files
+				const manifestFolder = path.join(__dirname, 'dist/temp/', 'CRM/edgeextension/manifest/');
+				const assetsDestFolder = path.join(manifestFolder, 'Assets/');
+				const assetsSrcFolder = path.join(__dirname, 'store_images');
+		
+				await Promise.all([{
+					src: path.join(assetsSrcFolder, '44x44.png'),
+					dest: path.join(assetsDestFolder, 'Square44x44Logo.png')
+				}, {
+					src: path.join(assetsSrcFolder, '50x50.png'),
+					dest: path.join(assetsDestFolder, 'StoreLogo.png')
+				}, {
+					src: path.join(assetsSrcFolder, '150x150.png'),
+					dest: path.join(assetsDestFolder, 'Square150x150Logo.png')
+				}].map(({ src, dest }) => {
+					return new Promise(async (resolve) => {
+						const file = await readFile(src);
+						await writeFile(dest, file);
+						resolve();
+					});
+				}));
+			},
+			async function replaceAppXManifestValues() {
+				const manifestFolder = path.join(__dirname, 'dist/temp/', 'CRM/edgeextension/manifest/');
+		
+				//Replace the manifest values
+				const file = await readFile(path.join(manifestFolder, 'appxmanifest.xml'), {
+					encoding: 'utf8'
+				});
+				/**
+				 * @type {{IdentityName: string, IdentityPublisher: string, PublisherDisplayName: string }}
+				 */
+				const srcData = JSON.parse(await readFile(path.join(__dirname, 'tools', 'build_vars.json'), {
+					encoding: 'utf8'
+				})).edge;
+				await writeFile(path.join(manifestFolder, 'appxmanifest.xml'), file
+					.replace(/Version="0\.(.*)"/, 'Version="$1.0"')
+					.replace(/INSERT-YOUR-PACKAGE-IDENTITY-NAME-HERE/g, srcData.IdentityName)
+					.replace(/CN=INSERT-YOUR-PACKAGE-IDENTITY-PUBLISHER-HERE/g, srcData.IdentityPublisher)
+					.replace(/INSERT-YOUR-PACKAGE-PROPERTIES-PUBLISHERDISPLAYNAME-HERE/g, srcData.PublisherDisplayName), {
+						encoding: 'utf8'
+					});
+			},
+			async function package() {
+				const outManifestDir = path.join(__dirname, 'dist/temp/', 'CRM/edgeextension/manifest/');
+				await manifoldjs.package({
+					platforms: 'edgeextension',
+					manifest: outManifestDir,
+					args: ['-m', outManifestDir]
+				});
+			},
+			function move() {
+				return gulp
+					.src([
+						path.join(__dirname, 'dist/temp/CRM/edgeextension/package/edgeExtension.appx')
+					])
+					.pipe(rename('customRightClickMenu.appx'))
+					.pipe(gulp.dest('./dist/packed/'));
+			},
+			async function deleteTemp() {
+				await del('./dist/temp/');
+			}
+		)));
 })();
 
 gulp.task('default', gulp.series('build'));
