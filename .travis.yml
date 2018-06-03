@@ -1,5 +1,7 @@
 language: node_js
-node_js: node
+node_js: "9"
+# Don't use latest node version while it has this issue in it:
+# https://github.com/nodejs/node/issues/20498
 
 branches:
   only:
