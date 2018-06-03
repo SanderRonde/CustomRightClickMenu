@@ -513,7 +513,15 @@ namespace BrowserAPI {
 			},
 			openOptionsPage() {
 				return createPromise<void>((handler) => {
-					__srcBrowser.runtime.openOptionsPage(handler);
+					if (BrowserAPI.getBrowser() === 'edge') {
+						polyfill.tabs.create({
+							url: polyfill.runtime.getURL('html/options.html')
+						}).then(() => {
+							handler();
+						});
+					} else {
+						__srcBrowser.runtime.openOptionsPage(handler);
+					}
 				});
 			},
 			reload() {
