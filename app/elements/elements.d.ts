@@ -40,6 +40,7 @@
 /// <reference path="./options/editpages/code-edit-pages/tools/use-external-editor/use-external-editor.ts" />
 /// <reference path="./options/type-switcher/type-switcher.ts" />
 /// <reference path="./util/splash-screen/splash-screen.ts" />
+/// <reference path="./util/animated-button/animated-button.ts" />
 /// <reference path="../js/shared.ts" />
 
 
