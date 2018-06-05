@@ -272,3 +272,5 @@ test/migration-test.js
 test/installation-test.js
 
 typedoc/
+
+app/elements/options/editpages/monaco-editor/src/
