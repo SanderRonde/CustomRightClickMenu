@@ -1,6 +1,6 @@
 # Custom Right-Click Menu - Create your own context menu
 
-[![image.png](https://s22.postimg.cc/nch9qkvr5/image.png)](https://postimg.cc/image/ccw2ez5bx/)
+<img align="right" height="300" src="https://github.com/SanderRonde/CustomRightClickMenu/blob/master/resources/logo/source/png/1.transparent.png">
 
 Create your own entry in the right-click menu. Add custom scripts, links, sub-menus or custom CSS in your right-click menu and
 do anything you want all from your right-click menu. Featuring full GreaseMonkey compatibility for userscripts and Stylish compatibility for userstyles.
