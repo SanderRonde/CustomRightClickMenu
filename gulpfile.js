@@ -1306,7 +1306,7 @@ function readFile(filePath, options) {
 				//Replace the image files
 				const manifestFolder = path.join(__dirname, 'dist/temp/', 'CRM/edgeextension/manifest/');
 				const assetsDestFolder = path.join(manifestFolder, 'Assets/');
-				const assetsSrcFolder = path.join(__dirname, 'store_images');
+				const assetsSrcFolder = path.join(__dirname, 'resources', 'logo');
 		
 				await Promise.all([{
 					src: path.join(assetsSrcFolder, '44x44.png'),
