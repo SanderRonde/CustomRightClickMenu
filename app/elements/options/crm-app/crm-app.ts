@@ -714,7 +714,7 @@ namespace CRMAppElement {
 			key: keyof T;
 			value: T[keyof T]
 		}[] {
-			if (typeof settings === 'string') {
+			if (typeof settings === 'string' || !settings) {
 				return [];
 			}
 			return Object.getOwnPropertyNames(settings).map((key: keyof T) => {
