@@ -126,6 +126,7 @@
 			'A lot of bug fixes and improvements to code legibility and documentation'
 		],
 		'2.1.1': [
+			'Changed the logo. Huge thanks to [Ulises](https://github.com/tjulises) for designing the logo',
 			'Added link to search engine dialog on main options page',
 			'Replaces %s with selected text in links, enabling easy search engine creation',
 			'Added checkmark after clicking some buttons, giving a bit more visual feedback',
