@@ -512,6 +512,11 @@ interface SVGElement {
 	readonly style: CSSStyleDeclaration;
 }
 
+interface HTMLMetadataElement extends SVGElement {}
+interface HTMLGElement extends SVGElement {}
+interface HTMLPathElement extends SVGElement {}
+interface HTMLRectElement extends SVGElement {}
+
 type HTMLPaperLibrariesSelectorElement = PaperLibrariesSelector;
 type HTMLPaperGetPagePropertiesElement = PaperGetPageProperties;
 type HTMLCrmEditPageElement = CrmEditPage;
