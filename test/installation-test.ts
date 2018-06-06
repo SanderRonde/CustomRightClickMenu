@@ -9,6 +9,7 @@ const TEST_LOCAL: boolean = hasSetting('remote') || !!process.env.TRAVIS ?
 	false : TEST_LOCAL_DEFAULT;
 const TIME_MODIFIER = 1.2;
 const LOCAL_URL = 'http://localhost:9515';
+const SKIP_ALL = process.env.TRAVIS_PULL_REQUEST && process.env.TRAVIS_PULL_REQUEST != 'false';
 
 function hasSetting(setting: string) {
 	return process.argv.indexOf(`--${setting}`) > -1;
@@ -46,7 +47,7 @@ function getCapabilities(): BrowserstackCapabilities {
 		user: string;
 		key: string;
 	};
-	if (!TEST_LOCAL) {
+	if (!TEST_LOCAL && !SKIP_ALL) {
 		secrets = require('./UI/secrets');
 	} else {
 		secrets = {
@@ -568,7 +569,6 @@ function doUserStylesOrgTest(prefix: () => string|void) {
 }
 
 (() => {
-	const SKIP_ALL = process.env.TRAVIS_PULL_REQUEST && process.env.TRAVIS_PULL_REQUEST != 'false';
 	if (SKIP_ALL) {
 		return;
 	}
