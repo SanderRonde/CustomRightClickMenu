@@ -2590,13 +2590,15 @@ namespace CRMAppElement {
 				}
 			};
 
-			static orderNodesById(tree: CRM.Tree) {
-				this.parent().nodesById.clear();
+			static orderNodesById(tree: CRM.Tree, root: boolean = true) {
+				if (root) {
+					this.parent().nodesById.clear();
+				}
 
 				for (let i = 0; i < tree.length; i++) {
 					const node = tree[i];
 					this.parent().nodesById.set(node.id, node);
-					node.children && this.orderNodesById(node.children);
+					node.children && this.orderNodesById(node.children, false);
 				}
 			};
 
