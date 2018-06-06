@@ -48,7 +48,7 @@ script:
 jobs:
   include:
   - stage: deploy website
-    script: sh ./scripts/deploy-website.sh
+    script: if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then sh ./scripts/deploy-website.sh fi
     env: TEST=none
 
 notifications:
