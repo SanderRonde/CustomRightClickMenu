@@ -1216,7 +1216,7 @@ describe('User entrypoints', function() {
 			it('should be addable', async function()  {
 				const firstElement = await findElement(webdriver.By.tagName('crm-app'))
 					.findElements(webdriver.By.tagName('default-link')).get(0);
-				await firstElement.findElement(webdriver.By.tagName('paper-button')).click();
+				await firstElement.findElement(webdriver.By.tagName('animated-button')).click();
 				const name = await firstElement.findElement(webdriver.By.tagName('paper-input'))
 					.getProperty('value');
 				const link = await firstElement.findElement(webdriver.By.tagName('a')).getAttribute('href');
@@ -1246,7 +1246,7 @@ describe('User entrypoints', function() {
 				await firstElement.findElement(webdriver.By.tagName('paper-input'))
 					.findElement(webdriver.By.tagName('input'))
 					.sendKeys(InputKeys.CLEAR_ALL, renameName);
-				await firstElement.findElement(webdriver.By.tagName('paper-button')).click();
+				await firstElement.findElement(webdriver.By.tagName('animated-button')).click();
 				const link = await firstElement.findElement(webdriver.By.tagName('a')).getAttribute('href');
 				const crm = await getCRM<CRM.LinkNode[]>();
 				const element = crm[crm.length - 1];
@@ -1314,7 +1314,7 @@ describe('User entrypoints', function() {
 				const elements = await findElement(webdriver.By.tagName('crm-app'))
 					.findElements(webdriver.By.tagName('default-link'));
 				const index = elements.length - 1;
-				await elements[index].findElement(webdriver.By.tagName('paper-button')).click();
+				await elements[index].findElement(webdriver.By.tagName('animated-button')).click();
 				const name = await elements[index].findElement(webdriver.By.tagName('paper-input'))
 					.getProperty('value');
 				const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
@@ -1342,7 +1342,7 @@ describe('User entrypoints', function() {
 				await elements[index].findElement(webdriver.By.tagName('paper-input'))
 					.findElement(webdriver.By.tagName('input'))
 					.sendKeys(InputKeys.CLEAR_ALL, renameName);
-				await elements[index].findElement(webdriver.By.tagName('paper-button')).click();
+				await elements[index].findElement(webdriver.By.tagName('animated-button')).click();
 				const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
 				const crm = await getCRM<CRM.LinkNode[]>();
 				const element = crm[crm.length - 1];
@@ -1401,7 +1401,7 @@ describe('User entrypoints', function() {
 			async function testURIScheme(toExecutePath: string, schemeName: string) {
 				await findElement(webdriver.By.tagName('crm-app'))
 					.findElement(webdriver.By.className('URISchemeGenerator'))
-					.findElement(webdriver.By.tagName('paper-button'))
+					.findElement(webdriver.By.tagName('animated-button'))
 					.click()
 	
 				if (TEST_EXTENSION) {
