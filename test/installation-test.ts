@@ -568,6 +568,11 @@ function doUserStylesOrgTest(prefix: () => string|void) {
 }
 
 (() => {
+	const SKIP_ALL = process.env.TRAVIS_PULL_REQUEST && process.env.TRAVIS_PULL_REQUEST != 'false';
+	if (SKIP_ALL) {
+		return;
+	}
+
 	before('Driver connect', async function() {
 		const url = TEST_LOCAL ?
 			LOCAL_URL : 'http://hub-cloud.browserstack.com/wd/hub';

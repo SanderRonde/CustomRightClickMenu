@@ -36,8 +36,8 @@ env:
 - TEST=test:edge:latest
 
 before_install:
-- openssl aes-256-cbc -K $encrypted_6cd0c378df83_key -iv $encrypted_6cd0c378df83_iv
-  -in test/UI/secrets.js.enc -out test/UI/secrets.js -d
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then openssl aes-256-cbc -K $encrypted_6cd0c378df83_key -iv $encrypted_6cd0c378df83_iv
+  -in test/UI/secrets.js.enc -out test/UI/secrets.js -d; fi
 - npm install gulp -g
 install:
 - yarn --ignore-engines

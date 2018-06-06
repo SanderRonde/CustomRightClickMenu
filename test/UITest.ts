@@ -21,6 +21,7 @@ const SKIP_EXTERNAL_TESTS = hasSetting('skip-external');
 const SKIP_USERSCRIPT_TEST = hasSetting('skip-userscript');
 const SKIP_USERSTYLE_TEST = hasSetting('skip-userstyle');
 const WAIT_ON_DONE = hasSetting('wait-on-done');
+const SKIP_ALL = process.env.TRAVIS_PULL_REQUEST && process.env.TRAVIS_PULL_REQUEST != 'false';
 
 function hasSetting(setting: string) {
 	return process.argv.indexOf(`--${setting}`) > -1;
@@ -333,6 +334,10 @@ async function openTestPageURL(capabilities: BrowserstackCapabilities) {
 }
 
 before('Driver connect', async function() {
+	if (SKIP_ALL) {
+		return;
+	}
+
 	const url = TEST_LOCAL ?
 		LOCAL_URL : 'http://hub-cloud.browserstack.com/wd/hub';
 
@@ -1071,7 +1076,7 @@ function enterEditorFullscreen(__thisOrType: Mocha.ISuiteCallbackContext|DialogT
 	}
 
 describe('User entrypoints', function() {
-	if (SKIP_ENTRYPOINTS) {
+	if (SKIP_ENTRYPOINTS || SKIP_ALL) {
 		return;
 	}
 	if (TEST_EXTENSION) {
@@ -3026,7 +3031,7 @@ describe('User entrypoints', function() {
 });
 
 describe('On-Page CRM', function() {
-	if (SKIP_CONTEXTMENU) {
+	if (SKIP_CONTEXTMENU || SKIP_ALL) {
 		return;
 	}
 	if (SKIP_ENTRYPOINTS) {
@@ -4469,6 +4474,10 @@ describe('On-Page CRM', function() {
 after('quit driver', function() {
 	this.timeout(210000);
 	return new webdriver.promise.Promise<void>((resolve) => {
+		if (SKIP_ALL) {
+			resolve(null);
+			return;
+		}
 		if (!WAIT_ON_DONE) {
 			//Resolve after 20 seconds regardless of quitting result
 			setTimeout(() => {
