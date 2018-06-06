@@ -1441,11 +1441,6 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 }
 
 (() => {
-	const SKIP_ALL = process.env.TRAVIS_PULL_REQUEST && process.env.TRAVIS_PULL_REQUEST != 'false';
-	if (SKIP_ALL) {
-		return;
-	}
-
 	const input = getInput();
 	const { isLocal } = input;
 	const runs = getRuns(input);
