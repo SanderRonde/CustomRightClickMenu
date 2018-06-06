@@ -67,7 +67,7 @@ namespace AnimatedButtonElement {
 			}
 		}
 
-		static _onclick(this: AnimatedButton, e: Polymer.ClickEvent) {
+		static onclick(this: AnimatedButton, e: MouseEvent) {
 			if (!this.cooldown || !this._isAnimating) {
 				this.doAnimation();
 
@@ -77,7 +77,7 @@ namespace AnimatedButtonElement {
 				}
 				const host = this.getRootNode().host as Polymer.RootElement;
 				if (this.tap in host) {
-					(host[this.tap as keyof typeof host] as (e: Polymer.ClickEvent) => void)(e);
+					(host[this.tap as keyof typeof host] as (e: MouseEvent) => void)(e);
 				} else {
 					console.warn.apply(console, host._logf(`_createEventHandler`, 
 						`listener method ${this.tap} not defined`));
@@ -86,7 +86,9 @@ namespace AnimatedButtonElement {
 		}
 
 		static ready(this: AnimatedButton) {
-			
+			this.addEventListener('click', (e) => {
+				this.onclick(e as MouseEvent)
+			});
 		};
 	}
 
