@@ -623,7 +623,7 @@ namespace CRMAppElement {
 			let fnName: keyof typeof listeners;
 			let pathIndex = 0;
 			let currentElement = window.app.util.getPath(event)[pathIndex];
-			while (!('getAttribute' in currentElement) || 
+			while (currentElement && !('getAttribute' in currentElement) || 
 				!(fnName = (currentElement as Polymer.PolymerElement).getAttribute(propKey) as keyof typeof listeners) &&
 				pathIndex < window.app.util.getPath(event).length) {
 					pathIndex++;
