@@ -21,6 +21,7 @@ const SKIP_EXTERNAL_TESTS = hasSetting('skip-external');
 const SKIP_USERSCRIPT_TEST = hasSetting('skip-userscript');
 const SKIP_USERSTYLE_TEST = hasSetting('skip-userstyle');
 const WAIT_ON_DONE = hasSetting('wait-on-done');
+console.log(process.env.TRAVIS_PULL_REQUEST);
 const SKIP_ALL = process.env.TRAVIS_PULL_REQUEST && process.env.TRAVIS_PULL_REQUEST != 'false';
 
 function hasSetting(setting: string) {
