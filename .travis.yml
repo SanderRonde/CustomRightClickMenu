@@ -48,7 +48,8 @@ script:
 jobs:
   include:
   - stage: deploy website
-    script: if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then sh ./scripts/deploy-website.sh fi
+    script: 
+      - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./scripts/is_latst_commit.sh && sh ./scripts/deploy-website.sh || echo "Not latest commit, not deploying" fi
     env: TEST=none
 
 notifications:
