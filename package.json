@@ -184,7 +184,7 @@
     "test-migration:2.0.12-2.0.17": "mocha test/migration-test.js --chrome-latest --from-all 2.0.12 --to-all 2.0.17 --target current",
     "test:migration:2.0.18-2.0.19": "mocha test/migration-test.js --chrome-latest --from-all 2.0.18 --to-all 2.0.19 --target current",
     "test-migration": "yarn pretest && yarn test-migration:2.0.12-2.0.17 && yarn test:migration:2.0.18-2.0.19",
-    "package": "gulp genCRX && gulp genXPI && gulp genAppX",
+    "package": "gulp genCRX && gulp genXPI",
     "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'app/bower_components', 'junction') } catch (e) { }\""
   },
   "version": "2.1.1",
