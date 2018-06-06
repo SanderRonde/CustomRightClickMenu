@@ -421,7 +421,7 @@ type SharedWindow = {
 		}
 	}
 
-	if (typeof Event !== 'undefined') {
+	if (typeof Event !== 'undefined' && location.href.indexOf('background.html') === -1) {
 		window.onExists('Promise').then(() => {
 			window.onExists('Polymer').then(() => {
 				window.objectify = objectify;
