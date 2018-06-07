@@ -596,6 +596,7 @@ export namespace CRMNodes.Script.Background {
 					id: TabId|string;
 					tabIndex: TabIndex;
 				}[] = [];
+				modules.Util.setMapDefault(modules.crmValues.nodeInstances, node.id, new window.Map());
 				const nodeInstances = modules.crmValues.nodeInstances.get(node.id);
 				modules.Util.iterateMap(nodeInstances, (tabId, instance) => {
 					try {
