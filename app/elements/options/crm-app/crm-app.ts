@@ -1189,7 +1189,10 @@ namespace CRMAppElement {
 		 */
 		static upload(this: CrmApp, force: boolean = false) {
 			this._uploading.upload(force);
-			this.updateCrmRepresentation(window.app.settings.crm);
+			(async () => {
+				await window.onExistsChain(window, 'app', 'settings', 'crm');
+				this.updateCrmRepresentation(window.app.settings.crm);
+			})();
 		}
 
 		static updateEditorZoom(this: CrmApp) {
