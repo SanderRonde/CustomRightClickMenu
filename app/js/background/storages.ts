@@ -1544,7 +1544,6 @@ export namespace Storages {
 				settings?: CRM.SettingsStorage;
 			} = await browserAPI.storage.local.get() as any;
 			window.info('Checking if this is the first run');
-			console.log('before', JSON.stringify(storageLocal));
 			const result = await isFirstTime(storageLocal);
 			if (result.type === 'firstTimeCallback') {
 				const data = await result.fn;
@@ -1556,7 +1555,6 @@ export namespace Storages {
 				if (result.type === 'upgradeVersion') {
 					storageLocal = result.storageLocal;
 				}
-				console.log('after', JSON.stringify(storageLocal));
 				window.info('Parsing data encoding');
 				const storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 				delete storageLocalCopy.globalExcludes;
