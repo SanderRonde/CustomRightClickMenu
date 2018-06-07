@@ -2606,6 +2606,12 @@ namespace CRMAppElement {
 			};
 
 			static switchToIcons(indexes: boolean[]) {
+				if (typeof indexes === 'number') {
+					const arr = [false, false, false, false, false, false];
+					arr[indexes] = true;
+					indexes = arr;
+				}
+
 				let i;
 				let element;
 				const crmTypes = this.parent().shadowRoot.querySelectorAll('.crmType');
@@ -3649,12 +3655,18 @@ namespace CRMAppElement {
 			static iconSwitch(e: Polymer.ClickEvent, types: {
 				x?: any;
 			}|boolean[]) {
-				let i;
-				let crmEl;
-				let selectedTypes = [...this.parent().crmTypes];
+				let parentCrmTypes = this.parent().crmTypes;
+				if (typeof parentCrmTypes === 'number') {
+					const arr = [false, false, false, false, false, false];
+					arr[parentCrmTypes] = true;
+					parentCrmTypes = arr;
+				} else {
+					parentCrmTypes = [...parentCrmTypes];
+				}
+				let selectedTypes = parentCrmTypes;
 				if (Array.isArray(types)) {
-					for (i = 0; i < 6; i++) {
-						crmEl = this.parent().shadowRoot.querySelectorAll('.crmType')[i] as HTMLElement;
+					for (let i = 0; i < 6; i++) {
+						let crmEl = this.parent().shadowRoot.querySelectorAll('.crmType')[i] as HTMLElement;
 						if (types[i]) {
 							crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 							crmEl.style.backgroundColor = 'rgb(243,243,243)';
@@ -3680,8 +3692,8 @@ namespace CRMAppElement {
 				} else {
 					const element = this.parent().util.findElementWithClassName(e, 'crmType');
 					const crmTypes = this.parent().shadowRoot.querySelectorAll('.crmType');
-					for (i = 0; i < 6; i++) {
-						crmEl = crmTypes[i] as HTMLElement;
+					for (let i = 0; i < 6; i++) {
+						let crmEl = crmTypes[i] as HTMLElement;
 						if (crmEl === element) {
 							//Toggle this element
 							if (!selectedTypes[i]) {
