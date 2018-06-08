@@ -264,18 +264,18 @@ function getRuns(input: Input): {
 	if (input.fromToInput.enabled) {
 		const { from, to } = input.fromToInput;
 
-		const sortedVersions = getSortedVersions();
+		const sortedVersions = [...getSortedVersions(), 'current'];
 		if (sortedVersions.indexOf(from) === -1) {
 			process.stdout.write(`Version ${from} is not a valid release\n`);	
 			process.stdout.write(`Choose from:\n${sortedVersions.map((version) => {
-				`- ${version}`
+				return `- ${version}`
 			}).join('\n')}\n`);
 			process.exit(1);
 		}
 		if (sortedVersions.indexOf(to) === -1) {
 			process.stdout.write(`Version ${to} is not a valid release\n`);	
 			process.stdout.write(`Choose from:\n${sortedVersions.map((version) => {
-				`- ${version}`
+				return `- ${version}`
 			}).join('\n')}\n`);
 			process.exit(1);
 		}
