@@ -1264,7 +1264,7 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 	});
 	describe('Testing page', () => {
 		it('should be possible to reload the background page', async function() {
-			this.timeout(50000);
+			this.timeout(60000);
 			this.slow(25000);
 			await wait(20000);
 			
