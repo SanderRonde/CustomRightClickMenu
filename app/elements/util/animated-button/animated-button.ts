@@ -67,7 +67,7 @@ namespace AnimatedButtonElement {
 			}
 		}
 
-		static onclick(this: AnimatedButton, e: MouseEvent) {
+		static __click(this: AnimatedButton, e: MouseEvent) {
 			if (!this.cooldown || !this._isAnimating) {
 				this.doAnimation();
 
@@ -87,7 +87,7 @@ namespace AnimatedButtonElement {
 
 		static ready(this: AnimatedButton) {
 			this.addEventListener('tap', (e) => {
-				this.onclick(e as MouseEvent)
+				this.__click(e as MouseEvent)
 			});
 		};
 	}
