@@ -12,32 +12,32 @@ stages:
   if: branch = master
 
 env:
-- TEST=yarn run test:chrome:old:page
-- TEST=yarn run test:chrome:old:extension
-- TEST=yarn run test:chrome:latest:page
-- TEST=yarn run test:chrome:latest:extension
-- TEST=yarn run test:firefox:quantum
-- TEST=yarn run test:firefox:latest
-- TEST=yarn run test:edge:16
-- TEST=yarn run test:edge:latest
-- TEST=yarn run test-build
-- TEST=yarn run test-local
-- TEST=yarn run test:chrome:old:install:greasyfork
-- TEST=yarn run test:chrome:old:install:openuserjs
-- TEST=yarn run test:chrome:old:install:userscriptsorg
-- TEST=yarn run test:chrome:old:install:userstylesorg
-- TEST=yarn run test:chrome:latest:install:greasyfork
-- TEST=yarn run test:chrome:latest:install:openuserjs
-- TEST=yarn run test:chrome:latest:install:userscriptsorg
-- TEST=yarn run test:chrome:latest:install:userstylesorg
-- TEST=mocha test/migration-test.js --chrome-latest --from 2.0.12 --to current
-- TEST=mocha test/migration-test.js --chrome-latest --from 2.0.13 --to current
-- TEST=mocha test/migration-test.js --chrome-latest --from 2.0.14 --to current
-- TEST=mocha test/migration-test.js --chrome-latest --from 2.0.15 --to current
-- TEST=mocha test/migration-test.js --chrome-latest --from 2.0.16 --to current
-- TEST=mocha test/migration-test.js --chrome-latest --from 2.0.17 --to current
-- TEST=mocha test/migration-test.js --chrome-latest --from 2.0.18 --to current
-- TEST=mocha test/migration-test.js --chrome-latest --from 2.0.19 --to current
+- TEST=test:chrome:old:page
+- TEST=test:chrome:old:extension
+- TEST=test:chrome:latest:page
+- TEST=test:chrome:latest:extension
+- TEST=test:firefox:quantum
+- TEST=test:firefox:latest
+- TEST=test:edge:16
+- TEST=test:edge:latest
+- TEST=test-build
+- TEST=test-local
+- TEST=test:chrome:old:install:greasyfork
+- TEST=test:chrome:old:install:openuserjs
+- TEST=test:chrome:old:install:userscriptsorg
+- TEST=test:chrome:old:install:userstylesorg
+- TEST=test:chrome:latest:install:greasyfork
+- TEST=test:chrome:latest:install:openuserjs
+- TEST=test:chrome:latest:install:userscriptsorg
+- TEST=test:chrome:latest:install:userstylesorg
+- TEST=test-migration:2.0.12
+- TEST=test-migration:2.0.13
+- TEST=test-migration:2.0.14
+- TEST=test-migration:2.0.15
+- TEST=test-migration:2.0.16
+- TEST=test-migration:2.0.17
+- TEST=test-migration:2.0.18
+- TEST=test-migration:2.0.19
 
 before_install:
 - openssl aes-256-cbc -K $encrypted_6cd0c378df83_key -iv $encrypted_6cd0c378df83_iv
@@ -45,7 +45,7 @@ before_install:
 - npm install gulp -g
 install:
 - yarn --ignore-engines
-script: travis_wait sh ./scripts/pretest.sh && $TEST
+script: travis_wait sh ./scripts/pretest.sh && yarn $TEST
 
 jobs:
   include:
