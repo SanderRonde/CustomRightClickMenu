@@ -796,7 +796,7 @@ if (!window.browserAPI || window.__isVirtual) {
 		{...BrowserAPI.polyfill as typeof BrowserAPI.polyfill, ...{
 			__isProxied: true
 		}} :
-		window.browserAPI;
+		(window as any).browser;
 
 	type MenusBrowserAPI = typeof BrowserAPI.polyfill & {
 		menus?: (typeof BrowserAPI.polyfill)['contextMenus']
