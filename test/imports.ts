@@ -587,6 +587,14 @@ export class FoundElementsPromise extends PromiseContainer<FoundElement[]> {
 			resolve(elements);
 		});
 	}
+
+	public wait(ms: number) {
+		return new FoundElementsPromise(async (resolve) => {
+			await wait(ms);
+			const thisResult = await this._promise;
+			resolve(thisResult);
+		});
+	}
 }
 
 export class FoundElementPromise extends PromiseContainer<FoundElement> {
@@ -666,6 +674,13 @@ export class FoundElementPromise extends PromiseContainer<FoundElement> {
 				awaitable
 			]) as [ FoundElement, any ];
 			resolve(element);
+		});
+	}
+	wait(ms: number) {
+		return new FoundElementPromise(async (resolve) => {
+			await wait(ms);
+			const thisResult = await this._promise;
+			resolve(thisResult);
 		});
 	}
 	getText(): webdriver.promise.Promise<string> {

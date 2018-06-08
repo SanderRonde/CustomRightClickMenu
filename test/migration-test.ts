@@ -38,7 +38,8 @@ import {
 	wait, getGitHash, tryReadManifest, waitFor, 
 	inlineFn, executeAsyncScript, inlineAsyncFn, 
 	setDriver, getDialog, saveDialog, InputKeys, 
-	getCRM, findElement, FoundElement, forEachPromise
+	getCRM, findElement, FoundElement, forEachPromise, 
+	BrowserstackCapabilities
 } from './imports';
 describe = originals.describe;
 it = originals.it;
@@ -458,7 +459,7 @@ async function createOptionsPageDriver(srcPath: string, isLocal: boolean) {
 		user: '',
 		key: ''
 	};
-	const baseCapabilities = {
+	const baseCapabilities: BrowserstackCapabilities = {
 		'browserName' : 'Chrome',
 		'os' : 'Windows',
 		'os_version' : '10',
@@ -500,7 +501,9 @@ async function setupExtensionOptionsPageInstance(srcPath: string, isLocal: boole
 	const { driver, capabilties } = await createOptionsPageDriver(srcPath, isLocal);
 	setDriver(driver);
 	await chromeExtensionData.openOptionsPage(driver, capabilties);
-	return driver;
+	return {
+		driver, capabilties
+	};
 }
 
 function folderToCrx(folder: string, name: string, dest: string): Promise<void> {
@@ -624,13 +627,16 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 	}
 
 	let driver: TypedWebdriver;
+	let capabilties: BrowserstackCapabilities;
 	describe('Getting and setting storage', () => {
 		describe('Loading page', () => {
 			it('should be possible to set up "from" selenium instance', async function() {
 				this.timeout(60000);
 				this.slow(20000);
-				driver = await setupExtensionOptionsPageInstance(
+				const val = await setupExtensionOptionsPageInstance(
 					path.join(ROOT, 'temp/migration/from.crx'), isLocal);
+				driver = val.driver;
+				capabilties = val.capabilties;
 			});
 			it('should finish loading', async function() {
 				this.timeout(60000);
@@ -1210,8 +1216,10 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 				this.timeout(60000);
 				this.slow(10000);
 
-				driver = await setupExtensionOptionsPageInstance(
+				const val = await setupExtensionOptionsPageInstance(
 					path.join(ROOT, 'temp/migration/to.crx'), isLocal);
+				driver = val.driver;
+				capabilties = val.capabilties;
 			});
 			it('should finish loading', async function() {
 				this.timeout(60000);
@@ -1255,11 +1263,15 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 		});
 	});
 	describe('Testing page', () => {
-		before('Reloading page', async function() {
-			this.timeout(10000);
-			this.slow(4000);
-
-			await driver.navigate().refresh();
+		it('should be possible to reload the background page', async function() {
+			this.timeout(50000);
+			this.slow(25000);
+			await wait(20000);
+			
+			await chromeExtensionData.reloadBackgroundPage(driver, capabilties);
+			await wait(2000);
+			await chromeExtensionData.openOptionsPage(driver, capabilties);
+			await wait(1000);
 		});
 		it('should finish loading', async function() {
 			this.timeout(60000);

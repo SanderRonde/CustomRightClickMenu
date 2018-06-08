@@ -60,3 +60,5 @@ export async function openOptionsPage(_driver: TypedWebdriver, _capabilities: Br
 
 	return throwErr();
 }
+
+export async function reloadBackgroundPage(_driver: TypedWebdriver, _capabilities: BrowserstackCapabilities) { }
