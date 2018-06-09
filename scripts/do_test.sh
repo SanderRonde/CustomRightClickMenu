@@ -16,10 +16,18 @@ $script_path/is_eq.sh "$1" "test:chrome:old:install:greasyfork" && do_retry=1
 $script_path/is_eq.sh "$1" "test:chrome:old:install:openuserjs" && do_retry=1
 $script_path/is_eq.sh "$1" "test:chrome:old:install:userscriptsorg" && do_retry=1
 $script_path/is_eq.sh "$1" "test:chrome:old:install:userstylesorg" && do_retry=1
+$script_path/is_eq.sh "$1" "test-migration:2.0.12" && do_retry=1
+$script_path/is_eq.sh "$1" "test-migration:2.0.13" && do_retry=1
+$script_path/is_eq.sh "$1" "test-migration:2.0.14" && do_retry=1
+$script_path/is_eq.sh "$1" "test-migration:2.0.15" && do_retry=1
+$script_path/is_eq.sh "$1" "test-migration:2.0.16" && do_retry=1
+$script_path/is_eq.sh "$1" "test-migration:2.0.17" && do_retry=1
+$script_path/is_eq.sh "$1" "test-migration:2.0.18" && do_retry=1
+$script_path/is_eq.sh "$1" "test-migration:2.0.19" && do_retry=1
 
 if ((run_test)); then
 	if ((do_retry)); then
-		yarn run $1 || yarn run $1
+		yarn run $1 || yarn run $1 || yarn run $1
 	else
 		yarn run $1
 	fi
