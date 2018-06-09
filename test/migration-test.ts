@@ -1239,8 +1239,17 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 			});
 			it('should be able to set the storage settings', async function() {
 				this.timeout(10000);
+				assert.lengthOf(storageData.sync.indexes, 1,
+					'there\'s only one index');
+
 				await executeAsyncScript(inlineAsyncFn((done, reject, REPLACE) => {
-					const data = JSON.parse('REPLACE.storageData');
+					const data = {
+						local: JSON.parse('REPLACE.storageLocal'),
+						sync: {
+							indexes: JSON.parse('REPLACE.indexes'),
+							section0: 'REPLACE.section0'
+						}
+					}
 
 					const global = window.browserAPI || (window as any).chrome;
 					if (window.browserAPI) {
@@ -1257,7 +1266,9 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 						});
 					}
 				}, {
-					storageData: JSON.stringify(storageData)
+					storageLocal: JSON.stringify(storageData.local),
+					indexes: JSON.stringify(storageData.sync.indexes),
+					section0: storageData.sync.section0
 				}));
 			});
 		});
