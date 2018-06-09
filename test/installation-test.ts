@@ -462,8 +462,8 @@ function doOpenUserJsTest(prefix: () => string|void) {
 			await wait(5000);
 
 			assert.exists(await driver.executeScript(inlineFn(() => {
-				return document.getElementById('latestdwadw-button');
-			})), 'width was changed (script was applied)');
+				return document.getElementById('latest-button');
+			})), 'element was created (script was applied)');
 		});
 	});
 }
