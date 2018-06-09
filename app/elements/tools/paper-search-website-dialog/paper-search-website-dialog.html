@@ -4,7 +4,7 @@
 		<!-- build:css inline ../../../elements/tools/paper-search-website-dialog/paper-search-website-dialog.css -->
 		<link rel="stylesheet" href="../../elements/tools/paper-search-website-dialog/paper-search-website-dialog.css" />
 		<!-- /build -->
-		<paper-dialog with-backdrop id="paperSearchWebsiteDialog">
+		<paper-dialog no-cancel-on-esc-key with-backdrop id="paperSearchWebsiteDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 			<div id="initialWindow">
 				<h2>Add a search for a website</h2>
 				This code will search given website for any text you highlight, or if nothing is highlighted will promt you for a query.<br/>
