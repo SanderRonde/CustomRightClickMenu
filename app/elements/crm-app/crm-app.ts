@@ -3766,6 +3766,7 @@ namespace CRMAppElement {
 							superquick: true
 						});
 					}
+					this.parent()._setup.initCheckboxes(this.parent().storageLocal);
 					this.parent().upload();
 				} else {
 					try {
@@ -3788,6 +3789,7 @@ namespace CRMAppElement {
 							this.parent().editCRM.build({
 								superquick: true
 							});
+							this.parent()._setup.initCheckboxes(this.parent().storageLocal);
 							this.parent().upload();
 						} else {
 							alert('This method of importing no longer works, please export all your settings instead');
@@ -3797,6 +3799,7 @@ namespace CRMAppElement {
 						return;
 					}
 				}
+				this.parent().util.showToast('Successfully imported your data');
 			};
 
 			static exportData() {
@@ -4109,7 +4112,7 @@ namespace CRMAppElement {
 
 				this.parent().upload();
 			}
-			
+
 			static exitFullscreen() {
 				window.app.util.getDialog().exitFullScreen();
 			}
