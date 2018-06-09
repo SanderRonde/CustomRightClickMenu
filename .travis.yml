@@ -40,17 +40,20 @@ env:
 - TEST=test-migration:2.0.19
 
 before_install:
-- openssl aes-256-cbc -K $encrypted_6cd0c378df83_key -iv $encrypted_6cd0c378df83_iv
-  -in test/UI/secrets.js.enc -out test/UI/secrets.js -d
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then openssl aes-256-cbc -K $encrypted_6cd0c378df83_key -iv $encrypted_6cd0c378df83_iv
+  -in test/UI/secrets.js.enc -out test/UI/secrets.js -d; fi
 - npm install gulp -g
 install:
 - yarn --ignore-engines
-script: travis_wait sh ./scripts/pretest.sh && yarn $TEST
+script: 
+- travis_wait sh ./scripts/pretest.sh
+- ./scripts/do_test.sh $TEST
 
 jobs:
   include:
   - stage: deploy website
-    script: sh ./scripts/deploy-website.sh
+    script: 
+    - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./scripts/is_latest_commit.sh && sh ./scripts/deploy-website.sh || echo "Not latest commit, not deploying" fi
     env: TEST=none
 
 notifications:
