@@ -428,13 +428,13 @@
 							Privacy Policy
 						</div>
 						<div class="privacyPolicyDescr">
-							This extension does not store personally identifiable information. 
-							It also doesn't store your data on any servers except google's.
+							This extension does not store any personally identifiable information.
 							This extension uses your browser's 
 							<a href="https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/storage/sync" rel="noopener" target="_blank">browser.storage.sync</a> 
 							to sync your data across devices. This data only consists of 
-							your custom right-click menu and its settings. To turn off 
-							this feature, disable the "use storage sync" checkbox at the top of this page.
+							your custom right-click menu and its settings.
+							This means that these settings are stored on your browser manufacturer's servers.
+							To turn off this feature, disable the "use storage sync" checkbox at the top of this page.
 						</div>
 					</div>
 					<br /><br />
@@ -484,23 +484,6 @@
 							Changelog
 						</div>
 						<change-log></change-log>
-					</div>
-					<br /><br />
-					<div class="goBackToLegacyCont">
-						<div class="bigTxt" name="legacy">
-							I want to go back to the old version
-						</div>
-						<br>
-						<div class="goBackToLegacyDescr">
-							Maybe you don't like this version of the extension and would like to go back.
-							Fortunately this is possible. Simply click the export button below, copy the
-							resulting settings and paste them into the import box of the 
-							<a href="https://chrome.google.com/webstore/detail/bdoncblefnjcmbdfnidnhcjglnpbngbb" rel="noopener" target="_blank">legacy extension (chrome only)</a>.
-							<br><br>
-							<textarea rows="10" id="exportToLegacyOutput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
-							<br>
-							<paper-button class="blue" raised id="legacyExportButton" on-tap="domListener" data-on-tap="exportToLegacy">Export</paper-button>
-						</div>
 					</div>
 					<div class="trailingBrs">
 						<br /><br /><br /><br /><br />
