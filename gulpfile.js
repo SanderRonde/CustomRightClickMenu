@@ -12,7 +12,6 @@ const through = require('through2');
 const uglify = require('gulp-uglify');
 const babel = require('gulp-babel');
 const xpi = require('firefox-xpi');
-const typedoc = require('typedoc');
 const crisper = require('crisper');
 const mkdirp = require('mkdirp');
 const rollup = require('rollup');
@@ -932,9 +931,84 @@ function readFile(filePath, options) {
 
 /* Website related tasks */
 (() => {
+	function typedocCloned() {
+		return new Promise((resolve) => {
+			fs.stat(path.join(__dirname, 'typedoc', 'package.json'), (err, stat) => {
+				if (err) {
+					//Doesn't exist yet
+					resolve(false);
+				} else {
+					resolve(true);
+				}
+			});
+		});
+	}
+
+	async function runCmd(cmd, cwd = __dirname) {
+		return new Promise((resolve, reject) => {
+			const proc = childProcess.exec(cmd, {
+				cwd: cwd
+			}, (err, stdout, stderr) => {
+				if (err !== null) {
+					reject(err);
+				} else {
+					resolve();
+				}
+			});
+		});
+	}
+
+	function promisePipe(pipe) {
+		return new Promise((resolve, reject) => {
+			pipe.once('close', () => {
+				console.log('done');
+				resolve();
+			}).on('error', (err) => {
+				console.log(err);
+				reject(err);
+			});
+		});
+	}
+
+	async function cloneTypedoc() {
+		let cwd = __dirname;
+		console.log('Cloning typedoc locally');
+		
+		console.log('Cloning into ./typedoc/');
+		await runCmd('git clone https://github.com/TypeStrong/typedoc typedoc')
+		cwd = path.join(cwd, 'typedoc/');
+		
+		console.log('Changing typescript version in cloned typedoc');
+		const file = await readFile(path.join(__dirname, 'typedoc', 'package.json'), {
+			encoding: 'utf8'
+		});
+		await writeFile(path.join(__dirname, 'typedoc', 'package.json'), 
+			file.replace(/"typescript": "\d+\.\d+\.\d+"/g, '"typescript": "latest"'));
+
+		console.log('Installing grunt');
+		await runCmd('npm install -g grunt-cli', cwd);
+
+		console.log('Installing typedoc dependencies (this may take a few minutes)');
+		await runCmd('npm install', cwd);
+		
+		console.log('Done!');
+	}
+
+	gulp.task(genTask('Removes the app/bower_components dir', async function removeBowerComponents() {
+		await del('./app/bower_components');
+	}));
+
 	gulp.task(genTask('Extracts the files needed for the documentationWebsite' + 
 		' and places them in build/website',
-			function documentationWebsite(done) {
+			async function documentationWebsite(done) {
+				console.log('Checking if typedoc has been cloned...');
+				const exists = await typedocCloned();
+				if (!exists) {
+					await cloneTypedoc();
+				}
+
+				// @ts-ignore
+				const typedoc = require('./typedoc');
 				const app = new typedoc.Application({
 					mode: 'file',
 					out: 'documentation/',
