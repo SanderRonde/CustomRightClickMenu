@@ -2,6 +2,7 @@ const processhtml = require('gulp-processhtml');
 const joinPages = require('./tools/joinPages');
 const polymerBuild = require('./tools/build');
 const childProcess = require('child_process');
+const StreamZip = require('node-stream-zip');
 const htmlTypings = require('html-typings');
 const beautify = require('gulp-beautify');
 const replace = require('gulp-replace');
@@ -1221,10 +1222,75 @@ function readFile(filePath, options) {
 				.pipe(gulp.dest('./dist/packed/'));
 		}));
 
-		gulp.task(genTask('Generates an xpi file and places it in the /dist/packed folder',
-			async function genXPI() {
-				await xpi('./dist/packed/Custom Right-Click Menu.xpi', './dist/firefox');
-			}));
+	gulp.task(genTask('Generates an xpi file and places it in the /dist/packed folder',
+		async function genXPI() {
+			await xpi('./dist/packed/Custom Right-Click Menu.xpi', './dist/firefox');
+		}));
+})();
+
+/* Distributing and getting build artifacts */
+(() => {
+	gulp.task('zipArtifacts', genTask('Creates a zip file from the build/ and dist/ dirs', 
+		gulp.parallel(
+			function zipBuild() {
+				return gulp
+					.src([
+						'build/**',
+					])
+					.pipe(zip('artifacts.build.zip'))
+					.pipe(gulp.dest('./'));
+			},
+			function zipDist() {
+				return gulp
+					.src([
+						'dist/**',
+					])
+					.pipe(zip('artifacts.dist.zip'))
+					.pipe(gulp.dest('./'));
+			}
+		)));
+
+	gulp.task('unzipArtifacts', genTask('Unzips the artifacts.dist.zip and artifacts.build.zip files', 
+		gulp.parallel(
+			async function unzipBuild() {
+				await new Promise((resolve, reject) => {
+					const zip = new StreamZip({
+						file: 'artifacts.build.zip',
+						storeEntries: true
+					});
+					//@ts-ignore
+					zip.on('ready', () => {
+						zip.extract(null, './build', (err, count) => {
+							if (err) {
+								reject(err);
+							} else {
+								zip.close();
+								resolve();
+							}
+						});
+					});
+				});
+			},
+			async function unzipDist() {
+				await new Promise((resolve, reject) => {
+					const zip = new StreamZip({
+						file: 'artifacts.dist.zip',
+						storeEntries: true
+					});
+					//@ts-ignore
+					zip.on('ready', () => {
+						zip.extract(null, './dist', (err, count) => {
+							if (err) {
+								reject(err);
+							} else {
+								zip.close();
+								resolve();
+							}
+						});
+					});
+				});
+			}
+		)));
 })();
 
 gulp.task('default', gulp.series('build'));
