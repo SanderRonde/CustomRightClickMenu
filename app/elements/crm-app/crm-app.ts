@@ -400,8 +400,6 @@ namespace CRMAppElement {
 							}
 							animation.animation.reverse();
 						}
-						animation.animation.onfinish = undefined;
-						animation.animation.oncancel	 = undefined;
 						return animation.animation;
 					}
 				}
