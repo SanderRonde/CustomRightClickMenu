@@ -1033,8 +1033,8 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 													>window.scriptEdit.newSettings;
 												node.value.script = 'script0script1script2';
 												node.value.backgroundScript = 
-													'backgroundscript0backgroundscript1' +
-													'backgroundscript2';
+													'console.log(backgroundscript0backgroundscript1' +
+													'backgroundscript2)';
 												node.value.options = {
 													value: {
 														type: 'number',
