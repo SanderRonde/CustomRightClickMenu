@@ -169,7 +169,26 @@ namespace CodeEditBehaviorNamespace {
 					editor.setValue(newValue);
 				}
 			} else {
-				const commands = editor.getSelections().map((selection) => {
+				const selections = editor.getSelections();
+				if (selections.length === 1) {
+					if (selections[0].toString().length === 0 &&
+						selections[0].getPosition().lineNumber === 0 &&
+						selections[0].getPosition().column === 0) {
+							//Find the first line without comments
+							const lines = editor.getValue().split('\n');
+							const commentLines = ['//', '/*', '*/', '*', ' *'];
+							for (let i = 0 ; i < lines.length; i++) {
+								for (const commentLine of commentLines) {
+									if (lines[i].indexOf(commentLine) === 0) {
+										continue;
+									}
+								}
+								selections[0] = new monaco.Selection(i, 0, i, 0);
+								break;
+							}
+						}
+				}
+				const commands = selections.map((selection) => {
 					const content = noReplace ? snippet : snippet.replace(/%s/g, selection.toString());
 					return window.monacoCommands.createReplaceCommand(selection.cloneRange(), content);
 				});
