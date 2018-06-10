@@ -3,20 +3,20 @@
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
 	# Not set, skip this step
 	echo "Skipping setting of build artifacts"
-	exit 0
+	exit 1
 fi
 
 # Check if the enviroment variables are defined
 if [ -z "$ARTIFACT_STORE" ]; then
 	# Not set, skip this step
 	echo "Skipping setting of build artifacts"
-	exit 0
+	exit 1
 fi
 
 if [ -z "$ARTIFACT_PW" ]; then
 	# Not set, skip this step
 	echo "Skipping setting of build artifacts"
-	exit 0
+	exit 1
 fi
 
 echo "Creating zip files"
