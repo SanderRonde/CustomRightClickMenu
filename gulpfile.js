@@ -1265,7 +1265,7 @@ function readFile(filePath, options) {
 						} else {
 							//@ts-ignore
 							zip.on('ready', () => {
-								zip.extract(null, './build', (err, count) => {
+								zip.extract(null, path.join(__dirname, 'build/'), (err) => {
 									if (err) {
 										reject(err);
 									} else {
@@ -1291,7 +1291,7 @@ function readFile(filePath, options) {
 						} else {
 							//@ts-ignore
 							zip.on('ready', () => {
-								zip.extract(null, './dist', (err, count) => {
+								zip.extract(null, path.join(__dirname, 'dist/'), (err) => {
 									if (err) {
 										reject(err);
 									} else {
