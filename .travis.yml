@@ -53,8 +53,7 @@ before_install:
 install:
 - yarn --ignore-engines
 script:
-- tsc
-- tsc -p test/tsconfig.json
+- gulp compile
 - gulp stashBrowser && gulp browserChrome
 - ./scripts/get_build_artifacts.sh || travis_wait sh ./scripts/pretest.sh
 - ./scripts/do_test.sh $TEST
