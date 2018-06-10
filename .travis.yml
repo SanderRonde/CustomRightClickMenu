@@ -51,7 +51,7 @@ before_install:
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then 
   openssl aes-256-cbc -K $encrypted_a4225afda018_key 
   -iv $encrypted_a4225afda018_iv
-  -in id_rsa.enc -out id_rsa -d;
+  -in scripts/id_rsa.enc -out scripts/id_rsa -d;
   fi
 - npm install gulp http-server -g
 install:
