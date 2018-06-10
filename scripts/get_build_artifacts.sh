@@ -22,11 +22,11 @@ fi
 REMOTE_PATH="~/artifacts/crm/$TRAVIS_COMMIT"
 
 echo "Downloading build.zip file"
-sshpass -p "$ARTIFACT_PW" scp $ARTIFACT_STORE:$REMOTE_PATH/artifacts.build.zip ./artifacts.build.zip 
+sshpass -p "$ARTIFACT_PW" scp $ARTIFACT_STORE:$REMOTE_PATH/artifacts.build.zip ./artifacts.build.zip || exit $?
 echo "Downloading dist.zip file"
-sshpass -p "$ARTIFACT_PW" scp $ARTIFACT_STORE:$REMOTE_PATH/artifacts.dist.zip ./artifacts.dist.zip
+sshpass -p "$ARTIFACT_PW" scp $ARTIFACT_STORE:$REMOTE_PATH/artifacts.dist.zip ./artifacts.dist.zip || exit $?
 
 echo "Unzipping files"
-gulp unzipArtifacts
+gulp unzipArtifacts || exit $?
 
 echo "Successfully downloaded build artifacts"

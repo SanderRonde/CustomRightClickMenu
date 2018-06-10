@@ -63,7 +63,7 @@ jobs:
   - stage: build
     script:
     - yarn pretest
-    - ./scripts/set_build_artifacts.sh
+    - ./scripts/set_build_artifacts.sh || echo "Failed to upload build artifacts"
   - stage: deploy website
     script:
     - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then 
