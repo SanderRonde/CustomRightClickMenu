@@ -25,6 +25,12 @@ REMOTE_PATH="~/artifacts/crm/$TRAVIS_COMMIT"
 echo "Adding to known hosts"
 ssh-keyscan -t rsa -H $ARTIFACT_SERVER >> ~/.ssh/known_hosts || exit $?
 
+echo "Changing permissions"
+chmod 700 scripts/id_rsa || exit $?
+
+echo "Adding IP to known hosts"
+ssh -i scripts/id_rsa $ARTIFACT_STORE "echo done" > /dev/null || exit $?
+
 echo "Downloading build.zip file from $REMOTE_PATH/artifacts.build.zip"
 scp -i scripts/id_rsa $ARTIFACT_STORE:$REMOTE_PATH/artifacts.build.zip ./artifacts.build.zip || exit $?
 echo "Downloading dist.zip file from $REMOTE_PATH/artifacts.dist.zip"
