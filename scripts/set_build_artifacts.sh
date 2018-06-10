@@ -13,10 +13,20 @@ if [ -z "$ARTIFACT_STORE" ]; then
 	exit 1
 fi
 
+# Check if the enviroment variables are defined
+if [ -z "$ARTIFACT_SERVER" ]; then
+	# Not set, skip this step
+	echo "Skipping setting of build artifacts"
+	exit 1
+fi
+
 echo "Creating zip files"
 gulp zipArtifacts || exit $?
 
 REMOTE_PATH="~/artifacts/crm/$TRAVIS_COMMIT"
+
+echo "Adding to known hosts"
+ssh-keyscan -t rsa -H $ARTIFACT_SERVER >> ~/.ssh/known_hosts || exit $?
 
 echo "Creating current commit's directory ($REMOTE_PATH)"
 ssh -i scripts/id_rsa $ARTIFACT_STORE "mkdir -p $REMOTE_PATH" || exit $?

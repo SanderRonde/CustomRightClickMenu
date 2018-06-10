@@ -3,7 +3,7 @@
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
 	# Not set, skip this step
 	echo "Skipping getting of build artifacts"
-	exit 0
+	exit 1
 fi
 
 # Check if the enviroment variables are defined
@@ -13,7 +13,17 @@ if [ -z "$ARTIFACT_STORE" ]; then
 	exit 1
 fi
 
+# Check if the enviroment variables are defined
+if [ -z "$ARTIFACT_SERVER" ]; then
+	# Not set, skip this step
+	echo "Skipping setting of build artifacts"
+	exit 1
+fi
+
 REMOTE_PATH="~/artifacts/crm/$TRAVIS_COMMIT"
+
+echo "Adding to known hosts"
+ssh-keyscan -t rsa -H $ARTIFACT_SERVER >> ~/.ssh/known_hosts || exit $?
 
 echo "Downloading build.zip file from $REMOTE_PATH/artifacts.build.zip"
 scp -i scripts/id_rsa $ARTIFACT_STORE:$REMOTE_PATH/artifacts.build.zip ./artifacts.build.zip || exit $?
