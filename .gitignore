@@ -272,3 +272,4 @@ test/migration-test.js
 test/installation-test.js
 
 typedoc/ 
+scripts/id_rsa

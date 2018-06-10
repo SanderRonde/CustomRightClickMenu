@@ -42,12 +42,14 @@ env:
   - TEST=test-migration:2.0.19
   global:
   - secure: iPVXFxcVzOVCVVpWq0bxGGttAFjfQdmUaYlq25qeRQ4vf7KMJ749zBxd7PHy3c2TSD3nygt7MZmCRLnbyGnwqvDmPf7+FfFLTKL40vQXGFQzPnHrDTSpituNhU1uNZWsoWtCwzii+8ic14weWxfJwOqByhiotEBxY9oOxmLwLg1hiAoHtEXmGrnORdiro82iDpFiV4bgjqw+928/2I/wKpLfRbYAK1/zyFG5L5m/iod/VrNrvo1VPaDaip7F25OJN0S1J4kTbs5mHjqC0/oWYnGz3+1xm/3W/IUwsbFo85g5VqdjImrkaUzF2QGO3egSNV0ltbf/azi5Y59FOLkZ80NuBwAWs454QXLEH7nFBfznCTOi4JtxgmWjHYcrhUC1/Aoxye/inbqw7v9xP8tMMuBEeiXaiSgdaS4CgxeiQOzUJNquYldMhCYdy3F1qTTNmv3zXGIlkWY5UToAR0LqjR92QKkeAG0/BelW7nr4Gb2+EqluLeJfXlksb5gXqg4EIhi+/7GILRgEMiDwx2AqnkZMf87m2qSGWQ81l8m4cTueTDbNdt03vY+Obs/lzFMdujrvR+Xsq2abEG13D5zkQ/aJ2pd+4p2LtlVGr9j8E5owRhRn3//O2PodlSW6ydzIRdOzCh599XEMT0hHVVVMDVjEMtYD2/BddaV9+z9/lIs=
-  - secure: oMBK1XL3gxnRE4+QABMPxSseQE3q/mUDjEGJJ7CnRU2WBSrv+sgcVMjXy+gvCNdT0297THiAjiEc8imFbLJSjLvjhl+sEQA63XTra7xyZfc4ZoglzBmEJe8LxvVJpIcmUCNEQYRPrjocIX+yZqbGfe/R6/U5okiKyBpUP7NF4ouTZ9vrNpWBA/uqCVoXqxrOhFMdEQyL6uaglmQN96M8SOTesnMjm0z7NnfJEyMD/gW+kAovC878QmZNVF0dNJYsolgqS/9aXcciFqH5Pv8qpK+H+wAMM81hOq9r7uZ3evueIucqXTO5h68SE/HdSAM4WQf+jeVz3H2+7vpqLMO9q3caEUJ9bdUCvYVv4rIiB8ud94/lTsSooPeCqrLllMTbvE385HKkr02NlsF52lUS2gKKo3+pYQK3vyedCcWNSxIeqDaEoo1FK4oANmIVXFAgWzq3RaHgzUxXLuZv4+nFMFq0wAKO0swBD9VYbcu0l7+dclMhXjSN8TQE7iB39T0jRm/oyDlDcBdF4YJmvgrSpR8YmJyD3ahuy9atnF4SMthGEp6ZTJVrD1GUqMqy+QYH0qmQ/EcLeIWY1p8PdPdA3DTJKDzKNTRwkGh4ujS5FAgGTzFtvQfqrzr5YOpGzTWm3gIHohKcEsuso5vliIv7zUVguljuxdf+nWA3qDiBFQA=
 before_install:
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then 
   openssl aes-256-cbc -K $encrypted_6cd0c378df83_key
   -iv $encrypted_6cd0c378df83_iv -in test/UI/secrets.js.enc 
-  -out test/UI/secrets.js -d; 
+  -out test/UI/secrets.js -d;
+  openssl aes-256-cbc -K $encrypted_2f49f885e77e_key 
+  -iv $encrypted_2f49f885e77e_iv -in scripts/id_rsa.enc
+   -out scripts/id_rsa -d
   fi
 - npm install gulp http-server -g
 install:

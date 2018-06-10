@@ -22,9 +22,9 @@ fi
 REMOTE_PATH="~/artifacts/crm/$TRAVIS_COMMIT"
 
 echo "Downloading build.zip file from $REMOTE_PATH/artifacts.build.zip"
-sshpass -p "$ARTIFACT_PW" scp $ARTIFACT_STORE:$REMOTE_PATH/artifacts.build.zip ./artifacts.build.zip || exit $?
+scp -i scripts/id_rsa $ARTIFACT_STORE:$REMOTE_PATH/artifacts.build.zip ./artifacts.build.zip || exit $?
 echo "Downloading dist.zip file from $REMOTE_PATH/artifacts.dist.zip"
-sshpass -p "$ARTIFACT_PW" scp $ARTIFACT_STORE:$REMOTE_PATH/artifacts.dist.zip ./artifacts.dist.zip || exit $?
+scp -i scripts/id_rsa $ARTIFACT_STORE:$REMOTE_PATH/artifacts.dist.zip ./artifacts.dist.zip || exit $?
 
 echo "Unzipping files"
 gulp unzipArtifacts || exit $?
