@@ -49,13 +49,14 @@ before_install:
   -iv $encrypted_6cd0c378df83_iv -in test/UI/secrets.js.enc 
   -out test/UI/secrets.js -d; 
   fi
-- npm install gulp -g
+- npm install gulp http-server -g
 install:
 - yarn --ignore-engines
 script:
 - gulp compile
 - gulp stashBrowser && gulp browserChrome
-- ./scripts/get_build_artifacts.sh || travis_wait sh ./scripts/pretest.sh
+- http-server -p 1250 . -s &
+- ./scripts/get_build_artifacts.sh || travis_wait yarn pretest
 - ./scripts/do_test.sh $TEST
 jobs:
   include:
