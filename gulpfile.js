@@ -1258,16 +1258,23 @@ function readFile(filePath, options) {
 						file: 'artifacts.build.zip',
 						storeEntries: true
 					});
-					//@ts-ignore
-					zip.on('ready', () => {
-						zip.extract(null, './build', (err, count) => {
-							if (err) {
-								reject(err);
-							} else {
-								zip.close();
-								resolve();
-							}
-						});
+
+					mkdirp(path.join(__dirname, 'build/'), (err) => {
+						if (err) {
+							reject(err);
+						} else {
+							//@ts-ignore
+							zip.on('ready', () => {
+								zip.extract(null, './build', (err, count) => {
+									if (err) {
+										reject(err);
+									} else {
+										zip.close();
+										resolve();
+									}
+								});
+							});
+						}
 					});
 				});
 			},
@@ -1277,16 +1284,23 @@ function readFile(filePath, options) {
 						file: 'artifacts.dist.zip',
 						storeEntries: true
 					});
-					//@ts-ignore
-					zip.on('ready', () => {
-						zip.extract(null, './dist', (err, count) => {
-							if (err) {
-								reject(err);
-							} else {
-								zip.close();
-								resolve();
-							}
-						});
+
+					mkdirp(path.join(__dirname, 'dist/'), (err) => {
+						if (err) {
+							reject(err);
+						} else {
+							//@ts-ignore
+							zip.on('ready', () => {
+								zip.extract(null, './dist', (err, count) => {
+									if (err) {
+										reject(err);
+									} else {
+										zip.close();
+										resolve();
+									}
+								});
+							});
+						}
 					});
 				});
 			}
