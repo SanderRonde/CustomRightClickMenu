@@ -32,7 +32,7 @@ echo "Changing permissions"
 chmod 700 scripts/id_rsa || exit $?
 
 echo "Adding IP to known hosts"
-ssh -i scripts/id_rsa $ARTIFACT_STORE "echo done" > /dev/null || exit $?
+ssh -q -i scripts/id_rsa $ARTIFACT_STORE "echo done" > /dev/null || exit $?
 
 echo "Creating current commit's directory ($REMOTE_PATH)"
 ssh -i scripts/id_rsa $ARTIFACT_STORE "mkdir -p $REMOTE_PATH" || exit $?
