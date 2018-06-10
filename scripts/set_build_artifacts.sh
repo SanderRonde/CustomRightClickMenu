@@ -13,12 +13,6 @@ if [ -z "$ARTIFACT_STORE" ]; then
 	exit 1
 fi
 
-if [ -z "$ARTIFACT_PW" ]; then
-	# Not set, skip this step
-	echo "Skipping setting of build artifacts"
-	exit 1
-fi
-
 echo "Creating zip files"
 gulp zipArtifacts || exit $?
 

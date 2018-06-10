@@ -13,12 +13,6 @@ if [ -z "$ARTIFACT_STORE" ]; then
 	exit 1
 fi
 
-if [ -z "$ARTIFACT_PW" ]; then
-	# Not set, skip this step
-	echo "Skipping getting of build artifacts"
-	exit 1
-fi
-
 REMOTE_PATH="~/artifacts/crm/$TRAVIS_COMMIT"
 
 echo "Downloading build.zip file from $REMOTE_PATH/artifacts.build.zip"
