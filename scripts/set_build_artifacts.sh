@@ -25,6 +25,7 @@ gulp zipArtifacts || exit $?
 REMOTE_PATH="~/artifacts/crm/$TRAVIS_COMMIT"
 
 echo "Creating current commit's directory ($REMOTE_PATH)"
+echo "sshpass -p '$ARTIFACT_PW' ssh $ARTIFACT_STORE 'mkdir -p $REMOTE_PATH'"
 sshpass -p "$ARTIFACT_PW" ssh $ARTIFACT_STORE "mkdir -p $REMOTE_PATH" || exit $?
 
 echo "Copying build.zip file to $REMOTE_PATH/artifacts.build.zip"
