@@ -376,6 +376,10 @@ namespace CRMAppElement {
 			easing?: string|'bez';
 			fill?: 'forwards'|'backwards'|'both';
 		}) {
+			if ('transform' in properties[0] || 'transform' in properties[1]) {
+				return null;
+			}
+
 			if (usedAnimations.has(element)) {
 				const animations = usedAnimations.get(element);
 				for (const animation of animations) {
@@ -433,6 +437,11 @@ namespace CRMAppElement {
 			fill?: 'forwards'|'backwards'|'both';
 		}) {
 			const animation = animateImpl.apply(element, [properties, options]);
+
+			if ('transform' in properties[0] || 'transform' in properties[1]) {
+				return animation;
+			}
+
 			trimUsedAnimations(element);
 			addAnimation(element, {
 				animation, element, properties,
