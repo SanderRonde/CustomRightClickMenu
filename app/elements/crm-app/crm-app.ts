@@ -403,6 +403,12 @@ namespace CRMAppElement {
 			return null;
 		}
 
+		function trimUsedAnimations() {
+			if (usedAnimations.length >= 200) {
+				usedAnimations.splice(100, 100);
+			}
+		}
+
 		function doAnimation(element: HTMLElement, properties:  {
 			[key: string]: any;
 		}[], options: {
@@ -411,6 +417,7 @@ namespace CRMAppElement {
 			fill?: 'forwards'|'backwards'|'both';
 		}) {
 			const animation = animateImpl.apply(element, [properties, options]);
+			trimUsedAnimations();
 			usedAnimations.push([element, {
 				animation, element, properties,
 				state: 'completed',
