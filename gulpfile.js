@@ -1114,6 +1114,16 @@ function readFile(filePath, options) {
 	}
 
 	/**
+	 * Replace the short name of the extension from CRM-dev to CRM
+	 */
+	function replaceShortName() {
+		return gulp
+			.src('manifest.json', { cwd: './build/', base: './build/' })
+			.pipe(replace(/CRM-dev/g, 'CRM'))
+			.pipe(gulp.dest('./build'));
+	}
+
+	/**
 	 * Moves the /build directory to the /dist/{browser} directory
 	 * 
 	 * @param {string} browser - The name of the browser
@@ -1187,25 +1197,46 @@ function readFile(filePath, options) {
 				.pipe(gulp.dest('./app'));
 		}));
 
-	gulp.task(genTask('Copies the /build folder to the /dist/chrome folder',
-		function chromeToDist() {
-			return moveToDist('chrome');
-		}));
+	/**
+	 * Move the built files to /dist
+	 * 
+	 * @param {string} browser - The browser that is used
+	 * @param {boolean} [replaceName] - Replace the manifest name
+	 */
+	function doMove(browser, replaceName) {
+		const fns = [...replaceName ? 
+			[function replaceName() {
+				return replaceShortName();
+			}] : [], 
+			function copy() {
+				return moveToDist(browser);
+			}];
+		return gulp.series(...fns);
+	}
 
-	gulp.task(genTask('Copies the /build folder to the /dist/firefox folder',
-		function firefoxToDist() {
-			return moveToDist('firefox');
-		}));
+	gulp.task('chromeToDistTest', genTask('Copies the /build folder to the /dist/chrome folder with a test manifest',
+		doMove('chrome')));
 
-	gulp.task(genTask('Copies the /build folder to the /dist/edge folder',
-		function edgeToDist() {
-			return moveToDist('edge');
-		}));
+	gulp.task('firefoxToDistTest', genTask('Copies the /build folder to the /dist/firefox folder with a test manifest',
+		doMove('firefox')));
 
-	gulp.task(genTask('Copies the /build folder to the /dist/opera folder',
-		function operaToDist() {
-			return moveToDist('opera');
-		}));
+	gulp.task('edgeToDistTest', genTask('Copies the /build folder to the /dist/edge folder with a test manifest',
+		doMove('edge')));
+
+	gulp.task('operaToDistTest', genTask('Copies the /build folder to the /dist/opera folder with a test manifest',
+		doMove('opera')));
+
+	gulp.task('chromeToDist', genTask('Copies the /build folder to the /dist/chrome folder',
+		doMove('chrome', true)));
+
+	gulp.task('firefoxToDist', genTask('Copies the /build folder to the /dist/firefox folder',
+		doMove('firefox', true)));
+
+	gulp.task('edgeToDist', genTask('Copies the /build folder to the /dist/edge folder',
+		doMove('edge', true)));
+
+	gulp.task('operaToDist', genTask('Copies the /build folder to the /dist/opera folder',
+		doMove('opera', true)));
 
 	gulp.task(genTask('Generates a crx file and places it in the /dist/packed folder',
 		function genCRX() {
