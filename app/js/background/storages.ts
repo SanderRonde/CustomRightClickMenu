@@ -1203,7 +1203,7 @@ export namespace Storages {
 		newValue: CRM.StorageLocal[K];
 	}
 
-	type StorageSyncChange<K extends keyof CRM.SettingsStorage = keyof CRM.SettingsStorage> = {
+	type StorageSyncChange<K extends Extract<keyof CRM.SettingsStorage, string> = Extract<keyof CRM.SettingsStorage, string>> = {
 		key: K;
 		oldValue: CRM.SettingsStorage[K];
 		newValue: CRM.SettingsStorage[K];
@@ -1637,7 +1637,7 @@ export namespace Storages {
 				await modules.CRMNodes.updateCRMValues();
 				modules.CRMNodes.TS.compileAllInTree();
 				await Storages.checkBackgroundPagesForChange({
-					change: changes[i]
+					change: changes[i] as StorageSyncChange<string>
 				});
 				await modules.CRMNodes.buildPageCRM();
 				await modules.MessageHandling.signalNewCRM();

@@ -3552,7 +3552,7 @@ type CRMAPIMessage = {
 									//Filler
 									refData.refs.push(null);
 									refData.paths[index] = path;
-									const newData = this._toJSON(copyTarget[key as keyof typeof copyTarget], element, path.concat(key), refData);
+									const newData = this._toJSON((copyTarget as any)[key as keyof typeof copyTarget], element, path.concat(key), refData);
 									refData.refs[index] = newData.data;
 									refData.originalValues[index] = element;
 								}

@@ -5,6 +5,8 @@ window.CRMLoaded = window.CRMLoaded || {
 	}
 }
 
+type StyleString = Extract<keyof CSSStyleDeclaration, string>;
+
 window.CRMLoaded.register(() => {
 	//Because of a chrome bug that causes it to freeze
 	// when handling at least this regex string
@@ -188,10 +190,10 @@ window.CRMLoaded.register(() => {
 	const toUpdate: {
 		elements: HTMLElement[];
 		calculation:string;
-		key: keyof CSSStyleDeclaration; 
+		key: StyleString; 
 	}[] = [];
 
-	window.addCalcFn = (element: HTMLElement, prop: keyof CSSStyleDeclaration, calcValue: string, disable: boolean) => {
+	window.addCalcFn = (element: HTMLElement, prop: StyleString, calcValue: string, disable: boolean) => {
 		if (calcSupported && !disable && prop !== 'length' && prop !== 'parentRule') {
 			element.style[prop] = 'calc(' + calcValue + ')';
 			return;
@@ -248,7 +250,7 @@ window.CRMLoaded.register(() => {
 					while ((dashIndex = key.indexOf('-')) > -1) {
 						key = key.slice(0, dashIndex) +
 							key[dashIndex + 1].toUpperCase() +
-							key.slice(dashIndex + 2) as keyof CSSStyleDeclaration;
+							key.slice(dashIndex + 2) as StyleString;
 					}
 
 					calc.elements = breakdownSelector(calc.elements as string);
@@ -286,7 +288,7 @@ window.CRMLoaded.register(() => {
 			})(((stylesheetBlocks) => {
 				const calculations: {
 					elements: string|HTMLElement[];
-					key: keyof CSSStyleDeclaration;
+					key: StyleString;
 					calculation: string;
 				}[] = [];
 
@@ -314,7 +316,7 @@ window.CRMLoaded.register(() => {
 							return null;
 						}
 					const rules: {
-						key: keyof CSSStyleDeclaration;
+						key: StyleString;
 						value: string;
 					}[] = [];
 					const blockMatch = stylesheetBlock.ruleText.match(/(\s*)((\w|-)+)(\s*):(\s*)((\w|%|\/|\*|\+|\(|\)|-|,|\s)+);(\s*)/g);
@@ -322,7 +324,7 @@ window.CRMLoaded.register(() => {
 						blockMatch.forEach((matchedString) => {
 							const match = matchedString.match(cssRuleRegex)
 							rules.push({
-								key: match[2] as keyof CSSStyleDeclaration,
+								key: match[2] as StyleString,
 								value: match[6]
 							});
 						});

@@ -300,8 +300,8 @@ export namespace Util {
 					return v5;
 				}
 	export function toMap<V, K extends string|number, O extends CRM.ObjectifiedMap<K, V>>(obj: O): Map<K, V> {
-		return new window.Map<K, V>(Object.getOwnPropertyNames(obj).map((key: keyof O) => {
-			return [key, obj[key]];
+		return new window.Map<K, V>(Object.getOwnPropertyNames(obj).map((key: any) => {
+			return [key, obj[key as Extract<keyof CRM.ObjectifiedMap<K, V>, string>]];
 		}));
 	}
 	export function fromMap<K, V>(map: Map<K, V>): CRM.ObjectifiedMap<K, V> {
