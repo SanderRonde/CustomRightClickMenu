@@ -1318,7 +1318,7 @@ describe('User entrypoints', function() {
 				const name = await elements[index].findElement(webdriver.By.tagName('paper-input'))
 					.getProperty('value');
 				const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
-				const crm = await getCRM<CRM.ScriptNode[]>();
+				const crm = await getCRM<CRM.LinkNode[]>();
 				const element = crm[crm.length - 1];
 	
 				searchEngineLink = link;
@@ -1326,22 +1326,12 @@ describe('User entrypoints', function() {
 				
 				assert.strictEqual(element.name, name, 
 					'name is the same as expected');
-				assert.strictEqual(element.type, 'script',
-					'type of element is script');
-				assert.isObject(element.value, 'element value is object');
-				assert.property(element.value, 'script', 'value has script property');
-				assert.isString(element.value.script, 'script is a string');
-				assert.strictEqual(element.value.script, '' +
-					'var query;\n' +
-					'var url = "' + link + '";\n' +
-					'if (crmAPI.getSelection()) {\n' +
-					'	query = crmAPI.getSelection();\n' +
-					'} else {\n' +
-					'	query = window.prompt(\'Please enter a search query\');\n' +
-					'}\n' +
-					'if (query) {\n' +
-					'	window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');\n' +
-					'}',
+				assert.strictEqual(element.type, 'link',
+					'type of element is link');
+				assert.isArray(element.value, 'element value is an array');
+				assert.exists(element.value[0], 'url exists');
+				assert.isString(element.value[0].url, 'url is a string');
+				assert.strictEqual(element.value[0].url, link,
 					'script1 value matches expected');
 			});
 			it('should be renamable', async function() {
@@ -1354,77 +1344,47 @@ describe('User entrypoints', function() {
 					.sendKeys(InputKeys.CLEAR_ALL, renameName);
 				await elements[index].findElement(webdriver.By.tagName('paper-button')).click();
 				const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
-				const crm = await getCRM<CRM.ScriptNode[]>();
+				const crm = await getCRM<CRM.LinkNode[]>();
 				const element = crm[crm.length - 1];
 				
 				assert.strictEqual(renameName, element.name, 
 					'name is the same as expected');
-				assert.strictEqual(element.type, 'script',
-					'type of element is script');
-				assert.isObject(element.value, 'element value is object');
-				assert.property(element.value, 'script', 'value has script property');
-				assert.isString(element.value.script, 'script is a string');
-				assert.strictEqual(element.value.script, '' +
-					'var query;\n' +
-					'var url = "' + link + '";\n' +
-					'if (crmAPI.getSelection()) {\n' +
-					'	query = crmAPI.getSelection();\n' +
-					'} else {\n' +
-					'	query = window.prompt(\'Please enter a search query\');\n' +
-					'}\n' +
-					'if (query) {\n' +
-					'	window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');\n' +
-					'}',
-					'script value matches expected');
+					assert.strictEqual(element.type, 'link',
+					'type of element is link');
+				assert.isArray(element.value, 'element value is an array');
+				assert.exists(element.value[0], 'url exists');
+				assert.isString(element.value[0].url, 'url is a string');
+				assert.strictEqual(element.value[0].url, link,
+					'script1 value matches expected');
 			});
 			it('should be saved', async function() {
 				await reloadPage(this);
-				const crm = await getCRM<CRM.ScriptNode[]>();
+				const crm = await getCRM<CRM.LinkNode[]>();
 				await (async () => {
 					const element = crm[crm.length - 2];
 	
 					assert.isDefined(element, 'element is defined');
 					assert.strictEqual(element.name, searchEngineName, 
 						'name is the same as expected');
-					assert.strictEqual(element.type, 'script',
-						'type of element is script');
-					assert.isObject(element.value, 'element value is object');
-					assert.property(element.value, 'script', 'value has script property');
-					assert.isString(element.value.script, 'script is a string');
-					assert.strictEqual(element.value.script, '' +
-						'var query;\n' +
-						'var url = "' + searchEngineLink + '";\n' +
-						'if (crmAPI.getSelection()) {\n' +
-						'	query = crmAPI.getSelection();\n' +
-						'} else {\n' +
-						'	query = window.prompt(\'Please enter a search query\');\n' +
-						'}\n' +
-						'if (query) {\n' +
-						'	window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');\n' +
-						'}',
-						'script value matches expected');
+					assert.strictEqual(element.type, 'link',
+						'type of element is link');
+					assert.isArray(element.value, 'element value is an array');
+					assert.exists(element.value[0], 'url exists');
+					assert.isString(element.value[0].url, 'url is a string');
+					assert.strictEqual(element.value[0].url, searchEngineLink,
+						'script1 value matches expected');
 				})();
 				await (async () => {
 					const element2 = crm[crm.length - 1];	
 					assert.strictEqual(element2.name, 'SomeName', 
 						'name is the same as expected');
-					assert.strictEqual(element2.type, 'script',
-						'type of element is script');
-					assert.isObject(element2.value, 'element value is object');
-					assert.property(element2.value, 'script', 'value has script property');
-					assert.isString(element2.value.script, 'script is a string');
-					assert.strictEqual(element2.value.script, '' +
-						'var query;\n' +
-						'var url = "' + searchEngineLink + '";\n' +
-						'if (crmAPI.getSelection()) {\n' +
-						'	query = crmAPI.getSelection();\n' +
-						'} else {\n' +
-						'	query = window.prompt(\'Please enter a search query\');\n' +
-						'}\n' +
-						'if (query) {\n' +
-						'	window.open(url.replace(/%s/g,window.encodeURIComponent(query)), \'_blank\');\n' +
-						'}',
-						'script2 value matches expected');
+					assert.strictEqual(element2.type, 'link',
+						'type of element is link');
+					assert.isArray(element2.value, 'element value is an array');
+					assert.exists(element2.value[0], 'url exists');
+					assert.isString(element2.value[0].url, 'url is a string');
+					assert.strictEqual(element2.value[0].url, searchEngineLink,
+						'script1 value matches expected');
 				});
 			});
 		});
