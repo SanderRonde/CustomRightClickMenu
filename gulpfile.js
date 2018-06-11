@@ -463,7 +463,7 @@ function readFile(filePath, options) {
 			function copyWebcomponentsLibs() {
 				return gulp
 					.src([
-						'webcomponentsjs/**/*.js',
+						'webcomponentsjs/*.js',
 						'!webcomponentsjs/webcomponents-lite.js'
 					], { 
 						cwd: './temp/bower_components', 
