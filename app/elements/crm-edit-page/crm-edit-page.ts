@@ -198,7 +198,7 @@ namespace CrmEditPageElement {
 				from: 1,
 				to: 0
 			}, {
-				duration: 500,
+				duration: 300,
 				easing: 'bez',
 				fill: 'both'
 			});
