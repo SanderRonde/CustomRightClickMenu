@@ -1151,17 +1151,19 @@ export namespace Storages.SetupHandling {
 	}
 	async function uploadStorageSyncInitial(data: CRM.SettingsStorage) {
 		const settingsJson = JSON.stringify(data);
-
-		if (settingsJson.length >= 101400) {
+		
+		if (settingsJson.length >= 101400 || !supportsStorageSync()) {
 			await browserAPI.storage.local.set({
 				useStorageSync: false
 			});
 			await browserAPI.storage.local.set({
 				settings: data
 			});
-			await browserAPI.storage.sync.set({
-				indexes: -1
-			});
+			if (supportsStorageSync()) {
+				await browserAPI.storage.sync.set({
+					indexes: -1
+				});
+			}
 		} else {
 			//Cut up all data into smaller JSON
 			await browserAPI.storage.sync.clear();
@@ -1208,6 +1210,11 @@ export namespace Storages {
 	}
 	
 	type StorageChange = StorageLocalChange|StorageSyncChange;
+
+	export function supportsStorageSync() {
+		return 'sync' in BrowserAPI.getSrc().storage && 
+		'get' in BrowserAPI.getSrc().storage.sync;
+	}
 
 	export async function checkBackgroundPagesForChange({ change, toUpdate }: {
 		change?: {
@@ -1326,20 +1333,22 @@ export namespace Storages {
 				wasUpdated: modules.storages.storageLocal.settingsVersionData.wasUpdated
 			}
 		});
-		if (!modules.storages.storageLocal.useStorageSync) {
+		if (!modules.storages.storageLocal.useStorageSync || !supportsStorageSync()) {
 			await browserAPI.storage.local.set({
 				settings: modules.storages.settingsStorage
 			}).then(async () => {
 				await changeCRMValuesIfSettingsChanged(changes);
-				await browserAPI.storage.sync.set({
-					indexes: -1
-				});
+				if (supportsStorageSync()) {
+					await browserAPI.storage.sync.set({
+						indexes: -1
+					});
+				}
 			}).catch((e) => {
 				window.log('Error on uploading to chrome.storage.local ', e);
 			});
 		} else {
 			//Using chrome.storage.sync
-			if (settingsJson.length >= 101400) {
+			if (settingsJson.length >= 101400 || !supportsStorageSync()) {
 				await browserAPI.storage.local.set({
 					useStorageSync: false
 				});
@@ -1529,7 +1538,7 @@ export namespace Storages {
 				[key: string]: string
 			} & {
 				indexes: number|string[];
-			} = await browserAPI.storage.sync.get() as any;
+			} = supportsStorageSync() ? await browserAPI.storage.sync.get() as any : {};
 			window.info('Loading local storage data');
 			const storageLocal: CRM.StorageLocal & {
 				settings?: CRM.SettingsStorage;

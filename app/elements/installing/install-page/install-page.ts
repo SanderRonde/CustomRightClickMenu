@@ -144,55 +144,56 @@ namespace InstallPageElement {
 				const local: CRM.StorageLocal & {
 					settings?: CRM.SettingsStorage;
 				} = await browserAPI.storage.local.get() as any;
-				if (local.useStorageSync) {
-					//Parse the data before sending it to the callback
-					const storageSync: {
-						[key: string]: string
-					} & {
-						indexes: string[]|number;
-					} = await browserAPI.storage.sync.get() as any;
-					let indexes = storageSync.indexes;
-					if (indexes === null || indexes === -1 || indexes === undefined) {
-						browserAPI.storage.local.set({
-							useStorageSync: false
-						});
-						this.settings = local.settings;
-					} else {
-						const settingsJsonArray: string[] = [];
-						const indexesLength = typeof indexes === 'number' ? 
-							indexes : (Array.isArray(indexes) ? 
-								indexes.length : 0);
-						this._createArray(indexesLength).forEach((_, index) => {
-							settingsJsonArray.push(storageSync[`section${index}`]);
-						});
-						const jsonString = settingsJsonArray.join('');
-						this.settings = JSON.parse(jsonString);
-					}
-				} else {
-					//Send the "settings" object on the storage.local to the callback
-					if (!local.settings) {
-						browserAPI.storage.local.set({
-							useStorageSync: true
-						});
+				if (local.useStorageSync && 'sync' in BrowserAPI.getSrc().storage && 
+					'get' in BrowserAPI.getSrc().storage.sync) {
+						//Parse the data before sending it to the callback
 						const storageSync: {
 							[key: string]: string
 						} & {
-							indexes: string[];
+							indexes: string[]|number;
 						} = await browserAPI.storage.sync.get() as any;
-						const indexes = storageSync.indexes;
-						const settingsJsonArray: string[] = [];
-						const indexesLength = typeof indexes === 'number' ? 
-							indexes : (Array.isArray(indexes) ? 
-								indexes.length : 0);
-						this._createArray(indexesLength).forEach((_, index) => {
-							settingsJsonArray.push(storageSync[`section${index}`]);
-						});
-						const jsonString = settingsJsonArray.join('');
-						this.settings = JSON.parse(jsonString);
+						let indexes = storageSync.indexes;
+						if (indexes === null || indexes === -1 || indexes === undefined) {
+							browserAPI.storage.local.set({
+								useStorageSync: false
+							});
+							this.settings = local.settings;
+						} else {
+							const settingsJsonArray: string[] = [];
+							const indexesLength = typeof indexes === 'number' ? 
+								indexes : (Array.isArray(indexes) ? 
+									indexes.length : 0);
+							this._createArray(indexesLength).forEach((_, index) => {
+								settingsJsonArray.push(storageSync[`section${index}`]);
+							});
+							const jsonString = settingsJsonArray.join('');
+							this.settings = JSON.parse(jsonString);
+						}
 					} else {
-						this.settings = local.settings;
+						//Send the "settings" object on the storage.local to the callback
+						if (!local.settings) {
+							browserAPI.storage.local.set({
+								useStorageSync: true
+							});
+							const storageSync: {
+								[key: string]: string
+							} & {
+								indexes: string[];
+							} = await browserAPI.storage.sync.get() as any;
+							const indexes = storageSync.indexes;
+							const settingsJsonArray: string[] = [];
+							const indexesLength = typeof indexes === 'number' ? 
+								indexes : (Array.isArray(indexes) ? 
+									indexes.length : 0);
+							this._createArray(indexesLength).forEach((_, index) => {
+								settingsJsonArray.push(storageSync[`section${index}`]);
+							});
+							const jsonString = settingsJsonArray.join('');
+							this.settings = JSON.parse(jsonString);
+						} else {
+							this.settings = local.settings;
+						}
 					}
-				}
 				resolve(null);
 			});
 		}

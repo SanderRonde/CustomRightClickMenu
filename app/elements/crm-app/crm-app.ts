@@ -809,6 +809,19 @@ namespace CRMAppElement {
 			return this._reverseString(split.join(','));
 		};
 
+		static _supportsStorageSync() {
+			return 'sync' in BrowserAPI.getSrc().storage && 
+				'get' in BrowserAPI.getSrc().storage.sync;
+		}
+
+		static _getDisabledReason(this: CrmApp) {
+			if (!this._supportsStorageSync()) {
+				return 'Syncing is not available in your browser';
+			} else {
+				return 'Amount of data is too big to sync';
+			}
+		}
+
 		static _getSettingsJsonLengthColor(this: CrmApp): string {
 			let red;
 			let green;
@@ -2426,7 +2439,7 @@ namespace CRMAppElement {
 
 				parent.storageLocal = storageLocal;
 				parent._storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
-				if (storageLocal.useStorageSync) {
+				if (storageLocal.useStorageSync && parent._supportsStorageSync()) {
 					//Parse the data before sending it to the callback
 					browserAPI.storage.sync.get().then((storageSync: any) => {
 						const sync = storageSync as {
@@ -2451,6 +2464,10 @@ namespace CRMAppElement {
 							const jsonString = settingsJsonArray.join('');
 							parent.settingsJsonLength = jsonString.length;
 							const settings = JSON.parse(jsonString);
+
+							if (parent.settingsJsonLength >= 102400) {
+								window.app.$.useStorageSync.setCheckboxDisabledValue(true);
+							}
 							callback(settings);
 						}
 					});
@@ -2482,6 +2499,10 @@ namespace CRMAppElement {
 						});
 					} else {
 						callback(storageLocal.settings);
+					}
+
+					if (!parent._supportsStorageSync() || parent.settingsJsonLength >= 102400) {
+						window.app.$.useStorageSync.setCheckboxDisabledValue(true);
 					}
 				}
 			};

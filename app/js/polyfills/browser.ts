@@ -165,6 +165,10 @@ namespace BrowserAPI {
 		return (_browserUserAgent = getBrowserUserAgent());
 	}
 
+	export function getSrc() {
+		return __srcBrowser;
+	}
+
 	function isDevOptionsPage() {
 		return location.href.indexOf('backgroun') === -1;
 	}
