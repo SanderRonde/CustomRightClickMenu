@@ -274,7 +274,7 @@ namespace CRMAppElement {
 			}
 		}
 
-		const usedAnimations: [HTMLElement, UsedAnimation][] = [];
+		const usedAnimations: WeakMap<HTMLElement, UsedAnimation[]> = new window.WeakMap();
 
 		function getObjSize(obj: {
 			[key: string]: any;
@@ -376,8 +376,9 @@ namespace CRMAppElement {
 			easing?: string|'bez';
 			fill?: 'forwards'|'backwards'|'both';
 		}) {
-			for (let [animationElement, animation] of usedAnimations) {
-				if (animationElement === element) {
+			if (usedAnimations.has(element)) {
+				const animations = usedAnimations.get(element);
+				for (const animation of animations) {
 					const { equal, reverse } = areConfigsEqual(animation.properties, properties);
 					const timingsEqual = areTimingsEqual(animation.options, options);
 					if (!equal || !timingsEqual) {
@@ -403,10 +404,25 @@ namespace CRMAppElement {
 			return null;
 		}
 
-		function trimUsedAnimations() {
-			if (usedAnimations.length >= 200) {
-				usedAnimations.splice(100, 100);
+		function getElementAnimations(element: HTMLElement): UsedAnimation[] {
+			if (!usedAnimations.has(element)) {
+				usedAnimations.set(element, []);
 			}
+			return usedAnimations.get(element);
+		}
+
+		function trimUsedAnimations(element: HTMLElement) {
+			const animations = getElementAnimations(element);
+			if (animations.length >= 200) {
+				animations.splice(100, 100);
+				usedAnimations.set(element, animations);
+			}
+		}
+
+		function addAnimation(element: HTMLElement, animation: UsedAnimation) {
+			const animations = getElementAnimations(element);
+			animations.push(animation);
+			usedAnimations.set(element, animations);
 		}
 
 		function doAnimation(element: HTMLElement, properties:  {
@@ -417,12 +433,12 @@ namespace CRMAppElement {
 			fill?: 'forwards'|'backwards'|'both';
 		}) {
 			const animation = animateImpl.apply(element, [properties, options]);
-			trimUsedAnimations();
-			usedAnimations.push([element, {
+			trimUsedAnimations(element);
+			addAnimation(element, {
 				animation, element, properties,
 				state: 'completed',
 				options: options
-			}]);
+			});
 			return animation;
 		}
 
