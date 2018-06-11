@@ -22,6 +22,7 @@ echo "Changed branches"
 yarn install
 
 gulp compile
+gulp removeBowerComponents
 gulp changeGitIgnore
 
 set +e
