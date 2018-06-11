@@ -137,7 +137,11 @@
   "scripts": {
     "pretest": "yarn pretest:main && yarn pretest:dist && yarn pretest:post",
     "pretest:main": "gulp stashBrowser && gulp browserChrome && gulp cleanDist && gulp buildTest",
-    "pretest:dist": "yarn build:chrome-copy && yarn build:firefox-copy && yarn build:edge-copy && yarn build:opera-copy",
+    "pretest:dist": "yarn pretest:dist:chrome-copy && yarn pretest:dist:firefox-copy && yarn pretest:dist:edge-copy && yarn pretest:dist:opera-copy",
+    "pretest:dist:chrome-copy": "gulp browserChromeBuild && gulp chromeToDistTest",
+    "pretest:dist:firefox-copy": "gulp browserFirefoxBuild && gulp firefoxToDistTest",
+    "pretest:dist:edge-copy": "gulp browserEdgeBuild && gulp edgeToDistTest",
+    "pretest:dist:opera-copy": "gulp browserOperaBuild && gulp operaToDistTest",
     "pretest:post": "yarn package && gulp unstashBrowser && gulp copyUnstashed",
     "test": "yarn test:global && yarn test:chrome && yarn test:firefox && yarn test:edge",
     "test:global": "mocha test/test.js",
