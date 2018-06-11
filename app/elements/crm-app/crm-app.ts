@@ -376,10 +376,6 @@ namespace CRMAppElement {
 			easing?: string|'bez';
 			fill?: 'forwards'|'backwards'|'both';
 		}) {
-			if ('transform' in properties[0] || 'transform' in properties[1]) {
-				return null;
-			}
-
 			for (let [animationElement, animation] of usedAnimations) {
 				if (animationElement === element) {
 					const { equal, reverse } = areConfigsEqual(animation.properties, properties);
