@@ -129,43 +129,6 @@
 				</app-header>
 				<div class="container">
 					<br />
-					<div class="optionsCont">
-						<div class="bigTxt">
-							Options
-						</div>
-						<div class="options">
-							<paper-toggle-option id="catchErrors">
-								Catch errors in scripts and log them. If off, 
-								allows for easier debugging using your browser's 
-								"pause on exceptions", if on, allows for custom handling.
-							</paper-toggle-option>
-							<paper-toggle-option id="showOptions">
-								Show options link in right-click menu
-							</paper-toggle-option>
-							<paper-toggle-option id="recoverUnsavedData">
-								Prompt you with an option to recover your 
-								unsaved script after you close a script/stylesheet 
-								without hitting the "save" or "exit" button.
-							</paper-toggle-option>
-							<paper-toggle-option id="CRMOnPage" showmessage disabledreason="Can't disable demo contextmenu in demo mode">
-								Use your custom right-click menu on this page as 
-								a preview instead of your browser's regular one.
-							</paper-toggle-option>
-							<paper-toggle-option id="editCRMInRM">
-								Edit the custom right-click Menu by clicking on the 
-								respective elements when right-clicking on this page
-							</paper-toggle-option>
-							<paper-toggle-option id="useStorageSync" disabledreason="[[_getDisabledReason()]]">
-								Sync your storage across all browser instances signed 
-								in to this account using browser storage sync. Turning 
-								this on will limit your total CRM size (including scripts, 
-								excluding libraries) to a total of 102,400 bytes. Currently using
-								<span style$="{{_getSettingsJsonLengthColor(settingsJsonLength)}}">{{_placeCommas(settingsJsonLength)}}</span>/102,400 bytes
-							</paper-toggle-option>
-							<paper-button on-tap="domListener" data-on-tap="showManagePermissions" raised class="blue">Manage Permissions</paper-button>
-						</div>
-					</div>
-					<br /><br />
 					<div class="customRightClickMenuConfig">
 						<div id="crmEditPageTopTextContainer">
 							<div class="bigTxt">
@@ -247,6 +210,43 @@
 						</div>
 						<div class="customRightClickMenuEdit">
 							<edit-crm id="editCrm"></edit-crm>
+						</div>
+					</div>
+					<br /><br />
+					<div class="optionsCont">
+						<div class="bigTxt">
+							Options
+						</div>
+						<div class="options">
+							<paper-toggle-option id="catchErrors">
+								Catch errors in scripts and log them. If off, 
+								allows for easier debugging using your browser's 
+								"pause on exceptions", if on, allows for custom handling.
+							</paper-toggle-option>
+							<paper-toggle-option id="showOptions">
+								Show options link in right-click menu
+							</paper-toggle-option>
+							<paper-toggle-option id="recoverUnsavedData">
+								Prompt you with an option to recover your 
+								unsaved script after you close a script/stylesheet 
+								without hitting the "save" or "exit" button.
+							</paper-toggle-option>
+							<paper-toggle-option id="CRMOnPage" showmessage disabledreason="Can't disable demo contextmenu in demo mode">
+								Use your custom right-click menu on this page as 
+								a preview instead of your browser's regular one.
+							</paper-toggle-option>
+							<paper-toggle-option id="editCRMInRM">
+								Edit the custom right-click Menu by clicking on the 
+								respective elements when right-clicking on this page
+							</paper-toggle-option>
+							<paper-toggle-option id="useStorageSync" disabledreason="[[_getDisabledReason()]]">
+								Sync your storage across all browser instances signed 
+								in to this account using browser storage sync. Turning 
+								this on will limit your total CRM size (including scripts, 
+								excluding libraries) to a total of 102,400 bytes. Currently using
+								<span style$="{{_getSettingsJsonLengthColor(settingsJsonLength)}}">{{_placeCommas(settingsJsonLength)}}</span>/102,400 bytes
+							</paper-toggle-option>
+							<paper-button on-tap="domListener" data-on-tap="showManagePermissions" raised class="blue">Manage Permissions</paper-button>
 						</div>
 					</div>
 					<br /><br />
