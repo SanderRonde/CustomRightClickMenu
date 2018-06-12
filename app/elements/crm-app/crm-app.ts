@@ -3562,12 +3562,20 @@ namespace CRMAppElement {
 				window.app.upload();
 			};
 
-			static launchSearchWebsiteTool() {
+			static launchSearchWebsiteToolScript() {
 				if (this.parent().item && this.parent().item.type === 'script' && window.scriptEdit) {
 					const paperSearchWebsiteDialog = this.parent().$.paperSearchWebsiteDialog;
 					paperSearchWebsiteDialog.init();
+					paperSearchWebsiteDialog.setOutputType('script');
 					paperSearchWebsiteDialog.show();
 				}
+			};
+
+			static launchSearchWebsiteToolLink() {
+				const paperSearchWebsiteDialog = this.parent().$.paperSearchWebsiteDialog;
+				paperSearchWebsiteDialog.init();
+				paperSearchWebsiteDialog.setOutputType('link');
+				paperSearchWebsiteDialog.show();
 			};
 
 			static launchExternalEditorDialog() {
@@ -4725,6 +4733,14 @@ namespace CRMAppElement {
 		 * Various util functions
 		 */
 		static util = class CRMAppUtil {
+			static wait(time: number) {
+				return new Promise<void>((resolve) => {
+					window.setTimeout(() => {
+						resolve(null);
+					}, time);
+				});
+			}
+
 			static createArray(length: number): void[] {
 				const arr = [];
 				for (let i = 0; i < length; i++) {

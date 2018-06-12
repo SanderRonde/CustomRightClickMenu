@@ -8,12 +8,12 @@
 			<div id="initialWindow">
 				<h2>Add a search for a website</h2>
 				This code will search given website for any text you highlight, or if nothing is highlighted will promt you for a query.<br/>
-				<paper-radio-group selected="defaults" id="initialWindowChoicesCont">
-					<paper-radio-button name="defaults" class="initialWindowChoice">
-						Choose one of the defaults
-					</paper-radio-button>
+				<paper-radio-group selected="manual" id="initialWindowChoicesCont">
 					<paper-radio-button name="manual" class="initialWindowChoice">
 						Input one yourself
+					</paper-radio-button>
+					<paper-radio-button name="defaults" class="initialWindowChoice">
+						Choose one of the defaults
 					</paper-radio-button>
 				</paper-radio-group>
 				<div class="buttons">
@@ -22,7 +22,7 @@
 				</div>
 			</div>
 			<div id="chooseDefaultSearchWindow">
-				<h2>Choose a default search</h2>
+				<h2>Choose a default search engine</h2>
 				<br/>
 				<div id="searchWebsiteDefaultsCont">
 					<paper-radio-group selected="google" id="searchWebsitesRadioGroup">
@@ -52,7 +52,7 @@
 					<paper-radio-button id="manualInputSavedChoice" name="list">By choosing from a list of your visited websites (chrome only)</paper-radio-button>
 				</paper-radio-group>
 				<div hidden$="[[!selectedIsUrl]]" id="manualInputURLOption">
-					Please go to the website and search for "customRightClickMenu" without quotes and paste the given URL in the input below.
+					Please go to the website you want to search. Search for "customRightClickMenu" without quotes and then paste the URL in the input below.
 					<paper-input id="manualInputURLInput" label="URL"></paper-input>
 				</div>
 				<div hidden$="[[selectedIsUrl]]" id="manualInputListChoice">
@@ -103,7 +103,7 @@
 				</div>
 				<div class="textAndInputContainer">
 					<span>Search query</span>
-					<paper-input value="{{searchQuery}}" label="query"></paper-input>
+					<paper-input id="queryInput" value="{{searchQuery}}" label="query"></paper-input>
 				</div>
 				<br/><br/>
 				<div id="testResultContainer">

@@ -863,6 +863,10 @@ paper-button.blue {
     color: white;
 }
 
+paper-button.topoffset {
+	margin-top: 6px;
+}
+
 .scriptPermissionsUsedPermissionsTxt {
 	font-size: 150%;
 	font-weight: 500;
