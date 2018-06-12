@@ -571,20 +571,17 @@ namespace EditCrmElement {
 			setItems?: number[];
 			unsetItems?: number[];
 			quick?: boolean;
-			superquick?: boolean;
 		} = {
 			setItems: [],
 			unsetItems: [],
 			quick: false,
-			superquick: false
 		}): CRMBuilder {
 			let {
-				setItems, unsetItems, quick, superquick
+				setItems, unsetItems, quick
 			} = settings;
 			setItems = setItems || [];
 			unsetItems = unsetItems || [];
 			quick = quick || false;
-			superquick = superquick || false;
 
 			const obj = this._buildCRMEditObj(setItems, unsetItems);
 			this.setMenus = obj.setMenus;
@@ -623,11 +620,7 @@ namespace EditCrmElement {
 				}, 50);
 			}
 
-			if (superquick) {
-				func.apply(this);
-			} else {
-				this._currentTimeout = window.setTimeout(func.bind(this), quick ? 150 : 1000);
-			}
+			this._currentTimeout = window.setTimeout(func.bind(this), quick ? 150 : 1000);
 			return crmBuilder;
 		};
 
@@ -652,8 +645,7 @@ namespace EditCrmElement {
 			if (this.isAdding) {
 				this.isAdding = false;
 				this.build({
-					setItems: this._setItems,
-					superquick: true
+					setItems: this._setItems
 				});
 			}
 		};
@@ -664,8 +656,7 @@ namespace EditCrmElement {
 				this.isAdding = true;
 
 				this.build({
-					setItems: this._setItems,
-					superquick: true
+					setItems: this._setItems
 				});
 			} else {
 				this.cancelAdding();
@@ -680,8 +671,7 @@ namespace EditCrmElement {
 			const container = window.app.crm.lookup(path, true);
 			container.push(newItem);
 			window.app.editCRM.build({
-				setItems: window.app.editCRM.setMenus,
-				superquick: true
+				setItems: window.app.editCRM.setMenus
 			});
 			window.app.upload();
 		};
@@ -1108,8 +1098,7 @@ namespace EditCrmElement {
 				if (this.setMenus[i] !== path[i]) {
 					if (showPath) {
 						this.build({
-							setItems: path,
-							superquick: true
+							setItems: path
 						});
 						break;
 					} else {
