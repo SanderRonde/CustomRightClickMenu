@@ -330,30 +330,6 @@
 						</div>
 					</div>
 					<br /><br />
-					<div class="globalExcludes">
-						<div class="bigTxt">
-							Global Excludes
-						</div>
-						<div class="globalExcludesDescr">
-							There are some sites on which you don't want any 
-							script to run on such as paypal and your bank's website, 
-							below you can enter these sites to make sure that no 
-							CRM script is ever ran on that page unless you 
-							specifically clicked on it. URLs must be specified 
-							as follows 
-							<a href="https://developer.chrome.com/extensions/match_patterns" rel="noopener" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
-						</div>
-						<div class="globalExcludesItems">
-							<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
-								<div class="globalExcludeContainer">
-									<paper-input on-change="domListener" data-on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern to exclude" error-message="This is not a valid URL pattern!" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
-									<paper-icon-button hidden$="[[_isOnlyGlobalExclude(globalExcludes)]]" icon="clear" on-tap="domListener" data-on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
-								</div>
-							</template>
-							<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="addGlobalExcludeField">ADD</paper-button>
-						</div>
-					</div>
-					<br /><br />
 					<div class="importSettingsCont">
 						<div class="bigTxt">
 							Importing your settings
@@ -406,6 +382,71 @@
 						<paper-button class="blue" raised id="exportButton" on-tap="domListener" data-on-tap="exportData">Export</paper-button>
 					</div>
 					<br/><br/>
+					<div class="helpCont">
+						<div class="bigTxt">
+							Help/Tutorials
+						</div>
+						<div class="helpDescr">
+							If you need help with anything or you would simply like a step by step plan of how to do something, please check
+							out the <a rel="noopener" href="https://github.com/SanderRonde/CustomRightClickMenu/wiki" target="_blank">wiki</a>. 
+							If you feel like there's a missing tutorial, please
+							<a rel="noopener" href="https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=[wiki]" target="_blank">create an issue</a>.
+						</div>
+					</div>
+					<br /><br />
+					<div class="contactCont">
+						<div class="bigTxt">
+							Contact
+						</div>
+						<div class="contactDescr">
+							If you have found any bugs, thought of any suggestions or 
+							have any other reason to contact me you can do so at 
+							<a rel="noopener" href="mailto:awsdfgvhbjn@gmail.com" target="_blank">awsdfgvhbjn@gmail.com</a>. To 
+							find out more about me, check out 
+							<a href="https://github.com/SanderRonde/" rel="noopener" target="_blank">my github page</a>. You 
+							can also check out the github repository over 
+							<a href="https://github.com/SanderRonde/CustomRightClickMenu" rel="noopener" target="_blank">here</a> if you 
+							want to report an issue, create a pull request, or just want to check out the code.
+						</div>
+					</div>
+					<br /><br />
+					<div class="bugReportingCont">
+						<div class="bigTxt">
+							Bugs
+						</div>
+						<div class="bugReportingDescr">
+							If you would like to report any bugs, you can do so by using the bug reporting tool.
+							This is a screen overlay that will be visible when you toggle it. It is overlayed
+							on top of every other dialog so you can always use it. To toggle it on/off use
+							the button below or hit <code class="codeSynthax">ctrl</code> 3 times in a row quickly.
+						</div>
+						<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="_toggleBugReportingTool">TOGGLE</paper-button>
+					</div>
+					<br /><br />
+					<div class="globalExcludes">
+						<div class="bigTxt">
+							Global Excludes
+						</div>
+						<div class="globalExcludesDescr">
+							There are some sites on which you don't want any 
+							script to run on such as paypal and your bank's website, 
+							below you can enter these sites to make sure that no 
+							CRM script is ever ran on that page unless you 
+							specifically clicked on it. URLs must be specified 
+							as follows 
+							<a href="https://developer.chrome.com/extensions/match_patterns" rel="noopener" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
+						</div>
+						<div class="globalExcludesItems">
+							<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
+								<div class="globalExcludeContainer">
+									<paper-input on-change="domListener" data-on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern to exclude" error-message="This is not a valid URL pattern!" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
+									<paper-icon-button hidden$="[[_isOnlyGlobalExclude(globalExcludes)]]" icon="clear" on-tap="domListener" data-on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
+								</div>
+							</template>
+							<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="addGlobalExcludeField">ADD</paper-button>
+						</div>
+					</div>
+					<br /><br />
 					<div class="loggingButtonCont">
 						<div class="bigTxt">
 							Checking your scripts' logs
@@ -431,47 +472,6 @@
 							your custom right-click menu and its settings.
 							This means that these settings are stored on your browser manufacturer's servers.
 							To turn off this feature, disable the "use storage sync" checkbox at the top of this page.
-						</div>
-					</div>
-					<br /><br />
-					<div class="bugReportingCont">
-						<div class="bigTxt">
-							Bugs
-						</div>
-						<div class="bugReportingDescr">
-							If you would like to report any bugs, you can do so by using the bug reporting tool.
-							This is a screen overlay that will be visible when you toggle it. It is overlayed
-							on top of every other dialog so you can always use it. To toggle it on/off use
-							the button below or hit <code class="codeSynthax">ctrl</code> 3 times in a row quickly.
-						</div>
-						<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="_toggleBugReportingTool">TOGGLE</paper-button>
-					</div>
-					<br /><br />
-					<div class="contactCont">
-						<div class="bigTxt">
-							Contact
-						</div>
-						<div class="contactDescr">
-							If you have found any bugs, thought of any suggestions or 
-							have any other reason to contact me you can do so at 
-							<a rel="noopener" href="mailto:awsdfgvhbjn@gmail.com" target="_blank">awsdfgvhbjn@gmail.com</a>. To 
-							find out more about me, check out 
-							<a href="https://github.com/SanderRonde/" rel="noopener" target="_blank">my github page</a>. You 
-							can also check out the github repository over 
-							<a href="https://github.com/SanderRonde/CustomRightClickMenu" rel="noopener" target="_blank">here</a> if you 
-							want to report an issue, create a pull request, or just want to check out the code.
-						</div>
-					</div>
-					<br /><br />
-					<div class="helpCont">
-						<div class="bigTxt">
-							Help/Tutorials
-						</div>
-						<div class="helpDescr">
-							If you need help with anything or you would simply like a step by step plan of how to do something, please check
-							out the <a rel="noopener" href="https://github.com/SanderRonde/CustomRightClickMenu/wiki" target="_blank">wiki</a>. 
-							If you feel like there's a missing tutorial, please
-							<a rel="noopener" href="https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=[wiki]" target="_blank">create an issue</a>.
 						</div>
 					</div>
 					<br /><br />
