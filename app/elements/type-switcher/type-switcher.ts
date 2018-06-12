@@ -188,6 +188,10 @@ namespace TypeSwitcherElement {
 			editCrmEl.item = item;
 			const prevType = item.type;
 
+			if (item.name === `My ${prevType[0].toUpperCase() + prevType.slice(1)}`) {
+					item.name = `My ${type[0].toUpperCase() + type.slice(1)}`
+				}
+
 			if (prevType === 'menu') {
 				item.menuVal = item.children;
 				delete item.children;
@@ -266,6 +270,9 @@ namespace TypeSwitcherElement {
 				delete item.menuVal;
 				item.type = 'menu';
 				item.value = null;
+				if (item.name === `My ${type[0].toUpperCase() + type.slice(1)}`) {
+					item.name = `My ${prevType[0].toUpperCase() + prevType.slice(1)}`
+				}
 					
 				editCrmEl.type = prevType;
 				editCrmEl.calculateType();
