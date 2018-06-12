@@ -4258,6 +4258,22 @@ namespace CRMAppElement {
 				return mainObject as T & Y;
 			};
 
+			static mergeArraysWithoutAssignment<T extends T[] | U[], U>(mainArray: T, additionArray: T) {
+				for (let i = 0; i < additionArray.length; i++) {
+					if (mainArray[i] && typeof additionArray[i] === 'object' &&
+						mainArray[i] !== undefined && mainArray[i] !== null) {
+						if (Array.isArray(additionArray[i])) {
+							this.mergeArraysWithoutAssignment<T, U>(mainArray[i] as T,
+								additionArray[i] as T);
+						} else {
+							this.mergeObjectsWithoutAssignment(mainArray[i], additionArray[i]);
+						}
+					} else {
+						mainArray[i] = additionArray[i];
+					}
+				}
+			}
+
 			static mergeObjectsWithoutAssignment<T extends {
 				[key: string]: any;
 				[key: number]: any;
@@ -4268,9 +4284,9 @@ namespace CRMAppElement {
 							mainObject[key] !== undefined &&
 							mainObject[key] !== null) {
 							if (Array.isArray(additions[key])) {
-								this.mergeArrays(mainObject[key], additions[key]);
+								this.mergeArraysWithoutAssignment(mainObject[key], additions[key]);
 							} else {
-								this.mergeObjects(mainObject[key], additions[key]);
+								this.mergeObjectsWithoutAssignment(mainObject[key], additions[key]);
 							}
 						} else {
 							mainObject[key] = additions[key];
