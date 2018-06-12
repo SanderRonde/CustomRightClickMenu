@@ -3475,9 +3475,11 @@ describe('On-Page CRM', function() {
 			}, 'setting up the CRM does not throw');
 		});
 		it('should have the correct structure', async function() {
-			this.retries(2);
-			this.slow(400 * TIME_MODIFIER);
-			this.timeout(1400 * TIME_MODIFIER);
+			this.retries(4);
+			this.slow(8000 * TIME_MODIFIER);
+			this.timeout(10000 * TIME_MODIFIER);
+
+			await wait(3000);
 			const contextMenu = await getContextMenu();
 			assertContextMenuEquality(contextMenu, CRMNodes);
 		});
