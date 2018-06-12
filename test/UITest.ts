@@ -431,7 +431,7 @@ const templates = {
 	},
 	getDefaultLinkNode(options: any): CRM.LinkNode {
 		const defaultNode: CRM.LinkNode = {
-			name: 'name',
+			name: 'My Link',
 			onContentTypes: [true, true, true, false, false, false],
 			type: 'link',
 			showOnSpecified: false,
@@ -482,7 +482,7 @@ const templates = {
 	},
 	getDefaultScriptNode(options: any): CRM.ScriptNode {
 		const defaultNode: CRM.ScriptNode = {
-			name: 'name',
+			name: 'My Script',
 			onContentTypes: [true, true, true, false, false, false],
 			type: 'script',
 			isLocal: true,
@@ -500,7 +500,7 @@ const templates = {
 	},
 	getDefaultStylesheetNode(options: CRM.PartialStylesheetNode): CRM.StylesheetNode {
 		const defaultNode: Partial<CRM.StylesheetNode> = {
-			name: 'name',
+			name: 'My Stylesheet',
 			onContentTypes: [true, true, true, false, false, false],
 			type: 'stylesheet',
 			isLocal: true,
@@ -519,7 +519,7 @@ const templates = {
 	getDefaultDividerOrMenuNode(options: any, type: 'divider' | 'menu'):
 	CRM.DividerNode | CRM.MenuNode {
 		const defaultNode: CRM.DividerNode|CRM.MenuNode = {
-			name: 'name',
+			name: `My ${type[0].toUpperCase() + type.slice(1)}`,
 			type: type,
 			nodeInfo: templates.getDefaultNodeInfo(options.nodeInfo),
 			onContentTypes: [true, true, true, false, false, false],
@@ -1490,7 +1490,7 @@ describe('User entrypoints', function() {
 		});
 	
 		function testNameInput(type: CRM.NodeType) {
-			const defaultName = 'name';
+			const defaultName = `My ${type[0].toUpperCase() + type.slice(1)}`;
 			describe('Name Input', function() {
 				this.timeout(20000 * TIME_MODIFIER);
 				this.slow(20000 * TIME_MODIFIER);

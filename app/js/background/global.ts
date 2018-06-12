@@ -152,7 +152,7 @@ export namespace Global {
 				},
 				getDefaultLinkNode(this: CRMTemplates, options: Partial<CRM.LinkNode> = {}): CRM.LinkNode {
 					const defaultNode: Partial<CRM.LinkNode> = {
-						name: 'name',
+						name: 'My Link',
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'link',
 						showOnSpecified: false,
@@ -202,7 +202,7 @@ export namespace Global {
 				},
 				getDefaultScriptNode(this: CRMTemplates, options: CRM.PartialScriptNode = {}): CRM.ScriptNode {
 					const defaultNode: CRM.PartialScriptNode = {
-						name: 'name',
+						name: 'My Script',
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'script',
 						isLocal: false,
@@ -218,7 +218,7 @@ export namespace Global {
 				},
 				getDefaultStylesheetNode(this: CRMTemplates, options: CRM.PartialStylesheetNode = {}): CRM.StylesheetNode {
 					const defaultNode: CRM.PartialStylesheetNode = {
-						name: 'name',
+						name: 'My Stylesheet',
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'stylesheet',
 						isLocal: true,
@@ -235,7 +235,7 @@ export namespace Global {
 				getDefaultDividerOrMenuNode(this: CRMTemplates, options: Partial<CRM.PassiveNode> = {}, type: 'divider' | 'menu'):
 					CRM.DividerNode | CRM.MenuNode {
 					const defaultNode: Partial<CRM.PassiveNode> = {
-						name: 'name',
+						name: `My ${type[0].toUpperCase() + type.slice(1)}`,
 						type: type,
 						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 						onContentTypes: [true, true, true, false, false, false],
