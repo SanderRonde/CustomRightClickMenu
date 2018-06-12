@@ -707,10 +707,6 @@ namespace CRMAppElement {
 			return this.getChromeVersion() < 30;
 		}
 
-		static _isEdge() {
-			return BrowserAPI.getBrowser() === 'edge';
-		}
-		
 		static _getChromeAge() {
 			return new Date().getUTCFullYear() - 2013;
 		}
