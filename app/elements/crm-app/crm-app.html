@@ -346,8 +346,8 @@
 								Something went wrong processing the data, please check the data
 							</span>
 						</div>
-						<paper-checkbox checked id="overWriteImport">Overwrite</paper-checkbox>
-						<paper-checkbox id="oldCRMImport">CRM 1.0</paper-checkbox>
+						<paper-checkbox title="Check this if you want to overwrite your CRM. If not checked, imported CRM is appended to the current one" checked id="overWriteImport">Overwrite</paper-checkbox>
+						<paper-checkbox title="Check this if you're importing from the old version of the extension (pre-2016)" id="oldCRMImport">CRM legacy</paper-checkbox>
 						<br />
 						<paper-button class="blue" raised id="importButton" on-tap="domListener" data-on-tap="importData">Import</paper-button>
 					</div>
