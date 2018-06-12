@@ -47,7 +47,7 @@ namespace PaperToggleOptionElement {
 		};
 
 		static onClick(this: PaperToggleOption) {
-			const id = this.getAttribute('id');
+			const id = this.getAttribute('id') as keyof CRM.StorageLocal;
 			window.app.setLocal(id, !this.toggled);
 		}
 	}

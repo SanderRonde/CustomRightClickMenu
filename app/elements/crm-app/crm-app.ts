@@ -610,7 +610,7 @@ namespace CRMAppElement {
 		 * The nodes in an object where the key is the ID and the
 		 * value is the node
 		 */
-		private static _nodesById: CRMStore = new window.Map();
+		static nodesById: CRMStore = new window.Map();
 
 		/**
 		 * The column index of the "shadow" node, if any
@@ -791,12 +791,12 @@ namespace CRMAppElement {
 		};
 
 		static _getNodeName(this: CrmApp, nodeId: CRM.GenericNodeId) {
-			return window.app._nodesById.get(nodeId).name;
+			return window.app.nodesById.get(nodeId).name;
 		};
 
 		static _getNodeVersion(this: CrmApp, nodeId: CRM.GenericNodeId) {
-			return (window.app._nodesById.get(nodeId).nodeInfo && 
-				window.app._nodesById.get(nodeId).nodeInfo.version) ||
+			return (window.app.nodesById.get(nodeId).nodeInfo && 
+				window.app.nodesById.get(nodeId).nodeInfo.version) ||
 					'1.0';
 		};
 
@@ -1207,6 +1207,10 @@ namespace CRMAppElement {
 		 */
 		static upload(this: CrmApp, force: boolean = false) {
 			this._uploading.upload(force);
+			(async () => {
+				await window.onExistsChain(window, 'app', 'settings', 'crm');
+				this.updateCrmRepresentation(window.app.settings.crm);
+			})();
 		}
 
 		static updateEditorZoom(this: CrmApp) {
@@ -1220,7 +1224,12 @@ namespace CRMAppElement {
 			document.head.appendChild(styleEl);
 		};
 
-		static setLocal<T>(this: CrmApp, key: string, value: T) {
+		static updateCrmRepresentation(this: CrmApp, crm: CRM.Tree) {
+			this._setup.orderNodesById(crm);
+			this._setup.buildNodePaths(crm, []);
+		}
+
+		static setLocal<K extends keyof CRM.StorageLocal>(this: CrmApp, key: K, value: CRM.StorageLocal[K]) {
 			const obj = {
 				[key]: value
 			};
@@ -2095,7 +2104,7 @@ namespace CRMAppElement {
 				val: string;
 				crmType: number;
 			}) {
-				const crmItem = this.parent()._nodesById.get(editingObj.id) as CRM.ScriptNode | CRM.StylesheetNode;
+				const crmItem = this.parent().nodesById.get(editingObj.id) as CRM.ScriptNode | CRM.StylesheetNode;
 				const code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
 					crmItem.value.script : crmItem.value.backgroundScript) :
 					(crmItem.value.stylesheet));
@@ -2166,7 +2175,7 @@ namespace CRMAppElement {
 					};
 				};
 
-				const path = this.parent()._nodesById.get(editingObj.id).path;
+				const path = this.parent().nodesById.get(editingObj.id).path;
 				const highlightItem = () => { 
 					document.body.style.pointerEvents = 'none';
 					const columnConts = this.parent().editCRM.$.CRMEditColumnsContainer.children;
@@ -2295,8 +2304,7 @@ namespace CRMAppElement {
 							parent.onSettingsReadyCallbacks[i].params);
 					}
 					parent.updateEditorZoom();
-					parent._setup.orderNodesById(items.crm);
-					parent._setup.buildNodePaths(items.crm, []);
+					parent.updateCrmRepresentation(items.crm);
 					if (parent.settings.latestId) {
 						parent._latestId = items.latestId as CRM.GenericNodeId;
 					} else {
@@ -2334,7 +2342,7 @@ namespace CRMAppElement {
 					};
 					setTimeout(function () {
 						//Check out if the code is actually different
-						const node = parent._nodesById.get(editing.id) as CRM.ScriptNode | CRM.StylesheetNode;
+						const node = parent.nodesById.get(editing.id) as CRM.ScriptNode | CRM.StylesheetNode;
 						const nodeCurrentCode = (node.type === 'script' ? node.value.script :
 							node.value.stylesheet);
 						if (nodeCurrentCode.trim() !== editing.val.trim()) {
@@ -2555,11 +2563,15 @@ namespace CRMAppElement {
 				}
 			};
 
-			static orderNodesById(tree: CRM.Tree) {
+			static orderNodesById(tree: CRM.Tree, root: boolean = true) {
+				if (root) {
+					this.parent().nodesById.clear();
+				}
+
 				for (let i = 0; i < tree.length; i++) {
 					const node = tree[i];
-					this.parent()._nodesById.set(node.id, node);
-					node.children && this.orderNodesById(node.children);
+					this.parent().nodesById.set(node.id, node);
+					node.children && this.orderNodesById(node.children, false);
 				}
 			};
 
@@ -4051,7 +4063,7 @@ namespace CRMAppElement {
 					window.doc.addedPermissionsTabContainer
 						.querySelectorAll('.nodeAddedPermissionsCont'));
 				panels.forEach((panel: HTMLElement) => { 
-					const node = this.parent()._nodesById
+					const node = this.parent().nodesById
 						.get(~~(panel.getAttribute('data-id') as any) as CRM.GenericNodeId) as CRM.ScriptNode;
 					const permissions = Array.prototype.slice.apply(panel.querySelectorAll('paper-checkbox'))
 						.map(function (checkbox: HTMLPaperCheckboxElement) {
@@ -4665,7 +4677,7 @@ namespace CRMAppElement {
 			static lookupId(id: CRM.GenericNodeId, returnArray: false): CRM.Node;
 			static lookupId(id: CRM.GenericNodeId, returnArray: boolean): CRM.Node[] | CRM.Node {
 				if (!returnArray) {
-					return window.app._nodesById.get(id);
+					return window.app.nodesById.get(id);
 				}
 
 				let el;
