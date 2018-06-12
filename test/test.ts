@@ -2260,7 +2260,7 @@ describe('CRMAPI', () => {
 			useStorageSync: true,
 			requestPermissions: [],
 			editing: null,
-			selectedCrmType: 0,
+			selectedCrmType: [true, true, true, true, true, true],
 			hideToolsRibbon: false,
 			isTransfer: true,
 			shrinkTitleRibbon: false,

@@ -280,15 +280,15 @@ namespace EditCrmElement {
 		 */
 		private static _isNodeVisible(this: EditCrm, result: {
 			[nodeId: number]: boolean;
-		}, node: CRM.Node, showContentType: number): 0|1 {
+		}, node: CRM.Node, showContentTypes: boolean[]): 0|1 {
 			let length;
 			if (node.children && node.children.length > 0) {
 				length = node.children.length;
 				for (let i = 0; i < length; i++) {
-					this._isNodeVisible(result, node.children[i], showContentType);
+					this._isNodeVisible(result, node.children[i], showContentTypes);
 				}
 			}
-			if (!node.onContentTypes[showContentType]) {
+			if (!window.app.util.arraysOverlap(node.onContentTypes, showContentTypes)) {
 				result[node.id] = true;
 				return 0;
 			}
@@ -341,7 +341,7 @@ namespace EditCrmElement {
 				index: number;
 			}>)[] = window.app.settings.crm;
 			const setMenusLength: number = setMenus.length;
-			const showContentTypes: number = window.app.crmType;
+			const showContentTypes: boolean[] = window.app.crmTypes;
 
 			//Hide all nodes that should be hidden
 			const hiddenNodes: {
@@ -1136,7 +1136,7 @@ namespace EditCrmElement {
 
 		private static _typeChanged(this: EditCrm, quick: boolean = false) {
 			for (let i = 0; i < 6; i++) {
-				window.app.editCRM.classList[(i === window.app.crmType ? 'add' : 'remove')](this._getCrmTypeFromNumber(i));
+				window.app.editCRM.classList[window.app.crmTypes[i] ? 'add' : 'remove'](this._getCrmTypeFromNumber(i));
 			}
 			window.runOrAddAsCallback(window.app.editCRM.build, window.app.editCRM, [{
 				quick: quick
