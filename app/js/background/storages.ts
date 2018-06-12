@@ -1540,7 +1540,7 @@ export namespace Storages {
 				indexes: number|string[];
 			} = supportsStorageSync() ? await browserAPI.storage.sync.get() as any : {};
 			window.info('Loading local storage data');
-			const storageLocal: CRM.StorageLocal & {
+			let storageLocal: CRM.StorageLocal & {
 				settings?: CRM.SettingsStorage;
 			} = await browserAPI.storage.local.get() as any;
 			window.info('Checking if this is the first run');
@@ -1552,6 +1552,9 @@ export namespace Storages {
 						resolve(null);
 					});
 			} else {
+				if (result.type === 'upgradeVersion') {
+					storageLocal = result.storageLocal;
+				}
 				window.info('Parsing data encoding');
 				const storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 				delete storageLocalCopy.globalExcludes;
@@ -1598,6 +1601,12 @@ export namespace Storages {
 					}
 				}
 
+				if (result.type === 'upgradeVersion') {
+					for (const fn of result.afterSyncLoad) {
+						settingsStorage = fn(settingsStorage);
+					}
+				}
+
 				window.info('Checking for data updates')
 				checkForStorageSyncUpdates(settingsStorage, storageLocal);
 
@@ -1607,7 +1616,9 @@ export namespace Storages {
 					});
 
 				if (result.type === 'upgradeVersion') {
-					result.fn();
+					for (const fn of result.afterSync) {
+						fn();
+					}
 				}
 			}
 		});
@@ -1739,22 +1750,31 @@ export namespace Storages {
 			major, minor, patch
 		}
 	}
-	function isVersionInRange(min: string, max: string, target: string): boolean {
-		const maxObj = getVersionObject(max);
-		const minObj = getVersionObject(min);
-		const targetObj = getVersionObject(target);
+	function getVersionDiff(a: string, b: string): number {
+		const aObj = getVersionObject(a);
+		const bObj = getVersionObject(b);
 		
-		if (targetObj.major > maxObj.major || targetObj.major < minObj.major) {
-			return false;
-		}
-		if (targetObj.minor > maxObj.minor || targetObj.minor < minObj.minor) {
-			return false;
-		}
-		if (targetObj.patch > maxObj.patch || targetObj.patch <= minObj.patch) {
-			return false;
+		if (aObj.major > bObj.major) {
+			return -1;
+		} else if (aObj.major < bObj.major) {
+			return 1;
 		}
 
-		return true;
+		if (aObj.minor > bObj.minor) {
+			return -1;
+		} else if (aObj.minor < bObj.minor) {
+			return 1;
+		}
+		
+		if (aObj.patch > bObj.patch) {
+			return -1;
+		} else if (aObj.patch < bObj.patch) {
+			return 1;
+		}
+		return 0;
+	}
+	function isVersionInRange(min: string, max: string, target: string): boolean {
+		return getVersionDiff(min, target) === 1 && getVersionDiff(target, max) === 1;
 	}
 	function crmTypeNumberToArr(crmType: number): boolean[] {
 		const arr = [false, false, false, false, false, false];
@@ -1762,13 +1782,13 @@ export namespace Storages {
 		return arr;
 	}
 	async function upgradeVersion(oldVersion: string, newVersion: string): Promise<{
-		beforeSyncLoad: ((local: Partial<CRM.StorageLocal>) => void)[];
-		afterSyncLoad: ((sync: Partial<CRM.SettingsStorage>) => Partial<CRM.SettingsStorage>)[];
+		beforeSyncLoad: ((local: CRM.StorageLocal) => CRM.StorageLocal)[];
+		afterSyncLoad: ((sync: CRM.SettingsStorage) => CRM.SettingsStorage)[];
 		afterSync: (() => void)[];
 	}> {
 		const fns: {
-			beforeSyncLoad: ((local: Partial<CRM.StorageLocal>) => Partial<CRM.StorageLocal>)[];
-			afterSyncLoad: ((sync: Partial<CRM.SettingsStorage>) => Partial<CRM.SettingsStorage>)[];
+			beforeSyncLoad: ((local: CRM.StorageLocal) => CRM.StorageLocal)[];
+			afterSyncLoad: ((sync: CRM.SettingsStorage) => CRM.SettingsStorage)[];
 			afterSync: (() => void)[];
 		} = {
 			beforeSyncLoad: [],
@@ -1900,7 +1920,9 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 		fn: Promise<any>;
 	} | {
 		type: 'upgradeVersion';
-		fn: () => void;
+		afterSync: (() => void)[];
+		afterSyncLoad: ((sync: CRM.SettingsStorage) => CRM.SettingsStorage)[];
+		storageLocal: CRM.StorageLocal;
 	} | {
 		type: 'noChanges';
 	}> {				
@@ -1914,15 +1936,13 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 				window.log('Upgrading minor version from', storageLocal.lastUpdatedAt, 'to', currentVersion);
 				const fns = await upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
 				fns.beforeSyncLoad.forEach((fn) => {
-					fn(storageLocal);
+					storageLocal = fn(storageLocal);
 				});
 				return {
 					type: 'upgradeVersion',
-					fn: () => {
-						fns.afterSync.forEach((fn) => {
-							fn();
-						});
-					}
+					afterSync: fns.afterSync,
+					afterSyncLoad: fns.afterSyncLoad,
+					storageLocal: storageLocal
 				}
 			}
 			//Determine if it's a transfer from CRM version 1.*
