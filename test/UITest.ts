@@ -2965,7 +2965,7 @@ describe('User entrypoints', function() {
 										.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
 										.click();
 									await wait(500);
-									await searchDialog.findElement(webdriver.By.id('manulInputSavedChoice'))
+									await searchDialog.findElement(webdriver.By.id('manualInputSavedChoice'))
 										.click();
 									await wait(500);
 									await driver.executeScript(inlineFn(() => {

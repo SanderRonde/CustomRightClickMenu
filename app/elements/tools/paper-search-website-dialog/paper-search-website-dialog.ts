@@ -351,6 +351,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 		 * Prepares the dialog for use
 		 */
 		static init(this: PaperSearchWebsiteDialog) {
+			this.$.manualInputSavedChoice.disabled = BrowserAPI.getBrowser() !== 'chrome';
 			this.clear();
 			this.fit();
 		};
