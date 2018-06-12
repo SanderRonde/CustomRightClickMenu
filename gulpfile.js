@@ -9,7 +9,6 @@ const replace = require('gulp-replace');
 const banner = require('gulp-banner');
 const rename = require('gulp-rename');
 const ts = require('gulp-typescript');
-const through = require('through2');
 const uglify = require('gulp-uglify');
 const babel = require('gulp-babel');
 const xpi = require('firefox-xpi');

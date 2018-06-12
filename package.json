@@ -118,7 +118,6 @@
     "selenium-webdriver": "^3.6.0",
     "semver": "^5.5.0",
     "supports-color": "^3.1.2",
-    "through2": "^2.0.3",
     "tty": "^1.0.1",
     "typedoc": "^0.11.1",
     "typescript": "2.9.1",
