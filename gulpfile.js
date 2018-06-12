@@ -226,16 +226,28 @@ function readFile(filePath, options) {
 	gulp.task('compile', genTask('Compiles the typescript',
 		gulp.series('updateTsIdMaps', gulp.parallel(
 			function compileApp() {
-				const project = ts.createProject('tsconfig.json');
-				return project.src()
-					.pipe(project())
-					.js.pipe(gulp.dest('./app'));
+				return new Promise((resolve, reject) => {
+					const project = ts.createProject('tsconfig.json');
+					const proj =  project.src().pipe(project());
+					proj.once('error', () => { 
+						reject('Error(s) thrown during compilation');
+					});
+					proj.js.pipe(gulp.dest('./app')).once('end', () => {
+						resolve(null);
+					});
+				});
 			},
 			function compileTest() {
-				const project = ts.createProject('test/tsconfig.json');
-				return project.src()
-					.pipe(project())
-					.js.pipe(gulp.dest('./test'));
+				return new Promise((resolve, reject) => {
+					const project = ts.createProject('test/tsconfig.json');
+					const proj =  project.src().pipe(project());
+					proj.once('error', () => { 
+						reject('Error(s) thrown during compilation');
+					});
+					proj.js.pipe(gulp.dest('./test')).once('end', () => {
+						resolve(null);
+					});
+				});
 			}
 		))));
 })();
