@@ -794,7 +794,7 @@ function locatorToCss(by: webdriver.Locator): string {
 }
 
 function checkIfListContainsElement<T extends HTMLElement|Element>(element: T): string {
-	const keys: (keyof T)[] = Object.getOwnPropertyNames(element) as (keyof T)[];
+	const keys: (Extract<keyof T, string>)[] = Object.getOwnPropertyNames(element) as (Extract<keyof T, string>)[];
 	for (let i = 0; i < keys.length; i++) {
 		if (keys[i].slice(0, 2) === '__' && element[keys[i]] !== null) {
 			return keys[i];
