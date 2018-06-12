@@ -793,11 +793,23 @@ paper-toast {
 		}
 
 .crmTypeTxt {
-	font-weight: 500;
+	font-weight: 400;
 	text-align: center;
 	text-transform: uppercase;
 	margin-top:-10px;
 	font-size:80%;
+}
+
+.crmTypeIcon {
+	fill: #535353;
+}
+
+.crmType.toggled .crmTypeTxt {
+	font-weight: bold;
+}
+
+.crmType.toggled .crmTypeIcon {
+	fill: black;
 }
 
 #crmTypeSelector {
