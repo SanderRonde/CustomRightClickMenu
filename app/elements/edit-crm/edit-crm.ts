@@ -1135,8 +1135,9 @@ namespace EditCrmElement {
 		};
 
 		private static _typeChanged(this: EditCrm, quick: boolean = false) {
+			const crmTypes = window.app.crmTypes || [true, true, true, true, true, true];
 			for (let i = 0; i < 6; i++) {
-				window.app.editCRM.classList[window.app.crmTypes[i] ? 'add' : 'remove'](this._getCrmTypeFromNumber(i));
+				window.app.editCRM.classList[crmTypes[i] ? 'add' : 'remove'](this._getCrmTypeFromNumber(i));
 			}
 			window.runOrAddAsCallback(window.app.editCRM.build, window.app.editCRM, [{
 				quick: quick
