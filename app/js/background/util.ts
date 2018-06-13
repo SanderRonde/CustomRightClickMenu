@@ -59,6 +59,36 @@ export namespace Util {
 			});
 		}
 	};
+	function compareObj(firstObj: {
+		[key: string]: any;
+		[key: number]: any;
+	}, secondObj: {
+		[key: string]: any;
+		[key: number]: any;
+	}): boolean {
+		for (let key in firstObj) {
+			if (firstObj.hasOwnProperty(key) && firstObj[key] !== undefined) {
+				if (typeof firstObj[key] === 'object') {
+					if (typeof secondObj[key] !== 'object') {
+						return false;
+					}
+					if (Array.isArray(firstObj[key])) {
+						if (!Array.isArray(secondObj[key])) {
+							return false;
+						}
+						if (!compareArray(firstObj[key], secondObj[key])) {
+							return false;
+						}
+					} else if (!compareObj(firstObj[key], secondObj[key])) {
+						return false;
+					}
+				} else if (firstObj[key] !== secondObj[key]) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 	export function compareArray(firstArray: any[], secondArray: any[]): boolean {
 		if (!firstArray && !secondArray) {
 			return false;
@@ -354,6 +384,10 @@ export namespace Util {
 			}
 		});
 	}
+	const _requiredFiles: string[] = [];
+	function loadFile(path: string, ...msg: any[]): Promise<string> {
+		return xhr(browserAPI.runtime.getURL(path), msg);
+	}
 	export async function execFile(path: string): Promise<void> {
 		if (_requiredFiles.indexOf(path) > -1) {
 			return;
@@ -539,39 +573,31 @@ export namespace Util {
 			}
 			return base;
 		}
-
-	const _requiredFiles: string[] = [];
-	function loadFile(path: string, ...msg: any[]): Promise<string> {
-		return xhr(browserAPI.runtime.getURL(path), msg);
+	const locks: Map<LOCK, Promise<void>> = new window.Map();
+	export const enum LOCK {
+		ROOT_CONTEXTMENU_NODE
 	}
-	function compareObj(firstObj: {
-		[key: string]: any;
-		[key: number]: any;
-	}, secondObj: {
-		[key: string]: any;
-		[key: number]: any;
-	}): boolean {
-		for (let key in firstObj) {
-			if (firstObj.hasOwnProperty(key) && firstObj[key] !== undefined) {
-				if (typeof firstObj[key] === 'object') {
-					if (typeof secondObj[key] !== 'object') {
-						return false;
-					}
-					if (Array.isArray(firstObj[key])) {
-						if (!Array.isArray(secondObj[key])) {
-							return false;
-						}
-						if (!compareArray(firstObj[key], secondObj[key])) {
-							return false;
-						}
-					} else if (!compareObj(firstObj[key], secondObj[key])) {
-						return false;
-					}
-				} else if (firstObj[key] !== secondObj[key]) {
-					return false;
-				}
+	export function lock(lockName: LOCK): Promise<() => void> {
+		setMapDefault(locks, lockName, Promise.resolve(null));
+
+		const currentLock = locks.get(lockName);
+		let _resolve: () => void;
+		const returnPromise = new Promise<void>((resolve) => { 
+			_resolve = () => { 
+				resolve(null); 
 			}
-		}
-		return true;
+		});
+		const prom = new Promise<void>((resolve) => {
+			returnPromise.then(() => {
+				resolve(null);
+			});
+		});
+		locks.set(lockName, prom);
+
+		return new Promise((resolve) => {
+			currentLock.then(() => {
+				resolve(_resolve);
+			});
+		});
 	}
 }

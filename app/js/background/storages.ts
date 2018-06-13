@@ -1629,22 +1629,8 @@ export namespace Storages {
 	}
 
 	async function changeCRMValuesIfSettingsChanged(changes: StorageChange[]) {
-		const updated: {
-			crm: boolean;
-			id: boolean;
-			rootName: boolean;
-		} = {
-			crm: false,
-			id: false,
-			rootName: false
-		};
 		for (let i = 0; i < changes.length; i++) {
 			if (changes[i].key === 'crm' || changes[i].key === 'showOptions') {
-				if (updated.crm) {
-					return;
-				}
-				updated.crm = true;
-
 				await modules.CRMNodes.updateCRMValues();
 				modules.CRMNodes.TS.compileAllInTree();
 				await Storages.checkBackgroundPagesForChange({
@@ -1653,10 +1639,6 @@ export namespace Storages {
 				await modules.CRMNodes.buildPageCRM();
 				await modules.MessageHandling.signalNewCRM();
 			} else if (changes[i].key === 'latestId') {
-				if (updated.id) {
-					return;
-				}
-				updated.id = true;
 				const change = changes[i] as StorageSyncChange<'latestId'>;
 				modules.globalObject.globals.latestId = change.newValue;
 				browserAPI.runtime.sendMessage({
@@ -1671,14 +1653,21 @@ export namespace Storages {
 						}
 				});
 			} else if (changes[i].key === 'rootName') {
-				if (updated.rootName) {
-					return;
-				}
-				updated.rootName = true;
 				const rootNameChange = changes[i] as StorageSyncChange<'rootName'>;
-				browserAPI.contextMenus.update(modules.crmValues.rootId, {
-					title: rootNameChange.newValue
-				});
+				
+				const done = await modules.Util.lock(modules.Util.LOCK.ROOT_CONTEXTMENU_NODE);
+				try {
+					await browserAPI.contextMenus.update(modules.crmValues.rootId, {
+						title: rootNameChange.newValue
+					});
+					done();
+				} catch(e) {
+					//Resolve lock first
+					done();
+
+					//Rebuild CRM
+					await modules.CRMNodes.buildPageCRM();
+				}
 			}
 		}
 	}
