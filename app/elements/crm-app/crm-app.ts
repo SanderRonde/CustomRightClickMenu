@@ -2288,6 +2288,12 @@ namespace CRMAppElement {
 				});
 			};
 
+			private static _crmTypeNumberToArr(crmType: number): boolean[] {
+				const arr = [false, false, false, false, false, false];
+				arr[crmType] = true;
+				return arr;
+			}
+
 			static async setupStorages() {
 				const parent = this.parent();
 				const storageLocal = await browserAPI.storage.local.get<CRM.StorageLocal & {
@@ -2355,8 +2361,11 @@ namespace CRMAppElement {
 					}, 2500);
 				}
 				if (storageLocal.selectedCrmType !== undefined) {
-					parent.crmTypes = storageLocal.selectedCrmType;
-					parent._setup.switchToIcons(storageLocal.selectedCrmType);
+					const selected = Array.isArray(storageLocal.selectedCrmType) ?
+						storageLocal.selectedCrmType : 
+						this._crmTypeNumberToArr(storageLocal.selectedCrmType);
+					parent.crmTypes = selected;
+					parent._setup.switchToIcons(selected);
 				} else {
 					browserAPI.storage.local.set({
 						selectedCrmType: [true, true, true, true, true, true]
