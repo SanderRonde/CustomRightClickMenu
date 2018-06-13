@@ -1852,12 +1852,21 @@ export namespace Storages {
 						code: {}
 					}
 				}
+				browserAPI.storage.local.set({
+					libraries: libs
+				});
 
 				if (typeof local.selectedCrmType === 'number') {
 					local.selectedCrmType = crmTypeNumberToArr(local.selectedCrmType);
+					browserAPI.storage.local.set({
+						selectedCrmType: local.selectedCrmType
+					});
 				}
 				if (local.editing && typeof local.editing.crmType === 'number') {
 					local.editing.crmType = crmTypeNumberToArr(local.editing.crmType);
+					browserAPI.storage.local.set({
+						editing: local.editing
+					});
 				}
 				return local;
 			});
