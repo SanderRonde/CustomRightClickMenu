@@ -77,6 +77,7 @@ declare class TypedWebdriver extends webdriver.WebDriver {
 const ROOT = path.join(__dirname, '../');
 const ZIP_CACHE_DIR = path.join(ROOT, 'temp/migration/cached/');
 const ZIP_PATH = path.join(ROOT, 'temp/migration/downloadedzip.zip');
+const WAIT_ON_DONE = process.argv.indexOf(`--wait-on-done`) > -1;
 
 function checkVersionArgs(fromName: string, toName: string) {
 	if (process.argv.indexOf(fromName) === -1 && 
@@ -1437,7 +1438,9 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 		this.timeout(60000);
 		this.slow(10000);
 
-		await driver.quit();
+		if (!WAIT_ON_DONE) {
+			await driver.quit();
+		}
 	});
 }
 
