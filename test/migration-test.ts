@@ -1281,7 +1281,7 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 			await wait(20000);
 			
 			await chromeExtensionData.reloadBackgroundPage(driver, capabilties);
-			await wait(2000);
+			await wait(10000);
 			await chromeExtensionData.openOptionsPage(driver, capabilties);
 			await wait(1000);
 		});
