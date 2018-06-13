@@ -259,6 +259,30 @@ function readFile(filePath, options) {
 			await del('./build');	
 		}, 
 		//Copy from /app to /temp
+		function copyMonacoTemp() {
+			return gulp
+				.src([
+					'**/**',
+					'!vs/basic-languages/src/**',
+					'vs/basic-languages/src/css.js'
+				], {
+					base: 'node_modules/monaco-editor/min',
+					cwd: 'node_modules/monaco-editor/min'
+				})
+				.pipe(gulp.dest('temp/elements/edit-pages/monaco-editor/src/min/'));
+		},
+		function copyMonaco() {
+			return gulp
+				.src([
+					'**/**',
+					'!vs/basic-languages/src/**',
+					'vs/basic-languages/src/css.js'
+				], {
+					base: 'node_modules/monaco-editor/min',
+					cwd: 'node_modules/monaco-editor/min'
+				})
+				.pipe(gulp.dest('app/elements/edit-pages/monaco-editor/src/min/'));
+		},
 		gulp.parallel(
 			function manifest() {
 				return gulp
@@ -376,32 +400,8 @@ function readFile(filePath, options) {
 					})
 					.pipe(gulp.dest('./temp/js/libraries'));
 			},
-			function copyMonacoTemp() {
-				return gulp
-					.src([
-						'**/**',
-						'!vs/basic-languages/src/**',
-						'vs/basic-languages/src/css.js'
-					], {
-						base: 'node_modules/monaco-editor/min',
-						cwd: 'node_modules/monaco-editor/min'
-					})
-					.pipe(gulp.dest('temp/elements/edit-pages/monaco-editor/src/min/'));
-			},
 			gulp.series(
 				//entrypointPrefix.html specific stuff
-				function copyMonaco() {
-					return gulp
-						.src([
-							'**/**',
-							'!vs/basic-languages/src/**',
-							'vs/basic-languages/src/css.js'
-						], {
-							base: 'node_modules/monaco-editor/min',
-							cwd: 'node_modules/monaco-editor/min'
-						})
-						.pipe(gulp.dest('app/elements/edit-pages/monaco-editor/src/min/'));
-				},
 				function processHTMLApp() {
 					return gulp
 						.src([
