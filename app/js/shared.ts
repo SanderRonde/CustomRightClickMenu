@@ -112,7 +112,7 @@ type SharedWindow = {
 		easing?: string;
 		fill?: 'forwards'|'backwards'|'both';
 	}): Animation;
-}
+};
 
 (() => {
 	if (window.onExists) {
