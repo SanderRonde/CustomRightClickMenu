@@ -171,7 +171,7 @@ function readFile(filePath, options) {
 						.pipe(replace(/this.target(\s)?=(\s)?e.target/g,
 							'this.target = e.path ? e.path[0] : e.target'))
 						.pipe(beautify())
-						.pipe(gulp.dest('app/elements/edit-pages/monaco-editor/src/min/'));
+						.pipe(gulp.dest('app/elements/options/editpages/monaco-editor/src/min/'));
 				},
 				function tsEmbedDev() {
 					return gulp
@@ -269,7 +269,7 @@ function readFile(filePath, options) {
 					base: 'node_modules/monaco-editor/min',
 					cwd: 'node_modules/monaco-editor/min'
 				})
-				.pipe(gulp.dest('temp/elements/edit-pages/monaco-editor/src/min/'));
+				.pipe(gulp.dest('temp/elements/options/editpages/monaco-editor/src/min/'));
 		},
 		function copyMonaco() {
 			return gulp
@@ -281,7 +281,7 @@ function readFile(filePath, options) {
 					base: 'node_modules/monaco-editor/min',
 					cwd: 'node_modules/monaco-editor/min'
 				})
-				.pipe(gulp.dest('app/elements/edit-pages/monaco-editor/src/min/'));
+				.pipe(gulp.dest('app/elements/options/editpages/monaco-editor/src/min/'));
 		},
 		gulp.parallel(
 			function manifest() {
@@ -335,7 +335,7 @@ function readFile(filePath, options) {
 						'icon-small.png', 
 						'icon-supersmall.png', 
 						'LICENSE.txt', 
-						'elements/change-log/changelog.js',
+						'elements/util/change-log/changelog.js',
 						'!js/background/**/*',
 						'!js/background.js',
 						'!bower_components/webcomponentsjs/webcomponents-lite.js'
@@ -764,7 +764,7 @@ function readFile(filePath, options) {
 						'MonacoEditorHookManager.caretRangeFromPoint(arguments[0])'))
 					.pipe(replace(/this.target(\s)?=(\s)?e.target/g,
 						'this.target = e.path ? e.path[0] : e.target'))
-					.pipe(gulp.dest('build/elements/edit-pages/monaco-editor/src/min/'));
+					.pipe(gulp.dest('build/elements/options/editpages/monaco-editor/src/min/'));
 			}
 		)
 	);

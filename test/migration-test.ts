@@ -6,7 +6,7 @@ const extractZip: (zipPath: string, opts: {
 }, cb: (err?: Error) => void) => void = require('extract-zip');
 const versions: {
 	[version: string]: string[];
-} = require('../app/elements/change-log/changelog');
+} = require('../app/elements/util/change-log/changelog');
 import * as chromeExtensionData from './UI/drivers/chrome-extension';
 import * as chromeDriver from 'selenium-webdriver/chrome';
 import * as webdriver from 'selenium-webdriver';

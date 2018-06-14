@@ -1,0 +1,988 @@
+﻿<!DOCTYPE HTML>
+<link rel="import" href="../../../elements/elements.html" />
+<dom-module id="crm-app">
+	<template>
+		<!-- build:css inline ../../../elements/options/crm-app/crm-app.css -->
+		<link rel="stylesheet" href="../../elements/options/crm-app/crm-app.css" />
+		<!-- /build -->
+		<style>
+			.title {
+				@apply --layout;
+				@apply --layout-flex-auto;
+				@apply --layout-center-center;
+			}
+		</style>
+		<div class="popupCont">
+			<div id="fullscreenEditor">
+				<div id="editorCurrentScriptTitle">
+					<div id="showHideToolsRibbonCont">
+						<paper-icon-button title="tools" id="showHideToolsRibbonButton" 
+							icon="menu" on-tap="domListener" data-on-tap="toggleToolsRibbon">
+						</paper-icon-button>							
+					</div>
+					<div id="editorTitleRibbon">
+						<span id="ribbonScriptName" hidden$="[[!scriptItem]]"></span>
+						<span id="ribbonStylesheetName" hidden$="[[!stylesheetItem]]"></span>
+					</div>
+					<div id="titleRibbonEnd">
+						<div id="fullscreenEditorButtons">
+							<div hidden="{{_currentItemIsCss(item)}}" title="Toggle typescript" id="editorTypescript" on-tap="domListener" data-on-tap="toggleTypescript">
+								TS
+							</div>
+							<div title="Exit fullscreen" id="fullscreenEditorToggle" on-tap="domListener" data-on-tap="exitFullscreen">
+								<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+									<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>
+								</svg>
+							</div>
+							<div title="Toggle options" id="fullscreenEditorSettings" on-tap="domListener" data-on-tap="toggleFullscreenOptions">
+								<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48">
+									<path d="M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+								</svg>
+							</div>
+						</div>
+						<div id="shrinkTitleRibbonButtonCont">
+							<svg id="shrinkTitleRibbonButton" on-tap="toggleShrinkTitleRibbon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+						</div>
+					</div>
+				</div>
+				<div id="fullscreenEditorHorizontal">
+					<div id="editorToolsRibbonContainer">
+						<div id="editorToolsRibbon">
+							<div on-tap="domListener" data-on-tap="launchExternalEditorDialog" class="ribbonTool" id="externalEditorDialogTrigger">Use External Editor</div>
+							<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool jsTool" usedlibraries="[[scriptItem.value.libraries]]"></paper-libraries-selector>
+							<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool jsTool"></paper-get-page-properties>
+							<div on-tap="domListener" data-on-tap="launchSearchWebsiteToolScript" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
+							<div on-tap="domListener" data-on-tap="runLint" class="ribbonTool" id="runCssLintButton">
+								<span class="cssTool">
+									Run CSSLint
+								</span>
+								<span class="jsTool">
+									Run JSLint
+								</span>
+							</div>
+							<div on-tap="domListener" data-on-tap="showCssTips" class="ribbonTool cssTool" id="showCssTipsButton">
+								Info
+							</div>
+						</div>
+					</div>
+					<div id="fullscreenSettingsContainer">
+						<div id="editorOptions">
+							<div id="settingsPadding">
+								<div class="editorSettingsTxt">
+									Editor Settings
+								</div>
+								<div id="editorThemeSettingCont">
+									<div id="editorThemeSettingTxt">Theme:</div>
+									<div id="editorThemeSettingChoicesCont">
+										<div id="editorThemeSettingWhite" on-tap="domListener" data-on-tap="setThemeWhite" class="editorThemeSetting"></div>
+										<div id="editorThemeSettingDark" on-tap="domListener" data-on-tap="setThemeDark" class="editorThemeSetting"></div>
+									</div>
+								</div>
+								<br />
+								<div id="editorThemeFontSize">
+									<paper-input on-change="domListener" data-on-change="fontSizeChange" id="editorThemeFontSizeInput" type="number" always-float-label label="font size %">
+										<div suffix>%</div>
+									</paper-input>
+								</div>
+								<br />
+								<div id="editorJSLintGlobals">
+									<div id="editorJSLintGlobalsFlexCont">
+										<paper-input on-keypress="domListener" data-on-keypress="jsLintGlobalsChange" id="editorJSLintGlobalsInput" label="Comma seperated list of JSLint globals"  always-float-label></paper-input>
+									</div>
+								</div>
+								<br />
+								<br />
+								<div id="keyBindingsText" class="editorSettingsTxt">Key Bindings</div>
+								<div id="keyBindingsContainer">
+									<template id="keyBindingsTemplate" is="dom-repeat" as="keyBinding">
+										<div class="keyBinding">
+											<div>
+												<paper-input data-index="{{itemIndex}}" on-keydown="domListener" data-on-keydown="onKeyBindingKeyDown" label="{{keyBinding.name}}" value="{{getKeyBindingValue(keyBinding)}}" class="keyBindingSettingKeyInput" always-float-label></paper-input>
+											</div>
+											<br />
+										</div>
+									</template>
+								</div>
+								<br id="afterEditorSettingsSpacing" /><br /><br />
+							</div>
+						</div>
+					</div>
+					<monaco-editor no-spinner id="fullscreenEditorEditor"></monaco-editor>
+				</div>
+			</div>
+			<crm-edit-page hidden$="[[!show]]" id="editPage" item="{{item}}"></crm-edit-page>
+		</div>
+		<div class="backdropCont"></div>
+		<div class="pageCont">
+			<app-header-layout>
+				<app-header slot="header" reveals effects="waterfall">
+					<app-toolbar>
+						<div main-title class="title">
+							<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewbox="10000 5500 9000 10590" width="70px" height="70px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+								xmlns:xlink="http://www.w3.org/1999/xlink">
+								<defs>
+									<style type="text/css">
+										.fil5 {fill:white}
+										.fil0 {fill:#3F51B5}
+										.fil3 {fill:#4CAF50}
+										.fil4 {fill:#AA00FF}
+										.fil1 {fill:#F44336}
+										.fil2 {fill:#FFC107}
+									</style>
+								</defs>
+								<g id="Layer_x0020_1">
+									<metadata id="CorelCorpID_0Corel-Layer"/>
+									<g id="_592574224">
+										<path class="fil0" d="M16886 12415l168 -169c63,-62 63,-164 0,-227l-947 -947 -569 222 1121 1121c62,62 164,62 227,0z"/>
+										<path class="fil1" d="M15906 12225l168 -168c63,-63 63,-165 0,-227l-536 -536 -568 222 709 709c62,63 164,63 227,0z"/>
+										<path class="fil2" d="M16095 13205l169 -168c62,-63 62,-165 0,-227l-1294 -1294 -293 114 -108 276 1299 1299c63,63 165,63 227,0z"/>
+										<path class="fil3" d="M15115 13016l169 -169c62,-62 62,-164 0,-226l-715 -715 -223 568 542 542c63,62 165,62 227,0z"/>
+										<path class="fil4" d="M15305 13996l168 -169c62,-62 62,-164 0,-226l-1127 -1127 -222 568 954 954c62,62 164,62 227,0z"/>
+										<rect class="fil4" transform="matrix(0.515153 -0.515153 0.164098 0.164098 15404.8 14322.8)" width="767" height="2672" rx="220" ry="220"/>
+										<rect class="fil3" transform="matrix(0.515153 -0.515153 -0.15801 -0.15801 15838.2 13965.6)" width="767" height="2672" rx="220" ry="220"/>
+										<rect class="fil2" transform="matrix(0.515153 -0.515153 -0.264406 -0.264406 16826.3 14163.2)" width="767" height="2672" rx="220" ry="220"/>
+										<rect class="fil1" transform="matrix(0.515153 -0.515153 -0.291735 -0.291735 16726.2 13272.5)" width="767" height="2672" rx="220" ry="220"/>
+										<rect class="fil0" transform="matrix(0.515153 -0.515153 -0.139794 -0.139794 17657.4 13413.2)" width="767" height="2672" rx="220" ry="220"/>
+										<rect class="fil2" transform="matrix(0.515153 -0.515153 -0.0972441 -0.0972441 17224.2 14561.1)" width="767" height="2672" rx="220" ry="220"/>
+										<rect class="fil5" transform="matrix(0.457635 -0.457635 0.457635 0.457635 10474.2 7770.44)" width="767" height="2672" rx="220" ry="220"/>
+										<rect class="fil5" x="12215" y="6895" width="497" height="1729" rx="142" ry="142"/>
+										<rect class="fil5" transform="matrix(-1.71705E-14 0.647193 0.647193 1.71705E-14 9950.21 9159.86)" width="767" height="2672" rx="220" ry="220"/>
+										<rect class="fil5" transform="matrix(0.457635 0.457635 -0.457635 0.457635 14071.1 7370.17)" width="767" height="2672" rx="220" ry="220"/>
+										<rect class="fil5" transform="matrix(0.457635 0.457635 0.457635 -0.457635 10425.1 11016.2)" width="767" height="2672" rx="220" ry="220"/>
+										<path class="fil5" d="M12638 9203l3531 1269c159,57 241,232 184,391 -32,90 -102,156 -186,185l-1490 582 -589 1504c-62,157 -239,234 -396,172 -85,-33 -147,-101 -176,-181l0 0 -1269 -3531c-57,-159 26,-334 184,-391 70,-25 143,-23 207,0z"/>
+									</g>
+								</g>
+							</svg>								
+							<span>[[_getPageTitle()]]</span>
+						</div>
+					</app-toolbar>
+					<template is="dom-if" if="[[_isOldChrome()]]">
+						<div class="badBrowserBanner">
+							You are using a very old version of 
+							Chrome (<span>[[_getChromeAge()]]</span> years old).
+							Some features may perform worse or not at all. Please consider 
+							updating your chrome.</div>
+					</template>
+				</app-header>
+				<div class="container">
+					<br />
+					<div class="customRightClickMenuConfig">
+						<div id="crmEditPageTopTextContainer">
+							<div class="bigTxt">
+								Editing the CRM
+							</div>
+							<div id="crmTypeSelector">
+								<div class="crmType pageType" title="Toggle showing items that are visible when right-clicking on regular webpages"  on-tap="domListener" data-on-tap="iconSwitch">
+									<paper-ripple></paper-ripple>
+									<div class="crmTypeIcon">
+										<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="80" height="80" viewbox="0 0 24 24">
+											<path d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z" />
+										</svg>
+									</div>
+									<div class="crmTypeTxt">
+										Webpages
+									</div>
+								</div>
+								<div class="crmType linkType" title="Toggle showing items that are visible when right-clicking on web links" on-tap="domListener" data-on-tap="iconSwitch">
+									<paper-ripple></paper-ripple>
+									<div class="crmTypeIcon">
+										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
+											<path d="M0 0h24v24H0z" fill="none" />
+											<path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
+										</svg>
+									</div>
+									<div class="crmTypeTxt">
+										Weblinks
+									</div>
+								</div>
+								<div class="crmType selectionType" title="Toggle showing items that are visible when right-clicking on selected text" on-tap="domListener" data-on-tap="iconSwitch">
+									<paper-ripple></paper-ripple>
+									<div class="crmTypeIcon">
+										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
+											<path d="M0 0h24v24H0z" fill="none" />
+											<path d="M3 5h2V3c-1.1 0-2 .9-2 2zm0 8h2v-2H3v2zm4 8h2v-2H7v2zM3 9h2V7H3v2zm10-6h-2v2h2V3zm6 0v2h2c0-1.1-.9-2-2-2zM5 21v-2H3c0 1.1.9 2 2 2zm-2-4h2v-2H3v2zM9 3H7v2h2V3zm2 18h2v-2h-2v2zm8-8h2v-2h-2v2zm0 8c1.1 0 2-.9 2-2h-2v2zm0-12h2V7h-2v2zm0 8h2v-2h-2v2zm-4 4h2v-2h-2v2zm0-16h2V3h-2v2zM7 17h10V7H7v10zm2-8h6v6H9V9z" />
+										</svg>
+									</div>
+									<div class="crmTypeTxt">
+										Selection
+									</div>
+								</div>
+								<div class="crmType imageType" title="Toggle showing items that are visible when right-clicking on images" on-tap="domListener" data-on-tap="iconSwitch">
+									<paper-ripple></paper-ripple>
+									<div class="crmTypeIcon">
+										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
+											<path d="M0 0h24v24H0z" fill="none" />
+											<path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+										</svg>
+									</div>
+									<div class="crmTypeTxt">
+										Images
+									</div>
+								</div>
+								<div class="crmType videoType" title="Toggle showing items that are visible when right-clicking on videos" on-tap="domListener" data-on-tap="iconSwitch">
+									<paper-ripple></paper-ripple>
+									<div class="crmTypeIcon">
+										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
+											<path d="M0 0h24v24H0z" fill="none" />
+											<path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
+										</svg>
+									</div>
+									<div class="crmTypeTxt">
+										Videos
+									</div>
+								</div>
+								<div class="crmType audioType" title="Toggle showing items that are visible when right-clicking on audio elements" on-tap="domListener" data-on-tap="iconSwitch">
+									<paper-ripple></paper-ripple>
+									<div class="crmTypeIcon">
+										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
+											<path d="M0 0h24v24H0z" fill="none" />
+											<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z" />
+										</svg>
+									</div>
+									<div class="crmTypeTxt">
+										Audio
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="customRightClickMenuEdit">
+							<edit-crm id="editCrm"></edit-crm>
+						</div>
+					</div>
+					<br /><br />
+					<div class="optionsCont">
+						<div class="bigTxt">
+							Options
+						</div>
+						<div class="options">
+							<paper-toggle-option id="catchErrors">
+								Catch errors in scripts and log them. If off, 
+								allows for easier debugging using your browser's 
+								"pause on exceptions", if on, allows for custom handling.
+							</paper-toggle-option>
+							<paper-toggle-option id="showOptions">
+								Show options link in right-click menu
+							</paper-toggle-option>
+							<paper-toggle-option id="recoverUnsavedData">
+								Prompt you with an option to recover your 
+								unsaved script after you close a script/stylesheet 
+								without hitting the "save" or "exit" button.
+							</paper-toggle-option>
+							<paper-toggle-option id="CRMOnPage" showmessage disabledreason="Can't disable demo contextmenu in demo mode">
+								Use your custom right-click menu on this page as 
+								a preview instead of your browser's regular one.
+							</paper-toggle-option>
+							<paper-toggle-option id="editCRMInRM">
+								Edit the custom right-click Menu by clicking on the 
+								respective elements when right-clicking on this page
+							</paper-toggle-option>
+							<paper-toggle-option id="useStorageSync" disabledreason="[[_getDisabledReason()]]">
+								Sync your storage across all browser instances signed 
+								in to this account using browser storage sync. Turning 
+								this on will limit your total CRM size (including scripts, 
+								excluding libraries) to a total of 102,400 bytes. Currently using
+								<span style$="{{_getSettingsJsonLengthColor(settingsJsonLength)}}">{{_placeCommas(settingsJsonLength)}}</span>/102,400 bytes
+							</paper-toggle-option>
+							<paper-button on-tap="domListener" data-on-tap="showManagePermissions" raised class="blue">Manage Permissions</paper-button>
+						</div>
+					</div>
+					<br /><br />
+					<div class="defaultCRMLinks">
+						<div class="bigTxt">
+							Commonly Used Links
+						</div>
+						<div class="defaultsDescr">
+							Here are some commonly used links to get you started. 
+							Click the "ADD" button to add the link to your custom 
+							right-click menu. It will be added at the end of the 
+							list but you can always change the order later if you want.
+						</div>
+						<br />
+						<div class="defaultLinks">
+							<default-link href="http://www.google.com" default-name="Google"></default-link>
+							<default-link href="http://www.facebook.com" default-name="Facebook"></default-link>
+							<default-link href="http://www.twitter.com" default-name="Twitter"></default-link>
+							<default-link href="http://www.youtube.com" default-name="Youtube"></default-link>
+							<default-link href="http://www.yahoo.com" default-name="Yahoo"></default-link>
+							<default-link href="http://www.wikipedia.org" default-name="Wikipedia"></default-link>
+							<default-link href="http://www.amazon.com" default-name="Amazon"></default-link>
+							<default-link href="http://www.ebay.com" default-name="Ebay"></default-link>
+							<default-link href="http://www.reddit.com" default-name="Reddit"></default-link>
+						</div>
+					</div>
+					<br /><br />
+					<div class="defaultCRMSearchEngines">
+						<div class="bigTxt">
+							Search Engines
+						</div>
+						<div class="defaultsDescr">
+							These are some commonly used search-engines.
+							Click "ADD" to add the search-engine to your CRM. You can 
+							then drag the link anywhere you want it to be. You can 
+							also change the name you want it to have below or do it 
+							when it's already in your CRM. The <code class="codeSynthax">%s</code> 
+							is replaced with whatever text you've selected (if any).
+						</div>
+						<div class="defaultSearchEngines">
+							<default-link search-engine href="https://www.google.com/search?q=%s" default-name="Search Google for %s"></default-link>
+							<default-link search-engine href="https://en.wikipedia.org/w/index.php?title=Special:Search&search=%s" default-name="Search Wikipedia for %s"></default-link>
+							<default-link search-engine href="https://www.youtube.com/results?search_query=%s" default-name="Search Youtube for %s"></default-link>
+							<default-link search-engine href="https://www.amazon.com/s/?url=search-alias%3Daps&field-keywords=%s" default-name="Search Amazon for %s"></default-link>
+						</div>
+						<paper-button class="blue topoffset" id="removeButton" on-tap="domListener" data-on-tap="launchSearchWebsiteToolLink" raised>ADD CUSTOM WEBSITE</paper-button>
+					</div>
+					<br /><br />
+					<div class="URIScheme">
+						<div class="bigTxt">
+							Launching programs instead of links
+						</div>
+						<div class="URISchemeDescr">
+							You may want to launch programs on your computer as well, 
+							instead of only using links.
+							This is possible, but requires a bit of extra effort because 
+							of browsers' security restrictions.
+							Directly linking to files on your computer to open them is 
+							not possible (at least not for executable programs),
+							this is why you'll need to set up a custom (local only) URI 
+							that launches the program you want to launch.
+							If you want to read up about it some more check out 
+							<a href="https://msdn.microsoft.com/en-us/library/aa767914(VS.85).aspx" rel="noopener" target="_blank">this</a> page.
+							To make this possible you'll need to add a key/value 
+							pair in your registry. After doing this, 
+							instead of http:// use yourscheme:// as a link.<br>
+							If you are on a mac you can use
+							<a rel="noopener" href="https://support.shotgunsoftware.com/hc/en-us/community/posts/209485898-Launching-External-Applications-using-Custom-Protocols-under-OSX" target="_blank">this</a>
+							method. If you are on a windows computer you can do this yourself if you
+							want to (follow 
+							<a href="https://support.microsoft.com/nl-nl/kb/310516" rel="noopener" target="_blank">these</a> instructions),
+							or you can generate a file you can download that will 
+							write the key/value pair for you by hitting the button below.
+							The second method is a lot easier and faster but it's 
+							understandable if you don't trust this extension in which case you can do it manually.
+						</div>
+						<div class="URISchemeGenerator">
+							<paper-input id="URISchemeFilePath" label="File path including name" value="C:\files\my_file.exe"></paper-input>
+							<paper-input id="URISchemeSchemeName" pattern="(\w|\d|_|\.|-)*" auto-validate="true" error-message="This is not a valid scheme" label="URI scheme name" value="myscheme"></paper-input>
+							<animated-button raised class="blue topoffset" tap="domListener" data-on-tap="_generateRegexFile" content="GENERATE"></animated-button>
+						</div>
+					</div>
+					<br /><br />
+					<div class="importSettingsCont">
+						<div class="bigTxt">
+							Importing your settings
+						</div>
+						<div class="importDescr">
+							Here you can import your settings or CRM nodes from 
+							somewhere else. Simply copy the code into the box below 
+							and hit "import". Checking "overwrite" will overwrite 
+							your current settings and/or CRM with the settings you imported.
+						</div>
+						<div class="importSettings">
+							<textarea rows="10" id="importSettingsInput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
+							<span id="importSettingsError">
+								Something went wrong processing the data, please check the data
+							</span>
+						</div>
+						<paper-checkbox title="Check this if you want to overwrite your CRM. If not checked, imported CRM is appended to the current one" checked id="overWriteImport">Overwrite</paper-checkbox>
+						<paper-checkbox title="Check this if you're importing from the old version of the extension (pre-2016)" id="oldCRMImport">CRM legacy</paper-checkbox>
+						<br />
+						<animated-button class="blue" cooldown raised id="importButton" tap="domListener" data-on-tap="importData" content="Import"></animated-button>
+					</div>
+					<br /><br />
+					<div class="exportSettingsCont">
+						<div class="bigTxt">
+							Exporting your settings
+						</div>
+						<div class="exportDescr">
+							Here you can export your settings and/or CRM. To export select 
+							CRM nodes hit the "select" button below the editor above and 
+							hit export. Paste the generated data into a different 
+							instance's "import" field to import the data.
+						</div>
+						<div class="exportSettings">
+							<center-element id="exportSettingsSpinner" nostyle hide>
+								<div>
+									<div class="exportSettingsSpinnerHorizontalCenterer">
+										<paper-spinner active></paper-spinner>
+									</div>
+									<div>
+										Waiting for textfield... This may take some time
+									</div>
+								</div>
+							</center-element>
+							<textarea rows="10" id="exportSettingsOutput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
+						</div>
+						<paper-checkbox checked id="exportCRM">Export your Custom Right-Click Menu</paper-checkbox>
+						<paper-checkbox checked id="exportSettings">Export your Settings</paper-checkbox>
+						<paper-icon-button id="exportCopyButton" icon="content-copy" title="copy to clipboard" on-tap="domListener" data-on-tap="copyExportToClipboard"></paper-icon-button>
+						<br/>
+						<animated-button cooldown class="blue" raised id="exportButton" tap="domListener" data-on-tap="exportData" content="Export"></animated-button>
+					</div>
+					<br/><br/>
+					<div class="helpCont">
+						<div class="bigTxt">
+							Help/Tutorials
+						</div>
+						<div class="helpDescr">
+							If you need help with anything or you would simply like a step by step plan of how to do something, please check
+							out the <a rel="noopener" href="https://github.com/SanderRonde/CustomRightClickMenu/wiki" target="_blank">wiki</a>. 
+							If you feel like there's a missing tutorial, please
+							<a rel="noopener" href="https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=[wiki]" target="_blank">create an issue</a>.
+						</div>
+					</div>
+					<br /><br />
+					<div class="contactCont">
+						<div class="bigTxt">
+							Contact
+						</div>
+						<div class="contactDescr">
+							If you have found any bugs, thought of any suggestions or 
+							have any other reason to contact me you can do so at 
+							<a rel="noopener" href="mailto:awsdfgvhbjn@gmail.com" target="_blank">awsdfgvhbjn@gmail.com</a>. To 
+							find out more about me, check out 
+							<a href="https://github.com/SanderRonde/" rel="noopener" target="_blank">my github page</a>. You 
+							can also check out the github repository over 
+							<a href="https://github.com/SanderRonde/CustomRightClickMenu" rel="noopener" target="_blank">here</a> if you 
+							want to report an issue, create a pull request, or just want to check out the code.
+						</div>
+					</div>
+					<br /><br />
+					<div class="bugReportingCont">
+						<div class="bigTxt">
+							Bugs
+						</div>
+						<div class="bugReportingDescr">
+							If you would like to report any bugs, you can do so by using the bug reporting tool.
+							This is a screen overlay that will be visible when you toggle it. It is overlayed
+							on top of every other dialog so you can always use it. To toggle it on/off use
+							the button below or hit <code class="codeSynthax">ctrl</code> 3 times in a row quickly.
+						</div>
+						<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="_toggleBugReportingTool">TOGGLE</paper-button>
+					</div>
+					<br /><br />
+					<div class="globalExcludes">
+						<div class="bigTxt">
+							Global Excludes
+						</div>
+						<div class="globalExcludesDescr">
+							There are some sites on which you don't want any 
+							script to run on such as paypal and your bank's website, 
+							below you can enter these sites to make sure that no 
+							CRM script is ever ran on that page unless you 
+							specifically clicked on it. URLs must be specified 
+							as follows 
+							<a href="https://developer.chrome.com/extensions/match_patterns" rel="noopener" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
+						</div>
+						<div class="globalExcludesItems">
+							<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
+								<div class="globalExcludeContainer">
+									<paper-input on-change="domListener" data-on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern to exclude" error-message="This is not a valid URL pattern!" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
+									<paper-icon-button hidden$="[[_isOnlyGlobalExclude(globalExcludes)]]" icon="clear" on-tap="domListener" data-on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
+								</div>
+							</template>
+							<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="addGlobalExcludeField">ADD</paper-button>
+						</div>
+					</div>
+					<br /><br />
+					<div class="loggingButtonCont">
+						<div class="bigTxt">
+							Checking your scripts' logs
+						</div>
+						<div class="loggingDescr">
+							Clicking on this button will take you to a page where you can monitor your scripts' logs
+							from one central place. Think of it as a dev tools for all your scripts and with
+							only your logs. <br />
+							To make your logs show up there, use <code class="codeSynthax">crmAPI.log</code> in your code.
+						</div>
+						<paper-button class="blue" raised on-tap="domListener" data-on-tap="_openLogging">Logging</paper-button>
+					</div>
+					<br/><br/>
+					<div class="privacyPolicyCont">
+						<div class="bigTxt">
+							Privacy Policy
+						</div>
+						<div class="privacyPolicyDescr">
+							This extension does not store any personally identifiable information.
+							This extension uses your browser's 
+							<a href="https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/storage/sync" rel="noopener" target="_blank">browser.storage.sync</a> 
+							to sync your data across devices. This data only consists of 
+							your custom right-click menu and its settings.
+							This means that these settings are stored on your browser manufacturer's servers.
+							To turn off this feature, disable the "use storage sync" checkbox at the top of this page.
+						</div>
+					</div>
+					<br /><br />
+					<div class="changelogCont">
+						<div class="bigTxt">
+							Changelog
+						</div>
+						<change-log></change-log>
+					</div>
+					<div class="trailingBrs">
+						<br /><br /><br /><br /><br />
+					</div>
+				</div>
+			</app-header-layout>
+			<div id="dialogs">
+				<!--Toasts-->
+				<paper-toast id="messageToast" text="Please ignore this" duration="5000">
+					<span class="toastLink" on-tap="domListener" data-on-tap="hideGenericToast" role="button">DISMISS</span>
+				</paper-toast>
+				<paper-toast data-element-type="ScriptUpdatesToast" id="scriptUpdatesToast" text="Please ignore this" duration="10000">
+					<span id="nextScriptUpdateButton" class="toastLink" on-tap="domListener" data-on-tap="nextUpdatedScript" role="button">NEXT</span>
+					<span class="toastLink" on-tap="domListener" data-on-tap="hideScriptUpdatesToast" role="button">DISMISS</span>
+				</paper-toast>
+				<paper-toast id="contentTypeToast" text="You need to select at least one content type to show this node on, otherwise it will never be shown. To hide it change the triggers." duration="5000"></paper-toast>
+				<paper-toast id="changedToMenuToast" text="You just changed a menu to a different type, all children will disappear untill it's changed back (dragging possible untill page reload)" duration="10000">
+					<span id="menuSwitchUndoButton" role="button">UNDO</span>
+				</paper-toast>
+				<paper-toast id="externalEditorErrorToast" text="Something went wrong connecting to the CRM App, make sure you have the app installed" duration="10000">
+					<a class="toastLink" href="https://chrome.google.com/webstore/detail/crm-external-editor-app/hkjjmhkhhlmkflpihbikfpcojeofbjgn" rel="noopener" target="_blank">INSTALL</a>
+					<span id="externalEditorTryAgainButton" role="button">RETRY</span>
+				</paper-toast>
+				<paper-toast id="externalEditorLocationToast" text="The file is located at...." duration="10000">
+					<a href="file:///C:/" rel="noopener" target="_blank" id="externalEditoOpenLocationInBrowser" role="button">OPEN IN BROWSER</a>
+				</paper-toast>
+				<paper-toast id="storageExceededToast" text="Storage sync has ran out of space, switched to local storage for the moment, remove CRM nodes or code and switch back to sync later" duration="10000"></paper-toast>
+				<paper-toast id="noErrorsFound" text="No more errors found" duration="3500"></paper-toast>
+				<paper-toast id="acceptDownloadToast" text="Please accept the permission request to report a bug or suggest a feature" duration="3500"></paper-toast>
+				<paper-toast id="updatedSettingsToast" text="Settings were updated to those on xx-xx-xxxx" duration="5000"></paper-toast>
+				<!--Dialogs-->
+				<paper-dialog id="codeSettingsDialog" no-cancel-on-outside-click no-cancel-on-esc-key data-element-type="CodeSettingsDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<h2 id="codeSettingsTitle">Changing the options for <span class="bold" id="codeSettingsNodeName"></span></h2>
+					<div id="codeSettingsOptions">
+						<template is="dom-if" id="codeSettingsNoItems">
+							<div>Looks like there's no options. Go to the options tab in the editor to make them.
+								Also be sure to check whether no errors show up, if they do this won't work.
+							</div>
+						</template>
+						<template is="dom-repeat" id="codeSettingsRepeat" as="codeSetting">
+							<div class="codeSettingSetting" data-key$="[[codeSetting.key]]" data-type$="[[codeSetting.value.type]]">
+								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'number')}}">
+									<span class="optionMetaDescr">Number input</span>
+									<paper-input type="number" placeholder="[[_getString(codeSetting.value.descr)]]"
+										value="{{codeSetting.value.value}}" min="[[codeSetting.value.minimum]]"
+										max="[[codeSetting.value.maximum]]"
+										label="[[codeSetting.key]]"
+										title="[[_getString(codeSetting.value.descr)]]"></paper-input>
+								</template>
+								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'boolean')}}">
+									<span class="optionMetaDescr">True/False value</span>
+									<br><div class="optionPading"></div>
+									<paper-checkbox checked="{{codeSetting.value.value}}">
+										<span>
+											<b>[[codeSetting.key]]</b>
+											<template is="dom-if" if="[[_getString(codeSetting.value.descr)]]">
+												<span>: <span>[[_getString(codeSetting.value.descr)]]</span></span>
+											</template>
+										</span>
+									</paper-checkbox>
+								</template>
+								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'string')}}">
+									<span class="optionMetaDescr">Text input</span>
+									<paper-input type="text" placeholder="[[_getString(codeSetting.value.descr)]]"
+										value="{{codeSetting.value.value}}"
+										maxlength="[[codeSetting.value.maxLength]]"
+										label="[[codeSetting.key]]"
+										pattern="[[codeSetting.format]]"
+										title="[[_getString(codeSetting.value.descr)]]"></paper-input>
+								</template>
+								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'array')}}">
+									<paper-array-input values="{{codeSetting.value.value}}" 
+										max="[[codeSetting.value.maxItems]]"
+										subtext="[[codeSetting.value.descr]]"
+										title="[[codeSetting.key]]"
+										type="[[codeSetting.value.items]]"></paper-array-input>
+									<br>
+								</template>
+								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'choice')}}">
+									<paper-dropdown-menu title="[[_getString(codeSetting.value.descr)]]" 
+											label="[[codeSetting.key]]" indent="true" 
+											fancylabel subtext="[[codeSetting.value.descr]]"
+											selected="{{codeSetting.value.selected}}" dropdownraised>
+										<paper-menu slot="menu" selected="{{codeSetting.value.selected}}">
+											<div slot="content">
+												<template id="tabRepeat" is="dom-repeat" items="[[codeSetting.value.values]]" as="codeSettingOption">
+													<paper-item>
+														<div class="menuSelectedCheckmark">
+															<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48">
+																<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/>
+															</svg>
+														</div>
+														<span title$="[[codeSettingOption]]" class="menuOptionName">[[codeSettingOption]]</span>
+													</paper-item>
+												</template>
+											</div>
+										</paper-menu>
+									</paper-dropdown-menu>
+								</template>
+							</div>
+							<br />
+						</template>
+					</div>
+					<div class="buttons">
+						<paper-button dialog-dismiss>Cancel</paper-button>
+						<paper-button dialog-confirm on-tap="domListener" data-on-tap="confirmCodeSettings">Save</paper-button>
+					</div>
+				</paper-dialog>
+				<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-outside-click no-cancel-on-esc-key entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<div id="restoreChangesMain">
+						<h2>Recovering unsaved code</h2>
+						<span>You closed an editing instance without saving or discarding it, are you sure you wanted to do this?</span>
+						<div id="highlightChangedScript" class="restoreChangesOption">What node?</div>
+					</div>
+					<div id="restoreChangesHeader">
+						<div class="halfDivider">
+							<div class="half">
+								<h2>Old Code</h2>
+							</div>
+							<div class="half">
+								<h2>Unsaved code</h2>
+							</div>
+						</div>
+					</div>
+					<monaco-editor id="restoreChangesEditor"></monaco-editor>
+					<div class="buttons">
+						<paper-button id="discardButton" dialog-dismiss>Discard</paper-button>
+						<paper-button id="keepChangesButton" dialog-confirm>Keep Old</paper-button>
+					</div>
+				</paper-dialog>
+				<paper-dialog data-element-type="ChooseFileDialog" no-cancel-on-outside-click no-cancel-on-esc-key id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<div id="chooseFileMainDialog">
+						<h2>Choose the file you want to keep</h2>
+						<monaco-editor id="chooseFileMerger"></monaco-editor>
+						<div class="buttons">
+							<paper-button class="closeChooseFileDialog">Cancel</paper-button>
+							<paper-button id="chooseFileChooseCRM" dialog-confirm>Choose extension code</paper-button>
+							<paper-button id="chooseFileChooseDisk" dialog-confirm>Choose code on disk</paper-button>
+						</div>	
+					</div>
+				</paper-dialog>
+				<paper-dialog no-cancel-on-esc-key with-backdrop id="addLibraryDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<div id="addLibraryLoadingDialog">
+						<div id="addLibraryLoadingDialogCenterer">
+							<paper-spinner active></paper-spinner>
+						</div>
+					</div>
+					<div id="addLibraryProcessContainer">
+						<h2>Add your own library</h2>
+						<paper-input error-message="please enter a name" id="addedLibraryName" label="name"></paper-input>
+						<paper-radio-group id="addLibraryRadios" selected="url">
+							<paper-radio-button id="addLibraryUrlOption" name="url">Input a url</paper-radio-button>
+							<paper-radio-button id="addLibraryManualOption" name="manual">Input the code</paper-radio-button>
+						</paper-radio-group>
+						<paper-input pattern="$a" id="addLibraryUrlInput" label="url" error-message="url does not host anything"></paper-input>
+						<paper-textarea id="addLibraryManualInput" label="code"></paper-textarea>
+						<br><br>
+						<paper-checkbox id="addLibraryIsTS">Check if library uses typescript <a rel="noopener" href="https://www.typescriptlang.org/" target="_blank">typescript</a></paper-checkbox>
+						<div class="buttons">
+							<paper-button dialog-dismiss>Cancel</paper-button>
+							<paper-button id="addLibraryButton">Add</paper-button>
+						</div>
+					</div>
+					<div id="addLibraryConfirmationContainer">
+						<h2>Does this look okay to you?</h2>
+						<textarea id="addLibraryConfirmationInput"></textarea>
+						<div class="buttons">
+							<paper-button id="addLibraryDenyConfirmation">No</paper-button>
+							<paper-button id="addLibraryConfirmAddition">Yes</paper-button>
+						</div>
+					</div>
+					<div id="addLibraryDialogSucces">
+						<div id="addLibraryDialogSuccesCheckmark" class="checkmark"></div>
+						<div id="addLibraryDialogSuccesText">Added!</div>
+					</div>
+				</paper-dialog>
+				<paper-dialog with-backdrop id="cssEditorInfoDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<h2>CSS Editor Info</h2>
+					<br />
+					- Use <pre class="inlineCodePre">@url 'http://example.com';</pre> to run certain CSS only on specified url for any code following this statement.
+					Calling <pre class="inlineCodePre">@urlend;</pre> will stop this from applying to the code below it.
+					You can combine multiple <pre class="inlineCodePre">@url</pre> statements to run on multiple sites, so calling <pre class="inlineCodePre">@url 'example.com'; @url 'google.com';</pre> runs the code below on both sites.
+					If for example you want any page's background-color to be black except for one website, you can use <pre class="inlineCodePre">@url</pre> to give that page a different background color.
+					You can use regular expressions as long as you wrap them in brackets.
+					<br /><br />
+					- Use the dev tools to find the CSS id/class of elements. Press F12 to open the dev tools, click the magnifying glass and click element you want to style.
+					If you want only that element to be styled, right-click it in the developer tools and click "copy CSS path" and use that as the selector.
+					If you want all elements with some class to be styled, simply use the class on it.
+					<div class="buttons">
+						<paper-button dialog-dismiss>close</paper-button>
+					</div>
+				</paper-dialog>
+				<center-element fullscreenoverlay id="exportCenterer">
+					<paper-dialog with-backdrop id="exportDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+						<h2>Exporting selected nodes</h2>
+						<div>
+							You can copy the data below and paste it in a different instance's "import" section to import those nodes. Enter an author's name below to export the nodes under that name. You can also leave it to "anonymous" to stay anonymous.
+						</div>
+						<div id="exportInputLine">
+							<paper-input always-float-label id="exportAuthorName" label="author's name" placeholder="anonymous"></paper-input>
+							<paper-icon-button id="dialogCopyButton" icon="content-copy" title="copy to clipboard" on-tap="domListener" data-on-tap="copyExportDialogToClipboard"></paper-icon-button>
+						</div>
+						<textarea class="paperTextArea" id="exportJSONData" rows="20" spellcheck="false" autocomplete="off"></textarea>
+						<div class="buttons">
+							<paper-button dialog-dismiss>close</paper-button>
+						</div>
+					</paper-dialog>
+				</center-element>
+				<center-element fullscreenoverlay id="scriptPermissionsCenterer">
+					<paper-dialog with-backdrop id="scriptPermissionDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+						<br>
+						<h2 class="requestPermissionsScriptName">
+							Managing permisions for script "[[name]]"
+						</h2>
+						<div>
+							Here you can allow or disallow permissions for the current script, marked permissions are asked for in the script and will probably be needed for script execution. You should however be careful not to just turn on everything since that might enable malicious scripts to do bad things. Permissions starting with "GM_" are greasemonkey permissions, these can also be used if you want to also share this script with greasemonkey/tampermonkey users. You don't actually need to turn them on to use those APIs in this extension except the GM_download API and the GM_notification API since all the others are fairly harmless. However they will be required as metaTags if you run this script in greasemonkey/tampermonkey.
+						</div>
+						<div class="scriptPermissionsContainer">
+							<div class="scriptPermissionsUsedPermissionsTxt">
+								Used Permissions:
+							</div>
+							<div class="requestPermissionsPermissions">
+								<template is="dom-repeat" id="scriptPermissionsTemplate" items="[]" as="permission">
+									<div class="requestPermissionsPermission">
+										<div class="requestPermissionsPermissionTopCont" is-required$="[[permission.required]]">
+											<span class="requestPermissionName">[[permission.name]]</span>
+											<div class="requestPermissionsShowBot">
+												<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+											</div>
+											<paper-toggle-button class="scriptPermissionsToggle" checked="[[permission.toggled]]" ischecked$="[[permission.toggled]]"></paper-toggle-button>
+										</div>
+										<div class="requestPermissionsPermissionBotCont">
+											<span class="requestPermissionsDescription">
+												<echo-html makelink html="[[permission.description]]"></echo-html>
+											</span>
+										</div>
+									</div>
+								</template>
+							</div>
+						</div>
+						<div class="buttons">
+							<paper-button dialog-dismiss>close</paper-button>
+						</div>
+					</paper-dialog>
+				</center-element>
+				<center-element fullscreenoverlay id="requestPermissionsCenterer">
+					<paper-dialog with-backdrop id="requestPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+						<div>
+							<h2 id="requestPermissionsHeader">Allow permissions</h2>
+							<div id="requestPermissionsTxt">
+								A script that you presumably wrote or added has asked to use one or more browser permissions that you have not yet allowed for this extension, please allow these permissions as you see fit.
+								Remember that this will only allow YOU to write scripts that acces these permissions and not downloaded and installed scripts.
+								Other scripts can only acces these permissons if you give those scripts specifically that permission on installing them.
+								You can basically allow any permission, they will only be used if you write them into one of your own scripts (or a downloaded one requests it) so allowing permissions that are not used yet simply saves you the hassle of doing it later during script installation or execution.
+							</div>
+							<br />
+							<div class="requestPermissionsPermissions">
+								<div id="requestedPermissionsCont">
+									<div id="requestPermissionsAsked">
+										<div class="requestPermissionsType">
+											Required:
+										</div>
+										<template id="requestedPermissionsTemplate" is="dom-repeat" items="[]" as="requestedPermission">
+											<div class="requestPermissionsPermission">
+												<div class="requestPermissionsPermissionTopCont">
+													<span class="requestPermissionName">[[requestedPermission.name]]</span>
+													<div class="requestPermissionsShowBot">
+														<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+													</div>
+													<paper-toggle-button class="requestPermissionButton required" checked="[[requestedPermission.toggled]]" ischecked$="[[requestedPermission.toggled]]"></paper-toggle-button>
+												</div>
+												<div class="requestPermissionsPermissionBotCont">
+													<span class="requestPermissionsDescription">[[requestedPermission.description]]</span>
+												</div>
+											</div>
+										</template>
+										<div class="requestPermissionsPermission">
+											<div class="requestPermissionsPermissionTopCont">
+												<span class="requestPermissionName">[[requestedPermission.name]]</span>
+												<div class="requestPermissionsShowBot">
+													<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+												</div>
+												<paper-toggle-button class="requestPermissionButton required" checked="[[requestedPermission.toggled]]" ischecked$="[[requestedPermission.toggled]]"></paper-toggle-button>
+											</div>
+											<div class="requestPermissionsPermissionBotCont">
+												<span class="requestPermissionsDescription">[[requestedPermission.description]]</span>
+											</div>
+										</div>
+									</div>
+									<div id="requestPermissionsLineCont">
+										<div id="requestPermissionsSplitter"></div>
+										<svg id="requestPermissionsShowOther" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48">
+											<path d="M38 26H26v12h-4V26H10v-4h12V10h4v12h12v4z" />
+											<line x1="10" y1="24" style="stroke: rgb(0, 0, 0); stroke-width: 5;" x2="38" y2="24" />
+										</svg>
+									</div>
+								</div>
+								<div id="requestPermissionsOther">
+									<div class="requestPermissionsType">
+										Others:
+									</div>
+									<template id="requestedPermissionsOtherTemplate" is="dom-repeat" items="[]" as="otherPermission">
+										<div class="requestPermissionsPermission">
+											<div class="requestPermissionsPermissionTopCont">
+												<span class="requestPermissionName">[[otherPermission.name]]</span>
+												<div class="requestPermissionsShowBot">
+													<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+												</div>
+												<paper-toggle-button class="requestPermissionButton" checked="[[otherPermission.toggled]]" ischecked$="[[otherPermission.toggled]]"></paper-toggle-button>
+											</div>
+											<div class="requestPermissionsPermissionBotCont">
+												<span class="requestPermissionsDescription">
+													<echo-html makelink html="[[otherPermission.description]]"></echo-html>
+												</span>
+											</div>
+										</div>
+									</template>
+								</div>
+							</div>
+							<div class="buttons">
+								<paper-button dialog-dismiss>close</paper-button>
+								<paper-button id="requestPermissionsAcceptAll">Accept All Required</paper-button>
+							</div>
+						</div>
+					</paper-dialog>
+				</center-element>
+				<center-element fullscreenoverlay id="versionUpdateCenterer">
+					<paper-dialog data-element-type="VersionUpdateDialog" with-backdrop id="versionUpdateDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+						<br />
+						<div id="versionUpdateTabContainer" tab$="[[versionUpdateTab]]">
+							<div id="versionUpdateTabSlider">
+								<div class="versionUpdateTab">
+									<h2 class="versionUpdateTabHeader">Welcome to the new Custom Right-Click Menu</h2>
+									<div class="versionUpdateTabTxt">
+										Custom Right-Click Menu (CRM) has been updated to version 2.0. This version has a hugely upgraded
+										UI, lots of new features, a new editor, a CRM API for your scripting and includes the new stylesheet type.
+										It's now also fully compatible with userscripts (such as GreaseMonkey and TamperMonkey).
+										Click the next button to see more features.
+									</div>
+								</div>
+								<div class="versionUpdateTab">
+									<h2 class="versionUpdateTabHeader">A new editor</h2>
+									<div class="versionUpdateTabTxt">
+										This update also includes a new editor featuring the widely used CodeMirror. This editor allows
+										you to better edit your code with features like:
+										<ul>
+											<li>Synthax highlighting</li>
+											<li>Autocomplete</li>
+											<li>Function definitions</li>
+											<li>A search/replace function</li>
+											<li>Custom theme, custom keybindings</li>
+										</ul>
+										And even if you don't like it, you can now sync up a script/stylesheet to a file on your hard drive
+										so you can edit files in your favorite editor and have them be used here.
+										<br />
+										<b>Try it out below:</b>
+										<monaco-editor id="tryOutEditor"></monaco-editor>
+									</div>
+								</div>
+								<div class="versionUpdateTab">
+									<h2 class="versionUpdateTabHeader">The new stylesheet type</h2>
+									<div class="versionUpdateTabTxt">
+										Often you're not satisfied with some elements on a page, and wish them to be removed. Or you just
+										want to change the background color of a site to be less straining on the eyes. The new stylesheet
+										type allows you to either always apply it or have the ability to toggle it on and off.
+										<div id="gifCropper">
+											<img id="stylesheetGif" data-src="../../images/stylesheet.gif" alt="stylesheet demo gif" />
+										</div>
+									</div>
+								</div>
+								<div class="versionUpdateTab">
+									<h2 class="versionUpdateTabHeader">Compatible with userscripts</h2>
+									<div class="versionUpdateTabTxt">
+										Custom Right-Click Menu is now fully compatible with userscripts. These are the scripts used by
+										extensions such as TamperMonkey and GreaseMonkey. These extensions work great but a lot of
+										features are simply missing. That is why it's now possible to install any userscript in this
+										extension as well. Simply go to a page where you can find a userscript
+										(such as <a href="https://greasyfork.org/" rel="noopener" target="_blank">greasyfork</a> or
+										<a href="http://userscripts-mirror.org/" rel="noopener" target="_blank">userscripts-mirror</a>), click the install button
+										and the script will be installed for you. <br />
+										You can also export scripts from CRM as userscripts. Keep in mind that while all features
+										that userscripts include are included in CRM, the opposite is NOT true. This means that CRM-only features
+										will not be usable on extensions such as TamperMonkey/GreaseMonkey. CRM users installing that script
+										will however have all the original features.
+									</div>
+								</div>
+								<div class="versionUpdateTab">
+									<h2 class="versionUpdateTabHeader">Extra open source</h2>
+									<div class="versionUpdateTabTxt">
+										While the source of browser extensions can be looked at by anyone, the extension wasn't
+										completely open source before. With this new version the entire project is online over
+										at <a href="https://www.github.com/SanderRonde/CustomRightClickMenu" rel="noopener" target="_blank">Github</a>.
+										If you feel like helping out, reporting some issues, or just checking out the code and learning
+										please check it out. <br />
+										If you have any questions or suggestions, please don't hesitate to contact me by email over at
+										<a href="mailto:awsdfgvhbjn@gmail.com" target="_blank" rel="noopener">awsdfgvhbjn@gmail.com</a>.
+										<br /><br />
+										<div class="finalMessage">Have fun using this extension!</div>
+										<br />
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="buttons">
+							<paper-button notshown$="[[_isVersionUpdateTabX(versionUpdateTab, 0)]]" id="versionUpdatePrevTab" on-tap="domListener" data-on-tap="goPrevVersionUpdateTab">previous</paper-button>
+							<paper-button id="versionUpdateNextTab" on-tap="domListener" data-on-tap="goNextVersionUpdateTab">
+								<span hidden$="[[!_isVersionUpdateTabX(versionUpdateTab, 4)]]">close</span>
+								<span hidden$="[[_isVersionUpdateTabX(versionUpdateTab, 4)]]">next</span>
+							</paper-button>
+						</div>
+					</paper-dialog>
+				</center-element>
+				<center-element fullscreenoverlay id="addedPermissionsCenterer">
+					<paper-dialog with-backdrop id="addedPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+						<br>
+						<div id="addedPermissionsTabContainer" data-element-type="AddedPermissionsTabContainer">
+							<template id="addedPermissionsTabRepeater" is="dom-repeat" as="nodeAddedPermission">
+								<div class="nodeAddedPermissionsCont" data-id$="[[nodeAddedPermission.node]]">
+									<h2 class="nodeAddedHeader">
+										The script 
+										<span>[[_getNodeName(nodeAddedPermission.node)]]</span>
+										has been updated to version 
+										<span>[[_getNodeVersion(nodeAddedPermission.node)]]</span>
+										and some new permissions have been requested. 
+									</h2>
+									<div class="nodeAddedPermissions">
+										<template is="dom-repeat" items="[[nodeAddedPermission.permissions]]" as="permission">
+											<div class="nodeAddedPermissionCont">
+												<div class="nodeAddedPermissionTop">
+													<div class="nodeAddedPermissionCheckbox">
+														<paper-checkbox 
+															data-permission$="[[permission]]">
+															<b>[[permission]]</b>
+														</paper-checkbox>
+													</div>
+												</div>
+												<div class="nodeAddedPermissionDescription">[[_getPermissionDescription(permission)]]</div>
+											</div>
+										</template>
+									</div>
+								</div>
+							</template>
+						</div>
+						<div class="buttons">
+							<paper-button
+								id="addedPermissionPrevButton"
+								on-tap="domListener" data-on-tap="addedPermissionPrev">previous</paper-button>
+							<paper-button id="addedPermissionNextButton" on-tap="domListener" data-on-tap="addedPermissionNext">
+								<span class="close">apply</span>
+								<span class="next">next</span>
+							</paper-button>
+						</div>
+					</paper-dialog>
+				</center-element>
+				<paper-search-website-dialog id="paperSearchWebsiteDialog"></paper-search-website-dialog>
+				<use-external-editor id="useExternalEditor"></use-external-editor>
+			</div>
+		</div>
+	</template>
+</dom-module>
+<!-- build:js inline -->
+<script src="../../../js/shared.js"></script>
+<script src="../../../js/libraries/jquery/jquery-2.0.3.js"></script>
+<script src="../../../js/libraries/jquery/jquery-ui.min.js"></script>
+<script src="../../../js/libraries/jquery/jquery.requestAnimationFrame.min.js"></script>
+<script src="../../../js/libraries/jquery/jquery.bez.js"></script>
+<script src="../../../js/libraries/md5.js"></script>
+<script src="crm-app.js"></script>
+<!-- /build -->
