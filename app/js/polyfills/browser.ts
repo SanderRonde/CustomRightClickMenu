@@ -47,6 +47,7 @@ namespace BrowserAPI {
 		(...args: any[]): void;
 		__resolve(value: T): void;
 		__reject(err: any): void;
+		__stack: Error;
 	}
 
 	class CustomError extends Error {
@@ -72,6 +73,7 @@ namespace BrowserAPI {
 		}) as Partial<ChromeCallbackHandler<T>>;
 		fn.__resolve = resolve;
 		fn.__reject = reject;
+		fn.__stack = stackSrc;
 		return fn as ChromeCallbackHandler<T>;
 	}
 
@@ -424,7 +426,24 @@ namespace BrowserAPI {
 				}
 
 				return createPromise<void>((handler) => {
-					__srcBrowser.contextMenus.removeAll(handler);
+					//Does not follow the spec but currently all browsers implement this behavior
+					const retVal: any = __srcBrowser.contextMenus.removeAll(() => {
+						//Edge throws an error if other extensions are active... ignore that
+						// see https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/17799250/
+						if (getBrowser() === 'edge' && __srcBrowser.runtime.lastError) {
+							handler.__resolve(undefined);
+						}
+						if (__srcBrowser.runtime.lastError) {
+							handler.__reject(new CustomError(__srcBrowser.runtime.lastError,
+								handler.__stack));
+						} else {
+							handler.__resolve(undefined);
+						}
+					});
+					if (retVal && typeof window !== 'undefined' && 
+						window.Promise && retVal instanceof window.Promise) {
+							retVal.then(handler.__resolve, handler.__reject);
+						}
 				});
 			}
 		} : void 0,
