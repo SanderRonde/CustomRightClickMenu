@@ -4772,6 +4772,23 @@ namespace CRMAppElement {
 		 * Various util functions
 		 */
 		static util = class CRMAppUtil {
+			static iteratePath<T>(e: {
+				path: HTMLElement[];
+			}|{
+				Aa: HTMLElement[];
+			}|Polymer.CustomEvent, 
+				condition: (element: Polymer.PolymerElement|DocumentFragment|HTMLElement) => T): T {
+					let index = 0;
+					const path = this.getPath(e);
+					let result: T = condition(path[index]);
+
+					while (path[index + 1] && result === null) {
+						result = condition(path[++index]);
+					}
+
+					return result;
+				}
+
 			static arraysOverlap<T>(arr1: T[], arr2: T[]): boolean {
 				for (let i = 0; i < arr1.length; i++) {
 					if (arr1[i] && arr2[i]) {
@@ -4917,53 +4934,41 @@ namespace CRMAppElement {
 			}|{
 				Aa: HTMLElement[];
 			}|Polymer.CustomEvent, tagName: T): ElementTagNameMaps[T] {
-				let index = 0;
-				const path = this.getPath(event);
-				let node = path[0];
-				while (!('tagName' in node) || (node as Polymer.PolymerElement).tagName.toLowerCase() !== tagName) {
-					node = path[++index];
-
-					if (index >= path.length) {
+				return this.iteratePath(event, (node) => {
+					if (node && 'tagName' in node && 
+						(node as Polymer.PolymerElement).tagName.toLowerCase() === tagName) {
+							return node;
+						}
 						return null;
+				}) as ElementTagNameMaps[T];
 					}
-				}
-				return node as ElementTagNameMaps[T]
-			}
 
 			static findElementWithClassName(event: {
 				path: HTMLElement[];
 			}|{
 				Aa: HTMLElement[];
 			}|Polymer.CustomEvent, className: string): Polymer.PolymerElement {
-				let index = 0;
-				const path = this.getPath(event);
-				let node = path[0];
-				while (!('classList' in node) || !(node as Polymer.PolymerElement).classList.contains(className)) {
-					node = path[++index];
-
-					if (index >= path.length) {
+				return this.iteratePath(event, (node) => {
+					if (node && 'classList' in node && 
+						(node as Polymer.PolymerElement).classList.contains(className)) {
+							return node;
+						}
 						return null;
-					}
-				}
-				return node as Polymer.PolymerElement;
-			}
+				}) as Polymer.PolymerElement
+			};
 
 			static findElementWithId(event: {
 				path: HTMLElement[];
 			}|{
 				Aa: HTMLElement[];
 			}|Polymer.CustomEvent, id: string): Polymer.PolymerElement {
-				let index = 0;
-				const path = this.getPath(event);
-				let node = path[0];
-				while (!('id' in node) || (node as Polymer.PolymerElement).id !== id) {
-					node = path[++index];
-
-					if (index >= path.length) {
+				return this.iteratePath(event, (node) => {
+					if (node && 'id' in node && 
+						(node as Polymer.PolymerElement).id === id) {
+							return node;
+						}
 						return null;
-					}
-				}
-				return node as Polymer.PolymerElement;
+				}) as Polymer.PolymerElement;
 			}
 
 			/**
