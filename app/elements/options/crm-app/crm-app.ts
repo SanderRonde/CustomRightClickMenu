@@ -634,19 +634,23 @@ namespace CRMAppElement {
 
 		static properties = crmAppProperties;
 
+		private static _getRegisteredListener(this: CrmApp, 
+			element: Polymer.PolymerElement|HTMLElement|DocumentFragment, 
+			eventType: string) {
+				const listeners = this.listeners;
+				if (!element || !('getAttribute' in element)) {
+					return null;
+				}
+				return (element as Polymer.PolymerElement)
+					.getAttribute(`data-on-${eventType}`) as keyof typeof listeners;
+			}
+
 		static domListener(this: CrmApp, event: Polymer.CustomEvent) {
-			const propKey = `data-on-${event.type}`;
 			const listeners = this.listeners;
 
-			let fnName: keyof typeof listeners;
-			let pathIndex = 0;
-			let currentElement = window.app.util.getPath(event)[pathIndex];
-			while (!('getAttribute' in currentElement) || 
-				!(fnName = (currentElement as Polymer.PolymerElement).getAttribute(propKey) as keyof typeof listeners) &&
-				pathIndex < window.app.util.getPath(event).length) {
-					pathIndex++;
-					currentElement = window.app.util.getPath(event)[pathIndex];
-				}
+			const fnName: keyof typeof listeners = window.app.util.iteratePath(event, (element) => {
+				return this._getRegisteredListener(element, event.type);
+			});
 
 			if (fnName) {
 				if (fnName !== 'prototype' && fnName !== 'parent' && listeners[fnName]) {
@@ -658,7 +662,7 @@ namespace CRMAppElement {
 					console.warn.apply(console, this._logf(`_createEventHandler`, `listener method ${fnName} not defined`));
 				}
 			} else {
-				console.warn.apply(console, this._logf(`_createEventHandler`, `property ${propKey} not defined`));
+				console.warn.apply(console, this._logf(`_createEventHandler`, `property data-on${event.type} not defined`));
 			}
 		}
 
@@ -4939,9 +4943,9 @@ namespace CRMAppElement {
 						(node as Polymer.PolymerElement).tagName.toLowerCase() === tagName) {
 							return node;
 						}
-						return null;
+					return null;
 				}) as ElementTagNameMaps[T];
-					}
+			}
 
 			static findElementWithClassName(event: {
 				path: HTMLElement[];
@@ -4953,7 +4957,7 @@ namespace CRMAppElement {
 						(node as Polymer.PolymerElement).classList.contains(className)) {
 							return node;
 						}
-						return null;
+					return null;
 				}) as Polymer.PolymerElement
 			};
 
@@ -4967,7 +4971,7 @@ namespace CRMAppElement {
 						(node as Polymer.PolymerElement).id === id) {
 							return node;
 						}
-						return null;
+					return null;
 				}) as Polymer.PolymerElement;
 			}
 
