@@ -1,5 +1,7 @@
 # Custom Right-Click Menu - Create your own context menu
 
+<img align="right" height="200" src="https://github.com/SanderRonde/CustomRightClickMenu/blob/master/resources/logo/source/png/1.transparent.png">
+
 Create your own entry in the right-click menu. Add custom scripts, links, sub-menus or custom CSS in your right-click menu and
 do anything you want all from your right-click menu. Featuring full GreaseMonkey compatibility for userscripts and Stylish compatibility for userstyles.
 
@@ -13,7 +15,7 @@ A demo can be found over [here](https://sanderronde.github.io/CustomRightClickMe
 full functionality as it has no access to your actual browser APIs, but it does give a good view of the interface, a little bit of
 a context menu demo on-page and access to settings.
 
-![example](https://github.com/SanderRonde/CustomRightClickMenu/blob/master/store_images/screenshot1.png)
+![example](https://github.com/SanderRonde/CustomRightClickMenu/blob/master/resources/store_images/screenshot1.png)
 
 ## About
 
@@ -70,7 +72,7 @@ The CRM API allows you to edit the current state of the context menu right from 
 
 Entering fullscreen mode brings up a hamburger menu on the left (see the image below) that allows access to the tools ribbon, containing features like using the external editor, adding (your own) libraries, easy search script generation or JSLint.
 
-![fullscreen editor](https://github.com/SanderRonde/CustomRightClickMenu/blob/master/store_images/screenshot3.png)
+![fullscreen editor](https://github.com/SanderRonde/CustomRightClickMenu/blob/master/resources/store_images/screenshot3.png)
 
 ## Contributing
 
