@@ -1220,6 +1220,7 @@ describe('User entrypoints', function() {
 				const name = await firstElement.findElement(webdriver.By.tagName('paper-input'))
 					.getProperty('value');
 				const link = await firstElement.findElement(webdriver.By.tagName('a')).getAttribute('href');
+				await wait(1000);
 				const crm = await getCRM<CRM.LinkNode[]>();
 	
 				searchEngineLink = link;
@@ -1248,6 +1249,7 @@ describe('User entrypoints', function() {
 					.sendKeys(InputKeys.CLEAR_ALL, renameName);
 				await firstElement.findElement(webdriver.By.tagName('paper-button')).click();
 				const link = await firstElement.findElement(webdriver.By.tagName('a')).getAttribute('href');
+				await wait(1000);
 				const crm = await getCRM<CRM.LinkNode[]>();
 				const element = crm[crm.length - 1];
 	
@@ -1318,6 +1320,7 @@ describe('User entrypoints', function() {
 				const name = await elements[index].findElement(webdriver.By.tagName('paper-input'))
 					.getProperty('value');
 				const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
+				await wait(1000);
 				const crm = await getCRM<CRM.LinkNode[]>();
 				const element = crm[crm.length - 1];
 	
@@ -1344,6 +1347,7 @@ describe('User entrypoints', function() {
 					.sendKeys(InputKeys.CLEAR_ALL, renameName);
 				await elements[index].findElement(webdriver.By.tagName('paper-button')).click();
 				const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
+				await wait(1000);
 				const crm = await getCRM<CRM.LinkNode[]>();
 				const element = crm[crm.length - 1];
 				
