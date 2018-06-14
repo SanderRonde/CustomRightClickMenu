@@ -625,7 +625,7 @@
 						<paper-button dialog-confirm on-tap="domListener" data-on-tap="confirmCodeSettings">Save</paper-button>
 					</div>
 				</paper-dialog>
-				<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-outside-click no-cancel-on-esc-key entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<paper-dialog no-cancel-on-outside-click no-cancel-on-esc-key id="restoreChangesDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 					<div id="restoreChangesMain">
 						<h2>Recovering unsaved code</h2>
 						<span>You closed an editing instance without saving or discarding it, are you sure you wanted to do this?</span>
@@ -763,7 +763,7 @@
 					</paper-dialog>
 				</center-element>
 				<center-element fullscreenoverlay id="requestPermissionsCenterer">
-					<paper-dialog with-backdrop id="requestPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<paper-dialog no-cancel-on-outside-click no-cancel-on-esc-key with-backdrop id="requestPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 						<div>
 							<h2 id="requestPermissionsHeader">Allow permissions</h2>
 							<div id="requestPermissionsTxt">
