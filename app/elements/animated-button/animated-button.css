@@ -1,0 +1,43 @@
+:host(.blue) paper-button {
+	background-color: #3F51B5;
+    color: white;
+}
+
+paper-button {
+	transition: background-color 200ms cubic-bezier(0.215, 0.610, 0.355, 1.000);
+}
+
+paper-button.clicked {
+	background-color: #4CAF50;
+}
+
+#textContent {
+	display: block;
+	transition: opacity 50ms ease-in;
+	opacity: 1;
+}
+
+#checkmarkContent {
+	display: none;
+	transition: opacity 50ms ease-in;
+	opacity: 0;
+	fill: white;
+	height: 22px;
+}
+
+#checkmark {
+	margin-top: -5px;
+}
+
+#contentContainer.animate #textContent {
+	opacity: 0;
+}
+
+#contentContainer.showcheckmark #textContent {
+	display: none;
+}
+
+#contentContainer.showcheckmark #checkmarkContent {
+	display: block;
+	opacity: 1;
+}

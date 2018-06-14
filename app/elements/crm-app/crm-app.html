@@ -326,7 +326,7 @@
 						<div class="URISchemeGenerator">
 							<paper-input id="URISchemeFilePath" label="File path including name" value="C:\files\my_file.exe"></paper-input>
 							<paper-input id="URISchemeSchemeName" pattern="(\w|\d|_|\.|-)*" auto-validate="true" error-message="This is not a valid scheme" label="URI scheme name" value="myscheme"></paper-input>
-							<paper-button raised class="blu topoffsete" on-tap="domListener" data-on-tap="_generateRegexFile">GENERATE</paper-button>
+							<animated-button raised class="blue topoffset" tap="domListener" data-on-tap="_generateRegexFile" content="GENERATE"></animated-button>
 						</div>
 					</div>
 					<br /><br />
@@ -349,7 +349,7 @@
 						<paper-checkbox title="Check this if you want to overwrite your CRM. If not checked, imported CRM is appended to the current one" checked id="overWriteImport">Overwrite</paper-checkbox>
 						<paper-checkbox title="Check this if you're importing from the old version of the extension (pre-2016)" id="oldCRMImport">CRM legacy</paper-checkbox>
 						<br />
-						<paper-button class="blue" raised id="importButton" on-tap="domListener" data-on-tap="importData">Import</paper-button>
+						<animated-button class="blue" cooldown raised id="importButton" tap="domListener" data-on-tap="importData" content="Import"></animated-button>
 					</div>
 					<br /><br />
 					<div class="exportSettingsCont">
@@ -379,7 +379,7 @@
 						<paper-checkbox checked id="exportSettings">Export your Settings</paper-checkbox>
 						<paper-icon-button id="exportCopyButton" icon="content-copy" title="copy to clipboard" on-tap="domListener" data-on-tap="copyExportToClipboard"></paper-icon-button>
 						<br/>
-						<paper-button class="blue" raised id="exportButton" on-tap="domListener" data-on-tap="exportData">Export</paper-button>
+						<animated-button cooldown class="blue" raised id="exportButton" tap="domListener" data-on-tap="exportData" content="Export"></animated-button>
 					</div>
 					<br/><br/>
 					<div class="helpCont">

@@ -411,6 +411,7 @@ declare namespace Polymer {
 		'paper-array-input': HTMLPaperArrayInputElement;
 		'paper-ripple': HTMLPaperRipplElement;
 		'slot': HTMLSlotElement;
+		'animated-button': HTMLAnimatedButtonElement;
 	};
 
 }
@@ -546,6 +547,7 @@ type HTMLMenuEditElement = NodeEditBehaviorMenuInstance;
 type HTMLScriptEditElement = CodeEditBehaviorScriptInstance;
 type HTMLStylesheetEditElement = CodeEditBehaviorStylesheetInstance;
 type HTMLSplashScreenElement = SplashScreen;
+type HTMLAnimatedButtonElement = AnimatedButton;
 
 interface AddedPermissionsTabContainer extends HTMLElement {
 	tab: number;

@@ -40,6 +40,7 @@
 /// <reference path="./tools/use-external-editor/use-external-editor.ts" />
 /// <reference path="./type-switcher/type-switcher.ts" />
 /// <reference path="./splash-screen/splash-screen.ts" />
+/// <reference path="./animated-button/animated-button.ts" />
 /// <reference path="../js/shared.ts" />
 
 
