@@ -22,18 +22,18 @@
 						Show on content type
 					</div>
 					<div id="showOnContentIconsContainer">
-						<div class="showOnContentItemCont pageType">
+						<div title="Toggle showing this item when right-clicking on regular webpages" class="showOnContentItemCont pageType">
 							<div class="showOnContentItemIcon" on-tap="toggleIcon">
 								<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="80" height="80" viewbox="0 0 24 24">
 									<path d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z"/>
 								</svg>
 							</div>
 							<div class="showOnContentItemTxt" on-tap="toggleIcon">
-								Page
+								Webpages
 							</div>
 							<paper-checkbox class="showOnContentItemCheckbox" checked="{{pageContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
 						</div>
-						<div class="showOnContentItemCont linkType">
+						<div title="Toggle showing this item when right-clicking on web links" class="showOnContentItemCont linkType">
 							<div class="showOnContentItemIcon" on-tap="toggleIcon">
 								<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none"/>
@@ -41,11 +41,11 @@
 								</svg>
 							</div>
 							<div class="showOnContentItemTxt" on-tap="toggleIcon">
-								Link
+								Weblinks
 							</div>
 							<paper-checkbox class="showOnContentItemCheckbox" checked="{{linkContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
 						</div>
-						<div class="showOnContentItemCont selectionType">
+						<div title="Toggle showing this item when right-clicking on selected text" class="showOnContentItemCont selectionType">
 							<div class="showOnContentItemIcon" on-tap="toggleIcon">
 								<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none"/>
@@ -57,7 +57,7 @@
 							</div>
 							<paper-checkbox class="showOnContentItemCheckbox" checked="{{selectionContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
 						</div>
-						<div class="showOnContentItemCont imageType">
+						<div title="Toggle showing this item when right-clicking on images" class="showOnContentItemCont imageType">
 							<div class="showOnContentItemIcon" on-tap="toggleIcon">
 								<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none"/>
@@ -65,11 +65,11 @@
 								</svg>
 							</div>
 							<div class="showOnContentItemTxt" on-tap="toggleIcon">
-								Image
+								Images
 							</div>
 							<paper-checkbox class="showOnContentItemCheckbox" checked="{{imageContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
 						</div>
-						<div class="showOnContentItemCont videoType">
+						<div title="Toggle showing this item when right-clicking on videos" class="showOnContentItemCont videoType">
 							<div class="showOnContentItemIcon" on-tap="toggleIcon">
 								<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none"/>
@@ -77,11 +77,11 @@
 								</svg>
 							</div>
 							<div class="showOnContentItemTxt" on-tap="toggleIcon">
-								Video
+								Videos
 							</div>
 							<paper-checkbox class="showOnContentItemCheckbox" checked="{{videoContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
 						</div>
-						<div class="showOnContentItemCont audioType">
+						<div title="Toggle showing this item when right-clicking on audio elements" class="showOnContentItemCont audioType">
 							<div class="showOnContentItemIcon" on-tap="toggleIcon">
 								<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none"/>
