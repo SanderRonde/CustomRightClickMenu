@@ -130,7 +130,9 @@
 			'Added link to search engine dialog on main options page',
 			'Replaces %s with selected text in links, enabling easy search engine creation',
 			'Added checkmark after clicking some buttons, giving a bit more visual feedback',
-			'Hides code options button if there are no options'
+			'Hides code options button if there are no options',
+			'Content types can be toggled instead of only being able to select a single one',
+			'Nodes that are not shown on the current content type are greyed out instead of hidden'
 		]
 	};
 
