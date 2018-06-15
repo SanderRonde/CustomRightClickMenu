@@ -160,10 +160,10 @@
 		background-color: rgb(230,230,230);
 	}
 
-	:host([crm-type-hidden]) .item {
-		color: #bcbcbc;
-    	fill: #bcbcbc;
-	}
+:host([crm-type-hidden]) .item {
+	color: #bcbcbc;
+	fill: #bcbcbc;
+}
 
 :host(.browser-edge) .item {
 	transform: translateY(-34px);

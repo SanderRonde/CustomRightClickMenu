@@ -7,56 +7,83 @@ branches:
   only:
   - master
   - beta
+  - reset
   - polymer-2
 stages:
+- build
 - test
 - name: deploy website
   if: branch = master
-
+  
 env:
-- TEST=test-build
-- TEST=test-local
-- TEST=test-migration:2.0.12-2.0.17
-- TEST=test:migration:2.0.18-2.0.19
-- TEST=test:chrome:old:page
-- TEST=test:chrome:old:extension
-- TEST=test:chrome:old:install:greasyfork
-- TEST=test:chrome:old:install:openuserjs
-- TEST=test:chrome:old:install:userscriptsorg
-- TEST=test:chrome:old:install:userstylesorg
-- TEST=test:chrome:latest:page
-- TEST=test:chrome:latest:extension
-- TEST=test:chrome:latest:install:greasyfork
-- TEST=test:chrome:latest:install:openuserjs
-- TEST=test:chrome:latest:install:userscriptsorg
-- TEST=test:chrome:latest:install:userstylesorg
-- TEST=test:firefox:quantum
-- TEST=test:firefox:latest
-- TEST=test:edge:16
-- TEST=test:edge:latest
-
+  matrix:
+  - TEST=test:chrome:old:page
+  - TEST=test:chrome:old:extension
+  - TEST=test:chrome:latest:page
+  - TEST=test:chrome:latest:extension
+  - TEST=test:firefox:quantum
+  - TEST=test:firefox:latest
+  - TEST=test:edge:16
+  - TEST=test:edge:latest
+  - TEST=test-build
+  - TEST=test-local
+  - TEST=test:chrome:old:install:greasyfork
+  - TEST=test:chrome:old:install:openuserjs
+  - TEST=test:chrome:old:install:userscriptsorg
+  - TEST=test:chrome:old:install:userstylesorg
+  - TEST=test:chrome:latest:install:greasyfork
+  - TEST=test:chrome:latest:install:openuserjs
+  - TEST=test:chrome:latest:install:userscriptsorg
+  - TEST=test:chrome:latest:install:userstylesorg
+  - TEST=test-migration:2.0.12
+  - TEST=test-migration:2.0.13
+  - TEST=test-migration:2.0.14
+  - TEST=test-migration:2.0.15
+  - TEST=test-migration:2.0.16
+  - TEST=test-migration:2.0.17
+  - TEST=test-migration:2.0.18
+  - TEST=test-migration:2.0.19
+  global:
+  - secure: iPVXFxcVzOVCVVpWq0bxGGttAFjfQdmUaYlq25qeRQ4vf7KMJ749zBxd7PHy3c2TSD3nygt7MZmCRLnbyGnwqvDmPf7+FfFLTKL40vQXGFQzPnHrDTSpituNhU1uNZWsoWtCwzii+8ic14weWxfJwOqByhiotEBxY9oOxmLwLg1hiAoHtEXmGrnORdiro82iDpFiV4bgjqw+928/2I/wKpLfRbYAK1/zyFG5L5m/iod/VrNrvo1VPaDaip7F25OJN0S1J4kTbs5mHjqC0/oWYnGz3+1xm/3W/IUwsbFo85g5VqdjImrkaUzF2QGO3egSNV0ltbf/azi5Y59FOLkZ80NuBwAWs454QXLEH7nFBfznCTOi4JtxgmWjHYcrhUC1/Aoxye/inbqw7v9xP8tMMuBEeiXaiSgdaS4CgxeiQOzUJNquYldMhCYdy3F1qTTNmv3zXGIlkWY5UToAR0LqjR92QKkeAG0/BelW7nr4Gb2+EqluLeJfXlksb5gXqg4EIhi+/7GILRgEMiDwx2AqnkZMf87m2qSGWQ81l8m4cTueTDbNdt03vY+Obs/lzFMdujrvR+Xsq2abEG13D5zkQ/aJ2pd+4p2LtlVGr9j8E5owRhRn3//O2PodlSW6ydzIRdOzCh599XEMT0hHVVVMDVjEMtYD2/BddaV9+z9/lIs=
+  - secure: CWAEcGJ3hEhGmjsX7TE0Et8cdhC44Y9WyyI0K3T3hy1HLaDpjKgbVDrbCSn2j07jwRdea9fVTWB+9dEIajFILySvVRO9depSsMoXqrP9hmP70BIUa9TdZwhPbgOCt8MQ+cXiiTQGP89YCoIKIELCWyN7Wc/y55IMOKYQuD5ylMhVJPfgaKgJZ8VLZ/bVTGZx1kLPKydhylFoI/f9WSuJNzYjFTETqVSvteqofwCVX+Go5HoM7c/HoWFDIJSIkCO4pT3lEybCPwNvjeZsvbCSCOjp+N4gtfyCTEvjlo/8Ctuatl4BSdAPMjgn2ufQAYG0HDLUNDAiL5+HMPAc9/RF/h9bowEag1kBdM+fau1Y7H0TYsp+es6BSW0U4oktGi8eKOa2eKv44F8FYFixxfNHEAVH6/rYatjWCHE0oqZ8DSR1jpc5fFFhAC9Qlyu2YBDaykOEfssq2OjDvqokpVHxY+NclOwStzXxtbgc+FgRDgpmJrBaWaUyTBBnN1D0vhUvORZaoTEBTPB8GkFQYYPTa3ao9mJTe42B+xYaRZgHX81XE4vh1eCwacRGPwt2bbcKT+Ylbe7vS3Wu2GdTN6qd/rjHX0SKJyLEaNhkIxZz74xXEKcltK3OaEG4GEAFejaNqUDqUM2Mr1u1XCQTDvPrkEHnsvL2CNmLw0eVToyq2Zg=
 before_install:
-- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then openssl aes-256-cbc -K $encrypted_6cd0c378df83_key -iv $encrypted_6cd0c378df83_iv
-  -in test/UI/secrets.js.enc -out test/UI/secrets.js -d; fi
-- npm install gulp -g
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then 
+  openssl aes-256-cbc -K $encrypted_6cd0c378df83_key
+  -iv $encrypted_6cd0c378df83_iv -in test/UI/secrets.js.enc 
+  -out test/UI/secrets.js -d; 
+  fi
+- if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then 
+  openssl aes-256-cbc -K $encrypted_a4225afda018_key 
+  -iv $encrypted_a4225afda018_iv
+  -in scripts/id_rsa.enc -out scripts/id_rsa -d;
+  fi
+- npm install gulp http-server -g
 install:
 - yarn --ignore-engines
-script: 
-- travis_wait sh ./scripts/pretest.sh
-- ./scripts/do_test.sh $TEST
-
+script:
+- gulp compile
+- gulp stashBrowser && gulp browserChrome
+- http-server -p 1250 . -s &
+- "./scripts/get_build_artifacts.sh || travis_wait yarn pretest"
+- "./scripts/do_test.sh $TEST"
 jobs:
   include:
+  - stage: build
+    script:
+    - yarn pretest
+    - ./scripts/set_build_artifacts.sh || echo "Failed to upload build artifacts"
   - stage: deploy website
     script: 
       - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./scripts/is_latst_commit.sh && sh ./scripts/deploy-website.sh || echo "Not latest commit, not deploying" fi
     env: TEST=none
-
 notifications:
   email:
     on_success: change
     on_failure: change
 addons:
+  apt:
+    packages:
+    - sshpass
   browserstack:
     username: sanderronde1
     access_key:

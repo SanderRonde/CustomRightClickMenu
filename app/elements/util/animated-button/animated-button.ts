@@ -86,7 +86,7 @@ namespace AnimatedButtonElement {
 		}
 
 		static ready(this: AnimatedButton) {
-			this.addEventListener('tap', (e) => {
+			this.addEventListener('click', (e) => {
 				this.__click(e as MouseEvent)
 			});
 		};

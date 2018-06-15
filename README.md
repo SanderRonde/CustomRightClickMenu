@@ -6,7 +6,7 @@ Create your own entry in the right-click menu. Add custom scripts, links, sub-me
 do anything you want all from your right-click menu. Featuring full GreaseMonkey compatibility for userscripts and Stylish compatibility for userstyles.
 
 [![Join the chat at https://gitter.im/SanderRonde/CustomRightClickMenu](https://badges.gitter.im/SanderRonde/CustomRightClickMenu.svg)](https://gitter.im/SanderRonde/CustomRightClickMenu?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/SanderRonde/CustomRightClickMenu.svg?branch=polymer-2)](https://travis-ci.org/SanderRonde/CustomRightClickMenu)
+[![Build Status](https://travis-ci.org/SanderRonde/CustomRightClickMenu.svg?branch=master)](https://travis-ci.org/SanderRonde/CustomRightClickMenu)
 [![Tested with BrowserStack](http://i.imgur.com/3Mi2Fja.png)](https://www.browserstack.com/)
 
 ## Demo
@@ -60,7 +60,6 @@ you clicked on (page, link, selection, image, video or audio).
 * [Edge Extension](https://www.microsoft.com/store/apps/9P6T9NZ0QML9) - 2.1.0 released, 2.1.1 awaiting certification
 * Opera extension - Under certification for initial release
 
-
 ### Installing from repo
 
 Clone the repo, run [yarn](https://yarnpkg.com) to install dependencies and run `yarn build` to build. Load the dist that matches your browser from dist/{browser}.
@@ -78,7 +77,6 @@ Entering fullscreen mode brings up a hamburger menu on the left (see the image b
 ## Contributing
 
 If you want to contribute but don't know how to code, you can become a beta tester. If you want to join, send me an email at [awsdfgvhbjn@gmail.com](mailto:awsdfgvhbjn@gmail.com).
-
 To install the extension for contributing, simply clone this repo, run `[yarn](https://yarnpkg.com) && gulp prepareForHotReload`. This allows you to hot reload any changes by reloading the extension in your browser. Load the extension into your browser from the "app/" folder and you're done. Note that the background page uses modules and as such will only work in chrome >= 66 when hot reloading.
 Run the `gulp updateTsIdMaps && tsc -w` command in order to compile any typescript files in the app/ directory as they are changed. You should be able to have your changes in the app folder be reflected to live instantly by hitting `ctrl/cmd + r` on the options page or clicking "reload" on your browser's extension page.
 

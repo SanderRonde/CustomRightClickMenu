@@ -3,13 +3,13 @@ const processhtml = require('gulp-processhtml');
 const joinPages = require('./tools/joinPages');
 const polymerBuild = require('./tools/build');
 const childProcess = require('child_process');
+const StreamZip = require('node-stream-zip');
 const htmlTypings = require('html-typings');
 const beautify = require('gulp-beautify');
 const replace = require('gulp-replace');
 const banner = require('gulp-banner');
 const rename = require('gulp-rename');
 const ts = require('gulp-typescript');
-const through = require('through2');
 const uglify = require('gulp-uglify');
 const babel = require('gulp-babel');
 const xpi = require('firefox-xpi');
@@ -241,16 +241,28 @@ function readFile(filePath, options) {
 	gulp.task('compile', genTask('Compiles the typescript',
 		gulp.series('updateTsIdMaps', gulp.parallel(
 			function compileApp() {
-				const project = ts.createProject('tsconfig.json');
-				return project.src()
-					.pipe(project())
-					.js.pipe(gulp.dest('./app'));
+				return new Promise((resolve, reject) => {
+					const project = ts.createProject('tsconfig.json');
+					const proj =  project.src().pipe(project());
+					proj.once('error', () => { 
+						reject('Error(s) thrown during compilation');
+					});
+					proj.js.pipe(gulp.dest('./app')).once('end', () => {
+						resolve(null);
+					});
+				});
 			},
 			function compileTest() {
-				const project = ts.createProject('test/tsconfig.json');
-				return project.src()
-					.pipe(project())
-					.js.pipe(gulp.dest('./test'));
+				return new Promise((resolve, reject) => {
+					const project = ts.createProject('test/tsconfig.json');
+					const proj =  project.src().pipe(project());
+					proj.once('error', () => { 
+						reject('Error(s) thrown during compilation');
+					});
+					proj.js.pipe(gulp.dest('./test')).once('end', () => {
+						resolve(null);
+					});
+				});
 			}
 		))));
 })();
@@ -1271,6 +1283,85 @@ function readFile(filePath, options) {
 		async function genXPI() {
 			await xpi('./dist/packed/Custom Right-Click Menu.xpi', './dist/firefox');
 		}));
+})();
+
+/* Distributing and getting build artifacts */
+(() => {
+	gulp.task('zipArtifacts', genTask('Creates a zip file from the build/ and dist/ dirs', 
+		gulp.parallel(
+			function zipBuild() {
+				return gulp
+					.src([
+						'build/**',
+					])
+					.pipe(zip('artifacts.build.zip'))
+					.pipe(gulp.dest('./'));
+			},
+			function zipDist() {
+				return gulp
+					.src([
+						'dist/**',
+					])
+					.pipe(zip('artifacts.dist.zip'))
+					.pipe(gulp.dest('./'));
+			}
+		)));
+
+	gulp.task('unzipArtifacts', genTask('Unzips the artifacts.dist.zip and artifacts.build.zip files', 
+		gulp.parallel(
+			async function unzipBuild() {
+				await new Promise((resolve, reject) => {
+					const zip = new StreamZip({
+						file: 'artifacts.build.zip',
+						storeEntries: true
+					});
+
+					mkdirp(path.join(__dirname, 'build/'), (err) => {
+						if (err) {
+							reject(err);
+						} else {
+							//@ts-ignore
+							zip.on('ready', () => {
+								zip.extract(null, path.join(__dirname, 'build/'), (err) => {
+									if (err) {
+										reject(err);
+									} else {
+										zip.close();
+										resolve();
+									}
+								});
+							});
+						}
+					});
+				});
+			},
+			async function unzipDist() {
+				await new Promise((resolve, reject) => {
+					const zip = new StreamZip({
+						file: 'artifacts.dist.zip',
+						storeEntries: true
+					});
+
+					mkdirp(path.join(__dirname, 'dist/'), (err) => {
+						if (err) {
+							reject(err);
+						} else {
+							//@ts-ignore
+							zip.on('ready', () => {
+								zip.extract(null, path.join(__dirname, 'dist/'), (err) => {
+									if (err) {
+										reject(err);
+									} else {
+										zip.close();
+										resolve();
+									}
+								});
+							});
+						}
+					});
+				});
+			}
+		)));
 })();
 
 gulp.task('default', gulp.series('build'));

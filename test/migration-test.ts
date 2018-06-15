@@ -38,7 +38,8 @@ import {
 	wait, getGitHash, tryReadManifest, waitFor, 
 	inlineFn, executeAsyncScript, inlineAsyncFn, 
 	setDriver, getDialog, saveDialog, InputKeys, 
-	getCRM, findElement, FoundElement, forEachPromise, BrowserstackCapabilities
+	getCRM, findElement, FoundElement, forEachPromise, 
+	BrowserstackCapabilities
 } from './imports';
 describe = originals.describe;
 it = originals.it;
@@ -268,14 +269,14 @@ function getRuns(input: Input): {
 		if (sortedVersions.indexOf(from) === -1) {
 			process.stdout.write(`Version ${from} is not a valid release\n`);	
 			process.stdout.write(`Choose from:\n${sortedVersions.map((version) => {
-				`- ${version}`
+				return `- ${version}`
 			}).join('\n')}\n`);
 			process.exit(1);
 		}
 		if (sortedVersions.indexOf(to) === -1) {
 			process.stdout.write(`Version ${to} is not a valid release\n`);	
 			process.stdout.write(`Choose from:\n${sortedVersions.map((version) => {
-				`- ${version}`
+				return `- ${version}`
 			}).join('\n')}\n`);
 			process.exit(1);
 		}
@@ -503,7 +504,7 @@ async function setupExtensionOptionsPageInstance(srcPath: string, isLocal: boole
 	await chromeExtensionData.openOptionsPage(driver, capabilties);
 	return {
 		driver, capabilties
-	}
+	};
 }
 
 function folderToCrx(folder: string, name: string, dest: string): Promise<void> {
@@ -1034,7 +1035,7 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 												node.value.script = 'script0script1script2';
 												node.value.backgroundScript = 
 													'console.log("backgroundscript0backgroundscript1' +
-													'backgroundscript2");';
+													'backgroundscript2")';
 												node.value.options = {
 													value: {
 														type: 'number',
@@ -1275,12 +1276,12 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 	});
 	describe('Testing page', () => {
 		it('should be possible to reload the background page', async function() {
-			this.timeout(50000);
+			this.timeout(60000);
 			this.slow(25000);
 			await wait(20000);
 			
 			await chromeExtensionData.reloadBackgroundPage(driver, capabilties);
-			await wait(2000);
+			await wait(10000);
 			await chromeExtensionData.openOptionsPage(driver, capabilties);
 			await wait(1000);
 		});

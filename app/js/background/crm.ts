@@ -596,9 +596,10 @@ export namespace CRMNodes.Script.Background {
 					id: TabId|string;
 					tabIndex: TabIndex;
 				}[] = [];
-				modules.Util.setMapDefault(modules.crmValues.nodeInstances, node.id, new window.Map());
-				const nodeInstances = modules.crmValues.nodeInstances.get(node.id);
-				modules.Util.iterateMap(nodeInstances, (tabId, instance) => {
+				const allInstances = modules.crmValues.nodeInstances;
+				modules.Util.setMapDefault(allInstances, node.id, new window.Map());
+				const nodeInstances = allInstances.get(node.id);
+				modules.Util.iterateMap(nodeInstances, (tabId) => {
 					try {
 						modules.crmValues.tabData.get(tabId).nodes.get(node.id)
 							.forEach((tabIndexInstance, index) => {
@@ -2422,10 +2423,12 @@ export namespace CRMNodes {
 		return new Promise<void>((resolve) => {
 			modules.crmValues.nodeTabStatuses = new window.Map();
 			browserAPI.contextMenus.removeAll().then(async () => {
+				const done = await modules.Util.lock(modules.Util.LOCK.ROOT_CONTEXTMENU_NODE);
 				modules.crmValues.rootId = await browserAPI.contextMenus.create({
 					title: modules.storages.settingsStorage.rootName || 'Custom Menu',
 					contexts: ['all']
 				});
+				done();
 				modules.toExecuteNodes = {
 					onUrl: {
 						documentStart: [],

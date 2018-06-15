@@ -411,7 +411,7 @@ declare namespace Polymer {
 		'paper-array-input': HTMLPaperArrayInputElement;
 		'paper-ripple': HTMLPaperRipplElement;
 		'slot': HTMLSlotElement;
-		"animated-button": HTMLAnimatedButtonElement;
+		'animated-button': HTMLAnimatedButtonElement;
 	};
 
 }
@@ -450,7 +450,7 @@ interface HTMLPaperInputElement extends Polymer.RootElement {
 }
 
 interface HTMLPaperInputContainerElement extends Polymer.RootElement {
-
+	
 }
 
 interface HTMLPaperCheckboxElement extends Polymer.RootElement {

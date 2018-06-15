@@ -112,7 +112,7 @@ type SharedWindow = {
 		easing?: string;
 		fill?: 'forwards'|'backwards'|'both';
 	}): Animation;
-}
+};
 
 (() => {
 	if (window.onExists) {
@@ -236,8 +236,8 @@ type SharedWindow = {
 
 	const objectify = <T>(fn: T): T => {
 		const obj: Partial<T> = {};
-		Object.getOwnPropertyNames(fn).forEach((key: keyof T) => {
-			obj[key] = fn[key];
+		Object.getOwnPropertyNames(fn).forEach((key: string) => {
+			obj[key as keyof T] = fn[key as keyof T];
 		});
 		return obj as T;
 	}

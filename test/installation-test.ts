@@ -423,7 +423,7 @@ function doGreasyForkTest(prefix: () => string|void) {
 
 function doOpenUserJsTest(prefix: () => string|void) {
 	describe('Installing from OpenUserJS', () => {
-		const URL = 'https://openuserjs.org/scripts/xthexder/Wide_Github';
+		const URL = 'https://openuserjs.org/scripts/Ede_123/GitHub_Latest';
 		let href: string;
 		let title: string;
 
@@ -457,15 +457,13 @@ function doOpenUserJsTest(prefix: () => string|void) {
 		it('should be applied', async function() {
 			this.timeout(600000 * TIME_MODIFIER);
 			this.slow(600000 * TIME_MODIFIER);
-			await driver.get('https://www.github.com/login');
+			await driver.get('https://github.com/SanderRonde/CustomRightClickMenu');
 
 			await wait(5000);
 
-			assert.strictEqual(await driver.executeScript(inlineFn(() => {
-				const containers = document.getElementsByClassName('container');
-				const container = containers[containers.length - 1];
-				return window.getComputedStyle(container)['minWidth'];
-			})), '980px', 'width was changed (script was applied)');
+			assert.exists(await driver.executeScript(inlineFn(() => {
+				return document.getElementById('latest-button');
+			})), 'element was created (script was applied)');
 		});
 	});
 }

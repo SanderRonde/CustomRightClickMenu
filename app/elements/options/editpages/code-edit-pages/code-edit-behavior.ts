@@ -1,3 +1,5 @@
+/// <reference path="../../../elements.d.ts" />
+
 type CodeEditBehaviorScriptInstanceAdditions = ScriptEdit & {
 	isScript: true;
 };

@@ -194,6 +194,17 @@ namespace PaperSearchWebsiteDialog {
 		};
 
 		/**
+		 * Do the hiding and reset the checkmark and dialog behind it
+		 */
+		static doHide(this: PaperSearchWebsiteDialog) {
+			this.hide();
+			setTimeout(() => {
+				this.$.successWindow.querySelector('.checkmark').classList.remove('animateIn');
+				this.switchToWindow('initialWindow');
+			}, 500);
+		}
+
+		/**
 		 * Switches to the window specified in the button's attributes
 		 */
 		static switchWindow(this: PaperSearchWebsiteDialog, event: Polymer.ClickEvent) {
@@ -220,17 +231,6 @@ namespace PaperSearchWebsiteDialog {
 				this.switchToWindow('manuallyInputSearchWebsiteWindow');
 			});
 		};
-
-		/**
-		 * Do the hiding and reset the checkmark and dialog behind it
-		 */
-		static doHide(this: PaperSearchWebsiteDialog) {
-			this.hide();
-			setTimeout(() => {
-				this.$.successWindow.querySelector('.checkmark').classList.remove('animateIn');
-				this.switchToWindow('initialWindow');
-			}, 500);
-		}
 
 		/**
 		 * Inserts the chosen code and closes the dialog
@@ -386,7 +386,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 			this.clear();
 			this.fit();
 		};
-
+		
 		static setOutputType(this: PaperSearchWebsiteDialog, outputType: 'link'|'script') {
 			this.outputType = outputType;
 		}

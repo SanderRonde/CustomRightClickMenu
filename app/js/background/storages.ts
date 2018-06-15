@@ -1151,7 +1151,7 @@ export namespace Storages.SetupHandling {
 	}
 	async function uploadStorageSyncInitial(data: CRM.SettingsStorage) {
 		const settingsJson = JSON.stringify(data);
-
+		
 		if (settingsJson.length >= 101400 || !supportsStorageSync()) {
 			await browserAPI.storage.local.set({
 				useStorageSync: false
@@ -1203,7 +1203,7 @@ export namespace Storages {
 		newValue: CRM.StorageLocal[K];
 	}
 
-	type StorageSyncChange<K extends keyof CRM.SettingsStorage = keyof CRM.SettingsStorage> = {
+	type StorageSyncChange<K extends Extract<keyof CRM.SettingsStorage, string> = Extract<keyof CRM.SettingsStorage, string>> = {
 		key: K;
 		oldValue: CRM.SettingsStorage[K];
 		newValue: CRM.SettingsStorage[K];
@@ -1334,44 +1334,44 @@ export namespace Storages {
 			}
 		});
 		if (!modules.storages.storageLocal.useStorageSync || !supportsStorageSync()) {
+			await browserAPI.storage.local.set({
+				settings: modules.storages.settingsStorage
+			}).then(async () => {
+				await changeCRMValuesIfSettingsChanged(changes);
+				if (supportsStorageSync()) {
+					await browserAPI.storage.sync.set({
+						indexes: -1
+					});
+				}
+			}).catch((e) => {
+				window.log('Error on uploading to chrome.storage.local ', e);
+			});
+		} else {
+			//Using chrome.storage.sync
+			if (settingsJson.length >= 101400 || !supportsStorageSync()) {
 				await browserAPI.storage.local.set({
-					settings: modules.storages.settingsStorage
-				}).then(async () => {
-					await changeCRMValuesIfSettingsChanged(changes);
-					if (supportsStorageSync()) {
-						await browserAPI.storage.sync.set({
-							indexes: -1
-						});
-					}
-				}).catch((e) => {
-					window.log('Error on uploading to chrome.storage.local ', e);
+					useStorageSync: false
 				});
+				await uploadChanges('settings', changes);
 			} else {
-				//Using chrome.storage.sync
-				if (settingsJson.length >= 101400 || !supportsStorageSync()) {
+				//Cut up all data into smaller JSON
+				const obj = cutData(settingsJson);
+				await browserAPI.storage.sync.clear();
+				await browserAPI.storage.sync.set(obj as any).then(async () => {
+					await changeCRMValuesIfSettingsChanged(changes);
+					await browserAPI.storage.local.set({
+						settings: null
+					});
+				}).catch(async (err) => {
+					window.log('Error on uploading to storage.sync, uploading to storage.local instead', err);
+					modules.storages.storageLocal.useStorageSync = false;
 					await browserAPI.storage.local.set({
 						useStorageSync: false
 					});
 					await uploadChanges('settings', changes);
-				} else {
-					//Cut up all data into smaller JSON
-					const obj = cutData(settingsJson);
-					await browserAPI.storage.sync.clear();
-					await browserAPI.storage.sync.set(obj as any).then(async () => {
-						await changeCRMValuesIfSettingsChanged(changes);
-						await browserAPI.storage.local.set({
-							settings: null
-						});
-					}).catch(async (err) => {
-						window.log('Error on uploading to storage.sync, uploading to storage.local instead', err);
-						modules.storages.storageLocal.useStorageSync = false;
-						await browserAPI.storage.local.set({
-							useStorageSync: false
-						});
-						await uploadChanges('settings', changes);
-					});
-				}
+				});
 			}
+		}
 	}
 	export async function uploadChanges(type: 'local' | 'settings' | 'libraries', changes: StorageChange[],
 		useStorageSync: boolean = null) {
@@ -1629,34 +1629,16 @@ export namespace Storages {
 	}
 
 	async function changeCRMValuesIfSettingsChanged(changes: StorageChange[]) {
-		const updated: {
-			crm: boolean;
-			id: boolean;
-			rootName: boolean;
-		} = {
-			crm: false,
-			id: false,
-			rootName: false
-		};
 		for (let i = 0; i < changes.length; i++) {
 			if (changes[i].key === 'crm' || changes[i].key === 'showOptions') {
-				if (updated.crm) {
-					return;
-				}
-				updated.crm = true;
-
 				await modules.CRMNodes.updateCRMValues();
 				modules.CRMNodes.TS.compileAllInTree();
 				await Storages.checkBackgroundPagesForChange({
-					change: changes[i]
+					change: changes[i] as StorageSyncChange<string>
 				});
 				await modules.CRMNodes.buildPageCRM();
 				await modules.MessageHandling.signalNewCRM();
 			} else if (changes[i].key === 'latestId') {
-				if (updated.id) {
-					return;
-				}
-				updated.id = true;
 				const change = changes[i] as StorageSyncChange<'latestId'>;
 				modules.globalObject.globals.latestId = change.newValue;
 				browserAPI.runtime.sendMessage({
@@ -1671,14 +1653,21 @@ export namespace Storages {
 						}
 				});
 			} else if (changes[i].key === 'rootName') {
-				if (updated.rootName) {
-					return;
-				}
-				updated.rootName = true;
 				const rootNameChange = changes[i] as StorageSyncChange<'rootName'>;
-				browserAPI.contextMenus.update(modules.crmValues.rootId, {
-					title: rootNameChange.newValue
-				});
+				
+				const done = await modules.Util.lock(modules.Util.LOCK.ROOT_CONTEXTMENU_NODE);
+				try {
+					await browserAPI.contextMenus.update(modules.crmValues.rootId, {
+						title: rootNameChange.newValue
+					});
+					done();
+				} catch(e) {
+					//Resolve lock first
+					done();
+
+					//Rebuild CRM
+					await modules.CRMNodes.buildPageCRM();
+				}
 			}
 		}
 	}
@@ -1852,12 +1841,21 @@ export namespace Storages {
 						code: {}
 					}
 				}
+				browserAPI.storage.local.set({
+					libraries: libs
+				});
 
 				if (typeof local.selectedCrmType === 'number') {
 					local.selectedCrmType = crmTypeNumberToArr(local.selectedCrmType);
+					browserAPI.storage.local.set({
+						selectedCrmType: local.selectedCrmType
+					});
 				}
 				if (local.editing && typeof local.editing.crmType === 'number') {
 					local.editing.crmType = crmTypeNumberToArr(local.editing.crmType);
+					browserAPI.storage.local.set({
+						editing: local.editing
+					});
 				}
 				return local;
 			});
@@ -1925,7 +1923,7 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 		storageLocal: CRM.StorageLocal;
 	} | {
 		type: 'noChanges';
-	}> {
+	}> {				
 		const currentVersion = (await browserAPI.runtime.getManifest()).version;
 		if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt === currentVersion) {
 			return {

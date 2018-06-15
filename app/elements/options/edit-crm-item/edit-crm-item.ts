@@ -9,6 +9,7 @@ namespace EditCrmItemElement {
 		isMenu: boolean;
 		hasCodeSettings: boolean;
 		rootNode: boolean;
+		crmTypeHidden: boolean;
 	} = {
 		item: {
 			type: Object,

@@ -431,7 +431,7 @@ const templates = {
 	},
 	getDefaultLinkNode(options: any): CRM.LinkNode {
 		const defaultNode: CRM.LinkNode = {
-			name: 'name',
+			name: 'My Link',
 			onContentTypes: [true, true, true, false, false, false],
 			type: 'link',
 			showOnSpecified: false,
@@ -482,7 +482,7 @@ const templates = {
 	},
 	getDefaultScriptNode(options: any): CRM.ScriptNode {
 		const defaultNode: CRM.ScriptNode = {
-			name: 'name',
+			name: 'My Script',
 			onContentTypes: [true, true, true, false, false, false],
 			type: 'script',
 			isLocal: true,
@@ -500,7 +500,7 @@ const templates = {
 	},
 	getDefaultStylesheetNode(options: CRM.PartialStylesheetNode): CRM.StylesheetNode {
 		const defaultNode: Partial<CRM.StylesheetNode> = {
-			name: 'name',
+			name: 'My Stylesheet',
 			onContentTypes: [true, true, true, false, false, false],
 			type: 'stylesheet',
 			isLocal: true,
@@ -519,7 +519,7 @@ const templates = {
 	getDefaultDividerOrMenuNode(options: any, type: 'divider' | 'menu'):
 	CRM.DividerNode | CRM.MenuNode {
 		const defaultNode: CRM.DividerNode|CRM.MenuNode = {
-			name: 'name',
+			name: `My ${type[0].toUpperCase() + type.slice(1)}`,
 			type: type,
 			nodeInfo: templates.getDefaultNodeInfo(options.nodeInfo),
 			onContentTypes: [true, true, true, false, false, false],
@@ -2947,79 +2947,81 @@ describe('User entrypoints', function() {
 									assert.include(possibilities, subtractStrings(newCode, prevCode), 
 										'Script should match expected value');
 								});
-								it('should be able to add one from your visited websites', async () => {
-									const exampleVisitedWebsites: {
-										name: string;
-										url: string;
-										searchUrl: string;
-									}[] = [{
-										name: getRandomString(20),
-										url: `http://www.${getRandomString(20)}.com`,
-										searchUrl: `${getRandomString(20)}%s${getRandomString(10)}`
-									}];
-	
-									await enterEditorFullscreen(this, type);
-									const crmApp = findElement(webdriver.By.tagName('crm-app'));
-									const oldValue = await getEditorValue(type);
-									await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
-										.click();
-									await wait(500);
-									const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
-									await searchDialog.findElement(webdriver.By.id('initialWindowChoicesCont'))
-										.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
-										.click();
-									await wait(500);
-									await searchDialog.findElement(webdriver.By.id('manulInputSavedChoice'))
-										.click();
-									await wait(500);
-									await driver.executeScript(inlineFn(() => {
-										window.app.$.paperSearchWebsiteDialog
-											.shadowRoot.querySelector('#manualInputListChoiceInput')
-											.shadowRoot.querySelector('iron-autogrow-textarea')
-											.shadowRoot.querySelector('textarea').value = 'REPLACE.websites';
-									}, {
-										websites: JSON.stringify(exampleVisitedWebsites)
-									}));
-									await wait(500);
-									await searchDialog.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
-										.findElement(webdriver.By.className('buttons'))
-										.findElements(webdriver.By.tagName('paper-button'))
-										.get(1)
-										.click();
-									await wait(500);
-									await searchDialog.findElement(webdriver.By.id('processedListWindow'))
-										.findElement(webdriver.By.className('searchOptionCheckbox'))
-										.click();
-									await searchDialog.findElement(webdriver.By.id('processedListWindow'))
-										.findElement(webdriver.By.className('buttons'))
-										.findElements(webdriver.By.tagName('paper-button'))
-										.get(1)
-										.click();
-									await wait(500);
-									await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
-										.findElement(webdriver.By.className('buttons'))
-										.findElements(webdriver.By.tagName('paper-button'))
-										.get(1)
-										.click();
-									await wait(500);
-									await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
-										.findElement(webdriver.By.className('buttons'))
-										.findElements(webdriver.By.tagName('paper-button'))
-										.get(1)
-										.click();
-									await wait(500);
-									const newValue = await getEditorValue(type);
-	
-									const lines = [
-										'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
-										`var url = '${exampleVisitedWebsites[0].searchUrl}';`,
-										'var toOpen = url.replace(/%s/g,search);',
-										'location.href = toOpen;'
-									];
-									const possibilities = [lines.join('\r\n'), lines.join('\n')];
-									assert.include(possibilities, subtractStrings(newValue, oldValue), 
-										'Added script should match expected');
-								});
+								if (getBrowser() === 'Chrome') {
+									it('should be able to add one from your visited websites', async () => {
+										const exampleVisitedWebsites: {
+											name: string;
+											url: string;
+											searchUrl: string;
+										}[] = [{
+											name: getRandomString(20),
+											url: `http://www.${getRandomString(20)}.com`,
+											searchUrl: `${getRandomString(20)}%s${getRandomString(10)}`
+										}];
+		
+										await enterEditorFullscreen(this, type);
+										const crmApp = findElement(webdriver.By.tagName('crm-app'));
+										const oldValue = await getEditorValue(type);
+										await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
+											.click();
+										await wait(500);
+										const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
+										await searchDialog.findElement(webdriver.By.id('initialWindowChoicesCont'))
+											.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
+											.click();
+										await wait(500);
+										await searchDialog.findElement(webdriver.By.id('manualInputSavedChoice'))
+											.click();
+										await wait(500);
+										await driver.executeScript(inlineFn(() => {
+											window.app.$.paperSearchWebsiteDialog
+												.shadowRoot.querySelector('#manualInputListChoiceInput')
+												.shadowRoot.querySelector('iron-autogrow-textarea')
+												.shadowRoot.querySelector('textarea').value = 'REPLACE.websites';
+										}, {
+											websites: JSON.stringify(exampleVisitedWebsites)
+										}));
+										await wait(500);
+										await searchDialog.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+											.findElement(webdriver.By.className('buttons'))
+											.findElements(webdriver.By.tagName('paper-button'))
+											.get(1)
+											.click();
+										await wait(500);
+										await searchDialog.findElement(webdriver.By.id('processedListWindow'))
+											.findElement(webdriver.By.className('searchOptionCheckbox'))
+											.click();
+										await searchDialog.findElement(webdriver.By.id('processedListWindow'))
+											.findElement(webdriver.By.className('buttons'))
+											.findElements(webdriver.By.tagName('paper-button'))
+											.get(1)
+											.click();
+										await wait(500);
+										await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
+											.findElement(webdriver.By.className('buttons'))
+											.findElements(webdriver.By.tagName('paper-button'))
+											.get(1)
+											.click();
+										await wait(500);
+										await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
+											.findElement(webdriver.By.className('buttons'))
+											.findElements(webdriver.By.tagName('paper-button'))
+											.get(1)
+											.click();
+										await wait(500);
+										const newValue = await getEditorValue(type);
+		
+										const lines = [
+											'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+											`var url = '${exampleVisitedWebsites[0].searchUrl}';`,
+											'var toOpen = url.replace(/%s/g,search);',
+											'location.href = toOpen;'
+										];
+										const possibilities = [lines.join('\r\n'), lines.join('\n')];
+										assert.include(possibilities, subtractStrings(newValue, oldValue), 
+											'Added script should match expected');
+									});
+								}
 							});
 						});
 					});
@@ -3479,9 +3481,11 @@ describe('On-Page CRM', function() {
 			}, 'setting up the CRM does not throw');
 		});
 		it('should have the correct structure', async function() {
-			this.retries(2);
-			this.slow(400 * TIME_MODIFIER);
-			this.timeout(1400 * TIME_MODIFIER);
+			this.retries(4);
+			this.slow(8000 * TIME_MODIFIER);
+			this.timeout(10000 * TIME_MODIFIER);
+
+			await wait(3000);
 			const contextMenu = await getContextMenu();
 			assertContextMenuEquality(contextMenu, CRMNodes);
 		});

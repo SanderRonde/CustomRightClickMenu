@@ -17,7 +17,7 @@ import { assert } from 'chai';
 import * as path from 'path';
 import * as fs from 'fs';
 
-function isDefaultKey(key: string): key is keyof Storage {
+function isDefaultKey(key: string): key is Extract<keyof Storage, string> {
 	return !(key !== 'getItem' && 
 		key !== 'setItem' && 
 		key !== 'length' && 
@@ -150,10 +150,10 @@ var backgroundPageWindowDone = new Promise((resolve) => {
 function mergeObjects<T1, T2>(obj1: T1, obj2: T2): T1 & T2 {
 	const joined: Partial<T1 & T2> = {};
 	for (let key in obj1) {
-		joined[key] = obj1[key];
+		(joined as any)[key as any] = obj1[key];
 	}
 	for (let key in obj2) {
-		joined[key] = obj2[key];
+		(joined as any)[key as any] = obj2[key];
 	}
 	return joined as T1 & T2;
 }

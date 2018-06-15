@@ -167,7 +167,7 @@ interface Window {
 		logLines: any;
 	};
 	runOrAddAsCallback(toRun: Function, thisElement: HTMLElement, params: any[]): void;
-	addCalcFn(element: HTMLElement, prop: string, calcValue: string, disable?: boolean): void;
+	addCalcFn(element: HTMLElement, prop: keyof CSSStyleDeclaration, calcValue: string, disable?: boolean): void;
 	useOptionsCompletions: boolean;
 	Storages: {
 		loadStorages(): Promise<void>;

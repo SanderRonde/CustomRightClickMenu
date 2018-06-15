@@ -274,7 +274,7 @@ namespace CRMAppElement {
 			}
 		}
 
-		const usedAnimations: [HTMLElement, UsedAnimation][] = [];
+		const usedAnimations: WeakMap<HTMLElement, UsedAnimation[]> = new window.WeakMap();
 
 		function getObjSize(obj: {
 			[key: string]: any;
@@ -376,12 +376,9 @@ namespace CRMAppElement {
 			easing?: string|'bez';
 			fill?: 'forwards'|'backwards'|'both';
 		}) {
-			if ('transform' in properties[0] || 'transform' in properties[1]) {
-				return null;
-			}
-
-			for (let [animationElement, animation] of usedAnimations) {
-				if (animationElement === element) {
+			if (usedAnimations.has(element)) {
+				const animations = usedAnimations.get(element);
+				for (const animation of animations) {
 					const { equal, reverse } = areConfigsEqual(animation.properties, properties);
 					const timingsEqual = areTimingsEqual(animation.options, options);
 					if (!equal || !timingsEqual) {
@@ -400,13 +397,32 @@ namespace CRMAppElement {
 							}
 							animation.animation.reverse();
 						}
-						animation.animation.onfinish = undefined;
-						animation.animation.oncancel = undefined;
 						return animation.animation;
 					}
 				}
 			}
 			return null;
+		}
+
+		function getElementAnimations(element: HTMLElement): UsedAnimation[] {
+			if (!usedAnimations.has(element)) {
+				usedAnimations.set(element, []);
+			}
+			return usedAnimations.get(element);
+		}
+
+		function trimUsedAnimations(element: HTMLElement) {
+			const animations = getElementAnimations(element);
+			if (animations.length >= 200) {
+				animations.splice(100, 100);
+				usedAnimations.set(element, animations);
+			}
+		}
+
+		function addAnimation(element: HTMLElement, animation: UsedAnimation) {
+			const animations = getElementAnimations(element);
+			animations.push(animation);
+			usedAnimations.set(element, animations);
 		}
 
 		function doAnimation(element: HTMLElement, properties:  {
@@ -417,11 +433,13 @@ namespace CRMAppElement {
 			fill?: 'forwards'|'backwards'|'both';
 		}) {
 			const animation = animateImpl.apply(element, [properties, options]);
-			usedAnimations.push([element, {
+
+			trimUsedAnimations(element);
+			addAnimation(element, {
 				animation, element, properties,
 				state: 'completed',
 				options: options
-			}]);
+			});
 			return animation;
 		}
 
@@ -478,7 +496,7 @@ namespace CRMAppElement {
 			type: Array,
 			value: []
 		},
-		crmType: Array,
+		crmTypes: Array,
 		settingsJsonLength: {
 			type: Number,
 			notify: true,
@@ -616,19 +634,23 @@ namespace CRMAppElement {
 
 		static properties = crmAppProperties;
 
+		private static _getRegisteredListener(this: CrmApp, 
+			element: Polymer.PolymerElement|HTMLElement|DocumentFragment, 
+			eventType: string) {
+				const listeners = this.listeners;
+				if (!element || !('getAttribute' in element)) {
+					return null;
+				}
+				return (element as Polymer.PolymerElement)
+					.getAttribute(`data-on-${eventType}`) as keyof typeof listeners;
+			}
+
 		static domListener(this: CrmApp, event: Polymer.CustomEvent) {
-			const propKey = `data-on-${event.type}`;
 			const listeners = this.listeners;
 
-			let fnName: keyof typeof listeners;
-			let pathIndex = 0;
-			let currentElement = window.app.util.getPath(event)[pathIndex];
-			while (currentElement && !('getAttribute' in currentElement) || 
-				!(fnName = (currentElement as Polymer.PolymerElement).getAttribute(propKey) as keyof typeof listeners) &&
-				pathIndex < window.app.util.getPath(event).length) {
-					pathIndex++;
-					currentElement = window.app.util.getPath(event)[pathIndex];
-				}
+			const fnName: keyof typeof listeners = window.app.util.iteratePath(event, (element) => {
+				return this._getRegisteredListener(element, event.type);
+			});
 
 			if (fnName) {
 				if (fnName !== 'prototype' && fnName !== 'parent' && listeners[fnName]) {
@@ -640,7 +662,7 @@ namespace CRMAppElement {
 					console.warn.apply(console, this._logf(`_createEventHandler`, `listener method ${fnName} not defined`));
 				}
 			} else {
-				console.warn.apply(console, this._logf(`_createEventHandler`, `property ${propKey} not defined`));
+				console.warn.apply(console, this._logf(`_createEventHandler`, `property data-on${event.type} not defined`));
 			}
 		}
 
@@ -714,7 +736,7 @@ namespace CRMAppElement {
 			key: keyof T;
 			value: T[keyof T]
 		}[] {
-			if (typeof settings === 'string' || !settings) {
+			if (!settings || typeof settings === 'string') {
 				return [];
 			}
 			return Object.getOwnPropertyNames(settings).map((key: keyof T) => {
@@ -1226,50 +1248,8 @@ namespace CRMAppElement {
 					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal.CRMOnPage);
 					this.pageDemo.create();
 				}
-				if (key === 'simpleMode') {
-					this.setSimpleMode(value as boolean);
-				}
 			});
 		};
-
-		static animateElementOut(this: CrmApp, element: HTMLElement) {
-			const height = element.scrollHeight;
-			const styles = window.getComputedStyle(element);
-			element.animate([{
-				transform: 'translateY(0)', 
-				opacity: 1, 
-				height: `${height}px`,
-				marginTop: styles.marginTop,
-				marginBottom: styles.marginBottom,
-				paddingTop: styles.paddingTop,
-				paddingBottom: styles.paddingBottom,
-			}, {
-				transform: 'translateY(-8px)', 
-				opacity: 0.7
-			}, {
-				transform: 'translateY(-15px)', 
-				opacity: 0, 
-				height: 0,
-				marginTop: 0,
-				marginBottom: 0,
-				paddingTop: 0,
-				paddingBottom: 0,
-			}], {
-				duration: 300,
-				easing: 'bez',
-				fill: 'both'
-			}).onfinish = () => {
-				element.style.display = 'none';
-			}
-		}
-
-		static setSimpleMode(this: CrmApp, enabled: boolean) {
-			//Hide/show checkboxes
-			this.animateElementOut(window.app.$.catchErrors);
-			this.animateElementOut(window.app.$.recoverUnsavedData);
-			this.animateElementOut(window.app.$.CRMOnPage);
-			this.animateElementOut(window.app.$.editCRMInRM);
-		}
 
 		static async refreshPage(this: CrmApp) {
 			//Reset dialog
@@ -1607,9 +1587,6 @@ namespace CRMAppElement {
 				type: 'boolean'
 			}, {
 				val: 'catchErrors',
-				type: 'boolean'
-			}, {
-				val: 'simpleMode',
 				type: 'boolean'
 			}, {
 				val: 'useStorageSync',
@@ -2315,6 +2292,12 @@ namespace CRMAppElement {
 				});
 			};
 
+			private static _crmTypeNumberToArr(crmType: number): boolean[] {
+				const arr = [false, false, false, false, false, false];
+				arr[crmType] = true;
+				return arr;
+			}
+
 			static async setupStorages() {
 				const parent = this.parent();
 				const storageLocal = await browserAPI.storage.local.get<CRM.StorageLocal & {
@@ -2382,8 +2365,11 @@ namespace CRMAppElement {
 					}, 2500);
 				}
 				if (storageLocal.selectedCrmType !== undefined) {
-					parent.crmTypes = storageLocal.selectedCrmType;
-					parent._setup.switchToIcons(storageLocal.selectedCrmType);
+					const selected = Array.isArray(storageLocal.selectedCrmType) ?
+						storageLocal.selectedCrmType : 
+						this._crmTypeNumberToArr(storageLocal.selectedCrmType);
+					parent.crmTypes = selected;
+					parent._setup.switchToIcons(selected);
 				} else {
 					browserAPI.storage.local.set({
 						selectedCrmType: [true, true, true, true, true, true]
@@ -3688,7 +3674,7 @@ namespace CRMAppElement {
 							$(crmEl).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
 						}
 					}
-					selectedTypes = types;
+					selectedTypes = [...types];
 				} else {
 					const element = this.parent().util.findElementWithClassName(e, 'crmType');
 					const crmTypes = this.parent().shadowRoot.querySelectorAll('.crmType');
@@ -3722,7 +3708,6 @@ namespace CRMAppElement {
 						}
 					}
 				}
-
 				browserAPI.storage.local.set({
 					selectedCrmType: selectedTypes
 				});
@@ -4806,13 +4791,22 @@ namespace CRMAppElement {
 		 * Various util functions
 		 */
 		static util = class CRMAppUtil {
-			static wait(time: number) {
-				return new Promise<void>((resolve) => {
-					window.setTimeout(() => {
-						resolve(null);
-					}, time);
-				});
-			}
+			static iteratePath<T>(e: {
+				path: HTMLElement[];
+			}|{
+				Aa: HTMLElement[];
+			}|Polymer.CustomEvent, 
+				condition: (element: Polymer.PolymerElement|DocumentFragment|HTMLElement) => T): T {
+					let index = 0;
+					const path = this.getPath(e);
+					let result: T = condition(path[index]);
+
+					while (path[index + 1] && result === null) {
+						result = condition(path[++index]);
+					}
+
+					return result;
+				}
 
 			static arraysOverlap<T>(arr1: T[], arr2: T[]): boolean {
 				for (let i = 0; i < arr1.length; i++) {
@@ -4821,6 +4815,14 @@ namespace CRMAppElement {
 					}
 				}
 				return false;
+			}
+
+			static wait(time: number) {
+				return new Promise<void>((resolve) => {
+					window.setTimeout(() => {
+						resolve(null);
+					}, time);
+				});
 			}
 
 			static createArray(length: number): void[] {
@@ -4951,17 +4953,13 @@ namespace CRMAppElement {
 			}|{
 				Aa: HTMLElement[];
 			}|Polymer.CustomEvent, tagName: T): ElementTagNameMaps[T] {
-				let index = 0;
-				const path = this.getPath(event);
-				let node = path[0];
-				while (!('tagName' in node) || (node as Polymer.PolymerElement).tagName.toLowerCase() !== tagName) {
-					node = path[++index];
-
-					if (index >= path.length) {
-						return null;
-					}
-				}
-				return node as ElementTagNameMaps[T]
+				return this.iteratePath(event, (node) => {
+					if (node && 'tagName' in node && 
+						(node as Polymer.PolymerElement).tagName.toLowerCase() === tagName) {
+							return node;
+						}
+					return null;
+				}) as ElementTagNameMaps[T];
 			}
 
 			static findElementWithClassName(event: {
@@ -4969,35 +4967,27 @@ namespace CRMAppElement {
 			}|{
 				Aa: HTMLElement[];
 			}|Polymer.CustomEvent, className: string): Polymer.PolymerElement {
-				let index = 0;
-				const path = this.getPath(event);
-				let node = path[0];
-				while (!('classList' in node) || !(node as Polymer.PolymerElement).classList.contains(className)) {
-					node = path[++index];
-
-					if (index >= path.length) {
-						return null;
-					}
-				}
-				return node as Polymer.PolymerElement;
-			}
+				return this.iteratePath(event, (node) => {
+					if (node && 'classList' in node && 
+						(node as Polymer.PolymerElement).classList.contains(className)) {
+							return node;
+						}
+					return null;
+				}) as Polymer.PolymerElement
+			};
 
 			static findElementWithId(event: {
 				path: HTMLElement[];
 			}|{
 				Aa: HTMLElement[];
 			}|Polymer.CustomEvent, id: string): Polymer.PolymerElement {
-				let index = 0;
-				const path = this.getPath(event);
-				let node = path[0];
-				while (!('id' in node) || (node as Polymer.PolymerElement).id !== id) {
-					node = path[++index];
-
-					if (index >= path.length) {
-						return null;
-					}
-				}
-				return node as Polymer.PolymerElement;
+				return this.iteratePath(event, (node) => {
+					if (node && 'id' in node && 
+						(node as Polymer.PolymerElement).id === id) {
+							return node;
+						}
+					return null;
+				}) as Polymer.PolymerElement;
 			}
 
 			/**
