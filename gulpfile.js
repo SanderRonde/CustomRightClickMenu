@@ -1,4 +1,3 @@
-const manifoldjs = require('manifoldjs/commands');
 const processhtml = require('gulp-processhtml');
 const joinPages = require('./tools/joinPages');
 const polymerBuild = require('./tools/build');
