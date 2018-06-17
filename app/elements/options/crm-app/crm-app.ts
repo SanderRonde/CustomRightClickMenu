@@ -3720,27 +3720,27 @@ namespace CRMAppElement {
 				this.parent().crmTypes = selectedTypes;
 			};
 
-			private static _getDownloadPermission() {
-				return new Promise<boolean>(async (resolve) => {
-					if (browserAPI.downloads && browserAPI.downloads.download) {
-						return resolve(true);
-					}
+			private static _getDownloadPermission(callback: (allowed: boolean) => void) {
+				if (browserAPI.downloads && browserAPI.downloads.download) {
+					callback(true);
+					return;
+				}
 
-					if (!(browserAPI.permissions)) {
-						window.app.util.showToast('Your browser does not support asking for the download permission');
-						return resolve(false);
-					}
+				if (!(browserAPI.permissions)) {
+					window.app.util.showToast('Your browser does not support asking for the download permission');
+					callback(false);
+					return;
+				}
 
-					const granted = await browserAPI.permissions.contains({
-						permissions: ['downloads']
-					});
+				browserAPI.permissions.contains({
+					permissions: ['downloads']
+				}).then(async (granted) => {
 					if (granted) {
-						resolve(true);
+						callback(true);
 					} else {
-						const allowed = await browserAPI.permissions.request({
+						callback(await browserAPI.permissions.request({
 							permissions: ['downloads']
-						});
-						resolve(allowed);
+						}));
 					}
 				});
 			}
@@ -3763,16 +3763,18 @@ namespace CRMAppElement {
 					'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open\\command]',
 					'@="\\"' + filePath + '\\""'
 				].join('\n');
-				if (await this._getDownloadPermission()) {
-					if (browserAPI.downloads) {
-						browserAPI.downloads.download({
-							url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
-							filename: schemeName + '.reg'
-						});
-					} else {
-						window.app.util.showToast('Your browser does not support the downloads API');
+				this._getDownloadPermission((allowed) => {
+					if (allowed) {
+						if (browserAPI.downloads) {
+							browserAPI.downloads.download({
+								url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
+								filename: schemeName + '.reg'
+							});
+						} else {
+							window.app.util.showToast('Your browser does not support the downloads API');
+						}
 					}
-				}
+				});
 			};
 
 			static globalExcludeChange(e: Polymer.ClickEvent) {
