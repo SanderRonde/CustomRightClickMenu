@@ -218,7 +218,7 @@ type SharedWindow = {
 					const prom = (window.Promise || RoughPromise) as any;
 					return new prom((resolve: (result: C[T1][T2][T3][T4]) => void) => {
 						let state: any = window;
-						const keys = [key1, key2, key3, key4];
+						const keys = [key1, key2, key3, key4, key5];
 						RoughPromise.chain(keys.filter(key => !!key).map((key) => {
 							return () => {
 								return new prom((resolveInner: (result: any) => void) => {
