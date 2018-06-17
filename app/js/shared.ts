@@ -217,7 +217,7 @@ type SharedWindow = {
 				PromiseLike<C[T1][T2][T3][T4]>|PromiseLike<C[T1][T2][T3]>|PromiseLike<C[T1][T2]>|PromiseLike<C[T1]> => {
 					const prom = (window.Promise || RoughPromise) as any;
 					return new prom((resolve: (result: C[T1][T2][T3][T4]) => void) => {
-						let state: any = window;
+						let state: any = container;
 						const keys = [key1, key2, key3, key4, key5];
 						RoughPromise.chain(keys.filter(key => !!key).map((key) => {
 							return () => {
