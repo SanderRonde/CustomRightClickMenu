@@ -94,6 +94,11 @@ paper-ripple {
 	opacity: 0;
 	z-index: 5;
 	pointer-events: all;
+	transition: opacity 300ms cubic-bezier(0.215, 0.610, 0.355, 1.000);
+}
+
+.backdropCont.animateIn {
+	opacity: 0.3
 }
 
 .backdropCont.visible {

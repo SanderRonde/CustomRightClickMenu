@@ -86,11 +86,6 @@ namespace CrmEditPageElement {
 		static stylesheetItem: CRM.StylesheetNode = {} as any;
 
 		/**
-		 * Whether the page is opened
-		 */
-		private static _opened: boolean =  false;
-
-		/**
 		 * The backdrop element associated with the current dialog
 		 */
 		private static _backdropEl: HTMLElement;
@@ -127,17 +122,14 @@ namespace CrmEditPageElement {
 		};
 
 		private static _onAnimationDone(this: CrmEditPage) {
-			if (!this._opened) {
-				this._backdropEl.classList.remove('visible');
-				this._backdropEl.classList.remove('clickthrough');
-				this.$.overlayCont.style.display = 'none';
-				document.body.style.overflow = 'auto';
-				document.body.style.marginRight = '0';
-				window.app.show = false;
-				this._opened = false;
-				window.app.item = null;
-				this._unassignItems();
-			}
+			this._backdropEl.classList.remove('visible');
+			this._backdropEl.classList.remove('clickthrough');
+			this.$.overlayCont.style.display = 'none';
+			document.body.style.overflow = 'auto';
+			document.body.style.marginRight = '0';
+			window.app.show = false;
+			window.app.item = null;
+			this._unassignItems();
 		};
 
 		private static _unassignItems(this: CrmEditPage) {
@@ -147,22 +139,11 @@ namespace CrmEditPageElement {
 
 		private static _animateIn(this: CrmEditPage) {
 			this._backdropEl.classList.add('visible');
-			this._backdropEl.animate([
-				{
-					opacity: 0
-				}, {
-					opacity: 0.3
-				}
-			], {
-				duration: 300,
-				fill: 'both',
-				easing: 'bez'
-			});
+			this._backdropEl.classList.add('animateIn');
 				
 			document.body.style.overflow = 'hidden';
 			document.body.style.marginRight = '17px';
 			window.app.show = true;
-			this._opened = true;
 			this.$.overlayCont.style.display = 'block';
 			return window.animateTransform(this.$.overlayCont, {
 				propName: 'scale',
@@ -177,17 +158,7 @@ namespace CrmEditPageElement {
 		};
 		
 		static animateOut(this: CrmEditPage) {
-			this._backdropEl.animate([
-				{
-					opacity: 0.3
-				}, {
-					opacity: 0
-				}
-			], {
-				duration: 300,
-				fill: 'both',
-				easing: 'bez'
-			});
+			this._backdropEl.classList.remove('animateIn');
 
 			//Make it clickthrough-able already
 			this._backdropEl.classList.add('clickthrough');
@@ -205,7 +176,6 @@ namespace CrmEditPageElement {
 			animation.onfinish = () => {
 				this._onAnimationDone();
 			}
-			this._opened = false;
 			document.body.parentElement.style.overflow = 'auto';
 		};
 
