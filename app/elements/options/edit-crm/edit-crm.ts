@@ -537,7 +537,7 @@ namespace EditCrmElement {
 		 * 		  
 		 * @param setItems - Set choices for menus by the user
 		 * @param quick - Do it quicker than normal
-		 * @param superquick - Don't show a loading image and do it immediately
+		 * @param instant - Don't show a loading image and do it immediately
 		 * 
 		 * @return The object to be sent to Polymer
 		 */
@@ -545,13 +545,15 @@ namespace EditCrmElement {
 			setItems?: number[];
 			unsetItems?: number[];
 			quick?: boolean;
+			instant?: boolean;
 		} = {
 			setItems: [],
 			unsetItems: [],
 			quick: false,
+			instant: false
 		}): CRMBuilder {
 			let {
-				setItems, unsetItems, quick
+				setItems, unsetItems, quick, instant
 			} = settings;
 			setItems = setItems || [];
 			unsetItems = unsetItems || [];
@@ -594,7 +596,11 @@ namespace EditCrmElement {
 				}, 50);
 			}
 
-			this._currentTimeout = window.setTimeout(func, quick ? 150 : 1000);
+			if (instant) {
+				func();
+			} else {
+				this._currentTimeout = window.setTimeout(func, quick ? 150 : 1000);
+			}
 			return crmBuilder;
 		};
 
@@ -630,7 +636,8 @@ namespace EditCrmElement {
 				this.isAdding = true;
 
 				this.build({
-					setItems: this._setItems
+					setItems: this._setItems,
+					instant: true
 				});
 			} else {
 				this.cancelAdding();
