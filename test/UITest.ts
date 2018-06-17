@@ -16,7 +16,8 @@ const SKIP_ENTRYPOINTS = hasSetting('skip-entrypoints');
 const SKIP_OPTIONS_PAGE_NON_DIALOGS = hasSetting('skip-non-dialogs');
 const SKIP_OPTIONS_PAGE_DIALOGS = hasSetting('skip-dialogs');
 const SKIP_CONTEXTMENU = hasSetting('skip-contextmenu');
-const SKIP_DIALOG_TYPES_EXCEPT = getSkipDialogSetting();
+const SKIP_DIALOG_TYPES_EXCEPT = getSkipExceptDialogSetting();
+const SKIP_DIALOG_TYPES = getSkipDialogSettings();
 const SKIP_EXTERNAL_TESTS = hasSetting('skip-external');
 const SKIP_USERSCRIPT_TEST = hasSetting('skip-userscript');
 const SKIP_USERSTYLE_TEST = hasSetting('skip-userstyle');
@@ -28,7 +29,7 @@ function hasSetting(setting: string) {
 
 type SkipOption = 'stylesheet'|'divider'|'script'|
 	'menu'|'link'|'script-fullscreen';
-function getSkipDialogSetting(): SkipOption|false {
+function getSkipExceptDialogSetting(): SkipOption|false {
 	const options: SkipOption[] = ['stylesheet', 'divider', 
 		'script', 'menu', 'link', 'script-fullscreen'];
 	for (const option of options) {
@@ -37,6 +38,18 @@ function getSkipDialogSetting(): SkipOption|false {
 		}
 	}
 	return false;
+}
+
+function getSkipDialogSettings(): SkipOption[] {
+	const toSkip: SkipOption[] = [];
+	const options: SkipOption[] = ['stylesheet', 'divider', 
+		'script', 'menu', 'link', 'script-fullscreen'];
+	for (const option of options) {
+		if (hasSetting(`skip-type-${option}`)) {
+			toSkip.push(option);
+		}
+	}
+	return toSkip;
 }
 
 interface ContextMenuItem {
@@ -2060,7 +2073,8 @@ describe('User entrypoints', function() {
 			});
 			describe('Link Dialog', function() {
 				const type: CRM.NodeType = 'link';
-				if (SKIP_DIALOG_TYPES_EXCEPT && SKIP_DIALOG_TYPES_EXCEPT !== type) {
+				if ((SKIP_DIALOG_TYPES_EXCEPT && SKIP_DIALOG_TYPES_EXCEPT !== type) ||
+					SKIP_DIALOG_TYPES.indexOf(type) !== -1) {
 					return;
 				}
 	
@@ -2231,7 +2245,8 @@ describe('User entrypoints', function() {
 			});
 			describe('Divider Dialog', function() {
 				const type: CRM.NodeType = 'divider';
-				if (SKIP_DIALOG_TYPES_EXCEPT && SKIP_DIALOG_TYPES_EXCEPT !== type) {
+				if ((SKIP_DIALOG_TYPES_EXCEPT && SKIP_DIALOG_TYPES_EXCEPT !== type) ||
+					SKIP_DIALOG_TYPES.indexOf(type) !== -1) {
 					return;
 				}
 	
@@ -2246,7 +2261,8 @@ describe('User entrypoints', function() {
 			});
 			describe('Menu Dialog', function() {
 				const type: CRM.NodeType = 'menu';
-				if (SKIP_DIALOG_TYPES_EXCEPT && SKIP_DIALOG_TYPES_EXCEPT !== type) {
+				if ((SKIP_DIALOG_TYPES_EXCEPT && SKIP_DIALOG_TYPES_EXCEPT !== type) ||
+					SKIP_DIALOG_TYPES.indexOf(type) !== -1) {
 					return;
 				}
 	
@@ -2261,7 +2277,8 @@ describe('User entrypoints', function() {
 			});
 			describe('Stylesheet Dialog', function() {
 				const type: CRM.NodeType = 'stylesheet';
-				if (SKIP_DIALOG_TYPES_EXCEPT && SKIP_DIALOG_TYPES_EXCEPT !== type) {
+				if ((SKIP_DIALOG_TYPES_EXCEPT && SKIP_DIALOG_TYPES_EXCEPT !== type) ||
+					SKIP_DIALOG_TYPES.indexOf(type) !== -1) {
 					return;
 				}
 	
@@ -2382,6 +2399,9 @@ describe('User entrypoints', function() {
 				if (SKIP_DIALOG_TYPES_EXCEPT && 
 					SKIP_DIALOG_TYPES_EXCEPT !== 'script' &&
 					SKIP_DIALOG_TYPES_EXCEPT !== 'script-fullscreen') {
+					return;
+				}
+				if (SKIP_DIALOG_TYPES.indexOf(type) !== -1) {
 					return;
 				}
 	
