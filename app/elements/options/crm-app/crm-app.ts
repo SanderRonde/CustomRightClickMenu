@@ -3726,12 +3726,12 @@ namespace CRMAppElement {
 			};
 
 			private static _getDownloadPermission(callback: (allowed: boolean) => void) {
-				if (browserAPI.downloads && browserAPI.downloads.download) {
+				if (BrowserAPI.getSrc().downloads && BrowserAPI.getSrc().downloads.download) {
 					callback(true);
 					return;
 				}
 
-				if (!(browserAPI.permissions)) {
+				if (!(BrowserAPI.getSrc().permissions)) {
 					window.app.util.showToast('Your browser does not support asking for the download permission');
 					callback(false);
 					return;
