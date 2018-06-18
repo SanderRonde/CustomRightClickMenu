@@ -422,40 +422,49 @@ namespace ErrorReportingToolElement {
 			}, 350);
 		};
 
-		private static _getDownloadPermission(this: ErrorReportingTool) {
-			//Download the files
-			return new Promise<boolean>(async (resolve) => {
-				if (browserAPI.downloads && browserAPI.downloads.download) {
-					return resolve(true);
-				}
+		private static _getDownloadPermission(this: ErrorReportingTool, callback: (allowed: boolean) => void) {
+			if (browserAPI.downloads && browserAPI.downloads.download) {
+				callback(true);
+				return;
+			}
 
-				if (!(browserAPI.permissions)) {
-					window.app.util.showToast('Your browser does not support asking for the download permission');
-					return resolve(false);
-				}
+			if (!(browserAPI.permissions)) {
+				window.app.util.showToast('Your browser does not support asking for the download permission');
+				callback(false);
+				return;
+			}
 
-				const granted = await browserAPI.permissions.request({
-					permissions: ['downloads']
-				});
-				if (granted && browserAPI.downloads) {
+			browserAPI.permissions.contains({
+				permissions: ['downloads']
+			}).then(async (granted) => {
+				if (granted) {
 					window.errorReportingTool.$.errorReportingDialog.close();
-					resolve(granted);
+					callback(true);
 
-					//Do a nice checkmark animation on the report button
 					const listener = () => {
 						this._checkCheckmark();
 						window.removeEventListener('focus', listener);
 					};
 					window.addEventListener('focus', listener);
 				} else {
-					window.doc.acceptDownloadToast.show();
-					resolve(granted);
+					browserAPI.permissions.request({
+						permissions: ['downloads']
+					}).then((granted) => {
+						if (!granted) {
+							window.doc.acceptDownloadToast.show();
+						}
+						callback(granted);
+					});
 				}
 			});
 		};
 
 		static async submitErrorReport(this: ErrorReportingTool) {
-			const granted = await this._getDownloadPermission();
+			const granted = await new Promise<boolean>((resolve) => {
+				this._getDownloadPermission((granted) => {
+					resolve(granted);
+				});
+			});
 			if (!granted) {
 				return;
 			}

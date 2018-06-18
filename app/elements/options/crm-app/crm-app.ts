@@ -3743,9 +3743,11 @@ namespace CRMAppElement {
 					if (granted) {
 						callback(true);
 					} else {
-						callback(await browserAPI.permissions.request({
+						browserAPI.permissions.request({
 							permissions: ['downloads']
-						}));
+						}).then((granted) => {
+							callback(granted);
+						});
 					}
 				});
 			}
