@@ -1784,7 +1784,8 @@ describe('User entrypoints', function() {
 							await openDialog(type);
 							const dialog = await getDialog(type);
 							await wait(500, dialog);
-							await dialog.findElement(webdriver.By.id('dropdownMenu')).click();
+							await dialog.findElement(webdriver.By.id('dropdownMenu'))
+								.findElement(webdriver.By.id('dropdownSelected')).click();
 							await wait(500);
 							await dialog.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
 								.get(triggerOptionIndex)
