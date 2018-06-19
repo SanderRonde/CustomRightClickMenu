@@ -3613,7 +3613,6 @@ describe('On-Page CRM', function() {
 				await resetSettings(this);
 				await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 					browserAPI.runtime.getBackgroundPage().then((backgroundPage: GlobalObject) => {
-						debugger;
 						backgroundPage.globals.crmValues.tabData = new window.Map();
 						window.app.settings.crm = REPLACE.crm;
 						window.app.upload();
