@@ -311,7 +311,7 @@ function getAdditionalCapabilities() {
 
 async function enableTestLogging() {
 	await driver.executeScript(inlineFn(() => {
-		BrowserAPI && BrowserAPI.enableLogging();
+		BrowserAPI.enableLogging();
 	}));
 	await executeAsyncScript(inlineAsyncFn((ondone, onreject) => {
 		let done: boolean;
@@ -319,7 +319,7 @@ async function enableTestLogging() {
 			window.browserAPI.runtime.getBackgroundPage().then((page: Window & {
 				BrowserAPI: typeof BrowserAPI;
 			}) => {
-				page && page.BrowserAPI && page.BrowserAPI.enableLogging();
+				page.BrowserAPI.enableLogging();
 				done = true;
 				ondone(null);
 			}).catch(() => {
@@ -569,6 +569,7 @@ function getContextMenu(): webdriver.promise.Promise<ContextMenu> {
 		}, {
 			getBackgroundPageTestData: getBackgroundPageTestData()
 		})).then((str) => {
+			console.log('returning', JSON.parse(str));
 			resolve(JSON.parse(str));
 		});
 	});
