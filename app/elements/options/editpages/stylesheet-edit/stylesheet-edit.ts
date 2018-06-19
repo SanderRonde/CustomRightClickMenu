@@ -52,11 +52,14 @@ namespace StylesheetEditElement {
 			}, this.fullscreen ? 500 : 0);
 		};
 
-		static saveChanges(this: NodeEditBehaviorStylesheetInstance) {
-			this.newSettings.value.stylesheet = (this.editorManager && 
+		static saveChanges(this: NodeEditBehaviorStylesheetInstance, resultStorage: Partial<CRM.StylesheetNode>) {
+			resultStorage.value.stylesheet = (this.editorManager && 
 				this.editorManager.editor && 
 				this.editorManager.editor.getValue()) || this.item.value.stylesheet;
-			this.newSettings.value.launchMode = this.$.dropdownMenu.selected;
+			resultStorage.value.launchMode = this.$.dropdownMenu.selected;
+			resultStorage.value.toggle = this.$.isTogglableButton.checked;
+			resultStorage.value.defaultOn = this.$.isDefaultOnButton.checked;
+			
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
 			this.editorManager.destroy();
