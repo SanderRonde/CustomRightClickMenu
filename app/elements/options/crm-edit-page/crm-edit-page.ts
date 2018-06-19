@@ -152,7 +152,7 @@ namespace CrmEditPageElement {
 				to: 1
 			}, {
 				duration: 300,
-				easing: 'bez',
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
 				fill: 'both'
 			});
 		};
@@ -170,7 +170,7 @@ namespace CrmEditPageElement {
 				to: 0
 			}, {
 				duration: 500,
-				easing: 'bez',
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
 				fill: 'both'
 			});
 			animation.onfinish = () => {
@@ -212,7 +212,7 @@ namespace CrmEditPageElement {
 					}
 				], {
 					duration: 350,
-					easing: 'bez'
+					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				}).onfinish = () => {
 					this.$.scriptUpdateNotice.style.marginBottom = marginBot;
 					this.hideUpdateMessage = true;

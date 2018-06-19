@@ -297,7 +297,7 @@ namespace ScriptEditElement {
 								}
 							], {
 								duration: 250,
-								easing: 'bez',
+								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
 								fill: 'both'
 							});
 						}

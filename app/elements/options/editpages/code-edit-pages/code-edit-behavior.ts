@@ -213,7 +213,7 @@ namespace CodeEditBehaviorNamespace {
 				}
 			], {
 				duration: 800,
-				easing: 'bez'
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 			}).onfinish = function (this: Animation) {
 				window.doc.editorToolsRibbonContainer.style.marginLeft = '-200px';
 				window.doc.editorToolsRibbonContainer.classList.remove('visible');
@@ -317,7 +317,7 @@ namespace CodeEditBehaviorNamespace {
 				});
 				scriptTitle.animate(scriptTitleAnimation, {
 					duration: 500,
-					easing: 'bez'
+					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				}).onfinish = function() {
 					scriptTitle.style.marginTop = '0';
 					if (scriptTitleAnimation[0]['marginLeft'] !== undefined) {

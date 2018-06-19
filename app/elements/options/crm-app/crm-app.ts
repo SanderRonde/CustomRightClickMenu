@@ -1969,7 +1969,7 @@ namespace CRMAppElement {
 						}
 					], {
 						duration: 250,
-						easing: 'bez'
+						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 					}).onfinish = () => {
 						item.style.opacity = '0.6';
 						$(this.parent().$$('.pageCont')).animate({
@@ -2013,7 +2013,7 @@ namespace CRMAppElement {
 							opacity: 1
 						}], {
 							duration: 250,
-							easing: 'bez'
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 						}).onfinish = function (this: Animation) {
 							crmElement.$$('.item').style.opacity = '1';
 						};
@@ -3830,7 +3830,7 @@ namespace CRMAppElement {
 							}
 						], {
 							duration: 500,
-							easing: 'bez'
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 						}).onfinish = () => {
 							tabCont.style.height = newHeightPx;
 							selector.style.height = 'auto';
@@ -3848,7 +3848,7 @@ namespace CRMAppElement {
 								}
 							], {
 								duration: 500,
-								easing: 'bez'
+								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 							}).onfinish = function () {
 								tabCont.style.height = newHeightPx;
 							};
@@ -3885,7 +3885,7 @@ namespace CRMAppElement {
 							height: newHeightPx
 						}], {
 							duration: 500,
-							easing: 'bez'
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 						}).onfinish = () => {
 							tabCont.style.height = newHeightPx;
 							selector.style.height = 'auto';
@@ -3901,7 +3901,7 @@ namespace CRMAppElement {
 								height: newHeightPx
 							}], {
 								duration: 500,
-								easing: 'bez'
+								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 							}).onfinish = function () {
 								tabCont.style.height = newHeightPx;
 							};
