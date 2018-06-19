@@ -46,6 +46,8 @@ namespace StylesheetEditElement {
 			window.setTimeout(() => {
 				this.finishEditing();
 				window.externalEditor.cancelOpenFiles();
+				this.fullscreenEditorManager && 
+					this.fullscreenEditorManager.destroy();
 				this.active = false;
 			}, this.fullscreen ? 500 : 0);
 		};
@@ -57,6 +59,9 @@ namespace StylesheetEditElement {
 			this.newSettings.value.launchMode = this.$.dropdownMenu.selected;
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
+			this.editorManager.destroy();
+			this.fullscreenEditorManager && 
+				this.fullscreenEditorManager.destroy();
 			this.active = false;
 		};
 
