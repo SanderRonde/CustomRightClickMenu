@@ -342,6 +342,7 @@ async function openTestPageURL(capabilities: BrowserstackCapabilities) {
 	} else {
 		await driver.get(`http://localhost:${PORT}/build/html/UITest.html#test-noBackgroundInfo`);
 	}
+	await wait(5000);
 	await enableTestLogging();
 }
 
