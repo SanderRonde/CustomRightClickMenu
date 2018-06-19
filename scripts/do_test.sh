@@ -22,7 +22,7 @@ $script_path/is_eq.sh "$1" "test:edge:latest" && do_retry_once=1
 
 # Retry some tests
 do_retry_twice=0
-$script_path/is_eq.sh "$1" "test:chrome:old:page:post-stylesheet:" && do_retry_twice=1
+$script_path/is_eq.sh "$1" "test:chrome:old:page:post-stylesheet" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test:chrome:old:extension:post-stylesheet" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test:chrome:latest:page:post-stylesheet" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test:chrome:latest:extension:post-stylesheet" && do_retry_twice=1
