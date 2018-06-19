@@ -257,23 +257,8 @@ namespace CRMAppElement {
 			return returnVal;
 		};
 
-		const animateImpl = animateExists ? 
-			HTMLElement.prototype.animate : animatePolyFill;
-
-		HTMLElement.prototype.animate = function(this: HTMLElement, properties:  {
-			[key: string]: any;
-		}[], options: {
-			duration?: number;
-			easing?: string|'bez';
-			fill?: 'forwards'|'backwards'|'both';
-		}): Animation {
-			if (options.easing === 'bez') {
-				options.easing = 'cubic-bezier(0.215, 0.610, 0.355, 1.000)';
-			}
-			return animateImpl.apply(this, [properties, options]);
-		}
-
 		if (!animateExists) {
+			HTMLElement.prototype.animate = animatePolyFill;
 			HTMLElement.prototype.__isAnimationJqueryPolyfill = true;
 		}
 	})();
