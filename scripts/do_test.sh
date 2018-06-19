@@ -11,10 +11,10 @@ $script_path/is_eq.sh "$1" "test-build" && run_test=1
 $script_path/is_eq.sh "$1" "test-local" && run_test=1
 
 do_retry_once=0
-$script_path/is_eq.sh "$1" "test:chrome:old:page" && do_retry_once=1
-$script_path/is_eq.sh "$1" "test:chrome:old:extension" && do_retry_once=1
-$script_path/is_eq.sh "$1" "test:chrome:latest:page" && do_retry_once=1
-$script_path/is_eq.sh "$1" "test:chrome:latest:extension" && do_retry_once=1
+$script_path/is_eq.sh "$1" "test:chrome:old:page:pre-stylesheet" && do_retry_once=1
+$script_path/is_eq.sh "$1" "test:chrome:old:extension:pre-stylesheet" && do_retry_once=1
+$script_path/is_eq.sh "$1" "test:chrome:latest:page:pre-stylesheet" && do_retry_once=1
+$script_path/is_eq.sh "$1" "test:chrome:latest:extension::pre-stylesheet" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:firefox:quantum" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:firefox:latest" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:edge:16" && do_retry_once=1
@@ -22,6 +22,10 @@ $script_path/is_eq.sh "$1" "test:edge:latest" && do_retry_once=1
 
 # Retry some tests
 do_retry_twice=0
+$script_path/is_eq.sh "$1" "test:chrome:old:page:post-stylesheet:" && do_retry_twice=1
+$script_path/is_eq.sh "$1" "test:chrome:old:extension:post-stylesheet" && do_retry_twice=1
+$script_path/is_eq.sh "$1" "test:chrome:latest:page:post-stylesheet" && do_retry_twice=1
+$script_path/is_eq.sh "$1" "test:chrome:latest:extension:post-stylesheet" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test:chrome:old:install:greasyfork" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test:chrome:old:install:openuserjs" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test:chrome:old:install:userscriptsorg" && do_retry_twice=1

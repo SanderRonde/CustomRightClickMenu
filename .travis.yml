@@ -17,10 +17,14 @@ stages:
   
 env:
   matrix:
-  - TEST=test:chrome:old:page
-  - TEST=test:chrome:old:extension
-  - TEST=test:chrome:latest:page
-  - TEST=test:chrome:latest:extension
+  - TEST=test:chrome:old:page:pre-stylesheet
+  - TEST=test:chrome:old:page:post-stylesheet
+  - TEST=test:chrome:old:extension:pre-stylesheet
+  - TEST=test:chrome:old:extension:post-stylesheet
+  - TEST=test:chrome:latest:page:pre-stylesheet
+  - TEST=test:chrome:latest:page:post-stylesheet
+  - TEST=test:chrome:latest:extension:pre-stylesheet
+  - TEST=test:chrome:latest:extension:post-stylesheet
   - TEST=test:firefox:quantum
   - TEST=test:firefox:latest
   - TEST=test:edge:16
