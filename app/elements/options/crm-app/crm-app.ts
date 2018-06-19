@@ -273,21 +273,6 @@ namespace CRMAppElement {
 			return animateImpl.apply(this, [properties, options]);
 		}
 
-		HTMLElement.prototype.animateTo = function<K extends {
-			[key: string]: string;
-		}>(this: HTMLElement, properties: K, options: {
-			duration?: number;
-			easing?: string|'bez';
-			fill?: 'forwards'|'backwards'|'both';
-		}): Animation {
-			let currentProps: Partial<K> = {};
-			for (let prop in properties) {
-				currentProps[prop] = this.style[prop as keyof CSSStyleDeclaration];
-			}
-
-			return this.animate([currentProps as K, properties], options);
-		}
-
 		if (!animateExists) {
 			HTMLElement.prototype.__isAnimationJqueryPolyfill = true;
 		}
