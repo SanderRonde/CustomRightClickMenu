@@ -15,17 +15,16 @@ $script_path/is_eq.sh "$1" "test:chrome:old:page:pre-stylesheet" && do_retry_onc
 $script_path/is_eq.sh "$1" "test:chrome:old:extension:pre-stylesheet" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:chrome:latest:page:pre-stylesheet" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:chrome:latest:extension::pre-stylesheet" && do_retry_once=1
+$script_path/is_eq.sh "$1" "test:chrome:old:page:post-stylesheet" && do_retry_once=1
+$script_path/is_eq.sh "$1" "test:chrome:old:extension:post-stylesheet" && do_retry_once=1
+$script_path/is_eq.sh "$1" "test:chrome:latest:page:post-stylesheet" && do_retry_once=1
+$script_path/is_eq.sh "$1" "test:chrome:latest:extension:post-stylesheet" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:firefox:quantum" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:firefox:latest" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:edge:16" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:edge:latest" && do_retry_once=1
 
-# Retry some tests
 do_retry_twice=0
-$script_path/is_eq.sh "$1" "test:chrome:old:page:post-stylesheet" && do_retry_twice=1
-$script_path/is_eq.sh "$1" "test:chrome:old:extension:post-stylesheet" && do_retry_twice=1
-$script_path/is_eq.sh "$1" "test:chrome:latest:page:post-stylesheet" && do_retry_twice=1
-$script_path/is_eq.sh "$1" "test:chrome:latest:extension:post-stylesheet" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test:chrome:old:install:greasyfork" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test:chrome:old:install:openuserjs" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test:chrome:old:install:userscriptsorg" && do_retry_twice=1
@@ -39,8 +38,16 @@ $script_path/is_eq.sh "$1" "test-migration:2.0.17" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test-migration:2.0.18" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test-migration:2.0.19" && do_retry_twice=1
 
+do_retry_trice=0
+$script_path/is_eq.sh "$1" "test:chrome:old:page:stylesheet" && do_retry_trice=1
+$script_path/is_eq.sh "$1" "test:chrome:old:extension:stylesheet" && do_retry_trice=1
+$script_path/is_eq.sh "$1" "test:chrome:latest:page:stylesheet" && do_retry_trice=1
+$script_path/is_eq.sh "$1" "test:chrome:latest:extension:stylesheet" && do_retry_trice=1
+
 if ((run_test)); then
-	if ((do_retry_twice)); then
+	if ((do_retry_trice)); then
+		yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1
+	elif ((do_retry_twice)); then
 		yarn run $1 || yarn run $1 || yarn run $1
 	elif ((do_retry_once)); then
 		yarn run $1 || yarn run $1
