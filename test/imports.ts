@@ -220,7 +220,7 @@ type StringifiedCallbackFunction<RETVAL, CALLBACKRES> = string & {
 
 export function inlineAsyncFn<T extends {
 	[key: string]: any;
-}, U>(fn: (resolve: (result: U) => void, reject: (err: Error) => void, 
+}, U>(fn: (resolve: (result: U) => void, reject: (err: any) => void, 
 	REPLACE: T) => Promise<U>|void, args?: T,
 	...insertedFunctions: Function[]): StringifiedCallbackFunction<number, U> {
 		args = args || {} as T;

@@ -565,12 +565,15 @@ function getContextMenu(): webdriver.promise.Promise<ContextMenu> {
 	return new webdriver.promise.Promise<ContextMenu>((resolve) => {
 		executeAsyncScript<EncodedString<ContextMenuItem[]>>(inlineAsyncFn((ondone, onreject, REPLACE) => {
 			REPLACE.getBackgroundPageTestData().then((testData) => {
-				ondone(JSON.stringify(testData._currentContextMenu[0].children));
+				if (testData._currentContextMenu[0]) {
+					ondone(JSON.stringify(testData._currentContextMenu[0].children));
+				} else {
+					onreject('Contextmenu is empty');
+				}
 			});
 		}, {
 			getBackgroundPageTestData: getBackgroundPageTestData()
 		})).then((str) => {
-			console.log('returning', JSON.parse(str));
 			resolve(JSON.parse(str));
 		});
 	});
