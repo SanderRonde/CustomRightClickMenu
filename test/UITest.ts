@@ -2416,6 +2416,11 @@ describe('User entrypoints', function() {
 				});
 				describe('Editor', function() {
 					describe('Settings', function() {
+						before('Reload page', async function() {
+							return doFullRefresh(this).then(() => {
+								return wait(10000);
+							});
+						});
 						testEditorSettings(type);
 					});
 				});
