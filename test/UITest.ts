@@ -311,15 +311,20 @@ function getAdditionalCapabilities() {
 
 async function enableTestLogging() {
 	await driver.executeScript(inlineFn(() => {
-		BrowserAPI.enableLogging();
+		window.BrowserAPIInstances.forEach((instance) => {
+			instance.enableLogging();
+		});
 	}));
 	await executeAsyncScript(inlineAsyncFn((ondone, onreject) => {
 		let done: boolean;
 		if (window.browserAPI) {
 			window.browserAPI.runtime.getBackgroundPage().then((page: Window & {
 				BrowserAPI: typeof BrowserAPI;
+				BrowserAPIInstances: typeof BrowserAPINS[];
 			}) => {
-				page.BrowserAPI.enableLogging();
+				page.BrowserAPIInstances.forEach((instance) => {
+					instance.enableLogging();
+				});
 				done = true;
 				ondone(null);
 			}).catch(() => {
@@ -842,6 +847,11 @@ function assertContextMenuEquality(contextMenu: ContextMenu, CRMNodes: CRM.Tree)
 function getTestData() {
 	if (TEST_EXTENSION) {
 		return () => {
+			for (const instance of window.BrowserAPIInstances) {
+				if (instance.isLoggingEnabled()) {
+					return instance.getTestData();
+				}
+			}
 			return window.BrowserAPI.getTestData();
 		}
 	} else {
@@ -955,7 +965,12 @@ async function createTab(url: string, doClear: boolean = false) {
 			windowId: number;
 		}>(inlineAsyncFn((done, onReject, REPLACE) => { 
 			if (REPLACE.doClear) {
-				window.BrowserAPI.getTestData()._clearExecutedScripts();
+				for (const instance of window.BrowserAPIInstances) {
+					if (instance.isLoggingEnabled()) {
+						instance.getTestData()._clearExecutedScripts()
+					}
+				}
+				window.BrowserAPI.getTestData()._clearExecutedScripts()
 			}
 			browserAPI.tabs.create({
 				url: "REPLACE.url"
@@ -1024,7 +1039,12 @@ function getBackgroundPageTestData(): () => Promiselike<TestData> {
 				BrowserAPI: typeof BrowserAPI;
 			}) => {
 				isDone = true;
-				result = page.BrowserAPI.getTestData();
+				for (const instance of page.BrowserAPIInstances) {
+					if (instance.isLoggingEnabled()) {
+						result = instance.getTestData();
+					}
+				}
+				result = result || page.BrowserAPI.getTestData();
 				listeners.forEach(listener => listener(result));
 			});
 			return {

@@ -224,6 +224,9 @@ namespace BrowserAPINS {
 		}
 		loggingEnabled = true;
 	}
+	export function isLoggingEnabled() {
+		return loggingEnabled;
+	}
 	export function disableLogging() {
 		loggingEnabled = false;
 		testData._lastSpecialCall = null;
@@ -769,8 +772,12 @@ interface Window {
 	};
 	BrowserAPI: typeof BrowserAPINS;
 	BrowserAPINS: typeof BrowserAPINS;
+	BrowserAPIInstances: typeof BrowserAPINS[];
 	__isVirtual?: boolean;
 }
+
+window.BrowserAPIInstances = window.BrowserAPIInstances || [];
+window.BrowserAPIInstances.push(BrowserAPINS);
 
 if (!window.browserAPI || window.__isVirtual) {
 	// Force override of window.browser if browser is edge or if no "browser"
