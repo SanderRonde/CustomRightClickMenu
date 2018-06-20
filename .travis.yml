@@ -1,5 +1,6 @@
 language: node_js
 node_js: "9"
+cache: yarn
 # Don't use latest node version while it has this issue in it:
 # https://github.com/nodejs/node/issues/20498
 
