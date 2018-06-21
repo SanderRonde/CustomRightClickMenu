@@ -133,6 +133,9 @@
 			'Hides code options button if there are no options',
 			'Content types can be toggled instead of only being able to select a single one',
 			'Nodes that are not shown on the current content type are greyed out instead of hidden'
+		],
+		'2.1.2': [
+			'Fixed a big firefox bug causing the options page to not load'
 		]
 	};
 

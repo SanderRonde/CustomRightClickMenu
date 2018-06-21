@@ -8,7 +8,7 @@
 	},
 	"name": "Custom Right-Click Menu",
 	"description": "Create a custom right-click menu and choose the links you to have in it. You can even add your own scripts or markup for the page.",
-	"version": "2.1.1",
+	"version": "2.1.2",
 	"short_name": "CRM-dev",
 	"applications": {
 		"gecko": {
