@@ -1270,8 +1270,8 @@ function readFile(filePath, options) {
 					'**',
 					'!Custom Right-Click Menu.zip'
 				], {
-					cwd: './dist/chrome/',
-					base: './dist/chrome'
+					cwd: './dist/firefox/',
+					base: './dist/firefox'
 				})
 				.pipe(zip('Custom Right-Click Menu.zip'))
 				.pipe(rename('Custom Right-Click Menu.crx'))
