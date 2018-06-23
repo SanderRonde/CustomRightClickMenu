@@ -17,8 +17,8 @@ export namespace CRMNodes.Script.Handler {
 		info: _browser.contextMenus.OnClickData;
 		node: CRM.ScriptNode;
 		safeNode: CRM.SafeNode;
-	}, [contextData, [nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]]: [EncodedContextData,		
-		[any, GreaseMonkeyData, string, string, string, number]]): Promise<string> {		
+	}, [contextData, [greaseMonkeyData, script, indentUnit, runAt, tabIndex]]: [EncodedContextData,		
+		[GreaseMonkeyData, string, string, string, number]]): Promise<string> {		
 
 		const enableBackwardsCompatibility = (await modules.Util.getScriptNodeScript(node)).indexOf('/*execute locally*/') > -1 &&		
 			node.isLocal;		
@@ -31,12 +31,13 @@ export namespace CRMNodes.Script.Handler {
 			supportedBrowserAPIs.push('browser');
 		}
 
-		modules.Util.setMapDefault(modules.storages.nodeStorageSync,
-			node.id, {});
+		modules.Util.setMapDefault(modules.storages.nodeStorage, node.id, {});
+		modules.Util.setMapDefault(modules.storages.nodeStorageSync, node.id, {});
 		return [		
 			[		
 				`var crmAPI = new (window._crmAPIRegistry.pop())(${[		
-					safeNode, node.id, tab, info, key, nodeStorage,		
+					safeNode, node.id, tab, info, key, 
+					modules.storages.nodeStorage.get(node.id),		
 					contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},		
 					enableBackwardsCompatibility, tabIndex, browserAPI.runtime.id, supportedBrowserAPIs.join(','),
 					modules.storages.nodeStorageSync.get(node.id)
@@ -350,12 +351,9 @@ export namespace CRMNodes.Script.Handler {
 						}) as EncodedContextData;
 						return response;
 					}
-				}), new window.Promise<[any, GreaseMonkeyData, string, string, string, number]>(async (resolve) => {
-					const globalNodeStorage = modules.storages.nodeStorage;
-					const nodeStorage = globalNodeStorage.get(node.id);
+				}), new window.Promise<[GreaseMonkeyData, string, string, string, number]>(async (resolve) => {
 					genTabData(tab.id, key, node.id, await modules.Util.getScriptNodeScript(node))
 
-					modules.Util.setMapDefault(globalNodeStorage, node.id, {});
 					const tabIndex = modules.crmValues.tabData
 						.get(tab.id).nodes
 						.get(node.id).length - 1;
@@ -375,9 +373,9 @@ export namespace CRMNodes.Script.Handler {
 						return indentUnit + line;
 					}).join('\n');
 
-					resolve([nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]);
+					resolve([greaseMonkeyData, script, indentUnit, runAt, tabIndex]);
 				})]).then(async (args: [EncodedContextData,
-					[any, GreaseMonkeyData, string, string, _browser.extensionTypes.RunAt, number]]) => {
+					[GreaseMonkeyData, string, string, _browser.extensionTypes.RunAt, number]]) => {
 						const safeNode = makeSafe(node);
 						(safeNode as any).permissions = node.permissions;
 						const code = await genCodeOnPage({
@@ -389,7 +387,7 @@ export namespace CRMNodes.Script.Handler {
 						}, args);
 
 						const usesUnsafeWindow = (await modules.Util.getScriptNodeScript(node)).indexOf('unsafeWindow') > -1;
-						const scripts = await getScriptsToRun(code, args[1][4], node, usesUnsafeWindow);
+						const scripts = await getScriptsToRun(code, args[1][3], node, usesUnsafeWindow);
 						executeScripts(node.id, tab.id, scripts, usesUnsafeWindow);
 					});
 			}
@@ -461,7 +459,6 @@ export namespace CRMNodes.Script.Background {
 		script,
 		safeNode,
 		indentUnit,
-		nodeStorage,
 		greaseMonkeyData
 	}: {
 		key: number[];
@@ -469,7 +466,6 @@ export namespace CRMNodes.Script.Background {
 		script: string;
 		safeNode: CRM.SafeNode;
 		indentUnit: string;
-		nodeStorage: any;
 		greaseMonkeyData: GreaseMonkeyData;
 	}): Promise<string> {
 		const enableBackwardsCompatibility = (await modules.Util.getScriptNodeScript(node)).indexOf('/*execute locally*/') > -1 &&
@@ -483,13 +479,13 @@ export namespace CRMNodes.Script.Background {
 			supportedBrowserAPIs.push('browser');
 		}
 
-		modules.Util.setMapDefault(modules.storages.nodeStorageSync,
-			node.id, {});
+		modules.Util.setMapDefault(modules.storages.nodeStorage, node.id, {});
+		modules.Util.setMapDefault(modules.storages.nodeStorageSync, node.id, {});
 		return [
 			code.join('\n'), [
 				`var crmAPI = new (window._crmAPIRegistry.pop())(${[
 					safeNode, node.id, { id: 0 }, {}, key,
-					nodeStorage, null,
+					modules.storages.nodeStorage.get(node.id), null,
 					greaseMonkeyData, true, fixOptionsErrors((node.value && node.value.options) || {}),
 					enableBackwardsCompatibility, 0, browserAPI.runtime.id, supportedBrowserAPIs.join(','),
 					modules.storages.nodeStorageSync.get(node.id)
@@ -558,11 +554,6 @@ export namespace CRMNodes.Script.Background {
 			err = e;
 		}
 		if (!err) {
-			const globalNodeStorage = modules.storages.nodeStorage;
-			const nodeStorage = globalNodeStorage.get(node.id);
-
-			modules.Util.setMapDefault(globalNodeStorage, node.id, {});
-
 			Handler.genTabData(0, key, node.id, await modules.Util.getScriptNodeScript(node, 'background'));
 			modules.Logging.Listeners.updateTabAndIdLists();
 
@@ -587,7 +578,6 @@ export namespace CRMNodes.Script.Background {
 				script,
 				safeNode,
 				indentUnit,
-				nodeStorage,
 				greaseMonkeyData
 			});
 
