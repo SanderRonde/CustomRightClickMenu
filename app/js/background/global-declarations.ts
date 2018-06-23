@@ -32,7 +32,9 @@ export namespace GlobalDeclarations {
 			console.log('Listening for next activation. ' + 
 				'Make sure the devtools of the tab on which you ' + 
 				'activate the script are open when you activate it');
-			modules.globalObject.globals.eventListeners.scriptDebugListeners.add(id);
+			if (modules.globalObject.globals.eventListeners.scriptDebugListeners.indexOf(id) === -1) {
+				modules.globalObject.globals.eventListeners.scriptDebugListeners.push(id);
+			}
 		}
 
 		window.debugBackgroundScript = (id: CRM.NodeId<CRM.ScriptNode>) => {

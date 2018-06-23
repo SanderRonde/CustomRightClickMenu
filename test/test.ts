@@ -12,8 +12,6 @@ process.on('unhandledRejection', err => {
 const mochaSteps = require('mocha-steps');
 const step: Mocha.ITestDefinition = mochaSteps.step;
 const Map: typeof MapPolyfill = (global as any).Map;
-// @ts-ignore
-const Set: typeof SetPolyfill = (global as any).Set;
 import * as request from 'request';
 import { assert } from 'chai';
 import * as path from 'path';
@@ -1412,7 +1410,6 @@ const backgroundPageWindow: GlobalObject & {
 	},
 	JSON: JSON,
 	Map: Map,
-	Set: Set,
 	setTimeout: setTimeout,
 	setInterval: setInterval,
 	clearInterval: clearInterval,

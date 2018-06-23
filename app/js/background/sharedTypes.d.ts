@@ -783,7 +783,7 @@ interface Globals {
 		/**
 		 * A set of nodes that should be debugged when they next activate
 		 */
-		scriptDebugListeners: Set<CRM.NodeId<CRM.ScriptNode>>;
+		scriptDebugListeners: CRM.NodeId<CRM.ScriptNode>[];
 	};
 	/**
 	 * Data about script logging for the logging page

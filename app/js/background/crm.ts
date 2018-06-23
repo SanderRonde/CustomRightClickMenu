@@ -39,9 +39,10 @@ export namespace CRMNodes.Script.Handler {
 			supportedBrowserAPIs.push('browser');
 		}
 
-		const doDebug = modules.globalObject.globals.eventListeners.scriptDebugListeners.has(node.id);
+		const doDebug = modules.globalObject.globals.eventListeners.scriptDebugListeners.indexOf(node.id) > -1;
 		if (doDebug) {
-			modules.globalObject.globals.eventListeners.scriptDebugListeners.delete(node.id)
+			modules.globalObject.globals.eventListeners.scriptDebugListeners
+				.splice(modules.globalObject.globals.eventListeners.scriptDebugListeners.indexOf(node.id), 1);
 		}
 		modules.Util.setMapDefault(modules.storages.nodeStorage, node.id, {});
 		modules.Util.setMapDefault(modules.storages.nodeStorageSync, node.id, {});
