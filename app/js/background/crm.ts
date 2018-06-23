@@ -10,16 +10,24 @@ export namespace CRMNodes.Script.Handler {
 		key,
 		info,
 		node,
+		script,
+		tabIndex,
 		safeNode,
+		indentUnit,
+		contextData,
+		greaseMonkeyData
 	}: {
 		tab: _browser.tabs.Tab;
 		key: number[];
 		info: _browser.contextMenus.OnClickData;
 		node: CRM.ScriptNode;
 		safeNode: CRM.SafeNode;
-	}, [contextData, [greaseMonkeyData, script, indentUnit, runAt, tabIndex]]: [EncodedContextData,		
-		[GreaseMonkeyData, string, string, string, number]]): Promise<string> {		
-
+		greaseMonkeyData: GreaseMonkeyData;
+		script: string;
+		indentUnit: string;
+		tabIndex: number;
+		contextData: EncodedContextData;
+	}): Promise<string> {		
 		const enableBackwardsCompatibility = (await modules.Util.getScriptNodeScript(node)).indexOf('/*execute locally*/') > -1 &&		
 			node.isLocal;		
 		const catchErrs = modules.storages.storageLocal.catchErrors;		
@@ -324,7 +332,7 @@ export namespace CRMNodes.Script.Handler {
 		});
 	}
 	export function createHandler(node: CRM.ScriptNode): ClickHandler {
-		return (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab, isAutoActivate: boolean = false) => {
+		return async (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab, isAutoActivate: boolean = false) => {
 			let key: number[] = [];
 			let err = false;
 			try {
@@ -341,55 +349,72 @@ export namespace CRMNodes.Script.Handler {
 					browserAPI.runtime.reload();
 				});
 			} else {
-				window.Promise.all<any>([modules.Util.iipe<EncodedContextData>(async () => {
-					//If it was triggered by clicking, ask contentscript about some data
-					if (isAutoActivate) {
-						return null;
-					} else {
-						const response = await browserAPI.tabs.sendMessage(tab.id, {
-							type: 'getLastClickInfo'
-						}) as EncodedContextData;
-						return response;
-					}
-				}), new window.Promise<[GreaseMonkeyData, string, string, string, number]>(async (resolve) => {
-					genTabData(tab.id, key, node.id, await modules.Util.getScriptNodeScript(node))
+				const indentUnit = '	';
+				const tabIndex = modules.crmValues.tabData
+					.get(tab.id).nodes
+					.get(node.id).length - 1;
+				modules.Logging.Listeners.updateTabAndIdLists();
 
-					const tabIndex = modules.crmValues.tabData
-						.get(tab.id).nodes
-						.get(node.id).length - 1;
-					modules.Logging.Listeners.updateTabAndIdLists();
+				const [ contextData, data, script ] = await window.Promise.all<any>([
+					modules.Util.iipe<EncodedContextData>(async () => {
+						//If it was triggered by clicking, ask contentscript about some data
+						if (isAutoActivate) {
+							return null;
+						} else {
+							const response = await browserAPI.tabs.sendMessage(tab.id, {
+								type: 'getLastClickInfo'
+							}) as EncodedContextData;
+							return response;
+						}
+					}),
+					modules.Util.iipe<{
+						greaseMonkeyData: GreaseMonkeyData,
+						runAt: _browser.extensionTypes.RunAt
+					}>(async () => {
+						const metaData: {
+							[key: string]: any;
+						} = MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
+						const runAt: _browser.extensionTypes.RunAt = metaData['run-at'] || metaData['run_at'] || 'document_end';
+						const { excludes, includes } = getInExcludes(node)
+	
+						return {
+							greaseMonkeyData: await generateGreaseMonkeyData(metaData, node, includes, excludes, tab),
+							runAt
+						}
+					}),
+					modules.Util.iipe<string>(async () => {
+						return (await modules.Util.getScriptNodeScript(node)).split('\n').map((line) => {
+							return indentUnit + line;
+						}).join('\n');
+					}),
+					modules.Util.iipe<void>(async () => {
+						genTabData(tab.id, key, node.id, await modules.Util.getScriptNodeScript(node))
+					})
+				]) as [EncodedContextData, {
+					greaseMonkeyData: GreaseMonkeyData;
+					runAt: _browser.extensionTypes.RunAt
+				}, string, void];
+				const { greaseMonkeyData, runAt } = data;
 
-					const metaData: {
-						[key: string]: any;
-					} = MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
-					const runAt: _browser.extensionTypes.RunAt = metaData['run-at'] || metaData['run_at'] || 'document_end';
-					const { excludes, includes } = getInExcludes(node)
 
-					const greaseMonkeyData = await generateGreaseMonkeyData(metaData, node, includes, excludes, tab)
+				const safeNode = makeSafe(node);
+				(safeNode as any).permissions = node.permissions;
+				const code = await genCodeOnPage({
+					node,
+					safeNode,
+					tab,
+					info,
+					key,
+					contextData,
+					greaseMonkeyData,
+					indentUnit,
+					script,
+					tabIndex
+				});
 
-					const indentUnit = '	';
-
-					const script = (await modules.Util.getScriptNodeScript(node)).split('\n').map((line) => {
-						return indentUnit + line;
-					}).join('\n');
-
-					resolve([greaseMonkeyData, script, indentUnit, runAt, tabIndex]);
-				})]).then(async (args: [EncodedContextData,
-					[GreaseMonkeyData, string, string, _browser.extensionTypes.RunAt, number]]) => {
-						const safeNode = makeSafe(node);
-						(safeNode as any).permissions = node.permissions;
-						const code = await genCodeOnPage({
-							node,
-							safeNode,
-							tab,
-							info,
-							key
-						}, args);
-
-						const usesUnsafeWindow = (await modules.Util.getScriptNodeScript(node)).indexOf('unsafeWindow') > -1;
-						const scripts = await getScriptsToRun(code, args[1][3], node, usesUnsafeWindow);
-						executeScripts(node.id, tab.id, scripts, usesUnsafeWindow);
-					});
+				const usesUnsafeWindow = (await modules.Util.getScriptNodeScript(node)).indexOf('unsafeWindow') > -1;
+				const scripts = await getScriptsToRun(code, runAt, node, usesUnsafeWindow);
+				executeScripts(node.id, tab.id, scripts, usesUnsafeWindow);
 			}
 		};
 	}
@@ -541,10 +566,6 @@ export namespace CRMNodes.Script.Background {
 				'Terminated background page...');
 		}
 
-		const result = await loadBackgroundPageLibs(node);
-		const backgroundPageCode = result.code;
-		const libraries = result.libraries;
-
 		let key: number[] = [];
 		let err = false;
 		try {
@@ -553,74 +574,91 @@ export namespace CRMNodes.Script.Background {
 			//There somehow was a stack overflow
 			err = e;
 		}
-		if (!err) {
-			Handler.genTabData(0, key, node.id, await modules.Util.getScriptNodeScript(node, 'background'));
-			modules.Logging.Listeners.updateTabAndIdLists();
-
-			const metaData = MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
-			const { excludes, includes } = Handler.getInExcludes(node);
-
-			const indentUnit = '	';
-
-			const script = (await modules.Util.getScriptNodeScript(node, 'background')).split('\n').map((line) => {
-				return indentUnit + line;
-			}).join('\n');
-
-			const greaseMonkeyData = await Handler.generateGreaseMonkeyData(metaData, node, includes, excludes, {
-				incognito: false
-			});
-
-			const safeNode = makeSafe(node) as any;
-			safeNode.permissions = node.permissions;
-			const code = await genCodeBackground(backgroundPageCode, {
-				key,
-				node,
-				script,
-				safeNode,
-				indentUnit,
-				greaseMonkeyData
-			});
-
-			modules.Sandbox.sandbox(node.id, code, libraries, key, () => {
-				const instancesArr: {
-					id: TabId|string;
-					tabIndex: TabIndex;
-				}[] = [];
-				const allInstances = modules.crmValues.nodeInstances;
-				modules.Util.setMapDefault(allInstances, node.id, new window.Map());
-				const nodeInstances = allInstances.get(node.id);
-				modules.Util.iterateMap(nodeInstances, (tabId) => {
-					try {
-						modules.crmValues.tabData.get(tabId).nodes.get(node.id)
-							.forEach((tabIndexInstance, index) => {
-								modules.Util.postMessage(tabIndexInstance.port, {
-									messageType: 'dummy'
-								});
-								instancesArr.push({
-									id: tabId,
-									tabIndex: index
-								});
-							});
-					} catch (e) {
-						nodeInstances.delete(tabId);
-					}
-				});
-				return instancesArr;
-			}, (worker) => {
-				if (modules.background.byId.has(node.id)) {
-					modules.background.byId.get(node.id).terminate();
-				}
-				modules.background.byId.set(node.id, worker);
-				if (isRestart) {
-					modules.Logging.log(node.id, '*', `Background page [${node.id}]: `,
-						'Restarted background page...');
-				}
-			});
-		} else {
+		if (err) {
 			window.log('An error occurred while setting up the script for node ',
 				node.id, err);
 			throw err;
 		}
+
+		const indentUnit = '	';
+		const [ bgPageLibs, script, greaseMonkeyData ] = await window.Promise.all<any>([
+			modules.Util.iipe<{
+				code: string[];
+				libraries: string[]
+			}>(async () => {
+				return await loadBackgroundPageLibs(node);
+			}),
+			modules.Util.iipe<string>(async () => {
+				return (await modules.Util.getScriptNodeScript(node, 'background')).split('\n').map((line) => {
+					return indentUnit + line;
+				}).join('\n');
+			}),
+			modules.Util.iipe<any>(async () => {
+				const metaData = MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
+				const { excludes, includes } = Handler.getInExcludes(node);
+				return await Handler.generateGreaseMonkeyData(metaData, node, includes, excludes, {
+					incognito: false
+				});
+			}),
+			modules.Util.iipe<void>(async () => {
+				Handler.genTabData(0, key, node.id, await modules.Util.getScriptNodeScript(node, 'background'));
+				modules.Logging.Listeners.updateTabAndIdLists();
+			})
+		]) as [{
+			code: string[];
+			libraries: string[]
+		}, string, GreaseMonkeyData];
+		const { 
+			code: backgroundPageCode,
+			libraries
+		} = bgPageLibs;
+
+		const safeNode = makeSafe(node) as any;
+		safeNode.permissions = node.permissions;
+		const code = await genCodeBackground(backgroundPageCode, {
+			key,
+			node,
+			script,
+			safeNode,
+			indentUnit,
+			greaseMonkeyData
+		});
+
+		modules.Sandbox.sandbox(node.id, code, libraries, key, () => {
+			const instancesArr: {
+				id: TabId|string;
+				tabIndex: TabIndex;
+			}[] = [];
+			const allInstances = modules.crmValues.nodeInstances;
+			modules.Util.setMapDefault(allInstances, node.id, new window.Map());
+			const nodeInstances = allInstances.get(node.id);
+			modules.Util.iterateMap(nodeInstances, (tabId) => {
+				try {
+					modules.crmValues.tabData.get(tabId).nodes.get(node.id)
+						.forEach((tabIndexInstance, index) => {
+							modules.Util.postMessage(tabIndexInstance.port, {
+								messageType: 'dummy'
+							});
+							instancesArr.push({
+								id: tabId,
+								tabIndex: index
+							});
+						});
+				} catch (e) {
+					nodeInstances.delete(tabId);
+				}
+			});
+			return instancesArr;
+		}, (worker) => {
+			if (modules.background.byId.has(node.id)) {
+				modules.background.byId.get(node.id).terminate();
+			}
+			modules.background.byId.set(node.id, worker);
+			if (isRestart) {
+				modules.Logging.log(node.id, '*', `Background page [${node.id}]: `,
+					'Restarted background page...');
+			}
+		});
 	}
 	export async function createBackgroundPages() {
 		//Iterate through every node
