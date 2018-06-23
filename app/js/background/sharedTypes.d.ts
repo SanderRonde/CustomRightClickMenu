@@ -280,6 +280,7 @@ type BackgroundpageWindow = Window & SharedWindow & {
 	setTimeout(callback: () => void, time: number): void;
 	TextEncoder: any;
 	getID: (name: string) => void;
+	debugBackgroundScript(id: CRM.NodeId<CRM.ScriptNode>): void;
 	md5: (data: any) => string;
 	ts: Typescript & typeof ts;
 	TernFile: Tern.File;

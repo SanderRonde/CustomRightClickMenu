@@ -492,7 +492,7 @@ export namespace CRMNodes.Script.Background {
 		safeNode: CRM.SafeNode;
 		indentUnit: string;
 		greaseMonkeyData: GreaseMonkeyData;
-	}): Promise<string> {
+	}, doDebug: boolean): Promise<string> {
 		const enableBackwardsCompatibility = (await modules.Util.getScriptNodeScript(node)).indexOf('/*execute locally*/') > -1 &&
 			node.isLocal;
 		const catchErrs = modules.storages.storageLocal.catchErrors;
@@ -527,6 +527,7 @@ export namespace CRMNodes.Script.Background {
 			'function main(crmAPI, self, menuitemid, parentmenuitemid, mediatype,' +
 			`${indentUnit}linkurl, srcurl, pageurl, frameurl, frameid,` +
 			`${indentUnit}selectiontext, editable, waschecked, checked) {`,
+			doDebug ? 'debugger;' : '',
 			script,
 			'}',
 			`window.crmAPI = self.crmAPI = crmAPI`,
@@ -550,7 +551,7 @@ export namespace CRMNodes.Script.Background {
 			}
 		return true;
 	}
-	export async function createBackgroundPage(node: CRM.ScriptNode) {
+	export async function createBackgroundPage(node: CRM.ScriptNode, doDebug: boolean = false) {
 		if (!await isValidBackgroundPage(node)) {
 			return;
 		}
@@ -622,7 +623,7 @@ export namespace CRMNodes.Script.Background {
 			safeNode,
 			indentUnit,
 			greaseMonkeyData
-		});
+		}, doDebug);
 
 		modules.Sandbox.sandbox(node.id, code, libraries, key, () => {
 			const instancesArr: {

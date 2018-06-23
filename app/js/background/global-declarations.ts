@@ -13,6 +13,28 @@ export namespace GlobalDeclarations {
 	}
 
 	export function initGlobalFunctions() {
+		const findNodeMsg = 'you can find it by' + 
+		' calling window.getID("nodename") where nodename is the name of your' +
+		' node';
+
+		window.debugBackgroundScript = (id: CRM.NodeId<CRM.ScriptNode>) => {
+			if (id !== 0 && !id || typeof id !== 'number') {
+				throw new Error(`Please supply a valid node ID, ${findNodeMsg}`);
+			}
+			const node = modules.crm.crmByIdSafe.get(id);
+			if (!node) {
+				throw new Error(`There is no node with the node ID you supplied, ${findNodeMsg}`);
+			}
+			if (node.type !== 'script') {
+				throw new Error('The node you supplied is not of type script');
+			}
+			if (node.value.backgroundScript === '') {
+				throw new Error('Backgroundscript is empty (code is empty string)');
+			}
+			modules.CRMNodes.Script.Background.createBackgroundPage(
+				modules.crm.crmById.get(id), true);
+		}
+		
 		window.getID = (searchedName: string) => {
 			searchedName = searchedName.toLowerCase();
 			const matches: {

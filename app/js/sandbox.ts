@@ -141,7 +141,8 @@ const _self = self as SandboxWindow;
 							error.message, 
 							'.\nStack:', 
 							error.stack);
-						log('Script boot failed');
+						log('Script boot failed, call window.debugBackgroundScript(node id) to' + 
+							' restart and debug it');
 					}
 				})(data.script, _self.log);
 				break;
