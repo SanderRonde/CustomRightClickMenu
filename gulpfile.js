@@ -195,13 +195,10 @@ function readFile(filePath, options) {
 						})
 						.pipe(gulp.dest('./app/js/libraries/'))
 				},
-				function crmapiLib() {
-					return gulp
-						.src('crmapi.d.ts', { 
-							cwd: './tools/definitions/',
-							base: './tools/definitions/'
-						})
-						.pipe(gulp.dest('./app/js/libraries/'))
+				async function crmapiLib() {
+					await writeFile('./app/js/libraries/crmapi.d.ts', await joinDefs(), {
+						encoding: 'utf8'
+					});
 				}
 			)));
 
@@ -406,13 +403,10 @@ function readFile(filePath, options) {
 					})
 					.pipe(gulp.dest('./temp/js/libraries'));
 			},
-			function crmapiLibBuild() {
-				return gulp
-					.src('crmapi.d.ts', {
-						cwd: './tools/definitions',
-						base: './tools/definitions'
-					})
-					.pipe(gulp.dest('./temp/js/libraries'));
+			async function crmapiLibBuild() {
+				await writeFile('./temp/js/libraries/crmapi.d.ts', await joinDefs(), {
+					encoding: 'utf8'
+				});
 			},
 			gulp.series(
 				//entrypointPrefix.html specific stuff
@@ -1081,43 +1075,46 @@ function readFile(filePath, options) {
 		})));
 })();
 
+/**
+ * Replace a line with given callback's response when regexp matches
+ * 
+ * @param {string[]} lines - The lines to iterate through
+ * @param {RegExp} regexp - The expression that should match
+ * @param {(match: RegExpExecArray) => Promise<string>} callback - A function that
+ * 		returns the to-replace string based on the match
+ * @returns {Promise<string[]>} - The new array
+ */
+async function doReplace(lines, regexp, callback) {
+	let match;
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
+		if ((match = regexp.exec(line))) {
+			const replacement = (await callback(match)).split('\n');
+			lines.splice(i, 1, ...replacement);
+			return doReplace(lines, regexp, callback);
+		}
+	}
+	return lines;
+}
+
+async function joinDefs() {
+	const srcFile = await readFile('./tools/definitions/crmapi.d.ts', {
+		encoding: 'utf8'
+	});
+	const lines = srcFile.split('\n');
+	return (await doReplace(lines, /\/\/\/(\s*)<reference path="(.*)"(\s*)\/>/, async (match) => {
+		const file = match[2];
+		return await readFile(path.join('./tools/definitions', file), {
+			encoding: 'utf8'
+		});
+	})).join('\n');
+}
+
 /* Definitions */
 (() => {
-	/**
-	 * Replace a line with given callback's response when regexp matches
-	 * 
-	 * @param {string[]} lines - The lines to iterate through
-	 * @param {RegExp} regexp - The expression that should match
-	 * @param {(match: RegExpExecArray) => Promise<string>} callback - A function that
-	 * 		returns the to-replace string based on the match
-	 * @returns {Promise<string[]>} - The new array
-	 */
-	async function doReplace(lines, regexp, callback) {
-		let match;
-		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
-			if ((match = regexp.exec(line))) {
-				const replacement = (await callback(match)).split('\n');
-				lines.splice(i, 1, ...replacement);
-				return doReplace(lines, regexp, callback);
-			}
-		}
-		return lines;
-	}
-
 	gulp.task(genTask('Move all crmapi .d.ts files into a single file',
 		async function genDefs() {
-			const srcFile = await readFile('./tools/definitions/crmapi.d.ts', {
-				encoding: 'utf8'
-			});
-			const lines = srcFile.split('\n');
-			const newLines = (await doReplace(lines, /\/\/\/(\s*)<reference path="(.*)"(\s*)\/>/, async (match) => {
-				const file = match[2];
-				return await readFile(path.join('./tools/definitions', file), {
-					encoding: 'utf8'
-				});
-			})).join('\n');
-			await writeFile('./dist/defs/crmapi.d.ts', newLines, {
+			await writeFile('./dist/defs/crmapi.d.ts', await joinDefs(), {
 				encoding: 'utf8'
 			});
 		}));
