@@ -1249,12 +1249,12 @@ export namespace Storages {
 		}
 		//Check if any background page updates occurred
 		const { same, additions, removals } = diffCRM(change.oldValue, change.newValue);
-		await Promise.all([
+		await window.Promise.all([
 			...same.map(async ({ id }) => {
 				const currentNode = findIdInTree(id, change.oldValue);
 				const newNode = findIdInTree(id, change.newValue);
 				if (newNode.type === 'script' && currentNode && currentNode.type === 'script') {
-					const [ curentBgScript, newBgScript ] = await Promise.all([
+					const [ curentBgScript, newBgScript ] = await window.Promise.all([
 						modules.Util.getScriptNodeScript(currentNode, 'background'),
 						modules.Util.getScriptNodeScript(newNode, 'background')
 					]);
