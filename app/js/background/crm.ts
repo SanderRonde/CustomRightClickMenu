@@ -573,6 +573,12 @@ export namespace CRMNodes.Script.Background {
 				'Terminated background page...');
 		}
 
+		if (modules.background.byId.has(node.id)) {
+			modules.background.byId.get(node.id).terminate();
+		}
+		//There can only be one background page
+		modules.crmValues.tabData.get(0).nodes.clear();
+
 		let key: number[] = [];
 		let err = false;
 		try {
@@ -657,9 +663,6 @@ export namespace CRMNodes.Script.Background {
 			});
 			return instancesArr;
 		}, (worker) => {
-			if (modules.background.byId.has(node.id)) {
-				modules.background.byId.get(node.id).terminate();
-			}
 			modules.background.byId.set(node.id, worker);
 			if (isRestart) {
 				modules.Logging.log(node.id, '*', `Background page [${node.id}]: `,
