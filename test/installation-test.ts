@@ -559,8 +559,8 @@ function doUserStylesOrgTest(prefix: () => string|void) {
 			await wait(5000);
 
 			assert.strictEqual(await driver.executeScript(inlineFn(() => {
-				return window.getComputedStyle(document.getElementById('viewport'))['backgroundColor'];
-			})), 'rgba(0, 0, 0, 0)', 'background color changed (script is applied)');
+				return window.getComputedStyle(document.getElementsByClassName('gb_Ea')[0])['borderColor'];
+			})), 'rgb(51, 51, 51)', 'background color changed (script is applied)');
 		});
 	});
 }
