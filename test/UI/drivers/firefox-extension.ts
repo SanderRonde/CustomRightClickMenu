@@ -12,7 +12,7 @@ function throwErr(): never {
 
 export function getCapabilities() {
 	// const profile = new firefoxDriver.Profile();
-	// profile.addExtension('dist/packed/Custom Right-Click Menu.xpi');
+	// profile.addExtension('dist/packed/Custom Right-Click Menu.firefox.xpi');
 	
 	// //Will only work when signed
 	// return new firefoxDriver.Options()
