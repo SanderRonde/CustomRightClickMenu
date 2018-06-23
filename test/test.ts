@@ -5435,9 +5435,10 @@ describe('CRMAPI', () => {
 	describe('Browser', () => {
 		before('Setup', () => {
 			// @ts-ignore
-			window.browser = window.browser || {};
+			window.browserAPI = window.browserAPI || {};
 			//@ts-ignore
-			window.browser.alarms = {
+			window.browserAPI.alarms = {
+				//@ts-ignore
 				create: function(a, b) {
 					return new Promise((resolve) => {
 						resolve(null);
@@ -5453,6 +5454,7 @@ describe('CRMAPI', () => {
 						resolve([a, b]);
 					});
 				},
+				//@ts-ignore
 				clear: function(callback) {
 					return new Promise((resolve) => {
 						//@ts-ignore
@@ -5461,6 +5463,7 @@ describe('CRMAPI', () => {
 					});
 				},
 				onAlarm: {
+					//@ts-ignore
 					addListener: function(callback) {
 						return new Promise((resolve) => {
 							// @ts-ignore
