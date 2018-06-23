@@ -275,3 +275,5 @@ typedoc/
 
 app/elements/options/editpages/monaco-editor/src/
 scripts/id_rsa
+
+tools/moz-api-credentials.js

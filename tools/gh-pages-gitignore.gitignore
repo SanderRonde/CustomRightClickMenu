@@ -223,3 +223,4 @@ app/js/background.js
 app/js/crmapi.js
 
 .vscode
+tools/moz-api-credentials.js

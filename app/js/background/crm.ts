@@ -576,7 +576,7 @@ export namespace CRMNodes.Script.Background {
 		if (modules.background.byId.has(node.id)) {
 			modules.background.byId.get(node.id).terminate();
 		}
-		//There can only be one background page
+		//There can only be one backgroundscript
 		modules.crmValues.tabData.get(0).nodes.clear();
 
 		let key: number[] = [];
