@@ -355,12 +355,8 @@ export namespace CRMNodes.Script.Handler {
 				});
 			} else {
 				const indentUnit = '	';
-				const tabIndex = modules.crmValues.tabData
-					.get(tab.id).nodes
-					.get(node.id).length - 1;
-				modules.Logging.Listeners.updateTabAndIdLists();
 
-				const [ contextData, data, script ] = await window.Promise.all<any>([
+				const [ contextData, data, script, tabIndex ] = await window.Promise.all<any>([
 					modules.Util.iipe<EncodedContextData>(async () => {
 						//If it was triggered by clicking, ask contentscript about some data
 						if (isAutoActivate) {
@@ -392,13 +388,18 @@ export namespace CRMNodes.Script.Handler {
 							return indentUnit + line;
 						}).join('\n');
 					}),
-					modules.Util.iipe<void>(async () => {
+					modules.Util.iipe<number>(async () => {
 						genTabData(tab.id, key, node.id, await modules.Util.getScriptNodeScript(node))
+						const tabIndex = modules.crmValues.tabData
+							.get(tab.id).nodes
+							.get(node.id).length - 1;
+						modules.Logging.Listeners.updateTabAndIdLists();
+						return tabIndex;
 					})
 				]) as [EncodedContextData, {
 					greaseMonkeyData: GreaseMonkeyData;
 					runAt: _browser.extensionTypes.RunAt
-				}, string, void];
+				}, string, number];
 				const { greaseMonkeyData, runAt } = data;
 
 
