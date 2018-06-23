@@ -4,7 +4,7 @@ import * as webdriver from 'selenium-webdriver';
 
 export function getCapabilities() {
 	return new chromeDriver.Options()
-		.addExtensions('dist/packed/Custom Right-Click Menu.crx')
+		.addExtensions('dist/packed/Custom Right-Click Menu.chrome.crx')
 		.toCapabilities();
 }
 
