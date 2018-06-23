@@ -5917,7 +5917,11 @@ type CRMAPIMessage = {
 				this.__privates._specialRequest('notifications.create', 'GM_notification').args(details).s().then((notificationId: number) => {
 					this.__privates._addNotificationListener(notificationId, onclickRef, ondoneRef);
 				}).catch((err) => {
-					console.warn(err);
+					if (console.warn) {
+						console.warn(err);
+					} else {
+						console.log(err);
+					}
 				});
 			}
 		};
