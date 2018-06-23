@@ -220,7 +220,12 @@ export namespace Sandbox {
 
 	export function sandboxChrome(api: string, base: 'chrome'|'browser', args: any[]) {
 		let context = {};
-		let fn = (window as any)[base];
+		let fn: any;
+		if (base === 'browser') {
+			fn = window.browserAPI;
+		} else {
+			fn = (window as any).chrome;
+		}
 		const apiSplit = api.split('.');
 		try {
 			for (let i = 0; i < apiSplit.length; i++) {
