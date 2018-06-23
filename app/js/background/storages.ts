@@ -1455,6 +1455,7 @@ export namespace Storages {
 				break;
 			case 'nodeStorage':
 				modules.Util.setMapDefault(modules.storages.nodeStorage, data.id, {});
+				modules.Util.setMapDefault(modules.storages.nodeStorageSync, data.id, {});
 				if (data.isSync) {
 					applyChangeForStorageType(modules.storages.nodeStorageSync.get(data.id),
 						data.nodeStorageChanges, true);
