@@ -356,7 +356,7 @@ export namespace CRMNodes.Script.Handler {
 			} else {
 				const indentUnit = '	';
 
-				const [ contextData, data, script, tabIndex ] = await window.Promise.all<any>([
+				const [ contextData, { greaseMonkeyData, runAt }, script, tabIndex ] = await window.Promise.all<any>([
 					modules.Util.iipe<EncodedContextData>(async () => {
 						//If it was triggered by clicking, ask contentscript about some data
 						if (isAutoActivate) {
@@ -400,7 +400,6 @@ export namespace CRMNodes.Script.Handler {
 					greaseMonkeyData: GreaseMonkeyData;
 					runAt: _browser.extensionTypes.RunAt
 				}, string, number];
-				const { greaseMonkeyData, runAt } = data;
 
 
 				const safeNode = makeSafe(node);
@@ -594,7 +593,10 @@ export namespace CRMNodes.Script.Background {
 		}
 
 		const indentUnit = '	';
-		const [ bgPageLibs, script, greaseMonkeyData ] = await window.Promise.all<any>([
+		const [{
+			code: backgroundPageCode,
+			libraries
+		}, script, greaseMonkeyData ] = await window.Promise.all<any>([
 			modules.Util.iipe<{
 				code: string[];
 				libraries: string[]
@@ -621,10 +623,6 @@ export namespace CRMNodes.Script.Background {
 			code: string[];
 			libraries: string[]
 		}, string, GreaseMonkeyData];
-		const { 
-			code: backgroundPageCode,
-			libraries
-		} = bgPageLibs;
 
 		const safeNode = makeSafe(node) as any;
 		safeNode.permissions = node.permissions;
