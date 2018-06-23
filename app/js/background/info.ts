@@ -17,13 +17,5 @@ export namespace Info {
 			window.testLog = console.log.bind(console);
 			window.Promise = Promise;
 		}
-
-		if (typeof module === 'undefined') {
-			window.log('If you\'re here to check out your background script,' +
-				' get its ID (you can type getID("name") to find the ID),' +
-				' and type filter(id, [optional tabId]) to show only those messages.' +
-				' You can also visit the logging page for even better logging over at ',
-				browserAPI.runtime.getURL('html/logging.html'));
-		}
 	}
 }
