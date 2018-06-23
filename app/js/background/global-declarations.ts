@@ -17,6 +17,24 @@ export namespace GlobalDeclarations {
 		' calling window.getID("nodename") where nodename is the name of your' +
 		' node';
 
+		window.debugNextScriptCall = (id: CRM.NodeId<CRM.ScriptNode>) => {
+			if (id !== 0 && !id || typeof id !== 'number') {
+				throw new Error(`Please supply a valid node ID, ${findNodeMsg}`);
+			}
+			const node = modules.crm.crmByIdSafe.get(id);
+			if (!node) {
+				throw new Error(`There is no node with the node ID you supplied, ${findNodeMsg}`);
+			}
+			if (node.type !== 'script') {
+				throw new Error('The node you supplied is not of type script');
+			}
+
+			console.log('Listening for next activation. ' + 
+				'Make sure the devtools of the tab on which you ' + 
+				'activate the script are open when you activate it');
+			modules.globalObject.globals.eventListeners.scriptDebugListeners.add(id);
+		}
+
 		window.debugBackgroundScript = (id: CRM.NodeId<CRM.ScriptNode>) => {
 			if (id !== 0 && !id || typeof id !== 'number') {
 				throw new Error(`Please supply a valid node ID, ${findNodeMsg}`);

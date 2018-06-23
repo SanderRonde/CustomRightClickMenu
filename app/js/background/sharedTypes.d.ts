@@ -281,6 +281,7 @@ type BackgroundpageWindow = Window & SharedWindow & {
 	TextEncoder: any;
 	getID: (name: string) => void;
 	debugBackgroundScript(id: CRM.NodeId<CRM.ScriptNode>): void;
+	debugNextScriptCall(id: CRM.NodeId<CRM.ScriptNode>): void;
 	md5: (data: any) => string;
 	ts: Typescript & typeof ts;
 	TernFile: Tern.File;
@@ -779,6 +780,10 @@ interface Globals {
 			 */
 			callback(): void;
 		}[]>;
+		/**
+		 * A set of nodes that should be debugged when they next activate
+		 */
+		scriptDebugListeners: Set<CRM.NodeId<CRM.ScriptNode>>;
 	};
 	/**
 	 * Data about script logging for the logging page

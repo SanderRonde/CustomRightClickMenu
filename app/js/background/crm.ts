@@ -39,6 +39,10 @@ export namespace CRMNodes.Script.Handler {
 			supportedBrowserAPIs.push('browser');
 		}
 
+		const doDebug = modules.globalObject.globals.eventListeners.scriptDebugListeners.has(node.id);
+		if (doDebug) {
+			modules.globalObject.globals.eventListeners.scriptDebugListeners.delete(node.id)
+		}
 		modules.Util.setMapDefault(modules.storages.nodeStorage, node.id, {});
 		modules.Util.setMapDefault(modules.storages.nodeStorageSync, node.id, {});
 		return [		
@@ -60,7 +64,8 @@ export namespace CRMNodes.Script.Handler {
 			`${catchErrs ? 'try {' : ''}`,		
 			'function main(crmAPI, window, chrome, browser, menuitemid, parentmenuitemid, mediatype,' +		
 			'linkurl, srcurl, pageurl, frameurl, frameid,' +		
-			'selectiontext, editable, waschecked, checked) {',		
+			'selectiontext, editable, waschecked, checked) {',
+			doDebug ? 'debugger;' : '',
 			script,		
 			'}',		
 			`crmAPI.onReady(function() {main.apply(this, [crmAPI, windowWrapper, ${node.isLocal && BrowserAPI.isBrowserAPISupported('chrome') ? 'chrome' : 'void 0'}, ${node.isLocal && BrowserAPI.isBrowserAPISupported('browser') ? 'browser' : 'void 0'}].concat(${		

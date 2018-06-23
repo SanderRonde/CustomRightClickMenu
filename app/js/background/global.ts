@@ -86,7 +86,8 @@ export namespace Global {
 		},
 		eventListeners: {
 			notificationListeners: new window.Map(),
-			shortcutListeners: new window.Map()
+			shortcutListeners: new window.Map(),
+			scriptDebugListeners: new window.Set()
 		},
 		logging: {
 			filter: {
