@@ -1220,7 +1220,7 @@ async function joinDefs() {
 		}));
 
 	/**
-	 * Move the built files to /dist
+	 * Move the built files to /dist and create a zip to place in /dist/packed
 	 * 
 	 * @param {string} browser - The browser that is used
 	 * @param {boolean} [replaceName] - Replace the manifest name
@@ -1230,9 +1230,16 @@ async function joinDefs() {
 			[function replaceName() {
 				return replaceShortName();
 			}] : [], 
-			function copy() {
-				return moveToDist(browser);
-			}];
+			gulp.parallel(
+				function copy() {
+					return moveToDist(browser);
+				},
+				function createZip() {
+					return gulp
+						.src('./**/*', { cwd: './build/', base: './build/' })
+						.pipe(zip(`Custom Right-Click Menu.${browser}.zip`))
+						.pipe(gulp.dest(`./dist/packed/`));
+				})];
 		return gulp.series(...fns);
 	}
 
@@ -1260,24 +1267,38 @@ async function joinDefs() {
 	gulp.task('operaToDist', genTask('Copies the /build folder to the /dist/opera folder',
 		doMove('opera', true)));
 
-	gulp.task(genTask('Generates a crx file and places it in the /dist/packed folder',
-		function genCRX() {
-			return gulp
-				.src([
-					'**',
-					'!Custom Right-Click Menu.zip'
-				], {
-					cwd: './dist/firefox/',
-					base: './dist/firefox'
-				})
-				.pipe(zip('Custom Right-Click Menu.zip'))
-				.pipe(rename('Custom Right-Click Menu.crx'))
-				.pipe(gulp.dest('./dist/packed/'));
-		}));
+	gulp.task('genCRX', genTask('Generates a crx file and places it in the /dist/packed folder',
+		gulp.parallel(
+			function genCRXFirefox() {
+				return gulp
+					.src([
+						'**',
+						'!Custom Right-Click Menu.zip'
+					], {
+						cwd: './dist/firefox/',
+						base: './dist/firefox'
+					})
+					.pipe(zip('Custom Right-Click Menu.zip'))
+					.pipe(rename('Custom Right-Click Menu.firefox.crx'))
+					.pipe(gulp.dest('./dist/packed/'));
+			},
+			function genCRXChrome() {
+				return gulp
+					.src([
+						'**',
+						'!Custom Right-Click Menu.zip'
+					], {
+						cwd: './dist/chrome/',
+						base: './dist/chrome'
+					})
+					.pipe(zip('Custom Right-Click Menu.zip'))
+					.pipe(rename('Custom Right-Click Menu.chrome.crx'))
+					.pipe(gulp.dest('./dist/packed/'));
+			})));
 
 	gulp.task(genTask('Generates an xpi file and places it in the /dist/packed folder',
 		async function genXPI() {
-			await xpi('./dist/packed/Custom Right-Click Menu.xpi', './dist/firefox');
+			await xpi('./dist/packed/Custom Right-Click Menu.firefox.xpi', './dist/firefox');
 		}));
 })();
 
