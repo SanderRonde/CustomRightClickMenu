@@ -1218,7 +1218,7 @@ export namespace Storages {
 
 	function findIdInTree(id: number, tree: CRM.Node[]): CRM.Node {
 		let result: CRM.Node = null;
-		window.app.util.crmForEach(tree, (node) => {
+		modules.Util.crmForEach(tree, (node) => {
 			if (node.id === id) {
 				result = node;
 			}
