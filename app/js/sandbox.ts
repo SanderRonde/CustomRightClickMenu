@@ -18,9 +18,12 @@ const _self = self as SandboxWindow;
 	}
 
 	_self.log = (...args: any[]) => {
-		let err = (new Error()).stack.split('\n')[2];
+		let err = (new Error()).stack.split('\n')[1];
 		if (err.indexOf('eval') > -1) {
-			err = (new Error()).stack.split('\n')[3];
+			err = (new Error()).stack.split('\n')[2];
+			if (!err) {
+				err = (new Error()).stack.split('\n')[1];
+			}
 		}
 		const errSplit = err.split('at');
 		log(args, errSplit.slice(1, errSplit.length).join('at'));
