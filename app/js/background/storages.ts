@@ -1216,6 +1216,16 @@ export namespace Storages {
 		'get' in BrowserAPI.getSrc().storage.sync;
 	}
 
+	function findIdInTree(id: number, tree: CRM.Node[]): CRM.Node {
+		let result: CRM.Node = null;
+		window.app.util.crmForEach(tree, (node) => {
+			if (node.id === id) {
+				result = node;
+			}
+		});
+		return result;
+	}
+
 	export async function checkBackgroundPagesForChange({ change, toUpdate }: {
 		change?: {
 			key: string;
@@ -1224,26 +1234,33 @@ export namespace Storages {
 		};
 		toUpdate?: CRM.GenericNodeId[]
 	}) {
-		await toUpdate && toUpdate.map((id) => {
-			return new Promise(async (resolve) => {
-				await modules.CRMNodes.Script.Background.createBackgroundPage(
-					modules.crm.crmById.get(id) as CRM.ScriptNode);
-				resolve(null);
+		if (toUpdate) {
+			await toUpdate.map((id) => {
+				return new Promise(async (resolve) => {
+					await modules.CRMNodes.Script.Background.createBackgroundPage(
+						modules.crm.crmById.get(id) as CRM.ScriptNode);
+					resolve(null);
+				});
 			});
-		});
+		}
 
 		if (!change) {
 			return;
 		}
 		//Check if any background page updates occurred
 		const { same, additions, removals } = diffCRM(change.oldValue, change.newValue);
-		for (const node of same) {
-			const currentValue = modules.crm.crmById.get(node.id)
-			if (node.type === 'script' && (currentValue && currentValue.type === 'script' &&
-				await modules.Util.getScriptNodeScript(currentValue, 'background') !== 
-				await modules.Util.getScriptNodeScript(node, 'background'))) {
-					await modules.CRMNodes.Script.Background.createBackgroundPage(node);
+		for (const { id } of same) {
+			const currentNode = findIdInTree(id, change.oldValue);
+			const newNode = findIdInTree(id, change.newValue);
+			if (newNode.type === 'script' && currentNode && currentNode.type === 'script') {
+				const [ curentBgScript, newBgScript ] = await Promise.all([
+					modules.Util.getScriptNodeScript(currentNode, 'background'),
+					modules.Util.getScriptNodeScript(newNode, 'background')
+				]);
+				if (curentBgScript === newBgScript) {
+					await modules.CRMNodes.Script.Background.createBackgroundPage(newNode);
 				}
+			}
 		}
 		for (const node of additions) {
 			if (node.type === 'script' && node.value.backgroundScript && 
