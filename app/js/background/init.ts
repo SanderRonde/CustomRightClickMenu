@@ -180,6 +180,10 @@ export namespace Init {
 						' and type filter(id, [optional tabId]) to show only those messages.' +
 						' You can also visit the logging page for even better logging over at ',
 						browserAPI.runtime.getURL('html/logging.html'));
+					window.log('You can also use the debugger for scripts by calling' + 
+						' window.debugNextScriptCall(id) and window.debugBackgroundScript(id)' +
+						' for scripts and backgroundscripts respectively. You can get the id by using' +
+						' the getID("name") function.');
 				}
 			} catch (e) {
 				for (let i = 0; i < 10; i++) {
