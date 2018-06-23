@@ -1249,25 +1249,27 @@ export namespace Storages {
 		}
 		//Check if any background page updates occurred
 		const { same, additions, removals } = diffCRM(change.oldValue, change.newValue);
-		for (const { id } of same) {
-			const currentNode = findIdInTree(id, change.oldValue);
-			const newNode = findIdInTree(id, change.newValue);
-			if (newNode.type === 'script' && currentNode && currentNode.type === 'script') {
-				const [ curentBgScript, newBgScript ] = await Promise.all([
-					modules.Util.getScriptNodeScript(currentNode, 'background'),
-					modules.Util.getScriptNodeScript(newNode, 'background')
-				]);
-				if (curentBgScript === newBgScript) {
-					await modules.CRMNodes.Script.Background.createBackgroundPage(newNode);
+		await Promise.all([
+			...same.map(async ({ id }) => {
+				const currentNode = findIdInTree(id, change.oldValue);
+				const newNode = findIdInTree(id, change.newValue);
+				if (newNode.type === 'script' && currentNode && currentNode.type === 'script') {
+					const [ curentBgScript, newBgScript ] = await Promise.all([
+						modules.Util.getScriptNodeScript(currentNode, 'background'),
+						modules.Util.getScriptNodeScript(newNode, 'background')
+					]);
+					if (curentBgScript === newBgScript) {
+						await modules.CRMNodes.Script.Background.createBackgroundPage(newNode);
+					}
 				}
-			}
-		}
-		for (const node of additions) {
-			if (node.type === 'script' && node.value.backgroundScript && 
-				node.value.backgroundScript.length > 0) {
-					await modules.CRMNodes.Script.Background.createBackgroundPage(node);
-				}
-		}
+			}),
+			...additions.map(async (node) => {
+				if (node.type === 'script' && node.value.backgroundScript && 
+					node.value.backgroundScript.length > 0) {
+						await modules.CRMNodes.Script.Background.createBackgroundPage(node);
+					}
+			})
+		]);
 		for (const node of removals) {
 			if (node.type === 'script' && node.value.backgroundScript && 
 				node.value.backgroundScript.length > 0) {
