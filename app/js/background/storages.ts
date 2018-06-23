@@ -1251,14 +1251,16 @@ export namespace Storages {
 		const { same, additions, removals } = diffCRM(change.oldValue, change.newValue);
 		await window.Promise.all([
 			...same.map(async ({ id }) => {
-				const currentNode = findIdInTree(id, change.oldValue);
+				const oldNode = findIdInTree(id, change.oldValue);
+				const currentNode = modules.crm.crmById.get(id) as CRM.ScriptNode;
 				const newNode = findIdInTree(id, change.newValue);
-				if (newNode.type === 'script' && currentNode && currentNode.type === 'script') {
-					const [ curentBgScript, newBgScript ] = await window.Promise.all([
+				if (newNode.type === 'script' && oldNode && oldNode.type === 'script') {
+					const [ oldBgScript, currentBgScript, newBgScript ] = await window.Promise.all([
+						modules.Util.getScriptNodeScript(oldNode, 'background'),
 						modules.Util.getScriptNodeScript(currentNode, 'background'),
 						modules.Util.getScriptNodeScript(newNode, 'background')
 					]);
-					if (curentBgScript === newBgScript) {
+					if (oldBgScript !== newBgScript || currentBgScript !== currentBgScript) {
 						await modules.CRMNodes.Script.Background.createBackgroundPage(newNode);
 					}
 				}
