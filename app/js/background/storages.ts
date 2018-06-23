@@ -1736,11 +1736,13 @@ export namespace Storages {
 			if (tab !== tabId) {
 				if (nodes.has(id)) {
 					nodes.get(id).forEach((tabIndexInstance) => {
-						modules.Util.postMessage(tabIndexInstance.port, {
-							changes: changes,
-							isSync: isSync,
-							messageType: 'storageUpdate'
-						});
+						if (tabIndexInstance.port) {
+							modules.Util.postMessage(tabIndexInstance.port, {
+								changes: changes,
+								isSync: isSync,
+								messageType: 'storageUpdate'
+							});
+						}
 					});
 				}
 			}
