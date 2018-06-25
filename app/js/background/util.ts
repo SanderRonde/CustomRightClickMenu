@@ -426,7 +426,9 @@ export namespace Util {
 		if (!url || url.indexOf('chrome://') !== -1 ||
 			url.indexOf('chrome-extension://') !== -1 ||
 			url.indexOf('about://') !== -1 ||
-			url.indexOf('chrome-devtools://') !== -1) {
+			url.indexOf('chrome-devtools://') !== -1 ||
+			(url.indexOf('://chrome.google') > -1 &&
+			url.indexOf('/webstore') > -1)) {
 				return false;
 			}
 
