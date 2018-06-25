@@ -376,7 +376,10 @@ export namespace CRMNodes.Script.Handler {
 						const metaData: {
 							[key: string]: any;
 						} = MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
-						const runAt: _browser.extensionTypes.RunAt = metaData['run-at'] || metaData['run_at'] || 'document_end';
+						let runAt: _browser.extensionTypes.RunAt = metaData['run-at'] || metaData['run_at'] || 'document_end';
+						if (runAt && Array.isArray(runAt)) {
+							runAt = runAt[0];
+						}
 						const { excludes, includes } = getInExcludes(node)
 	
 						return {
@@ -1310,7 +1313,9 @@ export namespace CRMNodes.Running {
 					};
 				}
 			}
-		} catch(e) { }
+		} catch(e) { 
+			console.log('Error while executing scripts for tab', e);
+		}
 		return {
 			matched: false
 		};
@@ -2220,7 +2225,11 @@ export namespace CRMNodes.NodeCreation {
 	async function hasDocumentStartMetaTag(node: CRM.Node) {
 		if (node.type === 'script') {
 			const meta = Script.MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
-			return meta['run-at'] === 'document_start' || meta['run_at'] === 'document_start';
+			let runAtTag = meta['run-at'];
+			if (Array.isArray(runAtTag)) {
+				runAtTag = runAtTag[0];
+			}
+			return runAtTag === 'document_start';
 		}
 		return false;
 	}
