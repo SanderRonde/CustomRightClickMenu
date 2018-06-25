@@ -1365,7 +1365,7 @@ export namespace Storages {
 					});
 				}
 			}).catch((e) => {
-				window.log('Error on uploading to chrome.storage.local ', e);
+				window.log('Error on uploading to browser.storage.local ', e);
 			});
 		} else {
 			//Using chrome.storage.sync
