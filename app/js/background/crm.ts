@@ -2225,7 +2225,7 @@ export namespace CRMNodes.NodeCreation {
 	async function hasDocumentStartMetaTag(node: CRM.Node) {
 		if (node.type === 'script') {
 			const meta = Script.MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
-			let runAtTag = meta['run-at'];
+			let runAtTag = meta['run-at'] || meta['run_at'];
 			if (Array.isArray(runAtTag)) {
 				runAtTag = runAtTag[0];
 			}
