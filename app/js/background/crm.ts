@@ -1290,7 +1290,7 @@ export namespace CRMNodes.Running {
 		}
 	}
 
-	export async function executeScriptsForTab(tabId: TabId, respond: (message: any) => void) {
+	export async function executeScriptsForTab(tabId: TabId, isReload: boolean) {
 		try {
 			const tab = await browserAPI.tabs.get(tabId);
 			if (tab.url && modules.Util.canRunOnUrl(tab.url)) {
@@ -1299,6 +1299,10 @@ export namespace CRMNodes.Running {
 					nodes: new window.Map()
 				});
 				modules.Logging.Listeners.updateTabAndIdLists();
+
+				if (isReload) {
+					modules.GlobalDeclarations.runAlwaysRunNodes(tab);
+				}
 				if (!urlIsGlobalExcluded(tab.url)) {
 					const { toExecuteNodes } = modules;
 					const toExecute = toExecuteNodes.onUrl.documentEnd.filter(({ id, triggers }) => {

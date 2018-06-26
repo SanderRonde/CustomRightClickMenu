@@ -689,16 +689,7 @@ export namespace GlobalDeclarations {
 		}, tab: _browser.tabs.Tab) {
 			if (changeInfo.status && changeInfo.status === 'loading' &&
 				changeInfo.url && modules.Util.canRunOnUrl(changeInfo.url)) {
-					for (const { id } of modules.toExecuteNodes.always.documentStart) {
-						modules.CRMNodes.Running.executeNode(
-							modules.crm.crmById.get(id), tab);
-					}
-					for (const { id, triggers } of modules.toExecuteNodes.onUrl.documentStart) {
-						if (modules.URLParsing.matchesUrlSchemes(triggers, tab.url)) {
-							modules.CRMNodes.Running.executeNode(
-								modules.crm.crmById.get(id), tab);
-						}
-					}
+					runAlwaysRunNodes(tab);
 				}
 		}
 
@@ -848,6 +839,19 @@ export namespace GlobalDeclarations {
 		listenTamperMonkeyInstallState();
 		listenKeyCommands();
 		setupResourceProxy();
+	}
+
+	export function runAlwaysRunNodes(tab: _browser.tabs.Tab) {
+		for (const { id } of modules.toExecuteNodes.always.documentStart) {
+			modules.CRMNodes.Running.executeNode(
+				modules.crm.crmById.get(id), tab);
+		}
+		for (const { id, triggers } of modules.toExecuteNodes.onUrl.documentStart) {
+			if (modules.URLParsing.matchesUrlSchemes(triggers, tab.url)) {
+				modules.CRMNodes.Running.executeNode(
+					modules.crm.crmById.get(id), tab);
+			}
+		}
 	}
 
 	export function getResourceData(name: string, scriptId: CRM.NodeId<CRM.ScriptNode>) {

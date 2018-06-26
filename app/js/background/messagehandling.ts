@@ -201,9 +201,17 @@ export namespace MessageHandling {
 					break;
 				case 'newTabCreated':
 					if (messageSender && respond) {
+						//Clear tabData for that tab
+						let isReload = modules.crmValues.tabData.has(messageSender.tab.id);
+						modules.crmValues.tabData.delete(messageSender.tab.id);
+						modules.crmValues.tabData.set(messageSender.tab.id, {
+							nodes: new window.Map(),
+							libraries: new window.Map()
+						});
+
 						response = await modules.CRMNodes
 							.Running.executeScriptsForTab(
-								messageSender.tab.id, respond);
+								messageSender.tab.id, isReload);
 					}
 					break;
 				case 'styleInstall':
