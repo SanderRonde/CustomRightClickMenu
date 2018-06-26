@@ -760,10 +760,7 @@ function checkArrayChildrenConstraints<T extends {
 	}
 	return true;
 };
-function checkConstraints(data: TypeCheckConfig, value: any, optionals: {
-	[key: string]: any;
-	[key: number]: any;
-}): boolean {
+function checkConstraints(data: TypeCheckConfig, value: any): boolean {
 	if (typeof value === 'number') {
 		return checkNumberConstraints(data, value);
 	}
@@ -790,7 +787,7 @@ function typeCheck(args: {
 			var matchedType = typesMatch(data, value);
 			if (matchedType) {
 				optionals[data.val] = true;
-				checkConstraints(data, value, optionals);
+				checkConstraints(data, value);
 				continue;
 			}
 		}
@@ -813,8 +810,8 @@ function checkOnlyCallback(callback: Function, optional: boolean) {
 }
 
 function asyncThrows(fn: () => Promise<any>, regexp: RegExp, message?: string) {
-	return new Promise((resolve, reject) => {
-		fn().then((result) => {
+	return new Promise((resolve) => {
+		fn().then(() => {
 			assert.throws(() => {}, regexp, message);
 			resolve(null);
 		}).catch((err) => {
@@ -827,8 +824,8 @@ function asyncThrows(fn: () => Promise<any>, regexp: RegExp, message?: string) {
 }
 
 function asyncDoesNotThrow(fn: () => Promise<any>, message?: string) {
-	return new Promise((resolve, reject) => {
-		fn().then((result) => {
+	return new Promise((resolve) => {
+		fn().then(() => {
 			assert.doesNotThrow(() => {}, message);
 			resolve(null);
 		}).catch((err) => {
@@ -2299,7 +2296,7 @@ describe('CRMAPI', () => {
 							newValue: testCRMTree
 						}]
 					}
-				}, {}, (response) => {
+				}, {}, () => {
 					resolve(null);
 				});
 			}, 'CRM is changable through runtime messaging');
@@ -3767,7 +3764,7 @@ describe('CRMAPI', () => {
 		});
 		describe('#setContentTypes()', () => {
 			it('should set the entire array when passed a correct one', async () => {
-				const testArr = [false, false, false, false, false, false].map((val) => {
+				const testArr = [false, false, false, false, false, false].map(() => {
 					return Math.random() > 0.5;
 				});
 				const { onContentTypes } = await crmAPI.crm.setContentTypes(safeTestCRMTree[0].id, testArr);
@@ -4589,7 +4586,7 @@ describe('CRMAPI', () => {
 				listenerActivations[i] = 0;
 			}
 			function createStorageOnChangeListener(index: number) {
-				var fn = function(key: string, oldVal: any, newVal: any) {
+				var fn = function(key: string, _oldVal: any, newVal: any) {
 					if (storageTestData[index].key.indexOf(key) !== 0) {
 						throw new Error(`Storage keys do not match, ${key} does not match expected ${storageTestData[index].key}`);
 					}
@@ -5524,7 +5521,7 @@ describe('CRMAPI', () => {
 			await asyncDoesNotThrow(async () => {
 				return new Promise(async (resolve) => {
 					let called = 0;
-					await crmAPI.browser.alarms.onAlarm.addListener.p((value: number) => {
+					await crmAPI.browser.alarms.onAlarm.addListener.p(() => {
 						called += 1;
 						if (called === 3) {
 							resolve(null);

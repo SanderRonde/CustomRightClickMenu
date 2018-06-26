@@ -231,7 +231,6 @@ function getAllBetween(from: string, to: string) {
 
 function getFromTo({
 	fromAllToAllInput,
-	allToCurrent,
 	allToLatest	
 }: Input): {
 	from: string;
@@ -405,7 +404,7 @@ function downloadZip(url: string) {
 			request({
 				url: url,
 				encoding: null
-			}, async (err, resp, body) => {
+			}, async (err, _resp, body) => {
 				if (err) {
 					reject(err);
 					return;
@@ -1029,7 +1028,7 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 											//Do this programmatically as the editor layout
 											// changes sometimes
 	
-											await driver.executeScript(inlineFn((REPLACE) => {
+											await driver.executeScript(inlineFn(() => {
 												const node = <CRM.ScriptNode
 													>window.scriptEdit.newSettings;
 												node.value.script = 'script0script1script2';
@@ -1051,7 +1050,7 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 											//Do this programmatically as the editor layout
 											// changes sometimes
 	
-											await driver.executeScript(inlineFn((REPLACE) => {
+											await driver.executeScript(inlineFn(() => {
 												const node = <CRM.StylesheetNode
 													>window.stylesheetEdit.newSettings;
 												node.value.stylesheet = 
@@ -1243,7 +1242,7 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 				assert.lengthOf(storageData.sync.indexes, 1,
 					'there\'s only one index');
 
-				await executeAsyncScript(inlineAsyncFn((done, reject, REPLACE) => {
+				await executeAsyncScript(inlineAsyncFn((done) => {
 					const data = {
 						local: JSON.parse('REPLACE.storageLocal'),
 						sync: {
@@ -1449,7 +1448,7 @@ function doTestsFromTo(from: string, to: string, isLocal: boolean) {
 	const { isLocal } = input;
 	const runs = getRuns(input);
 
-	runs.forEach(({ from, to }, index) => {
+	runs.forEach(({ from, to }) => {
 		describe(`Migrating from ${from} to ${to}`, function() {
 			this.retries(2);
 

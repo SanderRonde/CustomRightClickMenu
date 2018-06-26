@@ -585,7 +585,7 @@ function getContextMenu(): webdriver.promise.Promise<ContextMenu> {
 }
 
 async function getActiveTabs(): Promise<ActiveTabs> {
-	const encoded = await executeAsyncScript<EncodedString<ActiveTabs>>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+	const encoded = await executeAsyncScript<EncodedString<ActiveTabs>>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 		REPLACE.getBackgroundPageTestData().then((testData) => {
 			ondone(JSON.stringify(testData._activeTabs));
 		});
@@ -610,7 +610,7 @@ async function getActivatedScripts({
 	clear?: boolean;
 	filterDummy?: boolean;
 } = {}): Promise<ExecutedScript[]> {
-	const encoded = await executeAsyncScript<EncodedString<ExecutedScript[]>>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+	const encoded = await executeAsyncScript<EncodedString<ExecutedScript[]>>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 		REPLACE.getBackgroundPageTestData().then((testData) => {
 			const scripts = JSON.stringify(testData._executedScripts);
 			if (REPLACE.clear) {
@@ -881,7 +881,7 @@ class DummyTab {
 		this._tabInfo = await executeAsyncScript<{
 			tabId: number;
 			windowId: number;
-		}>(inlineAsyncFn((done, onReject, REPLACE) => { 
+		}>(inlineAsyncFn((done) => { 
 			browserAPI.tabs.create({
 				url: 'http://www.github.com'
 			}).then(function(createdTab) {
@@ -963,7 +963,7 @@ async function createTab(url: string, doClear: boolean = false) {
 		const idData = await executeAsyncScript<{
 			tabId: number;
 			windowId: number;
-		}>(inlineAsyncFn((done, onReject, REPLACE) => { 
+		}>(inlineAsyncFn((done, _onReject, REPLACE) => { 
 			if (REPLACE.doClear) {
 				for (const instance of window.BrowserAPIInstances) {
 					if (instance.isLoggingEnabled()) {
@@ -1192,7 +1192,7 @@ describe('User entrypoints', function() {
 				recoverUnsavedData: false,
 				useStorageSync: true
 			};
-			Object.getOwnPropertyNames(checkboxDefaults).forEach((checkboxId, index) => {
+			Object.getOwnPropertyNames(checkboxDefaults).forEach((checkboxId) => {
 				it(`${checkboxId} should be clickable`, async () => {
 					await reloadPage(this);
 					await findElement(webdriver.By.tagName('crm-app'))
@@ -2552,7 +2552,7 @@ describe('User entrypoints', function() {
 								});
 								const contextMenu = await getContextMenu();
 								const { tabId, windowId } = await dummyTab.getTabId();
-								await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+								await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 									REPLACE.getTestData()._clearExecutedScripts();
 									REPLACE.getBackgroundPageTestData().then((testData) => {
 										ondone(testData._currentContextMenu[0]
@@ -2713,7 +2713,7 @@ describe('User entrypoints', function() {
 	
 								const contextMenu = await getContextMenu();
 								const { tabId, windowId } = await dummyTab.getTabId();
-								await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+								await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 									REPLACE.getTestData()._clearExecutedScripts();
 									REPLACE.getBackgroundPageTestData().then((testData) => {
 										ondone(testData._currentContextMenu[0]
@@ -3308,7 +3308,7 @@ describe('On-Page CRM', function() {
 		it('should open the correct links when clicked for the default link', async function() {
 			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 				REPLACE.getTestData()._clearExecutedScripts();
 				REPLACE.getBackgroundPageTestData().then((testData) => {
 					ondone(testData._currentContextMenu[0]
@@ -3372,7 +3372,7 @@ describe('On-Page CRM', function() {
 		it('should open the correct links when clicked for multiple links', async () => {
 			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
 					//Clear it without removing object-array-magic-address-linking
 					while (testData._activeTabs.length > 0) {
@@ -3624,7 +3624,7 @@ describe('On-Page CRM', function() {
 		}
 
 		before('Clear executed scripts', async () => {
-			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
 					testData._clearExecutedScripts();
 					ondone(null);
@@ -3641,7 +3641,7 @@ describe('On-Page CRM', function() {
 			this.slow(1000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
-				await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+				await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 					browserAPI.runtime.getBackgroundPage().then((backgroundPage: GlobalObject) => {
 						backgroundPage.globals.crmValues.tabData = new window.Map();
 						window.app.settings.crm = REPLACE.crm;
@@ -3670,7 +3670,7 @@ describe('On-Page CRM', function() {
 			this.slow(2500 * TIME_MODIFIER);
 			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
 					testData._clearExecutedScripts();
 					ondone(testData._currentContextMenu[0]
@@ -3734,7 +3734,7 @@ describe('On-Page CRM', function() {
 
 			assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
 
-			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
 					testData._clearExecutedScripts();
 					ondone(testData._currentContextMenu[0]
@@ -3800,7 +3800,7 @@ describe('On-Page CRM', function() {
 		it('should run the correct code when clicked', async () => {
 			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
 					testData._clearExecutedScripts();
 					ondone(testData._currentContextMenu[0]
@@ -4110,7 +4110,7 @@ describe('On-Page CRM', function() {
 		async function runStylesheet(index: StylesheetOnPageTests, expectedReg: RegExp, done: () => void) {
 			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
 					testData._clearExecutedScripts();
 					ondone(testData._currentContextMenu[0]
@@ -4166,7 +4166,7 @@ describe('On-Page CRM', function() {
 			this.slow(10000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
-				await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+				await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 					browserAPI.runtime.getBackgroundPage().then((backgroundPage: GlobalObject) => {
 						backgroundPage.globals.crmValues.tabData = new window.Map();
 						window.app.settings.crm = REPLACE.crm;
@@ -4197,7 +4197,7 @@ describe('On-Page CRM', function() {
 		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', async () => {
 			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
 					testData._clearExecutedScripts();
 					ondone(testData._currentContextMenu[0]
@@ -4252,7 +4252,7 @@ describe('On-Page CRM', function() {
 			const contextMenu = await getContextMenu();
 			assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
 
-			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
 					testData._clearExecutedScripts();
 					ondone(testData._currentContextMenu[0]
@@ -4301,7 +4301,7 @@ describe('On-Page CRM', function() {
 		it('should run the correct code when clicked', async function() {
 			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 				REPLACE.getBackgroundPageTestData().then((testData) => {
 					testData._clearExecutedScripts();
 					ondone(testData._currentContextMenu[0]
@@ -4346,7 +4346,7 @@ describe('On-Page CRM', function() {
 		});
 		if (!TEST_EXTENSION) {
 			it('should actually be applied to the page', async function() {
-				await driver.executeScript(inlineFn((args) => {
+				await driver.executeScript(inlineFn(() => {
 					const dummyEl = document.createElement('div');
 					dummyEl.id = 'stylesheetTestDummy';
 
@@ -4425,7 +4425,7 @@ describe('On-Page CRM', function() {
 						this.slow(2000 * TIME_MODIFIER);
 						this.timeout(4000 * TIME_MODIFIER);
 						const contextMenu = await getContextMenu();
-						await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+						await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 							REPLACE.getBackgroundPageTestData().then((testData) => {
 								testData._clearExecutedScripts();
 								ondone(testData._currentContextMenu[0]
@@ -4469,7 +4469,7 @@ describe('On-Page CRM', function() {
 						this.slow(2000 * TIME_MODIFIER);
 						this.timeout(4000 * TIME_MODIFIER);
 						const contextMenu = await getContextMenu();
-						await executeAsyncScript<void>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+						await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
 							REPLACE.getBackgroundPageTestData().then((testData) => {
 								testData._clearExecutedScripts();
 								ondone(testData._currentContextMenu[0]

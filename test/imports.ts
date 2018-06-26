@@ -116,7 +116,7 @@ export function getGitHash() {
 		if (process.env.TRAVIS) {
 			resolve(process.env.TRAVIS_COMMIT);
 		} else {
-			exec('git rev-parse --short HEAD', (err, stdout, stderr) => {
+			exec('git rev-parse --short HEAD', (err, stdout) => {
 				if (err) {
 					resolve('?');
 				} else {

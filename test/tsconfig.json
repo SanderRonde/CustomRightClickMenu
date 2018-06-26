@@ -14,6 +14,7 @@
         "noImplicitReturns": true,
         "noUnusedLocals": true,
         "target": "es5",
+        "noUnusedParameters": true,
         "experimentalDecorators": true
 	}, 
     "allowJs": true,

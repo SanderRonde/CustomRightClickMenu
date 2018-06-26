@@ -246,10 +246,7 @@ namespace TypeChecking {
 		return true;
 	}
 
-	function checkConstraints(data: TypeCheckConfig, value: any, optionals: {
-		[key: string]: any;
-		[key: number]: any;
-	}): boolean {
+	function checkConstraints(data: TypeCheckConfig, value: any): boolean {
 		if (typeof value === 'number') {
 			return checkNumberConstraints(data, value);
 		}
@@ -278,7 +275,7 @@ namespace TypeChecking {
 				const matchedType = typesMatch(data, value);
 				if (matchedType) {
 					optionals[data.val] = true;
-					checkConstraints(data, value, optionals);
+					checkConstraints(data, value);
 					continue;
 				}
 			} else if (isDef === 'continue') {
@@ -595,7 +592,7 @@ testWindow.chrome = {
 			}]);
 
 			if (!findItemWithId(testWindow.chrome._currentContextMenu,
-				id, (item, index, parent) => {
+				id, (_item, index, parent) => {
 					parent.splice(index, 1);
 				})) {
 					//None found

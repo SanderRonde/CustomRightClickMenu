@@ -241,7 +241,7 @@ function getExtensionData() {
 	}
 }
 
-function beforeUserscriptInstall(prefix: () => string|void, url: string) {
+function beforeUserscriptInstall(url: string) {
 	it('should be possible to navigate to the page', async function() {
 		this.timeout(600000 * TIME_MODIFIER);
 		this.slow(600000 * TIME_MODIFIER);
@@ -312,7 +312,7 @@ function installScriptFromInstallPage(getConfig: () => {
 	});
 }
 
-function beforeUserstyleInstall(prefix: () => void|string, url: string) {
+function beforeUserstyleInstall(url: string) {
 	it('should be possible to navigate to the page', async function() {
 		this.timeout(600000 * TIME_MODIFIER);
 		this.slow(600000 * TIME_MODIFIER);
@@ -379,7 +379,7 @@ function doGreasyForkTest(prefix: () => string|void) {
 		const URL = 'https://greasyfork.org/en/scripts/35252-google-night-mode';
 		let href: string;
 		let title: string;
-		beforeUserscriptInstall(prefix, URL);
+		beforeUserscriptInstall(URL);
 
 		it('should be possible to click the install link', async function() {
 			this.timeout(20000);
@@ -427,7 +427,7 @@ function doOpenUserJsTest(prefix: () => string|void) {
 		let href: string;
 		let title: string;
 
-		beforeUserscriptInstall(prefix, URL);
+		beforeUserscriptInstall(URL);
 
 		it('should be possible to click the install link', async function() {
 			this.timeout(20000);
@@ -474,7 +474,7 @@ function doUserScriptsOrgTest(prefix: () => string|void) {
 		let href: string;
 		let title: string;
 
-		beforeUserscriptInstall(prefix, URL);
+		beforeUserscriptInstall(URL);
 
 		it('should be possible to click the install link', async function() {
 			this.timeout(20000);
@@ -520,7 +520,7 @@ function doUserStylesOrgTest(prefix: () => string|void) {
 		const URL = 'https://userstyles.org/styles/144028/google-clean-dark';
 		let href: string;
 
-		beforeUserstyleInstall(prefix, URL);
+		beforeUserstyleInstall(URL);
 
 		it('should be possible to click the install link', async function() {
 			this.timeout(20000);
