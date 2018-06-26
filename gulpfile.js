@@ -27,7 +27,7 @@ const BANNERS = {
 	html: '<!--Original can be found at https://www.github.com/SanderRonde' + 
 		'/CustomRightClickMenu\nThis code may only be used under the MIT' + 
 		' style license found in the LICENSE.txt file-->\n',
-	js: '/*\n * Original can be found at https://github.com/SanderRonde' + 
+	js: '/*!\n * Original can be found at https://github.com/SanderRonde' + 
 		'/CustomRightClickMenu \n * This code may only be used under the MIT' +
 		' style license found in the LICENSE.txt file \n**/\n'
 }
