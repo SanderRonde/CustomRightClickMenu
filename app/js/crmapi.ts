@@ -454,10 +454,8 @@ type CRMAPIMessage = {
 	});
 
 	const localStorageProxyData = {
-		onSet: function(key: string, value: string) {
-
+		onSet: function(_key: string, _value: string) { }
 		}
-	}
 	
 	Object.defineProperty(localStorageProxy, 'setItem', {
 		get: function() {
@@ -610,10 +608,7 @@ type CRMAPIMessage = {
 						thisMap.set(thisArg, mapped);
 					});
 					removePrivateValues<CrmAPIInstance>(this, proto.__privates__);
-					this._init(node, id, tabData, clickData, secretKey, nodeStorage,
-						contextData, greasemonkeyData, isBackground,
-						options, enableBackwardsCompatibility, tabIndex,
-						extensionId, supportedAPIs);
+					this._init(enableBackwardsCompatibility);
 				}
 		}
 	}
@@ -1976,7 +1971,7 @@ type CRMAPIMessage = {
 			}>) {
 				const log = this.__privates._sentLogs[message.code.logId];
 				const bracketPathArr = ('[' + message.code.index + ']' +
-					message.code.path.replace(/\.(\w+)/g, (fullString, match) => {
+					message.code.path.replace(/\.(\w+)/g, (_fullString, match) => {
 						return '["' + match + '"]';
 					})).split('][');
 				
@@ -2471,7 +2466,7 @@ type CRMAPIMessage = {
 
 					return this.returnedVal as any;
 				}
-				new(__this: CrmAPIInstance, api: string, type?: string): BrowserRequest { 
+				new(__this: CrmAPIInstance, _api: string, _type?: string): BrowserRequest { 
 					return this;
 				}
 				args(...args: any[]): BrowserRequestInterface {
@@ -2546,7 +2541,7 @@ type CRMAPIMessage = {
 							message: string;
 							stackTrace: string;
 							lineNumber: number;
-						}|any, stackTrace: string[]) => {
+						}|any, _stackTrace: string[]) => {
 							if (status === 'error' || status === 'chromeError') {
 								reject(new Error(messageOrParams.error));
 							} else {
@@ -2680,7 +2675,7 @@ type CRMAPIMessage = {
 
 					return this.returnedVal as any;
 				}
-				new(__this: CrmAPIInstance, api: string, type?: string): ChromeRequest { 
+				new(__this: CrmAPIInstance, _api: string, _type?: string): ChromeRequest { 
 					return this;
 				}
 				args(...args: any[]): ChromeRequestInterface {
@@ -3206,12 +3201,7 @@ type CRMAPIMessage = {
 				this.__privates._setupBrowserAPI(this);
 			}
 
-		_init(node: CRM.Node, id: CRM.GenericNodeId, tabData: _browser.tabs.Tab,
-			clickData: _browser.contextMenus.OnClickData, secretKey: number[],
-			nodeStorage: CRM.NodeStorage, contextData: EncodedContextData,
-			greasemonkeyData: GreaseMonkeyData, isBackground: boolean, 
-			options: CRM.Options, enableBackwardsCompatibility: boolean, tabIndex: TabId, 
-			extensionId: string, supportedAPIs: string) {
+		_init(enableBackwardsCompatibility: boolean) {
 				if (!enableBackwardsCompatibility) {
 					localStorageProxy = typeof localStorage === 'undefined' ? {} : localStorage;
 				}
@@ -3389,7 +3379,7 @@ type CRMAPIMessage = {
 			 */
 			static jsonFn = {
 				stringify: function (obj: any): string {
-					return JSON.stringify(obj, function (key, value) {
+					return JSON.stringify(obj, function (_key, value) {
 						if (value instanceof Function || typeof value === 'function') {
 							return value.toString();
 						}
@@ -3401,7 +3391,7 @@ type CRMAPIMessage = {
 				},
 				parse: function (str: string, date2Obj?: boolean): any {
 					const iso8061 = date2Obj ? /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d *)?)Z$/ : false;
-					return JSON.parse(str, function (key, value) {
+					return JSON.parse(str, function (_key, value) {
 						if (typeof value !== 'string') {
 							return value;
 						}
@@ -3892,7 +3882,7 @@ type CRMAPIMessage = {
 			 *		the message key of that object will be filled with the reason
 			 *		it failed ("instance no longer exists" or "no listener exists")
 			 */
-			sendMessage(this: CrmAPIInstance, instance: CommInstance|number, tabIndex: TabIndex, 
+			sendMessage(this: CrmAPIInstance, instance: CommInstance|number, 
 					message: any, callback?: InstanceCallback): Promise<InstanceCallback> {
 					let instanceObj: CommInstance;
 					if (typeof instance === "number") {

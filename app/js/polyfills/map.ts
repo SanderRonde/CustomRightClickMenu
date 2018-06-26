@@ -94,7 +94,7 @@ class MapPolyfill<K, V> {
 		return this;
 	}
 	values() {
-		return new MapIterator(this._data.map(([key, value]) => {
+		return new MapIterator(this._data.map(([_key, value]) => {
 			return value;
 		}));
 	}

@@ -93,7 +93,7 @@ namespace NodeEditBehaviorNamespace {
 			window.crmEditPage.animateOut();
 		};
 
-		static save(this: NodeEditBehaviorInstance, event?: Polymer.ClickEvent, resultStorage?: Partial<CRM.Node>|MouseEvent) {
+		static save(this: NodeEditBehaviorInstance, _event?: Polymer.ClickEvent, resultStorage?: Partial<CRM.Node>|MouseEvent) {
 			let usesDefaultStorage = false;
 			if (resultStorage === null || resultStorage === undefined ||
 				typeof (resultStorage as MouseEvent).x === 'number') {

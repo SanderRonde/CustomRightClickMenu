@@ -51,7 +51,7 @@ export namespace BrowserHandler.ChromeAPIs {
 		});
 		return true;
 	}
-	export function getURL(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
+	export function getURL(message: ChromeAPIMessage|BrowserAPIMessage) {
 		const returns: any[] = [];
 		const args: any[] = [];
 		for (let i = 0; i < message.args.length; i++) {
@@ -77,18 +77,18 @@ export namespace BrowserHandler.ChromeAPIs {
 			'This API should not be accessed');
 		return true;
 	}
-	export function reload(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
+	export function reload() {
 		browserAPI.runtime.reload();
 		return true;
 	}
-	export function restart(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
+	export function restart() {
 		if ('restart' in browserAPI.runtime) {
 			const chromeRuntime = ((browserAPI.runtime as any) as typeof _chrome.runtime);
 			chromeRuntime.restart();
 		}
 		return true;
 	}
-	export function restartAfterDelay(message: ChromeAPIMessage|BrowserAPIMessage, api: string) {
+	export function restartAfterDelay(message: ChromeAPIMessage|BrowserAPIMessage) {
 		const fns: (() => void)[] = [];
 		const args: any[] = [];
 		if (!('restartAfterDelay' in browserAPI.runtime)) {
@@ -198,7 +198,7 @@ export namespace BrowserHandler.ChromeAPIs {
 			case 'getManifest':
 				return ChromeAPIs.getManifest(message, fn);
 			case 'getURL':
-				return ChromeAPIs.getURL(message, fn);
+				return ChromeAPIs.getURL(message);
 			case 'connect':
 			case 'connectNative':
 			case 'setUninstallURL':
@@ -206,11 +206,11 @@ export namespace BrowserHandler.ChromeAPIs {
 			case 'requestUpdateCheck':
 				return ChromeAPIs.unaccessibleAPI(message);
 			case 'reload':
-				return ChromeAPIs.reload(message, fn);
+				return ChromeAPIs.reload();
 			case 'restart':
-				return ChromeAPIs.restart(message, fn);
+				return ChromeAPIs.restart();
 			case 'restartAfterDelay':
-				return ChromeAPIs.restartAfterDelay(message, fn);
+				return ChromeAPIs.restartAfterDelay(message);
 			case 'getPlatformInfo':
 				return await ChromeAPIs.getPlatformInfo(message, fn);
 			case 'getPackageDirectoryEntry':

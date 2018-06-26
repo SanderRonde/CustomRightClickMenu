@@ -81,7 +81,7 @@
 				file?: string;
 			}[];
 		}	
-	}, sender: _browser.runtime.MessageSender, respond: (response: any) => Promise<void>) {
+	}, _sender: _browser.runtime.MessageSender, respond: (response: any) => Promise<void>) {
 		switch (message.type) {
 			case 'checkTabStatus':
 				//Code was already executed here, check if it has been matched before

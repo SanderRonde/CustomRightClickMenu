@@ -102,7 +102,7 @@ export namespace Logging.Listeners {
 					}));
 				}
 			});
-			return (await Promise.all(tabs)).filter(val => val !== null);
+			resolveOuter((await Promise.all(tabs)).filter(val => val !== null));
 		});
 	}
 	export async function updateTabAndIdLists(): Promise<{

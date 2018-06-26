@@ -112,7 +112,7 @@ namespace ScriptEditElement {
 			this.$.dropdownMenu.enable();
 		};
 
-		private static _saveEditorContents(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background'|'options'|'libraries') {
+		private static _saveEditorContents(this: NodeEditBehaviorScriptInstance) {
 			if (this.editorMode === 'background') {
 				this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
 			} else if (this.editorMode === 'main') {
@@ -254,7 +254,7 @@ namespace ScriptEditElement {
 		static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<CRM.ScriptNode>) {
 			resultStorage.value.metaTags = this._getMetaTagValues() || {};
 			resultStorage.value.launchMode = this.$.dropdownMenu.selected;
-			this._saveEditorContents(this.editorMode);
+			this._saveEditorContents();
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
 			this.editorManager.destroy();
@@ -454,7 +454,7 @@ namespace ScriptEditElement {
 		/**
 		 * Reloads the editor completely (to apply new settings)
 		 */
-		static reloadEditor(this: NodeEditBehaviorScriptInstance, disable: boolean = false) {
+		static reloadEditor(this: NodeEditBehaviorScriptInstance) {
 			if (this.editorManager) {
 				if (this.editorMode === 'main') {
 					this.newSettings.value.script = this.editorManager.editor.getValue();
@@ -618,7 +618,7 @@ namespace ScriptEditElement {
 		 */
 		static editorLoaded(this: NodeEditBehaviorScriptInstance) {
 			const editorManager = this.editorManager;
-			(editorManager.getTypeHandler() as any)[0].listen('metaChange', (oldMetaTags: MonacoEditorElement.MetaBlock, newMetaTags: MonacoEditorElement.MetaBlock) => {
+			(editorManager.getTypeHandler() as any)[0].listen('metaChange', (_oldMetaTags: MonacoEditorElement.MetaBlock, newMetaTags: MonacoEditorElement.MetaBlock) => {
 				if (this.editorMode === 'main') {
 					this.newSettings.value.metaTags = JSON.parse(JSON.stringify(newMetaTags)).content;
 				}
@@ -639,8 +639,7 @@ namespace ScriptEditElement {
 		/**
 		 * Loads the monaco editor
 		 */
-		private static async loadEditor(this: NodeEditBehaviorScriptInstance, content: string = this.item.value.script,
-				disable: boolean = false) {
+		private static async loadEditor(this: NodeEditBehaviorScriptInstance, content: string = this.item.value.script) {
 			const placeHolder = $(this.$.editor);
 			this.editorHeight = placeHolder.height();
 			this.editorWidth = placeHolder.width();

@@ -224,7 +224,7 @@ export namespace GlobalDeclarations {
 					listener([0]);
 				} else {
 					listener(modules.crmValues.tabData.get(currentTab as TabId)
-						.nodes.get(id).map((element, index) => {
+						.nodes.get(id).map((_element, index) => {
 							return index;
 						}));
 				}
@@ -676,7 +676,7 @@ export namespace GlobalDeclarations {
 			});
 		}
 
-		function onTabUpdated(id: TabId, changeInfo: {
+		function onTabUpdated(_id: TabId, changeInfo: {
 			status?: 'loading'|'complete';
 			url?: string;
 			pinned?: boolean;

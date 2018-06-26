@@ -279,7 +279,7 @@ type SharedWindow = {
 		}
 	}
 
-	function createAnimation(el: HTMLElement, from: string, to: string, doAnimation: (from: string, to: string, done: () => void) => {
+	function createAnimation(from: string, to: string, doAnimation: (from: string, to: string, done: () => void) => {
 		cancel(): void;
 	}): Animation {
 		let currentAnimation: {
@@ -373,7 +373,7 @@ type SharedWindow = {
 
 			const dummy = document.createElement('div');
 
-			return createAnimation(el, '0px', '100px', (fromDummy, toDummy, done) => {
+			return createAnimation('0px', '100px', (fromDummy, toDummy, done) => {
 				dummy.style.height = fromDummy;
 				$(dummy).animate({
 					height: toDummy

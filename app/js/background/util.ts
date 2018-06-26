@@ -35,7 +35,7 @@ export namespace Util {
 		parse: (str: string, date2Obj?: boolean): any => {
 			const iso8061 = !date2Obj ? false :
 				/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/;
-			return JSON.parse(str, (key: string, value: any) => {
+			return JSON.parse(str, (_key: string, value: any) => {
 				if (typeof value !== 'string') {
 					return value;
 				}

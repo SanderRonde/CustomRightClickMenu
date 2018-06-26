@@ -11,11 +11,11 @@ class Promise<T> implements Promise<T> {
 	_rejectReason: any;
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => Promise<T>)
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void)
-	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void|Promise<T>) { }
-	then(onfulfilled: (result: T) => void, onrejected?: (reason: any) => void): Promise<T> {
+	constructor(_initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void|Promise<T>) { }
+	then(_onfulfilled: (result: T) => void, _onrejected?: (reason: any) => void): Promise<T> {
 		return this;
 	}
-	catch(onrejected: (reason: any) => void): Promise<T> {
+	catch(_onrejected: (reason: any) => void): Promise<T> {
 		return this;
 	}
 	static all<T>(values: Promise<T>[]): Promise<T[]> {
@@ -72,7 +72,7 @@ class Promise<T> implements Promise<T> {
 		});
 	}
 	static reject<T>(reason?: Error): Promise<T> {
-		return new Promise<T>((resolve, reject) => {
+		return new Promise<T>((_resolve, reject) => {
 			reject(reason);
 		});
 	}

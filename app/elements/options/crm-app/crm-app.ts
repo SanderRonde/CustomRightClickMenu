@@ -145,7 +145,7 @@ namespace CRMAppElement {
 								});
 							}
 						},
-						progress(animation, progress, remainingMs) {
+						progress(_animation, progress, remainingMs) {
 							state.currentProgress = progress;
 							state.msRemaining = remainingMs;
 						}
@@ -464,7 +464,7 @@ namespace CRMAppElement {
 					binding.defaultKey;
 		}
 
-		static _currentItemIsCss(item: CRM.ScriptNode|CRM.StylesheetNode) {
+		static _currentItemIsCss(_item: CRM.ScriptNode|CRM.StylesheetNode) {
 			return (this.item && this.item.type === 'stylesheet');
 		}
 
@@ -1253,10 +1253,7 @@ namespace CRMAppElement {
 			return true;
 		}
 
-		private static _checkConstraints(this: CrmApp, data: TypeCheckConfig, value: any, optionals: {
-			[key: string]: any;
-			[key: number]: any;
-		}, errors: TypeCheckErrors): boolean {
+		private static _checkConstraints(this: CrmApp, data: TypeCheckConfig, value: any, errors: TypeCheckErrors): boolean {
 			if (typeof value === 'number') {
 				return this._checkNumberConstraints(data, value, errors);
 			}
@@ -1266,27 +1263,27 @@ namespace CRMAppElement {
 			return true;
 		}
 
-		private static typeCheck(this: CrmApp, data: any, toCheck: TypeCheckConfig[], errors: TypeCheckErrors) {
+		private static typeCheck(this: CrmApp, source: any, toCheck: TypeCheckConfig[], errors: TypeCheckErrors) {
 			const optionals: {
 				[key: string]: any;
 				[key: number]: any;
 			} = {};
 			for (let i = 0; i < toCheck.length; i++) {
-				const data = toCheck[i];
+				const config = toCheck[i];
 
 				//Skip if dependency not met
-				if (!this.dependencyMet(data, optionals)) {
+				if (!this.dependencyMet(config, optionals)) {
 					continue;
 				}
 
-				const value = this._getDotValue(data as any, data.val);
+				const value = this._getDotValue(source as any, config.val);
 				//Check if it's defined
-				const isDefined = this._isDefined(data, value, optionals, errors);
+				const isDefined = this._isDefined(config, value, optionals, errors);
 				if (isDefined === true) {
-					const matchedType = this._typesMatch(data, value, errors);
+					const matchedType = this._typesMatch(config, value, errors);
 					if (matchedType) {
-						optionals[data.val] = true;
-						this._checkConstraints(data, value, optionals, errors);
+						optionals[config.val] = true;
+						this._checkConstraints(config, value, errors);
 						continue;
 					}
 				} else if (isDefined === 'continue') {

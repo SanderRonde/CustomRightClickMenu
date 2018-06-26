@@ -157,7 +157,7 @@ namespace MonacoEditorElement {
 				return;
 			}
 
-			this._onCreate(model);
+			this._onCreate();
 
 			window.setTimeout(() => {
 				if (this._model.isDisposed()) {
@@ -184,7 +184,7 @@ namespace MonacoEditorElement {
 			return !('onDidChangeModel' in this._editor);
 		}
 
-		private _onCreate(model: monaco.editor.IModel) {
+		private _onCreate() {
 			this.destroy();
 			this._disposables.push(this._model.onDidChangeContent((e) => {
 				this._firePrivate('onModelContentChange', [e]);
@@ -226,7 +226,7 @@ namespace MonacoEditorElement {
 		private _isMetaDataHighlightDisabled: boolean = false;
 
 		protected static readonly _metaTagProvider: monaco.languages.CompletionItemProvider = {
-			provideCompletionItems: (model, position) => {
+			provideCompletionItems: () => {
 				return [{
 					label: '==UserScript==',
 					kind: monaco.languages.CompletionItemKind.Property,
@@ -438,7 +438,15 @@ namespace MonacoEditorElement {
 
 			const tags: CRM.MetaTags = {};
 			const regex = MonacoEditorMetaBlockMods._metaPropRegex;
-			for (let line of content.split('\n')) {
+			const lines = content.split('\n');
+			for (let i = 0; i < lines.length; i++) {
+				if (i < outlines.start.lineNumber) {
+					continue;
+				}
+				if (i > outlines.end.lineNumber) {
+					break;
+				}
+				const line = lines[i];
 				const matches = regex.exec(line);
 				if (matches) {
 					const key = matches[1];
@@ -453,7 +461,6 @@ namespace MonacoEditorElement {
 					}
 				}
 			}
-
 			return tags;
 		}
 
@@ -1578,12 +1585,9 @@ namespace MonacoEditorElement {
 			return textarea;
 		}
 
-		updateOptions(options: monaco.editor.IEditorOptions) {}
+		updateOptions() {}
 
-		getValue(options?: {
-            preserveBOM: boolean;
-            lineEnding: string;
-        }) {
+		getValue() {
 			return this._getValue();
 		}
 
@@ -1681,7 +1685,7 @@ namespace MonacoEditorElement {
 		private _genElements(container: HTMLElement) {
 			this._textarea = this._genTextarea();
 			this._textareaElements = [this._textarea];
-			this._baseElements.container.appendChild(this._textarea);
+			container.appendChild(this._textarea);
 		}
 
 		private _isActiveModel(model: TextareaModel) {
@@ -2278,14 +2282,14 @@ namespace MonacoEditorElement {
 			return this;
 		}
 
-		static isDiff(this: MonacoEditor, editor: MonacoStandardEditor|MonacoDiffEditor): editor is MonacoDiffEditor;
-		static isDiff(this: MonacoEditor, editor: TextareaStandardEditor|TextareaDiffEditor): editor is TextareaDiffEditor;
-		static isDiff(this: MonacoEditor, editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor): editor is monaco.editor.IDiffEditor;
-		static isDiff(this: MonacoEditor, editor: MonacoStandardEditor|MonacoDiffEditor|TextareaStandardEditor|TextareaDiffEditor|monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor): editor is MonacoDiffEditor|TextareaDiffEditor {
+		static isDiff(this: MonacoEditor, _editor: MonacoStandardEditor|MonacoDiffEditor): _editor is MonacoDiffEditor;
+		static isDiff(this: MonacoEditor, _editor: TextareaStandardEditor|TextareaDiffEditor): _editor is TextareaDiffEditor;
+		static isDiff(this: MonacoEditor, _editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor): _editor is monaco.editor.IDiffEditor;
+		static isDiff(this: MonacoEditor, _editor: MonacoStandardEditor|MonacoDiffEditor|TextareaStandardEditor|TextareaDiffEditor|monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor): _editor is MonacoDiffEditor|TextareaDiffEditor {
 			return this._createInfo.method === 'diff';
 		}
 
-		static isTextarea(this: MonacoEditor, editor: TextareaStandardEditor|TextareaDiffEditor|monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor): editor is TextareaStandardEditor|TextareaDiffEditor {
+		static isTextarea(this: MonacoEditor, _editor: TextareaStandardEditor|TextareaDiffEditor|monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor): _editor is TextareaStandardEditor|TextareaDiffEditor {
 			return '__textarea' in this.editor;
 		}
 
@@ -2918,7 +2922,7 @@ namespace MonacoEditorElement {
 					this._parent().Fetching.loadFile(name).then((content) => {
 						eval(content);
 						resolve(null);
-					}, (err) => {
+					}, () => {
 						alert('Failed to load lint library');
 						reject(new Error('Failed to load lint library'));
 					});
@@ -2957,7 +2961,7 @@ namespace MonacoEditorElement {
 		}
 
 		private static _captureMonacoErrors() {
-			window.onerror = (msg, filename) => {
+			window.onerror = (_msg, filename) => {
 				if (filename.indexOf('vs/editor/editor.main.js') > -1) {
 					console.log('Caught monaco editor error (ignore these)');
 					return true;

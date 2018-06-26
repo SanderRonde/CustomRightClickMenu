@@ -373,7 +373,7 @@ namespace BrowserAPINS {
 			},
 			remove(id: string | number) {
 				if (loggingEnabled) {
-					findItemWithId(testData._currentContextMenu, id, (item, index, parent) => {
+					findItemWithId(testData._currentContextMenu, id, (_item, index, parent) => {
 						parent.splice(index, 1);
 					});
 				}
@@ -715,7 +715,7 @@ namespace BrowserAPINS {
 					}
 				});
 			},
-			sendMessage<R>(tabId: TabId, message: any, options?: {
+			sendMessage<R>(tabId: TabId, message: any, _options?: {
 				frameId: number;
 			}) {
 				return createPromise<void | R>(({ __resolve, __reject }) => {

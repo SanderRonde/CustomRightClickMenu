@@ -99,7 +99,7 @@ namespace PaperDropdownBehaviorNamespace {
 			}
 		};
 
-		static onValueChange(this: PaperDropdownInstance, oldState: number|number[], newState: number|number[]) { }
+		static onValueChange(this: PaperDropdownInstance, _oldState: number|number[], _newState: number|number[]) { }
 
 		/**
 		 * Fires all added listeners, triggers when a new value is selected

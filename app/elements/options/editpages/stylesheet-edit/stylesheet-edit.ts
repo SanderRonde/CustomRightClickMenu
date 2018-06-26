@@ -71,7 +71,7 @@ namespace StylesheetEditElement {
 		/**
 		 * Reloads the editor completely (to apply new settings)
 		 */
-		static reloadEditor(this: NodeEditBehaviorStylesheetInstance, disable: boolean = false) {
+		static reloadEditor(this: NodeEditBehaviorStylesheetInstance) {
 			if (this.editorManager) {
 				if (this.editorMode === 'main') {
 					this.newSettings.value.stylesheet = this.editorManager.editor.getValue();
@@ -127,8 +127,7 @@ namespace StylesheetEditElement {
 		/**
 		 * Loads the monaco editor
 		 */
-		private static async _loadEditor(this: NodeEditBehaviorStylesheetInstance, content: string = this.item.value.stylesheet,
-			disable: boolean = false) {
+		private static async _loadEditor(this: NodeEditBehaviorStylesheetInstance, content: string = this.item.value.stylesheet) {
 			const placeHolder = $(this.$.editor);
 			this.editorHeight = placeHolder.height();
 			this.editorWidth = placeHolder.width();

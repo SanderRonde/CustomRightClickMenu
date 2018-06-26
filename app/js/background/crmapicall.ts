@@ -551,10 +551,7 @@ export namespace CRMAPICall {
 			return true;
 		}
 
-		private _checkConstraints(data: TypeCheckConfig, value: any, optionals: {
-			[key: string]: any;
-			[key: number]: any;
-		}): boolean {
+		private _checkConstraints(data: TypeCheckConfig, value: any): boolean {
 			if (typeof value === 'number') {
 				return this._checkNumberConstraints(data, value);
 			}
@@ -592,7 +589,7 @@ export namespace CRMAPICall {
 					const matchedType = this._typesMatch(data, value);
 					if (matchedType) {
 						optionals[data.val] = true;
-						this._checkConstraints(data, value, optionals);
+						this._checkConstraints(data, value);
 						continue;
 					}
 				} else if (isDefined === 'continue') {

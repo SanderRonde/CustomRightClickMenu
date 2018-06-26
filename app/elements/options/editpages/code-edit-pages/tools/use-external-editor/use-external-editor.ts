@@ -486,7 +486,7 @@ namespace UseExternalEditorElement {
 						_this.connection.filePath = msg.path;
 						window.app.upload();
 						_this.connection.fileConnected = true;
-						(window.scriptEdit && window.scriptEdit.active ? window.scriptEdit.reloadEditor(true) : window.stylesheetEdit.reloadEditor(true));
+						(window.scriptEdit && window.scriptEdit.active ? window.scriptEdit.reloadEditor() : window.stylesheetEdit.reloadEditor());
 						_this.createEditingOverlay();
 						_this.appPort.onMessage.removeListener();
 					}
@@ -580,7 +580,7 @@ namespace UseExternalEditorElement {
 				this.connection.stage = 0;
 				this.connection.fileConnected = false;
 				Promise.race([
-					new Promise<ExternalEditorMessage|false>((resolve, reject) => {
+					new Promise<ExternalEditorMessage|false>((resolve) => {
 						let connected: boolean = false;
 						this.appPort.onMessage.addListener((msg: any) => {
 							if (!connected && msg.status === 'connecting' && 
@@ -759,7 +759,7 @@ namespace UseExternalEditorElement {
 				oldScript: CursorPosition[];
 			}) => void {
 				const _this = this
-				return (local, file, callback, isUpdate, updateErrors) => {
+				return (local, file, callback) => {
 					chooseFileDialog.local = local;
 					chooseFileDialog.file = file;
 					chooseFileDialog.callback = callback;

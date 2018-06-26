@@ -276,7 +276,7 @@ export namespace MessageHandling {
 		const storage = await modules.CRMNodes.converToLegacy();
 
 		const tabData = modules.crmValues.tabData;
-		modules.Util.iterateMap(tabData, (tabId, { nodes }) => {
+		modules.Util.iterateMap(tabData, (_tabId, { nodes }) => {
 			modules.Util.iterateMap(nodes, (nodeId, tab) => {
 				tab.forEach((tabInstance) => {
 					if (tabInstance.usesLocalStorage &&

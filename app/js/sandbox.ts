@@ -37,7 +37,7 @@ const _self = self as SandboxWindow;
 		log: _self.log
 	};
 
-	_self.onerror = function (name, source, lineNo, colNo, error) {
+	_self.onerror = function (_name, _source, _lineNo, _colNo, error) {
 		_self.log(error.name + ' occurred in background page', error.stack);
 	}
 

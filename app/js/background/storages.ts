@@ -1100,7 +1100,7 @@ export namespace Storages.SetupHandling {
 				loadTernFiles().then(() => {
 					resolveTernLoader(null);
 				}, (err) => {
-					window.log('Failed to load tern files');
+					window.log('Failed to load tern files', err);
 				})
 			});
 		}
@@ -1328,7 +1328,7 @@ export namespace Storages {
 			same
 		}
 	}
-	function findNodeWithId(tree: CRM.Tree, id: CRM.GenericNodeId): CRM.Node {
+	export function findNodeWithId(tree: CRM.Tree, id: CRM.GenericNodeId): CRM.Node {
 		for (const node of tree) {
 			if (node.id === id) {
 				return node;

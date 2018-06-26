@@ -70,7 +70,7 @@ namespace PaperDropdownMenuElement {
 			return !(subtext && subtext !== '');
 		}
 
-		static _hasFancyLabel(this: PaperDropdownMenu, fancylabel: boolean) {
+		static _hasFancyLabel(this: PaperDropdownMenu, _fancylabel: boolean) {
 			return !!this.fancylabel;
 		}
 

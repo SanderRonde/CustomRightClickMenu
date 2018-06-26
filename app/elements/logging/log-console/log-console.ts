@@ -112,7 +112,7 @@ namespace LogConsoleElement {
 			const target = event.target;
 			let tabId = (target.children[0] as HTMLElement).innerText;
 			
-			const tab = await browserAPI.tabs.get(~~tabId).catch((err) => {
+			const tab = await browserAPI.tabs.get(~~tabId).catch(() => {
 				window.logConsole.$.genericToast.text = 'Tab has been closed';
 				window.logConsole.$.genericToast.show();
 			});
@@ -232,7 +232,7 @@ namespace LogConsoleElement {
 			};
 		};
 
-		static _updateLog(this: LogConsole, selectedId: CRM.GenericNodeId, selectedTab: number, textfilter: string) {
+		static _updateLog(this: LogConsole, _selectedId: CRM.GenericNodeId, _selectedTab: number, textfilter: string) {
 			const selected = this._getSelectedValues();
 			const lines: LogListenerLine[] = (this._logListener && this._logListener.update(
 					selected.id,
@@ -383,7 +383,7 @@ namespace LogConsoleElement {
 				menu.init();
 				menu.updateSelectedContent();
 			}, 100);
-			menu.onValueChange = (oldState: number, newState: number) => {
+			menu.onValueChange = (_oldState: number, newState: number) => {
 				this._closeMenus();
 				switch (menu.id) {
 					case 'idDropdown':

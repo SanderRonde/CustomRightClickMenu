@@ -130,7 +130,9 @@ export namespace Sandbox {
 		}
 
 	function sandboxChromeFunction(fn: Function, context: any, args: any[], 
+		//@ts-ignore
 		window?: void, sandboxes?: void, chrome?: void, browser?: void,
+		//@ts-ignore
 		sandboxChromeFunction?: void, sandbox?: void, sandboxChrome?: any) {
 			return fn.apply(context, args);
 		}

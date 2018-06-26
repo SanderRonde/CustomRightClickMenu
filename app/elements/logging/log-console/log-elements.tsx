@@ -365,7 +365,7 @@ window.logElements = (() => {
 				window.logConsole.$.genericToast.text = 'Can\'t open a background page';
 				window.logConsole.$.genericToast.show();
 			} else {
-				const tab = await browserAPI.tabs.get(~~this.props.line.tabId).catch((err) => {
+				const tab = await browserAPI.tabs.get(~~this.props.line.tabId).catch(() => {
 					window.logConsole.$.genericToast.text = 'Tab has been closed';
 					window.logConsole.$.genericToast.show();
 				});
@@ -433,7 +433,7 @@ window.logElements = (() => {
 			return true;
 		}
 		async takeToTab() {
-			const tab = await browserAPI.tabs.get(~~this.props.line.tabId).catch((err) => {
+			const tab = await browserAPI.tabs.get(~~this.props.line.tabId).catch(() => {
 				window.logConsole.$.genericToast.text = 'Tab has been closed';
 				window.logConsole.$.genericToast.show();
 			});

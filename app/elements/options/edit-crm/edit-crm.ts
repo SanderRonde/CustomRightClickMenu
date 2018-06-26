@@ -253,9 +253,7 @@ namespace EditCrmElement {
 		 *
 		 * @return The last menu on the given list.
 		 */
-		private static _getLastMenu(this: EditCrm, list: CRM.Node[], hidden: {
-			[nodeId: number]: boolean
-		}, exclude: number) {
+		private static _getLastMenu(this: EditCrm, list: CRM.Node[], exclude: number) {
 			let lastMenu = -1;
 			let lastFilledMenu = -1;
 			//Find last menu to auto-expand
@@ -338,7 +336,7 @@ namespace EditCrmElement {
 					if (setMenusLength > columnNum && setMenus[columnNum] !== -1) {
 						lastMenu = setMenus[columnNum];
 					} else {
-						lastMenu = this._getLastMenu(list, hiddenNodes, unsetMenus[columnNum]);
+						lastMenu = this._getLastMenu(list, unsetMenus[columnNum]);
 					}
 					newSetMenus[columnNum] = lastMenu;
 
