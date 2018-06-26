@@ -2925,7 +2925,7 @@ describe('CRMAPI', () => {
 			//Send a message from the main CRM API used for testingRunning 
 			const instances = await crmAPI.comm.getInstances();
 			for (const instance of instances) {
-				crmAPI.comm.sendMessage(instance, 0, {
+				crmAPI.comm.sendMessage(instance, {
 					key: expectedMessageValue
 				});
 			}

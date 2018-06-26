@@ -3865,9 +3865,6 @@ type CRMAPIMessage = {
 			 * Sends a message to given instance
 			 *
 			 * @param {CommInstance|number} instance - The instance to send the message to
-			 * @param {TabIndex} tabIndex - The index in which it ran on the tab.
-			 * 		When a script is ran multiple times on the same tab,
-			 * 		it gets added to the tabIndex array (so it starts at 0)
 			 * @param {Object} message - The message to send
 			 * @param {function} [callback] - A callback that tells you the result,
 			 *		gets passed one argument (object) that contains the two boolean
@@ -3882,9 +3879,14 @@ type CRMAPIMessage = {
 			 *		the message key of that object will be filled with the reason
 			 *		it failed ("instance no longer exists" or "no listener exists")
 			 */
-			sendMessage(this: CrmAPIInstance, instance: CommInstance|number, 
-					message: any, callback?: InstanceCallback): Promise<InstanceCallback> {
+			sendMessage(this: CrmAPIInstance, instance: CommInstance|number, message: any, callback?: InstanceCallback): Promise<InstanceCallback> {
 					let instanceObj: CommInstance;
+				if ((callback !== undefined && typeof callback !== 'function' && typeof message === 'number') || arguments.length === 4) {
+					//Third parameter is the message and second parameter is the tabIndex
+					message = callback;
+					callback = arguments[3];
+				}
+
 					if (typeof instance === "number") {
 						instanceObj = this.__privates._instances.get(instance);
 					} else {

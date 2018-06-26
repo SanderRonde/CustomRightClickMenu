@@ -1750,9 +1750,6 @@ declare namespace CRM {
 				 * Sends a message to given instance
 				 *
 				 * @param {number} instance - The ID of the instance to send it to
-				 * @param {TabIndex} tabIndex - The index in which it ran on the tab.
-				 * 		When a script is ran multiple times on the same tab,
-				 * 		it gets added to the tabIndex array (so it starts at 0)
 				 * @param {Object} message - The message to send
 				 * @param {function} [callback] - A callback that tells you the result,
 				 *		gets passed one argument (object) that contains the two boolean
@@ -1767,14 +1764,11 @@ declare namespace CRM {
 				 *		the message key of that object will be filled with the reason
 				 *		it failed ("instance no longer exists" or "no listener exists")
 				 */
-				sendMessage(instance: number, tabIndex: TabIndex, message: any, callback?: InstanceCallback): Promise<InstanceCallback>,
+				sendMessage(instance: number, message: any, callback?: InstanceCallback): Promise<InstanceCallback>,
 				/**
 				 * Sends a message to given instance
 				 *
 				 * @param {Instance} instance - The instance to send the message to
-				 * @param {TabIndex} tabIndex - The index in which it ran on the tab.
-				 * 		When a script is ran multiple times on the same tab,
-				 * 		it gets added to the tabIndex array (so it starts at 0)
 				 * @param {Object} message - The message to send
 				 * @param {function} [callback] - A callback that tells you the result,
 				 *		gets passed one argument (object) that contains the two boolean
@@ -1789,7 +1783,7 @@ declare namespace CRM {
 				 *		the message key of that object will be filled with the reason
 				 *		it failed ("instance no longer exists" or "no listener exists")
 				 */
-				sendMessage(instance: CommInstance, tabIndex: TabIndex, message: any, callback?: InstanceCallback): Promise<InstanceCallback>,
+				sendMessage(instance: CommInstance, message: any, callback?: InstanceCallback): Promise<InstanceCallback>,
 				/**
 				 * Adds a listener for any comm-messages sent from other instances of
 				 * this script
