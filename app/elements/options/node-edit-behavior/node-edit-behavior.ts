@@ -377,7 +377,7 @@ namespace NodeEditBehaviorNamespace {
 			};
 
 		static _doTypeChange(this: NodeEditBehaviorInstance, type: CRM.NodeType) {
-			const item = this.item;
+			const item = window.app.nodesById.get(this.item.id);
 			const prevType = item.type;
 			const editCrmEl = window.app.editCRM.getCRMElementFromPath(this.item.path, true);
 
@@ -388,7 +388,7 @@ namespace NodeEditBehaviorNamespace {
 				item[prevType + 'Val' as ('menuVal'|'linkVal'|'scriptVal'|'stylesheetVal')] =
 					item.value;
 			}
-			item.type = type;
+			item.type = this.item.type = type;
 			if (type === 'menu') {
 				item.children = [];
 			}
@@ -440,7 +440,8 @@ namespace NodeEditBehaviorNamespace {
 				}
 			}
 
-			editCrmEl.type = item.type;
+			editCrmEl.item = item;
+			editCrmEl.type = type;
 			editCrmEl.calculateType();
 
 			const typeSwitcher = editCrmEl.shadowRoot.querySelector('type-switcher');
@@ -500,14 +501,17 @@ namespace NodeEditBehaviorNamespace {
 			window.app.upload();
 		}
 
-		static _changeType(this: NodeEditBehaviorInstance, type: CRM.NodeType) {
+		static async _changeType(this: NodeEditBehaviorInstance, type: CRM.NodeType) {
 			this._doTypeChange(type);
+			const { id } = this.item;
 			
 			//Close this dialog
 			this.cancel();
 
 			//Re-open the dialog
-			const editCrmEl = window.app.editCRM.getCRMElementFromPath(this.item.path, false);
+			await window.app.util.wait(2000);
+			const editCrmEl = window.app.editCRM.getCRMElementFromPath(
+				window.app.nodesById.get(id).path, false);
 			editCrmEl.openEditPage();
 		}
 
