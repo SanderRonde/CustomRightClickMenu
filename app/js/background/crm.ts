@@ -1253,7 +1253,7 @@ export namespace CRMNodes.Script.Updating {
 }
 
 export namespace CRMNodes.Running {
-	function urlIsGlobalExcluded(url: string): boolean {
+	export function urlIsGlobalExcluded(url: string): boolean {
 		if (modules.storages.globalExcludes.indexOf('<all_urls>') >-1) {
 			return true;
 		}
