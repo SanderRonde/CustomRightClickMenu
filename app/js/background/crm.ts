@@ -1293,7 +1293,7 @@ export namespace CRMNodes.Running {
 	export async function executeScriptsForTab(tabId: TabId, respond: (message: any) => void) {
 		try {
 			const tab = await browserAPI.tabs.get(tabId);
-			if (tab.url && tab.url.indexOf('chrome') !== 0) {
+			if (tab.url && modules.Util.canRunOnUrl(tab.url)) {
 				modules.crmValues.tabData.set(tab.id, {
 					libraries: new window.Map(),
 					nodes: new window.Map()
