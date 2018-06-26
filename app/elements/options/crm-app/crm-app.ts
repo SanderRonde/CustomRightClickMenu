@@ -3199,11 +3199,11 @@ namespace CRMAppElement {
 						passes: number,
 						diagnostic?: boolean;
 					} = {
-							lines: lines,
-							lineSeperators: lineSeperators,
-							script: script,
-							passes: passes
-						};
+						lines: lines,
+						lineSeperators: lineSeperators,
+						script: script,
+						passes: passes
+					};
 
 					let expression;
 					if (passes === 0) {

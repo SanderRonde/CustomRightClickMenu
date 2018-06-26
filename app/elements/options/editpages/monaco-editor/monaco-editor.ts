@@ -925,8 +925,8 @@ namespace MonacoEditorElement {
 					color: string;
 				} = null;
 				const cssRuleParts = this._getCssRuleParts(line);
-				for (let cssRulePart of cssRuleParts) {
-					if (result = this._findColor(i, cssRulePart.text, cssRulePart.start)) {
+				for (let { text, start } of cssRuleParts) {
+					if (result = this._findColor(i, text, start)) {
 						colors.push(result);
 					}
 				}
@@ -2450,8 +2450,8 @@ namespace MonacoEditorElement {
 
 		static getCurrentModelId(this: MonacoEditor) {
 			for (let modelId in this._models) {
-				const { models } = this._models[modelId];
-				if (models[0] === this. editor.getModel()) {
+				const { models: [firstModel] } = this._models[modelId];
+				if (firstModel === this. editor.getModel()) {
 					return modelId;
 				}
 			}
@@ -2478,20 +2478,20 @@ namespace MonacoEditorElement {
 		private static _runJsLint(this: MonacoEditor): LinterWarning[] {
 			const code = this.getCurrentModel().models[0].getValue();
 			const { warnings } = window.jslint(code, {}, [...window.app.jsLintGlobals]);
-			return warnings.map((warning) => ({
-				col: warning.column,
-				line: warning.line,
-				message: warning.message
+			return warnings.map(({ column, line, message }) => ({
+				col: column,
+				line: line,
+				message: message
 			}));
 		}
 
 		private static _runCssLint(this: MonacoEditor): LinterWarning[] {
 			const code = this.getCurrentModel().models[0].getValue();
 			const { messages } = window.CSSLint.verify(code);
-			return messages.map((message) => ({
-				col: message.col,
-				line: message.line,
-				message: message.message
+			return messages.map(({ col, line, message }) => ({
+				col: col,
+				line: line,
+				message: message
 			}));
 		}
 

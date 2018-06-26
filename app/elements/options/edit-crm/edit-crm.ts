@@ -539,7 +539,7 @@ namespace EditCrmElement {
 		 * 
 		 * @return The object to be sent to Polymer
 		 */
-		static build(this: EditCrm, settings: {
+		static build(this: EditCrm, { setItems = [], unsetItems = [], quick = false, instant }: {
 			setItems?: number[];
 			unsetItems?: number[];
 			quick?: boolean;
@@ -550,13 +550,6 @@ namespace EditCrmElement {
 			quick: false,
 			instant: false
 		}): CRMBuilder {
-			let {
-				setItems, unsetItems, quick, instant
-			} = settings;
-			setItems = setItems || [];
-			unsetItems = unsetItems || [];
-			quick = quick || false;
-
 			const obj = this._buildCRMEditObj(setItems, unsetItems);
 			this.setMenus = obj.setMenus;
 			const crmBuilder = obj.crm;
