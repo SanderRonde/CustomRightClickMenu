@@ -424,7 +424,7 @@ export namespace Util {
 	let fsAccessAllowed: boolean;
 	export function canRunOnUrl(url: string): boolean {
 		if (!url || modules.CRMNodes.Running.urlIsGlobalExcluded(url) ||
-			 url.indexOf('chrome://') !== -1 ||
+			url.indexOf('chrome://') !== -1 ||
 			url.indexOf('chrome-extension://') !== -1 ||
 			url.indexOf('about://') !== -1 ||
 			url.indexOf('chrome-devtools://') !== -1 ||
