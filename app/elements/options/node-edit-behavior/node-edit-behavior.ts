@@ -586,7 +586,7 @@ namespace NodeEditBehaviorNamespace {
 		}
 	}
 
-	Polymer.NodeEditBehavior = Polymer.NodeEditBehavior || NodeEditBehaviorNamespace.NEB as NodeEditBehaviorBase;
+	window.Polymer.NodeEditBehavior = window.Polymer.NodeEditBehavior || NodeEditBehaviorNamespace.NEB as NodeEditBehaviorBase;
 }
 
 export type NodeEditBehaviorBase = Polymer.El<'node-edit-behavior',

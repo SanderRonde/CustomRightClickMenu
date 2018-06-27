@@ -17,7 +17,7 @@ namespace MenuEditElement {
 	export class ME {
 		static is: string = 'menu-edit';
 
-		static behaviors = [Polymer.NodeEditBehavior];
+		static behaviors = [window.Polymer.NodeEditBehavior];
 
 		static properties = menuEditProperties;
 

@@ -4911,7 +4911,7 @@ namespace CRMAppElement {
 			};
 
 			static getQuerySlot() {
-				return Polymer.PaperDropdownBehavior.querySlot;
+				return window.Polymer.PaperDropdownBehavior.querySlot;
 			}
 
 			static getDialog(): CodeEditBehaviorInstance {

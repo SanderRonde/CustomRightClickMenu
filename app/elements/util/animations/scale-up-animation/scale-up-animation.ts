@@ -7,7 +7,7 @@ namespace ScaleUpAnimationElement {
 		static is: string = 'scale-up-animation';
 
 		static behaviors = [
-			Polymer.NeonAnimationBehavior
+			window.Polymer.NeonAnimationBehavior
 		];
 
 		static configure(this: NeonAnimationBehaviorScaleUpAnimation, { node }: Polymer.NeonAnimationConfig) {

@@ -4,6 +4,8 @@ import { NodeEditBehaviorScriptInstance, NodeEditBehaviorInstance } from '../../
 import { MonacoEditorElement } from '../monaco-editor/monaco-editor';
 import { Polymer } from '../../../../../tools/definitions/polymer';
 
+declare const browserAPI: browserAPI;
+
 namespace ScriptEditElement {
 	export const scriptEditProperties: {
 		item: CRM.ScriptNode;
@@ -18,7 +20,7 @@ namespace ScriptEditElement {
 	export class SCE {
 		static is: string = 'script-edit';
 
-		static behaviors = [Polymer.NodeEditBehavior, Polymer.CodeEditBehavior];
+		static behaviors = [window.Polymer.NodeEditBehavior, window.Polymer.CodeEditBehavior];
 
 		static properties = scriptEditProperties;
 

@@ -228,7 +228,7 @@ export type SharedWindow = Window & {
 	const register = (fn: any) => {
 		const objectified = objectify(fn);
 		const prevReady = objectified.ready;
-		Polymer({...objectified, ...{
+		window.Polymer({...objectified, ...{
 			ready(this: Polymer.InitializerProperties & Polymer.PolymerElement) {
 				this.classList.add(`browser-${BrowserAPI.getBrowser()}`);
 				if (prevReady && typeof prevReady === 'function') {

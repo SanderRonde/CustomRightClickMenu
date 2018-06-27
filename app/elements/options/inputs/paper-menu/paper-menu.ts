@@ -4,7 +4,7 @@ namespace PaperMenuElement {
 	export class PM {
 		static is: string = 'paper-menu';
 
-		static behaviors = [Polymer.IronMenuBehavior];
+		static behaviors = [window.Polymer.IronMenuBehavior];
 	}
 
 	if (window.objectify) {

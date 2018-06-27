@@ -828,4 +828,4 @@ export type CodeEditBehaviorGlobal = CodeEditBehaviorNamespace.CodeEditBehaviorG
 export type CodeEditBehavior<T = CodeEditBehaviorScriptInstanceAdditions|CodeEditBehaviorStylesheetInstanceAdditions> = 
 	NodeEditBehavior<CodeEditBehaviorBase & T>;
 
-Polymer.CodeEditBehavior = Polymer.CodeEditBehavior || CodeEditBehaviorNamespace.CEB as CodeEditBehaviorBase;
+window.Polymer.CodeEditBehavior = window.Polymer.CodeEditBehavior || CodeEditBehaviorNamespace.CEB as CodeEditBehaviorBase;

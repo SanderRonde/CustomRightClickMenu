@@ -59,6 +59,7 @@ import { SplashScreen } from "./util/splash-screen/splash-screen";
 import { ErrorReportingTool } from "./util/error-reporting-tool/error-reporting-tool";
 import { Polymer } from "../../tools/definitions/polymer";
 import { LogLineData, LogListenerLine } from "../js/background/sharedTypes";
+import * as React from "../../tools/definitions/react";
 
 declare global {
 	interface HTMLElement {
@@ -162,6 +163,7 @@ declare global {
 			clearStorages(): void;
 		}
 		Polymer: Polymer.Polymer;
+		React: typeof React;
 	
 		app: CrmApp;
 		logPage: LogPage;

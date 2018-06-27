@@ -7,7 +7,7 @@ namespace FadeOutAnimationElement {
 		static is: string = 'scale-down-animation';
 
 		static behaviors = [
-			Polymer.NeonAnimationBehavior
+			window.Polymer.NeonAnimationBehavior
 		];
 
 		static configure(this: NeonAnimationBehaviorScaleDownAnimation, { node }: Polymer.NeonAnimationConfig) {

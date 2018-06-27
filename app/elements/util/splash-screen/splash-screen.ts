@@ -100,8 +100,8 @@ namespace SplashScreenElement {
 
 		private static _listenForRegistrations(this: SplashScreen) {
 			this.done = new Promise<void>((resolve) => {
-				let registeredElements = Polymer.telemetry.registrations.length;
-				const registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
+				let registeredElements = window.Polymer.telemetry.registrations.length;
+				const registrationArray = Array.prototype.slice.apply(window.Polymer.telemetry.registrations);
 				registrationArray.push = (element: HTMLElement) => {
 					Array.prototype.push.call(registrationArray, element);
 					registeredElements++;
@@ -110,7 +110,7 @@ namespace SplashScreenElement {
 
 				this._onRegistration(registeredElements, resolve);
 
-				Polymer.telemetry.registrations = registrationArray;
+				window.Polymer.telemetry.registrations = registrationArray;
 			});
 		}
 

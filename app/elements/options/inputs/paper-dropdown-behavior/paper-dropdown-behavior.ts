@@ -436,7 +436,7 @@ namespace PaperDropdownBehaviorNamespace {
 		}
 	}
 
-	Polymer.PaperDropdownBehavior = PDB as PaperDropdownBehaviorBase;
+	window.Polymer.PaperDropdownBehavior = PDB as PaperDropdownBehaviorBase;
 }
 
 export type PaperDropdownBehaviorBase = Polymer.El<'paper-dropdown-behavior',

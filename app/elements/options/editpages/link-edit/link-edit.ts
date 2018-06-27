@@ -17,7 +17,7 @@ namespace LinkEditElement {
 	export class LE {
 		static is: string = 'link-edit';
 
-		static behaviors = [Polymer.NodeEditBehavior];
+		static behaviors = [window.Polymer.NodeEditBehavior];
 
 		static properties = linkEditProperties;
 

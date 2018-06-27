@@ -3,6 +3,8 @@
 import { EditPage } from '../../elements';
 import { Polymer } from '../../../../tools/definitions/polymer';
 
+declare const browserAPI: browserAPI;
+
 namespace CrmEditPageElement {
 	export const crmEditPageProperties: {
 		item: CRM.Node;

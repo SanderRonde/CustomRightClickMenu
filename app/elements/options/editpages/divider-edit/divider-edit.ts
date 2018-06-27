@@ -17,7 +17,7 @@ namespace DividerEditElement {
 	export class DE {
 		static is: string = 'divider-edit';
 
-		static behaviors = [Polymer.NodeEditBehavior];
+		static behaviors = [window.Polymer.NodeEditBehavior];
 
 		static properties = dividerEditProperties;
 

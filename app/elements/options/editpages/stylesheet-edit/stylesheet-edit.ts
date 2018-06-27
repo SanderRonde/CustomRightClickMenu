@@ -3,6 +3,8 @@
 import { NodeEditBehaviorStylesheetInstance } from "../../node-edit-behavior/node-edit-behavior";
 import { Polymer } from '../../../../../tools/definitions/polymer';
 
+declare const browserAPI: browserAPI;
+
 namespace StylesheetEditElement {
 	export const stylesheetEditProperties: {
 		item: CRM.StylesheetNode;
@@ -17,7 +19,7 @@ namespace StylesheetEditElement {
 	export class STE {
 		static is: any = 'stylesheet-edit';
 
-		static behaviors: any = [Polymer.NodeEditBehavior, Polymer.CodeEditBehavior];
+		static behaviors: any = [window.Polymer.NodeEditBehavior, window.Polymer.CodeEditBehavior];
 
 		static properties = stylesheetEditProperties;
 

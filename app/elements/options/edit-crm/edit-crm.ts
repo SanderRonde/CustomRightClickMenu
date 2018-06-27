@@ -3,6 +3,8 @@
 import { EditCrmItem } from '../edit-crm-item/edit-crm-item';
 import { Polymer } from '../../../../tools/definitions/polymer';
 
+declare const browserAPI: browserAPI;
+
 export namespace EditCrmElement {
 	export const editCrmProperties: {
 		crm: CRMBuilder;

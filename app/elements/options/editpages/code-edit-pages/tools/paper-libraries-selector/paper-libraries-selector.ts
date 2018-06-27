@@ -4,6 +4,8 @@ import { MonacoEditorElement } from '../../../monaco-editor/monaco-editor';
 import { Polymer } from '../../../../../../../tools/definitions/polymer';
 import { PaperDropdownBehavior } from '../../../../inputs/paper-dropdown-behavior/paper-dropdown-behavior';
 
+declare const browserAPI: browserAPI;
+
 namespace PaperLibrariesSelectorElement {
 	export const paperLibrariesSelectorProperties: {
 		usedlibraries: CRM.Library[];
@@ -673,7 +675,7 @@ namespace PaperLibrariesSelectorElement {
 			return this.$.dropdown;
 		}
 
-		static behaviors = [Polymer.PaperDropdownBehavior];
+		static behaviors = [window.Polymer.PaperDropdownBehavior];
 	}
 
 	if (window.objectify) {

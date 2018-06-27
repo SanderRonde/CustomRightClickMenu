@@ -61,7 +61,7 @@ namespace PaperDropdownMenuElement {
 	export class PDM {
 		static is: string = 'paper-dropdown-menu';
 
-		static behaviors = [Polymer.PaperDropdownBehavior];
+		static behaviors = [window.Polymer.PaperDropdownBehavior];
 
 		static properties = paperDropdownMenuProperties;
 

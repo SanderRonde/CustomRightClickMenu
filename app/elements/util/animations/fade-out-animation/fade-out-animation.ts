@@ -7,7 +7,7 @@ namespace FadeOutAnimationElement {
 		static is: string = 'fade-out-animation';
 
 		static behaviors = [
-			Polymer.NeonAnimationBehavior
+			window.Polymer.NeonAnimationBehavior
 		];
 
 		static configure(this: NeonAnimationBehaviorFadeOutAnimation, { node }: Polymer.NeonAnimationConfig) {

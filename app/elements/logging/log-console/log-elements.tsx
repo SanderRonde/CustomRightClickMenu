@@ -2,10 +2,11 @@
 
 import { LogConsole } from "./log-console";
 import { LogLineContainerInterface } from '../../elements';
-import * as React from '../../../../tools/definitions/react';
+import * as _React from '../../../../tools/definitions/react';
 import { LogListenerLine, LogLineData } from '../../../js/background/sharedTypes';
 
 declare const browserAPI: browserAPI;
+declare const React: typeof _React;
 
 window.logElements = (() => {
 	function getTag(item: any, parent: EvalElement|LogElement|LogLine, additionalProps: {

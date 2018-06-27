@@ -2,7 +2,6 @@
 /// <reference path="../../../../tools/definitions/react.d.ts" />
 
 import { LogLineContainerInterface } from '../../elements';
-import * as React from '../../../../tools/definitions/react';
 import { Polymer } from '../../../../tools/definitions/polymer';
 import { PaperDropdownMenu } from '../../options/inputs/paper-dropdown-menu/paper-dropdown-menu';
 import { TabData, LogLineData, LogListenerLine, BackgroundpageWindow, LogListenerObject } from '../../../js/background/sharedTypes';
@@ -600,7 +599,7 @@ namespace LogConsoleElement {
 			window.logConsole = this;
 
 			this._logLines = (ReactDOM.render(
-				(React.createElement as any)(
+				(window.React.createElement as any)(
 					(window.logElements.logLines as any) as string, {
 						items: [],
 						logConsole: this
