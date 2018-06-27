@@ -31,9 +31,13 @@ export namespace Init {
 		after();
 	}
 
+	function isNode() {
+		return typeof location === 'undefined' || typeof location.host === 'undefined';
+	}
+
 	async function genStorageModules(): Promise<StorageModules> {
 		const isDev = (await browserAPI.runtime.getManifest()).short_name.indexOf('dev') > -1;
-		const globalObject: GlobalObject = typeof module !== 'undefined' || isDev ?
+		const globalObject: GlobalObject = isNode() || isDev ?
 			window : {};
 		const globals = Global.globals;
 		globalObject.globals = globals;
@@ -163,7 +167,7 @@ export namespace Init {
 				if (location.href.indexOf('test') > -1) {
 					modules.globalObject.Storages = Storages;
 				}
-				if (typeof module !== 'undefined') {
+				if (isNode()) {
 					modules.globalObject.TransferFromOld =
 						Storages.SetupHandling.TransferFromOld;
 				}
@@ -173,7 +177,7 @@ export namespace Init {
 				}
 
 				window.info('Done!');
-				if (typeof module === 'undefined') {
+				if (!isNode()) {
 					window.log('');
 					window.log('If you\'re here to check out your background script,' +
 						' get its ID (you can type getID("name") to find the ID),' +

@@ -1,11 +1,14 @@
 declare const window: BackgroundpageWindow;
-declare const process: {
-	browser: boolean;
-};
 
 export namespace Info {
 	export function init() {
-		if (process.browser) {
+		if (typeof location === 'undefined' || typeof location.host === 'undefined') {
+			// Running in node
+			window.log = () => { };
+			window.info = () => { };
+			window.testLog = console.log.bind(console);
+			window.Promise = Promise;
+		} else {
 			// Running in the browser
 			window.log = console.log.bind(console);
 			if (window.location && window.location.hash && window.location.hash.indexOf('noBackgroundInfo')) {
@@ -13,12 +16,6 @@ export namespace Info {
 			} else {
 				window.info = console.log.bind(console);
 			}
-		} else {
-			// Running in node
-			window.log = () => { };
-			window.info = () => { };
-			window.testLog = console.log.bind(console);
-			window.Promise = Promise;
 		}
 	}
 }

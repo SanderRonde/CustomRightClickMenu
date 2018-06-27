@@ -116,7 +116,7 @@ namespace BrowserAPINS {
 		else if (api === 'chrome') {
 			return chromeAPIExists;
 		}
-		else if (typeof module !== 'undefined') {
+		else if (typeof location === 'undefined' || typeof location.host === 'undefined') {
 			return false;
 		}
 		else {
@@ -147,7 +147,7 @@ namespace BrowserAPINS {
 		if (isOpera) {
 			return 'opera';
 		}
-		if (typeof module !== 'undefined') {
+		if (typeof location === 'undefined' || typeof location.host === 'undefined') {
 			return 'node';
 		}
 		throw new Error('Unsupported browser');
