@@ -16,8 +16,7 @@
         "noUnusedLocals": true,
         "target": "es5",
         "noUnusedParameters": true,
-        "experimentalDecorators": true,
-        "importHelpers": true
+        "experimentalDecorators": true
 	}, 
     "allowJs": true,
     "compileOnSave": true,
