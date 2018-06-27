@@ -1,7 +1,7 @@
 /// <reference path="../../../elements.d.ts" />
 
 import { NodeEditBehaviorScriptInstance, NodeEditBehaviorInstance } from '../../node-edit-behavior/node-edit-behavior';
-import { MonacoEditorElement } from '../monaco-editor/monaco-editor';
+import { MonacoEditorScriptMetaMods, MetaBlock } from '../monaco-editor/monaco-editor';
 import { Polymer } from '../../../../../tools/definitions/polymer';
 
 declare const browserAPI: browserAPI;
@@ -250,7 +250,7 @@ namespace ScriptEditElement {
 		 * Gets the values of the metatag block
 		 */
 		private static _getMetaTagValues(this: NodeEditBehaviorScriptInstance) {
-			const typeHandler = this.editorManager.getModel('default').handlers[0] as MonacoEditorElement.MonacoEditorScriptMetaMods;
+			const typeHandler = this.editorManager.getModel('default').handlers[0] as MonacoEditorScriptMetaMods;
 			return typeHandler && 
 				typeHandler.getMetaBlock && 
 				typeHandler.getMetaBlock() && 
@@ -624,7 +624,7 @@ namespace ScriptEditElement {
 		 */
 		static editorLoaded(this: NodeEditBehaviorScriptInstance) {
 			const editorManager = this.editorManager;
-			(editorManager.getTypeHandler() as any)[0].listen('metaChange', (_oldMetaTags: MonacoEditorElement.MetaBlock, newMetaTags: MonacoEditorElement.MetaBlock) => {
+			(editorManager.getTypeHandler() as any)[0].listen('metaChange', (_oldMetaTags: MetaBlock, newMetaTags: MetaBlock) => {
 				if (this.editorMode === 'main') {
 					this.newSettings.value.metaTags = JSON.parse(JSON.stringify(newMetaTags)).content;
 				}

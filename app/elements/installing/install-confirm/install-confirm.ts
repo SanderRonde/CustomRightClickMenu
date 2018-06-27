@@ -1,6 +1,6 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
-import { MonacoEditor, MonacoEditorElement } from '../../options/editpages/monaco-editor/monaco-editor';
+import { MonacoEditor, MonacoEditorScriptMetaMods } from '../../options/editpages/monaco-editor/monaco-editor';
 import { Polymer } from '../../../../tools/definitions/polymer';
 
 declare const browserAPI: browserAPI;
@@ -375,7 +375,7 @@ namespace InstallConfirmElement {
 
 			//Show info about the script, if available
 			const interval = window.setInterval( () => {
-				const typeHandler = (editor.getTypeHandler()[0] as MonacoEditorElement.MonacoEditorScriptMetaMods);
+				const typeHandler = (editor.getTypeHandler()[0] as MonacoEditorScriptMetaMods);
 				if (typeHandler.getMetaBlock) {
 					window.clearInterval(interval);
 					const metaBlock = typeHandler.getMetaBlock();

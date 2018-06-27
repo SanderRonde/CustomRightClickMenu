@@ -1,6 +1,6 @@
 /// <reference path="../../elements.d.ts" />
 
-import { EditCrmElement } from '../edit-crm/edit-crm';
+import { CRMColumnElement } from '../edit-crm/edit-crm';
 import { Polymer } from '../../../../tools/definitions/polymer';
 
 namespace EditCrmItemElement {
@@ -95,7 +95,7 @@ namespace EditCrmItemElement {
 		/**
 		 * The column this element is currently in
 		 */
-		static currentColumn: EditCrmElement.CRMColumnElement;
+		static currentColumn: CRMColumnElement;
 
 		/**
 		 * Whether the element's attached callback has been called before

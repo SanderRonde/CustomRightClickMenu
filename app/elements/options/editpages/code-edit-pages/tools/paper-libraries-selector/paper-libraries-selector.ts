@@ -1,6 +1,6 @@
 /// <reference path="../../../../../elements.d.ts" />
 
-import { MonacoEditorElement } from '../../../monaco-editor/monaco-editor';
+import { MonacoEditorTSLibrariesMetaMods } from '../../../monaco-editor/monaco-editor';
 import { Polymer } from '../../../../../../../tools/definitions/polymer';
 import { PaperDropdownBehavior } from '../../../../inputs/paper-dropdown-behavior/paper-dropdown-behavior';
 
@@ -484,7 +484,7 @@ namespace PaperLibrariesSelectorElement {
 			const mainModel = window.scriptEdit.editorManager.getModel('default');
 			const backgroundModel = window.scriptEdit.editorManager.getModel('background');
 			const TSLibsMod = window.scriptEdit.editorManager.CustomEditorModes.TS_LIBRARIES_META;
-			type TSLibsMod = MonacoEditorElement.MonacoEditorTSLibrariesMetaMods;
+			type TSLibsMod = MonacoEditorTSLibrariesMetaMods;
 			if (typeof mainModel.editorType === 'object' && mainModel.editorType.mode === TSLibsMod) {
 				(mainModel.handlers[0] as TSLibsMod).updateLibraries();
 			}

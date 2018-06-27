@@ -51,7 +51,7 @@ import { LogPage } from "./logging/log-page/log-page";
 import { CrmEditPage } from "./options/crm-edit-page/crm-edit-page";
 import { UseExternalEditor } from "./options/editpages/code-edit-pages/tools/use-external-editor/use-external-editor";
 import { MonacoCommands } from "./options/editpages/code-edit-pages/monaco-commands";
-import { MonacoEditorElement } from "./options/editpages/monaco-editor/monaco-editor";
+import { MonacoEditorHookManager } from "./options/editpages/monaco-editor/monaco-editor";
 import { NodeEditBehaviorLinkInstance, NodeEditBehaviorMenuInstance, NodeEditBehaviorScriptInstance, NodeEditBehaviorDividerInstance, NodeEditBehaviorStylesheetInstance } from "./options/node-edit-behavior/node-edit-behavior";
 import { CodeEditBehaviorGlobal } from "./options/editpages/code-edit-pages/code-edit-behavior";
 import { ChangeLog } from "./util/change-log/change-log";
@@ -135,7 +135,7 @@ declare global {
 		onIsTest: boolean|(() => void);
 		dummyContainer: HTMLElement;
 		monacoCommands: MonacoCommands;
-		MonacoEditorHookManager: typeof MonacoEditorElement.MonacoEditorHookManager;
+		MonacoEditorHookManager: MonacoEditorHookManager;
 		crmAPIDefs?: any;
 		lastError?: Error;
 		polymerElementsLoaded?: boolean;

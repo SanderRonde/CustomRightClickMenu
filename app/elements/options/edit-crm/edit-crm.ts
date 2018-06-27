@@ -5,7 +5,18 @@ import { Polymer } from '../../../../tools/definitions/polymer';
 
 declare const browserAPI: browserAPI;
 
-export namespace EditCrmElement {
+export interface CRMColumnElement extends HTMLElement {
+	index: number;
+	items: (CRM.Node & {
+		expanded: boolean;
+		name: string;
+		shadow: boolean;
+		index: number;	
+		hiddenOnCrmType: boolean;
+	})[];
+}
+
+namespace EditCrmElement {
 	export const editCrmProperties: {
 		crm: CRMBuilder;
 		crmLoading: boolean;
@@ -65,17 +76,6 @@ export namespace EditCrmElement {
 		})[];
 		dragging: boolean;
 		draggingItem: EditCrmItem;
-	}
-
-	export interface CRMColumnElement extends HTMLElement {
-		index: number;
-		items: (CRM.Node & {
-			expanded: boolean;
-			name: string;
-			shadow: boolean;
-			index: number;	
-			hiddenOnCrmType: boolean;
-		})[];
 	}
 
 	interface CRMBuilderColumn {

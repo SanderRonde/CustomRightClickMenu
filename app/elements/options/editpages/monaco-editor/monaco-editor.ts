@@ -6,7 +6,14 @@ import { Polymer } from '../../../../../tools/definitions/polymer';
 declare const browserAPI: browserAPI;
 declare const BrowserAPI: BrowserAPI;
 
-export namespace MonacoEditorElement {
+export type MonacoEditorScriptMetaMods = 
+	MonacoEditorElement.MonacoEditorScriptMetaMods;
+export type MonacoEditorHookManager = 
+	typeof MonacoEditorElement.MonacoEditorHookManager;
+export type MonacoEditorTSLibrariesMetaMods = 
+	MonacoEditorElement.MonacoEditorTSLibrariesMetaMods;
+export type MetaBlock = MonacoEditorElement.MetaBlock;
+namespace MonacoEditorElement {
 	const metaDataDescriptions = {
 		name: 'The name of this script',
 		namespace: 'The namespace of the script',
