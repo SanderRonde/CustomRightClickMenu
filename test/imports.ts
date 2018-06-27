@@ -2,6 +2,8 @@ import * as webdriver from 'selenium-webdriver';
 import { exec } from 'child_process';
 import { readFile } from 'fs';
 import { join } from 'path';
+import { GlobalObject, ContextMenuCreateProperties } from '../app/js/background/sharedTypes';
+import { EncodedString } from '../app/elements/elements';
 
 type StringifedFunction<RETVAL> = string & {
 	__fn: RETVAL;
@@ -13,10 +15,35 @@ export declare class TypedWebdriver extends webdriver.WebDriver {
 	executeScript<T>(script: Function, ...var_args: any[]): webdriver.promise.Promise<T>;
 }
 
+export interface ExecutedScript {
+	id: number;
+	code: string;
+}
+
+export interface ContextMenuItem {
+	id: number;
+	createProperties: ContextMenuCreateProperties;
+	currentProperties: ContextMenuCreateProperties;
+	children: ContextMenuItem[];
+}
+
+export type ContextMenu = ContextMenuItem[];
+
 type ExecutedScripts = ExecutedScript[];
 
-type DeepPartial<T> = {
+export type DeepPartial<T> = {
 	[P in keyof T]?: DeepPartial<T[P]>;
+}
+
+export type ActiveTabs = {
+	type: 'create'|'update';
+	data: any;
+	id?: number;
+}[];
+
+export interface ChromeLastCall {
+	api: string;
+	args: any[];
 }
 
 export interface TestData {
@@ -68,7 +95,7 @@ export interface AppWindow extends Window {
 	logs: any[];
 	lastError: any|void;
 	chrome: AppChrome;
-	BrowserAPI: typeof BrowserAPI;
+	BrowserAPI: BrowserAPI;
 	dummyContainer: HTMLDivElement;
 	polymerElementsLoaded: boolean;
 	globals: GlobalObject['globals'];

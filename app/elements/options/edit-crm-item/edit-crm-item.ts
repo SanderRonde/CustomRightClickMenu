@@ -1,5 +1,8 @@
 /// <reference path="../../elements.d.ts" />
 
+import { EditCrmElement } from '../edit-crm/edit-crm';
+import { Polymer } from '../../../../tools/definitions/polymer';
+
 namespace EditCrmItemElement {
 	export const editCrmItemProperties: {
 		item: CRM.Node;
@@ -517,5 +520,5 @@ namespace EditCrmItemElement {
 	}
 }
 
-type EditCrmItem = Polymer.El<'edit-crm-item', 
+export type EditCrmItem = Polymer.El<'edit-crm-item', 
 	typeof EditCrmItemElement.ECI & typeof EditCrmItemElement.editCrmItemProperties>;

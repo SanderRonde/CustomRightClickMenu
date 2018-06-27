@@ -1,5 +1,7 @@
 import { ModuleData } from "./moduleTypes";
+import { BackgroundpageWindow } from './sharedTypes';
 
+declare const browserAPI: browserAPI;
 declare const window: BackgroundpageWindow;
 
 export namespace Resources.Resource {

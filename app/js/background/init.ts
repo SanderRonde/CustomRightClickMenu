@@ -15,7 +15,9 @@ import { CRMNodes } from "./crm.js";
 import { Caches } from "./cache.js";
 import { Info } from "./info.js";
 import { Util } from "./util.js";
+import { BackgroundpageWindow, GlobalObject } from './sharedTypes';
 
+declare const browserAPI: browserAPI;
 declare const window: BackgroundpageWindow;
 
 export namespace Init {

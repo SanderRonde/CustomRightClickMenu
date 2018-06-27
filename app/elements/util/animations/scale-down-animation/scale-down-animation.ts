@@ -1,5 +1,7 @@
 /// <reference path="../../../elements.d.ts" />
 
+import { Polymer } from '../../../../../tools/definitions/polymer';
+
 namespace FadeOutAnimationElement {	
 	export class SDA {
 		static is: string = 'scale-down-animation';
@@ -31,7 +33,7 @@ namespace FadeOutAnimationElement {
 	}
 }
 
-type NeonAnimationBehaviorScaleDownAnimation = Polymer.NeonAnimationBehavior<
+export type NeonAnimationBehaviorScaleDownAnimation = Polymer.NeonAnimationBehavior<
 	ScaleDownAnimation
 >;
-type ScaleDownAnimation = Polymer.El<'elementless', typeof FadeOutAnimationElement.SDA>;
+export type ScaleDownAnimation = Polymer.El<'elementless', typeof FadeOutAnimationElement.SDA>;

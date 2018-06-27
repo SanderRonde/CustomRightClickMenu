@@ -1,6 +1,9 @@
 /// <reference path="../../../tools/definitions/typescript.d.ts" />
 /// <reference path="../../../tools/definitions/specialJSON.d.ts" />
 /// <reference path="../polyfills/weakmap.ts" />
+
+import { SharedWindow } from "../shared";
+
 interface CRMAPIMessageInstance<T, TD> {
 	id: CRM.GenericNodeId;
 	tabId: TabId;

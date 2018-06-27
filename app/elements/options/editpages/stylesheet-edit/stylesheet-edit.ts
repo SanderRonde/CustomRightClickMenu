@@ -1,5 +1,8 @@
 ﻿/// <reference path="../../../elements.d.ts" />
 
+import { NodeEditBehaviorStylesheetInstance } from "../../node-edit-behavior/node-edit-behavior";
+import { Polymer } from '../../../../../tools/definitions/polymer';
+
 namespace StylesheetEditElement {
 	export const stylesheetEditProperties: {
 		item: CRM.StylesheetNode;
@@ -238,5 +241,5 @@ namespace StylesheetEditElement {
 	}
 }
 
-type StylesheetEdit = Polymer.El<'stylesheet-edit', typeof StylesheetEditElement.STE & 
+export type StylesheetEdit = Polymer.El<'stylesheet-edit', typeof StylesheetEditElement.STE & 
 	typeof StylesheetEditElement.stylesheetEditProperties>;;

@@ -1,5 +1,10 @@
 ﻿/// <reference path="../../../../../elements.d.ts" />
 
+import { EncodedString } from '../../../../../elements';
+import { Polymer } from '../../../../../../../tools/definitions/polymer';
+
+declare const BrowserAPI: BrowserAPI;
+
 namespace PaperSearchWebsiteDialog {
 	export const paperSearchWebsiteDialogProperties: {
 		selectedOption: string;
@@ -454,6 +459,6 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 	}
 }
 
-type PaperSearchWebsiteDialog = Polymer.El<'paper-search-website-dialog',
+export type PaperSearchWebsiteDialog = Polymer.El<'paper-search-website-dialog',
 	typeof PaperSearchWebsiteDialog.PSWD & typeof PaperSearchWebsiteDialog.paperSearchWebsiteDialogProperties
 >;

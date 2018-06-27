@@ -1,5 +1,8 @@
 ﻿/// <reference path="../../../elements.d.ts" />
 
+import { NodeEditBehaviorMenuInstance } from '../../node-edit-behavior/node-edit-behavior';
+import { Polymer } from '../../../../../tools/definitions/polymer';
+
 namespace MenuEditElement {
 	export const menuEditProperties: {
 		item: CRM.MenuNode;
@@ -37,5 +40,5 @@ namespace MenuEditElement {
 	}
 }
 
-type MenuEdit = Polymer.El<'menu-edit', typeof MenuEditElement.ME &
+export type MenuEdit = Polymer.El<'menu-edit', typeof MenuEditElement.ME &
 	typeof MenuEditElement.menuEditProperties>;

@@ -1,5 +1,7 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
+import { Polymer } from '../../../../tools/definitions/polymer';
+
 namespace CenterElementElement {
 	export const centerElementProperties: {
 		width: string;
@@ -164,4 +166,4 @@ namespace CenterElementElement {
 	}
 }
 
-type CenterElement = Polymer.El<'center-element', typeof CenterElementElement.CE & typeof CenterElementElement.centerElementProperties>;
+export type CenterElement = Polymer.El<'center-element', typeof CenterElementElement.CE & typeof CenterElementElement.centerElementProperties>;

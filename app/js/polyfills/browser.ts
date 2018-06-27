@@ -1,17 +1,21 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
 
-declare namespace _browser.runtime {
-	function getManifest(): _chrome.runtime.Manifest;
-}
+import { ContextMenuCreateProperties, BrowserTabsQueryInfo } from "../background/sharedTypes";
 
-declare namespace _browser.storage {
-	interface Get {
-		<S extends CRM.StorageLocal|CRM.SettingsStorage = 
-			CRM.StorageLocal|CRM.SettingsStorage>(): Promise<S>;
-		<S extends CRM.StorageLocal|CRM.SettingsStorage,
-			K extends keyof S>(keys: K): Promise<S>;
-		<S extends CRM.StorageLocal|CRM.SettingsStorage,
-			K extends keyof S>(keys: K[]): Promise<S>;
+declare global {
+	namespace _browser.runtime {
+		function getManifest(): _chrome.runtime.Manifest;
+	}
+
+	namespace _browser.storage {
+		interface Get {
+			<S extends CRM.StorageLocal|CRM.SettingsStorage = 
+				CRM.StorageLocal|CRM.SettingsStorage>(): Promise<S>;
+			<S extends CRM.StorageLocal|CRM.SettingsStorage,
+				K extends keyof S>(keys: K): Promise<S>;
+			<S extends CRM.StorageLocal|CRM.SettingsStorage,
+				K extends keyof S>(keys: K[]): Promise<S>;
+		}
 	}
 }
 
@@ -766,14 +770,16 @@ namespace BrowserAPINS {
 	};
 }
 
-interface Window {
-	browserAPI: typeof BrowserAPI.polyfill & {
-		__isProxied: boolean;
-	};
-	BrowserAPI: typeof BrowserAPINS;
-	BrowserAPINS: typeof BrowserAPINS;
-	BrowserAPIInstances: typeof BrowserAPINS[];
-	__isVirtual?: boolean;
+declare global {
+	interface Window {
+		browserAPI: typeof BrowserAPI.polyfill & {
+			__isProxied: boolean;
+		};
+		BrowserAPI: typeof BrowserAPINS;
+		BrowserAPINS: typeof BrowserAPINS;
+		BrowserAPIInstances: typeof BrowserAPINS[];
+		__isVirtual?: boolean;
+	}
 }
 
 window.BrowserAPIInstances = window.BrowserAPIInstances || [];
@@ -802,3 +808,7 @@ if (!window.browserAPI || window.__isVirtual) {
 }
 const BrowserAPI = window.BrowserAPINS;
 const browserAPI = window.browserAPI as typeof BrowserAPI.polyfill;
+declare global {
+	type browserAPI = typeof BrowserAPI.polyfill;
+	type BrowserAPI = typeof BrowserAPINS;
+}

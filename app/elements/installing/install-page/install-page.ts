@@ -1,5 +1,10 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
+import { Polymer } from '../../../../tools/definitions/polymer';
+
+declare const browserAPI: browserAPI;
+declare const BrowserAPI: BrowserAPI;
+
 namespace InstallPageElement {
 	export const installPageProperties: {
 		fetchFailed: boolean;
@@ -216,5 +221,5 @@ namespace InstallPageElement {
 	}
 }
 
-type InstallPage = Polymer.El<'install-page', 
+export type InstallPage = Polymer.El<'install-page', 
 	typeof InstallPageElement.IP & typeof InstallPageElement.installPageProperties>;

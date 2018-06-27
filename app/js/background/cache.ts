@@ -1,4 +1,6 @@
 import { ModuleData } from "./moduleTypes";
+import { BackgroundpageWindow } from './sharedTypes';
+import { EncodedString } from '../../elements/elements';
 
 declare const window: BackgroundpageWindow;
 

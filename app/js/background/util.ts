@@ -1,5 +1,8 @@
 import { ModuleData } from "./moduleTypes";
+import { BackgroundpageWindow, ContextMenuCreateProperties, ContextMenuUpdateProperties, ContextMenuOverrides } from './sharedTypes';
 
+declare const browserAPI: browserAPI;
+declare const BrowserAPI: BrowserAPI;
 declare const window: BackgroundpageWindow;
 
 export namespace Util {

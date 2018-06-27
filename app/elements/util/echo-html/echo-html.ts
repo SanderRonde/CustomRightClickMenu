@@ -1,5 +1,7 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
+import { Polymer } from '../../../../tools/definitions/polymer';
+
 namespace EchoHtmlElement {
 	export const echoHtmlProperties: {
 		html: string;
@@ -52,5 +54,5 @@ namespace EchoHtmlElement {
 	}
 }
 
-type EchoHtml = Polymer.El<'echo-html',
+export type EchoHtml = Polymer.El<'echo-html',
 	typeof EchoHtmlElement.EH & typeof EchoHtmlElement.echoHtmlProperties>;

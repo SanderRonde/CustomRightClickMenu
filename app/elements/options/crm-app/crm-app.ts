@@ -1,5 +1,18 @@
 /// <reference path="../../elements.d.ts" />
+/// <reference path="../../../../tools/definitions/jquery.d.ts" />
 /// <reference path="../../../../tools/definitions/tern.d.ts" />
+
+import { EncodedString } from '../../elements';
+import { EditCrm } from '../edit-crm/edit-crm';
+import { DefaultLink } from '../default-link/default-link';
+import { CodeEditBehaviorInstance } from '../editpages/code-edit-pages/code-edit-behavior';
+import { Polymer, ElementTagNameMaps } from '../../../../tools/definitions/polymer';
+import { CenterElement } from '../../util/center-element/center-element';
+import { PaperToggleOption } from '../inputs/paper-toggle-option/paper-toggle-option';
+import { SCRIPT_CONVERSION_TYPE } from '../../../js/background/sharedTypes';
+
+declare const browserAPI: browserAPI;
+declare const BrowserAPI: BrowserAPI;
 
 namespace CRMAppElement {
 	interface JQContextMenuObj {
@@ -5250,4 +5263,4 @@ namespace CRMAppElement {
 	}
 }
 
-type CrmApp = CRMAppElement.CrmApp;
+export type CrmApp = CRMAppElement.CrmApp;

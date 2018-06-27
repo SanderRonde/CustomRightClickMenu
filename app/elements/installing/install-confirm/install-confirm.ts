@@ -1,5 +1,11 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
+import { MonacoEditor, MonacoEditorElement } from '../../options/editpages/monaco-editor/monaco-editor';
+import { Polymer } from '../../../../tools/definitions/polymer';
+
+declare const browserAPI: browserAPI;
+declare const BrowserAPI: BrowserAPI;
+
 namespace InstallConfirmElement {
 	export const installConfirmProperties: {
 		script: string;
@@ -423,5 +429,5 @@ namespace InstallConfirmElement {
 	}
 }
 
-type InstallConfirm = Polymer.El<'install-confirm', 
+export type InstallConfirm = Polymer.El<'install-confirm', 
 	typeof InstallConfirmElement.IC & typeof InstallConfirmElement.installConfirmProperties>;

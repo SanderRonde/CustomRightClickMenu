@@ -1,3 +1,5 @@
+import { BackgroundpageWindow } from './sharedTypes';
+
 declare const window: BackgroundpageWindow;
 
 export namespace Info {

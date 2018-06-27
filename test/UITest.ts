@@ -3,6 +3,8 @@
 /// <reference path="../app/elements/options/edit-crm-item/edit-crm-item.ts" />
 /// <reference path="../tools/definitions/chrome.d.ts" />
 
+declare const browserAPI: browserAPI;
+
 const PORT: number = 1250;
 //Set to false to test remotely even when running it locally
 const TEST_LOCAL_DEFAULT = true;
@@ -52,26 +54,6 @@ function getSkipDialogSettings(): SkipOption[] {
 	return toSkip;
 }
 
-interface ContextMenuItem {
-	id: number;
-	createProperties: ContextMenuCreateProperties;
-	currentProperties: ContextMenuCreateProperties;
-	children: ContextMenuItem[];
-}
-
-type ContextMenu = ContextMenuItem[];
-
-type ActiveTabs = {
-	type: 'create'|'update';
-	data: any;
-	id?: number;
-}[];
-
-interface ExecutedScript {
-	id: number;
-	code: string;
-}
-
 declare const require: any;
 declare const window: AppWindow;
 
@@ -90,8 +72,11 @@ import {
 	DialogType, quote, TestData, getDialog, 
 	findElement, getCRM, InputKeys, saveDialog, 
 	forEachPromise, FoundElementPromise, 
-	BrowserstackCapabilities, waitForCRM, resetSettings
+	BrowserstackCapabilities, waitForCRM, resetSettings, ContextMenu, ContextMenuItem, ActiveTabs, ExecutedScript
 } from './imports';
+import { GlobalObject } from '../app/js/background/sharedTypes';
+import { EncodedString } from '../app/elements/elements';
+import { EditCrmItem } from '../app/elements/options/edit-crm-item/edit-crm-item';
 require('mocha-steps');
 const request = require('request');
 const btoa = require('btoa');
@@ -319,8 +304,8 @@ async function enableTestLogging() {
 		let done: boolean;
 		if (window.browserAPI) {
 			window.browserAPI.runtime.getBackgroundPage().then((page: Window & {
-				BrowserAPI: typeof BrowserAPI;
-				BrowserAPIInstances: typeof BrowserAPINS[];
+				BrowserAPI: BrowserAPI;
+				BrowserAPIInstances: BrowserAPI[];
 			}) => {
 				page.BrowserAPIInstances.forEach((instance) => {
 					instance.enableLogging();
@@ -1036,7 +1021,7 @@ function getBackgroundPageTestData(): () => Promiselike<TestData> {
 			let isDone: boolean = false;
 			let result: TestData = null;
 			window.browserAPI.runtime.getBackgroundPage().then((page: Window & {
-				BrowserAPI: typeof BrowserAPI;
+				BrowserAPI: BrowserAPI;
 			}) => {
 				isDone = true;
 				for (const instance of page.BrowserAPIInstances) {

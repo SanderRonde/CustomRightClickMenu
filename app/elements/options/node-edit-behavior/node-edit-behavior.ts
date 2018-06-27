@@ -1,5 +1,11 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
+import { CodeEditBehaviorScriptInstance, CodeEditBehaviorStylesheetInstance, CodeEditBehavior } from "../editpages/code-edit-pages/code-edit-behavior";
+import { DividerEdit } from '../editpages/divider-edit/divider-edit';
+import { LinkEdit } from '../editpages/link-edit/link-edit';
+import { MenuEdit } from '../editpages/menu-edit/menu-edit';
+import { Polymer } from '../../../../tools/definitions/polymer';
+
 namespace NodeEditBehaviorNamespace {
 	interface NodeEditBehaviorProperties {
 		pageContentSelected: boolean;
@@ -583,26 +589,26 @@ namespace NodeEditBehaviorNamespace {
 	Polymer.NodeEditBehavior = Polymer.NodeEditBehavior || NodeEditBehaviorNamespace.NEB as NodeEditBehaviorBase;
 }
 
-type NodeEditBehaviorBase = Polymer.El<'node-edit-behavior',
+export type NodeEditBehaviorBase = Polymer.El<'node-edit-behavior',
 	typeof NodeEditBehaviorNamespace.NEB & typeof NodeEditBehaviorNamespace.nodeEditBehaviorProperties>;
-type NodeEditBehavior<T> = T & NodeEditBehaviorBase;
+export type NodeEditBehavior<T> = T & NodeEditBehaviorBase;
 
-type NodeEditBehaviorScriptInstance = NodeEditBehavior<CodeEditBehaviorScriptInstance & {
+export type NodeEditBehaviorScriptInstance = NodeEditBehavior<CodeEditBehaviorScriptInstance & {
 	newSettings: Partial<CRM.ScriptNode>
 }>;
-type NodeEditBehaviorStylesheetInstance = NodeEditBehavior<CodeEditBehaviorStylesheetInstance & {
+export type NodeEditBehaviorStylesheetInstance = NodeEditBehavior<CodeEditBehaviorStylesheetInstance & {
 	newSettings: Partial<CRM.StylesheetNode>;
 }>;
-type NodeEditBehaviorLinkInstance = NodeEditBehavior<LinkEdit & {
+export type NodeEditBehaviorLinkInstance = NodeEditBehavior<LinkEdit & {
 	newSettings: Partial<CRM.LinkNode>;
 }>;
-type NodeEditBehaviorMenuInstance = NodeEditBehavior<MenuEdit & {
+export type NodeEditBehaviorMenuInstance = NodeEditBehavior<MenuEdit & {
 	newSettings: Partial<CRM.MenuNode>;
 }>;
-type NodeEditBehaviorDividerInstance = NodeEditBehavior<DividerEdit & {
+export type NodeEditBehaviorDividerInstance = NodeEditBehavior<DividerEdit & {
 	newSettings: Partial<CRM.DividerNode>;
 }>;
 
-type NodeEditBehaviorInstance = NodeEditBehaviorScriptInstance|
+export type NodeEditBehaviorInstance = NodeEditBehaviorScriptInstance|
 	NodeEditBehaviorStylesheetInstance|NodeEditBehaviorLinkInstance|
 	NodeEditBehaviorMenuInstance|NodeEditBehaviorDividerInstance;

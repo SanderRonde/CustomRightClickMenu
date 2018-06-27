@@ -1,4 +1,5 @@
 import { ModuleData } from "./moduleTypes";
+import { MatchPattern } from './sharedTypes';
 
 export namespace URLParsing {
 	export let modules: ModuleData;

@@ -1,19 +1,26 @@
 /// <reference path="../../../../../elements.d.ts" />
 
-const EXTERNAL_EDITOR_APP_ID = 'hkjjmhkhhlmkflpihbikfpcojeofbjgn';
+import { MonacoEditor } from '../../../monaco-editor/monaco-editor';
+import { Polymer } from '../../../../../../../tools/definitions/polymer';
 
-type ChooseFileDialog = PaperDialogBase & {
-	init(local: string, file: string, callback: (result: string|false) => void, isUpdate?: boolean,
-		updateErrors?: {
-			parseError?: boolean;
-			generalError?: boolean;
-			newScript: CursorPosition[];
-			oldScript: CursorPosition[];
-		}): void;
-	local: string;
-	file: string;
-	callback(result: string|false): void;
-};
+const EXTERNAL_EDITOR_APP_ID = 'hkjjmhkhhlmkflpihbikfpcojeofbjgn';
+declare const browserAPI: browserAPI;
+declare const BrowserAPI: BrowserAPI;
+
+declare global {
+	type ChooseFileDialog = PaperDialogBase & {
+		init(local: string, file: string, callback: (result: string|false) => void, isUpdate?: boolean,
+			updateErrors?: {
+				parseError?: boolean;
+				generalError?: boolean;
+				newScript: CursorPosition[];
+				oldScript: CursorPosition[];
+			}): void;
+		local: string;
+		file: string;
+		callback(result: string|false): void;
+	};
+}
 
 namespace UseExternalEditorElement {
 	interface SetupConnectionMessage {
@@ -823,4 +830,4 @@ namespace UseExternalEditorElement {
 	}
 }
 
-type UseExternalEditor = Polymer.El<'use-external-editor', typeof UseExternalEditorElement.UEE>;
+export type UseExternalEditor = Polymer.El<'use-external-editor', typeof UseExternalEditorElement.UEE>;

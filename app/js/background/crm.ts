@@ -1,7 +1,11 @@
 /// <reference path="../../../tools/definitions/chrome.d.ts" />
 /// <reference path="../background/sharedTypes.d.ts"/>
 import { ModuleData } from "./moduleTypes";
+import { BackgroundpageWindow, GreaseMonkeyData, EncodedContextData, MatchPattern, ToExecuteNode, ContextMenuCreateProperties, ContextMenuOverrides, UserAddedContextMenu, ContextMenuItemTreeItem } from './sharedTypes';
+import { EncodedString } from '../../elements/elements';
 
+declare const browserAPI: browserAPI;
+declare const BrowserAPI: BrowserAPI;
 declare const window: BackgroundpageWindow;
 
 export namespace CRMNodes.Script.Handler {

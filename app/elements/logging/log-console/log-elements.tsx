@@ -1,5 +1,11 @@
 /// <reference path="../../../../tools/definitions/polymer.d.ts" />
-/// <reference path="../../../../tools/definitions/react.d.ts" />
+
+import { LogConsole } from "./log-console";
+import { LogLineContainerInterface } from '../../elements';
+import * as React from '../../../../tools/definitions/react';
+import { LogListenerLine, LogLineData } from '../../../js/background/sharedTypes';
+
+declare const browserAPI: browserAPI;
 
 window.logElements = (() => {
 	function getTag(item: any, parent: EvalElement|LogElement|LogLine, additionalProps: {

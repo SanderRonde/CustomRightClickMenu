@@ -1,6 +1,8 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
 import { ModuleData } from "./moduleTypes";
+import { BackgroundpageWindow, LogListenerObject, CRMAPIMessageInstance, TabData, LogListenerLine } from './sharedTypes';
 
+declare const browserAPI: browserAPI;
 declare const window: BackgroundpageWindow;
 
 export namespace Logging.LogExecution {

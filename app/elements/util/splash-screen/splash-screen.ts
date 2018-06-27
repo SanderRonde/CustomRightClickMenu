@@ -1,5 +1,7 @@
 /// <reference path="../../elements.d.ts" />
 
+import { Polymer } from '../../../../tools/definitions/polymer';
+
 namespace SplashScreenElement {
 	export const splashScreenProperties: {
 		name: string;
@@ -143,4 +145,4 @@ namespace SplashScreenElement {
 	}
 }
 
-type SplashScreen = Polymer.El<'splash-screen', typeof SplashScreenElement.SS & typeof SplashScreenElement.splashScreenProperties>;
+export type SplashScreen = Polymer.El<'splash-screen', typeof SplashScreenElement.SS & typeof SplashScreenElement.splashScreenProperties>;

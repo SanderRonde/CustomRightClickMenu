@@ -1,12 +1,21 @@
 ﻿/// <reference path="../../elements.d.ts" />
 /// <reference path="../../../../tools/definitions/react.d.ts" />
 
+import { LogLineContainerInterface } from '../../elements';
+import * as React from '../../../../tools/definitions/react';
+import { Polymer } from '../../../../tools/definitions/polymer';
+import { PaperDropdownMenu } from '../../options/inputs/paper-dropdown-menu/paper-dropdown-menu';
+import { TabData, LogLineData, LogListenerLine, BackgroundpageWindow, LogListenerObject } from '../../../js/background/sharedTypes';
+
 declare const ReactDOM: {
 	render<T>(el: React.ReactElement<T>, container: HTMLElement): any;
 };
+declare const browserAPI: browserAPI;
 
-interface ContextMenuElement extends HTMLElement {
-	source: LogConsoleElement.ContextMenuSource;
+declare global {
+	interface ContextMenuElement extends HTMLElement {
+		source: LogConsoleElement.ContextMenuSource;
+	}	
 }
 
 namespace LogConsoleElement {
@@ -623,5 +632,5 @@ namespace LogConsoleElement {
 	}
 }
 
-type LogConsole = Polymer.El<'log-console', 
+export type LogConsole = Polymer.El<'log-console', 
 	typeof LogConsoleElement.LC & typeof LogConsoleElement.logConsoleProperties>;

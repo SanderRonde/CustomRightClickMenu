@@ -1,16 +1,27 @@
 /// <reference path="../../../elements.d.ts" />
 
+import { PaperLibrariesSelector } from "./tools/paper-libraries-selector/paper-libraries-selector";
+import { PaperGetPageProperties } from './tools/paper-get-page-properties/paper-get-page-properties';
+import { CrmApp } from '../../crm-app/crm-app';
+import { NodeEditBehaviorStylesheetInstance, NodeEditBehaviorScriptInstance, NodeEditBehavior } from '../../node-edit-behavior/node-edit-behavior';
+import { MonacoEditor } from '../monaco-editor/monaco-editor';
+import { ScriptEdit } from '../script-edit/script-edit';
+import { StylesheetEdit } from '../stylesheet-edit/stylesheet-edit';
+import { Polymer } from '../../../../../tools/definitions/polymer';
+
+declare const browserAPI: browserAPI;
+
 type CodeEditBehaviorScriptInstanceAdditions = ScriptEdit & {
 	isScript: true;
 };
-type CodeEditBehaviorScriptInstance = CodeEditBehavior<CodeEditBehaviorScriptInstanceAdditions>;
+export type CodeEditBehaviorScriptInstance = CodeEditBehavior<CodeEditBehaviorScriptInstanceAdditions>;
 
 type CodeEditBehaviorStylesheetInstanceAdditions = StylesheetEdit & {
 	isScript: false;
 };
-type CodeEditBehaviorStylesheetInstance = CodeEditBehavior<CodeEditBehaviorStylesheetInstanceAdditions>;
+export type CodeEditBehaviorStylesheetInstance = CodeEditBehavior<CodeEditBehaviorStylesheetInstanceAdditions>;
 
-type CodeEditBehaviorInstance = CodeEditBehavior<NodeEditBehaviorScriptInstance>|
+export type CodeEditBehaviorInstance = CodeEditBehavior<NodeEditBehaviorScriptInstance>|
 	CodeEditBehavior<NodeEditBehaviorStylesheetInstance>;
 
 namespace CodeEditBehaviorNamespace {
@@ -810,11 +821,11 @@ namespace CodeEditBehaviorNamespace {
 	export type CodeEditBehaviorGlobal = typeof CEBGlobal;
 }
 
-type CodeEditBehaviorBase = Polymer.El<'code-edit-behavior', typeof CodeEditBehaviorNamespace.CEB>;
+export type CodeEditBehaviorBase = Polymer.El<'code-edit-behavior', typeof CodeEditBehaviorNamespace.CEB>;
 
-type CodeEditBehaviorGlobal = CodeEditBehaviorNamespace.CodeEditBehaviorGlobal;
+export type CodeEditBehaviorGlobal = CodeEditBehaviorNamespace.CodeEditBehaviorGlobal;
 
-type CodeEditBehavior<T = CodeEditBehaviorScriptInstanceAdditions|CodeEditBehaviorStylesheetInstanceAdditions> = 
+export type CodeEditBehavior<T = CodeEditBehaviorScriptInstanceAdditions|CodeEditBehaviorStylesheetInstanceAdditions> = 
 	NodeEditBehavior<CodeEditBehaviorBase & T>;
 
 Polymer.CodeEditBehavior = Polymer.CodeEditBehavior || CodeEditBehaviorNamespace.CEB as CodeEditBehaviorBase;

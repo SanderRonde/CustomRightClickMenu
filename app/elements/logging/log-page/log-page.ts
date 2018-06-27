@@ -1,5 +1,7 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
+import { Polymer } from '../../../../tools/definitions/polymer';
+
 namespace LogPageElement {
 	export const logPageProperties: {
 		isLoading: boolean;
@@ -43,5 +45,5 @@ namespace LogPageElement {
 	}
 }
 
-type LogPage = Polymer.El<'log-page', 
+export type LogPage = Polymer.El<'log-page', 
 	typeof LogPageElement.LP & typeof LogPageElement.logPageProperties>;

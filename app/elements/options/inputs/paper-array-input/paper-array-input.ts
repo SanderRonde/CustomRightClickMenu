@@ -1,5 +1,7 @@
 /// <reference path="../../../elements.d.ts" />
 
+import { Polymer } from "../../../../../tools/definitions/polymer";
+
 namespace PaperArrayInputElement {
 	export const paperArrayInputProperties: {
 		values: any[];
@@ -102,5 +104,5 @@ namespace PaperArrayInputElement {
 	}
 }
 
-type PaperArrayInput = Polymer.El<'paper-array-input',
+export type PaperArrayInput = Polymer.El<'paper-array-input',
 	typeof PaperArrayInputElement.PAI & typeof PaperArrayInputElement.paperArrayInputProperties>;

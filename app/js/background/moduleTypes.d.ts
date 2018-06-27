@@ -14,6 +14,7 @@ import { Logging } from "./logging.js";
 import { CRMNodes } from "./crm.js";
 import { Caches } from "./cache.js";
 import { Util } from "./util.js";
+import { BGCRM, BGStorages, BGCRMValues, BGConstants, BGListeners, BGBackground, BGToExecute, GlobalObject } from "./sharedTypes.js";
 
 export interface StorageModules {
 	crm: BGCRM;

@@ -1,5 +1,9 @@
 /// <reference path="../../../tools/definitions/crmapi.d.ts" />
 
+import { BackgroundpageWindow, SandboxWorkerInterface } from './sharedTypes';
+import { EncodedString } from '../../elements/elements';
+import { CRMAPIMessage } from '../crmapi';
+
 declare const window: BackgroundpageWindow;
 
 interface SandboxWorkerMessage {

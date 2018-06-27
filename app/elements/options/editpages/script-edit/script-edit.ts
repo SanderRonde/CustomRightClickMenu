@@ -1,5 +1,9 @@
 /// <reference path="../../../elements.d.ts" />
 
+import { NodeEditBehaviorScriptInstance, NodeEditBehaviorInstance } from '../../node-edit-behavior/node-edit-behavior';
+import { MonacoEditorElement } from '../monaco-editor/monaco-editor';
+import { Polymer } from '../../../../../tools/definitions/polymer';
+
 namespace ScriptEditElement {
 	export const scriptEditProperties: {
 		item: CRM.ScriptNode;
@@ -727,5 +731,5 @@ namespace ScriptEditElement {
 	}
 }
 
-type ScriptEdit = Polymer.El<'script-edit', typeof ScriptEditElement.SCE &
+export type ScriptEdit = Polymer.El<'script-edit', typeof ScriptEditElement.SCE &
 	typeof ScriptEditElement.scriptEditProperties>;

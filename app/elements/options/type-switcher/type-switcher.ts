@@ -1,5 +1,8 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
+import { EditCrmItem } from '../edit-crm-item/edit-crm-item';
+import { Polymer } from '../../../../tools/definitions/polymer';
+
 namespace TypeSwitcherElement {
 	export class TS {
 		static is: string = 'type-switcher';
@@ -324,4 +327,4 @@ namespace TypeSwitcherElement {
 	}
 }
 
-type TypeSwitcher = Polymer.El<'type-switcher', typeof TypeSwitcherElement.TS>;
+export type TypeSwitcher = Polymer.El<'type-switcher', typeof TypeSwitcherElement.TS>;

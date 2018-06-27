@@ -1,5 +1,8 @@
 ﻿/// <reference path="../../../elements.d.ts" />
 
+import { NodeEditBehaviorDividerInstance } from '../../node-edit-behavior/node-edit-behavior';
+import { Polymer } from '../../../../../tools/definitions/polymer';
+
 namespace DividerEditElement {
 	export const dividerEditProperties: {
 		item: CRM.DividerNode;
@@ -37,5 +40,5 @@ namespace DividerEditElement {
 	}
 }
 
-type DividerEdit = Polymer.El<'divider-edit', typeof DividerEditElement.DE & 
+export type DividerEdit = Polymer.El<'divider-edit', typeof DividerEditElement.DE & 
 	typeof DividerEditElement.dividerEditProperties>;

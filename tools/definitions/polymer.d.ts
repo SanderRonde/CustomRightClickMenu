@@ -1,9 +1,42 @@
 /// <reference path="../../app/elements/elements.d.ts" />
 /// <reference path="../../app/elements/fileIdMaps.d.ts" />
 
+import { MonacoEditor } from "../../app/elements/options/editpages/monaco-editor/monaco-editor";
+import { CodeEditBehaviorBase, CodeEditBehaviorStylesheetInstance, CodeEditBehaviorScriptInstance } from "../../app/elements/options/editpages/code-edit-pages/code-edit-behavior";
+import { PaperLibrariesSelector } from "../../app/elements/options/editpages/code-edit-pages/tools/paper-libraries-selector/paper-libraries-selector";
+import { PaperGetPageProperties } from "../../app/elements/options/editpages/code-edit-pages/tools/paper-get-page-properties/paper-get-page-properties";
+import { CrmEditPage } from "../../app/elements/options/crm-edit-page/crm-edit-page";
+import { EditCrm } from "../../app/elements/options/edit-crm/edit-crm";
+import { EditCrmItem } from "../../app/elements/options/edit-crm-item/edit-crm-item";
+import { CenterElement } from "../../app/elements/util/center-element/center-element";
+import { PaperSearchWebsiteDialog } from "../../app/elements/options/editpages/code-edit-pages/tools/paper-search-website-dialog/paper-search-website-dialog";
+import { UseExternalEditor } from "../../app/elements/options/editpages/code-edit-pages/tools/use-external-editor/use-external-editor";
+import { TypeSwitcher } from "../../app/elements/options/type-switcher/type-switcher";
+import { PaperDropdownMenu } from "../../app/elements/options/inputs/paper-dropdown-menu/paper-dropdown-menu";
+import { AnimatedButton } from "../../app/elements/util/animated-button/animated-button";
+import { SplashScreen } from "../../app/elements/util/splash-screen/splash-screen";
+import { NodeEditBehaviorMenuInstance, NodeEditBehaviorLinkInstance, NodeEditBehaviorDividerInstance, NodeEditBehaviorBase } from "../../app/elements/options/node-edit-behavior/node-edit-behavior";
+import { LogPage } from "../../app/elements/logging/log-page/log-page";
+import { LogConsole } from "../../app/elements/logging/log-console/log-console";
+import { InstallPage } from "../../app/elements/installing/install-page/install-page";
+import { InstallConfirm } from "../../app/elements/installing/install-confirm/install-confirm";
+import { ErrorReportingTool } from "../../app/elements/util/error-reporting-tool/error-reporting-tool";
+import { DefaultLink } from "../../app/elements/options/default-link/default-link";
+import { CrmApp } from "../../app/elements/options/crm-app/crm-app";
+import { ChangeLog } from "../../app/elements/util/change-log/change-log";
+import { EchoHtml } from "../../app/elements/util/echo-html/echo-html";
+import { PaperArrayInput } from "../../app/elements/options/inputs/paper-array-input/paper-array-input";
+import { PaperToggleOption } from "../../app/elements/options/inputs/paper-toggle-option/paper-toggle-option";
+import { PaperMenu } from "../../app/elements/options/inputs/paper-menu/paper-menu";
+import { NeonAnimationBehaviorScaleUpAnimation } from "../../app/elements/util/animations/scale-up-animation/scale-up-animation";
+import { NeonAnimationBehaviorScaleDownAnimation } from "../../app/elements/util/animations/scale-down-animation/scale-down-animation";
+import { NeonAnimationBehaviorFadeOutAnimation } from "../../app/elements/util/animations/fade-out-animation/fade-out-animation";
+import { DividerEdit } from "../../app/elements/options/editpages/divider-edit/divider-edit";
+import { PaperDropdownBehaviorBase } from "../../app/elements/options/inputs/paper-dropdown-behavior/paper-dropdown-behavior";
 
 
-declare namespace Polymer {
+
+export declare namespace Polymer {
 	interface InitializerProperties {
 		is?: string;
 		properties?: {
@@ -407,170 +440,172 @@ declare namespace Polymer {
 
 declare const Polymer: Polymer.Polymer;
 
-//Polymer elements
-interface HTMLPaperIconButtonElement extends Polymer.RootElement {
-	icon: string;
-}
-
-interface PaperDialogBase extends Polymer.RootElement {
-	opened: boolean;
-	toggle(): void;
-	close(): void;
-	open(): void;
-	fit(): void;
-}
-
-interface HTMLPaperDialogElement extends PaperDialogBase {
-	init(): void;
-}
-
-interface HTMLPaperToastElement extends Polymer.RootElement {
-	hide(): void;
-	show(): void;
-	text: string;
-	duration: number;
-}
-
-interface HTMLPaperInputElement extends Polymer.RootElement {
-	invalid: boolean;
-	errorMessage: string;
-	label: string;
-	value: string;
-}
-
-interface HTMLPaperInputContainerElement extends Polymer.RootElement {
-	
-}
-
-interface HTMLPaperCheckboxElement extends Polymer.RootElement {
-	checked: boolean;
-	disabled: boolean;
-}
-
-interface HTMLDomRepeatElement extends Polymer.RootElement {
-	items: Array<any>;
-	as: string;
-	render(): void;
-}
-
-interface HTMLDomIfElement extends Polymer.RootElement {
-	if: boolean;
-	render(): void;
-}
-
-type HTMLPaperMenuElement = PaperMenu;
-
-interface HTMLPaperSpinnerElement extends Polymer.RootElement {
-	active: boolean;
-}
-
-interface HTMLPaperRadioGroupElement extends Polymer.RootElement {
-	selected: string;
-}
-
-interface HTMLPaperRadioButtonElement extends Polymer.RootElement {
-	checked: boolean;
-}
-
-interface HTMLPaperMaterialElement extends Polymer.RootElement {
-	elevation: string;
-}
-
-interface HTMLPaperButtonElement extends Polymer.RootElement {
-	
-}
-
-interface HTMLPaperTextareaElement extends Polymer.RootElement {
-	invalid: boolean;
-	value: string;
-}
-
-interface HTMLPaperItemElement extends Polymer.RootElement {
-
-}
-
-interface HTMLPaperToggleButtonElement extends Polymer.RootElement {
-	checked: boolean;
-}
-
-interface HTMLPaperToolbarElement extends Polymer.RootElement {
-
-}
-
-interface SVGElement {
-	readonly style: CSSStyleDeclaration;
-}
-
-interface HTMLMetadataElement extends SVGElement {}
-interface HTMLGElement extends SVGElement {}
-interface HTMLPathElement extends SVGElement {}
-interface HTMLRectElement extends SVGElement {}
-
-type HTMLPaperLibrariesSelectorElement = PaperLibrariesSelector;
-type HTMLPaperGetPagePropertiesElement = PaperGetPageProperties;
-type HTMLCrmEditPageElement = CrmEditPage;
-type HTMLPaperToggleOptionElement = PaperToggleOption;
-type HTMLEditCrmElement = EditCrm;
-type HTMLEditCrmItemElement = EditCrmItem;
-type HTMLCenterElementElement = CenterElement;
-type HTMLPaperSearchWebsiteDialogElement = PaperSearchWebsiteDialog;
-type HTMLUseExternalEditorElement = UseExternalEditor;
-type HTMLTypeSwitcherElement = TypeSwitcher;
-type HTMLPaperDropdownMenuElement = PaperDropdownMenu;
-type HTMLPaperArrayInputElement = PaperArrayInput;
-type HTMLPaperRipplElement = HTMLElement;
-type HTMLEchoHtmlElement = EchoHtml;
-type HTMLMonacoEditorElement = MonacoEditor;
-type HTMLChangeLogElement = ChangeLog;
-type HTMLCrmAppElement = CrmApp;
-type HTMLDefaultLinkElement = DefaultLink;
-type HTMLDividerEditElement = NodeEditBehaviorDividerInstance;
-type HTMLErrorReportingToolElement = ErrorReportingTool;
-type HTMLInstallConfirmElement = InstallConfirm;
-type HTMLInstallErrorElement = Polymer.El<'install-error', {}>;
-type HTMLInstallPageElement = InstallPage;
-type HTMLLinkEditElement = NodeEditBehaviorLinkInstance;
-type HTMLLogConsoleElement = LogConsole;
-type HTMLLogPageElement = LogPage;
-type HTMLMenuEditElement = NodeEditBehaviorMenuInstance;
-type HTMLScriptEditElement = CodeEditBehaviorScriptInstance;
-type HTMLStylesheetEditElement = CodeEditBehaviorStylesheetInstance;
-type HTMLSplashScreenElement = SplashScreen;
-type HTMLAnimatedButtonElement = AnimatedButton;
-
-interface AddedPermissionsTabContainer extends HTMLElement {
-	tab: number;
-	maxTabs: number;
-}
-
-interface CodeSettingsDialog extends HTMLPaperDialogElement {
-	item?: CRM.ScriptNode | CRM.StylesheetNode;
-}
-
-type ScriptUpdatesToast = HTMLPaperToastElement & {
-	index: number;
-	scripts: Array<{
-		name: string;
-		oldVersion: string;
-		newVersion: string;
-	}>;
-};
-
-type VersionUpdateDialog = HTMLPaperDialogElement & {
-	editorManager: MonacoEditor;
-};
-
-type ElementTagNameMaps = Polymer.ElementTagNameMap & 
+export type ElementTagNameMaps = Polymer.ElementTagNameMap & 
 	HTMLElementTagNameMap & ElementTagNameMap;
 
-interface NodeSelector {
-	querySelector<K extends keyof ElementTagNameMaps>(selectors: K): ElementTagNameMaps[K] | null;
-	querySelector(selectors: string): HTMLElement | null;
-	querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): NodeListOf<Polymer.ElementTagNameMap[K]> | null;
-}
+declare global {
+	interface AddedPermissionsTabContainer extends HTMLElement {
+		tab: number;
+		maxTabs: number;
+	}
+	
+	interface CodeSettingsDialog extends HTMLPaperDialogElement {
+		item?: CRM.ScriptNode | CRM.StylesheetNode;
+	}
+	
+	type ScriptUpdatesToast = HTMLPaperToastElement & {
+		index: number;
+		scripts: Array<{
+			name: string;
+			oldVersion: string;
+			newVersion: string;
+		}>;
+	};
+	
+	type VersionUpdateDialog = HTMLPaperDialogElement & {
+		editorManager: MonacoEditor;
+	};
 
-interface ParentNode {
-	querySelector<K extends keyof ElementTagNameMaps>(selectors: K): ElementTagNameMaps[K] | null;
-	querySelector(selectors: string): HTMLElement | null;
-	querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): NodeListOf<Polymer.ElementTagNameMap[K]> | null;
+	//Polymer elements
+	interface HTMLPaperIconButtonElement extends Polymer.RootElement {
+		icon: string;
+	}
+
+	interface PaperDialogBase extends Polymer.RootElement {
+		opened: boolean;
+		toggle(): void;
+		close(): void;
+		open(): void;
+		fit(): void;
+	}
+
+	interface HTMLPaperDialogElement extends PaperDialogBase {
+		init(): void;
+	}
+
+	interface HTMLPaperToastElement extends Polymer.RootElement {
+		hide(): void;
+		show(): void;
+		text: string;
+		duration: number;
+	}
+
+	interface HTMLPaperInputElement extends Polymer.RootElement {
+		invalid: boolean;
+		errorMessage: string;
+		label: string;
+		value: string;
+	}
+
+	interface HTMLPaperInputContainerElement extends Polymer.RootElement {
+		
+	}
+
+	interface HTMLPaperCheckboxElement extends Polymer.RootElement {
+		checked: boolean;
+		disabled: boolean;
+	}
+
+	interface HTMLDomRepeatElement extends Polymer.RootElement {
+		items: Array<any>;
+		as: string;
+		render(): void;
+	}
+
+	interface HTMLDomIfElement extends Polymer.RootElement {
+		if: boolean;
+		render(): void;
+	}
+
+	type HTMLPaperMenuElement = PaperMenu;
+
+	interface HTMLPaperSpinnerElement extends Polymer.RootElement {
+		active: boolean;
+	}
+
+	interface HTMLPaperRadioGroupElement extends Polymer.RootElement {
+		selected: string;
+	}
+
+	interface HTMLPaperRadioButtonElement extends Polymer.RootElement {
+		checked: boolean;
+	}
+
+	interface HTMLPaperMaterialElement extends Polymer.RootElement {
+		elevation: string;
+	}
+
+	interface HTMLPaperButtonElement extends Polymer.RootElement {
+		
+	}
+
+	interface HTMLPaperTextareaElement extends Polymer.RootElement {
+		invalid: boolean;
+		value: string;
+	}
+
+	interface HTMLPaperItemElement extends Polymer.RootElement {
+
+	}
+
+	interface HTMLPaperToggleButtonElement extends Polymer.RootElement {
+		checked: boolean;
+	}
+
+	interface HTMLPaperToolbarElement extends Polymer.RootElement {
+
+	}
+
+	interface SVGElement {
+		readonly style: CSSStyleDeclaration;
+	}
+
+	interface HTMLMetadataElement extends SVGElement {}
+	interface HTMLGElement extends SVGElement {}
+	interface HTMLPathElement extends SVGElement {}
+	interface HTMLRectElement extends SVGElement {}
+
+	type HTMLPaperLibrariesSelectorElement = PaperLibrariesSelector;
+	type HTMLPaperGetPagePropertiesElement = PaperGetPageProperties;
+	type HTMLCrmEditPageElement = CrmEditPage;
+	type HTMLPaperToggleOptionElement = PaperToggleOption;
+	type HTMLEditCrmElement = EditCrm;
+	type HTMLEditCrmItemElement = EditCrmItem;
+	type HTMLCenterElementElement = CenterElement;
+	type HTMLPaperSearchWebsiteDialogElement = PaperSearchWebsiteDialog;
+	type HTMLUseExternalEditorElement = UseExternalEditor;
+	type HTMLTypeSwitcherElement = TypeSwitcher;
+	type HTMLPaperDropdownMenuElement = PaperDropdownMenu;
+	type HTMLPaperArrayInputElement = PaperArrayInput;
+	type HTMLPaperRipplElement = HTMLElement;
+	type HTMLEchoHtmlElement = EchoHtml;
+	type HTMLMonacoEditorElement = MonacoEditor;
+	type HTMLChangeLogElement = ChangeLog;
+	type HTMLCrmAppElement = CrmApp;
+	type HTMLDefaultLinkElement = DefaultLink;
+	type HTMLDividerEditElement = NodeEditBehaviorDividerInstance;
+	type HTMLErrorReportingToolElement = ErrorReportingTool;
+	type HTMLInstallConfirmElement = InstallConfirm;
+	type HTMLInstallErrorElement = Polymer.El<'install-error', {}>;
+	type HTMLInstallPageElement = InstallPage;
+	type HTMLLinkEditElement = NodeEditBehaviorLinkInstance;
+	type HTMLLogConsoleElement = LogConsole;
+	type HTMLLogPageElement = LogPage;
+	type HTMLMenuEditElement = NodeEditBehaviorMenuInstance;
+	type HTMLScriptEditElement = CodeEditBehaviorScriptInstance;
+	type HTMLStylesheetEditElement = CodeEditBehaviorStylesheetInstance;
+	type HTMLSplashScreenElement = SplashScreen;
+	type HTMLAnimatedButtonElement = AnimatedButton;
+
+	interface NodeSelector {
+		querySelector<K extends keyof ElementTagNameMaps>(selectors: K): ElementTagNameMaps[K] | null;
+		querySelector(selectors: string): HTMLElement | null;
+		querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): NodeListOf<Polymer.ElementTagNameMap[K]> | null;
+	}
+	
+	interface ParentNode {
+		querySelector<K extends keyof ElementTagNameMaps>(selectors: K): ElementTagNameMaps[K] | null;
+		querySelector(selectors: string): HTMLElement | null;
+		querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): NodeListOf<Polymer.ElementTagNameMap[K]> | null;
+	}
 }

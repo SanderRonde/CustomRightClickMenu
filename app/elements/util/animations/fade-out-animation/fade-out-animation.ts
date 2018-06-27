@@ -1,5 +1,7 @@
 /// <reference path="../../../elements.d.ts" />
 
+import { Polymer } from '../../../../../tools/definitions/polymer';
+
 namespace FadeOutAnimationElement {
 	export class FOA {
 		static is: string = 'fade-out-animation';
@@ -30,7 +32,7 @@ namespace FadeOutAnimationElement {
 	}
 }
 
-type NeonAnimationBehaviorFadeOutAnimation = Polymer.NeonAnimationBehavior<
+export type NeonAnimationBehaviorFadeOutAnimation = Polymer.NeonAnimationBehavior<
 	FadeOutAnimation
 >;
-type FadeOutAnimation = Polymer.El<'elementless', typeof FadeOutAnimationElement.FOA>;
+export type FadeOutAnimation = Polymer.El<'elementless', typeof FadeOutAnimationElement.FOA>;

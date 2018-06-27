@@ -30,4 +30,4 @@ const monacoCommand = (() => {
 })();
 
 window.monacoCommands = monacoCommand;
-type MonacoCommands = typeof monacoCommand;
+export type MonacoCommands = typeof monacoCommand;

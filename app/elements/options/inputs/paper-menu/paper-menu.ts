@@ -1,3 +1,5 @@
+import { Polymer } from '../../../../../tools/definitions/polymer';
+
 namespace PaperMenuElement {
 	export class PM {
 		static is: string = 'paper-menu';
@@ -17,4 +19,4 @@ namespace PaperMenuElement {
 type PaperMenuBase = Polymer.El<'paper-menu',
 	typeof PaperMenuElement.PM & typeof Polymer.IronMenuBehavior
 >;
-type PaperMenu = PaperMenuBase;
+export type PaperMenu = PaperMenuBase;

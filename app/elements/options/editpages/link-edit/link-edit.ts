@@ -1,5 +1,8 @@
 ﻿/// <reference path="../../../elements.d.ts" />
 
+import { NodeEditBehaviorLinkInstance } from '../../node-edit-behavior/node-edit-behavior';
+import { Polymer } from '../../../../../tools/definitions/polymer';
+
 namespace LinkEditElement {
 	export const linkEditProperties: {
 		item: CRM.LinkNode;
@@ -69,4 +72,4 @@ namespace LinkEditElement {
 	}
 }
 
-type LinkEdit = Polymer.El<'link-edit', typeof LinkEditElement.LE & typeof LinkEditElement.linkEditProperties>;
+export type LinkEdit = Polymer.El<'link-edit', typeof LinkEditElement.LE & typeof LinkEditElement.linkEditProperties>;

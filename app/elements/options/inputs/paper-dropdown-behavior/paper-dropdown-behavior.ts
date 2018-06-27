@@ -1,5 +1,9 @@
 ﻿/// <reference path="../../../elements.d.ts" />
 
+import { Polymer } from "../../../../../tools/definitions/polymer";
+import { PaperDropdownMenu, PaperDropdownMenuBase } from '../paper-dropdown-menu/paper-dropdown-menu';
+import { PaperLibrariesSelectorBase } from '../../editpages/code-edit-pages/tools/paper-libraries-selector/paper-libraries-selector';
+
 namespace PaperDropdownBehaviorNamespace {
 	export const paperDropdownBehaviorProperties: {
 		raised: boolean;
@@ -435,12 +439,10 @@ namespace PaperDropdownBehaviorNamespace {
 	Polymer.PaperDropdownBehavior = PDB as PaperDropdownBehaviorBase;
 }
 
-type PaperDropdownBehaviorBase = Polymer.El<'paper-dropdown-behavior',
+export type PaperDropdownBehaviorBase = Polymer.El<'paper-dropdown-behavior',
 	typeof PaperDropdownBehaviorNamespace.PDB & typeof PaperDropdownBehaviorNamespace.paperDropdownBehaviorProperties
 >;
-type PaperDropdownBehavior<T> = T & PaperDropdownBehaviorBase;
+export type PaperDropdownBehavior<T> = T & PaperDropdownBehaviorBase;
 	type PaperDropdownInstance = PaperDropdownBehavior<
 	PaperLibrariesSelectorBase|PaperDropdownMenuBase
 >;
-
-PaperDropdownBehaviorNamespace

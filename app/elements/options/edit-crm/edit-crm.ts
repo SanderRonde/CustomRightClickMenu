@@ -1,6 +1,9 @@
 /// <reference path="../../elements.d.ts" />
 
-namespace EditCrmElement {
+import { EditCrmItem } from '../edit-crm-item/edit-crm-item';
+import { Polymer } from '../../../../tools/definitions/polymer';
+
+export namespace EditCrmElement {
 	export const editCrmProperties: {
 		crm: CRMBuilder;
 		crmLoading: boolean;
@@ -1125,4 +1128,4 @@ namespace EditCrmElement {
 	}
 }
 
-type EditCrm = Polymer.El<'edit-crm', typeof EditCrmElement.EC & typeof EditCrmElement.editCrmProperties>;
+export type EditCrm = Polymer.El<'edit-crm', typeof EditCrmElement.EC & typeof EditCrmElement.editCrmProperties>;

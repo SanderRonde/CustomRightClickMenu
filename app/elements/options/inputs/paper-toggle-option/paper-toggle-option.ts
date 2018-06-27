@@ -1,5 +1,7 @@
 ﻿/// <reference path="../../../elements.d.ts" />
 
+import { Polymer } from "../../../../../tools/definitions/polymer";
+
 namespace PaperToggleOptionElement {
 	export const paperToggleOptionProperties: {
 		toggled: boolean;
@@ -61,5 +63,5 @@ namespace PaperToggleOptionElement {
 	}
 }
 
-type PaperToggleOption = Polymer.El<'paper-toggle-option',
+export type PaperToggleOption = Polymer.El<'paper-toggle-option',
 	typeof PaperToggleOptionElement.PTO & typeof PaperToggleOptionElement.paperToggleOptionProperties>;

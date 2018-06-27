@@ -1,11 +1,18 @@
 /// <reference path="background.ts" />
 /// <reference path="background/crmapifunctions.ts" />
 
-interface Window {
-	_crmAPIRegistry: any[];
+import { EncodedString } from "../elements/elements";
+import { EncodedContextData, GreaseMonkeyData, BrowserTabsQueryInfo, GreaseMonkeyDataInfo } from './background/sharedTypes';
+
+declare const browserAPI: browserAPI;
+
+declare global {
+	interface Window {
+		_crmAPIRegistry: any[];
+	}
 }
 
-type CRMAPIMessage = {
+export type CRMAPIMessage = {
 	id: CRM.GenericNodeId;
 	type: 'logCrmAPIValue';
 	tabId: TabId;

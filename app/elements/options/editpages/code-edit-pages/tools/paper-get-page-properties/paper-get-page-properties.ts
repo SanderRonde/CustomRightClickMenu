@@ -1,5 +1,7 @@
 ﻿/// <reference path="../../../../../elements.d.ts" />
 
+import { Polymer } from '../../../../../../../tools/definitions/polymer';
+
 namespace PaperGetPagePropertiesElement {
 	export const paperGetPagePropertiesProperties: {
 		selected: number[];
@@ -136,5 +138,5 @@ namespace PaperGetPagePropertiesElement {
 	}
 }
 
-type PaperGetPageProperties = Polymer.El<'paper-get-page-properties', 
+export type PaperGetPageProperties = Polymer.El<'paper-get-page-properties', 
 	typeof PaperGetPagePropertiesElement.PGPP & typeof PaperGetPagePropertiesElement.paperGetPagePropertiesProperties>;

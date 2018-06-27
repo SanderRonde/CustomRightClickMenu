@@ -2,7 +2,9 @@
 import { MessageHandling } from "./messagehandling.js";
 import { BrowserHandler } from "./browserhandler.js";
 import { ModuleData } from "./moduleTypes";
+import { BackgroundpageWindow, TabData, LogListenerLine, LogListenerObject, LogListener, CRMAPIMessageInstance, ContextMenuItemTreeItem, ContextMenuOverrides } from './sharedTypes.js';
 
+declare const browserAPI: browserAPI;
 declare const window: BackgroundpageWindow;
 
 export namespace GlobalDeclarations {

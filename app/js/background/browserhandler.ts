@@ -1,5 +1,8 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
 import { ModuleData } from "./moduleTypes";
+import { CRMAPIMessageInstance, UserAddedContextMenu } from './sharedTypes';
+
+declare const browserAPI: browserAPI;
 
 export namespace BrowserHandler.ChromeAPIs {
 	function checkFirstRuntimeArg(message: ChromeAPIMessage|BrowserAPIMessage, expectedType: string, name: string) {

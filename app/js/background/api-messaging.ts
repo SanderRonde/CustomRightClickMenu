@@ -1,6 +1,7 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
 import { BrowserHandler } from "./browserhandler.js";
 import { ModuleData } from "./moduleTypes";
+import { CRMAPIMessageInstance } from './sharedTypes.js';
 
 export namespace APIMessaging.CRMMessage {
 	interface CRMAPIResponse<T> {

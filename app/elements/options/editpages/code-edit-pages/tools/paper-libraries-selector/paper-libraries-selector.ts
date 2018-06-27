@@ -1,5 +1,9 @@
 /// <reference path="../../../../../elements.d.ts" />
 
+import { MonacoEditorElement } from '../../../monaco-editor/monaco-editor';
+import { Polymer } from '../../../../../../../tools/definitions/polymer';
+import { PaperDropdownBehavior } from '../../../../inputs/paper-dropdown-behavior/paper-dropdown-behavior';
+
 namespace PaperLibrariesSelectorElement {
 	export const paperLibrariesSelectorProperties: {
 		usedlibraries: CRM.Library[];
@@ -681,7 +685,7 @@ namespace PaperLibrariesSelectorElement {
 	}
 }
 
-type PaperLibrariesSelectorBase = Polymer.El<'paper-libraries-selector',
+export type PaperLibrariesSelectorBase = Polymer.El<'paper-libraries-selector',
 	typeof PaperLibrariesSelectorElement.PLS & typeof PaperLibrariesSelectorElement.paperLibrariesSelectorProperties
 >;
-type PaperLibrariesSelector = PaperDropdownBehavior<PaperLibrariesSelectorBase>;
+export type PaperLibrariesSelector = PaperDropdownBehavior<PaperLibrariesSelectorBase>;

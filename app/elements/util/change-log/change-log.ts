@@ -1,5 +1,7 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
+import { Polymer } from '../../../../tools/definitions/polymer';
+
 namespace ChangeLogElement {
 	export const changeLogProperties: {
 		changelog: {
@@ -187,4 +189,4 @@ namespace ChangeLogElement {
 	}
 }
 
-type ChangeLog = Polymer.El<'change-log', typeof ChangeLogElement.CL & typeof ChangeLogElement.changeLogProperties>;
+export type ChangeLog = Polymer.El<'change-log', typeof ChangeLogElement.CL & typeof ChangeLogElement.changeLogProperties>;

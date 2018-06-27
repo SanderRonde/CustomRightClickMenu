@@ -16,6 +16,8 @@ import * as request from 'request';
 import { assert } from 'chai';
 import * as path from 'path';
 import * as fs from 'fs';
+import { GlobalObject } from '../app/js/background/sharedTypes';
+import { DeepPartial } from './imports';
 
 function isDefaultKey(key: string): key is Extract<keyof Storage, string> {
 	return !(key !== 'getItem' && 

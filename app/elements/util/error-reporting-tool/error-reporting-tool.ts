@@ -1,8 +1,15 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
-interface ErrorReportingToolSquare extends HTMLElement {
-	xPos: string;
-	yPos: string;
+import { Polymer } from '../../../../tools/definitions/polymer';
+
+declare const browserAPI: browserAPI;
+declare const BrowserAPI: BrowserAPI;
+
+declare global {
+	interface ErrorReportingToolSquare extends HTMLElement {
+		xPos: string;
+		yPos: string;
+	}
 }
 
 namespace ErrorReportingToolElement {
@@ -527,5 +534,5 @@ namespace ErrorReportingToolElement {
 	}
 }
 
-type ErrorReportingTool = Polymer.El<'error-reporting-tool', typeof ErrorReportingToolElement.ERT & 
+export type ErrorReportingTool = Polymer.El<'error-reporting-tool', typeof ErrorReportingToolElement.ERT & 
 	typeof ErrorReportingToolElement.errorReportingTool>;

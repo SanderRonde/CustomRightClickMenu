@@ -1,5 +1,8 @@
 /// <reference path="../../tools/definitions/chrome.d.ts" />
 
+import { ContextMenuCreateProperties } from "../../app/js/background/sharedTypes";
+
+declare const BrowserAPI: BrowserAPI;
 
 type StorageContainer = {
 	[key: string]: any;

@@ -41,6 +41,8 @@ import {
 	getCRM, findElement, FoundElement, forEachPromise, 
 	BrowserstackCapabilities
 } from './imports';
+import { EditCrmItem } from '../app/elements/options/edit-crm-item/edit-crm-item';
+import { TypeSwitcher } from '../app/elements/options/type-switcher/type-switcher';
 describe = originals.describe;
 it = originals.it;
 //@ts-ignore

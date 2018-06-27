@@ -1,5 +1,7 @@
 /// <reference path="../../elements.d.ts" />
 
+import { Polymer } from '../../../../tools/definitions/polymer';
+
 namespace AnimatedButtonElement {
 	export const animatedButtonProperties: {
 		cooldown: boolean;
@@ -101,5 +103,5 @@ namespace AnimatedButtonElement {
 	}
 }
 
-type AnimatedButton = Polymer.El<'animated-button', 
+export type AnimatedButton = Polymer.El<'animated-button', 
 	typeof AnimatedButtonElement.AB & typeof AnimatedButtonElement.animatedButtonProperties>;

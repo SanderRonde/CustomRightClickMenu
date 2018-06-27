@@ -1,5 +1,8 @@
 ﻿/// <reference path="../../../elements.d.ts" />
 
+import { Polymer } from "../../../../../tools/definitions/polymer";
+import { PaperDropdownBehavior } from '../paper-dropdown-behavior/paper-dropdown-behavior';
+
 namespace PaperDropdownMenuElement {
 	export const paperDropdownMenuProperties: {
 		selected: number;
@@ -114,7 +117,7 @@ namespace PaperDropdownMenuElement {
 	}
 }
 
-type PaperDropdownMenuBase = Polymer.El<'paper-dropdown-menu',
+export type PaperDropdownMenuBase = Polymer.El<'paper-dropdown-menu',
 	typeof PaperDropdownMenuElement.PDM & typeof PaperDropdownMenuElement.paperDropdownMenuProperties
 >;
-type PaperDropdownMenu = PaperDropdownBehavior<PaperDropdownMenuBase>;
+export type PaperDropdownMenu = PaperDropdownBehavior<PaperDropdownMenuBase>;

@@ -2,6 +2,7 @@
 import { BrowserHandler } from "./browserhandler.js";
 import { CRMAPIFunctions } from "./crmapifunctions";
 import { ModuleData } from "./moduleTypes";
+import { CRMAPIMessageInstance } from './sharedTypes.js';
 
 export namespace MessageHandling.Instances {
 	export function respond(message: {

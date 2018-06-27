@@ -1,5 +1,9 @@
 import { ModuleData } from "./moduleTypes";
+import { BackgroundpageWindow, UpgradeErrorHandler, SCRIPT_CONVERSION_TYPE, MatchPattern } from './sharedTypes';
+import { EncodedString } from '../../elements/elements';
 
+declare const browserAPI: browserAPI;
+declare const BrowserAPI: BrowserAPI;
 declare const window: BackgroundpageWindow;
 
 export namespace Storages.SetupHandling.TransferFromOld.LegacyScriptReplace.LocalStorageReplace {

@@ -1,3 +1,5 @@
+declare const browserAPI: browserAPI;
+
 let activeNodes: {
 	node: CRM.StylesheetNode;
 	state: 'installed'|'updatable';

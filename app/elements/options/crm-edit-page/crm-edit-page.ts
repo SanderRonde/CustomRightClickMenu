@@ -1,5 +1,8 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
+import { EditPage } from '../../elements';
+import { Polymer } from '../../../../tools/definitions/polymer';
+
 namespace CrmEditPageElement {
 	export const crmEditPageProperties: {
 		item: CRM.Node;
@@ -333,6 +336,6 @@ namespace CrmEditPageElement {
 	}
 }
 
-type CrmEditPage = Polymer.El<'crm-edit-page',
+export type CrmEditPage = Polymer.El<'crm-edit-page',
 	typeof CrmEditPageElement.CEP & typeof CrmEditPageElement.crmEditPageProperties
 >;

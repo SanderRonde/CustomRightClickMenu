@@ -1,5 +1,7 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
+import { Polymer } from '../../../../tools/definitions/polymer';
+
 namespace DefaultLinkElement {
 	export const defaultLinkProperties: {
 		href: string;
@@ -54,6 +56,6 @@ namespace DefaultLinkElement {
 	}
 }
 
-type DefaultLink = Polymer.El<'default-link',
+export type DefaultLink = Polymer.El<'default-link',
 	typeof DefaultLinkElement.DL & typeof DefaultLinkElement.defaultLinkProperties
 >;

@@ -1,4 +1,6 @@
 import { ModuleData } from "./moduleTypes";
+import { Globals, CRMTemplates } from './sharedTypes';
+import { EncodedString } from '../../elements/elements';
 
 export namespace Global {
 	export let modules: ModuleData;

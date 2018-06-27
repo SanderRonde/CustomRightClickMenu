@@ -1,12 +1,12 @@
 /// <reference path="../../../elements.d.ts" />
 
-declare const ShadowRoot: typeof HTMLElement & {
-	prototype: {
-		caretRangeFromPoint(x: number, y: number): any;
-	}
-}
+import { EncodedString, LinterWarning } from "../../../elements";
+import { Polymer } from '../../../../../tools/definitions/polymer';
 
-namespace MonacoEditorElement {
+declare const browserAPI: browserAPI;
+declare const BrowserAPI: BrowserAPI;
+
+export namespace MonacoEditorElement {
 	const metaDataDescriptions = {
 		name: 'The name of this script',
 		namespace: 'The namespace of the script',
@@ -3012,4 +3012,4 @@ namespace MonacoEditorElement {
 	}
 }
 
-type MonacoEditor = MonacoEditorElement.MonacoEditor;
+export type MonacoEditor = MonacoEditorElement.MonacoEditor;
