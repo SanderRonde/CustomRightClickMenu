@@ -1,6 +1,7 @@
 const processhtml = require('gulp-processhtml');
 const joinPages = require('./tools/joinPages');
 const polymerBuild = require('./tools/build');
+const browserify = require('gulp-browserify');
 const childProcess = require('child_process');
 const StreamZip = require('node-stream-zip');
 const htmlTypings = require('html-typings');
@@ -301,29 +302,43 @@ function readFile(filePath, options) {
 					.pipe(replace(/CRM-dev/g, 'CRM'))
 					.pipe(gulp.dest('./temp/'));
 			},
-			async function rollupBackground() {
-				const bundle = await rollup.rollup({
-					input: './app/js/background.js',
-					onwarn: (warning) => {
-						if (typeof warning === 'string') {
-							console.log(warning);
-						} else {
-							switch (warning.code) {
-								case 'THIS_IS_UNDEFINED':
-								case 'EVAL':
-									return;
-								default:
-									console.log(warning.message);
+			gulp.series(
+				async function rollupBackground() {
+					const bundle = await rollup.rollup({
+						input: './app/js/background.js',
+						external: ['tslib'],
+						onwarn: (warning) => {
+							if (typeof warning === 'string') {
+								console.log(warning);
+							} else {
+								switch (warning.code) {
+									case 'THIS_IS_UNDEFINED':
+									case 'EVAL':
+										return;
+									default:
+										console.log(warning.message);
+								}
 							}
 						}
-					}
-				});
+					});
 
-				await bundle.write({
-					format: 'iife',
-					file: './temp/js/background.js'
-				});
-			},
+					await bundle.write({
+						format: 'iife',
+						globals: {
+							tslib: 'tslib_1'	
+						},
+						file: './temp/js/background.js'
+					});
+				}, async function addTsLibImport() {
+					const srcFile = await readFile('./temp/js/background.js', { encoding: 'utf8'});
+					const file = `var tslib_1 = require('tslib');\n${srcFile}`;
+					await writeFile('./temp/js/background.js', file, { encoding: 'utf8' });
+				}, function browserifyBackground() {
+					return gulp.src('./temp/js/background.js')
+						.pipe(browserify({}))
+						.pipe(gulp.dest('./temp/js/'));
+				}
+			),
 			function copyBuild() {
 				return gulp
 					.src([
@@ -1384,19 +1399,3 @@ async function joinDefs() {
 gulp.task('default', gulp.series('build'));
 gulp.task('testBuild', genTask('Attempts to build everything',
 	gulp.series('clean', 'build', 'clean', 'documentationWebsite', 'clean')));
-
-gulp.task('test', () => {
-	function copyMonaco() {
-		return gulp
-			.src([
-				'**/**',
-				'!vs/basic-languages/src/**',
-				'vs/basic-languages/src/css.js'
-			], {
-				base: 'node_modules/monaco-editor/min',
-				cwd: 'node_modules/monaco-editor/min'
-			})
-			.pipe(gulp.dest('app/elements/options/editpages/monaco-editor/src/min/'));
-	}
-	return copyMonaco();
-});

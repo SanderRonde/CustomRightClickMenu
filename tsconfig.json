@@ -5,6 +5,7 @@
         "baseUrl": "./tools/definitions/",
         "forceConsistentCasingInFileNames": true,
         "module": "esnext",
+        "moduleResolution": "node",
         "noImplicitAny": true,
         "noImplicitThis": true,
         "removeComments": true,
@@ -16,7 +17,8 @@
         "noUnusedLocals": true,
         "target": "es3",
         "noUnusedParameters": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "importHelpers": true
 	}, 
     "allowJs": true,
     "compileOnSave": true,

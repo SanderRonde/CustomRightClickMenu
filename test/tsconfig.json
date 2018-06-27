@@ -4,6 +4,7 @@
         "baseUrl": "../tools/definitions/",
         "forceConsistentCasingInFileNames": true,
         "module": "commonjs",
+        "moduleResolution": "node",
         "noImplicitAny": true,
         "noImplicitThis": true,
         "removeComments": true,
@@ -15,7 +16,8 @@
         "noUnusedLocals": true,
         "target": "es5",
         "noUnusedParameters": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "importHelpers": true
 	}, 
     "allowJs": true,
     "compileOnSave": true,

@@ -1,8 +1,11 @@
 declare const window: BackgroundpageWindow;
+declare const process: {
+	browser: boolean;
+};
 
 export namespace Info {
 	export function init() {
-		if (typeof module === 'undefined') {
+		if (process.browser) {
 			// Running in the browser
 			window.log = console.log.bind(console);
 			if (window.location && window.location.hash && window.location.hash.indexOf('noBackgroundInfo')) {
