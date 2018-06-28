@@ -2524,6 +2524,13 @@ namespace CRMAppElement {
 				}
 			}
 
+			private static _updateCopies() {
+				this._parent()._storageLocalCopy = 
+					JSON.parse(JSON.stringify(this._parent().storageLocal));
+				this._parent()._settingsCopy = 
+					JSON.parse(JSON.stringify(this._parent().settings));
+			}
+
 			static upload(force: boolean) {
 				//Send changes to background-page, background-page uploads everything
 				//Compare storageLocal objects
@@ -2547,6 +2554,7 @@ namespace CRMAppElement {
 				}
 
 				this._parent().pageDemo.create();
+				this._updateCopies();
 			};
 
 			private static _parent() {
