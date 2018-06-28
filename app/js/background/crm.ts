@@ -584,9 +584,10 @@ export namespace CRMNodes.Script.Background {
 			modules.background.byId.get(node.id).terminate();
 		}
 		//There can only be one backgroundscript
-		if (modules.crmValues.tabData.has(0)) {
-			modules.crmValues.tabData.get(0).nodes.clear();
-		}
+		if (modules.crmValues.tabData.has(0) &&
+			modules.crmValues.tabData.get(0).nodes.has(node.id)) {
+				modules.crmValues.tabData.get(0).nodes.delete(node.id);
+			}
 
 		let key: number[] = [];
 		let err = false;
