@@ -1,17 +1,23 @@
+// @ts-ignore
 const processhtml = require('gulp-processhtml');
 const joinPages = require('./tools/joinPages');
 const polymerBuild = require('./tools/build');
 const childProcess = require('child_process');
+// @ts-ignore
 const StreamZip = require('node-stream-zip');
 const htmlTypings = require('html-typings');
+// @ts-ignore
 const beautify = require('gulp-beautify');
 const replace = require('gulp-replace');
+// @ts-ignore
 const banner = require('gulp-banner');
 const rename = require('gulp-rename');
 const ts = require('gulp-typescript');
 const uglify = require('gulp-uglify');
 const babel = require('gulp-babel');
+// @ts-ignore
 const xpi = require('firefox-xpi');
+// @ts-ignore
 const crisper = require('crisper');
 const mkdirp = require('mkdirp');
 const rollup = require('rollup');
@@ -137,7 +143,9 @@ function readFile(filePath, options) {
 		'make sure to run `yarn install --force` before this',
 			gulp.parallel(
 				function crispComponents() { 
+					// @ts-ignore
 					return new Promise((resolve, reject) => {
+						// @ts-ignore
 						glob('./app/bower_components/**/*.html', async (err, matches) => {
 							await Promise.all([matches.map((file) => {
 								return new Promise(async (resolve) => {
@@ -184,6 +192,7 @@ function readFile(filePath, options) {
 							'MonacoEditorHookManager.caretRangeFromPoint(arguments[0])'))
 						.pipe(replace(/this.target(\s)?=(\s)?e.target/g,
 							'this.target = e.path ? e.path[0] : e.target'))
+						// @ts-ignore
 						.pipe(beautify())
 						.pipe(gulp.dest('app/elements/options/editpages/monaco-editor/src/min/'));
 				},
@@ -226,6 +235,7 @@ function readFile(filePath, options) {
 /* Compilation */
 (() => {
 	gulp.task(genTask('Updates the HTML to Typescript maps',
+		// @ts-ignore
 		async function updateTsIdMaps(done) {
 			const pattern = '{app/elements/**/*.html,!app/elements/elements.html}';
 			const typings = await htmlTypings.extractGlobTypes(pattern);
@@ -381,6 +391,7 @@ function readFile(filePath, options) {
 			function inlineElementImports() {
 				return gulp
 					.src('**/*.html', { cwd: './app/elements/', base: './app/elements/'})
+					// @ts-ignore
 					.pipe(processhtml({
 						strip: true,
 						data: {
@@ -420,6 +431,7 @@ function readFile(filePath, options) {
 							'html/entrypointPrefix.html',
 							'elements/installing/install-confirm/install-confirm.html'
 						], { cwd: './app/', base: './app/' })
+						// @ts-ignore
 						.pipe(processhtml({
 							strip: true,
 							data: {
@@ -459,6 +471,7 @@ function readFile(filePath, options) {
 					'./temp/html/install.html',
 					'./temp/html/options.html'
 				])
+				// @ts-ignore
 				.pipe(processhtml({
 					strip: true,
 					data: {
@@ -735,6 +748,7 @@ function readFile(filePath, options) {
 					function htmlBanners() {
 						return gulp
 							.src(['build/html/**.html'])
+							// @ts-ignore
 							.pipe(banner(BANNERS.html))
 							.pipe(gulp.dest('./build/html/'))
 					},
@@ -747,6 +761,7 @@ function readFile(filePath, options) {
 								cwd: './build',
 								base: './build'
 							})
+							// @ts-ignore
 							.pipe(banner(BANNERS.js))
 							.pipe(gulp.dest('./build/'))
 					}
@@ -839,6 +854,7 @@ function readFile(filePath, options) {
 		async function beautifyJs() {
 			return gulp
 				.src('build/**/*.js')
+				// @ts-ignore
 				.pipe(beautify())
 				.pipe(gulp.dest('./build/'));
 		}
@@ -957,6 +973,7 @@ function readFile(filePath, options) {
 (() => {
 	function typedocCloned() {
 		return new Promise((resolve) => {
+			// @ts-ignore
 			fs.stat(path.join(__dirname, 'typedoc', 'package.json'), (err, stat) => {
 				if (err) {
 					//Doesn't exist yet
@@ -970,8 +987,10 @@ function readFile(filePath, options) {
 
 	async function runCmd(cmd, cwd = __dirname) {
 		return new Promise((resolve, reject) => {
+			// @ts-ignore
 			const proc = childProcess.exec(cmd, {
 				cwd: cwd
+			// @ts-ignore
 			}, (err, stdout, stderr) => {
 				if (err !== null) {
 					reject(err);
@@ -982,6 +1001,7 @@ function readFile(filePath, options) {
 		});
 	}
 
+	// @ts-ignore
 	function promisePipe(pipe) {
 		return new Promise((resolve, reject) => {
 			pipe.once('close', () => {

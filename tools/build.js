@@ -1,14 +1,20 @@
+// @ts-ignore
 const babelPresetEs5 = require('babel-plugin-transform-es5-property-mutators');
 const { HtmlSplitter, forkStream, PolymerProject } = require('polymer-build');
+// @ts-ignore
 const externalHelpers = require('babel-plugin-external-helpers');
+// @ts-ignore
 const babelPreset2015 = require('babel-preset-es2015');
+// @ts-ignore
 const minifyPreset = require('babel-preset-minify');
+// @ts-ignore
 const presetEs3 = require('babel-preset-es3');
 const htmlMinifier = require('html-minifier');
 const mergeStream = require('merge-stream');
 const ProgressBar = require('progress');
 const babelCore = require('babel-core');
 const dest = require('vinyl-fs').dest;
+// @ts-ignore
 const cssSlam = require('css-slam');
 const gulpif = require('gulp-if');
 const stream = require('stream');
@@ -132,21 +138,26 @@ function getOptimizeStreams(options) {
 	const streams = [];
 
 	if (options.js && options.js.compile) {
+		// @ts-ignore
 		streams.push(gulpif(/\.js$/, new JSDefaultCompileTransform()));
 	}
 
 	if (options.html && options.html.minify) {
 		streams.push(gulpif(/\.html$/,
+			// @ts-ignore
 			new HTMLOptimizeTransform(
 				{collapseWhitespace: true, removeComments: true})));
 	}
 	if (options.css && options.css.minify) {
 		streams.push(
+			// @ts-ignore
 			gulpif(/\.css$/, new CSSMinifyTransform({stripWhitespace: true})));
 		streams.push(gulpif(
+			// @ts-ignore
 			/\.html$/, new InlineCSSOptimizeTransform({stripWhitespace: true})));
 	}
 	if (options.js && options.js.minify) {
+		// @ts-ignore
 		streams.push(gulpif(/\.js$/, new JSDefaultMinifyTransform()));
 	}
 	
@@ -225,6 +236,7 @@ module.exports = async function(options) {
 			buildStream.on('end', () => {
 				resolve();
 			});
+			// @ts-ignore
 			buildStream.on('error', (err) => {
 				reject();
 			});
