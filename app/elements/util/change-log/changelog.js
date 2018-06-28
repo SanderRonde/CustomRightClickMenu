@@ -135,7 +135,13 @@
 			'Nodes that are not shown on the current content type are greyed out instead of hidden'
 		],
 		'2.1.2': [
-			'Fixed a big firefox bug causing the options page to not load'
+			'Fixed a bug firefox bug causing the options page to not load'
+		],
+		'2.1.3': [
+			'Fixed the "change type" button',
+			'Backgroundscripts restart on change',
+			'Scripts/stylesheets that run early also run when refreshing a page',
+			'Small performance improvements, bug fixes and file size reductions'
 		]
 	};
 
