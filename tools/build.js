@@ -6,6 +6,7 @@ const minifyPreset = require('babel-preset-minify');
 const presetEs3 = require('babel-preset-es3');
 const htmlMinifier = require('html-minifier');
 const mergeStream = require('merge-stream');
+const ProgressBar = require('progress');
 const babelCore = require('babel-core');
 const dest = require('vinyl-fs').dest;
 const cssSlam = require('css-slam');
@@ -152,6 +153,21 @@ function getOptimizeStreams(options) {
 	return streams;
 }
 
+class LoggerStream extends stream.Transform {
+	constructor(bar) {
+		super({objectMode: true});
+		this.bar = bar;
+	}
+	
+	_transform(file, _encoding, callback) {
+		if (!this.bar.complete) {
+			this.bar.tick();
+		}
+
+		callback(null, file);
+	}
+}
+
 /**
  * @param {Object} options - The options for this project
  * @param {Object} options.project - The project
@@ -179,6 +195,7 @@ module.exports = async function(options) {
 
 	const projectConfigBase = Object.assign(options.project);
 	delete projectConfigBase.entrypoint;
+	const bar = new ProgressBar(':bar :percent :current/:total', 462);
 	await Promise.all(entrypoints.map((entryPoint) => {
 		return new Promise((resolve, reject) => {
 			const project = new PolymerProject(Object.assign(projectConfigBase, {
@@ -191,6 +208,7 @@ module.exports = async function(options) {
 
 			let buildStream = pipeStreams([
 				mergeStream(sourcesStream, depsStream),
+				new LoggerStream(bar),
 				splitter.split(),
 				getOptimizeStreams(options.optimization),
 				splitter.rejoin(),
