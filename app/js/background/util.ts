@@ -388,8 +388,17 @@ export namespace Util {
 		});
 	}
 	const _requiredFiles: string[] = [];
+	const _fetchingFiles: Map<string, Promise<string>> = new window.Map();
 	function loadFile(path: string, ...msg: any[]): Promise<string> {
-		return xhr(browserAPI.runtime.getURL(path), msg);
+		if (_fetchingFiles.get(path)) {
+			return _fetchingFiles.get(path);
+		}
+		const prom = xhr(browserAPI.runtime.getURL(path), msg);
+		_fetchingFiles.set(path, prom);
+		prom.then(() => {
+			_fetchingFiles.delete(path);
+		});
+		return prom;
 	}
 	export async function execFile(path: string): Promise<void> {
 		if (_requiredFiles.indexOf(path) > -1) {
