@@ -176,6 +176,7 @@
     "test:chrome:latest:install:openuserjs": "mocha test/installation-test.js --chrome-latest --test openuserjs",
     "test:chrome:latest:install:userscriptsorg": "mocha test/installation-test.js --chrome-latest --test userscripts.org",
     "test:chrome:latest:install:userstylesorg": "mocha test/installation-test.js --chrome-latest --test userstyles.org",
+    "test:chrome:latest:install:openusercss": "mocha test/installation-test.js --chrome-latest --test openusercss",
     "test:firefox": "yarn test:firefox:quantum && yarn test:firefox:latest",
     "test:firefox:quantum": "mocha test/UITest.js --firefox-quantum",
     "test:firefox:latest": "mocha test/UITest.js --firefox-latest",
