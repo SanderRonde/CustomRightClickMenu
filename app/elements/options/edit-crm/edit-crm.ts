@@ -716,41 +716,50 @@ namespace EditCrmElement {
 			return JSON.stringify(node);
 		};
 
-		private static _getMetaIndexes(this: EditCrm, script: string): {
+		private static _getMetaIndexes(script: string): {
 			start: number;
 			end: number;
-		} {
+		}[] {
+			const indexes: {
+				start: number;
+				end: number;
+			}[] = [];
 			let metaStart = -1;
 			let metaEnd = -1;
 			const lines = script.split('\n');
 			for (let i = 0; i < lines.length; i++) {
 				if (metaStart !== -1) {
-					if (lines[i].indexOf('==/UserScript==') > -1) {
-						metaEnd = i;
-						break;
-					}
-				} else if (lines[i].indexOf('==UserScript==') > -1) {
-					metaStart = i;
+					if (lines[i].indexOf('==/UserScript==') > -1 ||
+						lines[i].indexOf('==/UserStyle==') > -1) {
+							metaEnd = i;
+							indexes.push({
+								start: metaStart,
+								end: metaEnd
+							});
+							metaStart = -1;
+							metaEnd = -1;
+						}
+				} else if (lines[i].indexOf('==UserScript==') > -1 ||
+						lines[i].indexOf('==UserStyle==') > -1) {
+							metaStart = i;
+						}
+			}
+	
+			return indexes;
+		}
+		private static _getMetaLines(script: string): string[] {
+			const metaIndexes = this._getMetaIndexes(script);
+	
+			const metaLines: string[] = [];
+			const lines = script.split('\n');
+			for (const { start, end } of metaIndexes) {
+				for (let i = start + 1; i < end; i++) {
+					metaLines.push(lines[i]);
 				}
 			}
-			return {
-				start: metaStart,
-				end: metaEnd
-			};
-		};
-
-		private static _getMetaLines(this: EditCrm, script: string): string[] {
-			const metaIndexes = this._getMetaIndexes(script);
-			if (metaIndexes.start === -1) {
-				return null;
-			}
-			const metaStart = metaIndexes.start;
-			const metaEnd = metaIndexes.end;
-			const startPlusOne = metaStart + 1;
-			const lines = script.split('\n');
-			const metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
+	
 			return metaLines;
-		};
+		}
 
 		private static _getMetaTags(this: EditCrm, script: string): {
 			[key: string]: (string|number)[];
@@ -789,9 +798,17 @@ namespace EditCrmElement {
 			let metaTags: {
 				[key: string]: (string|number)[];
 			} = {};
-			if (metaIndexes.start !== -1) {
+			const slicedIndexes: number[] = [];
+			for (const { start, end } of metaIndexes) {
+				for (let i = start; i < end; i++) {
+					slicedIndexes.push(i);
+				}
+			}
+			if (metaIndexes.length > 0) {
 				//Remove metaLines
-				codeSplit.splice(metaIndexes.start, (metaIndexes.end - metaIndexes.start) + 1);
+				for (const line of slicedIndexes.reverse()) {
+					codeSplit.splice(line, 1);
+				}
 				metaTags = this._getMetaTags(code);
 			}
 
@@ -917,9 +934,11 @@ namespace EditCrmElement {
 					//Turn triggers into @document rules
 					if ((node as CRM.StylesheetNode).value.launchMode === 0 || (node as CRM.StylesheetNode).value.launchMode === 1) {
 						//On clicking
-						return (node as CRM.StylesheetNode).value.stylesheet;
+						return (node as CRM.StylesheetNode).value.stylesheet.replace(
+							/UserScript/g, 'UserStyle');
 					} else {
-						return this._generateDocumentRule(node as CRM.StylesheetNode);
+						return this._generateDocumentRule(node as CRM.StylesheetNode).replace(
+							/UserScript/g, 'UserStyle');
 					}
 				default:
 				case 'CRM':

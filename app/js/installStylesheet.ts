@@ -41,6 +41,7 @@ document.addEventListener("stylishInstallChrome", async () => {
 		browserAPI.runtime.sendMessage({
 			type: 'styleInstall',
 			data: {
+				type: 'userstyles.org',
 				code: JSON.stringify(parsed),
 				author: authorName
 			}

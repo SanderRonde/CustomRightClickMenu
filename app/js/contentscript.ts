@@ -144,19 +144,45 @@
 		}
 	});
 
-	browserAPI.storage.local.get('useAsUserscriptInstaller').then((result) => {
-		if (result.useAsUserscriptInstaller) {
+	browserAPI.storage.local.get().then((result) => {
+		if (result.useAsUserscriptInstaller || result.useAsUserstylesInstaller) {
 			const installURL = browserAPI.runtime.getURL('html/install.html');
 			document.body.addEventListener('mousedown', (e) => {
 				const target = e.target as HTMLAnchorElement;
-				if (target && target.href && target.href.indexOf(installURL) === -1 && target.href.match(/.+user\.js$/)) {
-					const installPageURL = `${installURL}?i=${
-						encodeURIComponent(target.href)
-					}&s=${
-						encodeURIComponent(location.href)
-					}`;
-					target.href = installPageURL;
-					target.target = '_blank';
+				const isValidTarget = target && target.href && target.href.indexOf(installURL) === -1;
+				if (isValidTarget) {
+					if (result.useAsUserscriptInstaller && target.href.match(/.+user\.js$/)) {
+						const installPageURL = `${installURL}?i=${
+							encodeURIComponent(target.href)
+						}&s=${
+							encodeURIComponent(location.href)
+						}`;
+						target.href = installPageURL;
+						target.target = '_blank';
+					} else if (result.useAsUserstylesInstaller && target.href.match(/.+user\.css$/)) {
+						const url = target.href;
+						const xhr = new XMLHttpRequest();
+						xhr.onreadystatechange = () => {
+							if (xhr.readyState == 4) {
+								if (xhr.status < 400) {
+									browserAPI.runtime.sendMessage({
+										type: 'styleInstall',
+										data: {
+											type: 'user.css',
+											code: xhr.responseText,
+											downloadURL: url
+										}
+									});
+									alert('Userstyle installed into Custom Right-Click Menu');
+								}
+							}
+						};
+						xhr.open('GET', url, true);
+						xhr.send();
+
+						target.href = '#';
+						target.target = 'self';
+					}
 				}
 			});
 		}

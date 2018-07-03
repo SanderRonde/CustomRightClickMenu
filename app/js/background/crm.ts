@@ -693,39 +693,53 @@ export namespace CRMNodes.Script.Background {
 
 }
 
-export namespace CRMNodes.Script.MetaTags {
-	export function getMetaIndexes(script: string): {
+export namespace CRMNodes.MetaTags {
+	export function getMetaIndexes(code: string): {
 		start: number;
 		end: number;
-	} {
+	}[] {
+		const indexes: {
+			start: number;
+			end: number;
+		}[] = [];
 		let metaStart = -1;
 		let metaEnd = -1;
-		const lines = script.split('\n');
+		const lines = code.split('\n');
 		for (let i = 0; i < lines.length; i++) {
 			if (metaStart !== -1) {
-				if (lines[i].indexOf('==/UserScript==') > -1) {
-					metaEnd = i;
-					break;
-				}
-			} else if (lines[i].indexOf('==UserScript==') > -1) {
-				metaStart = i;
-			}
+				if (lines[i].indexOf('==/UserScript==') > -1 ||
+					lines[i].indexOf('==/UserStyle==') > -1) {
+						metaEnd = i;
+						indexes.push({
+							start: metaStart,
+							end: metaEnd
+						});
+						metaStart = -1;
+						metaEnd = -1;
+					}
+			} else if (lines[i].indexOf('==UserScript==') > -1 ||
+					lines[i].indexOf('==UserStyle==') > -1) {
+						metaStart = i;
+					}
 		}
-		return {
-			start: metaStart,
-			end: metaEnd
-		};
+
+		return indexes;
 	}
-	export function getMetaLines(script: string, fromCache: any = true): string[] {
+	export function getMetaLines(code: string, fromCache: any = true): string[] {
 		if (fromCache) {
 			return modules.Caches.cacheCall(getMetaLines, arguments, true);
 		}
-		const metaIndexes = getMetaIndexes(script);
-		const metaStart = metaIndexes.start;
-		const metaEnd = metaIndexes.end;
-		const startPlusOne = metaStart + 1;
-		const lines = script.split('\n');
-		return lines.splice(startPlusOne, (metaEnd - startPlusOne));
+		const metaIndexes = getMetaIndexes(code);
+
+		const metaLines: string[] = [];
+		const lines = code.split('\n');
+		for (const { start, end } of metaIndexes) {
+			for (let i = start + 1; i < end; i++) {
+				metaLines.push(lines[i]);
+			}
+		}
+
+		return metaLines;
 	}
 
 	const cachedData: Map<string, {
@@ -734,15 +748,15 @@ export namespace CRMNodes.Script.MetaTags {
 		[key: string]: any;
 	}>();
 
-	export function getMetaTags(script: string): {
+	export function getMetaTags(code: string): {
 		[key: string]: any
 	} {
-		const hash = window.md5(script);
+		const hash = window.md5(code);
 		if (cachedData.has(hash)) {
 			return cachedData.get(hash);
 		}
 
-		const metaLines = getMetaLines(script);
+		const metaLines = getMetaLines(code);
 
 		const metaTags: {
 			[key: string]: any;
@@ -1933,7 +1947,158 @@ export namespace CRMNodes.Stylesheet.Installing {
 		});
 		return results;
 	}
-	export async function installStylesheet(data: {
+	function stringStartsFromHere(haystack: string, index: number, needle: string) {
+		for (let i = 0; i < needle.length; i++) {
+			if (haystack[index + i] !== needle[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+	function findDocDeclarations(code: string): {
+		start: number;
+		firstBracket: number;
+		end: number;
+	}[] {
+		const declarations: {
+			start: number;
+			firstBracket: number;
+			end: number;
+		}[] = [];
+		let end = -1;
+		let start = -1;
+		let firstBracket = -1;
+		let openBrackets = 0;
+		let waitingForOpenBracket: boolean = false;
+
+		for (let i = 0; i < code.length; i++) {
+			const char = code[i];
+			if (stringStartsFromHere(code, i, '@-moz-document') ||
+				stringStartsFromHere(code, i, '@document')) {
+					if (start !== -1) {
+						end = i - 1;
+						declarations.push({
+							start, end, firstBracket
+						});
+					}
+					openBrackets = 0;
+					waitingForOpenBracket = true;
+					if (code[i + 1] === '-') {
+						i += '@-moz-document'.length;
+					} else {
+						i += '@document'.length;
+					}
+					start = i;
+				}
+
+			if (openBrackets === 0 && waitingForOpenBracket === false) {
+				end = i;
+				declarations.push({
+					start, end, firstBracket
+				});
+			}
+			if (char === '{') {
+				waitingForOpenBracket = false;
+				firstBracket = i;
+				openBrackets += 1;
+			} else if (char === '}') {
+				openBrackets -= 1;
+			}
+		}
+		return declarations;
+	}
+	function getMetaFunction(str: string) {
+		const exec = /(.*)\(['"](.*)['"]\)/.exec(str);
+		if (!exec) {
+			return {
+				fn: null,
+				url: null
+			}
+		}
+		return {
+			fn: exec[1],
+			url: exec[2]
+		}
+	}
+	function getLaunchData(code: string) {
+		return findDocDeclarations(code).map(({ start, end, firstBracket }) => {
+			const meta = code.slice(start, firstBracket);
+			const metaData: {
+				domains: string[];
+				regexps: string[];
+				urlPrefixes: string[];
+				urls: string[];
+				code: string;
+			} = {
+				code: code.slice(firstBracket + 1, end - 1),
+				domains: [],
+				regexps: [],
+				urlPrefixes: [],
+				urls: []
+			};
+			const metaDeclarations = meta.split(',').map(str => str.trim()).map((str) => {
+				return getMetaFunction(str);
+			});
+			for (const { fn, url } of metaDeclarations) {
+				switch (fn) {
+					case 'url':
+						metaData.urls.push(url);
+						break;
+					case 'url-prefix':
+						metaData.urlPrefixes.push(url);
+						break;
+					case 'domain':
+						metaData.domains.push(url);
+						break;
+					case 'regexp':
+						metaData.regexps.push(url);
+						break;
+				}
+			}
+
+			return extractStylesheetData(metaData);
+		});
+	}
+	async function installUserCSsStylesheet({ code, downloadURL }: {
+		type: 'user.css';
+		code: string;
+		downloadURL: string;
+	}) {
+		const meta = MetaTags.getMetaTags(code);
+		await modules.Util.promiseChain(getLaunchData(code).map((section, index) => {
+			return async () => {
+				const node = modules.constants.templates
+				.getDefaultStylesheetNode({
+					isLocal: false,
+					name: meta['name'][0] || 'My Stylesheet',
+					nodeInfo: {
+						version: meta['version'][0] || '1.0.0',
+						source: {
+							updateURL: meta['updateUrl'][0] || downloadURL || undefined,
+							url: meta['homepageURL'][0],
+							author: meta['author'][0],
+							autoUpdate: true,
+							downloadURL: downloadURL,
+							sectionIndex: index
+						},
+						permissions: [] as any[],
+						installDate: new Date().toLocaleDateString()
+					},
+					triggers: section.triggers,
+					value: {
+						launchMode: section.launchMode,
+						stylesheet: section.code
+					},
+					id: await modules.Util.generateItemId()
+				});
+
+				const crmFn = new modules.CRMAPICall.Instance(null, null);
+				await crmFn.moveNode(node, {});
+			}
+		}));
+	}
+	async function installUserstylesStylesheet(data: {
+		type: 'userstyles.org';
 		code: EncodedString<{
 			sections: {
 				domains: string[];
@@ -1983,6 +2148,34 @@ export namespace CRMNodes.Stylesheet.Installing {
 				await crmFn.moveNode(node, {});
 			}
 		}));
+	}
+	export async function installStylesheet(data: {
+		type: 'user.css';
+		code: string;
+		downloadURL: string;
+	}|{
+		type: 'userstyles.org';
+		code: EncodedString<{
+			sections: {
+				domains: string[];
+				regexps: string[];
+				urlPrefixes: string[];
+				urls: string[];
+				code: string;
+			}[];
+			md5Url :string;
+			name: string;
+			originalMd5: string;
+			updateUrl: string;
+			url: string;
+		}>;
+		author: string
+	}) {
+		if (data.type === 'userstyles.org') {
+			installUserstylesStylesheet(data);
+		} else {
+			installUserCSsStylesheet(data);
+		}
 	}
 };
 
@@ -2213,7 +2406,7 @@ export namespace CRMNodes.NodeCreation {
 	}
 	async function hasDocumentStartMetaTag(node: CRM.Node) {
 		if (node.type === 'script') {
-			const meta = Script.MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
+			const meta = MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
 			let runAtTag = meta['run-at'] || meta['run_at'];
 			if (Array.isArray(runAtTag)) {
 				runAtTag = runAtTag[0];

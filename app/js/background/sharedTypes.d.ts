@@ -846,9 +846,13 @@ interface BGConstants {
 	 */
 	contexts: _browser.contextMenus.ContextType[];
 	/**
-	 * The chrome extension IDs for the tampermonkey extensions (beta and normal)
+	 * The extension IDs for the tampermonkey extensions (beta and normal)
 	 */
 	tamperMonkeyExtensions: string[];
+	/**
+	 * The extension IDs for the styish extensions
+	 */
+	stylishExtensions: string[];
 }
 
 /**

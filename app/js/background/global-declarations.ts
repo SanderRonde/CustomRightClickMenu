@@ -758,22 +758,25 @@ export namespace GlobalDeclarations {
 			}
 		}
 
-		async function updateTamperMonkeyInstallState() {
-			const isEnabled = await modules.Util.isTamperMonkeyEnabled();
-			modules.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
+		async function updateOtherExtensionsInstallState() {
+			const tampermonkeyEnabled = await modules.Util.isTamperMonkeyEnabled();
+			const stylishEnabled = await modules.Util.isStylishInstalled();
+			modules.storages.storageLocal.useAsUserscriptInstaller = !tampermonkeyEnabled;
+			modules.storages.storageLocal.useAsUserstylesInstaller = !stylishEnabled;
 			browserAPI.storage.local.set({
-				useAsUserscriptInstaller: !isEnabled
+				useAsUserscriptInstaller: !tampermonkeyEnabled,
+				useAsUserstylesInstaller: !stylishEnabled
 			});
 		}
 
 		async function listenTamperMonkeyInstallState() {
-			await updateTamperMonkeyInstallState();
+			await updateOtherExtensionsInstallState();
 			if ((window as any).chrome && (window as any).chrome.management) {
 				const management: typeof _chrome.management = (window as any).chrome.management as any;
-				management.onInstalled.addListener(updateTamperMonkeyInstallState);
-				management.onEnabled.addListener(updateTamperMonkeyInstallState);
-				management.onUninstalled.addListener(updateTamperMonkeyInstallState);
-				management.onDisabled.addListener(updateTamperMonkeyInstallState);
+				management.onInstalled.addListener(updateOtherExtensionsInstallState);
+				management.onEnabled.addListener(updateOtherExtensionsInstallState);
+				management.onUninstalled.addListener(updateOtherExtensionsInstallState);
+				management.onDisabled.addListener(updateOtherExtensionsInstallState);
 			}
 		}
 

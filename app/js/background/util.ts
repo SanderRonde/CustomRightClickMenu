@@ -387,6 +387,24 @@ export namespace Util {
 			}
 		});
 	}
+	export async function isStylishInstalled(): Promise<boolean> {
+		return new Promise<boolean>((resolve) => {
+			if ((window as any).chrome && (window as any).chrome.management) {
+				(window as any).chrome.management.getAll((installedExtensions: {
+					id: string;
+					enabled: boolean;
+				}[]) => {
+					const stylishExtensions = installedExtensions.filter((extension) => {
+						return modules.constants.stylishExtensions
+							.indexOf(extension.id) > -1 && extension.enabled;
+					});
+					resolve(stylishExtensions.length > 0);
+				});
+			} else {
+				resolve(false);
+			}
+		});
+	}
 	const _requiredFiles: string[] = [];
 	const _fetchingFiles: Map<string, Promise<string>> = new window.Map();
 	function loadFile(path: string, ...msg: any[]): Promise<string> {

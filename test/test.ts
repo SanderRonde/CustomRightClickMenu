@@ -2265,6 +2265,7 @@ describe('CRMAPI', () => {
 			isTransfer: true,
 			shrinkTitleRibbon: false,
 			useAsUserscriptInstaller: true,
+			useAsUserstylesInstaller: true,
 			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
 			globalExcludes: [''],
 			lastUpdatedAt: JSON.parse(fs.readFileSync(

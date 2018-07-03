@@ -605,8 +605,22 @@ export namespace Global {
 				'webRequestBlocking'
 			],
 			tamperMonkeyExtensions: [
+				//Tampermonkey chrome
 				'gcalenpjmijncebpfijmoaglllgpjagf',
-				'dhdgffkkebhmkfjojejmpbldmpobfkfo'
+				//Tampermonkey beta chrome
+				'dhdgffkkebhmkfjojejmpbldmpobfkfo',
+				//Tampermonkey firefox
+				'a1ec3820-68cb-430c-8870-2c07ecc68ff6',
+				//Violentmonkey firefox
+				'7b7e1485-191d-4cb7-91d9-b6121c1157fe',
+				//Greasemonkey firefox
+				'23c311a8-060b-422e-a46e-80dd73308a3b'
+			],
+			stylishExtensions: [
+				//Stylish chrome
+				'fjnbnpbmkenffdnngjfgmeleoegfcffe',
+				//Stylus firefox
+				'220fd736-2425-4d0a-aa36-6015937215f1'
 			]
 		},
 		listeners: {

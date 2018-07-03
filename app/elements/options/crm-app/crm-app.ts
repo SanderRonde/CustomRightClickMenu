@@ -1374,6 +1374,9 @@ namespace CRMAppElement {
 				val: 'useAsUserscriptInstaller',
 				type: 'boolean'
 			}, {
+				val: "useAsUserstylesInstaller",
+				type: "boolean"
+			}, {
 				val: 'hideToolsRibbon',
 				type: 'boolean'
 			}, {

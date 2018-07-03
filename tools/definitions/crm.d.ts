@@ -1483,6 +1483,10 @@ declare namespace CRM {
 		 */
 		useAsUserscriptInstaller: boolean;
 		/**
+		 * Whether to use this extension to install your userstyles
+		 */	
+		useAsUserstylesInstaller: boolean;
+		/**
 		 * Whether to hide the tools ribbon in fullscreen mode
 		 */
 		hideToolsRibbon: boolean;

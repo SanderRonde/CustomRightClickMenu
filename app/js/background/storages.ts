@@ -977,6 +977,7 @@ export namespace Storages.SetupHandling {
 		const syncHash = window.md5(JSON.stringify(syncStorage));
 
 		const useAsUserscriptManager = await modules.Util.isTamperMonkeyEnabled();
+		const useAsUserstylesManager = await modules.Util.isStylishInstalled();
 		return [{
 			requestPermissions: [],
 			editing: null,
@@ -993,6 +994,7 @@ export namespace Storages.SetupHandling {
 			editCRMInRM: true,
 			catchErrors: true,
 			useAsUserscriptInstaller: !useAsUserscriptManager,
+			useAsUserstylesInstaller: !useAsUserstylesManager,
 			hideToolsRibbon: false,
 			shrinkTitleRibbon: false,
 			libraries: [],
@@ -1932,6 +1934,13 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 					}
 				});
 				modules.CRMNodes.updateCrm();
+			});
+		}
+		if (isVersionInRange(oldVersion, newVersion, '2.1.4')) {
+			const isEnabled = await modules.Util.isStylishInstalled();
+			modules.storages.storageLocal.useAsUserstylesInstaller = !isEnabled;
+			browserAPI.storage.local.set({
+				useAsUserstylesInstaller: !isEnabled
 			});
 		}
 
