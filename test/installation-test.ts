@@ -195,14 +195,14 @@ function getCapabilities(): BrowserstackCapabilities {
 	return {} as any;
 }
 
-type InstallTest = 'greasyfork'|'openuserjs'|'userscripts.org'|'userstyles.org';
+type InstallTest = 'greasyfork'|'openuserjs'|'userscripts.org'|'userstyles.org'|'openusercss';
 
 function getTest(): InstallTest {
 	const index = process.argv.indexOf('--test');
 	if (index === -1 || (!process.argv[index + 1])) {
 			console.error('Please specify a test to run through --test');
 			console.error('Choose from:');
-			console.error('Greasyfork, openuserjs, userscripts.org or userstyles.org');
+			console.error('Greasyfork, openuserjs, userscripts.org, userstyles.org or openusercss');
 			process.exit(1);
 			return null;
 		}
@@ -212,10 +212,11 @@ function getTest(): InstallTest {
 		case 'openuserjs':
 		case 'userscripts.org':
 		case 'userstyles.org':
+		case 'openusercss':
 			return test;
 		default:
 			console.error('Unsupported test passed, please choose one of:');
-			console.error('Greasyfork, openuserjs, userscripts.org or userstyles.org');
+			console.error('Greasyfork, openuserjs, userscripts.org, userstyles.org or openusercss');
 			process.exit(1);
 			return null;
 	}
@@ -560,7 +561,57 @@ function doUserStylesOrgTest(prefix: () => string|void) {
 
 			assert.strictEqual(await driver.executeScript(inlineFn(() => {
 				return window.getComputedStyle(document.body)['backgroundColor'];
-			})), 'rgb(37, 37, 37)', 'background color changed (script is applied)');
+			})), 'rgb(37, 37, 37)', 'background color changed (stylesheet is applied)');
+		});
+	});
+}
+
+function doOpenUserCssTest(prefix: () => string|void) {
+	describe('Userstyles.org', () => {
+		const URL = 'https://openusercss.org/theme/5b314c73ae380a0b00767cfa';
+		let href: string;
+
+		beforeUserstyleInstall(URL);
+
+		it('should be possible to click the install link', async function() {
+			this.timeout(20000);
+			this.slow(15000);
+
+			await wait(500);
+
+			const button = await findElement(webdriver.By.css('a[href^="https://api.open"]'));
+			assert.exists(button, 'Install link exists');
+
+			href = await driver.executeScript(inlineFn(() => {
+				var e = document.querySelector('a[href^="https://api.open"]');
+				return e ? e.getAttribute("href") : null;
+			}));
+
+			await button.click();
+			await wait(5000);
+
+			const isUserCss = href.indexOf('user.css') > -1;
+			assert.isTrue(isUserCss, 'button leads to userstyle');
+		});
+
+		//Generic logic
+		installStylesheetFromInstallPage(() => {
+			return {
+				href,
+				prefix: prefix()
+			}
+		});
+
+		it('should be applied', async function() {
+			this.timeout(600000 * TIME_MODIFIER);
+			this.slow(600000 * TIME_MODIFIER);
+			await driver.get('https://about.gitlab.com/');
+
+			await wait(5000);
+
+			assert.strictEqual(await driver.executeScript(inlineFn(() => {
+				return window.getComputedStyle(document.body)['backgroundColor'];
+			})), 'rgb(56, 60, 74)', 'background color changed (stylesheet is applied)');
 		});
 	});
 }
@@ -622,6 +673,9 @@ function doUserStylesOrgTest(prefix: () => string|void) {
 			break;
 		case 'userstyles.org':
 			doUserStylesOrgTest(() => prefix);
+			break;
+		case 'openusercss':
+			doOpenUserCssTest(() => prefix);
 			break;
 	}
 
