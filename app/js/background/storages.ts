@@ -992,7 +992,7 @@ export namespace Storages.SetupHandling {
 			CRMOnPage: false,
 			editCRMInRM: true,
 			catchErrors: true,
-			useAsUserscriptInstaller: useAsUserscriptManager,
+			useAsUserscriptInstaller: !useAsUserscriptManager,
 			hideToolsRibbon: false,
 			shrinkTitleRibbon: false,
 			libraries: [],
