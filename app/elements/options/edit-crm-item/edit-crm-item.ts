@@ -366,7 +366,7 @@ namespace EditCrmItemElement {
 			}
 			else {
 				firstHighlightedNode.$.itemCont.classList.add('highlighted');
-				firstHighlightedNode.$.checkbox.checked = true;
+				(firstHighlightedNode.shadowRoot.getElementById('checkbox') as HTMLPaperCheckboxElement).checked = true;
 				window.app.editCRM.selectedElements = [firstHighlightedNode.item.id];
 
 				let wait = 0;
