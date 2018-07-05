@@ -335,21 +335,8 @@ function installStylesheetFromInstallPage(getConfig: () => {
 
 		await wait(15000);
 
-		const descriptor = await new webdriver.promise.Promise<string>((resolve) => {
-			request(href, (err: Error|void, res: XMLHttpRequest & {
-				statusCode: number;
-			}, body: string) => {
-				assert.ifError(err, 'Should not fail the GET request');
-
-				if (res.statusCode === 200) {
-					resolve(body);
-				} else {
-					assert.ifError(new Error('err'), 'Should get 200 statuscode' +
-						' when doing GET request');
-				}
-			}).end();
-		});
-		const parsed = JSON.parse(descriptor) as {
+		let testName: boolean = true;
+		let parsed: {
 			md5Url :string;
 			name: string;
 			originalMd5: string;
@@ -363,15 +350,49 @@ function installStylesheetFromInstallPage(getConfig: () => {
 				code: string;
 			}[];
 		};
+		try {
+			const descriptor = await new webdriver.promise.Promise<string>((resolve) => {
+				request(href, (err: Error|void, res: XMLHttpRequest & {
+					statusCode: number;
+				}, body: string) => {
+					assert.ifError(err, 'Should not fail the GET request');
+
+					if (res.statusCode === 200) {
+						resolve(body);
+					} else {
+						assert.ifError(new Error('err'), 'Should get 200 statuscode' +
+							' when doing GET request');
+					}
+				}).end();
+			});
+			parsed = JSON.parse(descriptor) as {
+				md5Url :string;
+				name: string;
+				originalMd5: string;
+				updateUrl: string;
+				url: string;
+				sections: {
+					domains: string[];
+					regexps: string[];
+					urlPrefixes: string[];
+					urls: string[];
+					code: string;
+				}[];
+			};
+		} catch(e) {
+			testName = false;
+		}
 		const crm = JSON.parse(await driver.executeScript(inlineFn(() => {
 			return JSON.stringify(window.app.settings.crm);
 		})));
 		const node = crm[1] as CRM.StylesheetNode;
 		assert.exists(node, 'node exists in CRM');
-		assert.strictEqual(node.type, 'stylesheet', 'node is of type stylesheet');
-		assert.strictEqual(node.name, parsed.name, 'names match');
-		assert.strictEqual(node.value.stylesheet, parsed.sections[0].code, 
-			'stylesheets match');
+		if (testName) {
+			assert.strictEqual(node.type, 'stylesheet', 'node is of type stylesheet');
+			assert.strictEqual(node.name, parsed.name, 'names match');
+			assert.strictEqual(node.value.stylesheet, parsed.sections[0].code, 
+				'stylesheets match');
+		}
 	});
 }
 
