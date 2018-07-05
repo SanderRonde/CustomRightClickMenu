@@ -1,4 +1,6 @@
-﻿(() => {
+﻿declare const browserAPI: browserAPI;
+
+(() => {
 	function hacksecuteScript(script: string) {
 		const tag = document.createElement('script');
 		tag.innerHTML = script;
@@ -145,7 +147,7 @@
 	});
 
 	browserAPI.storage.local.get().then((result) => {
-		if (result.useAsUserscriptInstaller || result.useAsUserstylesInstaller) {
+		if (result.useAsUserscriptInstaller) {
 			const installURL = browserAPI.runtime.getURL('html/install.html');
 			document.body.addEventListener('mousedown', (e) => {
 				const target = e.target as HTMLAnchorElement;
@@ -159,29 +161,6 @@
 						}`;
 						target.href = installPageURL;
 						target.target = '_blank';
-					} else if (result.useAsUserstylesInstaller && target.href.match(/.+user\.css$/)) {
-						const url = target.href;
-						const xhr = new XMLHttpRequest();
-						xhr.onreadystatechange = () => {
-							if (xhr.readyState == 4) {
-								if (xhr.status < 400) {
-									browserAPI.runtime.sendMessage({
-										type: 'styleInstall',
-										data: {
-											type: 'user.css',
-											code: xhr.responseText,
-											downloadURL: url
-										}
-									});
-									alert('Userstyle installed into Custom Right-Click Menu');
-								}
-							}
-						};
-						xhr.open('GET', url, true);
-						xhr.send();
-
-						target.href = '#';
-						target.target = 'self';
 					}
 				}
 			});

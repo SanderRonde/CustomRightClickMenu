@@ -1386,7 +1386,7 @@ export namespace CRMNodes.Stylesheet.Updating {
 	export async function updateStylesheet(nodeId: CRM.NodeId<CRM.StylesheetNode>) {
 		const node = modules.crm.crmById.get(nodeId) as CRM.StylesheetNode;
 		const url = getDownloadURL(node);
-		const updateData = (await CRMNodes.Stylesheet.Installing.getUpdateData(url))
+		const updateData = (await CRMNodes.Stylesheet.Installing.getUserstyleMeta(url))
 			.sections[node.nodeInfo.source !== 'local' && node.nodeInfo.source.sectionIndex];
 		const launchData = CRMNodes.Stylesheet.Installing.extractStylesheetData(
 			updateData);
@@ -1428,20 +1428,7 @@ export namespace CRMNodes.Stylesheet.Updating {
 			return new Promise<void>((resolve) => {
 				modules.Util.convertFileToDataURI(downloadURL, async (_, dataString) => {
 					try {
-						const parsed: {
-							md5Url :string;
-							name: string;
-							originalMd5: string;
-							updateUrl: string;
-							url: string;
-							sections: {
-								domains: string[];
-								regexps: string[];
-								urlPrefixes: string[];
-								urls: string[];
-								code: string;
-							}[];
-						} = JSON.parse(dataString);
+						const parsed = Installing.getUserstyleMeta(dataString);
 
 						//Just check whether everything matches
 						for (let i = 0; i < parsed.sections.length; i++) {
@@ -1853,7 +1840,13 @@ export namespace CRMNodes.Stylesheet.Installing {
 			urls: string[];
 			code: string;
 		}[];
+		version?: string;
 	}) {
+
+		if (data.version && node.nodeInfo.version) {
+			return modules.Storages.getVersionDiff(node.nodeInfo.version,
+				data.version) === 1;
+		}
 
 		//Just check whether everything matches
 		for (let i = 0; i < data.sections.length; i++) {
@@ -1875,55 +1868,13 @@ export namespace CRMNodes.Stylesheet.Installing {
 		}
 		return false;
 	}
-	export function getUpdateData(downloadURL: string) {
-		return new Promise<{
-			md5Url :string;
-			name: string;
-			originalMd5: string;
-			updateUrl: string;
-			url: string;
-			sections: {
-				domains: string[];
-				regexps: string[];
-				urlPrefixes: string[];
-				urls: string[];
-				code: string;
-			}[];
-		}>((resolve) => {
-			modules.Util.convertFileToDataURI(downloadURL, async (_, dataString) => {
-				try {
-					const parsed: {
-						md5Url :string;
-						name: string;
-						originalMd5: string;
-						updateUrl: string;
-						url: string;
-						sections: {
-							domains: string[];
-							regexps: string[];
-							urlPrefixes: string[];
-							urls: string[];
-							code: string;
-						}[];
-					} = JSON.parse(dataString);
-					resolve(parsed);
-				} catch(e) {
-					//Malformed data string or wrong URL
-					resolve(null);
-				}
-			}, () => {
-				resolve(null);
-			});
-		});
-	}
-
 	export async function getInstalledStatus(url: string) {
 		const results: {
 			node: CRM.StylesheetNode;
 			state: 'installed'|'updatable'
 		}[] = [];
 
-		const data = await getUpdateData(url);
+		const data = await getUserstyleMeta(url);
 
 		modules.Util.crmForEachAsync(modules.crm.crmTree, async (node) => {
 			if (node.type !== 'stylesheet') {
@@ -2020,7 +1971,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 			url: exec[2]
 		}
 	}
-	function getLaunchData(code: string) {
+	function getUrls(code: string) {
 		return findDocDeclarations(code).map(({ start, end, firstBracket }) => {
 			const meta = code.slice(start, firstBracket);
 			const metaData: {
@@ -2055,51 +2006,63 @@ export namespace CRMNodes.Stylesheet.Installing {
 						break;
 				}
 			}
-
-			return extractStylesheetData(metaData);
+			return metaData;
 		});
 	}
-	async function installUserCSsStylesheet({ code, downloadURL }: {
-		type: 'user.css';
-		code: string;
-		downloadURL: string;
-	}) {
-		const meta = MetaTags.getMetaTags(code);
-		await modules.Util.promiseChain(getLaunchData(code).map((section, index) => {
-			return async () => {
-				const node = modules.constants.templates
-				.getDefaultStylesheetNode({
-					isLocal: false,
-					name: meta['name'][0] || 'My Stylesheet',
-					nodeInfo: {
-						version: meta['version'][0] || '1.0.0',
-						source: {
-							updateURL: meta['updateUrl'][0] || downloadURL || undefined,
-							url: meta['homepageURL'][0],
-							author: meta['author'][0],
-							autoUpdate: true,
-							downloadURL: downloadURL,
-							sectionIndex: index
-						},
-						permissions: [] as any[],
-						installDate: new Date().toLocaleDateString()
-					},
-					triggers: section.triggers,
-					value: {
-						launchMode: section.launchMode,
-						stylesheet: section.code
-					},
-					id: await modules.Util.generateItemId()
-				});
+	export function getUserstyleMeta(code: EncodedString<{
+		sections: {
+			domains: string[];
+			regexps: string[];
+			urlPrefixes: string[];
+			urls: string[];
+			code: string;
+		}[];
+		md5Url :string;
+		name: string;
+		originalMd5: string;
+		updateUrl: string;
+		url: string;
+	}>|string): {
+		sections: {
+			domains: string[];
+			regexps: string[];
+			urlPrefixes: string[];
+			urls: string[];
+			code: string;
+		}[];
+		md5Url :string;
+		name: string;
+		originalMd5: string;
+		updateUrl: string;
+		url: string;
+		version?: string;
+		author?: string;
+	} {
+		let parsable: boolean = false;
+		try {
+			JSON.parse(code);
+			parsable = true;
+		} catch(e) { }
 
-				const crmFn = new modules.CRMAPICall.Instance(null, null);
-				await crmFn.moveNode(node, {});
+		if (parsable) {
+			return JSON.parse(code);
+		} else {
+			const metaTags = MetaTags.getMetaTags(code);
+			return {
+				sections: getUrls(code),
+				md5Url: window.md5(code),
+				name: metaTags['name'][0] || 'Userstyle',
+				originalMd5: window.md5(code),
+				updateUrl: metaTags['updateUrl'][0] || metaTags['homepageURL'][0] || undefined,
+				url: metaTags['homepageURL'][0],
+				version: metaTags['version'][0],
+				author: metaTags['author'][0]
 			}
-		}));
+		}
 	}
-	async function installUserstylesStylesheet(data: {
-		type: 'userstyles.org';
-		code: EncodedString<{
+	export async function installStylesheet(data: {
+		downloadURL?: string;
+		code: string|EncodedString<{
 			sections: {
 				domains: string[];
 				regexps: string[];
@@ -2114,8 +2077,9 @@ export namespace CRMNodes.Stylesheet.Installing {
 			url: string;
 		}>;
 		author: string
+		name?: string;
 	}) {
-		const stylesheetData = JSON.parse(data.code);
+		const stylesheetData = getUserstyleMeta(data.code);
 
 		await modules.Util.promiseChain(stylesheetData.sections.map((section, index) => {
 			return async () => {
@@ -2123,14 +2087,15 @@ export namespace CRMNodes.Stylesheet.Installing {
 				const node = modules.constants.templates
 					.getDefaultStylesheetNode({
 						isLocal: false,
-						name: stylesheetData.name,
+						name: data.name || stylesheetData.name,
 						nodeInfo: {
-							version: '1',
+							version: '1.0.0',
 							source: {
 								updateURL: stylesheetData.updateUrl,
 								url: stylesheetData.url,
-								author: data.author,
+								author: stylesheetData.author || data.author,
 								sectionIndex: index,
+								downloadURL: data.downloadURL,
 								autoUpdate: true
 							},
 							permissions: [],
@@ -2148,34 +2113,6 @@ export namespace CRMNodes.Stylesheet.Installing {
 				await crmFn.moveNode(node, {});
 			}
 		}));
-	}
-	export async function installStylesheet(data: {
-		type: 'user.css';
-		code: string;
-		downloadURL: string;
-	}|{
-		type: 'userstyles.org';
-		code: EncodedString<{
-			sections: {
-				domains: string[];
-				regexps: string[];
-				urlPrefixes: string[];
-				urls: string[];
-				code: string;
-			}[];
-			md5Url :string;
-			name: string;
-			originalMd5: string;
-			updateUrl: string;
-			url: string;
-		}>;
-		author: string
-	}) {
-		if (data.type === 'userstyles.org') {
-			installUserstylesStylesheet(data);
-		} else {
-			installUserCSsStylesheet(data);
-		}
 	}
 };
 

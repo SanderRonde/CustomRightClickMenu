@@ -1769,7 +1769,7 @@ export namespace Storages {
 			major, minor, patch
 		}
 	}
-	function getVersionDiff(a: string, b: string): number {
+	export function getVersionDiff(a: string, b: string): number {
 		const aObj = getVersionObject(a);
 		const bObj = getVersionObject(b);
 		

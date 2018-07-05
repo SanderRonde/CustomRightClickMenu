@@ -815,7 +815,7 @@ function readFile(filePath, options) {
 						"js/libraries/csslint.js",
 						"js/libraries/jslint.js",
 						"js/libraries/crmapi.d.ts",
-						"js/contentscript.js",
+						"js/contentscripts/contentscript.js",
 						"js/libraries/tern/*.*",
 						"icon-large.png",
 						"icon-small.png",
@@ -840,10 +840,12 @@ function readFile(filePath, options) {
 			return gulp
 				.src([
 					'./js/crmapi.js',
-					'./js/installStylesheet.js',
+					'./js/contentscripts/openusercss.js',
+					'./js/contentscripts/usercss.js',
+					'./js/contentscripts/userstyles.js',
 					'./js/sandbox.js',
 					'./js/libraries/typescript.js',
-					'./js/contentscript.js',
+					'./js/contentscripts/contentscript.js',
 					'./js/polyfills/browser.js'
 				], { 
 					cwd: './temp', 
@@ -879,7 +881,7 @@ function readFile(filePath, options) {
 						"js/libraries/csslint.js",
 						"js/libraries/jslint.js",
 						"js/libraries/crmapi.d.ts",
-						"js/contentscript.js",
+						"js/contentscripts/contentscript.js",
 						"js/libraries/tern/*.*",
 						"icon-large.png",
 						"icon-small.png",
@@ -911,10 +913,12 @@ function readFile(filePath, options) {
 			return gulp
 				.src([
 					'./js/crmapi.js',
-					'./js/installStylesheet.js',
+					'./js/contentscripts/openusercss.js',
+					'./js/contentscripts/usercss.js',
+					'./js/contentscripts/userstyles.js',
 					'./js/libraries/typescript.js',
 					'./js/sandbox.js',
-					'./js/contentscript.js',
+					'./js/contentscripts/contentscript.js',
 					'./js/polyfills/browser.js'
 				], { 
 					cwd: './temp', 
