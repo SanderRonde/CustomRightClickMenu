@@ -15,7 +15,7 @@
 	"content_scripts": [
 		{
 			"matches": [ "<all_urls>" ],
-			"js": [ "js/polyfills/browser.js", "js/contentscript.js" ]
+			"js": [ "js/polyfills/browser.js", "js/contentscripts/contentscript.js" ]
 		}, {
 			"matches": ["http://userstyles.org/*", "https://userstyles.org/*"],
 			"run_at": "document_start",
