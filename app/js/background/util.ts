@@ -458,6 +458,7 @@ export namespace Util {
 			url.indexOf('chrome-extension://') !== -1 ||
 			url.indexOf('about://') !== -1 ||
 			url.indexOf('chrome-devtools://') !== -1 ||
+			url.indexOf('view-source:') !== -1 ||
 			(url.indexOf('://chrome.google') > -1 &&
 			url.indexOf('/webstore') > -1)) {
 				return false;
