@@ -162,6 +162,7 @@
     "test:chrome:old:install:openuserjs": "mocha test/installation-test.js --chrome-40 --test openuserjs",
     "test:chrome:old:install:userscriptsorg": "mocha test/installation-test.js --chrome-40 --test userscripts.org",
     "test:chrome:old:install:userstylesorg": "mocha test/installation-test.js --chrome-40 --test userstyles.org",
+    "test:chrome:old:install:openusercss": "mocha test/installation-test.js --chrome-40 --test openusercss",
     "test:chrome:latest": "yarn test:chrome:latest:page && yarn test:chrome:latest:extension",
     "test:chrome:latest:page": "yarn test:chrome:latest:page:pre-stylesheet && test:chrome:latest:page:stylesheet && yarn test:chrome:latest:page:post-stylesheet",
     "test:chrome:latest:page:pre-stylesheet": "mocha test/UITest.js --chrome-latest --skip-type-stylesheet --skip-contextmenu",
