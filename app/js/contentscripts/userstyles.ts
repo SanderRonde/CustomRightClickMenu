@@ -268,11 +268,13 @@ document.documentElement.appendChild(document.createElement('script')).text = `(
 
 	// spoof Stylish extension presence in Chrome
 	if (isChrome) {
-		class FakeImage extends window.Image {
-			constructor() {
-				super();
+		const originalImg = window.Image;
+		class FakeImage {
+			constructor(width: number, height: number) {
+				const img = new originalImg(width, height);
+
 				let _src: string;
-				Object.defineProperty(this, 'src', {
+				Object.defineProperty(img, 'src', {
 					get() {
 						return _src;
 					},
@@ -285,6 +287,8 @@ document.documentElement.appendChild(document.createElement('script')).text = `(
 						return true;
 					}
 				});
+
+				return img;
 			}
 		}
 		window.Image = FakeImage;
