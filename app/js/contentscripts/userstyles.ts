@@ -263,11 +263,11 @@ function getMeta(name: string) {
 
 // run in page context
 document.documentElement.appendChild(document.createElement('script')).text = `(${
-(EXTENSION_ORIGIN: string) => {
+(EXTENSION_ORIGIN: string, isChrome: boolean) => {
 	document.currentScript.remove();
 
 	// spoof Stylish extension presence in Chrome
-	if (BrowserAPI.getBrowser() === 'chrome') {
+	if (isChrome) {
 		class FakeImage extends window.Image {
 			constructor(...args: any[]) {
 				super(...args);
@@ -317,7 +317,6 @@ document.documentElement.appendChild(document.createElement('script')).text = `(
 	const originalResponseJson = Response.prototype.json;
 	document.addEventListener('stylusFixBuggyUSOsettings', function _({detail}: {detail: string}) {
 		document.removeEventListener('stylusFixBuggyUSOsettings', _ as any);
-		const isChrome = BrowserAPI.getBrowser() === 'chrome';
 		if (isChrome &&
 			parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10) >= 52) {
 				settings = /\?/.test(detail) && 
@@ -404,7 +403,7 @@ document.documentElement.appendChild(document.createElement('script')).text = `(
 	});
 	};
 }
-})('${browserAPI.runtime.getURL('').slice(0, -1)}')`;
+})('${browserAPI.runtime.getURL('').slice(0, -1)}', ${BrowserAPI.getBrowser() === 'chrome'})`;
 
 if (location.search.indexOf('category=') !== -1) {
 	document.addEventListener('DOMContentLoaded', function _() {
