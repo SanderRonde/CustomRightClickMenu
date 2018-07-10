@@ -29,6 +29,7 @@ $script_path/is_eq.sh "$1" "test:chrome:old:install:greasyfork" && do_retry_twic
 $script_path/is_eq.sh "$1" "test:chrome:old:install:openuserjs" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test:chrome:old:install:userscriptsorg" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test:chrome:old:install:userstylesorg" && do_retry_twice=1
+$script_path/is_eq.sh "$1" "test:chrome:old:install:openusercss" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test-migration:2.0.12" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test-migration:2.0.13" && do_retry_twice=1
 $script_path/is_eq.sh "$1" "test-migration:2.0.14" && do_retry_twice=1
