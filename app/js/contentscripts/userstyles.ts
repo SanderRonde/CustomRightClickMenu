@@ -190,6 +190,10 @@ function getMeta(name: string) {
 						document.querySelector('#style_author a').innerText : 'anonymous'
 				}
 			});
+			sendEvent({
+				type: 'styleInstalledChrome',
+				detail: {}
+			});
 		} else {
 			await browserAPI.runtime.sendMessage({
 				type: 'updateStylesheet',
