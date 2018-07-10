@@ -1217,7 +1217,7 @@ export namespace CRMNodes.Script.Updating {
 								if (modules.Util.isNewer(metaTags['version'][0], node.nodeInfo.version)) {
 									if (!modules.Util.compareArray(node.nodeInfo.permissions,
 										metaTags['grant']) &&
-										!(metaTags['grant'].length === 0 &&
+										!(metaTags['grant'].length === 1 &&
 											metaTags['grant'][0] === 'none')) {
 										//New permissions were added, notify user
 										const { addedPermissions = [] } = await browserAPI.storage.local.get<CRM.StorageLocal>();
