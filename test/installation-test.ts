@@ -600,7 +600,12 @@ function doOpenUserCssTest(prefix: () => string|void) {
 
 			await wait(500);
 
-			const button = await findElement(webdriver.By.css('a[href^="https://api.open"]'));
+			const button = await findElement(webdriver.By.js(inlineFn(() => {
+				const els: HTMLDivElement[] = Array.prototype.slice.apply(document.querySelectorAll('div'));
+				return els.filter((d) => {
+					return d.innerText.indexOf('Custom Right-Click Menu') > -1;
+				}).slice(-1);
+			})));
 			assert.exists(button, 'Install link exists');
 
 			href = await driver.executeScript(inlineFn(() => {
