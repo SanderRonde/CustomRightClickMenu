@@ -749,7 +749,7 @@ export namespace CRMNodes.MetaTags {
 	}>();
 
 	export function getMetaTags(code: string): {
-		[key: string]: any
+		[key: string]: string[];
 	} {
 		const hash = window.md5(code);
 		if (cachedData.has(hash)) {
@@ -772,6 +772,17 @@ export namespace CRMNodes.MetaTags {
 
 		cachedData.set(hash, metaTags);
 		return metaTags;
+	}
+	export function getMetaTag(metaTags: {
+		[key: string]: any;
+	}, tag: string): any {
+		if (tag in metaTags) {
+			if (Array.isArray(metaTags[tag])) {
+				return metaTags[tag][0];
+			}
+			return metaTags[tag];
+		}
+		return undefined;
 	}
 	export function getlastMetaTagValue(metaTags: {
 		[key: string]: any;
@@ -2051,12 +2062,13 @@ export namespace CRMNodes.Stylesheet.Installing {
 			return {
 				sections: getUrls(code),
 				md5Url: window.md5(code),
-				name: metaTags['name'][0] || 'Userstyle',
+				name: MetaTags.getMetaTag(metaTags, 'name') || 'Userstyle',
 				originalMd5: window.md5(code),
-				updateUrl: metaTags['updateUrl'][0] || metaTags['homepageURL'][0] || undefined,
-				url: metaTags['homepageURL'][0],
-				version: metaTags['version'][0],
-				author: metaTags['author'][0]
+				updateUrl: MetaTags.getMetaTag(metaTags, 'updateURL') || 
+					MetaTags.getMetaTag(metaTags, 'homepageURL') || undefined,
+				url: MetaTags.getMetaTag(metaTags, 'homepageURL'),
+				version: MetaTags.getMetaTag(metaTags, 'version'),
+				author: MetaTags.getMetaTag(metaTags, 'author')
 			}
 		}
 	}
@@ -2345,10 +2357,10 @@ export namespace CRMNodes.NodeCreation {
 		if (node.type === 'script') {
 			const meta = MetaTags.getMetaTags(await modules.Util.getScriptNodeScript(node));
 			let runAtTag = meta['run-at'] || meta['run_at'];
-			if (Array.isArray(runAtTag)) {
-				runAtTag = runAtTag[0];
+			if (!Array.isArray(runAtTag)) {
+				runAtTag = [runAtTag];
 			}
-			return runAtTag === 'document_start';
+			return runAtTag[0] === 'document_start';
 		}
 		return false;
 	}
