@@ -206,11 +206,10 @@
 						downloadURL: (document.querySelector('a[href^="https://api.openusercss.org"]') as 
 							HTMLAnchorElement).href
 					}
-				}, () => {
-					sendInstallCallback({
-						enabled: true,
-						key: event.data.key
-					});
+				});
+				sendInstallCallback({
+					enabled: true,
+					key: event.data.key
 				});
 			}
 	};
