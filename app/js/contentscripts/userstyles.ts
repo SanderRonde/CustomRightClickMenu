@@ -269,8 +269,8 @@ document.documentElement.appendChild(document.createElement('script')).text = `(
 	// spoof Stylish extension presence in Chrome
 	if (isChrome) {
 		class FakeImage extends window.Image {
-			constructor(...args: any[]) {
-				super(...args);
+			constructor() {
+				super();
 				let _src: string;
 				Object.defineProperty(this, 'src', {
 					get() {
