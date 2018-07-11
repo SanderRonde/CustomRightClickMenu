@@ -600,20 +600,25 @@ function doOpenUserCssTest(prefix: () => string|void) {
 
 			await wait(500);
 
-			const button = await findElement(webdriver.By.js(inlineFn(() => {
+			const exists = await driver.executeScript(inlineFn(() => {
 				const els: HTMLDivElement[] = Array.prototype.slice.apply(document.querySelectorAll('div'));
-				return els.filter((d) => {
+				return !!els.filter((d) => {
 					return d.innerText.indexOf('Custom Right-Click Menu') > -1;
-				}).slice(-1);
-			})));
-			assert.exists(button, 'Install link exists');
+				}).slice(-1)[0];
+			}));
+			assert.isTrue(exists, 'Install link exists');
 
 			href = await driver.executeScript(inlineFn(() => {
 				var e = document.querySelector('a[href^="https://api.open"]');
 				return e ? e.getAttribute("href") : null;
 			}));
 
-			await button.click();
+			await driver.executeScript(inlineFn(() => {
+				const els: HTMLDivElement[] = Array.prototype.slice.apply(document.querySelectorAll('div'));
+				els.filter((d) => {
+					return d.innerText.indexOf('Custom Right-Click Menu') > -1;
+				}).slice(-1)[0].click();
+			}));
 			await wait(5000);
 
 			const isUserCss = href.indexOf('user.css') > -1;
