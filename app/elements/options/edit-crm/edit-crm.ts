@@ -716,7 +716,7 @@ namespace EditCrmElement {
 			return JSON.stringify(node);
 		};
 
-		private static _getMetaIndexes(code: string): {
+		static getMetaIndexes(code: string): {
 			start: number;
 			end: number;
 		}[] {
@@ -747,25 +747,31 @@ namespace EditCrmElement {
 	
 			return indexes;
 		}
-		private static _getMetaLines(code: string): string[] {
-			const metaIndexes = this._getMetaIndexes(code);
-	
+		static getMetaLinesForIndex(code: string, {
+			start, end
+		}: { 
+			start: number;
+			end: number;
+		}): string[] {
 			const metaLines: string[] = [];
 			const lines = code.split('\n');
-			for (const { start, end } of metaIndexes) {
-				for (let i = start + 1; i < end; i++) {
-					metaLines.push(lines[i]);
-				}
+			for (let i = start + 1; i < end; i++) {
+				metaLines.push(lines[i]);
 			}
-	
+			return metaLines;
+		}
+		static getMetaLines(code: string): string[] {
+			let metaLines: string[] = [];
+			const metaIndexes = this.getMetaIndexes(code);
+			for (const index of metaIndexes) {
+				metaLines = [...metaLines, ...this.getMetaLinesForIndex(code, index)]
+			}
 			return metaLines;
 		}
 
-		static getMetaTags(this: EditCrm, code: string): {
+		static getMetaTagsForLines(lines: string[]): {
 			[key: string]: (string|number)[];
 		} {
-			const metaLines = this._getMetaLines(code);
-
 			const metaTags: {
 				[key: string]: any;
 			} = {};
@@ -774,8 +780,8 @@ namespace EditCrmElement {
 				value: string;
 			} = null;
 			const regex = /@(\w+)(\s+)(.+)/;
-			for (let i = 0; i < metaLines.length; i++) {
-				const regexMatches = metaLines[i].match(regex);
+			for (let i = 0; i < lines.length; i++) {
+				const regexMatches = lines[i].match(regex);
 				if (regexMatches) {
 					if (currentMatch) {
 						//Write previous match to object
@@ -791,7 +797,7 @@ namespace EditCrmElement {
 				} else {
 					//No match, that means the last metatag is
 					//still continuing, add to that
-					currentMatch.value += ('\n' + metaLines[i]);
+					currentMatch.value += ('\n' + lines[i]);
 				}
 			}
 	
@@ -804,6 +810,13 @@ namespace EditCrmElement {
 	
 
 			return metaTags;
+		}
+
+		static getMetaTags(this: EditCrm, code: string): {
+			[key: string]: (string|number)[];
+		} {
+			const metaLines = this.getMetaLines(code);
+			return this.getMetaTagsForLines(metaLines);
 		};
 
 		private static _setMetaTagIfSet<K extends keyof U, U>(this: EditCrm, metaTags: CRM.MetaTags, metaTagKey: string, nodeKey: K, node: U) {
@@ -820,7 +833,7 @@ namespace EditCrmElement {
 			let i;
 			const code = (node.type === 'script' ? node.value.script : node.value.stylesheet);
 			let codeSplit = code.split('\n');
-			const metaIndexes = this._getMetaIndexes(code);
+			const metaIndexes = this.getMetaIndexes(code);
 			let metaTags: {
 				[key: string]: (string|number)[];
 			} = {};

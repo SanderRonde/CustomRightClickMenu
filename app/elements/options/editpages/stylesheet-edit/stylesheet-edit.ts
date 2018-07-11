@@ -211,6 +211,158 @@ namespace StylesheetEditElement {
 				this.newSettings.value.stylesheet, this.editorManager.EditorMode.CSS_META);
 		}
 
+		private static _parseVar(this: NodeEditBehaviorStylesheetInstance, value: string) {
+			const [type, name, ...rest] = value.replace(/\n/g, '').split(' ');
+			const joined = rest.join(' ').trim();
+			let label: string;
+			let lastLabelChar: number;
+			if (joined.indexOf('"') === 0 || joined.indexOf("'") === 0) {
+				const strChar = joined[0];
+				//Find end of string
+				label = joined.slice(1, 1 + joined.slice(1).indexOf(strChar));
+			} else {
+				label = rest[0];
+			}
+			lastLabelChar = type.length + 1 + name.length + 1 + 
+				label.length + 2;
+
+			const defaultValue = value.replace(/\n/g, '').slice(lastLabelChar).trim();
+			return {
+				type,
+				name,
+				label,
+				defaultValue
+			}
+		}
+
+		private static _metaTagVarTypeToCodeOptionType(type: string) {
+			switch (type) {
+				case 'text':
+					return 'string';
+				case 'color':
+					return 'color';
+				case 'checkbox':
+					return 'boolean';
+				case 'select':
+					return 'choice';
+			}
+			return '?';
+		}
+
+		private static _codeOptionTypeToMetaTagVarType(type: CRM.OptionsValue['type']) {
+			switch (type) {
+				case 'number':
+				case 'string':
+					return 'text';
+				case 'boolean':
+					return 'checkbox';
+				case 'choice':
+					return 'select';
+			}
+			return null;
+		}
+
+		private static _metaTagVarsToCodeOptions(this: NodeEditBehaviorStylesheetInstance, 
+			stylesheet: string, options: CRM.Options|string) {
+				if (typeof options === 'string') {
+					return options;
+				}
+				const metaTags = window.app.editCRM.getMetaTags(stylesheet);
+				const vars = metaTags['var'] || [];
+				if (vars.length === 0) {
+					return null;
+				} else {
+					const obj: CRM.Options = {};
+					let option;
+					vars.forEach((value: string) => {
+						const { type, name, label, defaultValue } = this._parseVar(value);
+						const descriptor = window.app.templates.mergeObjects(options[name] || {}, {
+							type: this._metaTagVarTypeToCodeOptionType(type),
+							descr: label
+						} as Partial<CRM.OptionsValue>);
+						switch (type) {
+							case 'text':
+							case 'color':
+							case 'checkbox':
+								option = options[name] as CRM.OptionString|CRM.OptionColorPicker|
+									CRM.OptionCheckbox;
+								if (option && option.value === null) {
+									(descriptor as CRM.OptionString|CRM.OptionColorPicker|CRM.OptionCheckbox)
+										.value =defaultValue;
+								}
+								break;
+							case 'select':
+								try {
+									const parsed = JSON.parse(defaultValue);
+									if (Array.isArray(defaultValue)) {
+										obj[name] = window.app.templates.mergeObjects(descriptor, {
+											values: defaultValue.map((value) => {
+												if (value.indexOf(':') > -1) {
+													return value.split(':')[0];
+												} else {
+													return value;
+												}
+											}),
+											selected: 0
+										}) as CRM.OptionChoice;	
+									} else {
+										obj[name] = window.app.templates.mergeObjects(descriptor, {
+											values: Object.getOwnPropertyNames(parsed).map((name) => {
+												return parsed[name];
+											}),
+											selected: 0
+										}) as CRM.OptionChoice;
+									}
+								} catch(e) {
+									obj[name] = window.app.templates.mergeObjects(descriptor, {
+										values: [],
+										selected: 0
+									}) as CRM.OptionChoice;
+									break;
+								}
+						}
+						obj[name] = descriptor as CRM.OptionsValue;
+					});
+					return obj;
+				}
+			}
+
+		private static _codeOptionsToMetaTagVars(this: NodeEditBehaviorStylesheetInstance,
+			options: CRM.Options|string) {
+				if (typeof options === 'string') {
+					return [];
+				}
+				return Object.getOwnPropertyNames(options).map((key) => {
+					const option = options[key];
+					
+					let defaultValue: string;
+					const type = this._codeOptionTypeToMetaTagVarType(option.type);
+					if (!type) {
+						return null;
+					}
+					switch (option.type) {
+						case 'number':
+							defaultValue = option.defaultValue !== undefined ?
+								(option.defaultValue + '') : (option.value + '');
+							break;
+						case 'color':
+						case 'string':
+							defaultValue = option.defaultValue !== undefined ?
+								option.defaultValue : option.value;
+							break;
+						case 'boolean':
+							defaultValue = defaultValue = option.defaultValue !== undefined ?
+								(~~option.defaultValue + '') : (~~option.value + '');
+							break;
+						case 'choice':
+							defaultValue = JSON.stringify(option.values);
+							break;
+					}
+
+					return `${type} ${key} '${option.descr}' ${defaultValue}`;
+				}).filter(val => !!val);
+			}
+
 		static changeTabEvent(this: NodeEditBehaviorStylesheetInstance, e: Polymer.ClickEvent) {
 			const element = window.app.util.findElementWithClassName(e, 'editorTab');
 
@@ -222,11 +374,32 @@ namespace StylesheetEditElement {
 					this.newSettings.value.options = this.editorManager.editor.getValue();
 				}
 				this.hideCodeOptions();
+				const stylesheet = this.newSettings.value.stylesheet;
+				if (window.app.editCRM.getMetaLines(stylesheet).length > 0) {
+					const metaIndexes = window.app.editCRM.getMetaIndexes(stylesheet);
+					const lastIndex = metaIndexes.slice(-1)[0];
+					//Remove all @var tags
+					const metaLines = [...window.app.editCRM.getMetaLinesForIndex(
+						stylesheet, lastIndex).filter((line) => {
+							return line.indexOf('@var') === -1;
+						}), ...this._codeOptionsToMetaTagVars(
+							this.newSettings.value.options)];
+					const splitLines = stylesheet.split('\n');
+					splitLines.splice(lastIndex.start, lastIndex.end - lastIndex.start,
+						...metaLines);
+					this.newSettings.value.stylesheet = splitLines.join('\n');
+				}
 				this._showMainTab();
 				this.editorMode = 'main';
 			} else if (!mainClicked && this.editorMode === 'main') {
 				this.newSettings.value.stylesheet = this.editorManager.editor.getValue();
 				this.showCodeOptions();
+				const stylesheet = this.newSettings.value.stylesheet;
+				if (window.app.editCRM.getMetaLines(stylesheet).length > 0) {
+					this.newSettings.value.options = this._metaTagVarsToCodeOptions(
+						this.newSettings.value.stylesheet,
+						this.newSettings.value.options);
+				}
 				this.editorMode = 'options';
 			}
 
