@@ -287,6 +287,16 @@ type BackgroundpageWindow = Window & SharedWindow & {
 	debugNextScriptCall(id: CRM.NodeId<CRM.ScriptNode>): void;
 	md5: (data: any) => string;
 	ts: Typescript & typeof ts;
+	less: {
+		Parser(): {
+			parse(code: string, callback: (err: Error, result: {
+				toCSS(): string;
+			}) => void): void;
+		}
+	};
+	stylus(code: string): {
+		render(callback: (err: Error, str: string) => void): void;
+	}
 	TernFile: Tern.File;
 	tern: Tern.Tern;
 	module?: {

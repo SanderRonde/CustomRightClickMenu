@@ -1543,60 +1543,6 @@ export namespace CRMNodes.Stylesheet.Updating {
 }
 
 export namespace CRMNodes.Stylesheet.Options {
-	function splitComments(stylesheet: string): {
-		isComment: boolean;
-		line: string;
-	}[] {
-		const lines: {
-			isComment: boolean;
-			line: string;
-		}[] = [{
-			isComment: false,
-			line: ''
-		}];
-		let lineIndex = 0;
-		for (let i = 0; i < stylesheet.length; i++) {
-			if (stylesheet[i] === '/' && stylesheet[i + 1] === '*') {
-				lineIndex++;
-				i += 1;
-				lines[lineIndex] = {
-					isComment: true,
-					line: ''
-				};
-			} else if (stylesheet[i] === '*' && stylesheet[i + 1] === '/') {
-				lineIndex++;
-				i += 1;
-				lines[lineIndex] = {
-					isComment: false,
-					line: ''
-				};
-			} else {
-				lines[lineIndex].line += stylesheet[i];
-			}
-		}
-		return lines;
-	}
-	function evalOperator(left: any, operator: string, right: any): boolean {
-		switch (operator) {
-			case '<=':
-				return left <= right;
-			case '>=':
-				return left >= right;
-			case '<':
-				return left < right;
-			case '>':
-				return left > right;
-			case '!==':
-				return left !== right;
-			case '!=':
-				return left != right;
-			case '===':
-				return left === right;
-			case '==':
-				return left == right;
-		}
-		return false;
-	}
 	function getOptionValue(option: CRM.OptionsValue): any {
 		switch (option.type) {
 			case 'array':
@@ -1604,181 +1550,270 @@ export namespace CRMNodes.Stylesheet.Options {
 			case 'boolean':
 			case 'number':
 			case 'string':
+			case 'color':
 				return option.value;
 			case 'choice':
 				return option.values[option.selected];
 		}
 	}
-	const _numRegex = /^(-)?(\d)+(\.(\d)+)?$/;
-	const _strRegex = /^("(.*)"|'(.*)'|`(.*)`)$/;
-	const _valueRegex = /^(\n|\r|\s)*("(.*)"|'(.*)'|`(.*)`|(-)?(\d)+(\.(\d)+)?|\w(\w|\d)*)(\n|\r|\s)*$/;
-	const _boolExprRegex = /^(\n|\r|\s)*("(.*)"|'(.*)'|`(.*)`|(-)?(\d)+(\.(\d)+)?|\w(\w|\d)*)(\n|\r|\s)*(<=|>=|<|>|!==|!=|===|==)(\n|\r|\s)*("(.*)"|'(.*)'|`(.*)`|(-)?(\d)+|\w(\w|\d)*)(\n|\r|\s)*$/;
-	function getStringExprValue(expr: string, options: CRM.Options): any {
-		if (expr === 'true') {
-			return true;
-		}
-		if (expr === 'false') {
-			return false;
-		}
-		if (_numRegex.exec(expr)) {
-			return parseFloat(expr);
-		}
-		if (_strRegex.exec(expr)) {
-			return expr.slice(1, -1);
-		}
-		//It must be a variable
-		if (options[expr]) {
-			return getOptionValue(options[expr]);
-		}
-	}
-	function evaluateBoolExpr(expr: string, options: CRM.Options): boolean {
-		if (expr.indexOf('||') > -1) {
-			return evaluateBoolExpr(expr.slice(0, expr.indexOf('||')), options) ||
-				evaluateBoolExpr(expr.slice(expr.indexOf('||') + 2), options);
-		}
-		if (expr.indexOf('&&') > -1) {
-			return evaluateBoolExpr(expr.slice(0, expr.indexOf('&&')), options) &&
-				evaluateBoolExpr(expr.slice(expr.indexOf('&&') + 2), options);
-		}
-		const regexEval = _boolExprRegex.exec(expr);
-		if (regexEval) {
-			const leftExpr = regexEval[2];
-			const operator = regexEval[12];
-			const rightExpr = regexEval[14];
-			return evalOperator(
-				getStringExprValue(leftExpr, options),
-				operator,
-				getStringExprValue(rightExpr, options)
-			);
-		}
-		const valueRegexEval = _valueRegex.exec(expr);
-		if (valueRegexEval) {
-			return !!getStringExprValue(valueRegexEval[2], options);
-		}
-		return false;
-	}
-	function evaluateIfStatement(line: string, options: CRM.Options): boolean {
-		const statement = _ifRegex.exec(line)[2];
-		return evaluateBoolExpr(statement, options);
-	}
-	function replaceVariableInstances(line: string, options: CRM.Options): string {
-		const parts: {
-			isVariable: boolean;
-			content: string;
-		}[] = [{
-			isVariable: false,
-			content: ''
-		}];
-		let inVar: boolean = false;
-		for (let i = 0; i < line.length; i++) {
-			if (line[i] === '{' && line[i + 1] === '{') {
-				if (!inVar) {
-					inVar = true;
-					parts.push({
-						isVariable: true,
-						content: ''
-					});
-				} else {
-					parts[parts.length - 1].content += '{{';
-				}
-				i += 1;
-			} else if (line[i] === '}' && line[i + 1] === '}') {
-				if (inVar) {
-					inVar = false;
-					parts.push({
-						isVariable: false,
-						content: ''
-					});
-				} else {
-					parts[parts.length - 1].content += '}}';
-				}
-				i += 1;
+	const _variableRegex = /\/\*\[\[((.)+)\]\]\*\//;
+	function preprocessUSO(id: number, stylesheet: string, options: CRM.Options): string {
+		let match: any;
+		while ((match = _variableRegex.exec(stylesheet))) {
+			const name = match[1];
+			if (!(name in options)) {
+				window.log(`Could not find option ${name} for stylesheet ${id}`)
+				//Prevent it from matching again
+				stylesheet = stylesheet.replace(_variableRegex, `/*[${name}]*/`);
 			} else {
-				parts[parts.length - 1].content += line[i];
+				const value = getOptionValue(options[name]);
+				stylesheet = stylesheet.replace(_variableRegex, value);
 			}
 		}
-
-		return parts.map((part) => {
-			if (!part.isVariable) {
-				return part.content;
-			}
-			return options[part.content] && getOptionValue(options[part.content]);
-		}).join('');
+		return stylesheet;
 	}
-	function getLastIf(ifs: {
-		skip: boolean;
-		isElse: boolean;
-		ignore: boolean;
-	}[]): {
-			skip: boolean;
-			isElse: boolean;
-			ignore: boolean;
-		} {
-		if (ifs.length > 0) {
-			return ifs[ifs.length - 1];
+
+	type Preprocessor = 'less'|'stylus'|'default'|'uso';
+
+	function parseVar(value: string) {
+		const [type, name, ...rest] = value.replace(/\n/g, '').split(' ');
+		const joined = rest.join(' ').trim();
+		let label: string;
+		let lastLabelChar: number;
+		if (joined.indexOf('"') === 0 || joined.indexOf("'") === 0) {
+			const strChar = joined[0];
+			//Find end of string
+			label = joined.slice(1, 1 + joined.slice(1).indexOf(strChar));
+		} else {
+			label = rest[0];
 		}
+		lastLabelChar = type.length + 1 + name.length + 1 + 
+			label.length + 2;
+
+		const defaultValue = value.replace(/\n/g, '').slice(lastLabelChar).trim();
 		return {
-			skip: false,
-			isElse: false,
-			ignore: false
+			type,
+			name,
+			label,
+			defaultValue
 		}
 	}
-	const _ifRegex = /^(\n|\r|\s)*if (.+) then(\n|\r|\s)*$/;
-	const _elseRegex = /^(\n|\r|\s)*else(\n|\r|\s)*$/;
-	const _endifRegex = /^(\n|\r|\s)*endif(\n|\r|\s)*$/;
-	const _variableRegex = /^(\n|\r|\s)*(\w|-)+:(\n|\r|\s)*(.*)\{\{\w(\w|\d)*\}\}(.*)((\n|\r|\s)*,(\n|\r|\s)*(.*)\{\{\w(\w|\d)*\}\}(.*))*$/;
-	function convertStylesheet(stylesheet: string, options: CRM.Options): string {
-		const split = splitComments(stylesheet);
-		const lines: string[] = [];
 
-		const ifs: {
-			skip: boolean;
-			isElse: boolean;
-			ignore: boolean;
-		}[] = [];
-		for (let i = 0; i < split.length; i++) {
-			if (_ifRegex.exec(split[i].line)) {
-				ifs.push({
-					skip: getLastIf(ifs).skip || !evaluateIfStatement(split[i].line, options),
-					isElse: false,
-					ignore: getLastIf(ifs).skip
-				});
-			} else if (_elseRegex.exec(split[i].line)) {
-				//Double else, don't flip anymore
-				if (!getLastIf(ifs).isElse && !getLastIf(ifs).ignore) {
-					getLastIf(ifs).skip = !getLastIf(ifs).skip;
+	function metaTagVarTypeToCodeOptionType(type: string) {
+		switch (type) {
+			case 'text':
+				return 'string';
+			case 'color':
+				return 'color';
+			case 'checkbox':
+				return 'boolean';
+			case 'select':
+				return 'choice';
+		}
+		return '?';
+	}
+	function metaTagVarsToCodeOptions(stylesheet: string, options: CRM.Options|string) {
+		const metaTags = MetaTags.getMetaTags(stylesheet);
+		const vars = [...(metaTags['var'] || []), ...(metaTags['advanced'] || [])];
+		if (vars.length === 0) {
+			return null;
+		} else {
+			const obj: CRM.Options = {};
+			let option;
+			vars.forEach((value: string) => {
+				const { type, name, label, defaultValue } = parseVar(value);
+				const descriptor = {...(typeof options !== 'string' && options[name] || {}), ...{
+					type: metaTagVarTypeToCodeOptionType(type),
+					descr: label
+				} as Partial<CRM.OptionsValue>};
+				switch (type) {
+					case 'text':
+					case 'color':
+					case 'checkbox':
+						option = typeof options !== 'string' && options[name] as CRM.OptionString|CRM.OptionColorPicker|
+							CRM.OptionCheckbox;
+						if (option && option.value === null) {
+							(descriptor as CRM.OptionString|CRM.OptionColorPicker|CRM.OptionCheckbox)
+								.value =defaultValue;
+						}
+						break;
+					case 'select':
+						try {
+							const parsed = JSON.parse(defaultValue);
+							if (Array.isArray(defaultValue)) {
+								obj[name] = {...descriptor, ...{
+									values: defaultValue.map((value) => {
+										if (value.indexOf(':') > -1) {
+											return value.split(':')[0];
+										} else {
+											return value;
+										}
+									}),
+									selected: 0
+								}} as CRM.OptionChoice;	
+							} else {
+								obj[name] = {...descriptor, ...{
+									values: Object.getOwnPropertyNames(parsed).map((name) => {
+										return parsed[name];
+									}),
+									selected: 0
+								}} as CRM.OptionChoice;
+							}
+						} catch(e) {
+							obj[name] = {...descriptor, ...{
+								values: [],
+								selected: 0
+							}} as CRM.OptionChoice;
+							break;
+						}
 				}
-				getLastIf(ifs).isElse = true;
-			} else if (_endifRegex.exec(split[i].line)) {
-				ifs.pop();
-			} else if (!getLastIf(ifs).skip) {
-				//Don't skip this
-				if (!split[i].isComment) {
-					//No comment, don't have to evaluate anything
-					lines.push(split[i].line);
-				} else {
-					if (_variableRegex.exec(split[i].line)) {
-						lines.push(replaceVariableInstances(
-							split[i].line, fixOptionsErrors(options)
-						));
-					} else {
-						//Regular comment, just add it
-						lines.push(split[i].line);
-					}
+				obj[name] = descriptor as CRM.OptionsValue;
+			});
+			return obj;
+		}
+	}
+	function getPreprocessorFormat(preprocessor: Preprocessor|string, options: CRM.Options): {
+		key: string;
+		value: string;
+	}[] {
+		if (preprocessor === 'less' || preprocessor === 'stylus') {
+			return modules.Util.toArray<CRM.OptionsValue>(options).map(([key, value]) => {
+				switch (value.type) {
+					case 'string':
+					case 'color':
+					case 'number':
+						return {
+							key, 
+							value: (value.value === null ?
+								value.defaultValue : value.value) + ''
+						}
+					case 'boolean':
+						return {
+							key, 
+							value: value.value ? 'true' : 'false'
+						}
+					case 'array':
+						return {
+							key,
+							value: (value.value === null ?
+								value.defaultValue : value.value).join(' ')
+						};
+					case 'choice':
+						return {
+							key,
+							value: value.values[value.selected || 0] + ''
+						}
 				}
+			});
+		} else if (preprocessor === 'default') {
+			modules.Util.toArray<CRM.OptionsValue>(options).map(([key, value]) => {
+				switch (value.type) {
+					case 'string':
+					case 'color':
+					case 'number':
+					case 'boolean':
+						return {
+							key,
+							value: (value.value === null ?
+								value.defaultValue : value.value) + ''
+						}
+					case 'array':
+						return {
+							key,
+							value: (value.value === null ?
+								value.defaultValue : value.value).join(' ')
+						}
+					case 'choice':
+						return {
+							key,
+							value: (value.values[value.selected || 0]) + ''
+						}
+				}
+			});
+		} else if (preprocessor === 'uso') {
+			return [];
+		}
+		return [];
+	}
+	function compileVars(stylesheet: string, options: CRM.Options, 
+		preprocessor: Preprocessor|string) {
+			const codeOptions = metaTagVarsToCodeOptions(stylesheet, options);
+			const format = getPreprocessorFormat(preprocessor, codeOptions);
+			if (preprocessor === 'less') {
+				return `${format.map(({key, value}) => {
+					return `@${key}:\t${value}`;
+				}).join('\n')}\n${stylesheet}`;
+			} else if (preprocessor === 'stylus') {
+				return `${format.map(({key, value}) => {
+					return `${key} = ${value};`;
+				}).join('\n')}\n${stylesheet}`;
+			} else if (preprocessor === 'default') {
+				return `:root {\n${format.map(({key, value}) => {
+					return `\t--${key}: ${value}`;
+				}).join('\n')}\n}\n${stylesheet}`;
+			} else {
+				return stylesheet;
 			}
 		}
-		return lines.join('');
+	function compileLess(stylesheet: string, id: CRM.NodeId<CRM.StylesheetNode>): Promise<string> {
+		return new Promise<string>((resolve) => {
+			window.less.Parser().parse(stylesheet, (err, result) => {
+				if (!err) {
+					resolve(result.toCSS());
+				} else {
+					window.log(`An error occurred while compiling less CSS for node ${
+						id}: ${err.name} ${err.message}`);
+					resolve(stylesheet);;
+				}
+			});
+		});
 	}
-	export function getConvertedStylesheet(node: CRM.StylesheetNode): string {
+	function compileStylus(stylesheet: string, id: CRM.NodeId<CRM.StylesheetNode>): Promise<string> {
+		return new Promise<string>((resolve) => {
+			window.stylus(stylesheet).render((err, result) => {
+				if (!err) {
+					resolve(result.trim());
+				} else {
+					window.log(`An error occurred while compiling stylus CSS for node ${
+						id}: ${err.name} ${err.message}`);
+					resolve(stylesheet);;
+				}
+			});
+		});
+	}
+	async function applyPreprocessor(stylesheet: string, id: CRM.NodeId<CRM.StylesheetNode>, 
+		preprocessor: Preprocessor|string, options: CRM.Options) {
+			if (preprocessor === 'less') {
+				await modules.Util.execFile('js/libraries/less.js');
+				return await compileLess(stylesheet, id);
+			} else if (preprocessor === 'stylus') {
+				await modules.Util.execFile('js/libraries/stylus.js');
+				return await compileStylus(stylesheet, id);
+			} else if (preprocessor === 'uso') {
+				return preprocessUSO(id, stylesheet, options);
+			} else {
+				return stylesheet;
+			}
+		}
+	async function convertStylesheet(id: CRM.NodeId<CRM.StylesheetNode>, stylesheet: string, 
+		options: CRM.Options): Promise<string> {
+			const meta = MetaTags.getMetaTags(stylesheet);
+			const vars = [...(meta['var'] || []), ...(meta['advanced'] || [])];
+			const preprocessor = (meta['preprocessor'] && meta['preprocessor'][0]) ||
+				(vars.length ? 'uso' : 'default')
+			return await applyPreprocessor(compileVars(stylesheet, options, preprocessor),
+				id, preprocessor, options)
+		}
+	export async function getConvertedStylesheet(node: CRM.StylesheetNode): Promise<string> {
 		if (node.value.convertedStylesheet &&
 			node.value.convertedStylesheet.options === JSON.stringify(node.value.options)) {
 			return node.value.convertedStylesheet.stylesheet;
 		}
 		node.value.convertedStylesheet = {
 			options: JSON.stringify(node.value.options),
-			stylesheet: convertStylesheet(node.value.stylesheet, typeof node.value.options === 'string' ?
-				{} : node.value.options)
+			stylesheet: await convertStylesheet(node.id, node.value.stylesheet, 
+				typeof node.value.options === 'string' ?
+					{} : node.value.options)
 		};
 		return node.value.convertedStylesheet.stylesheet;
 	}
@@ -2155,7 +2190,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 
 export namespace CRMNodes.Stylesheet {
 	export function createToggleHandler(node: CRM.StylesheetNode): ClickHandler {
-		return (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => {
+		return async (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => {
 			let code: string;
 			const className = node.id + '' + tab.id;
 			if (info.wasChecked) {
@@ -2165,7 +2200,7 @@ export namespace CRMNodes.Stylesheet {
 					'});'
 				].join('');
 			} else {
-				const css = Options.getConvertedStylesheet(node).replace(/[ |\n]/g, '');
+				const css = (await Options.getConvertedStylesheet(node)).replace(/[ |\n]/g, '');
 				code = [
 					'var CRMSSInsert=document.createElement("style");',
 					`CRMSSInsert.className="styleNodes${className}";`,
@@ -2186,9 +2221,9 @@ export namespace CRMNodes.Stylesheet {
 		};
 	}
 	export function createClickHandler(node: CRM.StylesheetNode): ClickHandler {
-		return (_info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => {
+		return async (_info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => {
 			const className = node.id + '' + tab.id;
-			const css = Options.getConvertedStylesheet(node).replace(/[ |\n]/g, '');
+			const css = (await Options.getConvertedStylesheet(node)).replace(/[ |\n]/g, '');
 			const code = [
 				'(function() {',
 				`if (document.querySelector(".styleNodes${className}")) {`,

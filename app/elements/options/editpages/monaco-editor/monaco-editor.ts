@@ -47,7 +47,10 @@ namespace MonacoEditorElement {
 		CRM_stylesheet: 'Interpret this as a stylesheet (userstyle) instead of a script (userscript). (CRM ONLY)',
 		CRM_toggle: 'A boolean value (true/false) indicating whether to allow toggling this stylesheet on or off. Only used when @CRM_stylesheet is present. (CRM ONLY)',
 		CRM_defaultOn: 'A boolean value (true/false) indicating whether this stylesheet is toggled on by default. Only used when @CRM_stylesheet and @CRM_toggle are present. (CRM ONLY)',
-		CRM_libraries: 'An array containing stringified objects with a "url" and a "name" key, pointing to external libraries used in this script.'
+		CRM_libraries: 'An array containing stringified objects with a "url" and a "name" key, pointing to external libraries used in this script.',
+		license: 'The license for this script. If none is supplied, it\'s under exclusive copyright by default',
+		preprocessor: 'The css preprocessor to use, choose from \'less\', \'stylus\', \'uso\' or \'default\'. For more info check out https://github.com/openstyles/stylus/wiki/Usercss#preprocessor',
+		var: 'A variable that can be changed by the user and is replaced when compiling the stylesheet'
 	};
 
 	abstract class EventEmitter<PubL extends string, PriL extends string> {

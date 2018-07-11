@@ -344,6 +344,13 @@ export namespace Util {
 		});
 		return obj;
 	}
+	export function toArray<T, O extends {
+		[key: string]: T;
+	} = {}>(obj: O): [string, T][] {
+		return Object.getOwnPropertyNames(obj).map((key) => {
+			return [key, obj[key]] as [string, T];
+		});
+	}
 	export function removeTab(tabId: TabId) {
 		const nodeStatusses = modules.crmValues.nodeTabStatuses;
 		

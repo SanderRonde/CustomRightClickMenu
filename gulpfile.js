@@ -15,6 +15,7 @@ const rename = require('gulp-rename');
 const ts = require('gulp-typescript');
 const uglify = require('gulp-uglify');
 const babel = require('gulp-babel');
+const request = require('request');
 // @ts-ignore
 const xpi = require('firefox-xpi');
 // @ts-ignore
@@ -37,6 +38,8 @@ const BANNERS = {
 		'/CustomRightClickMenu \n * This code may only be used under the MIT' +
 		' style license found in the LICENSE.txt file \n**/\n'
 }
+const LESS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/less.js/3.7.0/less.min.js';
+const STYLUS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/stylus/0.32.1/stylus.min.js';
 
 /**
  * Generates a task with given description
@@ -203,6 +206,42 @@ function readFile(filePath, options) {
 							base: './node_modules/typescript/lib'
 						})
 						.pipe(gulp.dest('./app/js/libraries/'))
+				},
+				async function lessEmbedDev() {
+					const lib = await new Promise((resolve, reject) => {
+						request(LESS_URL, (err, res, body) => {
+							if (err) {
+								reject(err);
+							} else {
+								if (res.statusCode === 200) {
+									resolve(body);
+								} else {
+									reject(new Error(`Received status code ${res.statusCode}`));
+								}
+							}
+						});
+					});
+					await writeFile('./app/js/libraries/less.js', lib, {
+						encoding: 'utf8'
+					});
+				},
+				async function stylusEmbedDev() {
+					const lib = await new Promise((resolve, reject) => {
+						request(STYLUS_URL, (err, res, body) => {
+							if (err) {
+								reject(err);
+							} else {
+								if (res.statusCode === 200) {
+									resolve(body);
+								} else {
+									reject(new Error(`Received status code ${res.statusCode}`));
+								}
+							}
+						});
+					});
+					await writeFile('./app/js/libraries/less.js', lib, {
+						encoding: 'utf8'
+					});
 				},
 				async function crmapiLib() {
 					await writeFile('./app/js/libraries/crmapi.d.ts', await joinDefs(), {
@@ -417,6 +456,42 @@ function readFile(filePath, options) {
 						base: './node_modules/typescript/lib'
 					})
 					.pipe(gulp.dest('./temp/js/libraries'));
+			},
+			async function embedLess() {
+				const lib = await new Promise((resolve, reject) => {
+					request(LESS_URL, (err, res, body) => {
+						if (err) {
+							reject(err);
+						} else {
+							if (res.statusCode === 200) {
+								resolve(body);
+							} else {
+								reject(new Error(`Received status code ${res.statusCode}`));
+							}
+						}
+					});
+				});
+				await writeFile('./temp/js/libraries/less.js', lib, {
+					encoding: 'utf8'
+				});
+			},
+			async function embedStylus() {
+				const lib = await new Promise((resolve, reject) => {
+					request(STYLUS_URL, (err, res, body) => {
+						if (err) {
+							reject(err);
+						} else {
+							if (res.statusCode === 200) {
+								resolve(body);
+							} else {
+								reject(new Error(`Received status code ${res.statusCode}`));
+							}
+						}
+					});
+				});
+				await writeFile('./temp/js/libraries/less.js', lib, {
+					encoding: 'utf8'
+				});
 			},
 			async function crmapiLibBuild() {
 				await writeFile('./temp/js/libraries/crmapi.d.ts', await joinDefs(), {
@@ -845,6 +920,8 @@ function readFile(filePath, options) {
 					'./js/contentscripts/userstyles.js',
 					'./js/sandbox.js',
 					'./js/libraries/typescript.js',
+					'./js/libraries/less.js',
+					'./js/libraries/stylus.js',
 					'./js/contentscripts/contentscript.js',
 					'./js/polyfills/browser.js'
 				], { 
@@ -917,6 +994,8 @@ function readFile(filePath, options) {
 					'./js/contentscripts/usercss.js',
 					'./js/contentscripts/userstyles.js',
 					'./js/libraries/typescript.js',
+					'./js/libraries/less.js',
+					'./js/libraries/stylus.js',
 					'./js/sandbox.js',
 					'./js/contentscripts/contentscript.js',
 					'./js/polyfills/browser.js'

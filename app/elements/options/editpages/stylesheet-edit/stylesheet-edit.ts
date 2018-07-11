@@ -268,7 +268,7 @@ namespace StylesheetEditElement {
 					return options;
 				}
 				const metaTags = window.app.editCRM.getMetaTags(stylesheet);
-				const vars = metaTags['var'] || [];
+				const vars = [...(metaTags['var'] || []), ...(metaTags['advanced'] || [])];
 				if (vars.length === 0) {
 					return null;
 				} else {
@@ -381,7 +381,8 @@ namespace StylesheetEditElement {
 					//Remove all @var tags
 					const metaLines = [...window.app.editCRM.getMetaLinesForIndex(
 						stylesheet, lastIndex).filter((line) => {
-							return line.indexOf('@var') === -1;
+							return line.indexOf('@var') === -1 &&
+								line.indexOf('@advanced') === -1;
 						}), ...this._codeOptionsToMetaTagVars(
 							this.newSettings.value.options)];
 					const splitLines = stylesheet.split('\n');
