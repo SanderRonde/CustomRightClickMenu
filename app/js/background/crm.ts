@@ -761,13 +761,37 @@ export namespace CRMNodes.MetaTags {
 		const metaTags: {
 			[key: string]: any;
 		} = {};
+		let currentMatch: {
+			key: string;
+			value: string;
+		} = null;
 		const regex = /@(\w+)(\s+)(.+)/;
 		for (let i = 0; i < metaLines.length; i++) {
 			const regexMatches = metaLines[i].match(regex);
 			if (regexMatches) {
-				metaTags[regexMatches[1]] = metaTags[regexMatches[1]] || [];
-				metaTags[regexMatches[1]].push(regexMatches[3]);
+				if (currentMatch) {
+					//Write previous match to object
+					const { key, value } = currentMatch;
+					metaTags[key] = metaTags[key] || [];
+					metaTags[key].push(value);
+				}
+
+				currentMatch = {
+					key: regexMatches[1],
+					value: regexMatches[3]
+				}
+			} else {
+				//No match, that means the last metatag is
+				//still continuing, add to that
+				currentMatch.value += ('\n' + metaLines[i]);
 			}
+		}
+
+		if (currentMatch) {
+			//Write previous match to object
+			const { key, value } = currentMatch;
+			metaTags[key] = metaTags[key] || [];
+			metaTags[key].push(value);
 		}
 
 		cachedData.set(hash, metaTags);
