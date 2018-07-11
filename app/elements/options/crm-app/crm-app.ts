@@ -3974,6 +3974,11 @@ namespace CRMAppElement {
 									value: element.querySelector('paper-input').value
 								});
 								break;
+							case 'color':
+								value = this.parent().templates.mergeObjects(currentVal, {
+									value: element.querySelector('input').value
+								});
+								break;
 							case 'boolean':
 								value = this.parent().templates.mergeObjects(currentVal, {
 									value: element.querySelector('paper-checkbox').checked

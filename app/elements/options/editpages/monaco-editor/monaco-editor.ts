@@ -1258,6 +1258,25 @@ namespace MonacoEditorElement {
 						type: 'object',
 						properties: {
 							type: {
+								title: 'A choice type option',
+								type: 'string',
+								enum: ['color']
+							},
+							descr: {
+								title: 'A description for this option',
+								type: 'string'
+							},
+							value: {
+								title: 'The value of this option (set to null for unset)',
+								description: 'The value of this option, changing it here will have the' + 
+									' same effect as changing it in the options dialog',
+								type: ['string', 'null']
+							}
+						}
+					}, {
+						type: 'object',
+						properties: {
+							type: {
 								title: 'A boolean type option',
 								type: 'string',
 								enum: ['boolean']

@@ -590,6 +590,13 @@
 										pattern="[[codeSetting.format]]"
 										title="[[_getString(codeSetting.value.descr)]]"></paper-input>
 								</template>
+								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'color')}}">
+									<span class="optionMetaDescr">Color picker</span>
+									<input type="color" placeholder="[[_getString(codeSetting.value.descr)]]"
+										value="{{codeSetting.value.value}}"
+										label="[[codeSetting.key]]"
+										title="[[_getString(codeSetting.value.descr)]]"></input>
+								</template>
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'array')}}">
 									<paper-array-input values="{{codeSetting.value.value}}" 
 										max="[[codeSetting.value.maxItems]]"

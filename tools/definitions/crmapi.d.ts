@@ -86,7 +86,7 @@ declare namespace CRM {
 		 * An option type
 		 */
 		type OptionsValue = OptionCheckbox|OptionString|OptionChoice|
-			OptionArray|OptionNumber;
+			OptionArray|OptionNumber|OptionColorPicker;
 
 		/**
 		 * The options object of a script or stylesheet
@@ -171,6 +171,24 @@ declare namespace CRM {
 			 * The values of which to choose
 			 */
 			values: (string|number)[];
+		}
+
+		/**
+		 * An option allowing you to pick a color
+		 */
+		interface OptionColorPicker {
+			/**
+			 * THe type of the option
+			 */
+			type: 'color';
+			/**
+			 * The description of this option
+			 */
+			descr?: string;
+			/**
+			 * The value of this option
+			 */
+			value: null|string;
 		}
 
 		/**
