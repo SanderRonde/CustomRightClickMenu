@@ -244,6 +244,8 @@ app/js/shared.js
 docs/website/
 documentation/
 app/js/libraries/typescript.js
+app/js/libraries/less.js
+app/js/libraries/stylus.js
 app/js/polyfills/**/*.js
 !app/js/polyfills/promise.js
 app/js/promiseType.js
