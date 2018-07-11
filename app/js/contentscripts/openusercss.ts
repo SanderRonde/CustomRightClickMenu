@@ -222,5 +222,10 @@
 	attachHandshakeListeners();
 	attachInstallListeners();
 	attachInstalledListeners();
-	askHandshake();
+	const interval = window.setInterval(() => {
+		askHandshake();
+	}, 125);
+	window.setTimeout(() => {
+		window.clearInterval(interval);
+	}, 3000);
 })();
