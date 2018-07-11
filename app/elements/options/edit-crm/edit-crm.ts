@@ -716,7 +716,7 @@ namespace EditCrmElement {
 			return JSON.stringify(node);
 		};
 
-		private static _getMetaIndexes(script: string): {
+		private static _getMetaIndexes(code: string): {
 			start: number;
 			end: number;
 		}[] {
@@ -726,7 +726,7 @@ namespace EditCrmElement {
 			}[] = [];
 			let metaStart = -1;
 			let metaEnd = -1;
-			const lines = script.split('\n');
+			const lines = code.split('\n');
 			for (let i = 0; i < lines.length; i++) {
 				if (metaStart !== -1) {
 					if (lines[i].indexOf('==/UserScript==') > -1 ||
@@ -747,11 +747,11 @@ namespace EditCrmElement {
 	
 			return indexes;
 		}
-		private static _getMetaLines(script: string): string[] {
-			const metaIndexes = this._getMetaIndexes(script);
+		private static _getMetaLines(code: string): string[] {
+			const metaIndexes = this._getMetaIndexes(code);
 	
 			const metaLines: string[] = [];
-			const lines = script.split('\n');
+			const lines = code.split('\n');
 			for (const { start, end } of metaIndexes) {
 				for (let i = start + 1; i < end; i++) {
 					metaLines.push(lines[i]);
@@ -761,21 +761,47 @@ namespace EditCrmElement {
 			return metaLines;
 		}
 
-		private static _getMetaTags(this: EditCrm, script: string): {
+		static getMetaTags(this: EditCrm, code: string): {
 			[key: string]: (string|number)[];
 		} {
-			const metaLines = this._getMetaLines(script);
+			const metaLines = this._getMetaLines(code);
 
-			const metaTags: CRM.MetaTags = {};
-			const regex = new RegExp(/@(\w+)(\s+)(.+)/);
-			let regexMatches;
+			const metaTags: {
+				[key: string]: any;
+			} = {};
+			let currentMatch: {
+				key: string;
+				value: string;
+			} = null;
+			const regex = /@(\w+)(\s+)(.+)/;
 			for (let i = 0; i < metaLines.length; i++) {
-				regexMatches = metaLines[i].match(regex);
+				const regexMatches = metaLines[i].match(regex);
 				if (regexMatches) {
-					metaTags[regexMatches[1]] = metaTags[regexMatches[1]] || [];
-					metaTags[regexMatches[1]].push(regexMatches[3]);
+					if (currentMatch) {
+						//Write previous match to object
+						const { key, value } = currentMatch;
+						metaTags[key] = metaTags[key] || [];
+						metaTags[key].push(value);
+					}
+	
+					currentMatch = {
+						key: regexMatches[1],
+						value: regexMatches[3]
+					}
+				} else {
+					//No match, that means the last metatag is
+					//still continuing, add to that
+					currentMatch.value += ('\n' + metaLines[i]);
 				}
 			}
+	
+			if (currentMatch) {
+				//Write previous match to object
+				const { key, value } = currentMatch;
+				metaTags[key] = metaTags[key] || [];
+				metaTags[key].push(value);
+			}
+	
 
 			return metaTags;
 		};
@@ -809,7 +835,7 @@ namespace EditCrmElement {
 				for (const line of slicedIndexes.reverse()) {
 					codeSplit.splice(line, 1);
 				}
-				metaTags = this._getMetaTags(code);
+				metaTags = this.getMetaTags(code);
 			}
 
 			this._setMetaTagIfSet(metaTags, 'name', 'name', node);
