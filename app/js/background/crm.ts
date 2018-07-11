@@ -1677,7 +1677,7 @@ export namespace CRMNodes.Stylesheet.Options {
 		value: string;
 	}[] {
 		if (preprocessor === 'less' || preprocessor === 'stylus') {
-			return modules.Util.toArray<CRM.OptionsValue>(options).map(([key, value]) => {
+			return modules.Util.toArray<CRM.OptionsValue>(options || {}).map(([key, value]) => {
 				switch (value.type) {
 					case 'string':
 					case 'color':
@@ -1706,7 +1706,7 @@ export namespace CRMNodes.Stylesheet.Options {
 				}
 			});
 		} else if (preprocessor === 'default') {
-			modules.Util.toArray<CRM.OptionsValue>(options).map(([key, value]) => {
+			modules.Util.toArray<CRM.OptionsValue>(options || {}).map(([key, value]) => {
 				switch (value.type) {
 					case 'string':
 					case 'color':
