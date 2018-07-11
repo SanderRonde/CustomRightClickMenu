@@ -182,7 +182,8 @@ function readFile(filePath, options) {
 						.src([
 							'**/**',
 							'!vs/basic-languages/src/**',
-							'vs/basic-languages/src/css.js'
+							'vs/basic-languages/src/css.js',
+							'vs/basic-languages/src/less.js'
 						], {
 							base: 'node_modules/monaco-editor/min',
 							cwd: 'node_modules/monaco-editor/min'
@@ -324,7 +325,8 @@ function readFile(filePath, options) {
 				.src([
 					'**/**',
 					'!vs/basic-languages/src/**',
-					'vs/basic-languages/src/css.js'
+					'vs/basic-languages/src/css.js',
+					'vs/basic-languages/src/less.js'
 				], {
 					base: 'node_modules/monaco-editor/min',
 					cwd: 'node_modules/monaco-editor/min'
@@ -336,7 +338,8 @@ function readFile(filePath, options) {
 				.src([
 					'**/**',
 					'!vs/basic-languages/src/**',
-					'vs/basic-languages/src/css.js'
+					'vs/basic-languages/src/css.js',
+					'vs/basic-languages/src/less.js'
 				], {
 					base: 'node_modules/monaco-editor/min',
 					cwd: 'node_modules/monaco-editor/min'
@@ -853,7 +856,8 @@ function readFile(filePath, options) {
 					.src([
 						'**/**',
 						'!vs/basic-languages/src/**',
-						'vs/basic-languages/src/css.js'
+						'vs/basic-languages/src/css.js',
+						'vs/basic-languages/src/less.js'
 					], {
 						base: 'node_modules/monaco-editor/min',
 						cwd: 'node_modules/monaco-editor/min'
