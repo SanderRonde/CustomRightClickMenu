@@ -742,7 +742,11 @@ namespace MonacoEditorElement {
 				MonacoEditorMetaBlockMods._metaTagProvider);
 			MonacoEditorHookManager.Completion.register('css',
 				MonacoEditorMetaBlockMods._metaKeyProvider);
-
+			MonacoEditorHookManager.Completion.register('less',
+				MonacoEditorMetaBlockMods._metaTagProvider);
+			MonacoEditorHookManager.Completion.register('less',
+				MonacoEditorMetaBlockMods._metaKeyProvider);
+				
 			this._disposables.push({
 				dispose: () => {
 					MonacoEditorHookManager.Completion.clearAll();
@@ -1934,6 +1938,8 @@ namespace MonacoEditorElement {
 		JS_META,
 		TS_META,
 		CSS_META,
+		LESS,
+		LESS_META,
 		PLAIN_TEXT
 	}
 
@@ -1982,6 +1988,11 @@ namespace MonacoEditorElement {
 		private static _isTypescript: boolean;
 
 		/**
+		 * Whether this is a LESS instance
+		 */
+		private static _isLess: boolean;
+
+		/**
 		 * All models currently used in this editor instance
 		 */
 		private static _models: {
@@ -2027,6 +2038,8 @@ namespace MonacoEditorElement {
 			switch (editorType) {
 				case EditorMode.CSS:
 				case EditorMode.CSS_META:
+				case EditorMode.LESS:
+				case EditorMode.LESS_META:
 					return true;
 			}
 			return false;
@@ -2036,6 +2049,15 @@ namespace MonacoEditorElement {
 			switch (editorType) {
 				case EditorMode.TS:
 				case EditorMode.TS_META:
+					return true;
+			}
+			return false;
+		}
+
+		private static _typeIsLESS(editorType: EditorConfig) {
+			switch (editorType) {
+				case EditorMode.LESS:
+				case EditorMode.LESS_META:
 					return true;
 			}
 			return false;
@@ -2062,6 +2084,7 @@ namespace MonacoEditorElement {
 		private static _getSettings(editorType: EditorConfig): monaco.editor.IEditorOptions {
 			switch (editorType) {
 				case EditorMode.CSS_META:
+				case EditorMode.LESS_META:
 					return MonacoEditorCSSMetaMods.getSettings();
 				case EditorMode.TS_META:
 					return MonacoEditorScriptMetaMods.getSettings();
@@ -2082,6 +2105,7 @@ namespace MonacoEditorElement {
 			model: monaco.editor.IModel): MonacoTypeHandler {
 				switch (editorType) {
 					case EditorMode.CSS_META:
+					case EditorMode.LESS_META:
 						return new MonacoEditorCSSMetaMods(editor, model);
 					case EditorMode.JS_META:
 					case EditorMode.TS_META:
@@ -2209,6 +2233,8 @@ namespace MonacoEditorElement {
 				}
 
 				this._isTypescript = this._typeIsTS(editorType);
+				this._isLess = this._typeIsLESS(editorType);
+
 				this.options = options;
 				const model = await this.setMonacoEditorScopes(() => {
 					if (this._supportsMonaco()) {
@@ -2251,6 +2277,7 @@ namespace MonacoEditorElement {
 				}
 
 				this._isTypescript = this._typeIsTS(editorType);
+				this._isLess = this._typeIsLESS(editorType);
 
 				this.options = options;
 				await this.setMonacoEditorScopes(() => {
@@ -2312,6 +2339,7 @@ namespace MonacoEditorElement {
 			}
 
 			this._isTypescript = this._typeIsTS(editorType);
+			this._isLess = this._typeIsLESS(editorType);
 			await this.setMonacoEditorScopes(() => {
 				if (this._supportsMonaco()) {
 					this.editor = window.monaco.editor.create(this.$.editorElement, this._mergeObjects({
@@ -2397,6 +2425,61 @@ namespace MonacoEditorElement {
 			} else {
 				editor.setModel(models[0]);
 			}
+		}
+
+		static setLess(this: MonacoEditor, enabled: boolean) {
+			if (this._isLess === enabled) {
+				return;
+			}
+
+			if (this._createInfo.method === 'from') {
+				this._createInfo.from.setLess(enabled);
+				return;
+			}
+
+			const currentModelId = this.getCurrentModelId();
+			const currentModel = this.getCurrentModel();
+			const lang = enabled ? 'less' : 'javascript';
+			const oldModels = currentModel.models;
+			currentModel.handlers.forEach((handler) => {
+				handler.destroy();
+			});
+
+			const newModels = oldModels.map((oldModel) => {
+				return monaco.editor.createModel(oldModel.getValue(), lang);
+			});
+			if (MonacoEditorHookManager.hasScope(this)) {
+				this.setNewModels(newModels);
+			} else {
+				this.setNewModels([MonacoEditorHookManager.getNullModel()]);
+				MonacoEditorHookManager.onHasScope(this, () => {
+					this.setNewModels(newModels);
+				});	
+			}
+
+			oldModels.forEach((oldModel) => oldModel.dispose());
+
+			currentModel.handlers = newModels.map((newModel) => {
+				return this._getTypeHandler(currentModel.editorType, this.editor as any, newModel);
+			});
+			currentModel.models = newModels;	
+
+			for (let modelId in this._models) {
+				if (modelId !== currentModelId) {
+					delete this._models[modelId];
+				}
+			}
+
+			this._isLess = enabled;
+			this._children.forEach((child) => {
+				child._isLess = enabled;
+
+				const copiedModelName: string = (child._createInfo as any).modelId;
+				const model = this.getModel(copiedModelName);
+				if (!this.isDiff(child.editor)) {
+					child.editor.setModel(model.models[0]);
+				}
+			})
 		}
 		
 		static setTypescript(this: MonacoEditor, enabled: boolean) {
@@ -2571,6 +2654,8 @@ namespace MonacoEditorElement {
 				this._showLintResults('jslint', this._runJsLint());
 			} else if (this._typeIsTS(type)) {
 				alert('No linting possible in typescript mode');
+			} else if (this._typeIsLESS(type)) {
+				alert('No linting possible in LESS/stylus mode');
 			} else if (this._typeIsCss(type)) {
 				await MonacoEditorHookManager.Libraries.runFile('js/libraries/csslint.js');
 				this._showLintResults('csslint', this._runCssLint());
@@ -2909,7 +2994,7 @@ namespace MonacoEditorElement {
 				}[];
 			} = {};
 
-			static register(language: 'javascript'|'css'|'typescript'|'json', item: monaco.languages.CompletionItemProvider) {
+			static register(language: 'less'|'javascript'|'css'|'typescript'|'json', item: monaco.languages.CompletionItemProvider) {
 				this._enabledCompletions[language] = this._enabledCompletions[language] || [];
 				for (let completionData of this._enabledCompletions[language]) {
 					if (completionData.completion === item) {

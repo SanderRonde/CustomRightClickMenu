@@ -390,7 +390,7 @@ input {
 	position: absolute;
 }
 
-#triggersInfoCont, #codeInfoCont, #editorTabInfoCont {
+#triggersInfoCont, #codeInfoCont, #editorTabInfoCont, #editorStylusInfo {
 	cursor: pointer;
 	float: right;
 	margin-top: 7px;
@@ -401,29 +401,32 @@ input {
 }
 
 #triggersInfoCont .active, #codeInfoCont .active, #editorTabInfoCont .active,
+#editorStylusInfo .active,
 #triggersInfoCont #triggersInfoTxtCont, #codeInfoCont #codeInfoTxtCont,
-#editorTabInfoCont #editorTabInfoTxtCont {
+#editorTabInfoCont #editorTabInfoTxtCont, #editorStylusInfo #editorStylusInfoTxtCont {
 	display: none;
 }
 
-#triggersInfoCont .inactive, #codeInfoCont .inactive, #editorTabInfoCont .inactive {
+#triggersInfoCont .inactive, #codeInfoCont .inactive, #editorTabInfoCont .inactive, 
+#editorStylusInfo .inactive {
 	display: block;
 }
 
 #triggersInfoCont:hover .active, #codeInfoCont:hover .active,
-#editorTabInfoCont:hover .active,
+#editorTabInfoCont:hover .active, #editorStylusInfo:hover .active,
 #triggersInfoCont:hover #triggersInfoTxtCont,
 #codeInfoCont:hover #codeInfoTxtCont,
-#editorTabInfoCont:hover #editorTabInfoTxtCont {
+#editorTabInfoCont:hover #editorTabInfoTxtCont,
+#editorStylusInfo:hover #editorStylusInfoTxtCont {
 	display: block;
 }
 
 #triggersInfoCont:hover .inactive, #codeInfoCont:hover .inactive,
-#editorTabInfoCont:hover .inactive {
+#editorTabInfoCont:hover .inactive, #editorStylusInfo:hover .inactive {
 	display:none;
 }
 
-#triggersInfoTxt, #codeInfoTxtCont, #editorTabInfoTxtCont {
+#triggersInfoTxt, #codeInfoTxtCont, #editorTabInfoTxtCont, #editorStylusInfoTxtCont {
 	position: absolute;
     z-index: 10000;
     margin-top: -24px;

@@ -2,6 +2,7 @@
 
 import { NodeEditBehaviorStylesheetInstance } from "../../node-edit-behavior/node-edit-behavior";
 import { Polymer } from '../../../../../tools/definitions/polymer';
+import { MetaBlock } from "../monaco-editor/monaco-editor";
 
 declare const browserAPI: browserAPI;
 
@@ -119,6 +120,23 @@ namespace StylesheetEditElement {
 		 */
 		static editorLoaded(this: NodeEditBehaviorStylesheetInstance) {
 			const editorManager = this.editorManager;
+			(editorManager.getTypeHandler() as any)[0].listen('metaChange', ({content: oldTags}: MetaBlock, {content: newTags}: MetaBlock) => {
+				if (this.editorMode === 'main') {
+					const oldPreprocessor = oldTags['preprocessor'] && oldTags['preprocessor'][0];
+					const newPreprocessor = newTags['preprocessor'] && newTags['preprocessor'][0];
+					if (oldPreprocessor !== newPreprocessor && 
+						((oldPreprocessor === 'less' || oldPreprocessor === 'stylus') &&
+						newPreprocessor !== 'less' && newPreprocessor !== 'stylus') ||
+						((newPreprocessor === 'less' || newPreprocessor === 'stylus') &&
+						oldPreprocessor !== 'less' && oldPreprocessor !== 'stylus')) {
+							this.editorManager.setLess(
+								newPreprocessor === 'less' || newPreprocessor === 'stylus');
+						}
+					this.$.editorStylusInfo.classList[
+						newPreprocessor === 'stylus' ? 'remove' : 'add'
+					]('hidden');
+				}
+			});
 
 			editorManager.editor.getDomNode().classList.remove('stylesheet-edit-codeMirror');
 			editorManager.editor.getDomNode().classList.add('script-edit-codeMirror');
@@ -128,6 +146,11 @@ namespace StylesheetEditElement {
 				this.$.editorFullScreen.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 			}
 		};
+
+		private static _getPreprocessor(this: NodeEditBehaviorStylesheetInstance, stylesheet: string) {
+			const tags = window.app.editCRM.getMetaTags(stylesheet);
+			return (tags['preprocessor'] && tags['preprocessor'][0]) || 'default';
+		}
 
 		/**
 		 * Loads the monaco editor
@@ -146,7 +169,12 @@ namespace StylesheetEditElement {
 				cssUnderlineDisabled: false,
 				disabledMetaDataHighlight: false
 			});
-			this.editorManager = await this.$.editor.create(this.$.editor.EditorMode.CSS_META, {
+			const preprocessor = this._getPreprocessor(content) as string;
+			const editorType = (preprocessor === 'stylus' || preprocessor === 'less') ?
+				this.$.editor.EditorMode.LESS_META : this.$.editor.EditorMode.CSS_META;
+			this.$.editorStylusInfo.classList[
+				preprocessor === 'stylus' ? 'remove' : 'add']('hidden');
+			this.editorManager = await this.$.editor.create(editorType, {
 				value: content,
 				language: 'css',
 				theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
@@ -368,6 +396,10 @@ namespace StylesheetEditElement {
 
 			const mainClicked = element.classList.contains('mainEditorTab');
 			if (mainClicked && this.editorMode !== 'main') {
+				this.$.editorStylusInfo.classList[
+					this._getPreprocessor(this.newSettings.value.stylesheet) === 'stylus' ?
+						'remove' : 'add']('hidden');
+
 				try {
 					this.newSettings.value.options = JSON.parse(this.editorManager.editor.getValue());
 				} catch(e) {
@@ -393,6 +425,8 @@ namespace StylesheetEditElement {
 				this._showMainTab();
 				this.editorMode = 'main';
 			} else if (!mainClicked && this.editorMode === 'main') {
+				this.$.editorStylusInfo.classList.add('hidden');
+
 				this.newSettings.value.stylesheet = this.editorManager.editor.getValue();
 				this.showCodeOptions();
 				const stylesheet = this.newSettings.value.stylesheet;

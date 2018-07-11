@@ -41,3 +41,7 @@ stylesheet-edit #settingsContainer {
 #stylesheetEditCont #buttons {
 	height: 45px;
 }
+
+#editorStylusInfo.hidden {
+	display: none;
+}
