@@ -239,7 +239,7 @@ function readFile(filePath, options) {
 							}
 						});
 					});
-					await writeFile('./app/js/libraries/less.js', lib, {
+					await writeFile('./app/js/libraries/stylus.js', lib, {
 						encoding: 'utf8'
 					});
 				},
@@ -489,7 +489,7 @@ function readFile(filePath, options) {
 						}
 					});
 				});
-				await writeFile('./temp/js/libraries/less.js', lib, {
+				await writeFile('./temp/js/libraries/stylus.js', lib, {
 					encoding: 'utf8'
 				});
 			},
