@@ -550,7 +550,7 @@ function doUserStylesOrgTest(prefix: () => string|void) {
 
 			await wait(500);
 
-			const button = await findElement(webdriver.By.id('install_button'));
+			const button = await findElement(webdriver.By.id('install_style_button'));
 			assert.exists(button, 'Install link exists');
 
 			href = await driver.executeScript(inlineFn(() => {
