@@ -123,6 +123,10 @@ declare namespace CRM {
 			 * The value of this option
 			 */
 			value: null|number;
+			/**
+			 * The default value for this option
+			 */
+			defaultValue?: number;
 		}
 
 		/**
@@ -149,6 +153,10 @@ declare namespace CRM {
 			 * The value of this option
 			 */
 			value: null|string;
+			/**
+			 * The default value for this option
+			 */
+			defaultValue?: number;
 		}
 
 		/**
@@ -189,6 +197,10 @@ declare namespace CRM {
 			 * The value of this option
 			 */
 			value: null|string;
+			/**
+			 * The default value for this option
+			 */
+			defaultValue?: string;
 		}
 
 		/**
@@ -207,6 +219,10 @@ declare namespace CRM {
 			 * The value of this option
 			 */
 			value: null|boolean;
+			/**
+			 * The default value for this option
+			 */
+			defaultValue?: boolean;
 		}
 
 		/**
@@ -238,6 +254,10 @@ declare namespace CRM {
 			 * The array's value
 			 */
 			value: null|string[];
+			/**
+			 * The default value for this option
+			 */
+			defaultValue?: string[];
 		}
 		/**
 		 * An option for inputting arrays of numbers
@@ -251,6 +271,10 @@ declare namespace CRM {
 			 * The array's value
 			 */
 			value: null|number[];
+			/**
+			 * The default value for this option
+			 */
+			defaultValue?: number[];
 		}
 		/**
 		 * An option for inputting arrays of numbers or strings

@@ -1196,6 +1196,10 @@ namespace MonacoEditorElement {
 								title: 'A description for this option',
 								type: 'string'
 							},
+							defaultValue: {
+								title: 'The default value for this option',
+								type: 'number'
+							},
 							value: {
 								title: 'The value of this option (set to null for unset)',
 								description: 'The value of this option, changing it here will have the' + 
@@ -1221,6 +1225,10 @@ namespace MonacoEditorElement {
 							},
 							descr: {
 								title: 'A description for this option',
+								type: 'string'
+							},
+							defaultValue: {
+								title: 'The default value for this option',
 								type: 'string'
 							},
 							value: {
@@ -1266,6 +1274,10 @@ namespace MonacoEditorElement {
 								title: 'A description for this option',
 								type: 'string'
 							},
+							defaultValue: {
+								title: 'The default value for this option',
+								type: 'string'
+							},
 							value: {
 								title: 'The value of this option (set to null for unset)',
 								description: 'The value of this option, changing it here will have the' + 
@@ -1284,6 +1296,10 @@ namespace MonacoEditorElement {
 							descr: {
 								title: 'A description for this option',
 								type: 'string'
+							},
+							defaultValue: {
+								title: 'The default value for this option',
+								type: 'boolean'
 							},
 							value: {
 								title: 'The value of this option (set to null for unset)',
@@ -1313,11 +1329,21 @@ namespace MonacoEditorElement {
 								title: 'A description for this option',
 								type: 'string'
 							},
+							defaultValue: {
+								title: 'The default value for this option',
+								type: 'array',
+								items: {
+									type: ['string', 'number']
+								}
+							},
 							value: {
 								title: 'The value of this option (set to null for unset)',
 								description: 'The value of this option, changing it here will have the' + 
 									' same effect as changing it in the options dialog',
-								type: ['boolean', 'null']
+								type: ['array', 'null'],
+								items: {
+									type: ['string', 'number']
+								}
 							}
 						},
 						required: ['items']
