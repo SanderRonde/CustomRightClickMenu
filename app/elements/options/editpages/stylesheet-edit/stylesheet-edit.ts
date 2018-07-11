@@ -206,27 +206,31 @@ namespace StylesheetEditElement {
 			}, 750);
 		}
 
+		private static _showMainTab(this: NodeEditBehaviorStylesheetInstance) {
+			this.editorManager.switchToModel('default', 
+				this.newSettings.value.stylesheet, this.editorManager.EditorMode.CSS_META);
+		}
+
 		static changeTabEvent(this: NodeEditBehaviorStylesheetInstance, e: Polymer.ClickEvent) {
 			const element = window.app.util.findElementWithClassName(e, 'editorTab');
 
-			const isMain = element.classList.contains('mainEditorTab');
-			if (isMain && this.editorMode !== 'main') {
-				element.classList.remove('optionsEditorTab');
+			const mainClicked = element.classList.contains('mainEditorTab');
+			if (mainClicked && this.editorMode !== 'main') {
 				try {
 					this.newSettings.value.options = JSON.parse(this.editorManager.editor.getValue());
 				} catch(e) {
 					this.newSettings.value.options = this.editorManager.editor.getValue();
 				}
 				this.hideCodeOptions();
+				this._showMainTab();
 				this.editorMode = 'main';
-			} else if (!isMain && this.editorMode === 'main') {
-				element.classList.add('optionsEditorTab');
+			} else if (!mainClicked && this.editorMode === 'main') {
 				this.newSettings.value.stylesheet = this.editorManager.editor.getValue();
 				this.showCodeOptions();
 				this.editorMode = 'options';
 			}
 
-			Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.editorTab')).forEach(
+			Array.prototype.slice.apply(window.stylesheetEdit.shadowRoot.querySelectorAll('.editorTab')).forEach(
 				function(tab: HTMLElement) {
 					tab.classList.remove('active');
 				});
