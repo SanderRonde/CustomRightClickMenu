@@ -1983,6 +1983,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 		}
 	}
 	function getUrls(code: string) {
+		const metaStr = MetaTags.getMetaLines(code);
 		return findDocDeclarations(code).map(({ start, end, firstBracket }) => {
 			const meta = code.slice(start, firstBracket);
 			const metaData: {
@@ -1992,7 +1993,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 				urls: string[];
 				code: string;
 			} = {
-				code: code.slice(firstBracket + 1, end - 1),
+				code: `${metaStr}\n${code.slice(firstBracket + 1, end - 1)}`,
 				domains: [],
 				regexps: [],
 				urlPrefixes: [],
