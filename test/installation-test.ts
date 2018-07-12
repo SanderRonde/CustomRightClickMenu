@@ -598,7 +598,7 @@ function doOpenUserCssTest(prefix: () => string|void) {
 			this.timeout(20000);
 			this.slow(15000);
 
-			await wait(500);
+			await wait(15000);
 
 			const exists = await driver.executeScript(inlineFn(() => {
 				const els: HTMLDivElement[] = Array.prototype.slice.apply(document.querySelectorAll('div'));
