@@ -277,20 +277,16 @@ document.documentElement.appendChild(document.createElement('script')).text = `(
 			constructor(width: number, height: number) {
 				const img = new originalImg(width, height);
 
-				let _src: string;
-				Object.defineProperty(img, 'src', {
-					get() {
-						return _src;
-					},
-					set(value: string) {
-						if (/^chrome-extension:/i.test(value)) {
-							setTimeout(() => typeof this.onload === 'function' && this.onload());		
-						} else {
-							_src = value;
-						}
-						return true;
+				let loaded: {
+					[url: string]: boolean;
+				} = {};
+
+				window.setInterval(() => {
+					if (img.src && !loaded[img.src] && /^chrome-extension:/i.test(img.src)) {
+						loaded[img.src] = true;
+						setTimeout(() => typeof img.onload === 'function' && img.onload());
 					}
-				});
+				}, 125);
 
 				return img;
 			}
