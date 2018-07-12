@@ -3905,174 +3905,6 @@ describe('On-Page CRM', function() {
 					launchMode: CRMLaunchModes.DISABLED,
 					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
 				}
-			}),
-			templates.getDefaultStylesheetNode({
-				name: getRandomString(25),
-				id: getRandomId(),
-				value: {
-					stylesheet: `
-					/*if false then*/
-					a
-					/*endif*/
-					/*if true then*/
-					b
-					/*endif*/
-					/*if 1 < 0 then*/
-					c
-					/*endif*/
-					/*if -1 < 0 then*/
-					d
-					/*endif*/
-					/*if 'a' === 'b' then*/
-					e
-					/*endif*/
-					/*if true && true then*/
-					f
-					/*endif*/
-					/*if false || false then*/
-					g
-					/*endif*/
-					`
-				}
-			}),
-			templates.getDefaultStylesheetNode({
-				name: getRandomString(25),
-				id: getRandomId(),
-				value: {
-					options: {
-						a: {
-							type: 'number',
-							value: 5
-						},
-						b: {
-							type: 'string',
-							value: 'str'
-						},
-						c: {
-							type: 'boolean',
-							value: true
-						},
-						d: {
-							type: 'choice',
-							values: [1,2,3,4],
-							selected: 2
-						},
-						e: {
-							type: 'choice',
-							values: ['a', 'b', 'c', 'd'],
-							selected: 2
-						}
-					},
-					stylesheet: `
-					/*if a === 5 then*/
-					a
-					/*endif*/
-					/*if a === 3 then*/
-					b
-					/*endif*/
-					/*if b === 'str' then*/
-					c
-					/*endif*/
-					/*if c then*/
-					d
-					/*endif*/
-					/*if d === 3 then*/
-					e
-					/*endif*/
-					/*if e === 'c' then*/
-					f
-					/*endif*/
-					`
-				}
-			}),
-			templates.getDefaultStylesheetNode({
-				name: getRandomString(25),
-				id: getRandomId(),
-				value: {
-					stylesheet: `
-					/*if true then*/
-					a
-					/*else*/
-					b
-					/*endif*/
-					/*if false then*/
-					c
-					/*else*/
-					d
-					/*endif*/
-					`
-				}
-			}),
-			templates.getDefaultStylesheetNode({
-				name: getRandomString(25),
-				id: getRandomId(),
-				value: {
-					stylesheet: `
-					/*if true then*/
-						/*if true then*/
-							/*if true then*/
-								/*if false then*/
-									/*if true then*/
-									a
-									/*endif*/
-									b
-								/*endif*/
-								c
-							/*endif*/
-							d
-						/*endif*/
-						e
-					/*endif*/
-					`
-				}
-			}),
-			templates.getDefaultStylesheetNode({
-				name: getRandomString(25),
-				id: getRandomId(),
-				value: {
-					stylesheet: `
-					/*if true then*/
-						/*if true then*/
-							/*if false then*/
-								a
-							/*else*/
-								/*if true then*/
-									b
-								/*else*/
-									c
-								/*endif*/
-								d
-							/*endif*/						
-						/*else*/
-							e
-						/*endif*/	
-						f
-					/*else*/
-						/*if true then*/
-							g
-						/*else*/
-							h
-						/*endif*/
-					/*endif*/
-					`
-				}
-			}),
-			templates.getDefaultStylesheetNode({
-				name: getRandomString(25),
-				id: getRandomId(),
-				value: {
-					options: {
-						margin: {
-							type: 'number',
-							value: 50
-						}
-					},
-					stylesheet: `
-					body {
-						/*margin-top: {{margin}}px;*/
-					}
-					`
-				}
 			})
 		];
 
@@ -4083,13 +3915,7 @@ describe('On-Page CRM', function() {
 			RUN_ON_CLICKING = 3,
 			RUN_ON_SPECIFIED = 4,
 			SHOW_ON_SPECIFIED = 5,
-			DISABLED = 6,
-			IF_NO_VARS = 7,
-			IF_VARS = 8,
-			IF_ELSE = 9,
-			IF_NESTED = 10,
-			IF_ELSE_NESTED = 11,
-			OPTIONS_BLOCKS = 12
+			DISABLED = 6
 		}
 
 		async function runStylesheet(index: StylesheetOnPageTests, expectedReg: RegExp, done: () => void) {
@@ -4345,26 +4171,6 @@ describe('On-Page CRM', function() {
 				assert.strictEqual(dimensions.height, 50, 'dummy element is 50px high');
 			});
 		}
-		it('should work with an if-then statement with no variables', function(done) {
-			runStylesheet(StylesheetOnPageTests.IF_NO_VARS, genContainsRegex('b', 'd', 'f'), done);
-		});
-		it('should work with an if-then statement with variables', function(done) {
-			runStylesheet(StylesheetOnPageTests.IF_VARS, genContainsRegex('a', 'c', 'd', 'e', 'f'), done);
-		});
-		it('should work with an if-then-else statement', function(done) {
-			runStylesheet(StylesheetOnPageTests.IF_ELSE, genContainsRegex('a', 'd'), done);
-		});
-		it('should work with multiple nested if statements', function(done) {
-			this.timeout(5000 * TIME_MODIFIER);
-			runStylesheet(StylesheetOnPageTests.IF_NESTED, genContainsRegex('c', 'd', 'e'), done);
-		});
-		it('should work with multiple nested if-else statements', function(done) {
-			runStylesheet(StylesheetOnPageTests.IF_ELSE_NESTED, genContainsRegex('b', 'd', 'f'), done);
-		});
-		it('should work with statements in blocks', function(done) {
-			runStylesheet(StylesheetOnPageTests.OPTIONS_BLOCKS, 
-				genContainsRegex('body', '{', 'margin-top:', '50px;', '}'), done);
-		});
 		describe('Toggling', function() {
 			let dummy1: FoundElement;
 			let dummy2: FoundElement;
