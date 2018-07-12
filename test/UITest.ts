@@ -3918,57 +3918,6 @@ describe('On-Page CRM', function() {
 			DISABLED = 6
 		}
 
-		async function runStylesheet(index: StylesheetOnPageTests, expectedReg: RegExp, done: () => void) {
-			const { tabId, windowId } = await dummyTab.getTabId();
-			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
-				REPLACE.getBackgroundPageTestData().then((testData) => {
-					testData._clearExecutedScripts();
-					ondone(testData._currentContextMenu[0]
-						.children[REPLACE.index - 3]
-						.currentProperties.onclick(
-							REPLACE.page, REPLACE.tab
-						));
-				});
-			}, {
-				getTestData: getTestData(),
-				getBackgroundPageTestData: getBackgroundPageTestData(),
-				index: index,
-				page: {
-					menuItemId: contextMenu[0].id,
-					editable: false,
-					pageUrl: 'www.google.com',
-					modifiers: []
-				},
-				tab: {
-					isArticle: false,
-					isInReaderMode: false,
-					lastAccessed: 0,
-					id: tabId,
-					index: 1,
-					windowId: windowId,
-					highlighted: false,
-					active: true,
-					pinned: false,
-					selected: false,
-					url: 'http://www.google.com',
-					title: 'Google',
-					incognito: false
-				}
-			}))
-			const executedScripts = await getActivatedScripts();
-			assert.lengthOf(executedScripts, 1, 'one stylesheet was activated');
-			assert.strictEqual(executedScripts[0].id, tabId,
-				'stylesheet was executed on the right tab');
-			assert.isTrue(!!expectedReg.exec(executedScripts[0].code), 'executed code is the same as expected code');
-			done();
-		}
-
-		function genContainsRegex(...contains: string[]): RegExp {
-			const whitespace = '(\\\\t|\\\\s|\\\\n)*';
-			return new RegExp(`.*\\("${whitespace + contains.join(whitespace) + whitespace}"\\).*`);
-		}
-
 		beforeEach('Close all tabs', async () => {
 			await closeOtherTabs();
 		});
