@@ -39,6 +39,11 @@
 		sendPostMessage({
 			type: 'ouc-begin-handshake'
 		});
+		window.setTimeout(() => {
+			if (!hasCreatedInstallLink()) {
+				askHandshake();
+			}
+		}, 1000);
   	};
 
   // Listen for queries by the site and respond with a callback object
@@ -219,13 +224,16 @@
 		window.addEventListener('message', installHandler);
 	};
 
+	function hasCreatedInstallLink() {
+		const els: HTMLDivElement[] = Array.prototype.slice.apply(document.querySelectorAll('div'));
+		const all = els.filter((d) => {
+			return d.innerText.indexOf('Custom Right-Click Menu') > -1;
+		});
+		return !!all.slice(-1)[0];
+	}
+
 	attachHandshakeListeners();
 	attachInstallListeners();
 	attachInstalledListeners();
-	const interval = window.setInterval(() => {
-		askHandshake();
-	}, 125);
-	window.setTimeout(() => {
-		window.clearInterval(interval);
-	}, 3000);
+	askHandshake();
 })();
