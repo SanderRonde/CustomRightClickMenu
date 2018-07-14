@@ -595,16 +595,17 @@ function doOpenUserCssTest(prefix: () => string|void) {
 		beforeUserstyleInstall(URL);
 
 		it('should be possible to click the install link', async function() {
-			this.timeout(20000);
-			this.slow(15000);
+			this.timeout(50000);
+			this.slow(40000);
 
-			await wait(15000);
+			await wait(10000);
 
 			const exists = await driver.executeScript(inlineFn(() => {
 				const els: HTMLDivElement[] = Array.prototype.slice.apply(document.querySelectorAll('div'));
-				return !!els.filter((d) => {
+				const all = els.filter((d) => {
 					return d.innerText.indexOf('Custom Right-Click Menu') > -1;
-				}).slice(-1)[0];
+				});
+				return !!all.slice(-1)[0];
 			}));
 			assert.isTrue(exists, 'Install link exists');
 
