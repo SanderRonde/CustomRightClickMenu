@@ -77,7 +77,7 @@
 							document.querySelector('a[href^="https://api.openusercss.org"]') as 
 								HTMLAnchorElement).href
 					}
-				}, (response: {
+				}).then((response: {
 					node: CRM.StylesheetNode;
 					state: 'installed'|'updatable';
 				}[]) => {
