@@ -525,7 +525,13 @@ namespace BrowserAPINS {
 			reload() {
 				return Promise.resolve(__srcBrowser.runtime.reload());
 			},
-			sendMessage<U>(extensionIdOrmessage: string | any, optionsOrMessage?: any | {
+			sendMessage<U>(extensionIdOrmessage: string | {
+				[key: string]: any;
+				[key: number]: any;
+			}, optionsOrMessage?: {
+				[key: string]: any;
+				[key: number]: any;
+			} | {
 				includeTlsChannelId?: boolean;
 				toProxyScript?: boolean;
 			}, options?: {
@@ -534,7 +540,7 @@ namespace BrowserAPINS {
 			}) {
 				return createPromise<U | void>((handler) => {
 					if (options) {
-						__srcBrowser.runtime.sendMessage(extensionIdOrmessage, optionsOrMessage, options, handler);
+						__srcBrowser.runtime.sendMessage(extensionIdOrmessage as string, optionsOrMessage, options, handler);
 					}
 					else if (optionsOrMessage) {
 						//extensionId, message or message, options
