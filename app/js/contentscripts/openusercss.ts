@@ -71,7 +71,7 @@
 			event.data.type === 'ouc-is-installed' && 
 			allowedOrigins.indexOf(event.origin) !== -1) {
 				browserAPI.runtime.sendMessage({
-					method: 'getStyles',
+					type: 'getStyles',
 					data: {
 						url: (
 							document.querySelector('a[href^="https://api.openusercss.org"]') as 
