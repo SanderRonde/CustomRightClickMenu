@@ -1348,6 +1348,8 @@ export namespace Storages {
 		}
 		return null;
 	}
+	let cachedWrite: EncodedString<CRM.SettingsStorage> = null;
+	let cachedWriteTimer: number = null;
 	async function uploadSync(changes: StorageChange[]) {
 		const settingsJson = JSON.stringify(modules.storages.settingsStorage);
 		await browserAPI.storage.local.set({
@@ -1361,6 +1363,16 @@ export namespace Storages {
 			}
 		});
 		if (!modules.storages.storageLocal.useStorageSync || !supportsStorageSync()) {
+			if (cachedWriteTimer) {
+				cachedWrite = JSON.stringify(modules.storages.settingsStorage);
+				await changeCRMValuesIfSettingsChanged(changes);
+				if (supportsStorageSync()) {
+					await browserAPI.storage.sync.set({
+						indexes: -1
+					});
+				}
+				return;
+			}
 			await browserAPI.storage.local.set({
 				settings: modules.storages.settingsStorage
 			}).then(async () => {
@@ -1372,6 +1384,22 @@ export namespace Storages {
 				}
 			}).catch((e) => {
 				window.log('Error on uploading to browser.storage.local ', e);
+				
+				if (e.message.indexOf('MAX_WRITE_OPERATIONS_PER_MINUTE') > -1 ||
+					e.message.indexOf('MAX_WRITE_OPERATIONS_PER_HOUR') > -1) {
+						cachedWrite = JSON.stringify(modules.storages.settingsStorage);
+						if (cachedWriteTimer) {
+							window.clearTimeout(cachedWriteTimer);
+						}
+						cachedWriteTimer = window.setTimeout(async () => {
+							await browserAPI.storage.local.set({
+								settings: cachedWrite
+							});
+							cachedWrite = null;
+							cachedWriteTimer = null;
+						}, e.message.indexOf('MAX_WRITE_OPERATIONS_PER_HOUR') > -1 ? 
+							(1000 * 60 * 60) : (1000 * 60 * 60));
+					}
 			});
 		} else {
 			//Using chrome.storage.sync
