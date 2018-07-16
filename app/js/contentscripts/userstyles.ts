@@ -184,6 +184,7 @@ function getMeta(name: string) {
 			await browserAPI.runtime.sendMessage({
 				type: 'styleInstall',
 				data: {
+					downloadURL: location.href,
 					type: 'userstyles.org',
 					code: await getResource(getStyleURL()),
 					author: document.querySelector('#style_author a') ?

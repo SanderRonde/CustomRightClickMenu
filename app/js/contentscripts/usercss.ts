@@ -57,7 +57,8 @@ function xhr(url: string): Promise<string> {
 	await browserAPI.runtime.sendMessage({
 		type: 'styleInstall',
 		data: {
-			code: await xhr(location.href)
+			code: await xhr(location.href),
+			downloadURL: location.href
 		}
 	});
 })();

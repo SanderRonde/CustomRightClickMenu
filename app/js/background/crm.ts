@@ -2133,7 +2133,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 		}
 	}
 	export async function installStylesheet(data: {
-		downloadURL?: string;
+		downloadURL: string;
 		code: string|EncodedString<{
 			sections: {
 				domains: string[];
