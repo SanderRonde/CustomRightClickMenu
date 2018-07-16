@@ -2152,6 +2152,10 @@ export namespace CRMNodes.Stylesheet.Installing {
 		name?: string;
 	}) {
 		const stylesheetData = getUserstyleMeta(data.code);
+		if ((await getInstalledStatus(data.downloadURL)).length > 0) {
+			//Already installed, quit
+			return;
+		}
 
 		const ids = await modules.Util.getMultipleItemIds(stylesheetData.sections.length);
 		await modules.Util.promiseChain(stylesheetData.sections.map((section, index) => {
