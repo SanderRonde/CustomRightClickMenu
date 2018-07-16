@@ -2014,6 +2014,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 
 			if (openBrackets === 0 && waitingForOpenBracket === false) {
 				end = i;
+				waitingForOpenBracket = true;
 				declarations.push({
 					start, end, firstBracket
 				});
