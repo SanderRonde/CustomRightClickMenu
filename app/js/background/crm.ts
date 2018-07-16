@@ -2153,6 +2153,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 	}) {
 		const stylesheetData = getUserstyleMeta(data.code);
 
+		const ids = await modules.Util.getMultipleItemIds(stylesheetData.sections.length);
 		await modules.Util.promiseChain(stylesheetData.sections.map((section, index) => {
 			return async () => {
 				const sectionData = extractStylesheetData(section);
@@ -2178,7 +2179,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 							launchMode: sectionData.launchMode,
 							stylesheet: sectionData.code
 						},
-						id: await modules.Util.generateItemId()
+						id: ids[index]
 					});
 
 				const crmFn = new modules.CRMAPICall.Instance(null, null);

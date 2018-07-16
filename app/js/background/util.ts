@@ -171,6 +171,26 @@ export namespace Util {
 		}
 		return modules.globalObject.globals.latestId as CRM.GenericNodeId;
 	}
+	export async function getMultipleItemIds(amount: number): Promise<CRM.GenericNodeId[]> {
+		modules.globalObject.globals.latestId = 
+			modules.globalObject.globals.latestId || 0;
+		const ids: CRM.GenericNodeId[] = [];
+		for (let i = 0; i < amount; i++) {
+			modules.globalObject.globals.latestId++;
+			ids.push(modules.globalObject.globals.latestId as CRM.GenericNodeId);
+		}
+		if (modules.storages.settingsStorage) {
+			await modules.Storages.applyChanges({
+				type: 'optionsPage',
+				settingsChanges: [{
+					key: 'latestId',
+					oldValue: modules.globalObject.globals.latestId - amount,
+					newValue: modules.globalObject.globals.latestId
+				}]
+			});
+		}
+		return ids;
+	}
 	export function convertFileToDataURI(url: string, callback: (dataURI: string,
 		dataString: string) => void,
 		onError?: () => void) {
