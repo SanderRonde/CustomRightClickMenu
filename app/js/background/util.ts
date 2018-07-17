@@ -502,7 +502,7 @@ export namespace Util {
 		}
 		return url.indexOf('file://') === -1;
 	}
-	export async function xhr(url: string, msg?: any[]): Promise<string> {
+	export async function xhr(url: string, msg: any[] = []): Promise<string> {
 		return new Promise<string>((resolve, reject) => {
 			const xhr: XMLHttpRequest = new window.XMLHttpRequest();
 			xhr.open('GET', url);
