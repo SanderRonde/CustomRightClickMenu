@@ -2053,7 +2053,9 @@ export namespace CRMNodes.Stylesheet.Installing {
 				urls: string[];
 				code: string;
 			} = {
-				code: `${metaStr}\n${code.slice(firstBracket + 1, end - 1)}`,
+				code: `/* ==UserStyle==\n${metaLines.map((line) => {
+					return `// ${line}`;
+				}).join('\n')}\n==/UserStyle==*/\n${code.slice(firstBracket + 1, end - 1)}`,
 				domains: [],
 				regexps: [],
 				urlPrefixes: [],
