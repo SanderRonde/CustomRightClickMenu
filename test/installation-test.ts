@@ -616,9 +616,11 @@ function doOpenUserCssTest(prefix: () => string|void) {
 
 			await driver.executeScript(inlineFn(() => {
 				const els: HTMLDivElement[] = Array.prototype.slice.apply(document.querySelectorAll('div'));
-				els.filter((d) => {
+				const containerEl = els.filter((d) => {
 					return d.innerText.indexOf('Custom Right-Click Menu') > -1;
-				}).slice(-1)[0].click();
+				}).slice(-1)[0];
+				const button = containerEl.querySelector('button');
+				button.click();
 			}));
 			await wait(5000);
 
