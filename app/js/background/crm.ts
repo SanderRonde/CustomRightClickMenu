@@ -2001,6 +2001,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 						declarations.push({
 							start, end, firstBracket
 						});
+						start = end = firstBracket = -1;
 					}
 					openBrackets = 0;
 					waitingForOpenBracket = true;
@@ -2018,10 +2019,13 @@ export namespace CRMNodes.Stylesheet.Installing {
 				declarations.push({
 					start, end, firstBracket
 				});
+				start = end = firstBracket = -1;
 			}
 			if (char === '{') {
 				waitingForOpenBracket = false;
-				firstBracket = i;
+				if (firstBracket === -1) {
+					firstBracket = i;
+				}
 				openBrackets += 1;
 			} else if (char === '}') {
 				openBrackets -= 1;
@@ -2043,7 +2047,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 		}
 	}
 	function getUrls(code: string) {
-		const metaStr = MetaTags.getMetaLines(code);
+		const metaLines = MetaTags.getMetaLines(code);
 		return findDocDeclarations(code).map(({ start, end, firstBracket }) => {
 			const meta = code.slice(start, firstBracket);
 			const metaData: {
