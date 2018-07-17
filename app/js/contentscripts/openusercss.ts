@@ -70,31 +70,33 @@
 		if (event.data && 
 			event.data.type === 'ouc-is-installed' && 
 			allowedOrigins.indexOf(event.origin) !== -1) {
-				browserAPI.runtime.sendMessage({
-					type: 'getStyles',
-					data: {
-						url: (
-							document.querySelector('a[href^="https://api.openusercss.org"]') as 
-								HTMLAnchorElement).href
-					}
-				}).then((response: {
-					node: CRM.StylesheetNode;
-					state: 'installed'|'updatable';
-				}[]) => {
-					const firstNode = response[0];
-					const installed = !!firstNode;
-					const enabled = installed && firstNode.node.value.launchMode !==
-						CRMLaunchModes.DISABLED;
-					const { data } = event;
-					const callbackObject = {
-						installed,
-						enabled,
-						name: data.name,
-						namespace: data.namespace
-					};
+				window.setTimeout(() => {
+					browserAPI.runtime.sendMessage({
+						type: 'getStyles',
+						data: {
+							url: (
+								document.querySelector('a[href^="https://api.openusercss.org"]') as 
+									HTMLAnchorElement).href
+						}
+					}).then((response: {
+						node: CRM.StylesheetNode;
+						state: 'installed'|'updatable';
+					}[]) => {
+						const firstNode = response[0];
+						const installed = !!firstNode;
+						const enabled = installed && firstNode.node.value.launchMode !==
+							CRMLaunchModes.DISABLED;
+						const { data } = event;
+						const callbackObject = {
+							installed,
+							enabled,
+							name: data.name,
+							namespace: data.namespace
+						};
 
-					sendInstalledCallback(callbackObject);
-				});
+						sendInstalledCallback(callbackObject);
+					});
+				}, 125);
 		}
 	};
 
