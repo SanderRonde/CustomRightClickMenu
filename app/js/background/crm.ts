@@ -1944,7 +1944,13 @@ export namespace CRMNodes.Stylesheet.Installing {
 			state: 'installed'|'updatable'
 		}[] = [];
 
-		const data = await getUserstyleMeta(url);
+		let code: string;
+		try {
+			code = await modules.Util.xhr(url);
+		} catch(e) {
+			return [];
+		}
+		const data = await getUserstyleMeta(code);
 
 		modules.Util.crmForEachAsync(modules.crm.crmTree, async (node) => {
 			if (node.type !== 'stylesheet') {
