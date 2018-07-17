@@ -595,19 +595,26 @@ function doOpenUserCssTest(prefix: () => string|void) {
 		beforeUserstyleInstall(URL);
 
 		it('should be possible to click the install link', async function() {
-			this.timeout(50000);
-			this.slow(40000);
+			this.timeout(80000);
+			this.slow(80000);
 
 			await wait(10000);
 
-			const exists = await driver.executeScript(inlineFn(() => {
-				const els: HTMLDivElement[] = Array.prototype.slice.apply(document.querySelectorAll('div'));
-				const all = els.filter((d) => {
-					return d.innerText.indexOf('Custom Right-Click Menu') > -1;
-				});
-				return !!all.slice(-1)[0];
-			}));
-			assert.isTrue(exists, 'Install link exists');
+			for (let i = 0 ; i < 4; i++) {
+				const exists = await driver.executeScript(inlineFn(() => {
+					const els: HTMLDivElement[] = Array.prototype.slice.apply(document.querySelectorAll('div'));
+					const all = els.filter((d) => {
+						return d.innerText.indexOf('Custom Right-Click Menu') > -1;
+					});
+					return !!all.slice(-1)[0];
+				}));
+				if (exists) {
+					assert.isTrue(exists, 'Install link exists');
+					break;
+				}
+				await driver.get(URL);
+				await wait(8000);
+			}
 
 			href = await driver.executeScript(inlineFn(() => {
 				var e = document.querySelector('a[href^="https://api.open"]');
