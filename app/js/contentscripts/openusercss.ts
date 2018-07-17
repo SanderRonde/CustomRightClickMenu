@@ -96,7 +96,7 @@
 
 						sendInstalledCallback(callbackObject);
 					});
-				}, 125);
+				}, 50);
 		}
 	};
 
