@@ -235,7 +235,6 @@ export namespace MessageHandling {
 						response = await modules.CRMNodes.Stylesheet.Installing.getInstalledStatus(
 							message.data.url);
 					}
-					console.log('Getting styles and responding with', response);
 					break;
 				case '_resetSettings':
 					modules.Storages.clearStorages();
