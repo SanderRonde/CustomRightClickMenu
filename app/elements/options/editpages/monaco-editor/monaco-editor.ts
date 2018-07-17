@@ -209,9 +209,11 @@ namespace MonacoEditorElement {
 	}
 
 	export interface MetaBlock {
-		start: monaco.Position;
 		content: CRM.MetaTags;
-		end: monaco.Position;
+		indexes: {
+			start: monaco.Position;
+			end: monaco.Position;
+		}[];
 	}
 
 	abstract class MonacoEditorMetaBlockMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorEventHandler<PubL|'metaChange', PriL|'decorate'|'shouldDecorate'> {
@@ -249,8 +251,30 @@ namespace MonacoEditorElement {
 					insertText: '==/UserScript==',
 					detail: 'UserScript end tag',
 					documentation: 'The end tag for a UserScript metadata block'
+				}, {
+					label: '==UserStyle==',
+					kind: monaco.languages.CompletionItemKind.Property,
+					insertText: '==UserStyle==',
+					detail: 'UserStyle start tag',
+					documentation: 'The start tag for a UserStyle metadata block'
+				}, {
+					label: '==/UserStyle==',
+					kind: monaco.languages.CompletionItemKind.Property,
+					insertText: '==/UserStyle==',
+					detail: 'UserStyle end tag',
+					documentation: 'The end tag for a UserStyle metadata block'
 				}];
 			}
+		}
+
+		private static _containsPosition(metablock: MetaBlock, position: monaco.Position): boolean {
+			for (const { start, end } of metablock.indexes) {
+				if (new monaco.Range(start.lineNumber, start.column, end.lineNumber, end.column)
+					.containsPosition(position)) {
+						return true;
+					}
+			}
+			return false;
 		}
 		
 		protected static readonly _metaKeyProvider: monaco.languages.CompletionItemProvider = {
@@ -258,8 +282,7 @@ namespace MonacoEditorElement {
 				const lineRange = new monaco.Range(position.lineNumber, 0, position.lineNumber, position.column);
 				const currentLineText = model.getValueInRange(lineRange);
 				const metaBlock = (model as any)._metaBlock as MetaBlock;
-				if (!metaBlock || new monaco.Range(metaBlock.start.lineNumber, metaBlock.start.column,
-					metaBlock.end.lineNumber, metaBlock.end.column).containsPosition(position)) {
+				if (!metaBlock || MonacoEditorMetaBlockMods._containsPosition(metaBlock, position)) {
 						let keyParts = currentLineText.split('@');
 						let length = keyParts[0].length;
 						keyParts = keyParts.slice(1);
@@ -341,7 +364,7 @@ namespace MonacoEditorElement {
 				if (this._isMetaDataHighlightDisabled) {
 					return [];
 				}
-				return [this._userScriptGutterHighlightChange()].filter(val => val !== null);
+				return this._userScriptGutterHighlightChange();
 			});
 			this._listen('decorate', () => {
 				if (this._isMetaDataHighlightDisabled) {
@@ -394,20 +417,29 @@ namespace MonacoEditorElement {
 		}
 
 		private static readonly _userScriptStart = '==UserScript==';
+		private static readonly _userStyleStart = '==UserStyle==';
 
 		private static readonly _userScriptEnd = '==/UserScript==';
+		private static readonly _userStyleEnd = '==/UserStyle==';
 
 		private _getMetaOutlines(): {
 			start: monaco.Position;
 			end: monaco.Position;
-		} {
+		}[] {
 			const editorContent = this._model.getValue();
-			if (editorContent.indexOf(MonacoEditorMetaBlockMods._userScriptStart) === -1 ||
-				editorContent.indexOf(MonacoEditorMetaBlockMods._userScriptEnd) === -1) {
+			if ((editorContent.indexOf(MonacoEditorMetaBlockMods._userScriptStart) === -1 ||
+				editorContent.indexOf(MonacoEditorMetaBlockMods._userScriptEnd) === -1) &&
+				(editorContent.indexOf(MonacoEditorMetaBlockMods._userStyleStart) === -1 ||
+				editorContent.indexOf(MonacoEditorMetaBlockMods._userStyleEnd) === -1)) {
 					return (this._metaBlock = null);
 				}
 
 			const lines = editorContent.split('\n');
+			const indexes: {
+				start: monaco.Position;
+				end: monaco.Position;
+			}[] = [];
+
 			const state: {
 				start: monaco.Position;
 				end: monaco.Position;
@@ -418,24 +450,39 @@ namespace MonacoEditorElement {
 			for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
 				let line = lines[lineIndex];
 
-				let char;
-				if ((char = line.indexOf(MonacoEditorMetaBlockMods._userScriptStart)) !== -1) {
-					if (!state.start) {
-						state.start = new monaco.Position(lineIndex + 1, char);
+				if (line.indexOf(MonacoEditorMetaBlockMods._userScriptStart) !== -1 ||
+					line.indexOf(MonacoEditorMetaBlockMods._userStyleStart) !== -1) {
+						let index = line.indexOf(MonacoEditorMetaBlockMods._userScriptStart);
+						if (index === -1) {
+							index = line.indexOf(MonacoEditorMetaBlockMods._userStyleStart);
+						}
+
+						if (!state.start) {
+							state.start = new monaco.Position(lineIndex + 1, index);
+						}	
 					}
-				}
-				if ((char = line.indexOf(MonacoEditorMetaBlockMods._userScriptEnd)) !== -1) {
-					if (!state.end) {
-						state.end = new monaco.Position(lineIndex + 1, char + MonacoEditorMetaBlockMods._userScriptEnd.length);
+				if (line.indexOf(MonacoEditorMetaBlockMods._userScriptEnd) !== -1 ||
+					line.indexOf(MonacoEditorMetaBlockMods._userStyleEnd) !== -1) {
+						let index = line.indexOf(MonacoEditorMetaBlockMods._userScriptEnd);
+						if (index === -1) {
+							index = line.indexOf(MonacoEditorMetaBlockMods._userStyleEnd);
+						}
+						if (!state.end) {
+							state.end = new monaco.Position(lineIndex + 1, 
+								index + MonacoEditorMetaBlockMods._userScriptEnd.length);
+						}
+						indexes.push({
+							start: state.start,
+							end: state.end
+						});
+						state.start = state.end = null;
 					}
-					break;
-				}
 			}
 
-			if (!state.start || !state.end) {
-				return (this._metaBlock = null);
+			if (indexes.length === 0) {
+				this._metaBlock = null;
 			}
-			return state;
+			return indexes;
 		}
 
 		private static readonly _metaPropRegex = /@(\w+)(\s+)(.+)?/;
@@ -443,31 +490,43 @@ namespace MonacoEditorElement {
 		private _getMetaContent(outlines: {
 			start: monaco.Position;
 			end: monaco.Position;
-		}): CRM.MetaTags {
+		}[]): CRM.MetaTags {
 			const content = this._model.getValue();
 
 			const tags: CRM.MetaTags = {};
 			const regex = MonacoEditorMetaBlockMods._metaPropRegex;
 			const lines = content.split('\n');
-			for (let i = 0; i < lines.length; i++) {
-				if (i < outlines.start.lineNumber) {
-					continue;
-				}
-				if (i > outlines.end.lineNumber) {
-					break;
-				}
-				const line = lines[i];
-				const matches = regex.exec(line);
-				if (matches) {
-					const key = matches[1];
-					const value = matches[3];
-					if (!key || !value) {
-						continue;
-					}
-					if (key in tags) {
-						tags[key].push(value);
+			
+			const state: {
+				tag: string;
+				content: string;
+			} = {
+				tag: null,
+				content: null
+			};
+			for (const { start, end } of outlines) {
+				for (let i = start.lineNumber; i < end.lineNumber; i++) {
+					const line = lines[i];
+					const matches = regex.exec(line);
+					if (matches) {
+						if (state.tag && state.content) {
+							if (state.tag in tags) {
+								tags[state.tag].push(state.content);
+							} else {
+								tags[state.tag] = [state.content];
+							}
+							state.tag = state.content = null;
+						}
+
+						const key = matches[1];
+						const value = matches[3];
+						if (!key || !value) {
+							continue;
+						}
+						state.tag = key;
+						state.content = value;
 					} else {
-						tags[key] = [value];
+						state.content += line;
 					}
 				}
 			}
@@ -478,8 +537,15 @@ namespace MonacoEditorElement {
 			if (!prev || !current) {
 				return true;
 			}
-			if (!prev.start.equals(current.start) || !prev.end.equals(current.end)) {
+			if (prev.indexes.length !== current.indexes.length) {
 				return false;
+			}
+			for (let i = 0; i < prev.indexes.length; i++) {
+				const prevIndex = prev.indexes[i];
+				const currentIndex = current.indexes[i];
+				if (!prevIndex.start.equals(currentIndex.start) || !prevIndex.end.equals(currentIndex.end)) {
+					return false;
+				}
 			}
 
 			const keys: string[] = [];
@@ -536,17 +602,18 @@ namespace MonacoEditorElement {
 			}
 			const metaContent = this._getMetaContent(outlines);
 			const metaBlock = this._metaBlock = {
-				start: outlines.start,
+				indexes: outlines,
 				content: metaContent,
-				end: outlines.end
 			};
 
 			if (this._isDifferent(prevBlock, metaBlock)) {
 				if (!prevBlock) {
 					prevBlock = {
-						start: new monaco.Position(0, 0),
+						indexes: [{
+							start: new monaco.Position(0, 0),
+							end: new monaco.Position(0, 0)
+						}],
 						content: {},
-						end: new monaco.Position(0, 0)
 					}
 				}
 				this._firePublic('metaChange', [prevBlock, metaBlock]);
@@ -565,28 +632,34 @@ namespace MonacoEditorElement {
 			if (!this._metaBlock) {
 				return false;
 			}
-			return monaco.Range.areIntersectingOrTouching({
-				startColumn: this._metaBlock.start.column,
-				startLineNumber: this._metaBlock.start.lineNumber,
-				endColumn: this._metaBlock.end.column,
-				endLineNumber: this._metaBlock.end.lineNumber
-			}, range);
-		}
-
-		private _userScriptGutterHighlightChange(): monaco.editor.IModelDeltaDecoration {
-			if (!this._getMetaOutlines()) {
-				return null;
-			}
-			const { start, end } = this.getMetaBlock();
-			return {
-				range: new monaco.Range(start.lineNumber, start.column,
-					end.lineNumber, end.column),
-				options: {
-					isWholeLine: true,
-					linesDecorationsClassName: 'userScriptGutterHighlight',
-					stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+			for (const { start, end } of this._metaBlock.indexes) {
+				if (monaco.Range.areIntersectingOrTouching({
+					startColumn: start.column,
+					startLineNumber: start.lineNumber,
+					endColumn: end.column,
+					endLineNumber: end.lineNumber
+				}, range)) {
+					return true;
 				}
 			}
+			return false;
+		}
+
+		private _userScriptGutterHighlightChange(): monaco.editor.IModelDeltaDecoration[] {
+			if (!this._getMetaOutlines()) {
+				return [];
+			}
+			return this.getMetaBlock().indexes.map(({start, end}) => {
+				return {
+					range: new monaco.Range(start.lineNumber, start.column,
+						end.lineNumber, end.column),
+					options: {
+						isWholeLine: true,
+						linesDecorationsClassName: 'userScriptGutterHighlight',
+						stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+					}
+				}
+			});
 		}
 
 		private _userScriptHighlightChange() {
