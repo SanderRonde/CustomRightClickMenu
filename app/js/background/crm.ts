@@ -2058,7 +2058,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 			const meta = code.slice(start, firstBracket);
 			const metaPrefix = metaLines.length > 0 ? `/* ==UserStyle==\n${metaLines.map((line) => {
 				return `// ${line}`;
-			})}\n==/UserStyle==*/` : '';
+			}).join('\n')}\n==/UserStyle==*/` : '';
 			const metaData: {
 				domains: string[];
 				regexps: string[];
