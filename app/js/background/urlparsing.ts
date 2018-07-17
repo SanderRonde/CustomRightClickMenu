@@ -94,11 +94,11 @@ export namespace URLParsing {
 		url: string;
 	}[], url: string) {
 		let matches = false;
-		for (const { not, url: matchPattern } of matchPatterns) {
-			if (matchPattern.indexOf('/') === 0 &&
-				modules.Util.endsWith(matchPattern, '/')) {
+		for (const { not, url: matchURL } of matchPatterns) {
+			if (matchURL.indexOf('/') === 0 &&
+				modules.Util.endsWith(matchURL, '/')) {
 				//It's regular expression
-				if (new RegExp(matchPattern.slice(1, matchPattern.length - 1))
+				if (new RegExp(matchURL.slice(1, matchURL.length - 1))
 					.test(url)) {
 					if (not) {
 						return false;
@@ -107,11 +107,52 @@ export namespace URLParsing {
 					}
 				}
 			} else {
-				if (new RegExp(`^${matchPattern.replace(/\*/g, '(.*)')}$`).test(url)) {
+				try {
+					const matchPattern = parsePattern(matchURL);
+					if (matchPattern === '<all_urls>') {
+						if (not) {
+							return false;
+						} else {
+							matches = true;
+							continue;
+						}
+					}
+
+					const urlPattern = parsePattern(url) as MatchPattern;
+					if (matchPattern.invalid || urlPattern.invalid) {
+						throw new Error('nomatch');
+					}
+					if (matchPattern.scheme !== '*' &&
+						matchPattern.scheme !== urlPattern.scheme) {
+							throw new Error('nomatch');
+						}
+
+					let host = urlPattern.host;
+					if (matchPattern.host.indexOf('*.') === 0) {
+						host = host.split('.').pop();
+						matchPattern.host = matchPattern.host.slice(2);
+					}
+					if (matchPattern.host !== '*' &&
+						matchPattern.host !== urlPattern.host) {
+							throw new Error('nomatch');
+						}
+					if (matchPattern.path !== '*' &&
+						!new RegExp(`^${matchPattern.path.replace(/\*/g, '(.*)')}$`)
+							.test(urlPattern.path)) {
+								throw new Error('nomatch');
+							}
 					if (not) {
 						return false;
 					} else {
 						matches = true;
+					}
+				} catch(e) {
+					if (new RegExp(`^${matchURL.replace(/\*/g, '(.*)')}$`).test(url)) {
+						if (not) {
+							return false;
+						} else {
+							matches = true;
+						}
 					}
 				}
 			}
