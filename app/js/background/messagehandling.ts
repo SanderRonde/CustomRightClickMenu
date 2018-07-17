@@ -216,10 +216,10 @@ export namespace MessageHandling {
 					}
 					break;
 				case 'styleInstall':
-					modules.CRMNodes.Stylesheet.Installing.installStylesheet(message.data);
+					await modules.CRMNodes.Stylesheet.Installing.installStylesheet(message.data);
 					break;
 				case 'updateStylesheet':
-					modules.CRMNodes.Stylesheet.Updating.updateStylesheet(message.data.id);
+					await modules.CRMNodes.Stylesheet.Updating.updateStylesheet(message.data.id);
 					break;
 				case 'updateScripts':
 					response = await modules.CRMNodes.Script.Updating.updateScripts();
@@ -235,6 +235,7 @@ export namespace MessageHandling {
 						response = await modules.CRMNodes.Stylesheet.Installing.getInstalledStatus(
 							message.data.url);
 					}
+					console.log('Getting styles and responding with', response);
 					break;
 				case '_resetSettings':
 					modules.Storages.clearStorages();
