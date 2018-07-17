@@ -127,18 +127,18 @@ export namespace URLParsing {
 							throw new Error('nomatch');
 						}
 
-					let host = urlPattern.host;
-					if (matchPattern.host.indexOf('.') > -1 ||
+					if (matchPattern.host.split('.').length > 2 ||
 						matchPattern.host.indexOf('*.') === 0) {
+							let host = urlPattern.host;
 							if (matchPattern.host.indexOf('*.') === 0) {
 								matchPattern.host = matchPattern.host.slice(2);
-								host = host.split('.').pop();
+								host = host.split('.').slice(-2).join('.');
 							}
 							if (matchPattern.host !== '*' &&
 								matchPattern.host !== urlPattern.host) {
 									throw new Error('nomatch');
 								}
-					} else if (matchPattern.host !== host.split('.').pop()) {
+					} else if (matchPattern.host !== urlPattern.host.split('.').slice(-2).join('.')) {
 						// something.com matching about.something.com, allow
 						throw new Error('nomatch');
 					}
