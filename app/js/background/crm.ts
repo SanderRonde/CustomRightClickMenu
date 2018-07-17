@@ -1997,7 +1997,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 		let start = -1;
 		let firstBracket = -1;
 		let openBrackets = 0;
-		let waitingForOpenBracket: boolean = false;
+		let waitingForOpenBracket: boolean = true;
 
 		for (let i = 0; i < code.length; i++) {
 			const char = code[i];
