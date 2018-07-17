@@ -2056,6 +2056,9 @@ export namespace CRMNodes.Stylesheet.Installing {
 		const metaLines = MetaTags.getMetaLines(code);
 		return findDocDeclarations(code).map(({ start, end, firstBracket }) => {
 			const meta = code.slice(start, firstBracket);
+			const metaPrefix = metaLines.length > 0 ? `/* ==UserStyle==\n${metaLines.map((line) => {
+				return `// ${line}`;
+			})}\n==/UserStyle==*/` : '';
 			const metaData: {
 				domains: string[];
 				regexps: string[];
@@ -2063,9 +2066,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 				urls: string[];
 				code: string;
 			} = {
-				code: `/* ==UserStyle==\n${metaLines.map((line) => {
-					return `// ${line}`;
-				}).join('\n')}\n==/UserStyle==*/\n${code.slice(firstBracket + 1, end - 1)}`,
+				code: `${metaPrefix}\n${code.slice(firstBracket + 1, end - 1)}`,
 				domains: [],
 				regexps: [],
 				urlPrefixes: [],
