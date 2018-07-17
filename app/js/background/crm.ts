@@ -1952,7 +1952,7 @@ export namespace CRMNodes.Stylesheet.Installing {
 		}
 		const data = await getUserstyleMeta(code);
 
-		modules.Util.crmForEachAsync(modules.crm.crmTree, async (node) => {
+		await modules.Util.crmForEachAsync(modules.crm.crmTree, async (node) => {
 			if (node.type !== 'stylesheet') {
 				return;
 			}
