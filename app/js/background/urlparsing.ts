@@ -138,14 +138,11 @@ export namespace URLParsing {
 								matchPattern.host !== urlPattern.host) {
 									throw new Error('nomatch');
 								}
-					} else if (matchPattern.host !== urlPattern.host.split('.').slice(-2).join('.')) {
+					} else if (matchPattern.host !== '*' &&
+						matchPattern.host !== urlPattern.host.split('.').slice(-2).join('.')) {
 						// something.com matching about.something.com, allow
 						throw new Error('nomatch');
 					}
-					if (matchPattern.host !== '*' &&
-						matchPattern.host !== urlPattern.host) {
-							throw new Error('nomatch');
-						}
 					if (matchPattern.path !== '*' &&
 						!new RegExp(`^${matchPattern.path.replace(/\*/g, '(.*)')}$`)
 							.test(urlPattern.path)) {
