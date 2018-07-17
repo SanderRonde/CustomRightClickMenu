@@ -128,9 +128,19 @@ export namespace URLParsing {
 						}
 
 					let host = urlPattern.host;
-					if (matchPattern.host.indexOf('*.') === 0) {
-						host = host.split('.').pop();
-						matchPattern.host = matchPattern.host.slice(2);
+					if (matchPattern.host.indexOf('.') > -1 ||
+						matchPattern.host.indexOf('*.') === 0) {
+							if (matchPattern.host.indexOf('*.') === 0) {
+								matchPattern.host = matchPattern.host.slice(2);
+								host = host.split('.').pop();
+							}
+							if (matchPattern.host !== '*' &&
+								matchPattern.host !== urlPattern.host) {
+									throw new Error('nomatch');
+								}
+					} else if (matchPattern.host !== host.split('.').pop()) {
+						// something.com matching about.something.com, allow
+						throw new Error('nomatch');
 					}
 					if (matchPattern.host !== '*' &&
 						matchPattern.host !== urlPattern.host) {
