@@ -1958,7 +1958,8 @@ export namespace CRMNodes.Stylesheet.Installing {
 			}
 			if (node.nodeInfo && node.nodeInfo.source &&
 				node.nodeInfo.source !== 'local' &&
-				node.nodeInfo.source.updateURL === url) {
+				(node.nodeInfo.source.updateURL === url ||
+				node.nodeInfo.source.downloadURL === url)) {
 					if (canBeUpdated(node, data)) {
 						results.push({
 							node,
