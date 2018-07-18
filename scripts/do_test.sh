@@ -43,7 +43,6 @@ $script_path/is_eq.sh "$1" "test:chrome:old:page:stylesheet" && do_retry_trice=1
 $script_path/is_eq.sh "$1" "test:chrome:old:extension:stylesheet" && do_retry_trice=1
 $script_path/is_eq.sh "$1" "test:chrome:latest:page:stylesheet" && do_retry_trice=1
 $script_path/is_eq.sh "$1" "test:chrome:latest:extension:stylesheet" && do_retry_trice=1
-$script_path/is_eq.sh "$1" "test:chrome:old:install:openusercss" && do_retry_trice=1
 $script_path/is_eq.sh "$1" "test:chrome:latest:install:openusercss" && do_retry_trice=1
 
 if ((run_test)); then

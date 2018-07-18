@@ -39,7 +39,6 @@ env:
   - TEST=test:chrome:old:install:greasyfork
   - TEST=test:chrome:old:install:openuserjs
   - TEST=test:chrome:old:install:userscriptsorg
-  - TEST=test:chrome:old:install:openusercss
   - TEST=test:chrome:latest:install:greasyfork
   - TEST=test:chrome:latest:install:openuserjs
   - TEST=test:chrome:latest:install:userscriptsorg
