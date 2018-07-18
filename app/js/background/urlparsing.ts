@@ -130,12 +130,15 @@ export namespace URLParsing {
 					if (matchPattern.host.split('.').length > 2 ||
 						matchPattern.host.indexOf('*.') === 0) {
 							let host = urlPattern.host;
+							if (host.indexOf('www.') === 0) {
+								host = host.slice(4);
+							}
 							if (matchPattern.host.indexOf('*.') === 0) {
 								matchPattern.host = matchPattern.host.slice(2);
 								host = host.split('.').slice(-2).join('.');
 							}
 							if (matchPattern.host !== '*' &&
-								matchPattern.host !== urlPattern.host) {
+								matchPattern.host !== host) {
 									throw new Error('nomatch');
 								}
 					} else if (matchPattern.host !== '*' &&
