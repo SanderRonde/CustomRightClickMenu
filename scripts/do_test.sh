@@ -15,7 +15,6 @@ $script_path/is_eq.sh "$1" "test:chrome:old:page:pre-stylesheet" && do_retry_onc
 $script_path/is_eq.sh "$1" "test:chrome:old:extension:pre-stylesheet" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:chrome:latest:page:pre-stylesheet" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:chrome:latest:extension::pre-stylesheet" && do_retry_once=1
-$script_path/is_eq.sh "$1" "test:chrome:old:page:post-stylesheet" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:chrome:old:extension:post-stylesheet" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:chrome:latest:page:post-stylesheet" && do_retry_once=1
 $script_path/is_eq.sh "$1" "test:chrome:latest:extension:post-stylesheet" && do_retry_once=1
@@ -45,8 +44,13 @@ $script_path/is_eq.sh "$1" "test:chrome:latest:page:stylesheet" && do_retry_tric
 $script_path/is_eq.sh "$1" "test:chrome:latest:extension:stylesheet" && do_retry_trice=1
 $script_path/is_eq.sh "$1" "test:chrome:latest:install:openusercss" && do_retry_trice=1
 
+do_retry_a_lot=0
+$script_path/is_eq.sh "$1" "test:chrome:old:page:post-stylesheet" && do_retry_a_lot=1
+
 if ((run_test)); then
-	if ((do_retry_trice)); then
+	if ((do_retry_a_lot)); then
+		yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1
+	elif ((do_retry_trice)); then
 		yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1
 	elif ((do_retry_twice)); then
 		yarn run $1 || yarn run $1 || yarn run $1
