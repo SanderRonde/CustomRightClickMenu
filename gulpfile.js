@@ -206,6 +206,7 @@ function readFile(filePath, options) {
 							cwd: './node_modules/typescript/lib',
 							base: './node_modules/typescript/lib'
 						})
+						.pipe(uglify())
 						.pipe(gulp.dest('./app/js/libraries/'))
 				},
 				async function lessEmbedDev() {
@@ -320,10 +321,10 @@ function readFile(filePath, options) {
 			await del('./build');	
 		}, 
 		//Copy from /app to /temp
-		function copyMonacoTemp() {
+		function copyMonacoTempJS() {
 			return gulp
 				.src([
-					'**/**',
+					'**/**/*.js',
 					'!vs/basic-languages/src/**',
 					'vs/basic-languages/src/css.js',
 					'vs/basic-languages/src/less.js'
@@ -331,15 +332,41 @@ function readFile(filePath, options) {
 					base: 'node_modules/monaco-editor/min',
 					cwd: 'node_modules/monaco-editor/min'
 				})
+				.pipe(uglify())
 				.pipe(gulp.dest('temp/elements/options/editpages/monaco-editor/src/min/'));
 		},
-		function copyMonaco() {
+		function copyMonacoTempNonJs() {
 			return gulp
 				.src([
 					'**/**',
+					'!**/**/*.js',
+					'!vs/basic-languages/src/**'
+				], {
+					base: 'node_modules/monaco-editor/min',
+					cwd: 'node_modules/monaco-editor/min'
+				})
+				.pipe(gulp.dest('temp/elements/options/editpages/monaco-editor/src/min/'));
+		},
+		function copyMonacoJS() {
+			return gulp
+				.src([
+					'**/**/*.js',
 					'!vs/basic-languages/src/**',
 					'vs/basic-languages/src/css.js',
 					'vs/basic-languages/src/less.js'
+				], {
+					base: 'node_modules/monaco-editor/min',
+					cwd: 'node_modules/monaco-editor/min'
+				})
+				.pipe(uglify())
+				.pipe(gulp.dest('app/elements/options/editpages/monaco-editor/src/min/'));
+		},
+		function copyMonacoNonJs() {
+			return gulp
+				.src([
+					'**/**',
+					'!**/**/*.js',
+					'!vs/basic-languages/src/**'
 				], {
 					base: 'node_modules/monaco-editor/min',
 					cwd: 'node_modules/monaco-editor/min'
@@ -458,6 +485,7 @@ function readFile(filePath, options) {
 						cwd: './node_modules/typescript/lib',
 						base: './node_modules/typescript/lib'
 					})
+					.pipe(uglify())
 					.pipe(gulp.dest('./temp/js/libraries'));
 			},
 			async function embedLess() {
@@ -851,13 +879,34 @@ function readFile(filePath, options) {
 			async function cleanTemp() {
 				await del('./temp');
 			},
-			function copyMonacoPost() {
+			function copyMonacoPostJS() {
 				return gulp
 					.src([
-						'**/**',
+						'**/**/*.js',
 						'!vs/basic-languages/src/**',
 						'vs/basic-languages/src/css.js',
 						'vs/basic-languages/src/less.js'
+					], {
+						base: 'node_modules/monaco-editor/min',
+						cwd: 'node_modules/monaco-editor/min'
+					})
+					.pipe(replace(/node = node\.parentNode/g, 
+						'node = node.parentNode || node.host'))
+					.pipe(replace(/document\.body/g,
+						'MonacoEditorHookManager.getLocalBodyShadowRoot'))
+					.pipe(replace(/document\.caretRangeFromPoint/g,
+						'MonacoEditorHookManager.caretRangeFromPoint(arguments[0])'))
+					.pipe(replace(/this.target(\s)?=(\s)?e.target/g,
+						'this.target = e.path ? e.path[0] : e.target'))
+					.pipe(uglify())
+					.pipe(gulp.dest('build/elements/options/editpages/monaco-editor/src/min/'));
+			},
+			function copyMonacoPostNonJs() {
+				return gulp
+					.src([
+						'**/**',
+						'!**/**/*.js',
+						'!vs/basic-languages/src/**'
 					], {
 						base: 'node_modules/monaco-editor/min',
 						cwd: 'node_modules/monaco-editor/min'
@@ -932,6 +981,7 @@ function readFile(filePath, options) {
 					cwd: './temp', 
 					base: './temp' 
 				})
+				.pipe(uglify())
 				.pipe(gulp.dest('./build'));
 		},
 		buildPostPolymer,
@@ -1007,6 +1057,7 @@ function readFile(filePath, options) {
 					cwd: './temp', 
 					base: './temp' 
 				})
+				.pipe(uglify())
 				.pipe(gulp.dest('./build'));
 		},
 		buildPostPolymer,
