@@ -53,11 +53,11 @@ you clicked on (page, link, selection, image, video or audio).
 
 ### Installing from your browser's web store
 
-> 2.1.2 is the current latest version
+> 2.1.4 is the current latest version
 
 * [Chrome Webstore](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj) - On version 2.0.19 for now
 * [Firefox Add-on](https://addons.mozilla.org/nl/firefox/addon/custom-right-click-menu/) - Latest version released
-* [Edge Extension](https://www.microsoft.com/store/apps/9P6T9NZ0QML9) - Latest version released
+* [Edge Extension](https://www.microsoft.com/store/apps/9P6T9NZ0QML9) - On version 2.1.2 - 2.1.4 under review for submission
 * Opera extension - Under certification for initial release
 
 ### Installing from repo
