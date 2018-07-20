@@ -38,8 +38,6 @@ const BANNERS = {
 		'/CustomRightClickMenu \n * This code may only be used under the MIT' +
 		' style license found in the LICENSE.txt file \n**/\n'
 }
-const LESS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/less.js/3.7.0/less.min.js';
-const STYLUS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/stylus/0.32.1/stylus.min.js';
 
 /**
  * Generates a task with given description
@@ -210,38 +208,18 @@ function readFile(filePath, options) {
 						.pipe(gulp.dest('./app/js/libraries/'))
 				},
 				async function lessEmbedDev() {
-					const lib = await new Promise((resolve, reject) => {
-						request(LESS_URL, (err, res, body) => {
-							if (err) {
-								reject(err);
-							} else {
-								if (res.statusCode === 200) {
-									resolve(body);
-								} else {
-									reject(new Error(`Received status code ${res.statusCode}`));
-								}
-							}
-						});
+					const less = await readFile('./resources/buildresources/less.min.js', {
+						encoding: 'utf8'
 					});
-					await writeFile('./app/js/libraries/less.js', lib, {
+					await writeFile('./app/js/libraries/less.js', less, {
 						encoding: 'utf8'
 					});
 				},
 				async function stylusEmbedDev() {
-					const lib = await new Promise((resolve, reject) => {
-						request(STYLUS_URL, (err, res, body) => {
-							if (err) {
-								reject(err);
-							} else {
-								if (res.statusCode === 200) {
-									resolve(body);
-								} else {
-									reject(new Error(`Received status code ${res.statusCode}`));
-								}
-							}
-						});
+					const stylus = await readFile('./resources/buildresources/stylus.min.js', {
+						encoding: 'utf8'
 					});
-					await writeFile('./app/js/libraries/stylus.js', lib, {
+					await writeFile('./app/js/libraries/stylus.js', stylus, {
 						encoding: 'utf8'
 					});
 				},
@@ -489,38 +467,18 @@ function readFile(filePath, options) {
 					.pipe(gulp.dest('./temp/js/libraries'));
 			},
 			async function embedLess() {
-				const lib = await new Promise((resolve, reject) => {
-					request(LESS_URL, (err, res, body) => {
-						if (err) {
-							reject(err);
-						} else {
-							if (res.statusCode === 200) {
-								resolve(body);
-							} else {
-								reject(new Error(`Received status code ${res.statusCode}`));
-							}
-						}
-					});
+				const less = await readFile('./resources/buildresources/less.min.js', {
+					encoding: 'utf8'
 				});
-				await writeFile('./temp/js/libraries/less.js', lib, {
+				await writeFile('./temp/js/libraries/less.js', less, {
 					encoding: 'utf8'
 				});
 			},
 			async function embedStylus() {
-				const lib = await new Promise((resolve, reject) => {
-					request(STYLUS_URL, (err, res, body) => {
-						if (err) {
-							reject(err);
-						} else {
-							if (res.statusCode === 200) {
-								resolve(body);
-							} else {
-								reject(new Error(`Received status code ${res.statusCode}`));
-							}
-						}
-					});
+				const stylus = await readFile('./resources/buildresources/stylus.min.js', {
+					encoding: 'utf8'
 				});
-				await writeFile('./temp/js/libraries/stylus.js', lib, {
+				await writeFile('./temp/js/libraries/stylus.js', stylus, {
 					encoding: 'utf8'
 				});
 			},
