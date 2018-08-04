@@ -242,7 +242,8 @@ namespace EditCrmElement {
 			if (this._columns && document.contains(this._columns[0])) {
 				return this._columns;
 			}
-			return (this._columns = Array.prototype.slice.apply(this.$.mainCont.children).filter(function(element: CRMColumnElement|HTMLElement) {
+			const columnContainer = this.$.CRMEditColumnsContainer;
+			return (this._columns = Array.prototype.slice.apply(columnContainer.children).filter(function(element: CRMColumnElement|HTMLElement) {
 				return element.classList.contains('CRMEditColumnCont');
 			}).map((columnCont: CRMColumnElement) => {
 				return columnCont.querySelector('.CRMEditColumn');
