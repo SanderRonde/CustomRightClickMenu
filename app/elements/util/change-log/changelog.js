@@ -147,6 +147,9 @@
 			'Add support for installing from openusercss and *.user.css urls',
 			'Add support for stylesheet metablock highlighting/completion',
 			'Support [CSS preprocesors](https://github.com/openstyles/stylus/wiki/UserCSS#preprocessor)'
+		],
+		'2.1.5': [
+			'Fix dragging of nodes'
 		]
 	};
 
