@@ -1120,12 +1120,18 @@ function readFile(filePath, options) {
 		await runCmd('git clone https://github.com/TypeStrong/typedoc typedoc')
 		cwd = path.join(cwd, 'typedoc/');
 		
+		console.log('Getting this extension\'s version of typescript');
+		const CRMPackage = JSON.parse(await readFile(path.join(__dirname, 'package.json'), {
+			encoding: 'utf8'
+		}));
+		const tsVersion = CRMPackage.devDependencies.typescript;
+
 		console.log('Changing typescript version in cloned typedoc');
 		const file = await readFile(path.join(__dirname, 'typedoc', 'package.json'), {
 			encoding: 'utf8'
 		});
 		await writeFile(path.join(__dirname, 'typedoc', 'package.json'), 
-			file.replace(/"typescript": "\d+\.\d+\.\d+"/g, '"typescript": "latest"'));
+			file.replace(/"typescript": "\d+\.\d+\.\d+"/g, `"typescript": "${tsVersion}"`));
 
 		console.log('Installing grunt');
 		await runCmd('npm install -g grunt-cli', cwd);
