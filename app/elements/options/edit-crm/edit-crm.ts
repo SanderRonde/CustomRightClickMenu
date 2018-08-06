@@ -216,6 +216,11 @@ namespace EditCrmElement {
 		 */
 		private static _sortables: Sortable.Instance[] = [];
 
+		/**
+		 * Whether sortable is listening for drag events
+		 */
+		static dragging: boolean = false;
+
 		static properties = editCrmProperties;
 
 		static listeners = {
@@ -442,6 +447,11 @@ namespace EditCrmElement {
 					ghostClass: 'draggingCRMItem',
 					chosenClass: 'draggingFiller',
 					scroll: true,
+					forceFallback: true,
+					fallbackOnBody: false,
+					onStart: () => {
+						this.dragging = true;
+					},
 					onChoose: (event) => {
 						const node = event.item;
 						draggedNode = node;
@@ -462,6 +472,7 @@ namespace EditCrmElement {
 						node.currentColumn = column;
 					},
 					onEnd: (event) => {
+						this.dragging = false;
 						//Get the current column
 						const newColumn = (event.item.parentNode as CRMColumnElement).index;
 						const index = event.newIndex;

@@ -26,6 +26,10 @@
 	background-color: #78d3ff;
 }
 
+#itemCont.fallbackFiller * {
+	display: none;
+}
+
 #typeSwitcher {
 	height: 100%;
 	text-transform: uppercase;

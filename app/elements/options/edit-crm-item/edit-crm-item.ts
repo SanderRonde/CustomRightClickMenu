@@ -107,6 +107,11 @@ namespace EditCrmItemElement {
 		 */
 		private static _hoveringTypeSwitcher: boolean = false;
 
+		/**
+		 * Whether this item is being dragged by sortable (is a shdaow copy)
+		 */
+		private static _isDrag: boolean = false;
+
 		static _openCodeSettings(this: EditCrmItem) {
 			window.app.initCodeOptions(this.item as CRM.ScriptNode|CRM.StylesheetNode);
 		}
@@ -162,9 +167,24 @@ namespace EditCrmItemElement {
 		static onMouseOver(this: EditCrmItem, e: MouseEvent) {
 			e.preventDefault();
 			e.stopPropagation();
-			if (!this._hoveringTypeSwitcher) {
+			if (!this._hoveringTypeSwitcher && !this._isDrag) {
 				this._hoveringTypeSwitcher = true;
 				this.typeIndicatorMouseOver();
+			}
+		}
+
+		private static _mouseMove(this: EditCrmItem, e: MouseEvent) {
+			if (window.app.editCRM.dragging) {
+				const event = new CustomEvent('dragover', {
+					detail: {
+						isCustom: true,
+						target: (e as any).path[0],
+						clientX: e.clientX,
+						clientY: e.clientY
+					}
+				});
+				//Dispatch it to this node's column
+				this.parentNode.dispatchEvent(event);
 			}
 		}
 
@@ -174,18 +194,28 @@ namespace EditCrmItemElement {
 			}
 			this._hasBeenAttached = true;
 
-			if (this.classList.contains('draggingFiller')) {
-				//It's a dragging copy
-				this.$.itemCont.classList.add('draggingFiller');
+			if (this.classList.contains('fallbackFiller')) {
+				this.$.itemCont.classList.add('fallbackFiller');
 				return;
 			}
+			if (this.classList.contains('draggingFiller') || this.getAttribute('draggable')) {
+				//It's a dragging copy
+				this.$.itemCont.classList.add('draggingFiller');
+				this._isDrag = true;
+			}
 
-			document.body.addEventListener('mousemove', () => {
-				if (this._hoveringTypeSwitcher) {
-					this._hoveringTypeSwitcher = false;
-					this.typeIndicatorMouseLeave();
-				}
-			});
+			if (!this._isDrag) {
+				this.addEventListener('mousemove', this._mouseMove.bind(this));
+			}
+
+			if (!this._isDrag) {
+				document.body.addEventListener('mousemove', () => {
+					if (this._hoveringTypeSwitcher) {
+						this._hoveringTypeSwitcher = false;
+						this.typeIndicatorMouseLeave();
+					}
+				});
+			}
 
 			window.onExists('app').then(() => {
 				if (this.rootNode) {
