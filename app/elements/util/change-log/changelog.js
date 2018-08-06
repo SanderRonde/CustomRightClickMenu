@@ -149,6 +149,9 @@
 			'Support [CSS preprocesors](https://github.com/openstyles/stylus/wiki/UserCSS#preprocessor)'
 		],
 		'2.1.5': [
+			'Attempt fix dragging of nodes'
+		],
+		'2.1.6': [
 			'Fix dragging of nodes'
 		]
 	};
