@@ -582,7 +582,7 @@ function doUserStylesOrgTest(prefix: () => string|void) {
 
 			assert.strictEqual(await driver.executeScript(inlineFn(() => {
 				return window.getComputedStyle(document.body)['backgroundColor'];
-			})), 'rgb(37, 37, 37)', 'background color changed (stylesheet is applied)');
+			})), 'rgb(27, 27, 27)', 'background color changed (stylesheet is applied)');
 		});
 	});
 }
