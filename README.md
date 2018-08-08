@@ -56,8 +56,8 @@ you clicked on (page, link, selection, image, video or audio).
 > 2.1.6 is the current latest version
 
 * [Chrome Webstore](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj) - On version 2.0.19 for now
-* [Firefox Add-on](https://addons.mozilla.org/nl/firefox/addon/custom-right-click-menu/) - On 2.1.4
-* [Edge Extension](https://www.microsoft.com/store/apps/9P6T9NZ0QML9) - On 2.1.4
+* [Firefox Add-on](https://addons.mozilla.org/nl/firefox/addon/custom-right-click-menu/) - On 2.1.6
+* [Edge Extension](https://www.microsoft.com/store/apps/9P6T9NZ0QML9) - On 2.1.4, 2.1.6 is under review for submission
 * Opera extension - Under certification for initial release
 
 ### Installing from repo
