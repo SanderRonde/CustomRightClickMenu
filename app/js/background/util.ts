@@ -52,10 +52,10 @@ export namespace Util {
 					return new Date(value);
 				}
 				if (prefix === 'function') {
-					return eval(`(${value})`);
+					return new Function(value);
 				}
 				if (prefix === '_PxEgEr_') {
-					return eval(value.slice(8));
+					return new RegExp(value.slice(8));
 				}
 
 				return value;
@@ -433,25 +433,17 @@ export namespace Util {
 		});
 	}
 	const _requiredFiles: string[] = [];
-	const _fetchingFiles: Map<string, Promise<string>> = new window.Map();
-	function loadFile(path: string, ...msg: any[]): Promise<string> {
-		if (_fetchingFiles.get(path)) {
-			return _fetchingFiles.get(path);
-		}
-		const prom = xhr(browserAPI.runtime.getURL(path), msg);
-		_fetchingFiles.set(path, prom);
-		prom.then(() => {
-			_fetchingFiles.delete(path);
-		});
-		return prom;
-	}
-	export async function execFile(path: string): Promise<void> {
+	export async function execFile(path: string, global?: keyof BackgroundpageWindow): Promise<void> {
 		if (_requiredFiles.indexOf(path) > -1) {
 			return;
 		}
-		const fileContent = await loadFile(path, 'Fetching library file', path);
-		eval(fileContent);
+		const el = document.createElement('script');
+		el.src = browserAPI.runtime.getURL(path);
+		document.body.appendChild(el);
 		_requiredFiles.push(path);
+		if (global) {
+			await window.onExists(global, window);
+		}
 	}
 	export function getScriptNodeJS(script: CRM.ScriptNode|CRM.SafeScriptNode, type: 'background'|'script' = 'script'): string {
 		return type === 'background' ?

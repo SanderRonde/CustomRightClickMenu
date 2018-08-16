@@ -3130,18 +3130,6 @@ namespace MonacoEditorElement {
 		}
 
 		static Libraries = class MonacoEditorLibraries {
-			private static _execFile(name: string): Promise<void> {
-				return new window.Promise((resolve, reject) => {
-					this._parent().Fetching.loadFile(name).then((content) => {
-						eval(content);
-						resolve(null);
-					}, () => {
-						alert('Failed to load lint library');
-						reject(new Error('Failed to load lint library'));
-					});
-				});
-			}
-
 			static async readFile(path: string): Promise<string> {
 				if (this._parent().Fetching.isLoaded(path)) {
 					return this._parent().Fetching.getLoadedFile(path);
@@ -3149,11 +3137,16 @@ namespace MonacoEditorElement {
 				return await this._parent().Fetching.loadFile(path);
 			}
 
-			static async runFile(path: string): Promise<void> {
+			static async runFile(path: string, global?: keyof Window): Promise<void> {
 				if (this._parent().Fetching.isLoaded(path)) {
 					return;
 				}
-				return this._execFile(path);
+				const el = document.createElement('script');
+				el.src = browserAPI.runtime.getURL(path);
+				document.body.appendChild(el);
+				if (global) {
+					await window.onExists(global);
+				}
 			}
 
 			private static _parent() {

@@ -3412,10 +3412,10 @@ export type CRMAPIMessage = {
 							return new Date(value);
 						}
 						if (prefix === 'function') {
-							return eval('(' + value + ')');
+							return new Function(value);
 						}
 						if (prefix === '_PxEgEr_') {
-							return eval(value.slice(8));
+							return new RegExp(value.slice(8));
 						}
 
 						return value;

@@ -1844,8 +1844,9 @@ namespace CRMAppElement {
 				});
 			}
 			private static async _execFile(path: string): Promise<void> {
-				const fileContent = await window.app.util.xhr(path, true);
-				eval(fileContent);
+				const el = document.createElement('script');
+				el.src = browserAPI.runtime.getURL(browserAPI.runtime.getURL(path));
+				document.body.appendChild(el);
 			}
 			private static _loadTernFiles(): Promise<void> {
 				return new Promise((resolve, reject) => {
@@ -1863,7 +1864,8 @@ namespace CRMAppElement {
 						return () => {
 							return this._execFile(file)
 						}
-					})).then(() => {
+					})).then(async () => {
+						await window.onExists('tern', window);
 						resolve(null);
 					}, (err) => {
 						reject(err);
@@ -4490,10 +4492,6 @@ namespace CRMAppElement {
 		 * CRM functions.
 		 */
 		static crm = class CRMAppCRMFunctions {
-			private static _getEvalPath(path: number[]): string {
-				return 'window.app.settings.crm[' + (path.join('].children[')) + ']';
-			};
-
 			static lookup(path: number[], returnArray?: boolean): CRM.Node | CRM.Node[];
 			static lookup(path: number[], returnArray: false): CRM.Node;
 			static lookup(path: number[], returnArray: true): CRM.Node[];
@@ -4511,9 +4509,16 @@ namespace CRMAppElement {
 					return (returnArray ? window.app.settings.crm : window.app.settings.crm[path[0]]);
 				}
 
-				const evalPath = this._getEvalPath(pathCopy);
-				const result = eval(evalPath);
-				return (returnArray ? result.children : result);
+				let currentTree = window.app.settings.crm;
+				let currentItem: CRM.Node = null;
+				for (let i = 0; i < path.length; i++) {
+					if (i !== path.length - 1) {
+						currentTree = currentTree[path[i]].children as CRM.Node[];
+					} else {
+						currentItem = currentTree[path[i]];
+					}
+				}
+				return (returnArray ? currentItem.children as CRM.Node[] : currentItem);
 			};
 
 			private static _lookupId(id: CRM.GenericNodeId, returnArray: boolean, node: CRM.Node): CRM.Node[] | CRM.Node | void;
