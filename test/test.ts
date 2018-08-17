@@ -589,12 +589,28 @@ const document: Partial<Document> = {
 				};
 			},
 			addEventListener: function () { },
-			style: {}
+			style: {},
+			src: ''
 		};
 	},
 	nodeType: 9,
 	get documentElement() {
 		return document;
+	},
+	body: {
+		appendChild(el: {
+			src: string;
+		}) {
+			fs.readFile(path.join(__dirname, '..', 'build/', el.src), {
+				encoding: 'utf8',
+			}, (err, data) => {
+				if (err) {
+					throw err;
+				} else {
+					eval(data);
+				}
+			});
+		}
 	}
 } as any;
 const storageLocal: {
