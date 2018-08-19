@@ -153,6 +153,9 @@
 		],
 		'2.1.6': [
 			'Fix dragging of nodes'
+		],
+		'2.1.7': [
+			'Remove some bad practices in code (eval use etc).'
 		]
 	};
 
