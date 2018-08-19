@@ -601,6 +601,9 @@ const document: Partial<Document> = {
 		appendChild(el: {
 			src: string;
 		}) {
+			if (el.src.indexOf('chrome-extension') > -1) {
+				el.src = el.src.split('something')[1].slice(1);
+			}
 			fs.readFile(path.join(__dirname, '..', 'build/', el.src), {
 				encoding: 'utf8',
 			}, (err, data) => {
