@@ -2,10 +2,19 @@ The github repo can be found at https://github.com/SanderRonde/CustomRightClickM
 
 The addon's source code can be found in the app/ directory. The app/bower_components/ directory contains a lot of bower packages and as such will probably generate a lot of errors. However, not all files from this directory are actually included into the built code.
 
-Building the addon:
-You can build the addon by installing the dependencies (yarn install --ignore-engines ) and then running the build command (yarn build). The addon will then be in the dist/firefox/ directory.
+## Building the addon:
+You can build the addon by installing the dependencies (yarn install --ignore-engines ) and then running the build command (yarn build). The built addon will be in the /dist directory. Alternatively, run `yarn dist` to package the extension as well, outputting browser-specific distributions to the /dist/{browser} and /dist/packed/{browser}.{ext} directories.
 
-Testing the app:
+## Build requirements:
+Platform: Doesn't matter. It's been tested on windows and linux but should run on anything that runs node.
+
+Node version: Latest build was built on 10.3.0
+
+Yarn version: Latest build was built on 1.7.0 (can be found here https://yarnpkg.com/lang/en/)
+
+Required globally installed NPM packages: gulp@3.9.1, tsc@3.0.1
+
+## Testing the app:
 If you want to test the app while still having access to unobfuscated source code, you can run "yarn install --ignore-engines --force && tsc && gulp prepareForHotReload". If you then load everything in the app/ directory into the browser as an addon, you can test the addon with its original source code, making debugging and seeing what code does what a little bit easier.
 
 
