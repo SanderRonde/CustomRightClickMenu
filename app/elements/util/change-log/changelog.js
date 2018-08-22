@@ -156,7 +156,8 @@
 		],
 		'2.1.7': [
 			'Remove some bad practices in code (eval use etc).'
-		]
+		],
+		'2.1.8': []
 	};
 
 	return changelog;
