@@ -2,6 +2,7 @@
 
 interface SandboxWindow extends Window {
 	log(...args: any[]): void;
+	warn(...args: any[]): void;
 	logNoStack(...args: any[]): void;	
 }
 
@@ -29,12 +30,25 @@ const _self = self as SandboxWindow;
 		log(args, errSplit.slice(1, errSplit.length).join('at'));
 	};
 
+	_self.warn = (...args: any[]) => {
+		let err = (new Error()).stack.split('\n')[1];
+		if (err.indexOf('eval') > -1) {
+			err = (new Error()).stack.split('\n')[2];
+			if (!err) {
+				err = (new Error()).stack.split('\n')[1];
+			}
+		}
+		const errSplit = err.split('at');
+		log(['Warning: ', ...args], errSplit.slice(1, errSplit.length).join('at'));
+	};
+
 	_self.logNoStack = (...args: any[]) => {
 		log(args);
 	};
 
 	(_self as any).console = {
-		log: _self.log
+		log: _self.log,
+		warn: _self.warn
 	};
 
 	_self.onerror = function (_name, _source, _lineNo, _colNo, error) {
