@@ -1784,10 +1784,10 @@ export namespace CRMNodes.Stylesheet.Options {
 	async function applyPreprocessor(stylesheet: string, id: CRM.NodeId<CRM.StylesheetNode>, 
 		preprocessor: Preprocessor|string, options: CRM.Options) {
 			if (preprocessor === 'less') {
-				await modules.Util.execFile('js/libraries/less.js');
+				await modules.Util.execFile('js/libraries/less.js', 'less');
 				return await compileLess(stylesheet, id);
 			} else if (preprocessor === 'stylus') {
-				await modules.Util.execFile('js/libraries/stylus.js');
+				await modules.Util.execFile('js/libraries/stylus.js', 'stylus');
 				return await compileStylus(stylesheet, id);
 			} else if (preprocessor === 'uso') {
 				return preprocessUSO(id, stylesheet, options);
@@ -2562,7 +2562,7 @@ export namespace CRMNodes.TS {
 	async function compileScript(script: string): Promise<string> {
 		return new window.Promise<string>(async (resolve) => {
 			await window.withAsync(captureTSDef, async () => {
-				await modules.Util.execFile('js/libraries/typescript.js');
+				await modules.Util.execFile('js/libraries/typescript.js', 'ts');
 			});
 			resolve(window.ts.transpile(script, {
 				module: window.ts.ModuleKind.None,
