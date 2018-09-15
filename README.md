@@ -8,6 +8,7 @@ do anything you want all from your right-click menu. Featuring full GreaseMonkey
 [![Join the chat at https://gitter.im/SanderRonde/CustomRightClickMenu](https://badges.gitter.im/SanderRonde/CustomRightClickMenu.svg)](https://gitter.im/SanderRonde/CustomRightClickMenu?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/SanderRonde/CustomRightClickMenu.svg?branch=master)](https://travis-ci.org/SanderRonde/CustomRightClickMenu)
 [![Tested with BrowserStack](http://i.imgur.com/3Mi2Fja.png)](https://www.browserstack.com/)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FSanderRonde%2FCustomRightClickMenu.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FSanderRonde%2FCustomRightClickMenu?ref=badge_shield)
 
 ## Demo
 
@@ -109,3 +110,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FSanderRonde%2FCustomRightClickMenu.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FSanderRonde%2FCustomRightClickMenu?ref=badge_large)
