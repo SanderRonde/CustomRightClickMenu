@@ -59,7 +59,7 @@ you clicked on (page, link, selection, image, video or audio).
 2.1.8 only differs from 2.2.0 in version number and as such they are the same content-wise.
 </aside>
 
-* [Chrome Webstore](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj) - On version 2.2.0 for now
+* [Chrome Webstore](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj) - On version 2.2.0
 * [Firefox Add-on](https://addons.mozilla.org/nl/firefox/addon/custom-right-click-menu/) - On 2.1.8 (= 2.2.0)
 * [Edge Extension](https://www.microsoft.com/store/apps/9P6T9NZ0QML9) - On 2.1.6, 2.2.0 is under review for submission
 * Opera extension - Under certification for initial release (no changes in review status since may 2018)
