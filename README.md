@@ -61,7 +61,7 @@ you clicked on (page, link, selection, image, video or audio).
 
 * [Chrome Webstore](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj) - On version 2.2.0
 * [Firefox Add-on](https://addons.mozilla.org/nl/firefox/addon/custom-right-click-menu/) - On 2.1.8 (= 2.2.0)
-* [Edge Extension](https://www.microsoft.com/store/apps/9P6T9NZ0QML9) - On 2.1.6, 2.2.0 is under review for submission
+* [Edge Extension](https://www.microsoft.com/store/apps/9P6T9NZ0QML9) - On 2.2.0
 * Opera extension - Under certification for initial release (no changes in review status since may 2018)
 
 ### Installing from repo
