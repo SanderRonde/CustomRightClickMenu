@@ -157,7 +157,9 @@
 		'2.1.7': [
 			'Remove some bad practices in code (eval use etc).'
 		],
-		'2.1.8': [],
+		'2.1.8': [
+			'Just a version bump (no changes), on request of the firefox addon store'
+		],
 		'2.2.0': [
 			'Only a version bump from version 2.1.8 (no changes). This is the first ' + 
 				'version since 2.0.19 that is published on the chrome webstore ' +
