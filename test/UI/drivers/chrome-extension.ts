@@ -48,7 +48,7 @@ async function findExtensionElement(driver: TypedWebdriver, capabilities: Browse
 		for (const extension of extensions) {
 			const title = await extension.findElement(webdriver.By.id('name'));
 			if ((await title.getText()).indexOf('Custom Right-Click Menu') > -1) {
-				await extension.findElement(webdriver.By.id('details-button')).click();
+				await extension.findElement(webdriver.By.id('detailsButton')).click();
 				await wait(1000);
 				return driver;
 			}
