@@ -850,8 +850,7 @@ export class FoundElement implements FoundElement {
 				findElementOnPage('REPLACE.selector').click();
 			}, {
 				selector: JSON.stringify(selectorList.reverse())
-			}, findElementOnPage)).then((e) => {
-				e && console.log(e);
+			}, findElementOnPage)).then(() => {
 				resolve(undefined);
 			});
 		});

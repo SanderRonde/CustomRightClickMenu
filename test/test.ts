@@ -3585,7 +3585,7 @@ describe('CRMAPI', () => {
 				await asyncThrows(() => {
 					// @ts-ignore
 					return crmAPI.crm.editNode(safeTestCRMTree[0].id, {
-						type: 'someInvalidType',
+						type: 'someInvalidType' as any,
 						name: 'someNewName'
 					});
 				}, /Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider/);
@@ -3953,7 +3953,7 @@ describe('CRMAPI', () => {
 							newTab: false
 						}, {
 							newTab: true
-						}]);
+						} as any]);
 					}, /For not all values in the array items is the property url defined/)
 				});
 				it('should throw an error when the link is missing (objec)', async () => {
@@ -4009,7 +4009,7 @@ describe('CRMAPI', () => {
 							newTab: false
 						}, {
 							newTab: true
-						}]);
+						} as any]);
 					}, /For not all values in the array items is the property url defined/)
 				});
 				it('should throw an error when the link is missing (objec)', async () => {
@@ -4099,7 +4099,7 @@ describe('CRMAPI', () => {
 				it('should correctly get the value of non-script type nodes', async () => {
 					const script = await crmAPI.crm.script.getScript(safeTestCRMTree[3].id);
 					assert.strictEqual(script, (
-						safeTestCRMTree[2].scriptVal ? 
+						safeTestCRMTree[2].scriptVal as any ? 
 							// @ts-ignore
 							safeTestCRMTree[2].scriptVal.script : undefined
 						), 'scripts match');
@@ -4124,7 +4124,7 @@ describe('CRMAPI', () => {
 				it('should correctly get the value of non-script type nodes', async () => {
 					const backgroundScript = await crmAPI.crm.script.getScript(safeTestCRMTree[3].id);
 					assert.strictEqual(backgroundScript, (
-						safeTestCRMTree[2].scriptVal ?
+						safeTestCRMTree[2].scriptVal as any ?
 							// @ts-ignore
 							safeTestCRMTree[2].scriptVal.backgroundScript :
 							undefined
