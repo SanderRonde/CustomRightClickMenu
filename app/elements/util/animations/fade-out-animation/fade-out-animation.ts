@@ -12,9 +12,9 @@ namespace FadeOutAnimationElement {
 
 		static configure(this: NeonAnimationBehaviorFadeOutAnimation, { node }: Polymer.NeonAnimationConfig) {
 			return node.animate([{
-				opacity: 1
+				opacity: '1'
 			}, {
-				opacity: 0
+				opacity: '0'
 			}], {
 				duration: 500,
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',

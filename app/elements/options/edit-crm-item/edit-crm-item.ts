@@ -56,26 +56,6 @@ namespace EditCrmItemElement {
 		*/
 		static type: string = '';
 
-		/**
-		 * Whether the item is a link
-		 */
-		private static _isLink: boolean = false;
-
-		/**
-		 * Whether the item is a script
-		 */
-		private static _isScript: boolean = false;
-
-		/**
-		 * Whether the item is a stylesheet
-		 */
-		private static _isStylesheet: boolean = false;
-
-		/**
-		 * Whether the item is a divider
-		 */
-		private static _isDivider: boolean = false;
-
 		static properties = editCrmItemProperties;
 
 		static itemIndex: number;
@@ -435,15 +415,6 @@ namespace EditCrmItemElement {
 
 		static calculateType(this: EditCrmItem) {
 			this.type = this.item.type;
-			((this._isScript = this.item.type === 'script') &&
-				(this._isLink = this.isMenu = this._isDivider = this._isStylesheet = false)) || 
-			((this._isLink = this.item.type === 'link') && 
-				(this.isMenu = this._isDivider = this._isStylesheet = false)) || 
-			((this._isStylesheet = this.item.type === 'stylesheet') && 
-				(this.isMenu = this._isDivider = false)) || 
-			((this.isMenu = this.item.type === 'menu') && 
-				(this._isDivider = false)) || 
-			(this._isDivider = true);
 
 			this.hasCodeSettings = (this.item.type === 'script' || this.item.type === 'stylesheet') &&
 				window.app.generateCodeOptionsArray(this.item.value.options).length > 0;

@@ -20,10 +20,6 @@ interface Window {
 	initUsercssInstall?: Function;
 }
 
-interface Document {
-	contentType: string;
-}
-
 function xhr(url: string): Promise<string> {
 	return new Promise((resolve) => {
 		if (!url) {

@@ -501,9 +501,8 @@ namespace ErrorReportingToolElement {
 			window.onerror = (message: string, source: any, lineno: number, colno: number, error: Error) => {
 				let handled: boolean = false;
 				handlers.forEach((handler) => {
-					if (handler(message, source, lineno, colno, error)) {
-						handled = true;
-					}
+					handler(message, source, lineno, colno, error)
+					handled = true;
 				});
 				this._onError(message, source, lineno, colno, error, handled);
 				if (handled) {

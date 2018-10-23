@@ -218,7 +218,7 @@ namespace CodeEditBehaviorNamespace {
 		static popOutToolsRibbon(this: CodeEditBehaviorInstance) {
 			window.doc.editorToolsRibbonContainer.animate([
 				{
-					marginLeft: 0
+					marginLeft: '0'
 				}, {
 					marginLeft: '-200px'
 				}
@@ -280,15 +280,14 @@ namespace CodeEditBehaviorNamespace {
 			}
 			window.setDisplayFlex(scriptTitle);
 			scriptTitle.style.marginTop = titleRibbonSize;
-			const scriptTitleAnimation: [{
-				[key: string]: string | number;
-			}, {
-				[key: string]: string | number;
-			}] = [
+			const scriptTitleAnimation: {
+				marginTop: string;
+				marginLeft?: string;
+			}[] = [
 				{
 					marginTop: titleRibbonSize
 				}, {
-					marginTop: 0
+					marginTop: '0'
 				}
 			];
 			scriptTitle.style.marginLeft = '-200px';
@@ -353,13 +352,12 @@ namespace CodeEditBehaviorNamespace {
 			}
 			window.setDisplayFlex(scriptTitle);
 			scriptTitle.style.marginTop = '0';
-			const scriptTitleAnimation: [{
-				[key: string]: string | number;
-			}, {
-				[key: string]: string | number;
-			}] = [
+			const scriptTitleAnimation: {
+				marginTop: string;
+				marginLeft?: string;
+			}[] = [
 				{
-					marginTop: 0
+					marginTop: '0'
 				}, {
 					marginTop: titleRibbonSize
 				}

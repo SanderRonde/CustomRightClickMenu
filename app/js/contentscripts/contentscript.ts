@@ -66,7 +66,7 @@
 	let matched = false;
 	let contextElementId = 1;
 	let crmAPIExecuted = false;
-	let lastContextmenuCall: PointerEvent = null;
+	let lastContextmenuCall: MouseEvent = null;
 
 	browserAPI.runtime.onMessage.addListener(function (message: {
 		type: 'checkTabStatus';
@@ -95,14 +95,14 @@
 				}
 				break;
 			case 'getLastClickInfo':
-				const responseObj = ({} as Partial<PointerEvent>) as Writable<PointerEvent> & {
+				const responseObj = ({} as Partial<MouseEvent>) as Writable<MouseEvent> & {
 					srcElement: number;
 					target: number;
 					toElement: number;
 				}
 				for (const key in lastContextmenuCall) {
 					if (CONTEXT_MENU_EVENT_KEYS.indexOf(key) !== -1) {
-						const pointerKey = key as keyof PointerEvent;
+						const pointerKey = key as keyof MouseEvent;
 						if (pointerKey !== 'button') {
 							responseObj[pointerKey] = lastContextmenuCall[pointerKey];
 						}

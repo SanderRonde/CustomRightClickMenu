@@ -82,18 +82,11 @@ namespace CRMAppElement {
 					cancel: function() { },
 					finish: function() {},
 					pause: function() {},
-					effect: {
-						timing: 0,
-						getComputedTiming() {
-							return {
-								endTime: 0,
-								activeDuration: 0,
-								currentIteration: 0,
-								localTime: 0,
-								progress: null
-							}
-						}
-					},
+					updatePlaybackRate(_playbackRate: number) {},
+					addEventListener(_type: string, _listener: EventListenerOrEventListenerObject) {},
+					removeEventListener(_type: string, _listener: EventListenerOrEventListenerObject) {},
+					dispatchEvent(_event: Event) { return true },
+					effect: null,
 					finished: Promise.resolve(skippedAnimation),
 					pending: false,
 					startTime: Date.now(),
@@ -210,7 +203,20 @@ namespace CRMAppElement {
 				pending: false,
 				currentTime: null,
 				effect: {
-					timing: 0,
+					getTiming(): EffectTiming {
+						const duration = ((options && options.duration) || 500) / state.playbackRate;
+						return {
+							delay: 0,
+							direction: direction === 'forwards' ?
+								'normal' : 'reverse',
+							duration: duration,
+							easing: options.easing,
+							fill: options.fill
+						}
+					},
+					updateTiming(_timing?: OptionalEffectTiming) {
+
+					},
 					getComputedTiming() {
 						const duration = ((options && options.duration) || 500) / state.playbackRate;
 						return {
@@ -225,6 +231,10 @@ namespace CRMAppElement {
 						}
 					}
 				},
+				updatePlaybackRate(_playbackRate: number) {},
+				addEventListener(_type: string, _listener: EventListenerOrEventListenerObject) {},
+				removeEventListener(_type: string, _listener: EventListenerOrEventListenerObject) {},
+				dispatchEvent(_event: Event) { return true },
 				timeline: {
 					currentTime: null
 				},
@@ -271,7 +281,7 @@ namespace CRMAppElement {
 		};
 
 		if (!animateExists) {
-			HTMLElement.prototype.animate = animatePolyFill;
+			HTMLElement.prototype.animate = animatePolyFill as any;
 			HTMLElement.prototype.__isAnimationJqueryPolyfill = true;
 		}
 	})();
@@ -708,13 +718,11 @@ namespace CRMAppElement {
 					if (el.animation && el.animation.reverse) {
 						el.animation.reverse();
 					} else {
-						el.animation = el.animate([
-							{
-								height: 0
-							}, {
-								height: el.scrollHeight + 'px'
-							}
-						], {
+						el.animation = el.animate([{
+							height: '0'
+						}, {
+							height: el.scrollHeight + 'px'
+						}], {
 							duration: 250,
 							easing: 'linear',
 							fill: 'both'
@@ -728,15 +736,15 @@ namespace CRMAppElement {
 						$(otherPermissions).animate({
 							height: otherPermissions.scrollHeight + 'px'
 						}, 350, function () {
-							(showHideSvg.children[0] as HTMLElement).style.display = 'none';
-							(showHideSvg.children[1] as HTMLElement).style.display = 'block';
+							(<unknown>showHideSvg.children[0] as HTMLElement).style.display = 'none';
+							(<unknown>showHideSvg.children[1] as HTMLElement).style.display = 'block';
 						});
 					} else {
 						$(otherPermissions).animate({
 							height: 0
 						}, 350, function () {
-							(showHideSvg.children[0] as HTMLElement).style.display = 'block';
-							(showHideSvg.children[1] as HTMLElement).style.display = 'none';
+							(<unknown>showHideSvg.children[0] as HTMLElement).style.display = 'block';
+							(<unknown>showHideSvg.children[1] as HTMLElement).style.display = 'none';
 						});
 					}
 				});
@@ -1948,9 +1956,9 @@ namespace CRMAppElement {
 					const item = element.$$('.item');
 					item.animate([
 						{
-							opacity: 1
+							opacity: '1'
 						}, {
-							opacity: 0.6
+							opacity: '0.6'
 						}
 					], {
 						duration: 250,
@@ -1993,9 +2001,9 @@ namespace CRMAppElement {
 					//Just in case the item doesn't exist (anymore)
 					if (crmElement.$$('.item')) {
 						crmElement.$$('.item').animate([{
-							opacity: 0.6
+							opacity: '0.6'
 						}, {
-							opacity: 1
+							opacity: '1'
 						}], {
 							duration: 250,
 							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
@@ -2405,7 +2413,7 @@ namespace CRMAppElement {
 				const crmTypes = this.parent().shadowRoot.querySelectorAll('.crmType');
 				for (i = 0; i < 6; i++) {
 					if (indexes[i]) {
-						element = crmTypes[i] as HTMLElement;
+						element = <unknown>crmTypes[i] as HTMLElement;
 						element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 						element.classList.add('toggled');
 
@@ -3462,7 +3470,7 @@ namespace CRMAppElement {
 				let selectedTypes = parentCrmTypes;
 				if (Array.isArray(types)) {
 					for (let i = 0; i < 6; i++) {
-						let crmEl = this.parent().shadowRoot.querySelectorAll('.crmType')[i] as HTMLElement;
+						let crmEl = <unknown>this.parent().shadowRoot.querySelectorAll('.crmType')[i] as HTMLElement;
 						if (types[i]) {
 							crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 							crmEl.style.backgroundColor = 'rgb(243,243,243)';
@@ -3489,7 +3497,7 @@ namespace CRMAppElement {
 					const element = this.parent().util.findElementWithClassName(e, 'crmType');
 					const crmTypes = this.parent().shadowRoot.querySelectorAll('.crmType');
 					for (let i = 0; i < 6; i++) {
-						let crmEl = crmTypes[i] as HTMLElement;
+						let crmEl = <unknown>crmTypes[i] as HTMLElement;
 						if (crmEl === element) {
 							//Toggle this element
 							if (!selectedTypes[i]) {

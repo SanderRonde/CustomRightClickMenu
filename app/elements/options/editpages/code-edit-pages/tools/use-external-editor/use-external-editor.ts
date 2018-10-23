@@ -738,10 +738,10 @@ namespace UseExternalEditorElement {
 				(this.dialogMainDivAnimationHide = window.doc.chooseFileMainDialog.animate([
 					{
 						marginTop: '20px',
-						opacity: 1
+						opacity: '1'
 					}, {
 						marginTop: '100px',
-						opacity: 0
+						opacity: '0'
 					}
 				], {
 					duration: 240,

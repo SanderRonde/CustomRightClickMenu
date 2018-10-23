@@ -271,6 +271,7 @@ export namespace Global {
 							REPLACEBrowserVal: string;
 							REPLACEChromeVal: string;
 						}) => {
+							//@ts-ignore
 							let REPLACEWrapperName: {
 								[key: string]: any;
 							};

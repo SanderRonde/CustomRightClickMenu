@@ -424,7 +424,7 @@ namespace EditCrmElement {
 		private static _moveFollowingColumns(startColumn: CRMColumnElement, offset: number) {
 			const topLevelColumns = window.app.editCRM.shadowRoot.querySelectorAll('.CRMEditColumnCont');
 			for (let i = startColumn.index + 1; i < topLevelColumns.length; i++) {
-				this._setColumnContOffset(topLevelColumns[i] as HTMLDivElement & {
+				this._setColumnContOffset(<unknown>topLevelColumns[i] as HTMLDivElement & {
 					offset: number;
 				}, offset);
 			}
@@ -1203,7 +1203,7 @@ namespace EditCrmElement {
 			return Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('edit-crm-item'));
 		}
 
-		static getItemsWithClass(this: EditCrm, className: string) {
+		static getItemsWithClass(this: EditCrm, className: string): EditCrmItem[] {
 			return this.getItems().filter((item) => {
 				return item.$.itemCont.classList.contains(className);
 			});

@@ -282,7 +282,7 @@ export type SharedWindow = Window & {
 		if (_supportsTransformUnprefixed) {
 			el.style.transform = value;
 		} else {
-			el.style.WebkitTransform = value;
+			el.style.webkitTransform = value;
 		}
 	}
 
@@ -324,7 +324,16 @@ export type SharedWindow = Window & {
 			finish() {},
 			currentTime: 0,
 			effect: {
-				timing: 0,
+				getTiming(): EffectTiming {
+					return {
+						delay: 0,
+						direction: 'normal',
+						fill: 'both'
+					}
+				},
+				updateTiming(_timing?: OptionalEffectTiming) {
+
+				},
 				getComputedTiming() {
 					return {
 						endTime: 0,
@@ -335,6 +344,10 @@ export type SharedWindow = Window & {
 					}
 				}
 			},
+			updatePlaybackRate(_playbackRate: number) {},
+				addEventListener(_type: string, _listener: EventListenerOrEventListenerObject) {},
+				removeEventListener(_type: string, _listener: EventListenerOrEventListenerObject) {},
+				dispatchEvent(_event: Event) { return true },
 			finished: Promise.resolve(retVal),
 			pending: false,
 			startTime: Date.now(),
@@ -376,7 +389,7 @@ export type SharedWindow = Window & {
 			const diff = to - from;
 			const diffPercentage = diff / 100;
 
-			el.style.WebkitTransform = `${propName}(${from}${postfix})`;
+			el.style.webkitTransform = `${propName}(${from}${postfix})`;
 
 			const dummy = document.createElement('div');
 
@@ -388,10 +401,10 @@ export type SharedWindow = Window & {
 					duration: options.duration || 500,
 					step(now: number) {
 						const progress = from + (diffPercentage * now);
-						el.style.WebkitTransform = `${propName}(${progress}${postfix})`;
+						el.style.webkitTransform = `${propName}(${progress}${postfix})`;
 					},
 					complete() {
-						el.style.WebkitTransform = `${propName}(${toDummy}${postfix})`;
+						el.style.webkitTransform = `${propName}(${toDummy}${postfix})`;
 						done();
 					}
 				});

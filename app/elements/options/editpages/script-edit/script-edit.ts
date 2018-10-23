@@ -297,7 +297,7 @@ namespace ScriptEditElement {
 						} else {
 							el.animation = el.animate([
 								{
-									height: 0
+									height: '0'
 								}, {
 									height: el.scrollHeight + 'px'
 								}
@@ -315,9 +315,13 @@ namespace ScriptEditElement {
 
 				let permission: CRM.Permission;
 				const requestPermissionButtonElements = Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.requestPermissionButton'));
-				requestPermissionButtonElements.forEach((requestPermissionButton: HTMLPaperToggleButtonElement) => {
-					requestPermissionButton.removeEventListener('click');
-					requestPermissionButton.addEventListener('click', () => {
+				requestPermissionButtonElements.forEach((requestPermissionButton: HTMLPaperToggleButtonElement & {
+					__listener: Function;
+				}) => {
+					if (requestPermissionButton.__listener) {
+						requestPermissionButton.removeEventListener('click', requestPermissionButton.__listener as any);
+					}
+					const fn = () => {
 						permission = requestPermissionButton.previousElementSibling.previousElementSibling.textContent as CRM.Permission;
 						const slider = requestPermissionButton;
 						if (requestPermissionButton.checked) {
@@ -357,7 +361,9 @@ namespace ScriptEditElement {
 							//Remove from script's permissions
 							settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
 						}
-					});
+					};
+					requestPermissionButton.addEventListener('click', fn);
+					requestPermissionButton.__listener = fn;
 				});
 			}
 

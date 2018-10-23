@@ -201,7 +201,7 @@ export namespace Util {
 
 				const blobReader = new FileReader();
 				blobReader.onloadend = () => {
-					readerResults[0] = blobReader.result;
+					readerResults[0] = blobReader.result as string;
 					if (readerResults[1]) {
 						callback(readerResults[0], readerResults[1]);
 					}
@@ -210,7 +210,7 @@ export namespace Util {
 
 				const textReader = new FileReader();
 				textReader.onloadend = () => {
-					readerResults[1] = textReader.result;
+					readerResults[1] = textReader.result as string;
 					if (readerResults[0]) {
 						callback(readerResults[0], readerResults[1]);
 					}

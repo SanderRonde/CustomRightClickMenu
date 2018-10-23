@@ -64,21 +64,15 @@ import * as React from "../../tools/definitions/react";
 declare global {
 	interface HTMLElement {
 		__isAnimationJqueryPolyfill?: boolean;
-		animate<K extends {
-			[key: string]: string;
-		} = {
-			[key: string]: string;
-		}>(this: HTMLElement, properties: [{
-			[key in keyof K]: string|number;
-		}, {
-			[key in keyof K]: string|number;
-		}], options: {
-			duration?: number;
-			easing?: string;
-			fill?: 'forwards'|'backwards'|'both';
-		}): Animation;
 		disabled: boolean;
 		getRootNode(): ShadowRoot;
+	}
+	
+	type PartialKeyFrame = Partial<Record<keyof CSSStyleDeclaration, string>>;
+
+	interface Animatable {
+		animate(keyframes: PartialKeyFrame[], options?: number | KeyframeAnimationOptions): Animation;
+		getAnimations(): Animation[];
 	}
 
 	interface JSON {
@@ -103,11 +97,6 @@ declare global {
 		  * @param space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
 		  */
 		stringify<T>(value: T, replacer?: (number | string)[] | null, space?: string | number): EncodedString<T>;
-	}
-
-	interface CSSStyleDeclaration {
-		willChange: string;
-		WebkitTransform: string;
 	}
 
 	interface Window {
