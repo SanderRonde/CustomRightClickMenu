@@ -4594,7 +4594,8 @@ namespace CRMAppElement {
 					this._parent().util.insertInto(toMoveItem, newTarget, targetIndex);
 					toMoveContainer.splice((~~toMoveIndex) + 1, 1);
 				} else {
-					this._parent().util.insertInto(toMoveItem, newTarget, targetIndex);
+					this._parent().util.insertInto(toMoveItem, newTarget, 
+						sameColumn ? targetIndex + 1 : targetIndex);
 					toMoveContainer.splice(toMoveIndex, 1);
 				}
 				window.app.upload();
