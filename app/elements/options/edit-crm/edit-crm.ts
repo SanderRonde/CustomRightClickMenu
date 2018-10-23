@@ -625,7 +625,8 @@ namespace EditCrmElement {
 		static addToPosition(this: EditCrm, e: Polymer.ClickEvent) {
 			const node = window.app.util.findElementWithClassName(e, 'addingItemPlaceholder');
 
-			this._addItem(JSON.parse(node.getAttribute('data-path')));
+			const menuPath = JSON.parse(node.getAttribute('data-path'));
+			this._addItem(menuPath);
 			this.isAdding = false;
 		};
 
@@ -657,7 +658,25 @@ namespace EditCrmElement {
 				id: window.app.generateItemId() as CRM.NodeId<CRM.LinkNode>
 			});
 
-			const container = window.app.crm.lookup(path, true);
+			const container = (() => {
+				if (path.length > 1) {
+					//Not a root, means it's inside of a menu, disregard last number
+					const node = window.app.crm.lookup(path.slice(0, path.length - 1)) as CRM.MenuNode;
+					if (node.children) {
+						return node.children;
+					}
+					return null;
+				} else {
+					return window.app.crm.lookup(path, true);
+				}
+			})();
+			if (container === null) {
+				window.app.util.showToast('Failed to add item');
+				window.app.util.wait(5000).then(() => {
+					window.app.listeners.hideGenericToast();
+				});
+				return;
+			}
 			container.push(newItem);
 			window.app.editCRM.build({
 				setItems: window.app.editCRM.setMenus
