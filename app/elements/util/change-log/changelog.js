@@ -165,6 +165,10 @@
 				'version since 2.0.19 that is published on the chrome webstore ' +
 				'and as such will be a breaking change relative to 2.0.19, which ' +
 				' is why the version is bumped.'
+		],
+		'2.2.1': [
+			'Fixed issue where dragging nodes downwards placed them one spot above the target',
+			'Fixed the "add here" button not working when adding a node as a child to a menu'
 		]
 	};
 
