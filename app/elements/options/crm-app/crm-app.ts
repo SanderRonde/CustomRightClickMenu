@@ -3559,6 +3559,8 @@ namespace CRMAppElement {
 						browserAPI.permissions.request({
 							permissions: ['downloads']
 						}).then((granted) => {
+							//Refresh browserAPI object
+							browserAPI.downloads = browserAPI.downloads || BrowserAPI.getDownloadAPI();
 							callback(granted);
 						});
 					}

@@ -289,6 +289,31 @@ namespace BrowserAPINS {
 		}
 		return testData;
 	}
+	export function getDownloadAPI() {
+		return __srcBrowser.downloads ? {
+			download(options: {
+				url: string;
+				filename?: string;
+				conflictAction?: string;
+				saveAs?: boolean;
+				method?: string;
+				headers?: {
+					[key: string]: string;
+				};
+				body?: string;
+			}) {
+				if (loggingEnabled) {
+					testData._lastSpecialCall = {
+						api: 'downloads.download',
+						args: [options]
+					};
+				}
+				return createPromise<number>((handler) => {
+					__srcBrowser.downloads.download(options as any, handler);
+				});
+			}
+		} : void 0
+	}
 	export const polyfill = !__srcBrowser ? {} : {
 		commands: __srcBrowser.commands ? {
 			getAll() {
@@ -421,29 +446,7 @@ namespace BrowserAPINS {
 				});
 			}
 		} : void 0,
-		downloads: __srcBrowser.downloads ? {
-			download(options: {
-				url: string;
-				filename?: string;
-				conflictAction?: string;
-				saveAs?: boolean;
-				method?: string;
-				headers?: {
-					[key: string]: string;
-				};
-				body?: string;
-			}) {
-				if (loggingEnabled) {
-					testData._lastSpecialCall = {
-						api: 'downloads.download',
-						args: [options]
-					};
-				}
-				return createPromise<number>((handler) => {
-					__srcBrowser.downloads.download(options as any, handler);
-				});
-			}
-		} : void 0,
+		downloads: getDownloadAPI(),
 		extension: __srcBrowser.extension ? {
 			isAllowedFileSchemeAccess(): Promise<boolean> {
 				return createPromise<boolean>((handler) => {

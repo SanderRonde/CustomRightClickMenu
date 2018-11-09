@@ -457,6 +457,8 @@ namespace ErrorReportingToolElement {
 					browserAPI.permissions.request({
 						permissions: ['downloads']
 					}).then((granted) => {
+						//Refresh browserAPI object
+						browserAPI.downloads = browserAPI.downloads || BrowserAPI.getDownloadAPI();
 						if (!granted) {
 							window.doc.acceptDownloadToast.show();
 						}
