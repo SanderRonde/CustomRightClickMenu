@@ -4758,17 +4758,29 @@ namespace CRMAppElement {
 				return arr;
 			}
 
+			private static _generatePathFrom(element: HTMLElement): HTMLElement[] {
+				const path = [];
+				while (element) {
+					path.push(element);
+					element = element.parentElement;
+				}
+				path.push(document.documentElement, window);
+				return path as HTMLElement[];
+			}
+
 			static getPath(e: {
 				path: HTMLElement[];
 			}|{
 				Aa: HTMLElement[];
+			}|{
+				target: HTMLElement;	
 			}|Polymer.CustomEvent) {
 				if ('path' in e) {
 					return this._toArray(e.path);
 				} else if ('Aa' in e) {
 					return this._toArray(e.Aa);
 				}
-				return [];
+				return this._generatePathFrom(e.target);
 			}
 
 			private static _dummy: HTMLElement = null;
