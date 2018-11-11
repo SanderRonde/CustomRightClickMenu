@@ -173,10 +173,11 @@ namespace NodeEditBehaviorNamespace {
 		};
 
 		static checkToggledIconAmount(this: NodeEditBehaviorInstance, e: {
-			path: HTMLElement[];
-		}|{
-			Aa: HTMLElement[];
+			path?: HTMLElement[];
+			Aa?: HTMLElement[];
+			target: HTMLElement;
 		}) {
+			const target = e.target;
 			this.async(() => {
 				const selectedCheckboxes: {
 					onContentTypes: CRM.ContentTypes;
@@ -185,7 +186,12 @@ namespace NodeEditBehaviorNamespace {
 				};
 				this.getContentTypeLaunchers(selectedCheckboxes);
 				if (selectedCheckboxes.onContentTypes.filter(item => item).length === 0) {
-					const element = window.app.util.findElementWithTagname(e, 'paper-checkbox');
+					const element = window.app.util.findElementWithTagname({
+						path: e.path,
+						Aa: e.Aa,
+						target: target
+					}, 'paper-checkbox');
+					if (!element) return;
 					element.checked = true;
 					window.doc.contentTypeToast.show();
 				}
@@ -201,7 +207,8 @@ namespace NodeEditBehaviorNamespace {
 			checkbox.checked = !checkbox.checked;
 			if (!checkbox.checked) {
 				this.checkToggledIconAmount({
-					path: [checkbox]
+					path: [checkbox],
+					target: checkbox
 				});
 			}
 		};

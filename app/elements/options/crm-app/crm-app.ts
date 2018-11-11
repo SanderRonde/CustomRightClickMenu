@@ -4775,12 +4775,14 @@ namespace CRMAppElement {
 			}|{
 				target: HTMLElement;	
 			}|Polymer.CustomEvent) {
-				if ('path' in e) {
+				if ('path' in e && e.path) {
 					return this._toArray(e.path);
-				} else if ('Aa' in e) {
+				} else if ('Aa' in e && e.Aa) {
 					return this._toArray(e.Aa);
 				}
-				return this._generatePathFrom(e.target);
+				return this._generatePathFrom((e as {
+					target: HTMLElement;
+				}).target);
 			}
 
 			private static _dummy: HTMLElement = null;
@@ -4798,6 +4800,8 @@ namespace CRMAppElement {
 			}|{
 				Aa: HTMLElement[];
 			}|Polymer.CustomEvent, tagName: T): ElementTagNameMaps[T] {
+				console.log('in elementswithtagname');
+				console.log('calling iterate with', event);
 				return this.iteratePath(event, (node) => {
 					if (node && 'tagName' in node && 
 						(node as Polymer.PolymerElement).tagName.toLowerCase() === tagName) {

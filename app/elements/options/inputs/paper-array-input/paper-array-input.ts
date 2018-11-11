@@ -79,9 +79,14 @@ namespace PaperArrayInputElement {
 		}
 
 		static clearLine(this: PaperArrayInput, e: Polymer.ClickEvent) {
+			const target = e.target;
 			this.async(() => {
 				this.saveSettings();
-				const iconButton = window.app.util.findElementWithTagname(e, 'paper-icon-button');
+				const iconButton = window.app.util.findElementWithTagname({
+					path: (e as any).path,
+					Aa: (e as any).Aa,
+					target: target
+				}, 'paper-icon-button');
 				this.splice('values', Array.prototype.slice.apply(this.querySelectorAll('.arrayInputLine'))
 					.indexOf(iconButton.parentElement.parentElement), 1);
 			}, 50);
