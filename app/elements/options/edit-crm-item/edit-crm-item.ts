@@ -158,7 +158,7 @@ namespace EditCrmItemElement {
 				const event = new CustomEvent('dragover', {
 					detail: {
 						isCustom: true,
-						target: (e as any).path[0],
+						target: window.app.util.getPath(e as any)[0],
 						clientX: e.clientX,
 						clientY: e.clientY
 					}
