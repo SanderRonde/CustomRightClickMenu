@@ -23,6 +23,7 @@ namespace EditCrmElement {
 		crmEmpty: boolean;
 		isSelecting: boolean;
 		isAdding: boolean;
+		isAddingOrSelecting: boolean;
 	} = {
 		crm: {
 			type: Array,
@@ -63,6 +64,19 @@ namespace EditCrmElement {
 			type: Boolean,
 			value: false,
 			notify: true
+		},
+		/**
+		 * Whether the user is adding or selecting a node
+		 * 
+		 * @attribute isAddingOrSelecting
+		 * @type Boolean
+		 * @default false
+		 */
+		isAddingOrSelecting: {
+			type: Boolean,
+			value: false,
+			notify: true,
+			computed: '_isAddingOrSelecting(isAdding, isSelecting)'
 		}
 	} as any;
 
@@ -221,6 +235,11 @@ namespace EditCrmElement {
 		 */
 		static dragging: boolean = false;
 
+		/**
+		 * The type of the node that's being added
+		 */
+		static addingType: CRM.NodeType|null = null;
+
 		static properties = editCrmProperties;
 
 		static listeners = {
@@ -238,6 +257,10 @@ namespace EditCrmElement {
 		static _getAriaLabel(this: EditCrm, item: CRM.Node): string {
 			return 'Edit item "' + item.name + '"';
 		};
+
+		static _isAddingOrSelecting(this: EditCrm) {
+			return this.isAdding || this.isSelecting;
+		}
 
 		/**
 		 * Gets the columns in this crm-edit element
@@ -626,9 +649,17 @@ namespace EditCrmElement {
 			const node = window.app.util.findElementWithClassName(e, 'addingItemPlaceholder');
 
 			const menuPath = JSON.parse(node.getAttribute('data-path'));
-			this._addItem(menuPath);
+			this._addItem(menuPath, this.addingType);
 			this.isAdding = false;
 		};
+
+		static cancelAddOrSelect(this: EditCrm) {
+			if (this.isAdding) {
+				this.cancelAdding();
+			} else if (this.isSelecting) {
+				this.cancelSelecting();
+			}
+		}
 
 		static cancelAdding(this: EditCrm) {
 			if (this.isAdding) {
@@ -639,23 +670,40 @@ namespace EditCrmElement {
 			}
 		};
 
-		static toggleAddState(this: EditCrm) {
-			if (!this.isAdding) {
-				this.isSelecting && this.cancelSelecting();
-				this.isAdding = true;
+		static setAddStateLink(this: EditCrm) {
+			this._setAddStateForType('link');
+		}
 
-				this.build({
-					setItems: this._setItems,
-					instant: true
-				});
-			} else {
-				this.cancelAdding();
-			}
-		};
+		static setAddStateScript(this: EditCrm) {
+			this._setAddStateForType('script');
+		}
 
-		private static _addItem(this: EditCrm, path: number[]) {
-			const newItem = window.app.templates.getDefaultLinkNode({
-				id: window.app.generateItemId() as CRM.NodeId<CRM.LinkNode>
+		static setAddStateStylesheet(this: EditCrm) {
+			this._setAddStateForType('stylesheet');
+		}
+
+		static setAddStateMenu(this: EditCrm) {
+			this._setAddStateForType('menu');
+		}
+
+		static setAddStateDivider(this: EditCrm) {
+			this._setAddStateForType('divider');
+		}
+
+		private static _setAddStateForType(this: EditCrm, type: CRM.NodeType) {
+			this.isSelecting && this.cancelSelecting();
+			this.isAdding = true;
+			this.addingType = type;
+
+			this.build({
+				setItems: this._setItems,
+				instant: true
+			});
+		}
+
+		private static _addItem(this: EditCrm, path: number[], type: CRM.NodeType) {
+			const newItem = window.app.templates.getDefaultNodeOfType(type, {
+				id: window.app.generateItemId() as CRM.NodeId<any>
 			});
 
 			const container = (() => {
@@ -671,7 +719,7 @@ namespace EditCrmElement {
 				}
 			})();
 			if (container === null) {
-				window.app.util.showToast('Failed to add item');
+				window.app.util.showToast(`Failed to add ${type}`);
 				window.app.util.wait(5000).then(() => {
 					window.app.listeners.hideGenericToast();
 				});

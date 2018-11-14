@@ -4312,6 +4312,24 @@ namespace CRMAppElement {
 			};
 
 			/**
+			 * Gets the default node of given type
+			 */
+			static getDefaultNodeOfType(type: CRM.NodeType, options: Partial<CRM.Node> = {}): CRM.Node {
+				switch (type) {
+					case 'link':
+						return this.getDefaultLinkNode(options as Partial<CRM.LinkNode>);
+					case 'script':
+						return this.getDefaultScriptNode(options as Partial<CRM.ScriptNode>);
+					case 'divider':
+						return this.getDefaultDividerNode(options as Partial<CRM.DividerNode>);
+					case 'menu':
+						return this.getDefaultMenuNode(options as Partial<CRM.MenuNode>);
+					case 'stylesheet':
+						return this.getDefaultStylesheetNode(options as Partial<CRM.StylesheetNode>);
+				}
+			}
+
+			/**
 			 * Gets all permissions that can be requested by this extension
 			 */
 			static getPermissions(): CRM.Permission[] {

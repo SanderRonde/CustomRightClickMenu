@@ -56,18 +56,19 @@
 		<div id="crmButtonsContainer">
 			<div id="crmButtons">
 
-				<paper-button class="blue" id="addButton" on-tap="toggleAddState" raised hidden$="[[isSelecting]]">
-					<span hidden$="[[isAdding]]">Add</span>
-					<span hidden$="[[!isAdding]]">Cancel</span>
-				</paper-button>
+				<paper-button class="blue" id="addButton" on-tap="setAddStateLink" raised hidden$="[[isAddingOrSelecting]]">Add Link</paper-button>
+				<paper-button class="blue" id="addButton" on-tap="setAddStateScript" raised hidden$="[[isAddingOrSelecting]]">Add Script</paper-button>
+				<paper-button class="blue" id="addButton" on-tap="setAddStateStylesheet" raised hidden$="[[isAddingOrSelecting]]">Add Stylesheet</paper-button>
+				<paper-button class="blue" id="addButton" on-tap="setAddStateMenu" raised hidden$="[[isAddingOrSelecting]]">Add Menu</paper-button>
+				<paper-button class="blue" id="addButton" on-tap="setAddStateDivider" raised hidden$="[[isAddingOrSelecting]]">Add Divider</paper-button>
 				<paper-button class="blue" id="removeButton" on-tap="selectItems" raised hidden$="[[isSelecting]]">Select</paper-button>
 
-				<paper-button class="blue" id="cancelSelecting" on-tap="cancelSelecting" raised hidden$="[[!isSelecting]]">Cancel</paper-button>
+				<paper-button class="blue" id="cancelSelecting" on-tap="cancelAddOrSelect" raised hidden$="[[!isSelecting]]">Cancel</paper-button>
 				<paper-button class="blue" id="exportSelected" on-tap="exportSelected" raised hidden$="[[!isSelecting]]">Export Selected</paper-button>
 				<paper-button class="blue" id="removeSelectedButton" on-tap="removeSelected" raised hidden$="[[!isSelecting]]">Remove Selected</paper-button>
 			</div>
-			<div id="warning">
-				<span id="removeWarning" hidden$="[[!isSelecting]]">Warning: Children of a removed menu will also be removed recursively!</span>
+			<div id="warning" hidden$="[[!isSelecting]]">
+				<span id="removeWarning">Warning: Children of a removed menu will also be removed recursively!</span>
 			</div>
 			<div id="editCRMHelp">
 				<svg class="inactive" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
