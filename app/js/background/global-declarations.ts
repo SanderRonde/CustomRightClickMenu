@@ -761,8 +761,10 @@ export namespace GlobalDeclarations {
 		async function updateOtherExtensionsInstallState() {
 			const tampermonkeyEnabled = await modules.Util.isTamperMonkeyEnabled();
 			const stylishEnabled = await modules.Util.isStylishInstalled();
-			modules.storages.storageLocal.useAsUserscriptInstaller = !tampermonkeyEnabled;
-			modules.storages.storageLocal.useAsUserstylesInstaller = !stylishEnabled;
+			if (modules.storages.storageLocal) {
+				modules.storages.storageLocal.useAsUserscriptInstaller = !tampermonkeyEnabled;
+				modules.storages.storageLocal.useAsUserstylesInstaller = !stylishEnabled;
+			}
 			browserAPI.storage.local.set({
 				useAsUserscriptInstaller: !tampermonkeyEnabled,
 				useAsUserstylesInstaller: !stylishEnabled
