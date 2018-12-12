@@ -402,7 +402,7 @@ function readFile(filePath, options) {
 						'images/whitearrow.png',
 						'js/libraries/jsonfn.js', 
 						'js/libraries/md5.js', 
-						'js/libraries/jquery/jquery-2.0.3.js',
+						'js/libraries/jquery/jquery-3.3.1.js',
 						'icon-large.png', 
 						'icon-small.png', 
 						'icon-supersmall.png', 
