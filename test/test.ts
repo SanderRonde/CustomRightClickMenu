@@ -578,6 +578,7 @@ const document: Partial<Document> = {
 	documentMode: true,
 	createElement: function () {
 		return {
+			getAttribute: function() {},
 			setAttribute: function () { },
 			appendChild: function () { },
 			classList: {
@@ -597,6 +598,7 @@ const document: Partial<Document> = {
 	get documentElement() {
 		return document;
 	},
+	createComment: function() {},
 	body: {
 		appendChild(el: {
 			src: string;
@@ -1406,6 +1408,41 @@ let window: GlobalObject & {
 } & {
 	chrome: typeof chrome, 
 	browser: typeof _browser
+};
+class GenericNode {
+	getAttribute() {
+		return '';
+	}
+	cloneNode() {
+		return new GenericNode()
+	}
+	setAttribute () { }
+	appendChild () { 
+		this.childNodes.push(new GenericNode());
+		return this;
+	}
+	classList = {
+		add() { }
+	}
+	set innerHTML(_val: any) {
+		this.childNodes.push(new GenericNode());
+	}
+	animate() {
+		return {
+			onfinish: function () { }
+		};
+	}
+	addEventListener() { }
+	style = {}
+	childNodes: GenericNode[] = []
+	compareDocumentPosition() {}
+	get firstChild() {
+		return new GenericNode();
+	}
+	get lastChild() {
+		return new GenericNode();
+	}
+	getElementsByTagName() { return [] as any[] }
 }
 const backgroundPageWindow: GlobalObject & {
 	XMLHttpRequest: any; 
@@ -1436,6 +1473,10 @@ const backgroundPageWindow: GlobalObject & {
 	},
 	addEventListener: function() {},
 	XMLHttpRequest: xhr,
+	location: {
+		href: '',
+		protocol: 'http://'
+	},
 	document: {
 		querySelector: function() {
 			return {
@@ -1447,40 +1488,23 @@ const backgroundPageWindow: GlobalObject & {
 			}
 		},
 		createElement: function () {
-			return {
-				setAttribute: function () { },
-				appendChild: function () { },
-				classList: {
-					add: function () { }
-				},
-				animate: function () {
-					return {
-						onfinish: function () { }
-					};
-				},
-				addEventListener: function () { },
-				style: {}
-			};
+			return new GenericNode();
 		},
 		createDocumentFragment: function () {
-			return {
-				setAttribute: function () { },
-				appendChild: function () { },
-				classList: {
-					add: function () { }
-				},
-				animate: function () {
-					return {
-						onfinish: function () { }
-					};
-				},
-				addEventListener: function () { },
-				style: {}
-			};
+			return new GenericNode();
 		},
 		addEventListener: function() {},
 		nodeType: 9,
-		documentElement: {}
+		implementation: {
+			createHTMLDocument: function() {
+				return {
+					body: new GenericNode()
+				}
+			}
+		},
+		documentElement: new GenericNode(),
+		childNodes: [new GenericNode()],
+		createComment: function() {}
 	},
 	chrome: chrome
 } as any;
