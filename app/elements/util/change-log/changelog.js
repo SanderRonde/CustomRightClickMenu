@@ -173,6 +173,9 @@
 		'2.2.2': [
 			'Fixed a bug that was introduced in Firefox 63 that prevented clicking of buttons',
 			'Added more "Add" buttons to make it more straightforward to add a specific type node'
+		],
+		'2.2.3': [
+			'Replaced JQuery 2.* with JQuery 3.3.1'
 		]
 	};
 
