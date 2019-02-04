@@ -1065,23 +1065,55 @@ export namespace Storages.SetupHandling {
 			onDone: null
 		}
 
-		const [defaultLocalStorage, defaultSyncStorage] = await getDefaultStorages();
+		const [ storageLocal ] = await getDefaultStorages();
 
 		//Save local storage
-		browserAPI.storage.local.set(defaultLocalStorage);
+		browserAPI.storage.local.set(storageLocal);
+
+		//Get previous sync storage
+		const prevSync = await (async () => {
+			if (!supportsStorageSync()) {
+				return {};
+			}
+			const sync = await browserAPI.storage.sync.get();
+			if (!sync) {
+				return {};
+			}
+
+			const { data, syncEnabled } = parseCutData<CRM.SettingsStorage>(sync as any);
+			if (!syncEnabled) {
+				return {};
+			}
+
+			return data;
+		})();
+
+		const syncStorage = {
+			...{
+				crm: crm
+			},
+			...await getDefaultSyncStorage(),
+			...prevSync
+		};
 
 		//Save sync storage
-		uploadStorageSyncInitial(defaultSyncStorage);
+		uploadStorageSyncInitial(syncStorage);
 
-		if (crm) {
-			defaultSyncStorage.crm = crm;
+		//Update storageLocal's hash of storage sync
+		storageLocal.settingsVersionData.current.hash = 
+			storageLocal.settingsVersionData.latest.hash = 
+				window.md5(JSON.stringify(syncStorage));
+		storageLocal.settingsVersionData.current.date =
+			storageLocal.settingsVersionData.latest.date = 
+				syncStorage.settingsLastUpdatedAt;
+		if (Object.getOwnPropertyNames(prevSync).length > 0) {
+			storageLocal.settingsVersionData.wasUpdated = true;
 		}
-
-		const storageLocal = defaultLocalStorage;
-		const storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
+		
+		const storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 
 		const result = {
-			settingsStorage: defaultSyncStorage,
+			settingsStorage: syncStorage,
 			storageLocalCopy: storageLocalCopy,
 			chromeStorageLocal: storageLocal
 		};
@@ -1587,9 +1619,45 @@ export namespace Storages {
 		obj.indexes = splitJson.length;
 		return obj;
 	}
+	export function parseCutData<T>(data: {
+		[key: string]: string;
+	} & {
+		indexes: number|string[];
+	}): {
+		syncEnabled: false;
+		data: null;
+	}|{
+		syncEnabled: true;
+		data: T;
+	} {
+		const indexes = data['indexes'];
+		if (indexes === -1 || indexes === null || indexes === undefined) {
+			return {
+				syncEnabled: false,
+				data: null
+			}
+		} else {
+			const settingsJsonArray: string[] = [];
+			const indexesLength = typeof indexes === 'number' ? 
+				indexes : (Array.isArray(indexes) ? 
+					indexes.length : 0);
+			modules.Util.createArray(indexesLength).forEach((_, index) => {
+				settingsJsonArray.push(data[`section${index}`]);
+			});
+			const jsonString = settingsJsonArray.join('');
+			return {
+				syncEnabled: true,
+				data: JSON.parse(jsonString)
+			}
+		}
+	}
 	export function loadStorages() {
 		return new Promise<void>(async (resolve) => {
 			window.info('Loading sync storage data');
+			await new Promise((resolve) => {
+				setTimeout(resolve, 60000);
+			});
+			debugger;
 			const storageSync: {
 				[key: string]: string
 			} & {
@@ -1618,22 +1686,14 @@ export namespace Storages {
 				let settingsStorage;
 				if (storageLocal['useStorageSync']) {
 					//Parse the data before sending it to the callback
-					const indexes = storageSync['indexes'];
-					if (indexes === -1 || indexes === null || indexes === undefined) {
+					const { data, syncEnabled } = parseCutData(storageSync);
+					if (!syncEnabled) {
 						await browserAPI.storage.local.set({
 							useStorageSync: false
 						});
 						settingsStorage = storageLocal.settings;
 					} else {
-						const settingsJsonArray: string[] = [];
-						const indexesLength = typeof indexes === 'number' ? 
-							indexes : (Array.isArray(indexes) ? 
-								indexes.length : 0);
-						modules.Util.createArray(indexesLength).forEach((_, index) => {
-							settingsJsonArray.push(storageSync[`section${index}`]);
-						});
-						const jsonString = settingsJsonArray.join('');
-						settingsStorage = JSON.parse(jsonString);
+						settingsStorage = data;
 					}
 				} else {
 					//Send the "settings" object on the storage.local to the callback
@@ -1641,16 +1701,7 @@ export namespace Storages {
 						await browserAPI.storage.local.set({
 							useStorageSync: true
 						});
-						const indexes = storageSync['indexes'];
-						const settingsJsonArray: string[] = [];
-						const indexesLength = typeof indexes === 'number' ? 
-							indexes : (Array.isArray(indexes) ? 
-								indexes.length : 0);
-						modules.Util.createArray(indexesLength).forEach((_, index) => {
-							settingsJsonArray.push(storageSync[`section${index}`]);
-						});
-						const jsonString = settingsJsonArray.join('');
-						settingsStorage = JSON.parse(jsonString);
+						settingsStorage = parseCutData(storageSync).data;
 					} else {
 						delete storageLocalCopy.settings;
 						settingsStorage = storageLocal['settings'];
