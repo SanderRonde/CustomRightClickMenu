@@ -1654,10 +1654,6 @@ export namespace Storages {
 	export function loadStorages() {
 		return new Promise<void>(async (resolve) => {
 			window.info('Loading sync storage data');
-			await new Promise((resolve) => {
-				setTimeout(resolve, 60000);
-			});
-			debugger;
 			const storageSync: {
 				[key: string]: string
 			} & {
