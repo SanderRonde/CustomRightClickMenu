@@ -42,7 +42,7 @@ env:
   - TEST=test:chrome:latest:install:greasyfork
   - TEST=test:chrome:latest:install:openuserjs
   - TEST=test:chrome:latest:install:userscriptsorg
-  - TEST=test:chrome:latest:install:userstylesorg
+  # - TEST=test:chrome:latest:install:userstylesorg
   - TEST=test:chrome:latest:install:openusercss
   - TEST=test-migration:2.0.12
   - TEST=test-migration:2.0.13
