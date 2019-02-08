@@ -176,6 +176,9 @@
 		],
 		'2.2.3': [
 			'Replaced JQuery 2.* with JQuery 3.3.1'
+		],
+		'2.2.4': [
+			'Now uses synced data of previous instances when downloading the extension on a new computer'
 		]
 	};
 
