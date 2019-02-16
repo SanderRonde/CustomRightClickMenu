@@ -1126,18 +1126,24 @@ function readFile(filePath, options) {
 		}));
 		const tsVersion = CRMPackage.devDependencies.typescript;
 
-		console.log('Changing typescript version in cloned typedoc');
+		console.log('Installing grunt');
+		await runCmd('npm install -g grunt-cli', cwd);
+
+		console.log('Removing post install hook');
 		const file = await readFile(path.join(__dirname, 'typedoc', 'package.json'), {
 			encoding: 'utf8'
 		});
 		await writeFile(path.join(__dirname, 'typedoc', 'package.json'), 
-			file.replace(/"typescript": "\d+\.\d+\.\d+"/g, `"typescript": "${tsVersion}"`));
-
-		console.log('Installing grunt');
-		await runCmd('npm install -g grunt-cli', cwd);
+			file.replace(/"prepare":/g, "\"ignored\":"));
 
 		console.log('Installing typedoc dependencies (this may take a few minutes)');
 		await runCmd('npm install', cwd);
+
+		console.log('Running post install hook');
+		await runCmd('grunt default --force', cwd);
+
+		console.log('Installing this extension\'s typescript version in cloned typedoc');
+		await runCmd(`npm install --save typescript@${tsVersion}`, cwd);
 		
 		console.log('Done!');
 	}
