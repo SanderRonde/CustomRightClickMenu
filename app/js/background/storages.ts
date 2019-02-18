@@ -2013,7 +2013,7 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 		}
 		if (isVersionInRange(oldVersion, newVersion, '2.1.4')) {
 			const isEnabled = await modules.Util.isStylishInstalled();
-			modules.storages.storageLocal.useAsUserstylesInstaller = !isEnabled;
+			modules.storages.storageLocal && (modules.storages.storageLocal.useAsUserstylesInstaller = !isEnabled);
 			browserAPI.storage.local.set({
 				useAsUserstylesInstaller: !isEnabled
 			});
