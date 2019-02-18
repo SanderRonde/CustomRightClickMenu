@@ -179,6 +179,9 @@
 		],
 		'2.2.4': [
 			'Now uses synced data of previous instances when downloading the extension on a new computer'
+		],
+		'2.2.5': [
+			'Fix bug that happened when upgrading version'
 		]
 	};
 
