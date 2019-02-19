@@ -819,7 +819,7 @@ paper-toast {
 }
 
 #crmTypeSelector {
-	margin-bottom: -1px;
+	margin-bottom: -2px;
 	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
