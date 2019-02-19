@@ -64,6 +64,7 @@ paper-shadow {
 	text-align: center;
 	font-size: 200%!important;
 	height: 40px;
+	font-family: 'RobotoSlab';
 }
 
 paper-checkbox #ink[checked] {
