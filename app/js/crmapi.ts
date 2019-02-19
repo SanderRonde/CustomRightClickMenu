@@ -272,7 +272,7 @@ export type CRMAPIMessage = {
 	}
 
 	type SymbolType = 'string'|'number'|'boolean'|
-		'object'|'undefined'|'symbol'|'function';
+		'object'|'undefined'|'symbol'|'function'|'bigint';
 
 	type ModifiedSymbolTypes = SymbolType|'array';
 
@@ -2353,7 +2353,9 @@ export type CRMAPIMessage = {
 				for (const key in toWrap) {
 					const value = toWrap[key];
 					if (typeof value === 'object') {
-						wrapped[key] = this._wrapBrowserObject(value as T, instance, [...parents, key])
+						wrapped[key] = this._wrapBrowserObject(value as {
+							[key: string]: Function|T;	
+						}, instance, [...parents, key]) as T[Extract<keyof T, string>];
 					} else if (typeof value === 'function') {
 						const obj = CrmAPIInstance._helpers.mergeObjects(function(this: any, ...args: any[]) {
 							return new __this._browserRequest(this, 
@@ -2388,7 +2390,7 @@ export type CRMAPIMessage = {
 							}
 						});
 
-						wrapped[key] = obj;
+						wrapped[key] = obj as any;
 					} else {
 						wrapped[key] = toWrap[key];
 					}
@@ -3750,14 +3752,21 @@ export type CRMAPIMessage = {
 					typeArray = type;
 				}
 				if (typeof nameOrMode === 'boolean' && nameOrMode) {
-					return (value !== undefined && value !== null && ((typeArray.indexOf(typeof value) > -1 && !value.splice) || (typeArray.indexOf('array') > -1 && typeof value === 'object' && value.splice)));
+					return (
+						value !== undefined && value !== null && 
+						(
+							(typeArray.indexOf(typeof value) > -1 && !value.splice) || 
+							(typeArray.indexOf('array') > -1 && typeof value === 'object' && value.splice)
+						)
+					);
 				}
 				if (value === undefined || value === null) {
 					throw new Error('Value ' + (nameOrMode ? 'of ' + nameOrMode : '') + ' is undefined or null');
 				}
-				if (!((typeArray.indexOf(typeof value) > -1 && !value.splice) || (typeArray.indexOf('array') > -1 && typeof value === 'object' && value.splice))) {
-					throw new Error('Value ' + (nameOrMode ? 'of ' + nameOrMode : '') + ' is not of type' + ((typeArray.length > 1) ? 's ' + typeArray.join(', ') : ' ' + typeArray));
-				}
+				if (!((typeArray.indexOf(typeof value) > -1 && !value.splice) || 
+					(typeArray.indexOf('array') > -1 && typeof value === 'object' && value.splice))) {
+						throw new Error('Value ' + (nameOrMode ? 'of ' + nameOrMode : '') + ' is not of type' + ((typeArray.length > 1) ? 's ' + typeArray.join(', ') : ' ' + typeArray));
+					}
 				return true;
 			}
 			/**
