@@ -1116,7 +1116,7 @@ namespace MonacoEditorElement {
 	}
 
 	interface JSONSchemaArray extends JSONSchemaMeta {
-		type: 'array';
+		type: 'array'|('array'|'null')[];
 		items: JSONSchema|JSONSchema[];
 		additionalItems?: false|JSONSchema;
 		minItems?: number;
