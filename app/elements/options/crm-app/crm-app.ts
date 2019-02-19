@@ -2414,16 +2414,7 @@ namespace CRMAppElement {
 				for (i = 0; i < 6; i++) {
 					if (indexes[i]) {
 						element = <unknown>crmTypes[i] as HTMLElement;
-						element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 						element.classList.add('toggled');
-
-						const child = document.createElement('div');
-						if (i === 5) {
-							child.classList.add('crmTypeShadowMagicElementRight');
-						} else {
-							child.classList.add('crmTypeShadowMagicElement');
-						}
-						element.appendChild(child);
 					}
 				}
 				this.parent().crmTypes = [...indexes];
@@ -3472,24 +3463,9 @@ namespace CRMAppElement {
 					for (let i = 0; i < 6; i++) {
 						let crmEl = <unknown>this.parent().shadowRoot.querySelectorAll('.crmType')[i] as HTMLElement;
 						if (types[i]) {
-							crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
-							crmEl.style.backgroundColor = 'rgb(243,243,243)';
 							crmEl.classList.add('toggled');
-
-							const child = document.createElement('div');
-							if (i === 5) {
-								child.classList.add('crmTypeShadowMagicElementRight');
-							} else {
-								child.classList.add('crmTypeShadowMagicElement');
-							}
-							crmEl.appendChild(child);
 						} else {
-							//Drop an element for some magic
-							crmEl.style.boxShadow = 'none';
-							crmEl.style.backgroundColor = 'white';
 							crmEl.classList.remove('toggled');
-
-							$(crmEl).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
 						}
 					}
 					selectedTypes = [...types];
@@ -3502,25 +3478,10 @@ namespace CRMAppElement {
 							//Toggle this element
 							if (!selectedTypes[i]) {
 								//Toggle it on
-								crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
-								crmEl.style.backgroundColor = 'rgb(243,243,243)';
 								crmEl.classList.add('toggled');
-
-								const child = document.createElement('div');
-								if (i === 5) {
-									child.classList.add('crmTypeShadowMagicElementRight');
-								} else {
-									child.classList.add('crmTypeShadowMagicElement');
-								}
-								crmEl.appendChild(child);
 							} else {
 								//Toggle it off
-								//Drop an element for some magic
-								crmEl.style.boxShadow = 'none';
-								crmEl.style.backgroundColor = 'white';
 								crmEl.classList.remove('toggled');
-
-								$(crmEl).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
 							}
 							selectedTypes[i] = !selectedTypes[i];
 						}

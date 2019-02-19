@@ -790,14 +790,6 @@ paper-toast {
 		background-color: rgb(220,220,220);
 	}
 
-	.crmType.dim {
-		background-color: rgba(0,0,0,0)!important;
-	}
-
-		.crmType.dim .crmTypeShadowMagicElement {
-			background: none;
-		}
-
 .crmTypeTxt {
 	font-weight: 400;
 	text-align: center;
@@ -807,7 +799,7 @@ paper-toast {
 }
 
 .crmTypeIcon {
-	fill: #535353;
+	fill: rgb(125, 125, 125);
 }
 
 .crmType.toggled .crmTypeTxt {
@@ -828,22 +820,6 @@ paper-toast {
 	        justify-content: center;
 	position: relative;
 	right: -5px;
-}
-
-.crmTypeShadowMagicElement {
-	background: url('../../../images/shadowImg.png');
-}
-
-.crmTypeShadowMagicElementRight {
-	background: url('../../../images/shadowImgRight.png');
-}
-
-.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight {
-	height: 27.4px;
-	width: 80px;
-	position: absolute;
-	background-repeat: round;
-	background-size: 100% 100%;
 }
 
 #crmEditPageTopTextContainer {
