@@ -74,7 +74,7 @@ namespace MonacoEditorElement {
 			[key: string]: any;
 		}>(key: E, value: T) {
 			if (!(key in value)) {
-				value[key] = [];
+				value[key] = [] as T[E];
 			}
 		}
 
