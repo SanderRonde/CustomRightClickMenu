@@ -33,6 +33,13 @@
 	src: url(Inconsolata-Bold.ttf);
 }
 
+@font-face {
+	font-family: 'RobotoSlab';
+	font-style: normal;
+	font-weight: 400;
+	src: url(RobotoSlab-Regular.ttf);
+}
+
 body {
 	font-family: 'Roboto';
 }
