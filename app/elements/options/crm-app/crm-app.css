@@ -833,7 +833,7 @@ paper-toast {
 
 	#crmEditPageTopTextContainer .bigTxt {
 		position: relative;
-		bottom: -25px;
+		bottom: -15px;
 	}
 
 	#crmTypeSelector, #crmEditPageTopTextContainer .bigTxt {
