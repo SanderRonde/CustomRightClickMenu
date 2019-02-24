@@ -373,7 +373,7 @@ before('Driver connect', async function() {
 		SKIP_OPTIONS_PAGE_DIALOGS || SKIP_CONTEXTMENU ||
 		SKIP_DIALOG_TYPES_EXCEPT || SKIP_EXTERNAL_TESTS ||
 		SKIP_USERSCRIPT_TEST || SKIP_USERSTYLE_TEST) {
-			console.warn('Skipping is enabled, make sure this isn\'t in a production build')
+			console.warn('Skipping is enabled')
 		}
 });
 
