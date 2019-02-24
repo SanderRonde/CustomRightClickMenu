@@ -3073,8 +3073,9 @@ describe('On-Page CRM', function() {
 	}
 	if (SKIP_ENTRYPOINTS) {
 		before('Open test page', async function() {
-			this.timeout(600000 * TIME_MODIFIER);
+			this.timeout(1200000 * TIME_MODIFIER);
 			await openTestPageURL(browserCapabilities);
+			await wait(15000 * TIME_MODIFIER);
 			currentTestWindow = await driver.getWindowHandle();
 
 			await dummyTab.init();
