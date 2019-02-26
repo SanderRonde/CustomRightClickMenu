@@ -415,6 +415,7 @@ namespace EditCrmItemElement {
 
 		static calculateType(this: EditCrmItem) {
 			this.type = this.item.type;
+			this.isMenu = this.item.type === 'menu';
 
 			this.hasCodeSettings = (this.item.type === 'script' || this.item.type === 'stylesheet') &&
 				window.app.generateCodeOptionsArray(this.item.value.options).length > 0;
