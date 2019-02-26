@@ -691,6 +691,18 @@ namespace EditCrmElement {
 		}
 
 		private static _setAddStateForType(this: EditCrm, type: CRM.NodeType) {
+			//If CRM is completely empty, place it immediately
+			if (window.app.settings.crm.length === 0) {
+				window.app.settings.crm.push(window.app.templates.getDefaultNodeOfType(type, {
+					id: window.app.generateItemId() as CRM.NodeId<any>
+				}));
+				window.app.editCRM.build({
+					setItems: window.app.editCRM.setMenus
+				});
+				window.app.upload();
+				return;
+			}
+
 			this.isSelecting && this.cancelSelecting();
 			this.isAdding = true;
 			this.addingType = type;
