@@ -61,9 +61,9 @@
 				<paper-button class="blue" id="addButton" on-tap="setAddStateStylesheet" raised hidden$="[[isAddingOrSelecting]]">Add Stylesheet</paper-button>
 				<paper-button class="blue" id="addButton" on-tap="setAddStateMenu" raised hidden$="[[isAddingOrSelecting]]">Add Menu</paper-button>
 				<paper-button class="blue" id="addButton" on-tap="setAddStateDivider" raised hidden$="[[isAddingOrSelecting]]">Add Divider</paper-button>
-				<paper-button class="blue" id="removeButton" on-tap="selectItems" raised hidden$="[[isSelecting]]">Select</paper-button>
+				<paper-button class="blue" id="removeButton" on-tap="selectItems" raised hidden$="[[isAddingOrSelecting]]">Select</paper-button>
 
-				<paper-button class="blue" id="cancelSelecting" on-tap="cancelAddOrSelect" raised hidden$="[[!isSelecting]]">Cancel</paper-button>
+				<paper-button class="blue" id="cancelSelecting" on-tap="cancelAddOrSelect" raised hidden$="[[!isAddingOrSelecting]]">Cancel</paper-button>
 				<paper-button class="blue" id="exportSelected" on-tap="exportSelected" raised hidden$="[[!isSelecting]]">Export Selected</paper-button>
 				<paper-button class="blue" id="removeSelectedButton" on-tap="removeSelected" raised hidden$="[[!isSelecting]]">Remove Selected</paper-button>
 			</div>
