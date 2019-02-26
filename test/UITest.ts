@@ -118,6 +118,8 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.user' : secrets.user,
 			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
+			'browserstack.console': 'errors',
+			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
@@ -134,6 +136,8 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.user' : secrets.user,
 			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
+			'browserstack.console': 'errors',
+			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
@@ -148,6 +152,8 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.user' : secrets.user,
 			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
+			'browserstack.console': 'errors',
+			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
@@ -161,6 +167,8 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.user' : secrets.user,
 			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
+			'browserstack.console': 'errors',
+			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
@@ -177,6 +185,8 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.user' : secrets.user,
 			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
+			'browserstack.console': 'errors',
+			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
@@ -190,6 +200,8 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.user' : secrets.user,
 			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
+			'browserstack.console': 'errors',
+			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
@@ -206,6 +218,8 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.user' : secrets.user,
 			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
+			'browserstack.console': 'errors',
+			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
@@ -219,6 +233,8 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.user' : secrets.user,
 			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
+			'browserstack.console': 'errors',
+			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
@@ -235,6 +251,8 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.user' : secrets.user,
 			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
+			'browserstack.console': 'errors',
+			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
