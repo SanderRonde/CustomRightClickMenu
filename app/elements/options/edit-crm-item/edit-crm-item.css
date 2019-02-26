@@ -49,7 +49,7 @@
 }
 
 	.CRMItemTitle[ismenu] {
-		width: 245px;
+		width: 225px;
 	}
 
 	.CRMItemTitle[has-code-settings] {
@@ -86,7 +86,7 @@
 .menuArrowCont {
 	position: relative;
 	right: 0;
-	width: 20px;
+	width: 40px;
 	height: 50px;
 	display: -webkit-box;
 	display: -webkit-flex;
@@ -125,8 +125,8 @@
 
 .menuArrowImage {
 	height: 24px;
-	width: 15px;
-	margin-left: -9px;
+	width: 25px;
+	margin-left: -6px;
 	margin-top: -8px;
 }
 
