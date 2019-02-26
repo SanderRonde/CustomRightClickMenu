@@ -1161,9 +1161,10 @@ describe('User entrypoints', function() {
 		});
 		describe('Loading', function() {
 			it('should finish loading', async function() {
-				this.timeout(600000 * TIME_MODIFIER);
+				this.timeout(1200000 * TIME_MODIFIER);
 				this.slow(15000);
 				await openTestPageURL(browserCapabilities);
+				await wait(15000 * TIME_MODIFIER);
 				currentTestWindow = await driver.getWindowHandle();
 
 				if (TEST_EXTENSION) {
