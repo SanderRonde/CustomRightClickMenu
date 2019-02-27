@@ -1165,7 +1165,9 @@ describe('User entrypoints', function() {
 				this.slow(15000);
 				await openTestPageURL(browserCapabilities);
 				await wait(15000 * TIME_MODIFIER);
-				currentTestWindow = await driver.getWindowHandle();
+				try {
+					currentTestWindow = await driver.getWindowHandle();
+				} catch(e) {}
 
 				if (TEST_EXTENSION) {
 					await dummyTab.init();
