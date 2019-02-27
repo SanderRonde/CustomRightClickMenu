@@ -2611,6 +2611,9 @@ namespace CRMAppElement {
 				local: CRM.StorageLocal;
 				sync: CRM.SettingsStorage;
 			} = this._lastRevertPoint) {
+				// Hide the toast if it isn't hidden already
+				window.app.$.undoToast.hide();
+
 				if (!this._lastRevertPoint) return;
 
 				this._uploadChanges(this.getChanges(false, {
