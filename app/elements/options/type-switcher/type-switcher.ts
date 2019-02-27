@@ -174,7 +174,6 @@ namespace TypeSwitcherElement {
 			const revertPoint = window.app.uploading.createRevertPoint(false);
 			window.app.editCRM.cancelAdding();
 			
-			const __this = this;
 			let type: CRM.NodeType;
 
 			if (typeof e === 'string') {
@@ -266,31 +265,6 @@ namespace TypeSwitcherElement {
 				typeChoices[i].setAttribute('type', this.remainingTypes[i]);
 			}
 
-			const paperToast = window.app.$.changedToMenuToast;
-
-			function reverseMenuTypeChoice(columnCont: HTMLElement) {
-				paperToast.hide();
-				item.children = item.menuVal;
-				delete item.menuVal;
-				item.type = 'menu';
-				item.value = null;
-				if (item.name === `My ${type[0].toUpperCase() + type.slice(1)}`) {
-					item.name = `My ${prevType[0].toUpperCase() + prevType.slice(1)}`
-				}
-					
-				editCrmEl.type = prevType;
-				editCrmEl.calculateType();
-				__this.onReady();
-				for (i = 0; i < __this.remainingTypes.length; i++) {
-					typeChoices[i].setAttribute('type', __this.remainingTypes[i]);
-				}
-
-				//Un-shadow items
-				__this.shadowColumns(columnCont, true);
-
-				window.app.shadowStart = null;
-			}
-
 			if (prevType === 'menu') {
 				//Turn children into "shadow items"
 				const column = (this.parentElement.parentElement.parentNode as ShadowRoot).host.parentElement as HTMLElement & {
@@ -302,22 +276,12 @@ namespace TypeSwitcherElement {
 				this.shadowColumns(columnCont, false);
 
 				window.app.shadowStart = column.index + 1;
-
-				//Show a paper-toast
-				const listener = function() {
-					reverseMenuTypeChoice(columnCont);
-				}
-				paperToast.addEventListener('click', listener);
-				paperToast.show();
-				setTimeout(function() {
-					paperToast.removeEventListener('click', listener);
-				}, 10000);
 			}
 
 			this.closeTypeSwitchContainer(true);
 			window.app.upload();
 
-			window.app.uploading.showRevertPointToast(revertPoint);
+			window.app.uploading.showRevertPointToast(revertPoint, 150000);
 		}
 	}
 
