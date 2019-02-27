@@ -2422,7 +2422,7 @@ namespace CRMAppElement {
 		/**
 		 * Functions related to uploading the data to the backgroundpage
 		 */
-		private static uploading = class CRMAppUploading {
+		static uploading = class CRMAppUploading {
 			private static _areValuesDifferent(val1: any[] | Object, val2: any[] | Object): boolean {
 				//Array or object
 				const obj1ValIsArray = Array.isArray(val1);
