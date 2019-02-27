@@ -35,7 +35,7 @@
 	}
 }
 
-.CRMEditColumnCont {
+.CRMEditColumnCont, .CRMEditRootColumn {
 	width: 300px;
 	/*I am not going to question how this works but it does*/
 	display:table;

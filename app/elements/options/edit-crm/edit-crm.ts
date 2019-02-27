@@ -439,6 +439,15 @@ namespace EditCrmElement {
 			window.setTransform(column, `translateY(${column.offset}px)`);
 		}
 
+		private static _resetColumnOffsets() {
+			const topLevelColumns = window.app.editCRM.shadowRoot.querySelectorAll('.CRMEditColumnCont');
+			for (let i = 0; i < topLevelColumns.length; i++) {
+				this._setColumnContOffset(<unknown>topLevelColumns[i] as HTMLDivElement & {
+					offset: number;
+				}, 0);
+			}
+		}
+
 		private static _moveFollowingColumns(startColumn: CRMColumnElement, offset: number) {
 			const topLevelColumns = window.app.editCRM.shadowRoot.querySelectorAll('.CRMEditColumnCont');
 			for (let i = startColumn.index + 1; i < topLevelColumns.length; i++) {
@@ -456,7 +465,10 @@ namespace EditCrmElement {
 			this._getColumns().forEach((column, columnIndex, allColumns) => {
 				let draggedNode: EditCrmItem = null;
 				let moves: number = 0;
-				let movedUp: boolean = false;
+				let lastMenuSwitch: {
+					item: CRM.MenuNode;
+					direction: 'over'|'under';
+				} = null;
 
 				this._sortables.push(new Sortable<EditCrmItem, CRMColumnElement>(column, {
 					group: 'crm',
@@ -504,7 +516,8 @@ namespace EditCrmElement {
 					onMove: (event) => {
 						this.async(() => {
 							if (event.to !== event.dragged.currentColumn) {
-								//Column was switched
+								//Column was switched, reset all column offsets first
+								this._resetColumnOffsets();
 
 								//Too many sortable bugs to rely on events, just calculate it
 								const topLevelColumns = window.app.editCRM.shadowRoot.querySelectorAll('.CRMEditColumnCont') as NodeListOf<HTMLElement & {
@@ -544,17 +557,25 @@ namespace EditCrmElement {
 
 									//If the menu node is below the dragged node before any events,
 									//that means that the dragged node is now above the menu node
-									if (event.relatedRect.top < event.draggedRect.top) {
+									let moveDown = event.relatedRect.top < event.draggedRect.top;
+									if (lastMenuSwitch && lastMenuSwitch.item === event.related.item &&
+										lastMenuSwitch.direction === (moveDown ? 'under' : 'over')) {
+											return;
+										}
+									if (moveDown) {
 										//Above the menu node, move all other columns down
-										if (moves !== 1 || !movedUp) {
+										if (moves !== 1) {
 											//Ignore second move-up, some weird bug in sortable causes this
 											this._moveFollowingColumns(event.to, 50);
-											movedUp = true;
 										}
 									} else {
 										//Below the menu node, move all other columns up
 										this._moveFollowingColumns(event.to, -50);
 									}
+									lastMenuSwitch = {
+										item: event.related.item,
+										direction: moveDown ? 'under' : 'over'
+									};
 								}
 							}
 
