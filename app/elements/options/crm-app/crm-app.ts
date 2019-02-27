@@ -4590,6 +4590,15 @@ namespace CRMAppElement {
 					toMoveContainer.splice(toMoveIndex, 1);
 				}
 				window.app.upload();
+
+				//Check if setMenus are still valid
+				for (let i = 1; i <= window.app.editCRM.setMenus.length - 1; i++) {
+					const lookedup = this.lookup(window.app.editCRM.setMenus.slice(0, i), false);
+					if (!lookedup || lookedup.type !== 'menu') {
+						window.app.editCRM.setMenus = [-1];
+						break;
+					}
+				}
 				window.app.editCRM.build({
 					setItems: window.app.editCRM.setMenus,
 					quick: true
