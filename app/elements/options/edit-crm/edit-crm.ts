@@ -505,6 +505,7 @@ namespace EditCrmElement {
 					onEnd: (event) => {
 						this.dragging = false;
 
+						const revertPoint = window.app.uploading.createRevertPoint(false);
 						//If target was a menuArrow, place it into that menu
 						let foundElement = window.app.util.findElementWithClassName({
 							path: (event.originalEvent as any).path
@@ -529,6 +530,8 @@ namespace EditCrmElement {
 									setItems: window.app.editCRM.setMenus,
 									quick: true
 								});
+
+								window.app.uploading.showRevertPointToast(revertPoint);
 								return;
 							}
 						}
@@ -541,6 +544,7 @@ namespace EditCrmElement {
 						window.app.crm.move(event.item.item.path, 
 							window.app.editCRM.setMenus.slice(0, newColumn).concat(index), 
 							allColumns[newColumn] === column);
+						window.app.uploading.showRevertPointToast(revertPoint);
 					},
 					onMove: (event) => {
 						this.async(() => {
@@ -764,6 +768,7 @@ namespace EditCrmElement {
 				id: window.app.generateItemId() as CRM.NodeId<any>
 			});
 
+			window.app.uploading.createRevertPoint();
 			const container = window.app.crm.lookup(path, true);
 			if (container === null) {
 				window.app.util.showToast(`Failed to add ${type}`);
@@ -1220,6 +1225,8 @@ namespace EditCrmElement {
 		};
 
 		static removeSelected(this: EditCrm) {
+			window.app.uploading.createRevertPoint();
+
 			let j;
 			let arr;
 			const toRemove = this._getSelected();

@@ -32,6 +32,7 @@ namespace DefaultLinkElement {
 			const link = this.href;
 			const name = this.$.input.$$('input').value;
 			
+			window.app.uploading.createRevertPoint();
 			window.app.crm.add(window.app.templates.getDefaultLinkNode({
 				id: window.app.generateItemId() as CRM.NodeId<CRM.LinkNode>,
 				name: name,

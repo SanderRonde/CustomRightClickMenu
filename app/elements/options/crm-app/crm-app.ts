@@ -1924,6 +1924,7 @@ namespace CRMAppElement {
 					(crmItem.value.stylesheet));
 				this.parent().listeners.iconSwitch(null, editingObj.crmType);
 				this.parent().$.keepChangesButton.addEventListener('click', () => {
+					window.app.uploading.createRevertPoint();
 					if (crmItem.type === 'script') {
 						crmItem.value[(editingObj.mode === 'main' ?
 							'script' : 'backgroundScript')] = editingObj.val;
@@ -3694,6 +3695,7 @@ namespace CRMAppElement {
 						return;
 					}
 
+					window.app.uploading.createRevertPoint();
 					const overWriteImport = this.parent().$.overWriteImport;
 					if (overWriteImport.checked && (data.local || data.storageLocal)) {
 						this.parent().settings = data.nonLocal || this.parent().settings;
@@ -3727,6 +3729,8 @@ namespace CRMAppElement {
 									return rows[index];
 								}
 							}
+
+							window.app.uploading.createRevertPoint();
 
 							const crm = await this.parent()._transferCRMFromOld(settingsArr[4], new LocalStorageWrapper());
 							this.parent().settings.crm = crm;

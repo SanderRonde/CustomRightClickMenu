@@ -171,6 +171,7 @@ namespace TypeSwitcherElement {
 		};
 
 		static changeType(this: TypeSwitcher, e: Polymer.ClickEvent|CRM.NodeType) {
+			const revertPoint = window.app.uploading.createRevertPoint(false);
 			window.app.editCRM.cancelAdding();
 			
 			const __this = this;
@@ -315,6 +316,8 @@ namespace TypeSwitcherElement {
 
 			this.closeTypeSwitchContainer(true);
 			window.app.upload();
+
+			window.app.uploading.showRevertPointToast(revertPoint);
 		}
 	}
 

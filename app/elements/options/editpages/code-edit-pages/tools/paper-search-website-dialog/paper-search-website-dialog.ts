@@ -154,6 +154,7 @@ namespace PaperSearchWebsiteDialog {
 		};
 
 		static createSearchWebsiteLinkNode(this: PaperSearchWebsiteDialog) {
+			window.app.uploading.createRevertPoint();
 			window.app.crm.add(window.app.templates.getDefaultLinkNode({
 				id: window.app.generateItemId() as CRM.NodeId<CRM.LinkNode>,
 				name: `Search ${new URL(this.chosenUrl).hostname} for %s`,

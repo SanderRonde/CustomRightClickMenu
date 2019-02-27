@@ -100,6 +100,8 @@ namespace NodeEditBehaviorNamespace {
 		};
 
 		static save(this: NodeEditBehaviorInstance, _event?: Polymer.ClickEvent, resultStorage?: Partial<CRM.Node>|MouseEvent) {
+			const revertPoint = window.app.uploading.createRevertPoint(false);
+
 			let usesDefaultStorage = false;
 			if (resultStorage === null || resultStorage === undefined ||
 				typeof (resultStorage as MouseEvent).x === 'number') {
@@ -144,6 +146,8 @@ namespace NodeEditBehaviorNamespace {
 
 			if (usesDefaultStorage) {
 				window.app.upload();
+
+				window.app.uploading.showRevertPointToast(revertPoint);
 			}
 		};
 
@@ -390,6 +394,8 @@ namespace NodeEditBehaviorNamespace {
 			};
 
 		static _doTypeChange(this: NodeEditBehaviorInstance, type: CRM.NodeType) {
+			const revertPoint = window.app.uploading.createRevertPoint(false);
+
 			const item = window.app.nodesById.get(this.item.id);
 			const prevType = item.type;
 			const editCrmEl = window.app.editCRM.getCRMElementFromPath(this.item.path, true);
@@ -466,28 +472,6 @@ namespace NodeEditBehaviorNamespace {
 			}
 
 
-			const paperToast = window.app.$.changedToMenuToast;
-
-			function reverseMenuTypeChoice(columnCont: HTMLElement) {
-				paperToast.hide();
-				item.children = item.menuVal;
-				delete item.menuVal;
-				item.type = 'menu';
-				item.value = null;
-					
-				editCrmEl.type = prevType;
-				editCrmEl.calculateType();
-				typeSwitcher.onReady();
-				for (let i = 0; i < typeSwitcher.remainingTypes.length; i++) {
-					typeChoices[i].setAttribute('type', typeSwitcher.remainingTypes[i]);
-				}
-
-				//Un-shadow items
-				typeSwitcher.shadowColumns(columnCont, true);
-
-				window.app.shadowStart = null;
-			}
-
 			if (prevType === 'menu') {
 				//Turn children into "shadow items"
 				const column = (typeSwitcher.parentElement.parentElement.parentNode as ShadowRoot).host.parentElement as HTMLElement & {
@@ -498,18 +482,10 @@ namespace NodeEditBehaviorNamespace {
 
 				typeSwitcher.shadowColumns(columnCont, false);
 
-				window.app.shadowStart = column.index + 1;
-
-				//Show a paper-toast
-				const listener = function() {
-					reverseMenuTypeChoice(columnCont);
-				}
-				paperToast.addEventListener('click', listener);
-				paperToast.show();
-				setTimeout(function() {
-					paperToast.removeEventListener('click', listener);
-				}, 10000);
+				window.app.shadowStart = column.index + 1;				
 			}
+
+			window.app.uploading.showRevertPointToast(revertPoint, 15000);
 
 			window.app.upload();
 		}
