@@ -511,7 +511,6 @@ namespace EditCrmElement {
 						window.app.crm.move(event.item.item.path, 
 							window.app.editCRM.setMenus.slice(0, newColumn).concat(index), 
 							allColumns[newColumn] === column);
-						this._createSorter();
 					},
 					onMove: (event) => {
 						this.async(() => {
