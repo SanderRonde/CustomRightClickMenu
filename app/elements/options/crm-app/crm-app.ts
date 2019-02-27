@@ -2596,12 +2596,23 @@ namespace CRMAppElement {
 				return revertPoint;
 			}
 
+			static showRevertPointToast(revertPoint: {
+				local: CRM.StorageLocal;
+				sync: CRM.SettingsStorage;
+			}, toastTime: number = 10000) {
+				window.app.util.showToast('Undo');
+				window.app.$.undoToast.duration = toastTime;
+				window.app.$.undoToast.show();
+
+				this._lastRevertPoint = revertPoint;
+			}
+
 			static revert(revertPoint: {
 				local: CRM.StorageLocal;
 				sync: CRM.SettingsStorage;
 			} = this._lastRevertPoint) {
 				if (!this._lastRevertPoint) return;
-				
+
 				this._uploadChanges(this.getChanges(false, {
 					local: revertPoint.local,
 					localCopy: this._parent().storageLocal,
