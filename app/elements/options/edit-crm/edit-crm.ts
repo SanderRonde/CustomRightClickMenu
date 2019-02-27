@@ -499,6 +499,7 @@ namespace EditCrmElement {
 						window.app.crm.move(event.item.item.path, 
 							window.app.editCRM.setMenus.slice(0, newColumn).concat(index), 
 							allColumns[newColumn] === column);
+						this._createSorter();
 					},
 					onMove: (event) => {
 						this.async(() => {
@@ -506,7 +507,7 @@ namespace EditCrmElement {
 								//Column was switched
 
 								//Too many sortable bugs to rely on events, just calculate it
-								const topLevelColumns = window.app.editCRM.querySelectorAll('.CRMEditColumnCont') as NodeListOf<HTMLElement & {
+								const topLevelColumns = window.app.editCRM.shadowRoot.querySelectorAll('.CRMEditColumnCont') as NodeListOf<HTMLElement & {
 									offset: number;
 								}>;
 								const leftmostColumn = Math.min(event.dragged.currentColumn.index, event.to.index);
@@ -713,18 +714,7 @@ namespace EditCrmElement {
 				id: window.app.generateItemId() as CRM.NodeId<any>
 			});
 
-			const container = (() => {
-				if (path.length > 1) {
-					//Not a root, means it's inside of a menu, disregard last number
-					const node = window.app.crm.lookup(path.slice(0, path.length - 1)) as CRM.MenuNode;
-					if (node.children) {
-						return node.children;
-					}
-					return null;
-				} else {
-					return window.app.crm.lookup(path, true);
-				}
-			})();
+			const container = window.app.crm.lookup(path, true);
 			if (container === null) {
 				window.app.util.showToast(`Failed to add ${type}`);
 				window.app.util.wait(5000).then(() => {

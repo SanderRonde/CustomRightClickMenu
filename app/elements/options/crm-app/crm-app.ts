@@ -4500,14 +4500,16 @@ namespace CRMAppElement {
 
 				let currentTree = window.app.settings.crm;
 				let currentItem: CRM.Node = null;
+				let parent: CRM.Node[] = null;
 				for (let i = 0; i < path.length; i++) {
+					parent = currentTree;
 					if (i !== path.length - 1) {
 						currentTree = currentTree[path[i]].children as CRM.Node[];
 					} else {
 						currentItem = currentTree[path[i]];
 					}
 				}
-				return (returnArray ? currentItem.children as CRM.Node[] : currentItem);
+				return (returnArray ? parent : currentItem);
 			};
 
 			private static _lookupId(id: CRM.GenericNodeId, returnArray: boolean, node: CRM.Node): CRM.Node[] | CRM.Node | void;
