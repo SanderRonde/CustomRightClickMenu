@@ -1018,7 +1018,7 @@ namespace CRMAppElement {
 		 * Uploads the settings to chrome.storage
 		 */
 		static upload(this: CrmApp, force: boolean = false) {
-			this._uploading.upload(force);
+			this.uploading.upload(force);
 			(async () => {
 				await window.onExistsChain(window, 'app', 'settings', 'crm');
 				this.updateCrmRepresentation(window.app.settings.crm);
@@ -1588,7 +1588,7 @@ namespace CRMAppElement {
 					haveSettingsChanged, 
 					localChanges,
 					settingsChanges
-				} = this._uploading.getChanges(false);
+				} = this.uploading.getChanges(false);
 				if (!hasLocalChanged) {
 					this._logCode('No changes to local storage were made');
 				} else {
@@ -2086,7 +2086,11 @@ namespace CRMAppElement {
 				}, 1000);
 			};
 
+			private static _listening: boolean = false;
 			private static _bindListeners() {
+				if (this._listening) return;
+
+				this._listening = true;
 				const urlInput = window.doc.addLibraryUrlInput;
 				const manualInput = window.doc.addLibraryManualInput;
 				window.doc.addLibraryUrlOption.addEventListener('change', function () {
@@ -2418,7 +2422,7 @@ namespace CRMAppElement {
 		/**
 		 * Functions related to uploading the data to the backgroundpage
 		 */
-		private static _uploading = class CRMAppUploading {
+		private static uploading = class CRMAppUploading {
 			private static _areValuesDifferent(val1: any[] | Object, val2: any[] | Object): boolean {
 				//Array or object
 				const obj1ValIsArray = Array.isArray(val1);
@@ -2491,24 +2495,40 @@ namespace CRMAppElement {
 				return changes.length > 0;
 			};
 
-			static getChanges(force: boolean) {
+			static getChanges(force: boolean, {
+				local = this._parent().storageLocal,
+				localCopy = this._parent()._storageLocalCopy,
+				sync = this._parent().settings,
+				syncCopy = this._parent()._settingsCopy,
+			}: {
+				local?: CRM.StorageLocal;
+				localCopy?: CRM.StorageLocal;
+				sync?: CRM.SettingsStorage;
+				syncCopy?: CRM.SettingsStorage;
+			} = {
+				local: this._parent().storageLocal,
+				localCopy: this._parent()._storageLocalCopy,
+				sync: this._parent().settings,
+				syncCopy: this._parent()._settingsCopy,
+			}): {
+				hasLocalChanged: boolean;
+				haveSettingsChanged: boolean;
+				localChanges: any;
+				settingsChanges: any;
+			} {
 				const localChanges: {
 					oldValue: any;
 					newValue: any;
 					key: any;
 				}[] = [];
-				const storageLocal = this._parent().storageLocal;
-				const storageLocalCopy = force ? {} : this._parent()._storageLocalCopy;
 
 				const settingsChanges: {
 					oldValue: any;
 					newValue: any;
 					key: any;
 				}[] = [];
-				const settings = this._parent().settings;
-				const settingsCopy = force ? {} : this._parent()._settingsCopy;
-				const hasLocalChanged = this._getObjDifferences(storageLocal, storageLocalCopy, localChanges);
-				const haveSettingsChanged = this._getObjDifferences(settings, settingsCopy, settingsChanges);
+				const hasLocalChanged = this._getObjDifferences(local, force ? {} : localCopy, localChanges);
+				const haveSettingsChanged = this._getObjDifferences(sync, force ? {} : syncCopy, settingsChanges);
 				return {
 					hasLocalChanged,
 					haveSettingsChanged,
@@ -2524,16 +2544,17 @@ namespace CRMAppElement {
 					JSON.parse(JSON.stringify(this._parent().settings));
 			}
 
-			static upload(force: boolean) {
-				//Send changes to background-page, background-page uploads everything
-				//Compare storageLocal objects
-				const {
-					hasLocalChanged, 
-					haveSettingsChanged, 
-					localChanges,
-					settingsChanges
-				} = this.getChanges(force);
-
+			private static _uploadChanges({
+				hasLocalChanged, 
+				haveSettingsChanged, 
+				localChanges,
+				settingsChanges
+			}: {
+				hasLocalChanged: boolean;
+				haveSettingsChanged: boolean;
+				localChanges: any;
+				settingsChanges: any;
+			}) {
 				if (hasLocalChanged || haveSettingsChanged) {
 					//Changes occured
 					browserAPI.runtime.sendMessage({
@@ -2548,7 +2569,50 @@ namespace CRMAppElement {
 
 				this._parent().pageDemo.create();
 				this._updateCopies();
+			}
+
+			static upload(force: boolean) {
+				//Send changes to background-page, background-page uploads everything
+				//Compare storageLocal objects
+				this._uploadChanges(this.getChanges(force));
 			};
+
+			private static _lastRevertPoint: {
+				local: CRM.StorageLocal;
+				sync: CRM.SettingsStorage;
+			} = null;
+			static createRevertPoint(showToast: boolean = true, toastTime: number = 10000) {
+				if (showToast) {
+					window.app.util.showToast('Undo');
+					window.app.$.undoToast.duration = toastTime;
+					window.app.$.undoToast.show();
+				}
+
+				const revertPoint = {
+					local: JSON.parse(JSON.stringify(window.app.storageLocal)),
+					sync: JSON.parse(JSON.stringify(window.app.settings))
+				};
+				this._lastRevertPoint = revertPoint;
+				return revertPoint;
+			}
+
+			static revert(revertPoint: {
+				local: CRM.StorageLocal;
+				sync: CRM.SettingsStorage;
+			} = this._lastRevertPoint) {
+				if (!this._lastRevertPoint) return;
+				
+				this._uploadChanges(this.getChanges(false, {
+					local: revertPoint.local,
+					localCopy: this._parent().storageLocal,
+					sync: revertPoint.sync,
+					syncCopy: this._parent().settings
+				}));
+
+				window.app.settings = revertPoint.sync;
+				window.app.updateCrmRepresentation(window.app.settings.crm);
+				window.app.editCRM.build();
+			}
 
 			private static _parent() {
 				return window.app;
@@ -3362,6 +3426,10 @@ namespace CRMAppElement {
 		 * Dom listeners for this node
 		 */
 		static listeners = class CRMAppListeners {
+			static undo() {
+				window.app.uploading.revert();
+			}
+
 			static _toggleBugReportingTool() {
 				window.errorReportingTool.toggleVisibility();
 			};

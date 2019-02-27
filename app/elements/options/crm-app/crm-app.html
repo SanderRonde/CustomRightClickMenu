@@ -531,6 +531,9 @@
 				<paper-toast id="messageToast" text="Please ignore this" duration="5000">
 					<span class="toastLink" on-tap="domListener" data-on-tap="hideGenericToast" role="button">DISMISS</span>
 				</paper-toast>
+				<paper-toast id="undoToast" text="Revert last action">
+					<span class="toastLink" on-tap="domListener" data-on-tap="undo" role="button">UNDO</span>
+				</paper-toast>
 				<paper-toast data-element-type="ScriptUpdatesToast" id="scriptUpdatesToast" text="Please ignore this" duration="10000">
 					<span id="nextScriptUpdateButton" class="toastLink" on-tap="domListener" data-on-tap="nextUpdatedScript" role="button">NEXT</span>
 					<span class="toastLink" on-tap="domListener" data-on-tap="hideScriptUpdatesToast" role="button">DISMISS</span>
