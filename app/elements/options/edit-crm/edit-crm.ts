@@ -221,11 +221,6 @@ namespace EditCrmElement {
 		private static _columns: CRMColumnElement[] = [];
 
 		/**
-		 * The menus that are set to be shown in the crm
-		 */
-		private static _setItems: number[];
-
-		/**
 		 * The sortable object
 		 */
 		private static _sortables: Sortable.Instance[] = [];
@@ -665,7 +660,7 @@ namespace EditCrmElement {
 			if (this.isAdding) {
 				this.isAdding = false;
 				this.build({
-					setItems: this._setItems
+					setItems: window.app.editCRM.setMenus
 				});
 			}
 		};
@@ -708,7 +703,7 @@ namespace EditCrmElement {
 			this.addingType = type;
 
 			this.build({
-				setItems: this._setItems,
+				setItems: window.app.editCRM.setMenus,
 				instant: true
 			});
 		}
