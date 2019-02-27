@@ -73,9 +73,7 @@
 		"idle",
 		"notifications",
 		"topSites",
-		"webNavigation",
-		"webRequest",
-		"webRequestBlocking"
+		"webNavigation"
 	],
 
 	"commands": {

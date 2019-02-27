@@ -72,7 +72,6 @@
 		"history",
 		"identity",
 		"idle",
-		"management",
 		"notifications",
 		"pageCapture",
 		"power",
@@ -85,9 +84,7 @@
 		"topSites",
 		"tabCapture",
 		"tts",
-		"webNavigation",
-		"webRequest",
-		"webRequestBlocking"
+		"webNavigation"
 	],
 
 	"commands": {
