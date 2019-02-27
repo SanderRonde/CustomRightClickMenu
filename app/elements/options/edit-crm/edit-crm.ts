@@ -136,6 +136,7 @@ namespace EditCrmElement {
 			clone: T;
 			oldIndex: number;
 			newIndex: number;
+			originalEvent: MouseEvent;
 		};
 
 		type DragEvent<T, U> = Event & {
@@ -503,6 +504,35 @@ namespace EditCrmElement {
 					},
 					onEnd: (event) => {
 						this.dragging = false;
+
+						//If target was a menuArrow, place it into that menu
+						let foundElement = window.app.util.findElementWithClassName({
+							path: (event.originalEvent as any).path
+						}, 'menuArrowCont');
+						if (foundElement) {
+							while (foundElement && foundElement.tagName !== 'EDIT-CRM-ITEM') {
+								foundElement = (foundElement.parentNode || (foundElement as any).host) as HTMLElement;
+							}
+							
+							const crmItem = foundElement as HTMLEditCrmItemElement;
+							if (crmItem && crmItem.type === 'menu') {
+								window.app.crm.move(event.item.item.path, 
+									crmItem.item.path.concat(0),
+									event.item.item.path.length === 
+										crmItem.item.path.length + 1);
+
+								//Show that menu if it isn't being shown already
+								window.app.crm.buildNodePaths(window.app.settings.crm);
+								const path = window.app.crm.lookupId(event.item.item.id, false).path;
+								window.app.editCRM.setMenus = path.slice(0, path.length - 1);
+								window.app.editCRM.build({
+									setItems: window.app.editCRM.setMenus,
+									quick: true
+								});
+								return;
+							}
+						}
+
 						//Get the current column
 						const newColumn = (event.item.parentNode as CRMColumnElement).index;
 						const index = event.newIndex;

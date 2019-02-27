@@ -1038,7 +1038,7 @@ namespace CRMAppElement {
 
 		static updateCrmRepresentation(this: CrmApp, crm: CRM.Tree) {
 			this._setup.orderNodesById(crm);
-			this._setup.buildNodePaths(crm, []);
+			this.crm.buildNodePaths(crm);
 		}
 
 		static setLocal<K extends keyof CRM.StorageLocal>(this: CrmApp, key: K, value: CRM.StorageLocal[K]) {
@@ -2376,17 +2376,6 @@ namespace CRMAppElement {
 				Array.prototype.slice.apply(this.parent().shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
 					setting.init && setting.init(defaultLocalStorage);
 				});
-			};
-
-			static buildNodePaths(tree: CRM.Tree, currentPath: number[]) {
-				for (let i = 0; i < tree.length; i++) {
-					const childPath = currentPath.concat([i]);
-					const node = tree[i];
-					node.path = childPath;
-					if (node.children) {
-						this.buildNodePaths(node.children, childPath);
-					}
-				}
 			};
 
 			static orderNodesById(tree: CRM.Tree, root: boolean = true) {
@@ -4603,6 +4592,17 @@ namespace CRMAppElement {
 					setItems: window.app.editCRM.setMenus,
 					quick: true
 				});
+			};
+
+			static buildNodePaths(tree: CRM.Tree, currentPath: number[] = []) {
+				for (let i = 0; i < tree.length; i++) {
+					const childPath = currentPath.concat([i]);
+					const node = tree[i];
+					node.path = childPath;
+					if (node.children) {
+						this.buildNodePaths(node.children, childPath);
+					}
+				}
 			};
 
 			private static _parent(): CrmApp {
