@@ -31,7 +31,8 @@ env:
   - TEST=test:chrome:latest:extension:stylesheet
   - TEST=test:chrome:latest:extension:post-stylesheet
   - TEST=test:firefox:quantum
-  - TEST=test:firefox:latest
+  - TEST=test:firefox:latest:pre-on-page
+  - TEST=test:firefox:latest:on-page
   - TEST=test:edge:16
   - TEST=test:edge:latest
   - TEST=test-build
