@@ -1163,26 +1163,26 @@ describe('User entrypoints', function() {
 			it('should finish loading', async function() {
 				this.timeout(1200000 * TIME_MODIFIER);
 				this.slow(15000);
-				await openTestPageURL(browserCapabilities);
-				await wait(15000 * TIME_MODIFIER);
 				try {
+					await openTestPageURL(browserCapabilities);
+					await wait(15000 * TIME_MODIFIER);
 					currentTestWindow = await driver.getWindowHandle();
+
+					if (TEST_EXTENSION) {
+						await dummyTab.init();
+					}
+					await wait(500);
+					await switchToTestWindow();
+
+					await waitFor(() => {
+						return driver.executeScript(inlineFn(() => {
+							return window.polymerElementsLoaded;
+						}));
+					}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
+						//About to time out
+						throw new Error('Failed to get elements loaded message, page load is failing');
+					});
 				} catch(e) {}
-
-				if (TEST_EXTENSION) {
-					await dummyTab.init();
-				}
-				await wait(500);
-				await switchToTestWindow();
-
-				await waitFor(() => {
-					return driver.executeScript(inlineFn(() => {
-						return window.polymerElementsLoaded;
-					}));
-				}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
-					//About to time out
-					throw new Error('Failed to get elements loaded message, page load is failing');
-				});
 			});
 		});
 		describe('CheckboxOptions', function() {
