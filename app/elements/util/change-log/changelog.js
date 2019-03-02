@@ -182,6 +182,12 @@
 		],
 		'2.2.5': [
 			'Fix bug that happened when upgrading version'
+		],
+		'2.2.6': [
+			'Fix a few bugs related to dragging nodes',
+			'Re-enable the "expand menu" buttons for menus that were accidentally hidden',
+			'Add undo feature for certain operations (for example adding, removing or changing an item)',
+			'Change title fonts and look a bit'
 		]
 	};
 
