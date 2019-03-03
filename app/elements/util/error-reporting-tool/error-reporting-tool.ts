@@ -44,6 +44,10 @@ namespace ErrorReportingToolElement {
 		}
 	} as any;
 
+	interface ErrorHandler {
+		(event: Event | string, source?: string, fileno?: number, columnNumber?: number, error?: Error): boolean|undefined;
+	}
+
 	export class ERT {
 		static is: any = 'error-reporting-tool';
 
@@ -496,15 +500,16 @@ namespace ErrorReportingToolElement {
 			};
 
 		private static _registerOnError(this: ErrorReportingTool) {
-			const handlers: ErrorEventHandler[] = [];
+			const handlers: ErrorHandler[] = [];
 			if (window.onerror) {
-				handlers.push(window.onerror);
+				handlers.push(window.onerror as ErrorHandler);
 			}
 			window.onerror = (message: string, source: any, lineno: number, colno: number, error: Error) => {
 				let handled: boolean = false;
 				handlers.forEach((handler) => {
-					handler(message, source, lineno, colno, error)
-					handled = true;
+					if (handler(message, source, lineno, colno, error)) {
+						handled = true;
+					}
 				});
 				this._onError(message, source, lineno, colno, error, handled);
 				if (handled) {
@@ -514,7 +519,7 @@ namespace ErrorReportingToolElement {
 			}
 
 			Object.defineProperty(window, 'onerror', {
-				set(handler: ErrorEventHandler) {
+				set(handler: ErrorHandler) {
 					handlers.push(handler);
 				}
 			});
