@@ -4327,7 +4327,8 @@ namespace CRMAppElement {
 					nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 					onContentTypes: [true, true, true, false, false, false],
 					isLocal: true,
-					value: null
+					value: null,
+					children: type === 'menu' ? [] : undefined
 				};
 
 				return this.mergeObjects(defaultNode, options) as CRM.DividerNode | CRM.MenuNode;
