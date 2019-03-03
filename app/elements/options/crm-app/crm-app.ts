@@ -4920,7 +4920,7 @@ namespace CRMAppElement {
 			 * Inserts the value into given array
 			 */
 			static insertInto<T>(toAdd: T, target: T[], position: number = null): T[] {
-				if (position) {
+				if (position !== null) {
 					let temp1, i;
 					let temp2 = toAdd;
 					for (i = position; i < target.length; i++) {
