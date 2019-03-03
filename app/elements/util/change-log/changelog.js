@@ -188,6 +188,9 @@
 			'Re-enable the "expand menu" buttons for menus that were accidentally hidden',
 			'Add undo feature for certain operations (for example adding, removing or changing an item)',
 			'Change title fonts and look a bit'
+		],
+		'2.2.7': [
+			'Fix more dragging issues'
 		]
 	};
 
