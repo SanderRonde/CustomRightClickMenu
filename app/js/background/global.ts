@@ -246,7 +246,7 @@ export namespace Global {
 						value: null,
 						showOnSpecified: true,
 						children: type === 'menu' ? [] : null,
-						permissions: [],
+						permissions: []
 					};
 
 					return this.mergeObjects(defaultNode, options) as any;
