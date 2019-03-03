@@ -1449,6 +1449,51 @@ async function joinDefs() {
 				});
 			}
 		)));
+
+	gulp.task('genAppx:copy', genTask('Copies store images to the packaged dir',
+		async function copyFiles() {
+			return gulp
+				.src('resources/logo/edge/*')
+				.pipe(gulp
+					.dest('dist/CRM/edgeextension/manifest/Assets'))
+		}));
+
+	gulp.task('genAppx:replace', 
+		genTask('Replaces manifest fields in edge extension manifest',
+			async function replaceManifestFields() {
+				let packageManifest = await readFile(
+					'dist/CRM/edgeextension/manifest/appxmanifest.xml');
+				/**
+				 * @type {{"version": string}}
+				 */
+				const edgeManifest = JSON.parse(await readFile(
+					'dist/edge/manifest.json'));
+
+				/**
+				 * @type {{"Name": string, "Publisher": string, "PublisherDisplayName": string}}
+				 */
+				const secrets = JSON.parse(await readFile(
+					'resources/buildresources/edge_secrets.json'));
+
+				packageManifest = packageManifest
+					.replace(/INSERT-YOUR-PACKAGE-IDENTITY-NAME-HERE/g,
+						secrets.Name)
+					.replace(/CN=INSERT-YOUR-PACKAGE-IDENTITY-PUBLISHER-HERE/g,
+						secrets.Publisher)
+					.replace(/INSERT-YOUR-PACKAGE-PROPERTIES-PUBLISHERDISPLAYNAME-HERE/g,
+						secrets.PublisherDisplayName)
+					.replace(/Version="(\.|\d)+"/,
+						`Version="${edgeManifest.version}.0"`);
+
+				await writeFile(
+					'dist/CRM/edgeextension/manifest/appxmanifest.xml',
+					packageManifest);
+			}));
+
+	gulp.task('genAppx:clean', genTask('Cleans the left over appx files', 
+		async function cleanAppx() {
+			await del('./dist/CRM');
+		}));
 })();
 
 gulp.task('default', gulp.series('build'));
