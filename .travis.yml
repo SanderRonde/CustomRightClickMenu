@@ -45,14 +45,6 @@ env:
   - TEST=test:chrome:latest:install:userscriptsorg
   # - TEST=test:chrome:latest:install:userstylesorg
   - TEST=test:chrome:latest:install:openusercss
-  - TEST=test-migration:2.0.12
-  - TEST=test-migration:2.0.13
-  - TEST=test-migration:2.0.14
-  - TEST=test-migration:2.0.15
-  - TEST=test-migration:2.0.16
-  - TEST=test-migration:2.0.17
-  - TEST=test-migration:2.0.18
-  - TEST=test-migration:2.0.19
   global:
   - secure: iPVXFxcVzOVCVVpWq0bxGGttAFjfQdmUaYlq25qeRQ4vf7KMJ749zBxd7PHy3c2TSD3nygt7MZmCRLnbyGnwqvDmPf7+FfFLTKL40vQXGFQzPnHrDTSpituNhU1uNZWsoWtCwzii+8ic14weWxfJwOqByhiotEBxY9oOxmLwLg1hiAoHtEXmGrnORdiro82iDpFiV4bgjqw+928/2I/wKpLfRbYAK1/zyFG5L5m/iod/VrNrvo1VPaDaip7F25OJN0S1J4kTbs5mHjqC0/oWYnGz3+1xm/3W/IUwsbFo85g5VqdjImrkaUzF2QGO3egSNV0ltbf/azi5Y59FOLkZ80NuBwAWs454QXLEH7nFBfznCTOi4JtxgmWjHYcrhUC1/Aoxye/inbqw7v9xP8tMMuBEeiXaiSgdaS4CgxeiQOzUJNquYldMhCYdy3F1qTTNmv3zXGIlkWY5UToAR0LqjR92QKkeAG0/BelW7nr4Gb2+EqluLeJfXlksb5gXqg4EIhi+/7GILRgEMiDwx2AqnkZMf87m2qSGWQ81l8m4cTueTDbNdt03vY+Obs/lzFMdujrvR+Xsq2abEG13D5zkQ/aJ2pd+4p2LtlVGr9j8E5owRhRn3//O2PodlSW6ydzIRdOzCh599XEMT0hHVVVMDVjEMtYD2/BddaV9+z9/lIs=
   - secure: CWAEcGJ3hEhGmjsX7TE0Et8cdhC44Y9WyyI0K3T3hy1HLaDpjKgbVDrbCSn2j07jwRdea9fVTWB+9dEIajFILySvVRO9depSsMoXqrP9hmP70BIUa9TdZwhPbgOCt8MQ+cXiiTQGP89YCoIKIELCWyN7Wc/y55IMOKYQuD5ylMhVJPfgaKgJZ8VLZ/bVTGZx1kLPKydhylFoI/f9WSuJNzYjFTETqVSvteqofwCVX+Go5HoM7c/HoWFDIJSIkCO4pT3lEybCPwNvjeZsvbCSCOjp+N4gtfyCTEvjlo/8Ctuatl4BSdAPMjgn2ufQAYG0HDLUNDAiL5+HMPAc9/RF/h9bowEag1kBdM+fau1Y7H0TYsp+es6BSW0U4oktGi8eKOa2eKv44F8FYFixxfNHEAVH6/rYatjWCHE0oqZ8DSR1jpc5fFFhAC9Qlyu2YBDaykOEfssq2OjDvqokpVHxY+NclOwStzXxtbgc+FgRDgpmJrBaWaUyTBBnN1D0vhUvORZaoTEBTPB8GkFQYYPTa3ao9mJTe42B+xYaRZgHX81XE4vh1eCwacRGPwt2bbcKT+Ylbe7vS3Wu2GdTN6qd/rjHX0SKJyLEaNhkIxZz74xXEKcltK3OaEG4GEAFejaNqUDqUM2Mr1u1XCQTDvPrkEHnsvL2CNmLw0eVToyq2Zg=
