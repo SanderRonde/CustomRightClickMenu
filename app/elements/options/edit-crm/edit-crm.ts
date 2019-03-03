@@ -518,9 +518,7 @@ namespace EditCrmElement {
 							const crmItem = foundElement as HTMLEditCrmItemElement;
 							if (crmItem && crmItem.type === 'menu') {
 								window.app.crm.move(event.item.item.path, 
-									crmItem.item.path.concat(0),
-									event.item.item.path.length === 
-										crmItem.item.path.length + 1);
+									crmItem.item.path.concat(0));
 
 								//Show that menu if it isn't being shown already
 								window.app.crm.buildNodePaths(window.app.settings.crm);
@@ -542,8 +540,7 @@ namespace EditCrmElement {
 
 						//Upload changes
 						window.app.crm.move(event.item.item.path, 
-							window.app.editCRM.setMenus.slice(0, newColumn).concat(index), 
-							allColumns[newColumn] === column);
+							window.app.editCRM.setMenus.slice(0, newColumn).concat(index));
 						window.app.uploading.showRevertPointToast(revertPoint);
 					},
 					onMove: (event) => {

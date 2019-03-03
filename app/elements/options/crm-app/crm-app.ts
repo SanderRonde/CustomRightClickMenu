@@ -4649,13 +4649,15 @@ namespace CRMAppElement {
 			/**
 			 * Moves a value in the CRM from one place to another
 			 */
-			static move(toMove: number[], target: number[], sameColumn: boolean) {
+			static move(toMove: number[], target: number[]) {
 				const toMoveContainer = this.lookup(toMove, true);
 				let toMoveIndex = toMove[toMove.length - 1];
 				const toMoveItem = toMoveContainer[toMoveIndex];
 
 				const newTarget = this.lookup(target, true);
 				const targetIndex = target[target.length - 1];
+
+				const sameColumn = toMoveContainer === newTarget;
 
 				if (sameColumn && toMoveIndex > targetIndex) {
 					this._parent().util.insertInto(toMoveItem, newTarget, targetIndex);
