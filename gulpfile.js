@@ -80,7 +80,9 @@ function writeFile(filePath, data, options) {
 			resolve(err);
 		});
 		if (!options) {
-			fs.writeFile(filePath, data, (err) => {
+			fs.writeFile(filePath, data, {
+				encoding: 'utf8'
+			}, (err) => {
 				if (err) {
 					reject(err);
 				} else {
@@ -108,7 +110,9 @@ function writeFile(filePath, data, options) {
 function readFile(filePath, options) {
 	return new Promise((resolve, reject) => {
 		if (!options) {
-			fs.readFile(filePath, (err, data) => {
+			fs.readFile(filePath, {
+				encoding: 'utf8'
+			}, (err, data) => {
 				if (err) {
 					reject(err);
 				} else {
@@ -150,9 +154,7 @@ function readFile(filePath, options) {
 						glob('./app/bower_components/**/*.html', async (err, matches) => {
 							await Promise.all([matches.map((file) => {
 								return new Promise(async (resolve) => {
-									const content = await readFile(file, {
-										encoding: 'utf8'
-									});
+									const content = await readFile(file);
 									const { name, dir } = path.parse(file);
 									const { html, js } = crisper({
 										jsFileName: `${name}.js`,
@@ -161,12 +163,8 @@ function readFile(filePath, options) {
 										cleanup: false
 									});
 									await Promise.all([
-										writeFile(file, html, {
-											encoding: 'utf8'
-										}),
-										writeFile(path.join(dir, `${name}.js`), js, {
-											encoding: 'utf8'
-										}),
+										writeFile(file, html),
+										writeFile(path.join(dir, `${name}.js`), js),
 									]);
 									resolve();
 								});
@@ -208,25 +206,15 @@ function readFile(filePath, options) {
 						.pipe(gulp.dest('./app/js/libraries/'))
 				},
 				async function lessEmbedDev() {
-					const less = await readFile('./resources/buildresources/less.min.js', {
-						encoding: 'utf8'
-					});
-					await writeFile('./app/js/libraries/less.js', less, {
-						encoding: 'utf8'
-					});
+					const less = await readFile('./resources/buildresources/less.min.js');
+					await writeFile('./app/js/libraries/less.js', less);
 				},
 				async function stylusEmbedDev() {
-					const stylus = await readFile('./resources/buildresources/stylus.min.js', {
-						encoding: 'utf8'
-					});
-					await writeFile('./app/js/libraries/stylus.js', stylus, {
-						encoding: 'utf8'
-					});
+					const stylus = await readFile('./resources/buildresources/stylus.min.js');
+					await writeFile('./app/js/libraries/stylus.js', stylus);
 				},
 				async function crmapiLib() {
-					await writeFile('./app/js/libraries/crmapi.d.ts', await joinDefs(), {
-						encoding: 'utf8'
-					});
+					await writeFile('./app/js/libraries/crmapi.d.ts', await joinDefs());
 				}
 			)));
 
@@ -258,9 +246,7 @@ function readFile(filePath, options) {
 		async function updateTsIdMaps(done) {
 			const pattern = '{app/elements/**/*.html,!app/elements/elements.html}';
 			const typings = await htmlTypings.extractGlobTypes(pattern);
-			await writeFile('./app/elements/fileIdMaps.d.ts', typings, {
-				encoding: 'utf8'
-			});
+			await writeFile('./app/elements/fileIdMaps.d.ts', typings);
 		}));
 
 	gulp.task('compile', genTask('Compiles the typescript',
@@ -467,25 +453,15 @@ function readFile(filePath, options) {
 					.pipe(gulp.dest('./temp/js/libraries'));
 			},
 			async function embedLess() {
-				const less = await readFile('./resources/buildresources/less.min.js', {
-					encoding: 'utf8'
-				});
-				await writeFile('./temp/js/libraries/less.js', less, {
-					encoding: 'utf8'
-				});
+				const less = await readFile('./resources/buildresources/less.min.js');
+				await writeFile('./temp/js/libraries/less.js', less);
 			},
 			async function embedStylus() {
-				const stylus = await readFile('./resources/buildresources/stylus.min.js', {
-					encoding: 'utf8'
-				});
-				await writeFile('./temp/js/libraries/stylus.js', stylus, {
-					encoding: 'utf8'
-				});
+				const stylus = await readFile('./resources/buildresources/stylus.min.js');
+				await writeFile('./temp/js/libraries/stylus.js', stylus);
 			},
 			async function crmapiLibBuild() {
-				await writeFile('./temp/js/libraries/crmapi.d.ts', await joinDefs(), {
-					encoding: 'utf8'
-				});
+				await writeFile('./temp/js/libraries/crmapi.d.ts', await joinDefs());
 			},
 			gulp.series(
 				//entrypointPrefix.html specific stuff
@@ -506,9 +482,7 @@ function readFile(filePath, options) {
 						.pipe(gulp.dest('./temp/'));
 				},
 				async function crisp() {
-					const entrypointPrefix = await readFile('./temp/html/entrypointPrefix.html', {
-						encoding: 'utf8'
-					});
+					const entrypointPrefix = await readFile('./temp/html/entrypointPrefix.html');
 					const { html, js } = crisper({
 						jsFileName: 'entrypointPrefix.js',
 						source: entrypointPrefix,
@@ -516,12 +490,8 @@ function readFile(filePath, options) {
 						cleanup: false
 					});
 					await Promise.all([
-						writeFile('./temp/html/entrypointPrefix.html', html, {
-							encoding: 'utf8'
-						}),
-						writeFile('./temp/html/entrypointPrefix.js', js, {
-							encoding: 'utf8'
-						}),
+						writeFile('./temp/html/entrypointPrefix.html', html),
+						writeFile('./temp/html/entrypointPrefix.js', js),
 					]);
 				}
 			)
@@ -584,9 +554,7 @@ function readFile(filePath, options) {
 				//Crisping them
 				gulp.parallel(
 					async function crispOptions() {
-						const options = await readFile('./build/html/options.html', {
-							encoding: 'utf8'
-						});
+						const options = await readFile('./build/html/options.html');
 						const { html, js } = crisper({
 							jsFileName: 'options.js',
 							source: options,
@@ -596,18 +564,12 @@ function readFile(filePath, options) {
 						const optionsRemoved = html.replace(
 							/<script src="options.js"><\/script>/g, '');
 						await Promise.all([
-							writeFile('./build/html/options.html', optionsRemoved, {
-								encoding: 'utf8'
-							}),
-							writeFile('./build/html/options.js', js, {
-								encoding: 'utf8'
-							})
+							writeFile('./build/html/options.html', optionsRemoved),
+							writeFile('./build/html/options.js', js)
 						]);
 					},
 					async function crispLogging() {
-						const content = await readFile('./build/html/logging.html', {
-							encoding: 'utf8'
-						});
+						const content = await readFile('./build/html/logging.html');
 						const { html, js } = crisper({
 							jsFileName: 'logging.js',
 							source: content,
@@ -617,18 +579,12 @@ function readFile(filePath, options) {
 						const tagRemoved = html.replace(
 							/<script src="logging.js"><\/script>/g, '');
 						await Promise.all([
-							writeFile('./build/html/logging.html', tagRemoved, {
-								encoding: 'utf8'
-							}),
-							writeFile('./build/html/logging.js', js, {
-								encoding: 'utf8'
-							}),
+							writeFile('./build/html/logging.html', tagRemoved),
+							writeFile('./build/html/logging.js', js),
 						]);
 					},
 					async function crispInstall() {
-						const content = await readFile('./build/html/install.html', {
-							encoding: 'utf8'
-						});
+						const content = await readFile('./build/html/install.html');
 						const { html, js } = crisper({
 							jsFileName: 'install.js',
 							source: content,
@@ -638,18 +594,12 @@ function readFile(filePath, options) {
 						const tagRemoved = html.replace(
 							/<script src="install.js"><\/script>/g, '');
 						await Promise.all([
-							writeFile('./build/html/install.html', tagRemoved, {
-								encoding: 'utf8'
-							}),
-							writeFile('./build/html/install.js', js, {
-								encoding: 'utf8'
-							}),
+							writeFile('./build/html/install.html', tagRemoved),
+							writeFile('./build/html/install.js', js),
 						]);
 					},
 					async function crispBackground() {
-						const background = await readFile('./build/html/background.html', {
-							encoding: 'utf8'
-						});
+						const background = await readFile('./build/html/background.html');
 						const { html, js } = crisper({
 							jsFileName: 'background.js',
 							source: background,
@@ -657,12 +607,8 @@ function readFile(filePath, options) {
 							cleanup: false
 						});
 						await Promise.all([
-							writeFile('./build/html/background.html', html, {
-								encoding: 'utf8'
-							}),
-							writeFile('./build/html/background.js', js, {
-								encoding: 'utf8'
-							}),
+							writeFile('./build/html/background.html', html),
+							writeFile('./build/html/background.js', js),
 						]);
 					}
 				),
@@ -1121,18 +1067,14 @@ function readFile(filePath, options) {
 		cwd = path.join(cwd, 'typedoc/');
 		
 		console.log('Getting this extension\'s version of typescript');
-		const CRMPackage = JSON.parse(await readFile(path.join(__dirname, 'package.json'), {
-			encoding: 'utf8'
-		}));
+		const CRMPackage = JSON.parse(await readFile(path.join(__dirname, 'package.json')));
 		const tsVersion = CRMPackage.devDependencies.typescript;
 
 		console.log('Installing grunt');
 		await runCmd('npm install -g grunt-cli', cwd);
 
 		console.log('Removing post install hook');
-		const file = await readFile(path.join(__dirname, 'typedoc', 'package.json'), {
-			encoding: 'utf8'
-		});
+		const file = await readFile(path.join(__dirname, 'typedoc', 'package.json'));
 		await writeFile(path.join(__dirname, 'typedoc', 'package.json'), 
 			file.replace(/"prepare":/g, "\"ignored\":"));
 
@@ -1232,15 +1174,11 @@ async function doReplace(lines, regexp, callback) {
 }
 
 async function joinDefs() {
-	const srcFile = await readFile('./tools/definitions/crmapi.d.ts', {
-		encoding: 'utf8'
-	});
+	const srcFile = await readFile('./tools/definitions/crmapi.d.ts');
 	const lines = srcFile.split('\n');
 	return (await doReplace(lines, /\/\/\/(\s*)<reference path="(.*)"(\s*)\/>/, async (match) => {
 		const file = match[2];
-		return await readFile(path.join('./tools/definitions', file), {
-			encoding: 'utf8'
-		});
+		return await readFile(path.join('./tools/definitions', file));
 	})).join('\n');
 }
 
@@ -1248,9 +1186,7 @@ async function joinDefs() {
 (() => {
 	gulp.task(genTask('Move all crmapi .d.ts files into a single file',
 		async function genDefs() {
-			await writeFile('./dist/defs/crmapi.d.ts', await joinDefs(), {
-				encoding: 'utf8'
-			});
+			await writeFile('./dist/defs/crmapi.d.ts', await joinDefs());
 		}));
 })();
 
