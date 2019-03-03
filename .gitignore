@@ -280,3 +280,4 @@ scripts/id_rsa
 
 tools/moz-api-credentials.js
 app/js/contentscripts/*.js
+resources/buildresources/edge_secrets.json
