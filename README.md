@@ -53,7 +53,7 @@ you clicked on (page, link, selection, image, video or audio).
 
 ### Installing from your browser's web store
 
-> 2.2.7 is the current latest version
+> [2.2.7](https://github.com/SanderRonde/CustomRightClickMenu/releases/tag/2.2.7) is the current latest version
 
 * [Chrome Webstore](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj) - On version 2.2.7
 * [Firefox Add-on](https://addons.mozilla.org/nl/firefox/addon/custom-right-click-menu/) - On 2.2.7
