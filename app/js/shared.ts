@@ -23,6 +23,20 @@ export interface Prom<T> extends Promise<T> {
 	new <T>(executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void): Prom<T>
 }
 
+enum LANGS {
+	EN = 'en'
+};
+
+interface I18N {
+	(key: string, ...replacements: string[]): Promise<string>;
+	sync(key: string, ...replacements: string[]): string;
+
+	getLang(): Promise<string>;
+	setLang(lang: LANGS): Promise<void>;
+	ready(): Promise<void>;
+	LANGS: typeof LANGS;
+};
+
 declare global {
 	interface Window {
 		Promise: typeof Promise;
@@ -53,7 +67,7 @@ declare global {
 				key1: T1, key2?: T2, key3?: T3, key4?: T4, key5?: T5): PromiseLike<C[T1][T2][T3][T4][T5]>|
 					PromiseLike<C[T1][T2][T3][T4]>|PromiseLike<C[T1][T2][T3]>|PromiseLike<C[T1][T2]>|PromiseLike<C[T1]>;
 		objectify<T>(fn: T): T;
-		register(fn: any): void;
+		register(...fns: any[]): void;
 		with<T>(initializer: () => Withable, fn: () => T): T;
 		withAsync<T>(initializer: () => Promise<Withable>, fn: () => Promise<T>): Promise<T>;
 		setDisplayFlex(el: {
@@ -70,6 +84,7 @@ declare global {
 			easing?: string;
 			fill?: 'forwards'|'backwards'|'both';
 		}): Animation;
+		__: I18N;
 	}
 }
 
@@ -102,7 +117,7 @@ export type SharedWindow = Window & {
 			key1: T1, key2?: T2, key3?: T3, key4?: T4, key5?: T5): PromiseLike<C[T1][T2][T3][T4][T5]>|
 				PromiseLike<C[T1][T2][T3][T4]>|PromiseLike<C[T1][T2][T3]>|PromiseLike<C[T1][T2]>|PromiseLike<C[T1]>;
 	objectify<T>(fn: T): T;
-	register(fn: any): void;
+	register(...fns: any[]): void;
 	with<T>(initializer: () => Withable, fn: () => T): T;
 	withAsync<T>(initializer: () => Promise<Withable>, fn: () => Promise<T>): Promise<T>;
 	setDisplayFlex(el: {
@@ -119,6 +134,7 @@ export type SharedWindow = Window & {
 		easing?: string;
 		fill?: 'forwards'|'backwards'|'both';
 	}): Animation;
+	__: I18N;
 };
 
 (() => {
@@ -225,9 +241,278 @@ export type SharedWindow = Window & {
 		return obj as T;
 	}
 
+	const ElementI18nManager = (() => {
+		interface RawLangFile {
+			[key: string]: {
+				message: string;
+				description?: string;
+				placeholders?: {
+					[key: string]: {
+						key: string;
+						example?: string;
+						content: string;
+					}
+				}
+			}
+		}
+		interface LangItem {
+			message: string;
+			placeholders: {
+				index: number;
+				expr: RegExp;
+				content: string;
+			}[];
+		};
+		interface LangFile {
+			[key: string]: LangItem;
+		};
+		enum LANGS {
+			EN = 'en'
+		};
+		class Lang {
+			static readonly DEFAULT_LANG = LANGS.EN;
+			static readonly SUPPORTED_LANGS: LANGS[] = [LANGS.EN];
+			static readonly LANGS = LANGS;
+			private _currentLangFile: LangFile = null;
+			private _lang: LANGS = null;
+			private _listeners: {
+				lang: LANGS;
+				langReady: boolean;
+			}[] = [];
+
+			ready = (async () => {
+				// Load the "current" language
+				this._lang = await this.fetchLang();
+				this._currentLangFile = await this.Files.loadLang(this._lang);
+				this._listeners.forEach((listener) => {
+					listener.langReady = true;
+				});
+			})();
+	
+			Files = class LangFiles {
+				private static _loadedLangs: {
+					[key in LANGS]?: LangFile;
+				} = {};
+	
+				private static _isWebPageEnv() {
+					return location.protocol === 'http:' || location.protocol === 'https:';
+				}
+		
+				private static _loadFile(name: string): Promise<string> {
+					return new window.Promise((resolve, reject) => {
+						const xhr: XMLHttpRequest = new window.XMLHttpRequest();
+						const url = this._isWebPageEnv() ? `../${name}` :
+							browserAPI.runtime.getURL(name);
+						xhr.open('GET', url);
+						xhr.onreadystatechange = () => {
+							if (xhr.readyState === XMLHttpRequest.DONE) {
+								if (xhr.status === 200) {
+									resolve(xhr.responseText);
+								} else {
+									reject(new Error('Failed XHR'));
+								}
+							}
+						}
+						xhr.send();
+					});
+				}
+	
+				private static _parseLang(str: string): LangFile {
+					const rawParsed = JSON.parse(str) as RawLangFile;
+	
+					const parsed: LangFile = {};
+					for (const key in rawParsed) {
+						const item = rawParsed[key];
+	
+						const placeholders: {
+							content: string;
+							expr: RegExp;
+							index: number;
+						}[] = [];
+						for (const key in item.placeholders || {}) {
+							const { content } = item.placeholders[key];
+							placeholders.push({
+								index: placeholders.length,
+								content,
+								expr: new RegExp(`\$${key}\$`, 'g')
+							});
+						}
+						parsed[key] = {
+							message: item.message || `{{${key}}}`,
+							placeholders: placeholders
+						};
+					}
+					return parsed;
+				}
+	
+				static async loadLang(lang: LANGS) {
+					if (this._loadedLangs[lang]) {
+						return this._loadedLangs[lang];
+					}
+					try {
+						const langData = await this._loadFile(`_locales/${lang}/messages.json`);
+						const parsed = this._parseLang(langData);
+						this._loadedLangs[lang] = parsed;
+						return parsed;
+					} catch(e) {
+						throw e;
+					}
+				}
+	
+				static getLangFile(lang: LANGS): LangFile|undefined {
+					return this._loadedLangs[lang];
+				}
+			}
+	
+			private async _getDefaultLang() {
+				const acceptLangs = await browserAPI.i18n.getAcceptLanguages();
+				if (acceptLangs.indexOf(Lang.DEFAULT_LANG) > -1) return Lang.DEFAULT_LANG;
+	
+				const availableLangs = acceptLangs
+					.filter(i => Lang.SUPPORTED_LANGS.indexOf(i as LANGS) !== -1);
+				return availableLangs[0] || Lang.DEFAULT_LANG;
+			}
+	
+			async fetchLang() {
+				const { lang } = await browserAPI.storage.local.get('lang') as {
+					lang?: LANGS;
+				};
+				if (!lang) {
+					const newLang = await this._getDefaultLang();
+					browserAPI.storage.local.set({
+						lang: newLang
+					});
+					return newLang as LANGS;
+				}
+				return lang;
+			}
+	
+			async getLang() {
+				if (this._lang) return this._lang;
+				return this.fetchLang();
+			}
+	
+			async setLang(lang: LANGS) {
+				await browserAPI.storage.local.set({
+					lang: lang
+				});
+				this.ready = (async () => {
+					this._currentLangFile = await this.Files.loadLang(lang);
+					this._listeners.forEach((listener) => {
+						this._lang = lang;
+						listener.lang = lang;
+						listener.langReady = true;
+					});
+				})();
+			}
+	
+			async langReady(lang: LANGS) {
+				return this.Files.getLangFile(lang) !== undefined;
+			}
+	
+			static readonly INDEX_REGEXPS = [
+				new RegExp(/\$1/g),
+				new RegExp(/\$2/g),
+				new RegExp(/\$3/g),
+				new RegExp(/\$4/g),
+				new RegExp(/\$5/g),
+				new RegExp(/\$6/g),
+				new RegExp(/\$7/g),
+				new RegExp(/\$8/g),
+				new RegExp(/\$9/g)
+			];
+			// Basically the same as __sync but optimistic
+			private _getMessage(key: string, ...replacements: string[]): string {
+				const entryData = this._currentLangFile[key];
+				if (!entryData) return `{{${key}}}`;
+	
+				let { message, placeholders } = entryData;
+				let placeholderContents = placeholders.map(p => p.content);
+				if (!message) return `{{${key}}}`;
+	
+				for (let i = 0; i < replacements.length; i++) {
+					const expr = Lang.INDEX_REGEXPS[i];
+					message = message.replace(expr, replacements[i]);
+					placeholderContents = placeholderContents.map((placeholder) => {
+						return placeholder.replace(expr, replacements[i]);
+					});
+				}
+				for (const { expr, index } of placeholders) {
+					message = message.replace(expr, placeholderContents[index]);
+				}
+				return message;
+			}
+	
+			__sync(key: string, ...replacements: string[]) {
+				if (!this._lang || !this._currentLangFile) return `{{${key}}}`;
+	
+				return this._getMessage( key, ...replacements);
+			}
+	
+			async __(key: string, ...replacements: string[]): Promise<string> {
+				await this.ready;
+				return this._getMessage(key, ...replacements);
+			}
+
+			addListener(fn: {
+				lang: LANGS;
+				langReady: boolean;
+			}) {
+				if (this._listeners.indexOf(fn) !== -1) return;
+
+				this._listeners.push(fn);
+				if (this._lang) {
+					fn.lang = this._lang;
+					if (this.Files.getLangFile(this._lang)) {
+						fn.langReady = true;
+					}
+				}
+			}
+		}
+		const langInstance = new Lang();
+		const boundGetMessage = langInstance.__.bind(langInstance);
+		const __: I18N = ((key: string, ...replacements: string[]) => {
+			return boundGetMessage(key, ...replacements);
+		}) as I18N;
+		__.sync = langInstance.__sync.bind(langInstance);
+		__.getLang = langInstance.getLang.bind(langInstance);
+		__.setLang = langInstance.setLang.bind(langInstance);
+		__.LANGS = LANGS;
+		__.ready = () => langInstance.ready;
+		window.__ = __;
+
+		class ElementI18nManager {
+			static instance = langInstance;
+
+			static __(_lang: string, _langReady: boolean,  
+				key: string, ...replacements: string[]): string {
+					this.instance.addListener(this as any);
+					return this.instance.__sync(key, ...replacements);
+				}
+		}
+
+		return ElementI18nManager;
+	})();
+
+	function addI18nHook(object: any) {
+		object.properties = object.properties || {};
+		object.properties.lang = {
+			type: String,
+			notify: true,
+			value: null
+		};
+		object.properties.langReady = {
+			type: Boolean,
+			notify: true,
+			value: false
+		};
+	}
+
 	const register = (fn: any) => {
-		const objectified = objectify(fn);
+		let objectified = {...fn, ...ElementI18nManager};
 		const prevReady = objectified.ready;
+		addI18nHook(objectified);
+
 		window.Polymer({...objectified, ...{
 			ready(this: Polymer.InitializerProperties & Polymer.PolymerElement) {
 				this.classList.add(`browser-${BrowserAPI.getBrowser()}`);
@@ -416,6 +701,7 @@ export type SharedWindow = Window & {
 			});
 		}
 	}
+
 
 	if (typeof Event !== 'undefined' && location.href.indexOf('background.html') === -1) {
 		window.onExists('Promise').then(() => {

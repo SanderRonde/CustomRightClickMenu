@@ -1636,5 +1636,9 @@ declare namespace CRM {
 				generalError: boolean;		
 			}		
 		};
+		/**
+		 * The language used for this installation (default is en)
+		 */
+		lang?: string;
 	}
 }
