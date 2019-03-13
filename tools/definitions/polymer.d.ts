@@ -33,6 +33,7 @@ import { NeonAnimationBehaviorScaleDownAnimation } from "../../app/elements/util
 import { NeonAnimationBehaviorFadeOutAnimation } from "../../app/elements/util/animations/fade-out-animation/fade-out-animation";
 import { DividerEdit } from "../../app/elements/options/editpages/divider-edit/divider-edit";
 import { PaperDropdownBehaviorBase } from "../../app/elements/options/inputs/paper-dropdown-behavior/paper-dropdown-behavior";
+import { LangSelector } from "../../app/elements/util/lang-selector/lang-selector";
 
 
 
@@ -544,6 +545,7 @@ declare global {
 	type HTMLStylesheetEditElement = CodeEditBehaviorStylesheetInstance;
 	type HTMLSplashScreenElement = SplashScreen;
 	type HTMLAnimatedButtonElement = AnimatedButton;
+	type HTMLLangSelectorElement = LangSelector;
 
 	interface NodeSelector {
 		querySelector<K extends keyof ElementTagNameMaps>(selectors: K): ElementTagNameMaps[K] | null;
