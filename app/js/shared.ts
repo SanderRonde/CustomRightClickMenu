@@ -23,18 +23,19 @@ export interface Prom<T> extends Promise<T> {
 	new <T>(executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void): Prom<T>
 }
 
-enum LANGS {
+export const enum LANGS {
 	EN = 'en'
 };
 
-interface I18N {
+export interface I18N {
 	(key: string, ...replacements: string[]): Promise<string>;
 	sync(key: string, ...replacements: string[]): string;
 
-	getLang(): Promise<string>;
+	getLang(): Promise<LANGS>;
 	setLang(lang: LANGS): Promise<void>;
 	ready(): Promise<void>;
-	LANGS: typeof LANGS;
+	addListener(fn: () => void): void;
+	SUPPORTED_LANGS: LANGS[];
 };
 
 declare global {
@@ -266,19 +267,16 @@ export type SharedWindow = Window & {
 		interface LangFile {
 			[key: string]: LangItem;
 		};
-		enum LANGS {
-			EN = 'en'
-		};
 		class Lang {
 			static readonly DEFAULT_LANG = LANGS.EN;
 			static readonly SUPPORTED_LANGS: LANGS[] = [LANGS.EN];
-			static readonly LANGS = LANGS;
 			private _currentLangFile: LangFile = null;
 			private _lang: LANGS = null;
 			private _listeners: {
 				lang: LANGS;
 				langReady: boolean;
 			}[] = [];
+			private _languageChangeListeners: (() => void)[] = [];
 
 			ready = (async () => {
 				// Load the "current" language
@@ -402,6 +400,8 @@ export type SharedWindow = Window & {
 						this._lang = lang;
 						listener.lang = lang;
 						listener.langReady = true;
+
+						this._languageChangeListeners.forEach(fn => fn());
 					});
 				})();
 			}
@@ -454,7 +454,7 @@ export type SharedWindow = Window & {
 				return this._getMessage(key, ...replacements);
 			}
 
-			addListener(fn: {
+			addLoadListener(fn: {
 				lang: LANGS;
 				langReady: boolean;
 			}) {
@@ -468,6 +468,10 @@ export type SharedWindow = Window & {
 					}
 				}
 			}
+
+			addLanguageChangeListener(fn: () => void) {
+				this._languageChangeListeners.push(fn);
+			}
 		}
 		const langInstance = new Lang();
 		const boundGetMessage = langInstance.__.bind(langInstance);
@@ -477,7 +481,8 @@ export type SharedWindow = Window & {
 		__.sync = langInstance.__sync.bind(langInstance);
 		__.getLang = langInstance.getLang.bind(langInstance);
 		__.setLang = langInstance.setLang.bind(langInstance);
-		__.LANGS = LANGS;
+		__.SUPPORTED_LANGS = Lang.SUPPORTED_LANGS;
+		__.addListener = langInstance.addLanguageChangeListener.bind(langInstance);
 		__.ready = () => langInstance.ready;
 		window.__ = __;
 
@@ -486,7 +491,7 @@ export type SharedWindow = Window & {
 
 			static __(_lang: string, _langReady: boolean,  
 				key: string, ...replacements: string[]): string {
-					this.instance.addListener(this as any);
+					this.instance.addLoadListener(this as any);
 					return this.instance.__sync(key, ...replacements);
 				}
 		}

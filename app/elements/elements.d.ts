@@ -41,6 +41,7 @@
 /// <reference path="./options/type-switcher/type-switcher.ts" />
 /// <reference path="./util/splash-screen/splash-screen.ts" />
 /// <reference path="./util/animated-button/animated-button.ts" />
+/// <reference path="./util/lang-selector/lang-selector.ts" />
 /// <reference path="../js/shared.ts" />
 
 import { CrmApp } from "./options/crm-app/crm-app";

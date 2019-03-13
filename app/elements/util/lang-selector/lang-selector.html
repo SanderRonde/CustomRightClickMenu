@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<dom-module id="lang-selector">
+	<template>
+		<!-- build:css inline ../../../elements/util/lang-selector/lang-selector.css -->
+		<link rel="stylesheet" href="../../elements/util/lang-selector/lang-selector.css"/>
+		<!-- /build -->
+		<div id="floater">
+			<div id="mainBubble">
+				<paper-icon-button icon="translate" on-tap="mainClick"></paper-icon-button>
+			</div>
+			<div id="bubbles">
+				<div id="languageBubbles">
+					<template is="dom-repeat" items="[[langs]]" as="lang">
+						<div class="languageBubble" title="[[lang.name]]" data-code$="[[lang.code]]"
+							selected$="[[lang.selected]]" on-tap="langClick">
+								<img class="languageImage" src="[[lang.url]]" />
+								<paper-ripple></paper-ripple>
+						</div>
+					</template>
+				</div>
+				<div id="addLanguageBubble">
+					<a href="https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=Language+request:" target="_blank">
+						<paper-icon-button title="[[__(lang, langReady, 'langs@selector_requestLanguage')]]" icon="add"></paper-icon-button>
+					</a>
+				</div>
+			</div>
+		</div>
+	</template>
+</dom-module>
+<!-- build:js inline -->
+<script src="lang-selector.js"></script>
+<!-- /build -->

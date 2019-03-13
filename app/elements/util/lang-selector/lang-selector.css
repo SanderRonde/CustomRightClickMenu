@@ -1,0 +1,29 @@
+#floater {
+	position: absolute;
+	right: 0px;
+}
+
+.languageBubble {
+	border-radius: 50%;
+	overflow: hidden;
+	height: 28px;
+	width: 28px;
+	cursor: pointer;
+	position: relative;
+	border: 3px solid transparent;
+	margin-left: 3px;
+}
+
+.languageBubble[selected] {
+	border: 3px solid rgb(97, 160, 255);
+}
+
+#bubbles {
+	transform: translateX(40px);
+	transition: transform 150ms ease-in;
+	overflow: hidden;
+}
+
+#bubbles.expanded {
+	transform: translateX(0);
+}
