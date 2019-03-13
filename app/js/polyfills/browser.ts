@@ -454,6 +454,19 @@ namespace BrowserAPINS {
 				});
 			}
 		} : void 0,
+		i18n: __srcBrowser.i18n ? {
+			getAcceptLanguages(): Promise<string[]> {
+				return createPromise<string[]>((handler) => {
+					__srcBrowser.i18n.getAcceptLanguages(handler);
+				});
+			},
+			getMessage(messageName: string, substitutions?: any): string {
+				return __srcBrowser.i18n.getMessage(messageName, substitutions);
+			},
+			getUILanguage(): string {
+				return __srcBrowser.i18n.getUILanguage();
+			}
+		} : void 0,
 		notifications: __srcBrowser.notifications ? {
 			onClicked: __srcBrowser.notifications.onClicked as Listener<string>,
 			onClosed: __srcBrowser.notifications.onClosed as Listener<string>
