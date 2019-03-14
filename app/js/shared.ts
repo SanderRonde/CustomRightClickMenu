@@ -3,6 +3,7 @@
 import { Polymer } from '../../tools/definitions/polymer';
 
 declare const BrowserAPI: BrowserAPI;
+declare const browserAPI: browserAPI;
 declare const window: SharedWindow;
 
 export interface PromiseConstructor<T = {}> {
