@@ -1,0 +1,18 @@
+{
+	"langs@en": {
+		"message": "English",
+		"description": "The english language"
+	},
+	"langs@selector_current": {
+		"message": "current",
+		"description": "Word to signal this is the currently selected item, example: \"english, current\""
+	},
+	"langs@selector_clickToChangeLanguage": {
+		"message": "Click here to change your language",
+		"description": "Used for a button that will allow you to change your language on click"
+	},
+	"langs@selector_requestLanguage": {
+		"message": "Request a language or consider translating into yours",
+		"description": "Requesting a new language and/or translating into your native one"
+	}
+}
