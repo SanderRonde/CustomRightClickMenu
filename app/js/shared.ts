@@ -373,6 +373,7 @@ export type SharedWindow = Window & {
 			}
 	
 			async fetchLang() {
+				await window.onExists('browserAPI');
 				const { lang } = await browserAPI.storage.local.get('lang') as {
 					lang?: LANGS;
 				};
