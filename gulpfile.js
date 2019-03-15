@@ -16,6 +16,7 @@ const ts = require('gulp-typescript');
 const uglify = require('gulp-uglify');
 const babel = require('gulp-babel');
 const request = require('request');
+const through = require('through2');
 // @ts-ignore
 const xpi = require('firefox-xpi');
 // @ts-ignore
@@ -102,6 +103,138 @@ function writeFile(filePath, data, options) {
 }
 
 /**
+ * Checks whether file with given filePath exists
+ * 
+ * @param {string} filePath - The file to check
+ * 
+ * @returns {Promise<boolean>} A promise that indicates whether
+ * 		the file exists
+ */
+function fileExists(filePath) {
+	return new Promise((resolve) => {
+		fs.access(filePath, fs.constants.R_OK, (err) => {
+			if (err) {
+				resolve(false);
+			} else {
+				resolve(true);
+			}
+		});
+	});
+}
+
+/**
+ * Caches the stream piped into this. If glob is provided,
+ * uses the glob to source a stream from given glob
+ * using cwd if provided, default is ./ (aka project root)
+ * 
+ * @param {string} name - The name of the cache. Used for retrieving it
+ * @param {string|string[]} [glob] - An optional glob pattern(s) to use instead
+ * @param {string} [cwd] - An optional cwd to use
+ * 
+ * @returns {NodeJS.ReadWriteStream} A readwritestream which mimics
+ * 	the piped-in files
+ */
+function cacheStream(name, glob, cwd) {
+	const stream = gulp.dest(`./.buildcache/${name}/`);
+	if (glob) {
+		return gulp.src(glob, {
+			cwd: __dirname
+		}).pipe(stream);
+	}
+	return stream;
+}
+
+/**
+ * Checks if cache with given name exists
+ * 
+ * @param {string} name - The name of the cache to check
+ * 
+ * @returns {boolean} Whether the cache exists
+ */
+function cacheExists(name) {
+	return fs.existsSync(`./.buildcache/${name}`);
+}
+
+/**
+ * Reads the cache and tries to find given cache name.
+ * If it fails, calls fallback and uses it instead
+ * 
+ * @param {string} name - The name of the cache
+ * @param {() => NodeJS.ReadWriteStream} fallback - The fallback to use
+ * 		if the cache is empty
+ * 
+ * @returns {NodeJS.ReadWriteStream} A readwritestream containing
+ * 		either the fallback or the cache data
+ */
+function cache(name, fallback) {
+	if (!(cacheExists(name))) {
+		return fallback().pipe(cacheStream(name));
+	}
+	return gulp.src(`./.buildcache/${name}/**/*`);
+}
+
+/**
+ * Creates an object from a map element
+ * 
+ * @template {any} V
+ * @param {Map<string, V>} map - A map
+ * 
+ * @returns {{[key: string]: V}} The new object
+ */
+function mapToObj(map) {
+	const obj = {};
+	for (const [ key, val ] of map.entries()) {
+		obj[key] = val;
+	}
+	return obj;
+}
+
+/**
+ * Creates a map from an object element
+ * 
+ * @template {any} V
+ * @param {{[key: string]: V}} obj - An object
+ * 
+ * @returns {Map<string, V>} The map
+ */
+function objToMap(obj) {
+	const map = new Map();
+	for (const key in obj) {
+		map.set(key, obj[key]);
+	}
+	return map;
+}
+
+let fileStates = new Map();
+/**
+ * Saves file states of given glob pattern if they don't
+ * exist already. If they do exist, loads them into global
+ * map to be used for comparison
+ * 
+ * @param {string|string[]} glob - A glob or array of globs of files
+ * 		that need to be indexed
+ * @returns {Promise<void>} A promise
+ */
+async function initFileStates(glob) {
+	const FILE_LOCATION = './.buildcache/filestates/states.json';
+	if (await fileExists(FILE_LOCATION)) {
+		fileStates = objToMap(JSON.parse(await readFile(FILE_LOCATION)));
+		return;
+	}
+	await new Promise((resolve, reject) => {
+		gulp.src(glob).pipe(through.obj((file, encoding, callback) => {
+			fileStates.set(file.path, file.stat.mtime.getTime());
+			callback(null, file);
+		})).on('data', () => {}).once('end', () => {
+			resolve();y
+		}).once('error', (e) => {
+			reject(e);
+		});
+	});
+	await writeFile(FILE_LOCATION, JSON.stringify(mapToObj(fileStates)));
+}
+
+/**
  * Read a file
  * 
  * @param {string} filePath - The location to read from
@@ -133,6 +266,11 @@ function readFile(filePath, options) {
 
 /* Convenience tasks */
 (() => {
+	gulp.task(genTask('Cleans the cache',
+		async function cleanCache() {
+			await del('./.buildcache');
+		}))
+
 	gulp.task(genTask('Cleans the /build directory',
 		async function clean() {
 			await del('./build');
@@ -285,56 +423,34 @@ function readFile(filePath, options) {
 			await del('./build');	
 		}, 
 		//Copy from /app to /temp
-		function copyMonacoTempJS() {
-			return gulp
-				.src([
-					'**/**/*.js',
-					'!vs/basic-languages/src/**',
-					'vs/basic-languages/src/css.js',
-					'vs/basic-languages/src/less.js'
-				], {
-					base: 'node_modules/monaco-editor/min',
-					cwd: 'node_modules/monaco-editor/min'
-				})
-				.pipe(uglify())
-				.pipe(gulp.dest('temp/elements/options/editpages/monaco-editor/src/min/'));
-		},
-		function copyMonacoTempNonJs() {
-			return gulp
-				.src([
-					'**/**',
-					'!**/**/*.js',
-					'!vs/basic-languages/src/**'
-				], {
-					base: 'node_modules/monaco-editor/min',
-					cwd: 'node_modules/monaco-editor/min'
-				})
-				.pipe(gulp.dest('temp/elements/options/editpages/monaco-editor/src/min/'));
-		},
 		function copyMonacoJS() {
-			return gulp
-				.src([
-					'**/**/*.js',
-					'!vs/basic-languages/src/**',
-					'vs/basic-languages/src/css.js',
-					'vs/basic-languages/src/less.js'
-				], {
-					base: 'node_modules/monaco-editor/min',
-					cwd: 'node_modules/monaco-editor/min'
-				})
-				.pipe(uglify())
+			return cache('monaco-js', () => {
+				return gulp
+					.src([
+						'**/**/*.js',
+						'!vs/basic-languages/src/**',
+						'vs/basic-languages/src/css.js',
+						'vs/basic-languages/src/less.js'
+					], {
+						base: 'node_modules/monaco-editor/min',
+						cwd: 'node_modules/monaco-editor/min'
+					})
+					.pipe(uglify())
+			}).pipe(gulp.dest('temp/elements/options/editpages/monaco-editor/src/min/'))
 				.pipe(gulp.dest('app/elements/options/editpages/monaco-editor/src/min/'));
 		},
 		function copyMonacoNonJs() {
-			return gulp
-				.src([
-					'**/**',
-					'!**/**/*.js',
-					'!vs/basic-languages/src/**'
-				], {
-					base: 'node_modules/monaco-editor/min',
-					cwd: 'node_modules/monaco-editor/min'
-				})
+			return cache('monaco-non-js', () => {
+				return gulp
+					.src([
+						'**/**',
+						'!**/**/*.js',
+						'!vs/basic-languages/src/**'
+					], {
+						base: 'node_modules/monaco-editor/min',
+						cwd: 'node_modules/monaco-editor/min'
+					})
+			}).pipe(gulp.dest('temp/elements/options/editpages/monaco-editor/src/min/'))
 				.pipe(gulp.dest('app/elements/options/editpages/monaco-editor/src/min/'));
 		},
 		gulp.parallel(

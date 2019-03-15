@@ -282,3 +282,4 @@ tools/moz-api-credentials.js
 app/js/contentscripts/*.js
 resources/buildresources/edge_secrets.json
 package-lock.json
+.buildcache
