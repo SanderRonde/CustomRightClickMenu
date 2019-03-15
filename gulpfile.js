@@ -830,160 +830,161 @@ function readFile(filePath, options) {
 		)
 	);
 
-	const buildDevNoCompile = gulp.series(
-		buildPrePolymer, 
-		async function buildPolymer() {
-			await polymerBuild({
-				project: {
-					entrypoint: [
-						"html/options.html",
-						"html/logging.html",
-						"html/install.html"
-					],
-					sources: ['elements/**'],
-					root: "temp/",
-					extraDependencies: [
-						"html/background.html",
-						"fonts/**/*",
-						'_locales/**/*',
-						"images/**/*",
-						"js/libraries/csslint.js",
-						"js/libraries/jslint.js",
-						"js/libraries/crmapi.d.ts",
-						"js/contentscripts/contentscript.js",
-						"js/libraries/tern/*.*",
-						"icon-large.png",
-						"icon-small.png",
-						"icon-supersmall.png",
-						"LICENSE.txt",
-						"manifest.json"
-					],
-					nonPolymerEntrypoints: [
-						"html/background.html"
-					]
+	gulp.task('buildDevNoCompile', genTask('Builds the extension and attempts to beautify the' + 
+		' code and skips compilation',
+			gulp.series(buildPrePolymer, 
+				async function buildPolymer() {
+					await polymerBuild({
+						project: {
+							entrypoint: [
+								"html/options.html",
+								"html/logging.html",
+								"html/install.html"
+							],
+							sources: ['elements/**'],
+							root: "temp/",
+							extraDependencies: [
+								"html/background.html",
+								"fonts/**/*",
+								'_locales/**/*',
+								"images/**/*",
+								"js/libraries/csslint.js",
+								"js/libraries/jslint.js",
+								"js/libraries/crmapi.d.ts",
+								"js/contentscripts/contentscript.js",
+								"js/libraries/tern/*.*",
+								"icon-large.png",
+								"icon-small.png",
+								"icon-supersmall.png",
+								"LICENSE.txt",
+								"manifest.json"
+							],
+							nonPolymerEntrypoints: [
+								"html/background.html"
+							]
+						},
+						optimization: {
+							bundle: true,
+							js: {
+								compile: true
+							}
+						},
+						dest: './build/'
+					})
 				},
-				optimization: {
-					bundle: true,
-					js: {
-						compile: true
-					}
+				function copyExtraDependencies() {
+					return gulp
+						.src([
+							'./js/crmapi.js',
+							'./js/contentscripts/openusercss.js',
+							'./js/contentscripts/usercss.js',
+							'./js/contentscripts/userstyles.js',
+							'./js/sandbox.js',
+							'./js/libraries/typescript.js',
+							'./js/libraries/less.js',
+							'./js/libraries/stylus.js',
+							'./js/contentscripts/contentscript.js',
+							'./js/polyfills/browser.js'
+						], { 
+							cwd: './temp', 
+							base: './temp' 
+						})
+						.pipe(uglify())
+						.pipe(gulp.dest('./build'));
 				},
-				dest: './build/'
-			})
-		},
-		function copyExtraDependencies() {
-			return gulp
-				.src([
-					'./js/crmapi.js',
-					'./js/contentscripts/openusercss.js',
-					'./js/contentscripts/usercss.js',
-					'./js/contentscripts/userstyles.js',
-					'./js/sandbox.js',
-					'./js/libraries/typescript.js',
-					'./js/libraries/less.js',
-					'./js/libraries/stylus.js',
-					'./js/contentscripts/contentscript.js',
-					'./js/polyfills/browser.js'
-				], { 
-					cwd: './temp', 
-					base: './temp' 
-				})
-				.pipe(uglify())
-				.pipe(gulp.dest('./build'));
-		},
-		buildPostPolymer,
-		async function beautifyJs() {
-			return gulp
-				.src('build/**/*.js')
-				// @ts-ignore
-				.pipe(beautify())
-				.pipe(gulp.dest('./build/'));
-		}
-	); 
+				buildPostPolymer,
+				async function beautifyJs() {
+					return gulp
+						.src('build/**/*.js')
+						// @ts-ignore
+						.pipe(beautify())
+						.pipe(gulp.dest('./build/'));
+				})));
 
-	const buildNoCompile = gulp.series(
-		buildPrePolymer,
-		async function buildPolymer() {
-			await polymerBuild({
-				project: {
-					entrypoint: [
-						"html/options.html",
-						"html/logging.html",
-						"html/install.html"
-					],
-					root: "temp/",
-					extraDependencies: [
-						"html/background.html",
-						"fonts/**/*",
-						"images/**/*",
-						'_locales/**/*',
-						"js/libraries/csslint.js",
-						"js/libraries/jslint.js",
-						"js/libraries/crmapi.d.ts",
-						"js/contentscripts/contentscript.js",
-						"js/libraries/tern/*.*",
-						"icon-large.png",
-						"icon-small.png",
-						"icon-supersmall.png",
-						"LICENSE.txt",
-						"manifest.json"
-					],
-					nonPolymerEntrypoints: [
-						"html/background.html"
-					]
-				},
-				optimization: {
-					bundle: true,
-					js: {
-						compile: true,
-						minify: true
+	gulp.task('buildNoCompile', genTask('Builds the extension and skips compilation',
+		gulp.series(
+			buildPrePolymer,
+			async function buildPolymer() {
+				await polymerBuild({
+					project: {
+						entrypoint: [
+							"html/options.html",
+							"html/logging.html",
+							"html/install.html"
+						],
+						root: "temp/",
+						extraDependencies: [
+							"html/background.html",
+							"fonts/**/*",
+							"images/**/*",
+							'_locales/**/*',
+							"js/libraries/csslint.js",
+							"js/libraries/jslint.js",
+							"js/libraries/crmapi.d.ts",
+							"js/contentscripts/contentscript.js",
+							"js/libraries/tern/*.*",
+							"icon-large.png",
+							"icon-small.png",
+							"icon-supersmall.png",
+							"LICENSE.txt",
+							"manifest.json"
+						],
+						nonPolymerEntrypoints: [
+							"html/background.html"
+						]
 					},
-					css: {
-						minify: true
+					optimization: {
+						bundle: true,
+						js: {
+							compile: true,
+							minify: true
+						},
+						css: {
+							minify: true
+						},
+						html: {
+							minify: true
+						}
 					},
-					html: {
-						minify: true
-					}
-				},
-				dest: './build/'
-			});
-		},
-		function copyExtraDependencies() {
-			return gulp
-				.src([
-					'./js/crmapi.js',
-					'./js/contentscripts/openusercss.js',
-					'./js/contentscripts/usercss.js',
-					'./js/contentscripts/userstyles.js',
-					'./js/libraries/typescript.js',
-					'./js/libraries/less.js',
-					'./js/libraries/stylus.js',
-					'./js/sandbox.js',
-					'./js/contentscripts/contentscript.js',
-					'./js/polyfills/browser.js'
-				], { 
-					cwd: './temp', 
-					base: './temp' 
-				})
-				.pipe(uglify())
-				.pipe(gulp.dest('./build'));
-		},
-		buildPostPolymer,
-		function uglifyFiles() {
-			return gulp
-				.src([
-					'./build/html/entrypointPrefix.js'
-				])
-				.pipe(uglify())
-				.pipe(gulp.dest('./build/html/'));
-		}
-	);
+					dest: './build/'
+				});
+			},
+			function copyExtraDependencies() {
+				return gulp
+					.src([
+						'./js/crmapi.js',
+						'./js/contentscripts/openusercss.js',
+						'./js/contentscripts/usercss.js',
+						'./js/contentscripts/userstyles.js',
+						'./js/libraries/typescript.js',
+						'./js/libraries/less.js',
+						'./js/libraries/stylus.js',
+						'./js/sandbox.js',
+						'./js/contentscripts/contentscript.js',
+						'./js/polyfills/browser.js'
+					], { 
+						cwd: './temp', 
+						base: './temp' 
+					})
+					.pipe(uglify())
+					.pipe(gulp.dest('./build'));
+			},
+			buildPostPolymer,
+			function uglifyFiles() {
+				return gulp
+					.src([
+						'./build/html/entrypointPrefix.js'
+					])
+					.pipe(uglify())
+					.pipe(gulp.dest('./build/html/'));
+			}
+		)));
 
 	gulp.task('buildDev', genTask('Builds the extension and attempts to beautify the code',
-		gulp.series('compile', buildDevNoCompile)));
+		gulp.series('compile', 'buildDevNoCompile')));
 
 	gulp.task('build', genTask('Builds the extension',
-		gulp.series('compile', buildNoCompile)));
+		gulp.series('compile', 'buildNoCompile')));
 
 	gulp.task('buildZip', genTask('Builds the extension and zips it',
 		gulp.series('build', function createZip() {
