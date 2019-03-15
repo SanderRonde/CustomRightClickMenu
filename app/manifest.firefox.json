@@ -15,6 +15,7 @@
 			"strict_min_version": "57.0"
 		}
 	},
+	"default_locale": "en",
 
 	"background": {
 		"page": "html/background.html"

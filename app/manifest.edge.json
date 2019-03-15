@@ -7,6 +7,7 @@
 	"description": "Create a custom right-click menu and choose the links and scripts you want in it.",
 	"version": "2.2.7",
 	"short_name": "CRM-dev",
+	"default_locale": "en",
 
 	"background": {
 		"page": "html/background.html",
