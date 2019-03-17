@@ -1,11 +1,9 @@
 import * as childProcess from 'child_process';
 import * as htmlTypings from 'html-typings';
 import processhtml from 'gulp-processhtml';
-const joinPages = require('./tools/joinPages');
-// import joinPages from './tools/joinPages';
+import { joinPages } from './tools/joinPages';
 import * as Undertaker from 'undertaker';
-const polymerBuild = require('./tools/build');
-// import polymerBuild from './tools/build';
+import { polymerBuild } from './tools/build';
 import StreamZip from 'node-stream-zip';
 import * as ts from 'gulp-typescript';
 import * as uglify from 'gulp-uglify';

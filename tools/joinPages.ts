@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const htmlParser = require('htmlparser');
+import fs from 'fs';
+import path from 'path';
+import htmlParser, { Dom } from 'htmlparser';
 
-function readFile(path) {
+function readFile(path: string): Promise<string> {
 	return new Promise((resolve) => {
 		fs.readFile(path, {
 			encoding: 'utf8'
@@ -16,8 +16,8 @@ function readFile(path) {
 	});
 }
 
-function htmlParseFile(content) {
-	const handler = new htmlParser.DefaultHandler((error, dom) => {
+function htmlParseFile(content: string) {
+	const handler = new htmlParser.DefaultHandler((error) => {
 		if (error) {
 			throw error;
 		}
@@ -27,7 +27,7 @@ function htmlParseFile(content) {
 	return handler.dom;
 }
 
-function getByTagName(parsed, tag) {
+function getByTagName(parsed: Dom, tag: string) {
 	for (let i = 0; i < parsed.length; i++) {
 		if (parsed[i].type === 'tag' && parsed[i].name === tag) {
 			return parsed[i];
@@ -36,27 +36,27 @@ function getByTagName(parsed, tag) {
 	return null;
 }
 
-function reverseString(str) {
+function reverseString(str: string) {
 	return str.split('').reverse().join('');
 }
 
-function findReverse(haystack, needle) {
+function findReverse(haystack: string, needle: string) {
 	return (haystack.length - reverseString(haystack).indexOf(reverseString(needle))) - needle.length;
 }
 
-function getBodyContent(file, parsed) {
+function getBodyContent(file: string, parsed: Dom) {
 	const bodyStart = getByTagName(getByTagName(parsed, 'html').children, 'body');
 	return file.slice(file.indexOf(`${bodyStart.raw}>`) + `${bodyStart.raw}>`.length, 
 		findReverse(file, '</body>'));
 }
 
-function getHeadContent(file, parsed) {
+function getHeadContent(file: string, parsed: Dom) {
 	const headStart = getByTagName(getByTagName(parsed, 'html').children, 'head');
 	return file.slice(file.indexOf(`${headStart.raw}>`) + `${headStart.raw}>`.length, 
 		findReverse(file, '</head>'));
 }
 
-function filterTitle(content) {
+function filterTitle(content: string) {
 	const regex = /<title>\w*<\/title>/g;
 	const title = regex.exec(content);
 	return {
@@ -66,11 +66,18 @@ function filterTitle(content) {
 }
 
 /**
+ * Joins given pages
+ * 
  * @param {Object} options - Options for this config
  * @param {string[]} options.parts - The parts of the pages
  * @param {string} options.dest - The destination to write to
+ * 
+ * @returns {Promise<void>} A promise signaling when it's done
  */
-module.exports = async function (options) {
+export async function joinPages(options: {
+	parts: string[];
+	dest: string;
+}) {
 	if (!options.dest) {
 		throw new Error('Destination missing');
 	}

@@ -1,71 +1,73 @@
-// @ts-ignore
 const babelPresetEs5 = require('babel-plugin-transform-es5-property-mutators');
-const { HtmlSplitter, forkStream, PolymerProject } = require('polymer-build');
-// @ts-ignore
+import { HtmlSplitter, forkStream, PolymerProject } from 'polymer-build';
 const externalHelpers = require('babel-plugin-external-helpers');
-// @ts-ignore
 const babelPreset2015 = require('babel-preset-es2015');
-// @ts-ignore
 const minifyPreset = require('babel-preset-minify');
-// @ts-ignore
 const presetEs3 = require('babel-preset-es3');
-const htmlMinifier = require('html-minifier');
-const mergeStream = require('merge-stream');
-const ProgressBar = require('progress');
-const babelCore = require('babel-core');
-const dest = require('vinyl-fs').dest;
-// @ts-ignore
-const cssSlam = require('css-slam');
-const gulpif = require('gulp-if');
-const stream = require('stream');
-const path = require('path');
+import * as htmlMinifier from 'html-minifier';
+import mergeStream from 'merge-stream';
+import ProgressBar from 'progress';
+import * as babelCore from 'babel-core';
+import { dest } from 'vinyl-fs';
+import cssSlam from 'css-slam';
+import * as gulpif from 'gulp-if';
+import * as stream from 'stream';
+import * as path from 'path';
+
 const babelTransform = babelCore.transform;
-	const es2015Preset = babelPreset2015.buildPreset({}, {
+const es2015Preset = babelPreset2015.buildPreset({}, {
 	modules: false
 });
 
 
-function pipeStreams(streams) {
+function pipeStreams(streams: (NodeJS.ReadWriteStream|NodeJS.ReadWriteStream[])[]): NodeJS.ReadWriteStream {
 	return Array.prototype.concat.apply([], streams)
-		.filter(val => val !== null)
-		.reduce((a, b) => {
+		.filter((val: any) => val !== null)
+		.reduce((a: NodeJS.ReadWriteStream, b: NodeJS.ReadWriteStream) => {
 			return a.pipe(b);
 		});
 }
 
-class GenericOptimizeTransform extends stream.Transform {
-	
-	constructor(optimizerName, optimizer, optimizerOptions) {
-		super({objectMode: true});
-		this.optimizer = optimizer;
-		this.optimizerName = optimizerName;
-		this.optimizerOptions = Object.assign(optimizerOptions || {}, {
-			compact: true	
-		});
-	}
-	
-	_transform(file, _encoding, callback) {
-		if (!file.path || file.path.indexOf('webcomponentsjs/') >= 0 ||
-			file.path.indexOf('webcomponentsjs\\') >= 0) {
-			callback(null, file);
-			return;
-		}
-	
-		if (file.contents) {
-			let contents = file.contents.toString();
-			contents = this.optimizer(contents, this.optimizerOptions);
-			file.contents = Buffer.from(contents);
-		}
-		callback(null, file);
-	}
+interface StreamFile {
+	path: string;
+	contents: Buffer;
 }
 
-class JSBabelTransform extends GenericOptimizeTransform {
-	constructor(config) {
-		const transform = (contents, options) => {
+class GenericOptimizeTransform<T> extends stream.Transform {
+	constructor(public optimizerName: string, 
+		public optimizer: (content: string, options: T) => string, 
+		public optimizerOptions: T = {} as any) {
+		super({objectMode: true});
+	}
+	
+	_transform(file: StreamFile, _encoding: string, 
+		callback: (error: Error|null, file: StreamFile) => void) {
+			if (!file.path || file.path.indexOf('webcomponentsjs/') >= 0 ||
+				file.path.indexOf('webcomponentsjs\\') >= 0) {
+				callback(null, file);
+				return;
+			}
+		
+			if (file.contents) {
+				const contents = file.contents.toString();
+				const stringContents = this.optimizer(contents, this.optimizerOptions);
+				file.contents = Buffer.from(stringContents);
+			}
+			callback(null, file);
+		}
+}
+
+class JSBabelTransform extends GenericOptimizeTransform<{
+	presets: any[];
+	plugins?: any[];
+}> {
+	constructor(config: {
+		presets: any[];
+		plugins?: any[];
+	}) {
+		super('.js', (contents, options) => {
 			return babelTransform(contents, options).code;
-		};
-		super('.js', transform, config);
+		}, config as any);
 	}
 }
 
@@ -78,18 +80,23 @@ class JSDefaultCompileTransform extends JSBabelTransform {
 	}
 }
 
-class HTMLOptimizeTransform extends GenericOptimizeTransform {
-	constructor(options) {
+class HTMLOptimizeTransform extends GenericOptimizeTransform<htmlMinifier.Options> {
+	constructor(options: htmlMinifier.Options) {
 		super('html-minify', htmlMinifier.minify, options);
 	}
 }
 
-class CSSMinifyTransform extends GenericOptimizeTransform {
-	constructor(options) {
-	  super('css-slam', cssSlam.css, options);
+class CSSMinifyTransform extends GenericOptimizeTransform<{
+	stripWhitespace?: boolean;
+}> {
+	constructor(options: {
+		stripWhitespace?: boolean;
+	}) {
+	  super('css-slam', cssSlam.css, options as any);
 	}
   
-	_transform(file, encoding, callback) {
+	_transform(file: StreamFile, encoding: string, 
+		callback: (error: Error|null, file: StreamFile) => void) {
 		// css-slam will only be run if the `stripWhitespace` option is true.
 		// Because css-slam itself doesn't accept any options, we handle the
 		// option here before transforming.
@@ -99,12 +106,17 @@ class CSSMinifyTransform extends GenericOptimizeTransform {
 	}
 }
 
-class InlineCSSOptimizeTransform extends GenericOptimizeTransform {
-	constructor(options) {
+class InlineCSSOptimizeTransform extends GenericOptimizeTransform<{
+	stripWhitespace?: boolean;
+}> {
+	constructor(options: {
+		stripWhitespace?: boolean;
+	}) {
 	  super('css-slam', cssSlam.html, options);
 	}
   
-	_transform(file, encoding, callback) {
+	_transform(file: StreamFile, encoding: string, 
+		callback: (error: Error|null, file: StreamFile) => void) {
 		// css-slam will only be run if the `stripWhitespace` option is true.
 		// Because css-slam itself doesn't accept any options, we handle the
 		// option here before transforming.
@@ -123,16 +135,20 @@ class JSDefaultMinifyTransform extends JSBabelTransform {
 }
 
 /**
- * @param {Object} options - Optimization options
- * @param {Object} [options.css] - CSS optimization options
- * @param {boolean} [options.css.minify] - Whether to minify the css files
- * @param {Object} [options.html] - HTML optimization options
- * @param {boolean} [options.html.minify] - Whether to minify the html files
- * @param {Object} [options.js] - JS optimization options
- * @param {boolean} [options.js.minify] - Whether to minify the js files
- * @param {boolean} [options.js.compile] - Whether to compile the JS files
+ * Generates all optimize streams
  */
-function getOptimizeStreams(options) {
+function getOptimizeStreams(options: {
+	css?: {
+		minify?: boolean;
+	}
+	html?: {
+		minify?: boolean;
+	}
+	js?: {
+		minify?: boolean;
+		compile?: boolean;
+	}
+}): NodeJS.ReadWriteStream[] {
 	options = options || {};
 
 	const streams = [];
@@ -165,12 +181,12 @@ function getOptimizeStreams(options) {
 }
 
 class LoggerStream extends stream.Transform {
-	constructor(bar) {
+	constructor(public bar: ProgressBar) {
 		super({objectMode: true});
-		this.bar = bar;
 	}
 	
-	_transform(file, _encoding, callback) {
+	_transform(file: StreamFile, _encoding: string, 
+		callback: (error: Error|null, file: StreamFile) => void) {
 		if (!this.bar.complete) {
 			this.bar.tick();
 		}
@@ -200,7 +216,31 @@ class LoggerStream extends stream.Transform {
  * @param {boolean} [options.optimization.html.minify] - Whether to minify the HTML
  * @param {string} options.dest - Where to write the files to
  */
-module.exports = async function(options) {
+export async function polymerBuild(options: {
+	project: {
+		entrypoint: string|string[];
+		sources?: string[];
+		root: string;
+		extraDependencies: string[];
+		nonPolymerEntrypoints?: string[];
+	}
+	optimization?: {
+		bundle?: boolean;
+		js?: {
+			compile?: boolean;
+			minify?: boolean;
+		}
+		css?: {
+			compile?: boolean;
+			minify?: boolean;
+		}
+		html?: {
+			compile?: boolean;
+			minify?: boolean;
+		}
+	}
+	dest: string;
+}) {
 	const entrypoints = Array.isArray(options.project.entrypoint) ?
 		options.project.entrypoint : [options.project.entrypoint];
 
@@ -236,8 +276,7 @@ module.exports = async function(options) {
 			buildStream.on('end', () => {
 				resolve();
 			});
-			// @ts-ignore
-			buildStream.on('error', (err) => {
+			buildStream.on('error', () => {
 				reject();
 			});
 		});
