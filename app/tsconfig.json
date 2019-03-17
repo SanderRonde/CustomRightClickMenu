@@ -1,11 +1,10 @@
 {
     "compilerOptions": {
-		"paths": { "*": ["types/*"] },
         "jsx": "react",
         "alwaysStrict": true,
-        "baseUrl": "./tools/definitions/",
+        "baseUrl": "../tools/definitions/",
         "forceConsistentCasingInFileNames": true,
-        "module": "commonjs",
+        "module": "esnext",
         "moduleResolution": "node",
         "noImplicitAny": true,
         "noImplicitThis": true,
@@ -16,14 +15,16 @@
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
         "noUnusedLocals": true,
-        "target": "es6",
+        "target": "es3",
         "noUnusedParameters": true,
-        "experimentalDecorators": true,
-        "allowSyntheticDefaultImports": true
-	},
+        "experimentalDecorators": true
+	}, 
     "allowJs": true,
     "compileOnSave": true,
     "include": [
-        "gulpfile.ts"
+        "./"
+    ],
+    "exclude": [
+        "./js/libraries/crmapi.d.ts"
     ]
 }

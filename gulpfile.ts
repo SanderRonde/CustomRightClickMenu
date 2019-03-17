@@ -1,30 +1,31 @@
-const processhtml = require('gulp-processhtml');
+import * as childProcess from 'child_process';
+import * as htmlTypings from 'html-typings';
+import processhtml from 'gulp-processhtml';
 const joinPages = require('./tools/joinPages');
+// import joinPages from './tools/joinPages';
+import * as Undertaker from 'undertaker';
 const polymerBuild = require('./tools/build');
-const childProcess = require('child_process');
-const StreamZip = require('node-stream-zip');
-const htmlTypings = require('html-typings');
-const beautify = require('gulp-beautify');
-const replace = require('gulp-replace');
-const banner = require('gulp-banner');
-const rename = require('gulp-rename');
-const ts = require('gulp-typescript');
-const uglify = require('gulp-uglify');
-const babel = require('gulp-babel');
-const request = require('request');
-const through = require('through2');
-const xpi = require('firefox-xpi');
-const crisper = require('crisper');
-const mkdirp = require('mkdirp');
-const rollup = require('rollup');
-const zip = require('gulp-zip');
-const chalk = require('chalk');
-const which = require('which');
-const gulp = require('gulp');
-const glob = require('glob');
-const path = require('path');
-const del = require('del');
-const fs = require('fs');
+// import polymerBuild from './tools/build';
+import StreamZip from 'node-stream-zip';
+import * as ts from 'gulp-typescript';
+import * as uglify from 'gulp-uglify';
+import beautify from 'gulp-beautify';
+import replace from 'gulp-replace';
+import banner from 'gulp-banner';
+import rename from 'gulp-rename';
+import * as mkdirp from 'mkdirp';
+import * as rollup from 'rollup';
+import babel from 'gulp-babel';
+import xpi from 'firefox-xpi';
+import crisper from 'crisper';
+import * as gulp from 'gulp';
+import * as glob from 'glob';
+import * as path from 'path';
+import zip from 'gulp-zip';
+import chalk from 'chalk';
+import which from 'which';
+import * as fs from 'fs';
+import del from 'del';
 
 const BANNERS = {
 	html: '<!--Original can be found at https://www.github.com/SanderRonde' +
@@ -35,56 +36,44 @@ const BANNERS = {
 		' style license found in the LICENSE.txt file \n**/\n'
 }
 
+type DescribedFunction = ReturnFunction & {
+	description: string;
+}
+
+type ReturnFunction = (() => void)|(() => Promise<any>)|
+	(() => NodeJS.ReadWriteStream)|Undertaker.TaskFunction;
+
 /**
  * Adds a description to given function
- * 
- * @template T
- * @param {string} description - The description of the task
- * @param {T} [toRun] - The function to execute
- * 
- * @returns {T} The task
  */
-function addDescription(description, toRun) {
-	toRun.description = description;
+function addDescription<T extends ReturnFunction>(description: string, toRun: T): T {
+	(toRun as DescribedFunction).description = description;
 	return toRun;
 }
 
-/**
- * Dictionary with the descriptions for the tasks that registered one
- * 
- * @type {Map<string, string>}
- */
-const descriptions = new Map();
+const descriptions: Map<string, string> = new Map();
 
 /**
  * Generates a root task with given description
  * 	root tasks are meant to be called, contrary to
  *  child tasks which are just there to preserve
  *  structure and to be called for specific reasons.
- * 
- * @template T
- * @param {string} name - The name of the task
- * @param {string} description - The description of the task
- * @param {T} [toRun] - The function to execute
- * 
- * @returns {T} The task
  */
-function genRootTask(name, description, toRun) {
-	if (!toRun && typeof description !== 'string') {
-		console.log(`Missing root task name for task with description ${description}`);
-		process.exit(1);
+function genRootTask<T extends ReturnFunction>(name: string, description: string, 
+	toRun: T): T {
+		if (!toRun && typeof description !== 'string') {
+			console.log(`Missing root task name for task with description ${description}`);
+			process.exit(1);
+		}
+		(toRun as DescribedFunction).description = description;
+		descriptions.set(name, description);
+		return toRun;
 	}
-	toRun.description = description;
-	descriptions.set(name, description);
-	return toRun;
-}
 
 /**
  * Creates a directory
- * 
- * @param {string} dirPath - The path to the dir to create
  */
-function assertDir(dirPath) {
+function assertDir(dirPath: string): Promise<void> {
 	return new Promise((resolve, reject) => {
 		mkdirp(dirPath, (err) => {
 			if (err) {
@@ -98,12 +87,8 @@ function assertDir(dirPath) {
 
 /**
  * Write a file
- * 
- * @param {string} filePath - The location to write to
- * @param {string} data - The data to write
- * @param {{encoding?: 'utf8'}} [options] - Any options
  */
-function writeFile(filePath, data, options) {
+function writeFile(filePath: string, data: string, options?: { encoding?: 'utf8'; }): Promise<void> {
 	return new Promise(async (resolve, reject) => {
 		await assertDir(path.dirname(filePath)).catch((err) => {
 			resolve(err);
@@ -131,42 +116,15 @@ function writeFile(filePath, data, options) {
 }
 
 /**
- * Checks whether file with given filePath exists
- * 
- * @param {string} filePath - The file to check
- * 
- * @returns {Promise<boolean>} A promise that indicates whether
- * 		the file exists
- */
-function fileExists(filePath) {
-	return new Promise((resolve) => {
-		fs.access(filePath, fs.constants.R_OK, (err) => {
-			if (err) {
-				resolve(false);
-			} else {
-				resolve(true);
-			}
-		});
-	});
-}
-
-/**
  * Caches the stream piped into this. If glob is provided,
  * uses the glob to source a stream from given glob
  * using cwd if provided, default is ./ (aka project root)
- * 
- * @param {string} name - The name of the cache. Used for retrieving it
- * @param {string|string[]} [glob] - An optional glob pattern(s) to use instead
- * @param {string} [cwd] - An optional cwd to use
- * 
- * @returns {NodeJS.ReadWriteStream} A readwritestream which mimics
- * 	the piped-in files
  */
-function cacheStream(name, glob, cwd) {
+function cacheStream(name: string, glob?: string | string[], cwd?: string): NodeJS.ReadWriteStream {
 	const stream = gulp.dest(`./.buildcache/${name}/`);
 	if (glob) {
 		return gulp.src(glob, {
-			cwd: __dirname
+			cwd: cwd || __dirname
 		}).pipe(stream);
 	}
 	return stream;
@@ -174,27 +132,16 @@ function cacheStream(name, glob, cwd) {
 
 /**
  * Checks if cache with given name exists
- * 
- * @param {string} name - The name of the cache to check
- * 
- * @returns {boolean} Whether the cache exists
  */
-function cacheExists(name) {
+function cacheExists(name: string): boolean {
 	return fs.existsSync(`./.buildcache/${name}`);
 }
 
 /**
  * Reads the cache and tries to find given cache name.
  * If it fails, calls fallback and uses it instead
- * 
- * @param {string} name - The name of the cache
- * @param {() => NodeJS.ReadWriteStream} fallback - The fallback to use
- * 		if the cache is empty
- * 
- * @returns {NodeJS.ReadWriteStream} A readwritestream containing
- * 		either the fallback or the cache data
  */
-function cache(name, fallback) {
+function cache(name: string, fallback: () => NodeJS.ReadWriteStream): NodeJS.ReadWriteStream {
 	if (!(cacheExists(name))) {
 		return fallback().pipe(cacheStream(name));
 	}
@@ -202,45 +149,10 @@ function cache(name, fallback) {
 }
 
 /**
- * Creates an object from a map element
- * 
- * @template {any} V
- * @param {Map<string, V>} map - A map
- * 
- * @returns {{[key: string]: V}} The new object
- */
-function mapToObj(map) {
-	const obj = {};
-	for (const [key, val] of map.entries()) {
-		obj[key] = val;
-	}
-	return obj;
-}
-
-/**
- * Creates a map from an object element
- * 
- * @template {any} V
- * @param {{[key: string]: V}} obj - An object
- * 
- * @returns {Map<string, V>} The map
- */
-function objToMap(obj) {
-	const map = new Map();
-	for (const key in obj) {
-		map.set(key, obj[key]);
-	}
-	return map;
-}
-
-/**
  * Read a file
- * 
- * @param {string} filePath - The location to read from
- * @param {{encoding?: 'utf8'}} [options] - Any options
  */
-function readFile(filePath, options) {
-	return new Promise((resolve, reject) => {
+function readFile(filePath: string, options?: { encoding?: 'utf8'; }): Promise<string> {
+	return new Promise<string>((resolve, reject) => {
 		if (!options) {
 			fs.readFile(filePath, {
 				encoding: 'utf8'
@@ -256,12 +168,22 @@ function readFile(filePath, options) {
 				if (err) {
 					reject(err);
 				} else {
-					resolve(data);
+					resolve(data.toString());
 				}
 			});
 		}
 	});
 }
+
+// class Tasks {
+// 	static clean = class Clean {
+// 		//Cleans the build cache dir
+// 		static cache = addDescription('Cleans the build cache dir',
+// 			async () => {
+// 				await del('./.buildcache');
+// 			});
+// 	}
+// }
 
 /* Convenience tasks */
 (() => {
@@ -293,6 +215,10 @@ function readFile(filePath, options) {
 		gulp.task('prepareForHotReload.crispComponents', addDescription('Crisps the bower components', () => {
 			return new Promise((resolve, reject) => {
 				glob('./app/bower_components/**/*.html', async (err, matches) => {
+					if (err) {
+						reject(err);
+						return;
+					}
 					await Promise.all([matches.map((file) => {
 						return new Promise(async (resolve) => {
 							const content = await readFile(file);
@@ -309,7 +235,7 @@ function readFile(filePath, options) {
 							]);
 							resolve();
 						});
-					})]);
+					})]).catch(reject);
 					resolve();
 				});
 			});
@@ -407,10 +333,10 @@ function readFile(filePath, options) {
 
 	gulp.task('compile.app', addDescription('Compiles the app/ directory\'s typescript', () => {
 		return new Promise((resolve, reject) => {
-			const project = ts.createProject('tsconfig.json');
+			const project = ts.createProject('app/tsconfig.json');
 			const proj = project.src().pipe(project());
 			proj.once('error', () => {
-				// reject('Error(s) thrown during compilation');
+				reject('Error(s) thrown during compilation');
 			});
 			proj.js.pipe(gulp.dest('./app')).once('end', () => {
 				resolve(null);
@@ -423,7 +349,7 @@ function readFile(filePath, options) {
 			const project = ts.createProject('test/tsconfig.json');
 			const proj = project.src().pipe(project());
 			proj.once('error', () => {
-				// reject('Error(s) thrown during compilation');
+				reject('Error(s) thrown during compilation');
 			});
 			proj.js.pipe(gulp.dest('./test')).once('end', () => {
 				resolve(null);
@@ -442,7 +368,7 @@ function readFile(filePath, options) {
 (() => {
 	function typedocCloned() {
 		return new Promise((resolve) => {
-			fs.stat(path.join(__dirname, 'typedoc', 'package.json'), (err, stat) => {
+			fs.stat(path.join(__dirname, 'typedoc', 'package.json'), (err) => {
 				if (err) {
 					//Doesn't exist yet
 					resolve(false);
@@ -453,28 +379,16 @@ function readFile(filePath, options) {
 		});
 	}
 
-	async function runCmd(cmd, cwd = __dirname) {
+	async function runCmd(cmd: string, cwd: string = __dirname) {
 		return new Promise((resolve, reject) => {
-			const proc = childProcess.exec(cmd, {
+			childProcess.exec(cmd, {
 				cwd: cwd
-			}, (err, stdout, stderr) => {
+			}, (err) => {
 				if (err !== null) {
 					reject(err);
 				} else {
 					resolve();
 				}
-			});
-		});
-	}
-
-	function promisePipe(pipe) {
-		return new Promise((resolve, reject) => {
-			pipe.once('close', () => {
-				console.log('done');
-				resolve();
-			}).on('error', (err) => {
-				console.log(err);
-				reject(err);
 			});
 		});
 	}
@@ -1482,7 +1396,7 @@ function readFile(filePath, options) {
  * 		returns the to-replace string based on the match
  * @returns {Promise<string[]>} - The new array
  */
-async function doReplace(lines, regexp, callback) {
+async function doReplace(lines: string[], regexp: RegExp, callback: (match: RegExpExecArray) => Promise<string>): Promise<string[]> {
 	let match;
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i];
@@ -1520,7 +1434,7 @@ async function joinDefs() {
 	 * @param {string} browser - The name of the browser
 	 * @param {string} dest - The dir to place it in
 	 */
-	function moveBrowser(browser, dest) {
+	function moveBrowser(browser: string, dest: string) {
 		return gulp
 			.src(`./app/manifest.${browser}.json`)
 			.pipe(rename('manifest.json'))
@@ -1542,7 +1456,7 @@ async function joinDefs() {
 	 * 
 	 * @param {string} browser - The name of the browser
 	 */
-	function moveToDist(browser) {
+	function moveToDist(browser: string) {
 		return gulp
 			.src('./**/*', { cwd: './build/', base: './build/' })
 			.pipe(gulp.dest(`./dist/${browser}`));
@@ -1613,11 +1527,8 @@ async function joinDefs() {
 
 	/**
 	 * Move the built files to /dist and create a zip to place in /dist/packed
-	 * 
-	 * @param {string} browser - The browser that is used
-	 * @param {boolean} [replaceName] - Replace the manifest name
 	 */
-	function doMove(browser, replaceName) {
+	function doMove(browser: string, replaceName?: boolean): Undertaker.TaskFunction {
 		const fns = [...replaceName ?
 			[function replaceName() {
 				return replaceShortName();
@@ -1826,13 +1737,13 @@ async function joinDefs() {
 			/**
 			 * @type {{"version": string}}
 			 */
-			const edgeManifest = JSON.parse(await readFile(
+			const edgeManifest: { "version": string; } = JSON.parse(await readFile(
 				'dist/edge/manifest.json'));
 
 			/**
 			 * @type {{"Name": string, "Publisher": string, "PublisherDisplayName": string}}
 			 */
-			const secrets = JSON.parse(await readFile(
+			const secrets: { "Name": string; "Publisher": string; "PublisherDisplayName": string; } = JSON.parse(await readFile(
 				'resources/buildresources/edge_secrets.json'));
 
 			packageManifest = packageManifest
@@ -1866,7 +1777,7 @@ async function joinDefs() {
 	 * 
 	 * @returns {string} The new string
 	 */
-	function repeat(char, amount) {
+	function repeat(char: string, amount: number): string {
 		return new Array(amount).fill(char).join('');
 	}
 
