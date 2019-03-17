@@ -78,7 +78,7 @@ Entering fullscreen mode brings up a hamburger menu on the left (see the image b
 
 If you want to contribute but don't know how to code, you can become a beta tester. If you want to join, send me an email at [awsdfgvhbjn@gmail.com](mailto:awsdfgvhbjn@gmail.com).
 To install the extension for contributing, simply clone this repo, run `yarn --ignore-engines && gulp prepareForHotReload`. This allows you to hot reload any changes by reloading the extension in your browser. Load the extension into your browser from the "app/" folder and you're done. Note that the background page uses modules and as such will only work in chrome >= 66 when hot reloading.
-Run the `gulp updateTsIdMaps && tsc -w` command in order to compile any typescript files in the app/ directory as they are changed. You should be able to have your changes in the app folder be reflected to live instantly by hitting `ctrl/cmd + r` on the options page or clicking "reload" on your browser's extension page.
+Run the `gulp defs && tsc -w` command in order to compile any typescript files in the app/ directory as they are changed. You should be able to have your changes in the app folder be reflected to live instantly by hitting `ctrl/cmd + r` on the options page or clicking "reload" on your browser's extension page.
 
 Tests can be built by running the `yarn pretest` command. `yarn test` will fail generally because by default, browser tests are done remotely on Browserstack which requires an access key. To do the browser tests locally, run a Selenium driver instance of the browser you want to test and run `yarn test-local`. You can run the unit tests (not in a browser environment) locally without a selenium instance by running `yarn test:global`.
 
