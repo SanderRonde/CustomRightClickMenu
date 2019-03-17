@@ -546,14 +546,6 @@ function readFile(filePath, options) {
 				.src('favicon.ico', { cwd: './test/UI/', base: './test/UI/' })
 				.pipe(gulp.dest('./documentation/'));
 		}));
-
-	gulp.task('changeGitIgnore', genRootTask('changeGitIgnore', 
-		'Moves the gitignore for the gh-pages branch to the root', () => {
-			return gulp
-				.src('gh-pages-gitignore.gitignore', { cwd: './tools', base: './tools' })
-				.pipe(rename('.gitignore'))
-				.pipe(gulp.dest('./'));
-		}));
 })();
 
 /* Building the app */
@@ -1470,6 +1462,14 @@ function readFile(filePath, options) {
 	gulp.task('removeBowerComponents', genRootTask('removeBowerComponents',
 		'Removes the app/bower_components folder', async () => {
 			await del('./app/bower_components');
+		}));
+
+	gulp.task('changeGitIgnore', genRootTask('changeGitIgnore', 
+		'Moves the gitignore for the gh-pages branch to the root', () => {
+			return gulp
+				.src('gh-pages-gitignore.gitignore', { cwd: './tools', base: './tools' })
+				.pipe(rename('.gitignore'))
+				.pipe(gulp.dest('./'));
 		}));
 })();
 
