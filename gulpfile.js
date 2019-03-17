@@ -233,35 +233,6 @@ function objToMap(obj) {
 	return map;
 }
 
-let fileStates = new Map();
-/**
- * Saves file states of given glob pattern if they don't
- * exist already. If they do exist, loads them into global
- * map to be used for comparison
- * 
- * @param {string|string[]} glob - A glob or array of globs of files
- * 		that need to be indexed
- * @returns {Promise<void>} A promise
- */
-async function initFileStates(glob) {
-	const FILE_LOCATION = './.buildcache/filestates/states.json';
-	if (await fileExists(FILE_LOCATION)) {
-		fileStates = objToMap(JSON.parse(await readFile(FILE_LOCATION)));
-		return;
-	}
-	await new Promise((resolve, reject) => {
-		gulp.src(glob).pipe(through.obj((file, encoding, callback) => {
-			fileStates.set(file.path, file.stat.mtime.getTime());
-			callback(null, file);
-		})).on('data', () => { }).once('end', () => {
-			resolve();
-		}).once('error', (e) => {
-			reject(e);
-		});
-	});
-	await writeFile(FILE_LOCATION, JSON.stringify(mapToObj(fileStates)));
-}
-
 /**
  * Read a file
  * 
@@ -425,7 +396,6 @@ function readFile(filePath, options) {
 /* Compilation */
 (() => {
 	gulp.task('defs', genRootTask('defs', 'Updates the HTML to Typescript maps', async () => {
-		//TODO: if changed
 		const pattern = '{app/elements/**/*.html,!app/elements/elements.html}';
 		const typings = await htmlTypings.extractGlobTypes(pattern);
 		await writeFile('./app/elements/fileIdMaps.d.ts', typings);
@@ -1311,7 +1281,6 @@ function readFile(filePath, options) {
 
 	gulp.task('build.extraDependencies',
 		addDescription('Copies extra dependencies not already copied by polymer', () => {
-			//TODO: if files changed
 			return gulp
 				.src([
 					'./js/crmapi.js',
