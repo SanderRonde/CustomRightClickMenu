@@ -254,7 +254,7 @@ async function initFileStates(glob) {
 			fileStates.set(file.path, file.stat.mtime.getTime());
 			callback(null, file);
 		})).on('data', () => { }).once('end', () => {
-			resolve(); y
+			resolve();
 		}).once('error', (e) => {
 			reject(e);
 		});
