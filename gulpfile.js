@@ -1224,12 +1224,11 @@ function readFile(filePath, options) {
 					'build.postpolymer.copyWebComponentLibs',
 					'build.postpolymer.copyPrefixJs'
 				),
-				'build.postpolymer.entrypointJS'
-			),
-			//Final operations related to files outside of that folder
-			gulp.parallel(
-				'build.postpolymer.cleanTemp',
-				'build.postpolymer.monaco'
+				'build.postpolymer.entrypointJS',
+				gulp.parallel(
+					'build.postpolymer.cleanTemp',
+					'build.postpolymer.monaco'
+				)
 			)));
 	})();
 
