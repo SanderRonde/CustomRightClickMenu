@@ -1317,7 +1317,7 @@ function readFile(filePath, options) {
 
 	/** Non-dev */
 	(() => {
-		gulp.task('build.nodev.polymer', addDescription('Runs the polymer build command', async () => {
+		gulp.task('build.prod.polymer', addDescription('Runs the polymer build command', async () => {
 			await polymerBuild({
 				project: {
 					entrypoint: [
@@ -1363,7 +1363,7 @@ function readFile(filePath, options) {
 			});
 		}));
 
-		gulp.task('build.nodev.uglify',
+		gulp.task('build.prod.uglify',
 			addDescription('Uglifies the entrypoint prefix', () => {
 				return gulp
 					.src([
@@ -1378,10 +1378,10 @@ function readFile(filePath, options) {
 		'Builds the extension and skips compilation',
 		gulp.series(
 			'build.prepolymer',
-			'build.nodev.polymer',
+			'build.prod.polymer',
 			'build.extraDependencies',
 			'build.postpolymer',
-			'build.nodev.uglify'
+			'build.prod.uglify'
 		)));
 
 	gulp.task('buildDev', genRootTask('buildDev',
