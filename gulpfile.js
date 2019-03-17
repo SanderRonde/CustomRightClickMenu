@@ -277,6 +277,10 @@ function readFile(filePath, options) {
 		await del('./dist');
 	}));
 
+	gulp.task('cleanDist', genRootTask('cleanDist', 'Cleans the /dist directory', gulp.series(
+		'clean.dist'
+	)));
+
 	gulp.task('clean', genRootTask('clean', 'Cleans the building and caching directories',
 		gulp.parallel(
 			'clean.cache',
@@ -406,7 +410,7 @@ function readFile(filePath, options) {
 			const project = ts.createProject('tsconfig.json');
 			const proj = project.src().pipe(project());
 			proj.once('error', () => {
-				reject('Error(s) thrown during compilation');
+				// reject('Error(s) thrown during compilation');
 			});
 			proj.js.pipe(gulp.dest('./app')).once('end', () => {
 				resolve(null);
@@ -419,7 +423,7 @@ function readFile(filePath, options) {
 			const project = ts.createProject('test/tsconfig.json');
 			const proj = project.src().pipe(project());
 			proj.once('error', () => {
-				reject('Error(s) thrown during compilation');
+				// reject('Error(s) thrown during compilation');
 			});
 			proj.js.pipe(gulp.dest('./test')).once('end', () => {
 				resolve(null);
