@@ -1466,6 +1466,11 @@ function readFile(filePath, options) {
 			'buildTest', 
 			'demoWebsite.copy'
 		)));
+
+	gulp.task('removeBowerComponents', genRootTask('removeBowerComponents',
+		'Removes the app/bower_components folder', async () => {
+			await del('./app/bower_components');
+		}));
 })();
 
 /**
