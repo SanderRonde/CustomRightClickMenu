@@ -1,29 +1,30 @@
-import * as childProcess from 'child_process';
-import * as htmlTypings from 'html-typings';
-import processhtml from 'gulp-processhtml';
 import { joinPages } from './tools/joinPages';
 import * as Undertaker from 'undertaker';
 import { polymerBuild } from './tools/build';
+import processhtml from 'gulp-processhtml';
+import childProcess from 'child_process';
 import StreamZip from 'node-stream-zip';
-import * as ts from 'gulp-typescript';
-import * as uglify from 'gulp-uglify';
+import htmlTypings from 'html-typings';
 import beautify from 'gulp-beautify';
+import Undertaker from 'undertaker';
 import replace from 'gulp-replace';
-import banner from 'gulp-banner';
+import ts from 'gulp-typescript';
 import rename from 'gulp-rename';
-import * as mkdirp from 'mkdirp';
-import * as rollup from 'rollup';
+import uglify from 'gulp-uglify';
+import banner from 'gulp-banner';
 import babel from 'gulp-babel';
 import xpi from 'firefox-xpi';
 import crisper from 'crisper';
-import * as gulp from 'gulp';
-import * as glob from 'glob';
-import * as path from 'path';
+import mkdirp from 'mkdirp';
+import rollup from 'rollup';
 import zip from 'gulp-zip';
 import chalk from 'chalk';
 import which from 'which';
-import * as fs from 'fs';
+import gulp from 'gulp';
+import glob from 'glob';
+import path from 'path';
 import del from 'del';
+import fs from 'fs';
 
 const BANNERS = {
 	html: '<!--Original can be found at https://www.github.com/SanderRonde' +

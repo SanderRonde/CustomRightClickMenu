@@ -19,7 +19,8 @@
         "target": "es6",
         "noUnusedParameters": true,
         "experimentalDecorators": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true
 	},
     "allowJs": true,
     "compileOnSave": true,
