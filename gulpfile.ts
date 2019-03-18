@@ -1,5 +1,4 @@
 import { joinPages } from './tools/joinPages';
-import * as Undertaker from 'undertaker';
 import { polymerBuild } from './tools/build';
 import processhtml from 'gulp-processhtml';
 import childProcess from 'child_process';
@@ -18,6 +17,7 @@ import crisper from 'crisper';
 import mkdirp from 'mkdirp';
 import rollup from 'rollup';
 import zip from 'gulp-zip';
+import "reflect-metadata";
 import chalk from 'chalk';
 import which from 'which';
 import gulp from 'gulp';
@@ -35,7 +35,7 @@ const BANNERS = {
 		' style license found in the LICENSE.txt file \n**/\n'
 }
 
-type DescribedFunction = ReturnFunction & {
+type DescribedFunction<T extends ReturnFunction = ReturnFunction> = T & {
 	description: string;
 }
 
@@ -45,9 +45,9 @@ type ReturnFunction = (() => void)|(() => Promise<any>)|
 /**
  * Adds a description to given function
  */
-function addDescription<T extends ReturnFunction>(description: string, toRun: T): T {
-	(toRun as DescribedFunction).description = description;
-	return toRun;
+function addDescription<T extends ReturnFunction>(description: string, toRun: T): DescribedFunction<T> {
+	(toRun as DescribedFunction<T>).description = description;
+	return toRun as DescribedFunction<T>;
 }
 
 const descriptions: Map<string, string> = new Map();
@@ -174,74 +174,122 @@ function readFile(filePath: string, options?: { encoding?: 'utf8'; }): Promise<s
 	});
 }
 
-// class Tasks {
-// 	static clean = class Clean {
-// 		//Cleans the build cache dir
-// 		static cache = addDescription('Cleans the build cache dir',
-// 			async () => {
-// 				await del('./.buildcache');
-// 			});
-// 	}
-// }
+interface TaskStructure {
+	type: 'parallel'|'series';
+	children: (TaskStructure|ReturnFunction)[];
+}
 
-/* Convenience tasks */
-(() => {
-	gulp.task('clean.cache', addDescription('Cleans the build cache dir', async () => {
-		await del('./.buildcache');
-	}));
+function parallel(...tasks: (ReturnFunction|TaskStructure)[]): TaskStructure {
+	return {
+		type: 'parallel',
+		children: tasks
+	}
+}
 
-	gulp.task('clean.build', addDescription('Cleans the /build directory', async () => {
-		await del('./build');
-	}));
+function series(...tasks: (ReturnFunction|TaskStructure)[]): TaskStructure {
+	return {
+		type: 'series',
+		children: tasks
+	}
+}
 
-	gulp.task('clean.dist', addDescription('Cleans the /dist directory', async () => {
-		await del('./dist');
-	}));
+function describe(description: string): MethodDecorator {
+	return (_target, _propertyName, descriptor) => {
+		(descriptor.value as unknown as DescribedFunction).description = description;
+	}
+}
 
-	gulp.task('cleanDist', genRootTask('cleanDist', 'Cleans the /dist directory', gulp.series(
-		'clean.dist'
-	)));
+const taskClassMetaKey = Symbol('task-class');
+function taskClass(name: string): ClassDecorator {
+	return (target) => {
+		Reflect.defineMetadata(taskClassMetaKey, name, target);
+	}
+}
 
-	gulp.task('clean', genRootTask('clean', 'Cleans the building and caching directories',
-		gulp.parallel(
-			'clean.cache',
-			'clean.build',
-			'clean.dist'
-		)));
+const rootTaskMetaKey = Symbol('root-task');
+function rootTask(nameOrDescription: string, description?: string): PropertyDecorator {
+	let name: string = '';
+	if (!description) {
+		description = nameOrDescription;
+	} else {
+		name = nameOrDescription;
+	}
+	return (target, propertyKey) => {
+		Reflect.defineMetadata(rootTaskMetaKey, [name, description], 
+			target, propertyKey);
+	}
+}
 
-	/** prepareForHotReload */
-	(() => {
-		gulp.task('prepareForHotReload.crispComponents', addDescription('Crisps the bower components', () => {
-			return new Promise((resolve, reject) => {
-				glob('./app/bower_components/**/*.html', async (err, matches) => {
-					if (err) {
-						reject(err);
-						return;
-					}
-					await Promise.all([matches.map((file) => {
-						return new Promise(async (resolve) => {
-							const content = await readFile(file);
-							const { name, dir } = path.parse(file);
-							const { html, js } = crisper({
-								jsFileName: `${name}.js`,
-								source: content,
-								scriptInHead: false,
-								cleanup: false
+@taskClass('')
+class Tasks {
+	static clean = (() => {
+		@taskClass('clean')
+		class Clean {
+			@describe('Cleans the build cache dir')
+			static async cache() {
+				await del('./.buildcache');
+			}
+			
+			@describe('Cleans the /build directory')
+			static async build() {
+				await del('./build');
+			}
+			
+			@describe('Cleans the /dist directory')
+			static async dist() {
+				await del('./dist');
+			}
+
+			@rootTask('cleanDist', 'Cleans the /dist directory')
+			static cleanDist = series(
+				Clean.dist
+			);
+
+			@rootTask('Cleans the building and caching directories')
+			static task = parallel(
+				Clean.cache, 
+				Clean.build, 
+				Clean.dist
+			);
+		}
+		return Clean;
+	})();
+
+	static prepareForHotReload = (() => {
+		@taskClass('prepareForHotReload')
+		class PrepareForHotReload {
+			@describe('Crisps the bower components')
+			static crispComponents() {
+				return new Promise((resolve, reject) => {
+					glob('./app/bower_components/**/*.html', async (err, matches) => {
+						if (err) {
+							reject(err);
+							return;
+						}
+						await Promise.all([matches.map((file) => {
+							return new Promise(async (resolve) => {
+								const content = await readFile(file);
+								const { name, dir } = path.parse(file);
+								const { html, js } = crisper({
+									jsFileName: `${name}.js`,
+									source: content,
+									scriptInHead: false,
+									cleanup: false
+								});
+								await Promise.all([
+									writeFile(file, html),
+									writeFile(path.join(dir, `${name}.js`), js),
+								]);
+								resolve();
 							});
-							await Promise.all([
-								writeFile(file, html),
-								writeFile(path.join(dir, `${name}.js`), js),
-							]);
-							resolve();
-						});
-					})]).catch(reject);
-					resolve();
+						})]).catch(reject);
+						resolve();
+					});
 				});
-			});
-		}));
-
-		gulp.task('prepareForHotReload.copyMonacoBeautiful',
-			addDescription('Copies monaco files and beautifies them', () => {
+			};
+	
+			@describe('Copies monaco files and beautifies them')
+			static copyMonacoBeautiful() {
 				return gulp
 					.src([
 						'**/**',
@@ -262,65 +310,166 @@ function readFile(filePath: string, options?: { encoding?: 'utf8'; }): Promise<s
 						'this.target = e.path ? e.path[0] : e.target'))
 					.pipe(beautify())
 					.pipe(gulp.dest('app/elements/options/editpages/monaco-editor/src/min/'));
-			}));
+			};
+	
+			@describe('Embed the typescript compiler')
+			static tsEmbedDev() {
+				return gulp
+					.src('typescript.js', {
+						cwd: './node_modules/typescript/lib',
+						base: './node_modules/typescript/lib'
+					})
+					.pipe(uglify())
+					.pipe(gulp.dest('./app/js/libraries/'))
+			};
+	
+			@describe('Embed the less compiler')
+			static async lessEmbedDev() {
+				const less = await readFile('./resources/buildresources/less.min.js');
+				await writeFile('./app/js/libraries/less.js', less);
+			};
+	
+			@describe('Embed the stylus compiler)')
+			static async stylusEmbedDev() {
+				const stylus = await readFile('./resources/buildresources/stylus.min.js');
+				await writeFile('./app/js/libraries/stylus.js', stylus);
+			};
+	
+			@describe('Embed the CRM API definitions)')
+			static async crmapiLib() {
+				await writeFile('./app/js/libraries/crmapi.d.ts', await joinDefs());
+			};
 
-		gulp.task('prepareForHotReload.tsEmbedDev', addDescription('Embed the typescript compiler', () => {
-			return gulp
-				.src('typescript.js', {
-					cwd: './node_modules/typescript/lib',
-					base: './node_modules/typescript/lib'
-				})
-				.pipe(uglify())
-				.pipe(gulp.dest('./app/js/libraries/'))
-		}));
-
-		gulp.task('prepareForHotReload.lessEmbedDev', addDescription('Embed the less compiler', async () => {
-			const less = await readFile('./resources/buildresources/less.min.js');
-			await writeFile('./app/js/libraries/less.js', less);
-		}));
-
-		gulp.task('prepareForHotReload.stylusEmbedDev', addDescription('Embed the stylus compiler', async () => {
-			const stylus = await readFile('./resources/buildresources/stylus.min.js');
-			await writeFile('./app/js/libraries/stylus.js', stylus);
-		}));
-
-		gulp.task('prepareForHotReload.crmapiLib', addDescription('Embed the CRM API definitions', async () => {
-			await writeFile('./app/js/libraries/crmapi.d.ts', await joinDefs());
-		}));
+			@rootTask('Prepares the extension for hot reloading, developing through ' +
+				'the app/ directory instead and not having to build make sure to run ' +
+				'`yarn install --force` before this')
+			static task = parallel(
+				PrepareForHotReload.crispComponents,
+				PrepareForHotReload.copyMonacoBeautiful,
+				PrepareForHotReload.tsEmbedDev,
+				PrepareForHotReload.lessEmbedDev,
+				PrepareForHotReload.stylusEmbedDev,
+				PrepareForHotReload.crmapiLib
+			)
+		}
+		return PrepareForHotReload;
 	})();
 
-	gulp.task('prepareForHotReload', genRootTask('prepareForHotReload', 'Prepares the extension for hot reloading, ' +
-		'developing through the app/ directory instead and not having to build ' +
-		'make sure to run `yarn install --force` before this',
-		gulp.parallel(
-			'prepareForHotReload.crispComponents',
-			'prepareForHotReload.copyMonacoBeautiful',
-			'prepareForHotReload.tsEmbedDev',
-			'prepareForHotReload.lessEmbedDev',
-			'prepareForHotReload.stylusEmbedDev',
-			'prepareForHotReload.crmapiLib'
-		)));
-
-	gulp.task('disableHotReload', genRootTask('disableHotReload',
-		'Disables hot reloading, required for proper build', () => {
-			return new Promise((resolve, reject) => {
-				which('yarn', (err, cmdPath) => {
-					if (err) {
-						reject(err);
-					} else {
-						const cmd = childProcess.spawn(cmdPath, ['--force']);
-						cmd.on('close', (code) => {
-							if (code !== 0) {
-								reject(`Yarn failed with exit code ${code}`)
-							} else {
-								resolve();
-							}
-						});
-					}
+	static disableHotReload = (() => {
+		@taskClass('disableHotReload')
+		class DisableHotReload {
+			@describe('Disables hot reloading, required for proper build')
+			static disableHotReload() {
+				return new Promise((resolve, reject) => {
+					which('yarn', (err, cmdPath) => {
+						if (err) {
+							reject(err);
+						} else {
+							const cmd = childProcess.spawn(cmdPath, ['--force']);
+							cmd.on('close', (code) => {
+								if (code !== 0) {
+									reject(`Yarn failed with exit code ${code}`)
+								} else {
+									resolve();
+								}
+							});
+						}
+					});
 				});
-			});
-		}));
-})();
+			}
+
+			@rootTask('Disables hot reloading, required for proper build')
+			static task = series(
+				DisableHotReload.disableHotReload
+			)
+		}
+		return DisableHotReload;
+	})();
+
+	
+}
+
+function joinNames(first: string, second: string): string {
+	if (first === '') return second;
+	if (second === '') return first;
+	return `${first}.${second}`;
+}
+
+function getFnProperties<T>(taskTree: T): Partial<T> {
+	const props: Partial<T> = {};
+	for (const key of Object.getOwnPropertyNames(taskTree)) {
+		if (key !== 'length' && key !== 'prototype' &&
+			key !== 'name') {
+				props[key as keyof T] = taskTree[key as keyof T];
+			}
+	}
+	return props;
+}
+
+const fnNames: WeakMap<ReturnFunction, string> = new WeakMap();
+function createBasicTasks(taskTree: any, baseName: string = '') {
+	const currentName = joinNames(baseName, 
+		Reflect.getOwnMetadata(taskClassMetaKey, taskTree));
+	const root = getFnProperties(taskTree);
+
+	for (const key in root) {
+		if (key.startsWith('_')) continue;
+
+		const value = taskTree[key];
+		if (Reflect.getOwnMetadata(taskClassMetaKey, value)) {
+			// Subtree
+			createBasicTasks(value, currentName);
+		} else if (typeof value === 'function') {
+			// Sub-task
+			const taskName = (value as Function).name;
+			const joinedNames = joinNames(currentName, taskName);
+			gulp.task(joinedNames, value);
+			fnNames.set(value, joinedNames);
+		}
+	}
+
+	return taskTree;
+}
+
+function collapseTask(root: TaskStructure): Undertaker.TaskFunction {
+	const fns = root.children.map((child: ReturnFunction|TaskStructure) => {
+		if (typeof child === 'function') {
+			// Regular function, get name
+			return fnNames.get(child);
+		} else {
+			// Task structure
+			return collapseTask(child);
+		}
+	});
+	return root.type === 'parallel' ?
+		gulp.parallel(...fns) : gulp.series(...fns);
+}
+
+function createRootTasks(taskTree: any, baseName: string = '') {
+	const currentName = joinNames(baseName, 
+		Reflect.getOwnMetadata(taskClassMetaKey, taskTree));
+	const root = getFnProperties(taskTree);
+
+	for (const key in root) {
+		if (key.startsWith('_')) continue;
+
+		const value = taskTree[key];
+		if (Reflect.getOwnMetadata(taskClassMetaKey, value)) {
+			// Subtree
+			createRootTasks(value, currentName);
+		} else if (typeof value !== 'function') {
+			// Main task
+			const reflected = Reflect.getOwnMetadata(rootTaskMetaKey,
+				taskTree, key);
+			const [ taskName, description ] = reflected;
+			const joinedName = joinNames(currentName, taskName);
+			gulp.task(joinedName, genRootTask(joinedName, 
+				description, collapseTask(value)));
+		}
+	}
+}
+
+createRootTasks(createBasicTasks(Tasks));
 
 /* Compilation */
 (() => {
