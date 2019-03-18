@@ -284,3 +284,6 @@ resources/buildresources/edge_secrets.json
 package-lock.json
 .buildcache
 gulpfile.js
+
+tools/build.js
+tools/joinPages.js
