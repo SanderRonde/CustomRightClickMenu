@@ -355,28 +355,25 @@ class Tasks {
 		return PrepareForHotReload;
 	})();
 
-	static disableHotReload = (() => {
-		@taskClass('disableHotReload')
-		class DisableHotReload {
-			@describe('Disables hot reloading, required for proper build')
-			static disableHotReload() {
-				return new Promise((resolve, reject) => {
-					which('yarn', (err, cmdPath) => {
-						if (err) {
-							reject(err);
+	@rootTask('Disables hot reloading, required for proper build')
+	static disableHotReload() {
+		return new Promise((resolve, reject) => {
+			which('yarn', (err, cmdPath) => {
+				if (err) {
+					reject(err);
+				} else {
+					const cmd = childProcess.spawn(cmdPath, ['--force']);
+					cmd.on('close', (code) => {
+						if (code !== 0) {
+							reject(`Yarn failed with exit code ${code}`)
 						} else {
-							const cmd = childProcess.spawn(cmdPath, ['--force']);
-							cmd.on('close', (code) => {
-								if (code !== 0) {
-									reject(`Yarn failed with exit code ${code}`)
-								} else {
-									resolve();
-								}
-							});
+							resolve();
 						}
 					});
-				});
-			}
+				}
+			});
+		});
+	}
 
 			@rootTask('Disables hot reloading, required for proper build')
 			static task = series(
