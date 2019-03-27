@@ -419,13 +419,14 @@ function createBasicTasks(taskTree: any, baseName: string = '') {
 		if (Reflect.getOwnMetadata(taskClassMetaKey, value)) {
 			// Subtree
 			createBasicTasks(value, currentName);
-		} else if (typeof value === 'function') {
-			// Sub-task
-			const taskName = (value as Function).name;
-			const joinedNames = joinNames(currentName, taskName);
-			gulp.task(joinedNames, value);
-			fnNames.set(value, joinedNames);
-		}
+		} else if (typeof value === 'function' && 
+			!Reflect.getOwnMetadata(rootTaskMetaKey, value)) {
+				// Sub-task
+				const taskName = (value as Function).name;
+				const joinedNames = joinNames(currentName, taskName);
+				gulp.task(joinedNames, value);
+				fnNames.set(value, joinedNames);
+			}
 	}
 
 	return taskTree;
@@ -457,11 +458,14 @@ function createRootTasks(taskTree: any, baseName: string = '') {
 		if (Reflect.getOwnMetadata(taskClassMetaKey, value)) {
 			// Subtree
 			createRootTasks(value, currentName);
-		} else if (typeof value !== 'function') {
+		} else if (Reflect.getOwnMetadata(rootTaskMetaKey, value)) {
 			// Main task
 			const reflected = Reflect.getOwnMetadata(rootTaskMetaKey,
 				taskTree, key);
-			const [ taskName, description ] = reflected;
+			let [ taskName, description ] = reflected;
+			if (typeof value === 'function') {
+				taskName = taskName || key;
+			}
 			const joinedName = joinNames(currentName, taskName);
 			gulp.task(joinedName, genRootTask(joinedName, 
 				description, collapseTask(value)));
