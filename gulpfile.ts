@@ -1,9 +1,9 @@
+import { extractGlobTypes } from 'html-typings';
 import { joinPages } from './tools/joinPages';
 import { polymerBuild } from './tools/build';
 import processhtml from 'gulp-processhtml';
 import childProcess from 'child_process';
 import StreamZip from 'node-stream-zip';
-import htmlTypings from 'html-typings';
 import beautify from 'gulp-beautify';
 import Undertaker from 'undertaker';
 import replace from 'gulp-replace';
@@ -475,7 +475,7 @@ createRootTasks(createBasicTasks(Tasks));
 (() => {
 	gulp.task('defs', genRootTask('defs', 'Updates the HTML to Typescript maps', async () => {
 		const pattern = '{app/elements/**/*.html,!app/elements/elements.html}';
-		const typings = await htmlTypings.extractGlobTypes(pattern);
+		const typings = await extractGlobTypes(pattern);
 		await writeFile('./app/elements/fileIdMaps.d.ts', typings);
 	}));
 

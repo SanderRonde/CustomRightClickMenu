@@ -5,14 +5,14 @@ const babelPreset2015 = require('babel-preset-es2015');
 const minifyPreset = require('babel-preset-minify');
 const presetEs3 = require('babel-preset-es3');
 import * as htmlMinifier from 'html-minifier';
+import * as babelCore from 'babel-core';
 import mergeStream from 'merge-stream';
 import ProgressBar from 'progress';
-import * as babelCore from 'babel-core';
+import * as stream from 'stream';
 import { dest } from 'vinyl-fs';
 import cssSlam from 'css-slam';
-import * as gulpif from 'gulp-if';
-import * as stream from 'stream';
 import * as path from 'path';
+import gulpif from 'gulp-if';
 
 const babelTransform = babelCore.transform;
 const es2015Preset = babelPreset2015.buildPreset({}, {
@@ -154,13 +154,11 @@ function getOptimizeStreams(options: {
 	const streams = [];
 
 	if (options.js && options.js.compile) {
-		// @ts-ignore
 		streams.push(gulpif(/\.js$/, new JSDefaultCompileTransform()));
 	}
 
 	if (options.html && options.html.minify) {
 		streams.push(gulpif(/\.html$/,
-			// @ts-ignore
 			new HTMLOptimizeTransform(
 				{collapseWhitespace: true, removeComments: true})));
 	}
