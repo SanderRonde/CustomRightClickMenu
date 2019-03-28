@@ -164,14 +164,11 @@ function getOptimizeStreams(options: {
 	}
 	if (options.css && options.css.minify) {
 		streams.push(
-			// @ts-ignore
 			gulpif(/\.css$/, new CSSMinifyTransform({stripWhitespace: true})));
 		streams.push(gulpif(
-			// @ts-ignore
 			/\.html$/, new InlineCSSOptimizeTransform({stripWhitespace: true})));
 	}
 	if (options.js && options.js.minify) {
-		// @ts-ignore
 		streams.push(gulpif(/\.js$/, new JSDefaultMinifyTransform()));
 	}
 	
