@@ -2600,7 +2600,7 @@ export namespace CRMNodes {
 			toUpdate
 		});
 	}
-	export async function updateCRMValues() {
+	async function _assertItemIds() {
 		const crmBefore = JSON.stringify(modules.storages.settingsStorage.crm);
 		await modules.Util.crmForEachAsync(modules.storages.settingsStorage.crm, async (node) => {
 			if (!node.id && node.id !== 0) {
@@ -2608,14 +2608,50 @@ export namespace CRMNodes {
 			}
 		});
 
-		const match = crmBefore === JSON.stringify(modules.storages.settingsStorage.crm);
+		return crmBefore !== JSON.stringify(modules.storages.settingsStorage.crm);
+	}
+	function _assertCRMNodeShape(node: CRM.Node): boolean {
+		let changed = false;
+		if (node.type !== 'menu') {
+			return false;
+		}
+		if (!node.children) {
+			node.children = [];
+			changed = true;
+		}
+		for (let i = node.children.length - 1; i >= 0; i--) {
+			if (!node.children[i]) {
+				// Remove dead children
+				node.children.splice(i, 1);
+				changed = true;
+			}
+		}
+		for (const child of node.children) {
+			// Put the function first to make sure it's executed
+			// even when changed is true
+			changed = _assertCRMNodeShape(child) || changed;
+		}
+		return changed;
+	}
+	function _assertCRMShape(crm: CRM.Tree) {
+		let changed = false;
+		for (let i = 0; i < crm.length; i++) {
+			// Put the function first to make sure it's executed
+			// even when changed is true
+			changed = _assertCRMNodeShape(crm[i]) || changed;
+		}
+		return changed;
+	}
+	export async function updateCRMValues() {
+		let changed = await _assertItemIds();
+		changed = _assertCRMShape(modules.storages.settingsStorage.crm) || changed;
 
 		modules.crm.crmTree = modules.storages.settingsStorage.crm;
 		modules.crm.safeTree = buildSafeTree(modules.storages.settingsStorage.crm);
 		buildNodePaths(modules.crm.crmTree);
 		buildByIdObjects();
 
-		if (!match) {
+		if (changed) {
 			await modules.Storages.uploadChanges('settings', [{
 				key: 'crm',
 				newValue: JSON.parse(JSON.stringify(modules.crm.crmTree)),

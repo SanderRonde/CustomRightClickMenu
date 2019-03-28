@@ -1036,7 +1036,44 @@ namespace CRMAppElement {
 			document.head.appendChild(styleEl);
 		};
 
+		private static _assertCRMNodeShape(this: CrmApp, node: CRM.Node): boolean {
+			let changed = false;
+			if (node.type !== 'menu') {
+				return false;
+			}
+			if (!node.children) {
+				node.children = [];
+				changed = true;
+			}
+			for (let i = node.children.length - 1; i >= 0; i--) {
+				if (!node.children[i]) {
+					// Remove dead children
+					node.children.splice(i, 1);
+					changed = true;
+				}
+			}
+			for (const child of node.children) {
+				// Put the function first to make sure it's executed
+				// even when changed is true
+				changed = this._assertCRMNodeShape(child) || changed;
+			}
+			return changed;
+		}
+
+		private static _assertCRMShape(this: CrmApp, crm: CRM.Tree) {
+			let changed = false;
+			for (let i = 0; i < crm.length; i++) {
+				// Put the function first to make sure it's executed
+				// even when changed is true
+				changed = this._assertCRMNodeShape(crm[i]) || changed;
+			}
+			if (changed) {
+				window.app.upload();
+			}
+		}
+
 		static updateCrmRepresentation(this: CrmApp, crm: CRM.Tree) {
+			this._assertCRMShape(crm);
 			this._setup.orderNodesById(crm);
 			this.crm.buildNodePaths(crm);
 		}
