@@ -482,8 +482,9 @@ class Tasks {
 			return new Promise((resolve, reject) => {
 				childProcess.exec(cmd, {
 					cwd: cwd
-				}, (err) => {
+				}, (err, stdout, stderr) => {
 					if (err !== null) {
+						console.log(stdout, stderr);
 						reject(err);
 					} else {
 						resolve();
