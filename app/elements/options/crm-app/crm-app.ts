@@ -1139,7 +1139,7 @@ namespace CRMAppElement {
 			if (currentWord.length > 0) {
 				logArgs.push(currentWord);
 			}
-			console.log.apply(console, logArgs.concat(styleArgs));
+			console.log.apply(console, [logArgs.join(' ')].concat(styleArgs));
 		}
 
 		private static _getDotValue<T extends {
