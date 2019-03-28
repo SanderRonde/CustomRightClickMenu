@@ -29,8 +29,8 @@ export namespace Init {
 
 	export async function init() {
 		await initModules();
-		await initEverything();
-		after();
+		await initRoutine();
+		setGlobals();
 	}
 
 	function isNode() {
@@ -103,7 +103,7 @@ export namespace Init {
 		initModule(moduleData);
 	}
 
-	async function initEverything() {
+	async function initRoutine() {
 		Info.init();
 
 		window.console.group('Initialization');
@@ -204,7 +204,7 @@ export namespace Init {
 		await modules.globalObject.backgroundPageLoaded;
 	}
 
-	function after() {
+	function setGlobals() {
 		window.logging = modules.globalObject.globals.logging;
 		window.backgroundPageLog = modules.Logging.backgroundPageLog;
 	}
