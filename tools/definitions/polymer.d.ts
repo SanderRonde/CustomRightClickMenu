@@ -76,9 +76,9 @@ export declare namespace Polymer {
 			selected: number;
 		};
 	}
-
+	
 	//Basically an HTMLElement with all queryselector methods set to return null
-	export type RootElement = GlobalEventHandlers & DocumentAndElementEventHandlers & ElementContentEditable & HTMLOrSVGElement & ElementCSSInlineStyle & 
+	type WebcomponentElement = GlobalEventHandlers & DocumentAndElementEventHandlers & ElementContentEditable & HTMLOrSVGElement & ElementCSSInlineStyle & 
 			NonDocumentTypeChildNode & Slotable & Animatable & EventTarget & {
 		accessKey: string;
 		readonly accessKeyLabel: string;
@@ -238,11 +238,13 @@ export declare namespace Polymer {
 		getElementsByClassName(classNames: string): null;
 		getElementsByTagName(name: string): null;
 		getElementsByTagNameNS(namespaceURI: string, localName: string): null;
+	} & ElementBase;
 
+	export type RootElement = WebcomponentElement & {
 		__isAnimationJqueryPolyfill: boolean;
 		disabled: boolean;
 		getRootNode(): ShadowRoot;
-	} & ElementBase;
+	}
 
 	type CustomEventNoPath = {
 		detail: {
