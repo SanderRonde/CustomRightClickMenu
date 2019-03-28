@@ -333,7 +333,7 @@ export type SharedWindow = Window & {
 							placeholders.push({
 								index: placeholders.length,
 								content,
-								expr: new RegExp(`\$${key}\$`, 'g')
+								expr: new RegExp(`\\$${key}\\$`, 'gi')
 							});
 						}
 						parsed[key] = {
