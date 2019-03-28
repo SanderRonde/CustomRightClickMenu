@@ -1132,7 +1132,8 @@ namespace CRMAppElement {
 					} else {
 						logArgs.push(`${currentWord}%c${content}`);
 						styleArgs.push('color: grey;font-weight: bold;');
-						currentWord = '';
+						currentWord = '%c';
+						styleArgs.push('color: white; font-weight: regular');
 					}
 				}
 			}
