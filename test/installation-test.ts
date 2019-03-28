@@ -646,7 +646,7 @@ function doOpenUserCssTest(prefix: () => string|void) {
 		it('should be applied', async function() {
 			this.timeout(600000 * TIME_MODIFIER);
 			this.slow(600000 * TIME_MODIFIER);
-			await driver.get('https://about.gitlab.com/');
+			await driver.get('https://gitlab.com/explore/');
 
 			await wait(5000);
 
