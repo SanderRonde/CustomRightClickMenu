@@ -1,0 +1,47 @@
+{
+	"title": "JSON schema for i18n messages files",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+
+	"type": "object",
+
+	"properties": {
+		"$schema": {
+			"type": "string",
+			"enum": ["../../../resources/locale_schema.json"]
+		}
+	},
+	
+	"additionalProperties": {
+		"title": "The name of the message, used to refer to it",
+		"type": "object",
+		"properties": {
+			"message": {
+				"type": "string",
+				"title": "The value with which the key is replaced"
+			},
+			"description": {
+				"type": "string",
+				"title": "A description of the message's meaning and what it is meant to represent/mean"
+			},
+			"placeholders": {
+				"type": "object",
+				"title": "Placeholders used in this message",
+				"additionalProperties": {
+					"type": "object",
+					"properties": {
+						"content": {
+							"type": "string",
+							"title": "The content with which to replace this placeholder, will be either a regular string or a variation of $1, $2, $3 etc."
+						},
+						"example": {
+							"type": "string",
+							"title": "An example of values for given placeholder"
+						}
+					},
+					"required": ["content"]
+				}
+			}
+		},
+		"required": ["message", "description"]
+	}
+}
