@@ -287,3 +287,4 @@ gulpfile.js
 
 tools/build.js
 tools/joinPages.js
+demo/
