@@ -496,6 +496,16 @@ export type SharedWindow = Window & {
 					this.instance.addLoadListener(this as any);
 					return this.instance.__sync(key, ...replacements);
 				}
+
+			static __async(key: string, ...replacements: string[]): Promise<string> {
+				this.instance.addLoadListener(this as any);
+				return this.instance.__(key, ...replacements);
+			}
+
+			static ___(key: string, ...replacements: string[]): string {
+				this.instance.addLoadListener(this as any);
+				return this.instance.__sync(key, ...replacements);
+			}
 		}
 
 		return ElementI18nManager;

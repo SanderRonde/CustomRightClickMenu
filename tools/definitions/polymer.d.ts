@@ -240,6 +240,15 @@ export declare namespace Polymer {
 		getElementsByTagNameNS(namespaceURI: string, localName: string): null;
 	} & ElementBase;
 
+	interface ElementI18N {
+		lang: string|null;
+		langReady: boolean;
+
+		__(_lang: string, _langReady: boolean, key: string, ...replacements: string[]): string;
+		__async(key: string, ...replacements: string[]): Promise<string>;
+		___(key: string, ...replacements: string[]): string;
+	}
+
 	export type RootElement = WebcomponentElement & {
 		__isAnimationJqueryPolyfill: boolean;
 		disabled: boolean;
