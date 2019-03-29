@@ -515,6 +515,7 @@ class Tasks {
 	
 			console.log('Installing typedoc dependencies (this may take a few minutes)');
 			await runCmd('npm install', cwd);
+			await runCmd('npm install grunt', cwd);
 	
 			console.log('Running post install hook');
 			await runCmd('grunt default --force', cwd);
