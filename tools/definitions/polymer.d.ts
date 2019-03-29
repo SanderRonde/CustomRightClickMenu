@@ -249,7 +249,7 @@ export declare namespace Polymer {
 		___(key: string, ...replacements: string[]): string;
 	}
 
-	export type RootElement = WebcomponentElement & {
+	export type RootElement = WebcomponentElement & ElementI18N & {
 		__isAnimationJqueryPolyfill: boolean;
 		disabled: boolean;
 		getRootNode(): ShadowRoot;
