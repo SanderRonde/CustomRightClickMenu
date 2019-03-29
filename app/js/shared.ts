@@ -321,6 +321,7 @@ export type SharedWindow = Window & {
 	
 					const parsed: LangFile = {};
 					for (const key in rawParsed) {
+						if (key === '$schema' || key === 'comments') continue;
 						const item = rawParsed[key];
 	
 						const placeholders: {

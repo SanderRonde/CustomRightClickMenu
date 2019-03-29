@@ -8,6 +8,9 @@
 		"$schema": {
 			"type": "string",
 			"enum": ["../../../resources/locale_schema.json"]
+		},
+		"comments": {
+			"type": ["object", "array", "string"]
 		}
 	},
 	
