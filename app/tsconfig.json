@@ -25,6 +25,7 @@
         "./"
     ],
     "exclude": [
-        "./js/libraries/crmapi.d.ts"
+        "./js/libraries/crmapi.d.ts",
+        "./bower_components"
     ]
 }
