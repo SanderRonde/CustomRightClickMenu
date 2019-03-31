@@ -478,20 +478,21 @@ class Tasks {
 			});
 		}
 	
-		async function runCmd(cmd: string, cwd: string = __dirname) {
-			return new Promise((resolve, reject) => {
-				childProcess.exec(cmd, {
-					cwd: cwd
-				}, (err, stdout, stderr) => {
-					if (err !== null) {
-						console.log(stdout, stderr);
-						reject(err);
-					} else {
-						resolve();
-					}
+		async function runCmd(cmd: string, cwd: string = __dirname, 
+			allowFailure: boolean = false) {
+				return new Promise((resolve, reject) => {
+					childProcess.exec(cmd, {
+						cwd: cwd
+					}, (err, stdout, stderr) => {
+						if (err !== null && !allowFailure) {
+							console.log(stdout, stderr);
+							reject(err);
+						} else {
+							resolve();
+						}
+					});
 				});
-			});
-		}
+			}
 	
 		async function cloneTypedoc() {
 			let cwd = __dirname;
@@ -505,9 +506,6 @@ class Tasks {
 			const CRMPackage = JSON.parse(await readFile(path.join(__dirname, 'package.json')));
 			const tsVersion = CRMPackage.devDependencies.typescript;
 	
-			console.log('Installing grunt');
-			await runCmd('npm install -g grunt-cli', cwd);
-	
 			console.log('Removing post install hook');
 			const file = await readFile(path.join(__dirname, 'typedoc', 'package.json'));
 			await writeFile(path.join(__dirname, 'typedoc', 'package.json'),
@@ -517,7 +515,7 @@ class Tasks {
 			await runCmd('npm install', cwd);
 	
 			console.log('Running post install hook');
-			await runCmd('grunt default --force', cwd);
+			await runCmd('tsc --project .', cwd, true);
 	
 			console.log('Installing this extension\'s typescript version in cloned typedoc');
 			await runCmd(`npm install --save typescript@${tsVersion}`, cwd);
