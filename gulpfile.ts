@@ -4,6 +4,7 @@ import { polymerBuild } from './tools/build';
 import processhtml from 'gulp-processhtml';
 import childProcess from 'child_process';
 import StreamZip from 'node-stream-zip';
+import * as babel from '@babel/core';
 import beautify from 'gulp-beautify';
 import Undertaker from 'undertaker';
 import replace from 'gulp-replace';
@@ -168,6 +169,21 @@ function readFile(filePath: string, options?: { encoding?: 'utf8'; }): Promise<s
 				}
 			});
 		}
+	});
+}
+
+/**
+ * Delete a file
+ */
+function deleteFile(filePath: string): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		fs.unlink(filePath, (err) =>{
+			if (err) {
+				reject(err);
+			} else {
+				resolve();
+			}
+		});
 	});
 }
 
@@ -461,6 +477,134 @@ class Tasks {
 			})();
 		}
 		return Compilation;
+	})();
+
+	@group('i18n')
+	static I18N = (() => {
+		interface I18NMessage {
+			message: string;
+			description?: string;
+			placeholders?: {
+				[key: string]: {
+					content: string;
+					example?: string;
+				}
+			}
+		}
+
+		type I18NRoot = {
+			[key: string]: I18NRoot|I18NMessage;
+		};
+
+		class I18N {
+			private static _isMessage(descriptor: I18NMessage|I18NRoot): descriptor is I18NMessage {
+				if (!('message' in descriptor)) return false;
+				return typeof descriptor.message === 'string';
+			}
+
+			private static _isIgnored(key: string) {
+				return key === '$schema' || key === 'comments';
+			}
+			
+			private static _normalizeMessages(root: I18NRoot, currentPath: string[], map: {
+				[key: string]: I18NMessage;
+			} = {}) {
+				for (const key in root) {
+					const message = root[key];
+					if (this._isIgnored(key)) continue;
+					if (this._isMessage(message)) {
+						const messageKey = (() => {
+							if (currentPath.length === 0) {
+								// First item, return key by itself
+								return key;
+							}
+							if (currentPath.length === 1) {
+								// Second item, requires only an @ between them
+								return [currentPath[0], key].join('@');
+							}
+							// Requires an @ and dots for the rest
+							return [
+								currentPath.slice(0, 2).join('@'), 
+								...currentPath.slice(2),
+								key
+							].join('_');
+						})();
+						map[messageKey] = message;
+					} else {
+						this._normalizeMessages(message, [...currentPath, key], map);
+					}
+				}
+
+				return map;
+			}
+
+			private static async _compileI18NFile(file: string) {
+				const filecontent = await readFile(file);
+				const result = await babel.transformAsync(filecontent, {
+					plugins: ["@babel/plugin-transform-modules-commonjs"]
+				});
+				const esFile = path.join(path.dirname(file), 
+					`messages.es.${Math.floor(Math.random() * 10000) + ''}.js`);
+				await writeFile(esFile, result.code);
+				const esFilePath = `./${esFile}`;
+				const { Messages } = require(esFilePath);
+				await deleteFile(esFile);
+
+				const normalized = I18N._normalizeMessages(Messages, []);
+				await writeFile(path.join(path.dirname(file), 'messages.json'),
+					JSON.stringify(normalized, null, '\t'));
+			}
+
+			@rootTask('i18n', 'Turns I18N TS files into messages.json files')
+			static async i18n() {
+				return new Promise((resolve, reject) => {
+					glob('./app/_locales/*/messages.js', async (err, matches) => {
+						if (err) {
+							reject();
+							return;
+						}
+						await Promise.all(matches.map(I18N._compileI18NFile));
+						resolve();
+					});
+				});
+			}
+
+			@describe('Turns I18N TS files into messages.json files whenever they change')
+			static watch() {
+				let activeTask: Promise<any> = null;
+				const watcher = gulp.watch('./app/_locales/*/messages.js', () => {
+					activeTask.then(() => {
+						activeTask = null;
+					});
+					return activeTask;
+				});
+				watcher.on('change', (fileName) => {
+					const nextTask = I18N._compileI18NFile(fileName);
+					if (activeTask) {
+						activeTask.then(() => nextTask);
+					} else {
+						activeTask = nextTask;
+					}
+				});
+				watcher.on('add', (fileName) => {
+					const nextTask = I18N._compileI18NFile(fileName);
+					if (activeTask) {
+						activeTask.then(() => nextTask);
+					} else {
+						activeTask = nextTask;
+					}
+				});
+				return watcher;
+			}
+
+			@rootTask('i18n:watch', 
+				'Turns I18N TS files into messages.json files and repeats it whenever they change')
+			static task = series(
+				I18N.i18n,
+				I18N.watch
+			)
+		}
+		return I18N;
 	})();
 
 	@group('documentation-website')
@@ -1434,12 +1578,14 @@ class Tasks {
 					@rootTask('buildDev', 'Builds the extension and attempts to beautify the code')
 					static buildDev = series(
 						Tasks.Compilation.Compile.compile,
+						Tasks.I18N.i18n,
 						Build.buildDevNoCompile
 					)
 
 					@rootTask('build', 'Builds the extension')
 					static build = series(
 						Tasks.Compilation.Compile.compile,
+						Tasks.I18N.i18n,
 						Build.buildNoCompile
 					)
 
