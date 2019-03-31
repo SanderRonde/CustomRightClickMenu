@@ -497,6 +497,24 @@ export type SharedWindow = Window & {
 					this.instance.addLoadListener(this as any);
 					return this.instance.__sync(key, ...replacements);
 				}
+			
+			static __exec(_lang: string, _langReady: boolean,  
+				key: string, ...replacements: (string|((...args: string[]) => string))[]): string {
+					const finalArgs = [];
+					for (let i = 0; i < replacements.length; i++) {
+						const arg = replacements[i];
+						if (typeof arg === 'string') {
+							finalArgs.push(arg);
+						} else if (typeof arg === 'function') {
+							// Use the next N replacements as parameters
+							const result = arg.bind(this)(...replacements.slice(i + 1, i + 1 + arg.length) as string[]);
+							finalArgs.push(result);
+						}
+					}
+					
+					this.instance.addLoadListener(this as any);
+					return this.instance.__sync(key, ...finalArgs);
+				}
 
 			static __async(key: string, ...replacements: string[]): Promise<string> {
 				this.instance.addLoadListener(this as any);
