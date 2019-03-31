@@ -288,3 +288,8 @@ gulpfile.js
 tools/build.js
 tools/joinPages.js
 demo/
+
+app/_locales/*/*.es.js
+app/_locales/*/messages.json
+app/_locales/*/messages.js
+app/_locales/*/*.js
