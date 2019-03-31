@@ -4917,8 +4917,6 @@ namespace CRMAppElement {
 			}|{
 				Aa: HTMLElement[];
 			}|Polymer.CustomEvent, tagName: T): ElementTagNameMaps[T] {
-				console.log('in elementswithtagname');
-				console.log('calling iterate with', event);
 				return this.iteratePath(event, (node) => {
 					if (node && 'tagName' in node && 
 						(node as Polymer.PolymerElement).tagName.toLowerCase() === tagName) {
