@@ -7,12 +7,12 @@ import StreamZip from 'node-stream-zip';
 import beautify from 'gulp-beautify';
 import Undertaker from 'undertaker';
 import replace from 'gulp-replace';
+import gulpBabel from 'gulp-babel';
 import ts from 'gulp-typescript';
 import rename from 'gulp-rename';
 import uglify from 'gulp-uglify';
 import banner from 'gulp-banner';
 import * as rollup from 'rollup';
-import babel from 'gulp-babel';
 import xpi from 'firefox-xpi';
 import crisper from 'crisper';
 import mkdirp from 'mkdirp';
@@ -973,7 +973,7 @@ class Tasks {
 											static options() {
 												return gulp
 													.src('./build/html/options.js')
-													.pipe(babel({
+													.pipe(gulpBabel({
 														compact: false,
 														presets: ['es3', 'es2015']
 													}))
@@ -985,7 +985,7 @@ class Tasks {
 											static logging() {
 												return gulp
 													.src('./build/html/logging.js')
-													.pipe(babel({
+													.pipe(gulpBabel({
 														compact: false,
 														presets: ['es3', 'es2015']
 													}))
@@ -997,7 +997,7 @@ class Tasks {
 											static install() {
 												return gulp
 													.src('./build/html/install.js')
-													.pipe(babel({
+													.pipe(gulpBabel({
 														compact: false,
 														presets: ['es3', 'es2015']
 													}))
@@ -1009,7 +1009,7 @@ class Tasks {
 											static background() {
 												return gulp
 													.src('./build/html/background.js')
-													.pipe(babel({
+													.pipe(gulpBabel({
 														compact: false,
 														presets: ['es3', 'es2015']
 													}))
