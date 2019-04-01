@@ -496,6 +496,7 @@ class Tasks {
 			[key: string]: I18NRoot|I18NMessage;
 		};
 
+		@taskClass('i18n')
 		class I18N {
 			private static _isMessage(descriptor: I18NMessage|I18NRoot): descriptor is I18NMessage {
 				if (!('message' in descriptor)) return false;
@@ -505,40 +506,22 @@ class Tasks {
 			private static _isIgnored(key: string) {
 				return key === '$schema' || key === 'comments';
 			}
-			
-			private static _normalizeMessages(root: I18NRoot, currentPath: string[], map: {
-				[key: string]: I18NMessage;
-			} = {}) {
-				for (const key in root) {
-					const message = root[key];
-					if (this._isIgnored(key)) continue;
-					if (this._isMessage(message)) {
-						const messageKey = (() => {
-							if (currentPath.length === 0) {
-								// First item, return key by itself
-								return key;
-							}
-							if (currentPath.length === 1) {
-								// Second item, requires only an @ between them
-								return [currentPath[0], key].join('@');
-							}
-							// Requires an @ and dots for the rest
-							return [
-								currentPath.slice(0, 2).join('@'), 
-								...currentPath.slice(2),
-								key
-							].join('_');
-						})();
-						map[messageKey] = message;
-					} else {
-						this._normalizeMessages(message, [...currentPath, key], map);
+
+			private static _walkMessages(root: I18NRoot, 
+				fn: (message: I18NMessage, currentPath: string[], key: string) => void,
+				currentPath: string[] = []) {
+					for (const key in root) {
+						const message = root[key];
+						if (this._isIgnored(key)) continue;
+						if (this._isMessage(message)) {
+							fn(message, currentPath, key);
+						} else {
+							this._walkMessages(message, fn, [...currentPath, key]);
+						}
 					}
 				}
 
-				return map;
-			}
-
-			private static async _compileI18NFile(file: string) {
+			private static async _getEsFileExports(file: string) {
 				const filecontent = await readFile(file);
 				const result = await babel.transformAsync(filecontent, {
 					plugins: ["@babel/plugin-transform-modules-commonjs"]
@@ -549,59 +532,340 @@ class Tasks {
 				const esFilePath = `./${esFile}`;
 				const { Messages } = require(esFilePath);
 				await deleteFile(esFile);
-
-				const normalized = I18N._normalizeMessages(Messages, []);
-				await writeFile(path.join(path.dirname(file), 'messages.json'),
-					JSON.stringify(normalized, null, '\t'));
+				return Messages;
 			}
 
-			@rootTask('i18n', 'Turns I18N TS files into messages.json files')
-			static async i18n() {
-				return new Promise((resolve, reject) => {
+			private static getMessageFiles(): Promise<[any, string][]> {
+				return new Promise<[any, string][]>((resolve, reject) => {
 					glob('./app/_locales/*/messages.js', async (err, matches) => {
 						if (err) {
 							reject();
 							return;
 						}
-						await Promise.all(matches.map(I18N._compileI18NFile));
-						resolve();
+						resolve(await Promise.all(matches.map(async (file) => {
+							return [await I18N._getEsFileExports(file), file] as [any, string];
+						})));
 					});
 				});
 			}
 
+			private static _genPath(currentPath: string[], key: string) {
+				if (currentPath.length === 0) {
+					// First item, return key by itself
+					return key;
+				}
+				if (currentPath.length === 1) {
+					// Second item, requires only an @ between them
+					return [currentPath[0], key].join('@');
+				}
+				// Requires an @ and dots for the rest
+				return [
+					currentPath.slice(0, 2).join('@'), 
+					...currentPath.slice(2),
+					key
+				].join('_');
+			}
+
+			static Compile = (() => {
+				@taskClass('compile')
+				class Compile {					
+					private static _normalizeMessages(root: I18NRoot) {
+						const normalized: {
+							[key: string]: I18NMessage;
+						} = {};
+						I18N._walkMessages(root, (message, currentPath, key) => {
+							normalized[I18N._genPath(currentPath, key)] = message;
+						});
+						return normalized;
+					}
+		
+					static async _compileI18NFile(file: string, data?: any) {
+						const normalized = this._normalizeMessages(
+							data || await I18N._getEsFileExports(file));
+						await writeFile(path.join(path.dirname(file), 'messages.json'),
+							JSON.stringify(normalized, null, '\t'));
+					}
+		
+					@describe('Turns I18N TS files into messages.json files')
+					static async compile() {
+						const files = await I18N.getMessageFiles();
+						await files.map(([ data, fileName ]) => {
+							Compile._compileI18NFile(fileName, data);
+						});
+					}
+
+					@describe('Watches for file changes and compiles on change')
+					static async watcher() {
+						let activeTask: Promise<any> = null;
+						const watcher = gulp.watch('./app/_locales/*/messages.js', async () => {
+							let currentTask = activeTask;
+							await activeTask.then(() => {
+								if (activeTask !== currentTask) {
+									return activeTask;
+								} else {
+									activeTask = null;
+									return true;
+								}
+							});
+						});
+						watcher.on('change', (fileName) => {
+							activeTask = (async () => {
+								const fileData = await I18N._getEsFileExports(fileName);
+								await I18N.Compile._compileI18NFile(fileName, fileData);
+							})();
+						});
+						watcher.on('add', (fileName) => {
+							activeTask = (async () => {
+								const fileData = await I18N._getEsFileExports(fileName);
+								await I18N.Compile._compileI18NFile(fileName, fileData);
+							})();
+						});
+						return watcher;
+					}
+
+					@subTask('Compiles, then watches for file changes and compiles on change')
+					static watch = series(
+						Compile.compile,
+						Compile.watcher
+					);
+				}
+				return Compile;
+			})();
+
+			static Defs = (() => {
+				type NestedObject = {
+					[key: string]: string|NestedObject;
+				};
+
+				const I18NMessage = [
+					'interface I18NMessage {',
+					'	message: string;',
+					'	description?: string;',
+					'	placeholders?: {',
+					'		[key: string]: {',
+					'			key: string;',
+					'			example?: string;',
+					'			content: string;',
+					'		}',
+					'	}',
+					'}'
+				].join('\n');
+
+				const marker = 'x'.repeat(50);
+				const readonlyExpr = new RegExp(`"${marker}"`, 'g');
+
+				type Change = {
+					direction: 'forwards'|'backwards';
+					name: string;
+				};
+
+				@taskClass('defs')
+				class Defs {
+					private static async _typeMessages(root: I18NRoot, typed: NestedObject = {}) {
+						I18N._walkMessages(root, (_message, currentPath, finalKey) => {
+							let currentObj = typed;
+							for (const key of currentPath) {
+								if (!(key in currentObj)) {
+									currentObj[key] = {};
+								}
+								currentObj = currentObj[key] as NestedObject;
+							}
+							currentObj[finalKey] = marker;
+						});
+						return typed;
+					}
+
+					@describe('Generates the lang spec from input files, making sure all ' +
+						'fields are represented in all languages')
+					static async genSpec() {
+						const files = await I18N.getMessageFiles();
+						const typed: NestedObject = {};
+						await files.map(([data]) => {
+							return Defs._typeMessages(data, typed);
+						});
+						const spec = JSON.stringify(typed, null, '\t').replace(
+							readonlyExpr, 'I18NMessage');
+						const specFile = `${I18NMessage}\nexport type LocaleSpec = ${spec}`;
+						await writeFile(path.join(__dirname, 'app/_locales/i18n.d.ts'),
+							specFile);
+					}
+
+					private static _getMatches(a: string[], b: string[]): number {
+						let matches: number = 0;
+						for (let i = 0; i < Math.max(a.length, b.length); i++) {
+							if (a[i] === b[i]) {
+								matches++;
+							} else {
+								return matches;
+							}
+						}
+						return matches;
+					}
+					
+					private static _getDiffPath(a: string[], b: string[]): Change[] {
+						let matches = Defs._getMatches(a, b);
+					
+						if (a.length === b.length && matches === a.length) return [];
+						return [
+							...a.slice(matches).reverse().map((item) => {
+								return {
+									direction: 'backwards',
+									name: item
+								} as Change;
+							}),
+							...b.slice(matches).map((item) => {
+								return {
+									direction: 'forwards',
+									name: item
+								} as Change;
+							})
+						]
+					}
+
+					private static _indent(length: number) {
+						return '\t'.repeat(length);
+					}
+
+					static genEnumMessages(root: I18NRoot) {
+						let str: string[] = [];
+						let tree: string[] = [];
+						I18N._walkMessages(root, (_message, currentPath, finalKey) => {
+							const diff = Defs._getDiffPath(tree, currentPath);
+							if (diff.length) {
+								for (let i = 0; i < diff.length; i++) {
+									const change = diff[i];
+									if (change.direction === 'backwards') {
+										str.push(Defs._indent(tree.length - 1) + '}');
+										tree.pop();
+									} else if (i === diff.length - 1) {
+										// Last one, this is an enum instead
+										str.push(Defs._indent(tree.length) + `export const enum ${change.name} {`);
+										tree.push(change.name);
+									} else {
+										str.push(Defs._indent(tree.length) + `export namespace ${change.name} {`);
+										tree.push(change.name);
+									}
+								}
+							} 
+							str.push(`${Defs._indent(tree.length)}"${finalKey}" = '${
+								I18N._genPath(currentPath, finalKey)}',`);
+						});
+						for (let i = 0; i < tree.length; i++) {
+							str.push(Defs._indent(tree.length - 1) + '}');
+						}
+						return `export namespace I18NKeys {\n${
+							str.map(i => Defs._indent(1) + i).join('\n')
+						}\n}`;
+					}
+
+					@describe('Generates enums that can be used to reference some ' +
+						'property in typescript, preventing typos and allowing for ' +
+						'the finding of references')
+					static async genEnums() {
+						const files = await I18N.getMessageFiles();
+						if (files.length === 0) {
+							console.log('No source files to generate enums from');
+							return;
+						}
+						const enums = await Defs.genEnumMessages(files[0][0]);
+						await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
+							enums);
+					}
+
+					@describe('Watches for file changes and updates enums on change')
+					static async watcher() {
+						let activeTask: Promise<any> = null;
+						const watcher = gulp.watch('./app/_locales/*/messages.js', async () => {
+							let currentTask = activeTask;
+							await activeTask.then(() => {
+								if (activeTask !== currentTask) {
+									return activeTask;
+								} else {
+									activeTask = null;
+									return true;
+								}
+							});
+						});
+						watcher.on('change', (fileName) => {
+							activeTask = (async () => {
+								const fileData = await I18N._getEsFileExports(fileName);
+								const enums = await I18N.Defs.genEnumMessages(fileData)
+								await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
+									enums);
+							})();
+						});
+						watcher.on('add', (fileName) => {
+							activeTask = (async () => {
+								const fileData = await I18N._getEsFileExports(fileName);
+								const enums = await I18N.Defs.genEnumMessages(fileData)
+								await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
+									enums);
+							})();
+						});
+						return watcher;
+					}
+
+					@subTask('Gens enums, then watches for file changes and updates enums on change')
+					static watch = series(
+						Defs.genEnums,
+						Defs.watcher
+					)
+				}
+				return Defs;
+			})();
+			
 			@describe('Turns I18N TS files into messages.json files whenever they change')
-			static watch() {
+			static watcher() {
 				let activeTask: Promise<any> = null;
-				const watcher = gulp.watch('./app/_locales/*/messages.js', () => {
-					activeTask.then(() => {
-						activeTask = null;
+				const watcher = gulp.watch('./app/_locales/*/messages.js', async () => {
+					let currentTask = activeTask;
+					await activeTask.then(() => {
+						if (activeTask !== currentTask) {
+							return activeTask;
+						} else {
+							activeTask = null;
+							return true;
+						}
 					});
-					return activeTask;
 				});
 				watcher.on('change', (fileName) => {
-					const nextTask = I18N._compileI18NFile(fileName);
-					if (activeTask) {
-						activeTask.then(() => nextTask);
-					} else {
-						activeTask = nextTask;
-					}
+					activeTask = (async () => {
+						const fileData = await I18N._getEsFileExports(fileName);
+						const [ , enums] = await Promise.all([
+							I18N.Compile._compileI18NFile(fileName, fileData),
+							I18N.Defs.genEnumMessages(fileData)
+						]);
+						await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
+							enums);
+					})();
 				});
 				watcher.on('add', (fileName) => {
-					const nextTask = I18N._compileI18NFile(fileName);
-					if (activeTask) {
-						activeTask.then(() => nextTask);
-					} else {
-						activeTask = nextTask;
-					}
+					activeTask = (async () => {
+						const fileData = await I18N._getEsFileExports(fileName);
+						const [ , enums] = await Promise.all([
+							I18N.Compile._compileI18NFile(fileName, fileData),
+							I18N.Defs.genEnumMessages(fileData)
+						]);
+						await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
+							enums);
+					})();
 				});
 				return watcher;
 			}
 
-			@rootTask('i18n:watch', 
+			@subTask('watch', 
 				'Turns I18N TS files into messages.json files and repeats it whenever they change')
-			static task = series(
-				I18N.i18n,
-				I18N.watch
+			static watch = series(
+				I18N.Compile.compile,
+				I18N.watcher
+			)
+
+			@rootTask('i18n', 
+				'Compiles I18N files and generates spec and enum files')
+			static i18n = series(
+				I18N.Defs.genSpec,
+				I18N.Defs.genEnums,
+				I18N.Compile.compile
 			)
 		}
 		return I18N;

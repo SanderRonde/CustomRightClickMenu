@@ -293,3 +293,6 @@ app/_locales/*/*.es.js
 app/_locales/*/messages.json
 app/_locales/*/messages.js
 app/_locales/*/*.js
+app/_locales/i18n-keys.ts
+app/_locales/i18n-keys.js
+app/_locales/i18n.d.ts

@@ -10,6 +10,7 @@ import { Polymer, ElementTagNameMaps } from '../../../../tools/definitions/polym
 import { CenterElement } from '../../util/center-element/center-element';
 import { PaperToggleOption } from '../inputs/paper-toggle-option/paper-toggle-option';
 import { SCRIPT_CONVERSION_TYPE } from '../../../js/background/sharedTypes';
+import { I18NKeys } from '../../../_locales/i18n-keys';
 
 declare const browserAPI: browserAPI;
 declare const BrowserAPI: BrowserAPI;
@@ -514,7 +515,7 @@ namespace CRMAppElement {
 		static _getPageTitle(this: CrmApp, _lang: any, _langReady: any): string {
 			return this._isDemo() ?
 				'Demo, actual right-click menu does NOT work in demo' :
-				this.___('app_title');
+				this.___(I18NKeys.generic.app_title);
 		}
 
 		static _isOldChrome() {
@@ -590,7 +591,8 @@ namespace CRMAppElement {
 			if (!updatedScript) {
 				return 'Please ignore';
 			}
-			return this.___('crm_app@nodeUpdated', updatedScript.name, updatedScript.oldVersion,
+			return this.___(I18NKeys.crm_app.code.nodeUpdated, 
+				updatedScript.name, updatedScript.oldVersion,
 				updatedScript.newVersion);
 		};
 
@@ -620,9 +622,9 @@ namespace CRMAppElement {
 
 		static _getDisabledReason(this: CrmApp) {
 			if (!this._supportsStorageSync()) {
-				return this.___('crm_app@options_useStorageSync_disabled_unavailable')
+				return this.___(I18NKeys.crm_app.options.useStorageSyncDisabledUnavailable);
 			} else {
-				return this.___('crm_app@options_useStorageSync_disabled_tooBig')
+				return this.___(I18NKeys.crm_app.options.useStorageSyncDisabledTooBig);
 			}
 		}
 
@@ -1124,7 +1126,7 @@ namespace CRMAppElement {
 
 			//Reset regedit part
 			window.doc.URISchemeFilePath.value = 'C:\\files\\my_file.exe';
-			window.doc.URISchemeSchemeName.value = this.___('crm_app@uriScheme_example');
+			window.doc.URISchemeSchemeName.value = this.___(I18NKeys.crm_app.uriScheme.example);
 
 			//Hide all open dialogs
 			Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
@@ -1672,7 +1674,7 @@ namespace CRMAppElement {
 			browserAPI.runtime.onInstalled.addListener(async (details) => {
 				if (details.reason === 'update') {
 					//Show a little message
-					this.$.messageToast.text = this.___('crm_app@extensionUpdated',
+					this.$.messageToast.text = this.___(I18NKeys.crm_app.code.extensionUpdated,
 						(await browserAPI.runtime.getManifest()).version);
 					this.$.messageToast.show();
 				}
@@ -2288,7 +2290,7 @@ namespace CRMAppElement {
 					});
 
 					const toast = window.doc.updatedSettingsToast;
-					toast.text = this.parent().___('crm_app@settingsUpdated',
+					toast.text = this.parent().___('crm_app@code_settingsUpdated',
 						new Date(versionData.latest.date).toLocaleDateString());
 					toast.show();
 				}
@@ -2386,11 +2388,11 @@ namespace CRMAppElement {
 								}, 500);
 
 								if (BrowserAPI.getBrowser() === 'edge') {
-									console.log(this.parent().___('crm_app@hiMessage'));
+									console.log(this.parent().___('crm_app@code_hiMessage'));
 								} else {
-									console.log(`%c${this.parent().___('crm_app@hiMessage')}`, 'font-size:120%;font-weight:bold;');
+									console.log(`%c${this.parent().___('crm_app@code_hiMessage')}`, 'font-size:120%;font-weight:bold;');
 								}
-								console.log(this.parent().___('crm_app@consoleInfo'));
+								console.log(this.parent().___('crm_app@code_consoleInfo'));
 							}, 200);
 
 							window.CRMLoaded = window.CRMLoaded || {
@@ -3544,7 +3546,7 @@ namespace CRMAppElement {
 				if (browserAPI.permissions) {
 					await this.parent()._requestPermissions([], true);
 				} else {
-					window.app.util.showToast(this.parent().___('crm_app@permissionsNotSupported'));
+					window.app.util.showToast(this.parent().___('crm_app@code_permissionsNotSupported'));
 				}
 			};
 
@@ -3607,7 +3609,7 @@ namespace CRMAppElement {
 				}
 
 				if (!(BrowserAPI.getSrc().permissions)) {
-					window.app.util.showToast(this.parent().___('crm_app@downloadNotSupported'));
+					window.app.util.showToast(this.parent().___('crm_app@code_downloadNotSupported'));
 					callback(false);
 					return;
 				}
@@ -3655,7 +3657,7 @@ namespace CRMAppElement {
 								filename: schemeName + '.reg'
 							});
 						} else {
-							window.app.util.showToast(this.parent().___('crm_app@downloadNotSupported'));
+							window.app.util.showToast(this.parent().___('crm_app@code_downloadNotSupported'));
 						}
 					}
 				});
@@ -3774,7 +3776,7 @@ namespace CRMAppElement {
 						return;
 					}
 				}
-				this.parent().util.showToast(this.parent().___('crm_app@importSuccess'));
+				this.parent().util.showToast(this.parent().___('crm_app@code_importSuccess'));
 			};
 
 			static exportData() {
@@ -5099,7 +5101,7 @@ namespace CRMAppElement {
 
 			private static _editNodeFromClick(node: CRM.Node) {
 				if (window.app.item) {
-					window.app.$.messageToast.text = this.parent().___('crm_app@alreadyEditingNode');
+					window.app.$.messageToast.text = this.parent().___('crm_app@code_alreadyEditingNode');
 					window.app.$.messageToast.show();
 				} else {
 					const elements = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item');
@@ -5156,7 +5158,7 @@ namespace CRMAppElement {
 						if (window.app.storageLocal.editCRMInRM) {
 							this._editNodeFromClick(node);
 						} else {
-							window.app.$.messageToast.text = this.parent().___('crm_app@wouldExecuteScript');
+							window.app.$.messageToast.text = this.parent().___('crm_app@code_wouldExecuteScript');
 							window.app.$.messageToast.show();
 						}
 					},
@@ -5177,7 +5179,7 @@ namespace CRMAppElement {
 						if (window.app.storageLocal.editCRMInRM) {
 							this._editNodeFromClick(node);
 						} else {
-							window.app.$.messageToast.text = this.parent().___('crm_app@wouldExecuteStylesheet');
+							window.app.$.messageToast.text = this.parent().___('crm_app@code_wouldExecuteStylesheet');
 							window.app.$.messageToast.show();
 						}
 					},
@@ -5205,7 +5207,7 @@ namespace CRMAppElement {
 						if (window.app.storageLocal.editCRMInRM) {
 							this._editNodeFromClick(node);
 						} else {
-							window.app.$.messageToast.text = this.parent().___('crm_app@wouldExecuteStylesheet');
+							window.app.$.messageToast.text = this.parent().___('crm_app@code_wouldExecuteStylesheet');
 							thisEl.parentElement.classList.add('forcedVisible');
 							
 							timer && window.clearTimeout(timer);
