@@ -252,6 +252,8 @@ export async function polymerBuild(options: {
 			const depsStream = forkStream(project.dependencies());
 			const splitter = new HtmlSplitter();
 
+			let consoleError = console.error;
+			console.error = () => {};
 			let buildStream = pipeStreams([
 				mergeStream(sourcesStream, depsStream),
 				new LoggerStream(bar),
@@ -269,9 +271,11 @@ export async function polymerBuild(options: {
 			]);
 
 			buildStream.on('end', () => {
+				console.error = consoleError;
 				resolve();
 			});
 			buildStream.on('error', () => {
+				console.error = consoleError;
 				reject();
 			});
 		});
