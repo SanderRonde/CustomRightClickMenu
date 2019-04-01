@@ -66,7 +66,9 @@ class JSBabelTransform extends GenericOptimizeTransform<{
 		plugins?: any[];
 	}) {
 		super('.js', (contents, options) => {
-			return babelTransform(contents, options).code;
+			return babelTransform(contents, {...options, ...{
+				compact: false
+			}}).code;
 		}, config as any);
 	}
 }
@@ -82,7 +84,9 @@ class JSDefaultCompileTransform extends JSBabelTransform {
 
 class HTMLOptimizeTransform extends GenericOptimizeTransform<htmlMinifier.Options> {
 	constructor(options: htmlMinifier.Options) {
-		super('html-minify', htmlMinifier.minify, options);
+		super('html-minify', htmlMinifier.minify, {...options, ...{
+			compact: false
+		}});
 	}
 }
 
@@ -92,7 +96,9 @@ class CSSMinifyTransform extends GenericOptimizeTransform<{
 	constructor(options: {
 		stripWhitespace?: boolean;
 	}) {
-	  super('css-slam', cssSlam.css, options as any);
+	  super('css-slam', cssSlam.css, {...options, ...{
+		compact: false
+	}} as any);
 	}
   
 	_transform(file: StreamFile, encoding: string, 
@@ -112,7 +118,9 @@ class InlineCSSOptimizeTransform extends GenericOptimizeTransform<{
 	constructor(options: {
 		stripWhitespace?: boolean;
 	}) {
-	  super('css-slam', cssSlam.html, options);
+	  super('css-slam', cssSlam.html, {...options, ...{
+		compact: false
+	}});
 	}
   
 	_transform(file: StreamFile, encoding: string, 
@@ -252,8 +260,6 @@ export async function polymerBuild(options: {
 			const depsStream = forkStream(project.dependencies());
 			const splitter = new HtmlSplitter();
 
-			let consoleError = console.error;
-			console.error = () => {};
 			let buildStream = pipeStreams([
 				mergeStream(sourcesStream, depsStream),
 				new LoggerStream(bar),
@@ -271,11 +277,9 @@ export async function polymerBuild(options: {
 			]);
 
 			buildStream.on('end', () => {
-				console.error = consoleError;
 				resolve();
 			});
 			buildStream.on('error', () => {
-				console.error = consoleError;
 				reject();
 			});
 		});
