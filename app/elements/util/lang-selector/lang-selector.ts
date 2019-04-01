@@ -36,7 +36,7 @@ namespace LangSelectorElement {
 			const currentLang = this._lang;
 
 			this.langs = await Promise.all(availableLangs.map(async (lang) => {
-				const baseName = await window.__(`langs@${lang}`);
+				const baseName = await window.__(`langs@languages_${lang}`);
 				return {
 					name: lang === currentLang ?
 						`${baseName} (${lang}, ${await window.__('langs@selector_current')})` :

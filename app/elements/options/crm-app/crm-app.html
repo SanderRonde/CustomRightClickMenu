@@ -261,14 +261,14 @@
 							<paper-toggle-option id="recoverUnsavedData">
 								[[__(lang, langReady, 'crm_app@options_recoverUnsavedData')]]
 							</paper-toggle-option>
-							<paper-toggle-option id="CRMOnPage" showmessage disabledreason="[[__(lang, langReady, 'crm_app@options_CRMOnPage_disabled')]]">
-								[[__(lang, langReady, 'crm_app@options_CRMOnPage_option')]]
+							<paper-toggle-option id="CRMOnPage" showmessage disabledreason="[[__(lang, langReady, 'crm_app@options_CRMOnPageDisabled')]]">
+								[[__(lang, langReady, 'crm_app@options_CRMOnPageOption')]]
 							</paper-toggle-option>
 							<paper-toggle-option id="editCRMInRM">
 								[[__(lang, langReady, 'crm_app@options_editCRMInRM')]]
 							</paper-toggle-option>
 							<paper-toggle-option id="useStorageSync" disabledreason="[[_getDisabledReason()]]">
-								[[__(lang, langReady, 'crm_app@options_useStorageSync_option')]]
+								[[__(lang, langReady, 'crm_app@options_useStorageSyncOption')]]
 								<span style$="{{_getSettingsJsonLengthColor(settingsJsonLength)}}">{{_placeCommas(settingsJsonLength)}}</span>/102,400 bytes
 							</paper-toggle-option>
 							<paper-button on-tap="domListener" data-on-tap="showManagePermissions" raised class="blue">[[__(lang, langReady, 'crm_app@options_managePermissions')]]</paper-button>
@@ -328,29 +328,29 @@
 					<br /><br />
 					<div class="importSettingsCont">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@import_header')]]
+							[[__(lang, langReady, 'crm_app@importing_header')]]
 						</div>
 						<div class="importDescr">
-							[[__(lang, langReady, 'crm_app@import_description')]]
+							[[__(lang, langReady, 'crm_app@importing_description')]]
 						</div>
 						<div class="importSettings">
 							<textarea rows="10" id="importSettingsInput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
 							<span id="importSettingsError">
-								[[__(lang, langReady, 'crm_app@import_error')]]
+								[[__(lang, langReady, 'crm_app@importing_error')]]
 							</span>
 						</div>
-						<paper-checkbox title="[[__(lang, langReady, 'crm_app@import_overwriteTitle')]]" checked id="overWriteImport">[[__(lang, langReady, 'crm_app@import_overwrite')]]</paper-checkbox>
-						<paper-checkbox title="[[__(lang, langReady, 'crm_app@import_legacyTitle')]]" id="oldCRMImport">[[__(lang, langReady, 'crm_app@import_legacy')]]</paper-checkbox>
+						<paper-checkbox title="[[__(lang, langReady, 'crm_app@importing_overwriteTitle')]]" checked id="overWriteImport">[[__(lang, langReady, 'crm_app@importing_overwrite')]]</paper-checkbox>
+						<paper-checkbox title="[[__(lang, langReady, 'crm_app@importing_legacyTitle')]]" id="oldCRMImport">[[__(lang, langReady, 'crm_app@importing_legacy')]]</paper-checkbox>
 						<br />
-						<animated-button class="blue" cooldown raised id="importButton" tap="domListener" data-on-click="importData" content="[[__(lang, langReady, 'crm_app@import_import')]]"></animated-button>
+						<animated-button class="blue" cooldown raised id="importButton" tap="domListener" data-on-click="importData" content="[[__(lang, langReady, 'crm_app@importing_import')]]"></animated-button>
 					</div>
 					<br /><br />
 					<div class="exportSettingsCont">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@export_header')]]
+							[[__(lang, langReady, 'crm_app@exporting_header')]]
 						</div>
 						<div class="exportDescr">
-							[[__(lang, langReady, 'crm_app@export_description')]]
+							[[__(lang, langReady, 'crm_app@exporting_description')]]
 						</div>
 						<div class="exportSettings">
 							<center-element id="exportSettingsSpinner" nostyle hide>
@@ -359,17 +359,17 @@
 										<paper-spinner active></paper-spinner>
 									</div>
 									<div>
-										[[__(lang, langReady, 'crm_app@export_waiting')]]
+										[[__(lang, langReady, 'crm_app@exporting_waiting')]]
 									</div>
 								</div>
 							</center-element>
 							<textarea rows="10" id="exportSettingsOutput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
 						</div>
-						<paper-checkbox checked id="exportCRM">[[__(lang, langReady, 'crm_app@export_exportCRM')]]</paper-checkbox>
-						<paper-checkbox checked id="exportSettings">[[__(lang, langReady, 'crm_app@export_exportSettings')]]</paper-checkbox>
+						<paper-checkbox checked id="exportCRM">[[__(lang, langReady, 'crm_app@exporting_exportCRM')]]</paper-checkbox>
+						<paper-checkbox checked id="exportSettings">[[__(lang, langReady, 'crm_app@exporting_exportSettings')]]</paper-checkbox>
 						<paper-icon-button id="exportCopyButton" icon="content-copy" title="copy to clipboard" on-tap="domListener" data-on-tap="copyExportToClipboard"></paper-icon-button>
 						<br/>
-						<animated-button cooldown class="blue" raised id="exportButton" tap="domListener" data-on-click="exportData" content="[[__(lang, langReady, 'crm_app@export_export')]]"></animated-button>
+						<animated-button cooldown class="blue" raised id="exportButton" tap="domListener" data-on-click="exportData" content="[[__(lang, langReady, 'crm_app@exporting_export')]]"></animated-button>
 					</div>
 					<br/><br/>
 					<div class="helpCont">
@@ -440,7 +440,7 @@
 					<br/><br/>
 					<div class="changelogCont">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@changelog')]]
+							[[__(lang, langReady, 'crm_app@changelog_changelog')]]
 						</div>
 						<change-log></change-log>
 					</div>

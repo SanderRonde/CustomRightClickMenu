@@ -1,3 +1,4 @@
+//TODO: uncomment when done with file
 // import { LocaleSpec } from '../i18n';
 
 interface I18NMessage {
@@ -11,16 +12,23 @@ interface I18NMessage {
 	}
 }
 
-type I18NRoot = {
-	[key: string]: I18NRoot|I18NMessage;
+type I18NBranch = {
+	[key: string]: I18NBranch|I18NLeaf;
 }
 
-export const Messages: I18NRoot = {
-	app_title: {
-		message: 'Custom Right-Click Menu',
-		description: 'The name of the extension'
-	},
+type I18NLeaf = {
+	[key: string]: I18NMessage;
+};
+
+// Structure only allows a branch to split into subbranches or
+// to contain leafs with messages. Not both at the same time
+
+export const Messages: I18NBranch = {
 	generic: {
+		app_title: {
+			message: 'Custom Right-Click Menu',
+			description: 'The name of the extension'
+		},
 		add: {
 			message: 'add',
 			description: 'Button that adds a new element'
@@ -340,9 +348,11 @@ export const Messages: I18NRoot = {
 		}
 	},
 	langs: {
-		en: {
-			message: 'English',
-			description: 'The english language'
+		languages: {
+			en: {
+				message: 'English',
+				description: 'The english language'
+			},
 		},
 		selector: {
 			current: {
@@ -481,31 +491,25 @@ export const Messages: I18NRoot = {
 				message: 'Prompt you with an option to recover your unsaved script after you close a script/stylesheet without hitting the "save" or "exit" button.',
 				description: 'See message'
 			},
-			CRMOnPage: {
-				disabled: {
-					message: 'Can\'t disable demo contextmenu in demo mode',
-					description: 'Reason the CRMOnPage options is disabled'
-				},
-				option: {
-					message: 'Use your custom right-click menu on this page as a preview instead of your browser\'s regular one.',
-					description: 'See message'
-				}
+			CRMOnPageDisabled: {
+				message: 'Can\'t disable demo contextmenu in demo mode',
+				description: 'Reason the CRMOnPage options is disabled'
 			},
-			useStorageSync: {
-				disabled: {
-					unavailable: {
-						message: 'Syncing is not available in your browser',
-						description: 'Reason the useStorageSync option is disabled. Reason is because the browser.storage.sync API is not available in the user\'s browser'
-					},
-					tooBig: {
-						message: 'Amount of data is too big to sync',
-						description: 'Reason the useStorageSync option is disabled. Reason is because the sync storage is full'
-					}
-				},
-				option: {
-					message: 'Sync your storage across all browser instances signed in to this account using browser storage sync. Turning this on will limit your total CRM size (including scripts, excluding libraries) to a total of 102,400 bytes. Currently using',
-					description: 'See message'
-				}
+			CRMOnPageOption: {
+				message: 'Use your custom right-click menu on this page as a preview instead of your browser\'s regular one.',
+				description: 'See message'
+			},
+			useStorageSyncDisabledUnavailable: {
+				message: 'Syncing is not available in your browser',
+				description: 'Reason the useStorageSync option is disabled. Reason is because the browser.storage.sync API is not available in the user\'s browser'
+			},
+			useStorageSyncDisabledTooBig: {
+				message: 'Amount of data is too big to sync',
+				description: 'Reason the useStorageSync option is disabled. Reason is because the sync storage is full'
+			},
+			useStorageSyncOption: {
+				message: 'Sync your storage across all browser instances signed in to this account using browser storage sync. Turning this on will limit your total CRM size (including scripts, excluding libraries) to a total of 102,400 bytes. Currently using',
+				description: 'See message'
 			},
 			editCRMInRM: {
 				message: 'Edit the custom right-click Menu by clicking on the respective elements when right-clicking on this page',
@@ -615,7 +619,7 @@ export const Messages: I18NRoot = {
 				description: 'A button that can be used to generate the custom URI scheme'
 			}
 		},
-		import: {
+		importing: {
 			header: {
 				message: 'Importing your settings',
 				description: 'Header for the import section'
@@ -652,7 +656,7 @@ export const Messages: I18NRoot = {
 				description: 'Label for the main importing function. Imports data from given string into the extension'
 			}
 		},
-		export: {
+		exporting: {
 			header: {
 				message: 'Exporting your settings',
 				description: 'Header for the export section'
@@ -825,8 +829,10 @@ export const Messages: I18NRoot = {
 			}
 		},
 		changelog: {
-			message: 'Changelog',
-			description: 'Header for the changelog section'
+			changelog: {
+				message: 'Changelog',
+				description: 'Header for the changelog section'
+			}
 		},
 		toasts: {
 			revert: {
@@ -1055,76 +1061,81 @@ export const Messages: I18NRoot = {
 				}
 			}
 		},
-		nodeUpdated: {
-			message: 'Node $NAME$ was updated from version $OLD_VERSION to version $NEW_VERSION',
-			description: 'A message telling the user a node has been updated',
-			placeholders: {
-				name: {
-					content: '$1',
-					example: 'MyNode'
-				},
-				old_version: {
-					content: '$2',
-					example: '1.2.3'
-				},
-				new_version: {
-					content: '$3',
-					example: '1.2.4'
+		code: {
+			nodeUpdated: {
+				message: 'Node $NAME$ was updated from version $OLD_VERSION to version $NEW_VERSION',
+				description: 'A message telling the user a node has been updated',
+				placeholders: {
+					name: {
+						content: '$1',
+						example: 'MyNode'
+					},
+					old_version: {
+						content: '$2',
+						example: '1.2.3'
+					},
+					new_version: {
+						content: '$3',
+						example: '1.2.4'
+					}
 				}
-			}
-		},
-		extensionUpdated: {
-			message: 'Extension has been updated to version $VERSION$',
-			description: 'Message telling the user the extension has been updated',
-			placeholders: {
-				version: {
-					content: '$1',
-					example: '1.2.3'
+			},
+			extensionUpdated: {
+				message: 'Extension has been updated to version $VERSION$',
+				description: 'Message telling the user the extension has been updated',
+				placeholders: {
+					version: {
+						content: '$1',
+						example: '1.2.3'
+					}
 				}
-			}
-		},
-		settingsUpdated: {
-			message: 'Settings were updated to those on $DATE$',
-			description: 'Message telling the user their settings were updated to the ones saved on given date on a different instance',
-			placeholders: {
-				date: {
-					content: '$1',
-					example: '1-1-2019'
+			},
+			settingsUpdated: {
+				message: 'Settings were updated to those on $DATE$',
+				description: 'Message telling the user their settings were updated to the ones saved on given date on a different instance',
+				placeholders: {
+					date: {
+						content: '$1',
+						example: '1-1-2019'
+					}
 				}
+			},
+			hiMessage: {
+				message: 'Hey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
+				description: 'Message meant for developers looking to see how this extension works'
+			},
+			consoleInfo: {
+				message: 'To get information about how to edit settings from the console' + 
+					' call the window.consoleInfo() function',
+				description: 'Info about the console API for developers'
+			},
+			permissionsNotSupported: {
+				message: 'Your browser does not support requesting permissions',
+				description: 'Message shown when browser.permissions API is unsupported by the browser'
+			},
+			downloadNotSupported: {
+				message: 'Your browser does not support asking for the download permission',
+				description: 'Message shown when browser.download API is unsupported by the browser'
+			},
+			importSuccess: {
+				message: 'Successfully imported your data',
+				description: 'Message shown when data importing has completed successfully'
+			},
+			alreadyEditingNode: {
+				message: 'Please close the current dialog first',
+				description: 'Message shown when a node is already being edited and another one can\'t be edited before closing the other one'
+			},
+			wouldExecuteScript: {
+				message: 'This would execute a script',
+				description: 'Message shown when clicking a script node in the demo mode. Does nothing in this mode except for showing this message'
+			},
+			wouldExecuteStylesheet: {
+				message: 'This would execute a stylesheet',
+				description: 'Message shown when clicking a stylesheet node in the demo mode. Does nothing in this mode except for showing this message'
 			}
-		},
-		hiMessage: {
-			message: 'Hey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
-			description: 'Message meant for developers looking to see how this extension works'
-		},
-		consoleInfo: {
-			message: 'To get information about how to edit settings from the console' + 
-				' call the window.consoleInfo() function',
-			description: 'Info about the console API for developers'
-		},
-		permissionsNotSupported: {
-			message: 'Your browser does not support requesting permissions',
-			description: 'Message shown when browser.permissions API is unsupported by the browser'
-		},
-		downloadNotSupported: {
-			message: 'Your browser does not support asking for the download permission',
-			description: 'Message shown when browser.download API is unsupported by the browser'
-		},
-		importSuccess: {
-			message: 'Successfully imported your data',
-			description: 'Message shown when data importing has completed successfully'
-		},
-		alreadyEditingNode: {
-			message: 'Please close the current dialog first',
-			description: 'Message shown when a node is already being edited and another one can\'t be edited before closing the other one'
-		},
-		wouldExecuteScript: {
-			message: 'This would execute a script',
-			description: 'Message shown when clicking a script node in the demo mode. Does nothing in this mode except for showing this message'
-		},
-		wouldExecuteStylesheet: {
-			message: 'This would execute a stylesheet',
-			description: 'Message shown when clicking a stylesheet node in the demo mode. Does nothing in this mode except for showing this message'
 		}
+	},
+	background: {
+		
 	}
 }
