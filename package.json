@@ -10,8 +10,6 @@
   },
   "description": "Customize your right-click menu",
   "devDependencies": {
-    "@babel/core": "^7.4.0",
-    "@babel/plugin-transform-modules-commonjs": "^7.4.0",
     "@bower_components/app-layout": "PolymerElements/app-layout#^2.0.4",
     "@bower_components/font-roboto": "PolymerElements/font-roboto#^1.0.1",
     "@bower_components/iron-a11y-announcer": "PolymerElements/iron-a11y-announcer#1 - 2",
@@ -59,7 +57,6 @@
     "@bower_components/webcomponentsjs": "Polymer/webcomponentsjs#^v1.0.0",
     "@octokit/rest": "^15.2.6",
     "@types/babel-core": "^6.25.6",
-    "@types/babel__core": "^7.1.0",
     "@types/chai": "^4.1.2",
     "@types/del": "^4.0.0",
     "@types/gulp": "^4.0.6",

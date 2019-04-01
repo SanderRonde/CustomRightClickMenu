@@ -2,9 +2,9 @@
     "compilerOptions": {
         "jsx": "react",
         "alwaysStrict": true,
-        "baseUrl": "../tools/definitions/",
+        "baseUrl": "../../tools/definitions/",
         "forceConsistentCasingInFileNames": true,
-        "module": "esnext",
+        "module": "commonjs",
         "moduleResolution": "node",
         "noImplicitAny": true,
         "noImplicitThis": true,
@@ -15,7 +15,7 @@
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
         "noUnusedLocals": true,
-        "target": "es3",
+        "target": "es6",
         "noUnusedParameters": true,
         "experimentalDecorators": true
 	}, 
@@ -23,10 +23,5 @@
     "compileOnSave": true,
     "include": [
         "./"
-    ],
-    "exclude": [
-        "./js/libraries/crmapi.d.ts",
-        "./bower_components",
-        "./_locales"
     ]
 }

@@ -4,7 +4,6 @@ import { polymerBuild } from './tools/build';
 import processhtml from 'gulp-processhtml';
 import childProcess from 'child_process';
 import StreamZip from 'node-stream-zip';
-import * as babel from '@babel/core';
 import beautify from 'gulp-beautify';
 import Undertaker from 'undertaker';
 import replace from 'gulp-replace';
@@ -172,22 +171,7 @@ function readFile(filePath: string, options?: { encoding?: 'utf8'; }): Promise<s
 	});
 }
 
-/**
- * Delete a file
- */
-function deleteFile(filePath: string): Promise<void> {
-	return new Promise<void>((resolve, reject) => {
-		fs.unlink(filePath, (err) =>{
-			if (err) {
-				reject(err);
-			} else {
-				resolve();
-			}
-		});
-	});
-}
-
-/* Decorators */
+ /* Decorators */
 interface TaskStructure {
 	type: 'parallel'|'series';
 	children: (TaskStructure|ReturnFunction)[];
@@ -422,63 +406,6 @@ class Tasks {
 		return Convenience;
 	})();
 
-	@group('compilation')
-	static Compilation = (() => {
-		class Compilation {
-			@rootTask('defs',
-				'Updates the HTML to Typescript maps')
-			static async defs() {
-				const pattern = '{app/elements/**/*.html,!app/elements/elements.html}';
-				const typings = await extractGlobTypes(pattern);
-				await writeFile('./app/elements/fileIdMaps.d.ts', typings);
-			}
-
-			static Compile = (() => {
-				@taskClass('compile')
-				class Compile {
-					@describe('Compiles the app/ directory\'s typescript')
-					static app() {
-						return new Promise((resolve, reject) => {
-							const project = ts.createProject('app/tsconfig.json');
-							const proj = project.src().pipe(project());
-							proj.once('error', () => {
-								reject('Error(s) thrown during compilation');
-							});
-							proj.js.pipe(gulp.dest('./app')).once('end', () => {
-								resolve(null);
-							});
-						});
-					}
-
-					@describe('Compiles the test/ directory\'s typescript')
-					static test() {
-						return new Promise((resolve, reject) => {
-							const project = ts.createProject('test/tsconfig.json');
-							const proj = project.src().pipe(project());
-							proj.once('error', () => {
-								reject('Error(s) thrown during compilation');
-							});
-							proj.js.pipe(gulp.dest('./test')).once('end', () => {
-								resolve(null);
-							});
-						});
-					}
-
-					@rootTask('compile', 'Compiles the typescript')
-					static compile = series(
-						Compilation.defs,
-						parallel(
-							Compile.app,
-							Compile.test
-						)
-					)
-				}
-				return Compile;
-			})();
-		}
-		return Compilation;
-	})();
-
 	@group('i18n')
 	static I18N = (() => {
 		interface I18NMessage {
@@ -521,17 +448,12 @@ class Tasks {
 					}
 				}
 
-			private static async _getEsFileExports(file: string) {
-				const filecontent = await readFile(file);
-				const result = await babel.transformAsync(filecontent, {
-					plugins: ["@babel/plugin-transform-modules-commonjs"]
-				});
-				const esFile = path.join(path.dirname(file), 
-					`messages.es.${Math.floor(Math.random() * 10000) + ''}.js`);
-				await writeFile(esFile, result.code);
-				const esFilePath = `./${esFile}`;
-				const { Messages } = require(esFilePath);
-				await deleteFile(esFile);
+			private static _getFreshFileExport(file: string) {
+				const resolved = require.resolve(`./${file}`);
+				if (resolved in require.cache) {
+					delete require.cache[resolved];
+				}
+				const { Messages } = require(`./${file}`);
 				return Messages;
 			}
 
@@ -542,9 +464,9 @@ class Tasks {
 							reject();
 							return;
 						}
-						resolve(await Promise.all(matches.map(async (file) => {
-							return [await I18N._getEsFileExports(file), file] as [any, string];
-						})));
+						resolve(matches.map((file) => {
+							return [require(file).Messages, file] as [any, string];
+						}));
 					});
 				});
 			}
@@ -566,6 +488,20 @@ class Tasks {
 				].join('_');
 			}
 
+			@describe('Compiles the .ts files into .js files')
+			static compileTS() {
+				return new Promise((resolve, reject) => {
+					const project = ts.createProject('app/_locales/tsconfig.json');
+					const proj = project.src().pipe(project());
+					proj.once('error', () => {
+						reject('Error(s) thrown during compilation');
+					});
+					proj.js.pipe(gulp.dest('./app/_locales')).once('end', () => {
+						resolve(null);
+					});
+				});
+			}
+
 			static Compile = (() => {
 				@taskClass('compile')
 				class Compile {					
@@ -581,7 +517,7 @@ class Tasks {
 		
 					static async _compileI18NFile(file: string, data?: any) {
 						const normalized = this._normalizeMessages(
-							data || await I18N._getEsFileExports(file));
+							data || I18N._getFreshFileExport(file));
 						await writeFile(path.join(path.dirname(file), 'messages.json'),
 							JSON.stringify(normalized, null, '\t'));
 					}
@@ -610,13 +546,13 @@ class Tasks {
 						});
 						watcher.on('change', (fileName) => {
 							activeTask = (async () => {
-								const fileData = await I18N._getEsFileExports(fileName);
+								const fileData = I18N._getFreshFileExport(fileName);
 								await I18N.Compile._compileI18NFile(fileName, fileData);
 							})();
 						});
 						watcher.on('add', (fileName) => {
 							activeTask = (async () => {
-								const fileData = await I18N._getEsFileExports(fileName);
+								const fileData = I18N._getFreshFileExport(fileName);
 								await I18N.Compile._compileI18NFile(fileName, fileData);
 							})();
 						});
@@ -772,6 +708,15 @@ class Tasks {
 							enums);
 					}
 
+					@rootTask('i18nDefs', 'Generates definitions files based on i18n files')
+					static defs = series(
+						I18N.compileTS,
+						parallel(
+							Defs.genEnums,
+							Defs.genSpec
+						)
+					)
+
 					@describe('Watches for file changes and updates enums on change')
 					static async watcher() {
 						let activeTask: Promise<any> = null;
@@ -788,7 +733,7 @@ class Tasks {
 						});
 						watcher.on('change', (fileName) => {
 							activeTask = (async () => {
-								const fileData = await I18N._getEsFileExports(fileName);
+								const fileData = I18N._getFreshFileExport(fileName);
 								const enums = await I18N.Defs.genEnumMessages(fileData)
 								await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
 									enums);
@@ -796,7 +741,7 @@ class Tasks {
 						});
 						watcher.on('add', (fileName) => {
 							activeTask = (async () => {
-								const fileData = await I18N._getEsFileExports(fileName);
+								const fileData = I18N._getFreshFileExport(fileName);
 								const enums = await I18N.Defs.genEnumMessages(fileData)
 								await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
 									enums);
@@ -830,7 +775,7 @@ class Tasks {
 				});
 				watcher.on('change', (fileName) => {
 					activeTask = (async () => {
-						const fileData = await I18N._getEsFileExports(fileName);
+						const fileData = I18N._getFreshFileExport(fileName);
 						const [ , enums] = await Promise.all([
 							I18N.Compile._compileI18NFile(fileName, fileData),
 							I18N.Defs.genEnumMessages(fileData)
@@ -841,7 +786,7 @@ class Tasks {
 				});
 				watcher.on('add', (fileName) => {
 					activeTask = (async () => {
-						const fileData = await I18N._getEsFileExports(fileName);
+						const fileData = I18N._getFreshFileExport(fileName);
 						const [ , enums] = await Promise.all([
 							I18N.Compile._compileI18NFile(fileName, fileData),
 							I18N.Defs.genEnumMessages(fileData)
@@ -869,6 +814,70 @@ class Tasks {
 			)
 		}
 		return I18N;
+	})();
+
+	@group('compilation')
+	static Compilation = (() => {
+		class Compilation {
+			@rootTask('fileIdMaps',
+				'Updates the HTML to Typescript maps')
+			static async fileIdMaps() {
+				const pattern = '{app/elements/**/*.html,!app/elements/elements.html}';
+				const typings = await extractGlobTypes(pattern);
+				await writeFile('./app/elements/fileIdMaps.d.ts', typings);
+			}
+
+			@rootTask('defs',
+				'Generates definitions for various TS files. Required for compilation')
+			static defs = parallel(
+				Compilation.fileIdMaps,
+				Tasks.I18N.Defs.defs
+			)
+
+			static Compile = (() => {
+				@taskClass('compile')
+				class Compile {
+					@describe('Compiles the app/ directory\'s typescript')
+					static app() {
+						return new Promise((resolve, reject) => {
+							const project = ts.createProject('app/tsconfig.json');
+							const proj = project.src().pipe(project());
+							proj.once('error', () => {
+								reject('Error(s) thrown during compilation');
+							});
+							proj.js.pipe(gulp.dest('./app')).once('end', () => {
+								resolve(null);
+							});
+						});
+					}
+
+					@describe('Compiles the test/ directory\'s typescript')
+					static test() {
+						return new Promise((resolve, reject) => {
+							const project = ts.createProject('test/tsconfig.json');
+							const proj = project.src().pipe(project());
+							proj.once('error', () => {
+								reject('Error(s) thrown during compilation');
+							});
+							proj.js.pipe(gulp.dest('./test')).once('end', () => {
+								resolve(null);
+							});
+						});
+					}
+
+					@rootTask('compile', 'Compiles the typescript')
+					static compile = series(
+						Compilation.defs,
+						parallel(
+							Compile.app,
+							Compile.test
+						)
+					)
+				}
+				return Compile;
+			})();
+		}
+		return Compilation;
 	})();
 
 	@group('documentation-website')
