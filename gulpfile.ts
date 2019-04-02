@@ -497,13 +497,9 @@ class Tasks {
 					// First item, return key by itself
 					return key;
 				}
-				if (currentPath.length === 1) {
-					// Second item, requires only an @ between them
-					return [currentPath[0], key].join('@');
-				}
 				// Requires an @ and dots for the rest
 				return [
-					currentPath.slice(0, 2).join('@'), 
+					currentPath.slice(0, 2).join('_'), 
 					...currentPath.slice(2),
 					key
 				].join('_');

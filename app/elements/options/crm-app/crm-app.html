@@ -27,7 +27,7 @@
 					<div id="titleRibbonEnd">
 						<div id="fullscreenEditorButtons">
 							<div hidden="{{_currentItemIsCss(item)}}" title="Toggle typescript" id="editorTypescript" on-tap="domListener" data-on-tap="toggleTypescript">
-								[[__(lang, langReady, 'crm_app@ribbons_ts')]]
+								[[__(lang, langReady, 'crm_app_ribbons_ts')]]
 							</div>
 							<div title="Exit fullscreen" id="fullscreenEditorToggle" on-tap="domListener" data-on-tap="exitFullscreen">
 								<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
@@ -54,14 +54,14 @@
 							<div on-tap="domListener" data-on-tap="launchSearchWebsiteToolScript" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
 							<div on-tap="domListener" data-on-tap="runLint" class="ribbonTool" id="runCssLintButton">
 								<span class="cssTool">
-									[[__(lang, langReady, 'crm_app@ribbons_tslint')]]
+									[[__(lang, langReady, 'crm_app_ribbons_tslint')]]
 								</span>
 								<span class="jsTool">
-									[[__(lang, langReady, 'crm_app@ribbons_jslint')]]
+									[[__(lang, langReady, 'crm_app_ribbons_jslint')]]
 								</span>
 							</div>
 							<div on-tap="domListener" data-on-tap="showCssTips" class="ribbonTool cssTool" id="showCssTipsButton">
-								[[__(lang, langReady, 'crm_app@ribbons_info')]]
+								[[__(lang, langReady, 'crm_app_ribbons_info')]]
 							</div>
 						</div>
 					</div>
@@ -69,10 +69,10 @@
 						<div id="editorOptions">
 							<div id="settingsPadding">
 								<div class="editorSettingsTxt">
-									[[__(lang, langReady, 'crm_app@editor_settings_header')]]
+									[[__(lang, langReady, 'crm_app_editor_settings_header')]]
 								</div>
 								<div id="editorThemeSettingCont">
-									<div id="editorThemeSettingTxt">[[__(lang, langReady, 'crm_app@editor_settings_theme')]]:</div>
+									<div id="editorThemeSettingTxt">[[__(lang, langReady, 'crm_app_editor_settings_theme')]]:</div>
 									<div id="editorThemeSettingChoicesCont">
 										<div id="editorThemeSettingWhite" on-tap="domListener" data-on-tap="setThemeWhite" class="editorThemeSetting"></div>
 										<div id="editorThemeSettingDark" on-tap="domListener" data-on-tap="setThemeDark" class="editorThemeSetting"></div>
@@ -80,19 +80,19 @@
 								</div>
 								<br />
 								<div id="editorThemeFontSize">
-									<paper-input on-change="domListener" data-on-change="fontSizeChange" id="editorThemeFontSizeInput" type="number" always-float-label label="[[__(lang, langReady, 'crm_app@editor_settings_fontsizePercentage')]]">
+									<paper-input on-change="domListener" data-on-change="fontSizeChange" id="editorThemeFontSizeInput" type="number" always-float-label label="[[__(lang, langReady, 'crm_app_editor_settings_fontsizePercentage')]]">
 										<div suffix>%</div>
 									</paper-input>
 								</div>
 								<br />
 								<div id="editorJSLintGlobals">
 									<div id="editorJSLintGlobalsFlexCont">
-										<paper-input on-keypress="domListener" data-on-keypress="jsLintGlobalsChange" id="editorJSLintGlobalsInput" label="[[__(lang, langReady, 'crm_app@jslintGlobals')]]"  always-float-label></paper-input>
+										<paper-input on-keypress="domListener" data-on-keypress="jsLintGlobalsChange" id="editorJSLintGlobalsInput" label="[[__(lang, langReady, 'crm_app_jslintGlobals')]]"  always-float-label></paper-input>
 									</div>
 								</div>
 								<br />
 								<br />
-								<div id="keyBindingsText" class="editorSettingsTxt">[[__(lang, langReady, 'crm_app@editor_settings_keybindings')]]</div>
+								<div id="keyBindingsText" class="editorSettingsTxt">[[__(lang, langReady, 'crm_app_editor_settings_keybindings')]]</div>
 								<div id="keyBindingsContainer">
 									<template id="keyBindingsTemplate" is="dom-repeat" as="keyBinding">
 										<div class="keyBinding">
@@ -157,7 +157,7 @@
 						</div>
 					</app-toolbar>
 					<template is="dom-if" if="[[_isOldChrome()]]">
-						<div class="badBrowserBanner">[[__exec(lang, langReady, 'crm_app@header_oldChrome', _getChromeAge)]]</div>
+						<div class="badBrowserBanner">[[__exec(lang, langReady, 'crm_app_header_oldChrome', _getChromeAge)]]</div>
 					</template>
 				</app-header>
 				<div class="container">
@@ -166,10 +166,10 @@
 					<div class="customRightClickMenuConfig">
 						<div id="crmEditPageTopTextContainer">
 							<div class="bigTxt">
-								[[__(lang, langReady, 'crm_app@editcrm_editingCrm')]]
+								[[__(lang, langReady, 'crm_app_editcrm_editingCrm')]]
 							</div>
 							<div id="crmTypeSelector">
-								<div class="crmType pageType" title="[[__exec(lang, langReady, 'crm_app@crmtype_toggle', ___,'crm_app@crmtype_regularebpages')]]"  on-tap="domListener" data-on-tap="iconSwitch">
+								<div class="crmType pageType" title="[[__exec(lang, langReady, 'crm_app_crmtype_toggle', ___,'crm_app_crmtype_regularebpages')]]"  on-tap="domListener" data-on-tap="iconSwitch">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
 										<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="80" height="80" viewbox="0 0 24 24">
@@ -177,10 +177,10 @@
 										</svg>
 									</div>
 									<div class="crmTypeTxt">
-										[[__(lang, langReady, 'crm_app@crmtype_webpages')]]
+										[[__(lang, langReady, 'crm_app_crmtype_webpages')]]
 									</div>
 								</div>
-								<div class="crmType linkType" title="[[__exec(lang, langReady, 'crm_app@crmtype_toggle', ___,'crm_app@crmtype_weblinks')]]" on-tap="domListener" data-on-tap="iconSwitch">
+								<div class="crmType linkType" title="[[__exec(lang, langReady, 'crm_app_crmtype_toggle', ___,'crm_app_crmtype_weblinks')]]" on-tap="domListener" data-on-tap="iconSwitch">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
 										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -189,10 +189,10 @@
 										</svg>
 									</div>
 									<div class="crmTypeTxt">
-										[[__(lang, langReady, 'crm_app@crmtype_weblinks')]]
+										[[__(lang, langReady, 'crm_app_crmtype_weblinks')]]
 									</div>
 								</div>
-								<div class="crmType selectionType" title="[[__exec(lang, langReady, 'crm_app@crmtype_toggle', ___,'crm_app@crmtype_selectedText')]]" on-tap="domListener" data-on-tap="iconSwitch">
+								<div class="crmType selectionType" title="[[__exec(lang, langReady, 'crm_app_crmtype_toggle', ___,'crm_app_crmtype_selectedText')]]" on-tap="domListener" data-on-tap="iconSwitch">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
 										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -201,10 +201,10 @@
 										</svg>
 									</div>
 									<div class="crmTypeTxt">
-										[[__(lang, langReady, 'crm_app@crmtype_selection')]]
+										[[__(lang, langReady, 'crm_app_crmtype_selection')]]
 									</div>
 								</div>
-								<div class="crmType imageType" title="[[__exec(lang, langReady, 'crm_app@crmtype_toggle', ___,'crm_app@crmtype_images')]]" on-tap="domListener" data-on-tap="iconSwitch">
+								<div class="crmType imageType" title="[[__exec(lang, langReady, 'crm_app_crmtype_toggle', ___,'crm_app_crmtype_images')]]" on-tap="domListener" data-on-tap="iconSwitch">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
 										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -213,10 +213,10 @@
 										</svg>
 									</div>
 									<div class="crmTypeTxt">
-										[[__(lang, langReady, 'crm_app@crmtype_images')]]
+										[[__(lang, langReady, 'crm_app_crmtype_images')]]
 									</div>
 								</div>
-								<div class="crmType videoType" title="[[__exec(lang, langReady, 'crm_app@crmtype_toggle', ___,'crm_app@crmtype_videos')]]" on-tap="domListener" data-on-tap="iconSwitch">
+								<div class="crmType videoType" title="[[__exec(lang, langReady, 'crm_app_crmtype_toggle', ___,'crm_app_crmtype_videos')]]" on-tap="domListener" data-on-tap="iconSwitch">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
 										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -225,10 +225,10 @@
 										</svg>
 									</div>
 									<div class="crmTypeTxt">
-										[[__(lang, langReady, 'crm_app@crmtype_videos')]]
+										[[__(lang, langReady, 'crm_app_crmtype_videos')]]
 									</div>
 								</div>
-								<div class="crmType audioType" title="[[__exec(lang, langReady, 'crm_app@crmtype_toggle', ___,'crm_app@crmtype_audio')]]" on-tap="domListener" data-on-tap="iconSwitch">
+								<div class="crmType audioType" title="[[__exec(lang, langReady, 'crm_app_crmtype_toggle', ___,'crm_app_crmtype_audio')]]" on-tap="domListener" data-on-tap="iconSwitch">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
 										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -237,7 +237,7 @@
 										</svg>
 									</div>
 									<div class="crmTypeTxt">
-										[[__(lang, langReady, 'crm_app@crmtype_audio')]]
+										[[__(lang, langReady, 'crm_app_crmtype_audio')]]
 									</div>
 								</div>
 							</div>
@@ -249,38 +249,38 @@
 					<br /><br />
 					<div class="optionsCont">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@options_header')]]
+							[[__(lang, langReady, 'crm_app_options_header')]]
 						</div>
 						<div class="options">
 							<paper-toggle-option id="catchErrors">
-								[[__(lang, langReady, 'crm_app@options_catchErrors')]]
+								[[__(lang, langReady, 'crm_app_options_catchErrors')]]
 							</paper-toggle-option>
 							<paper-toggle-option id="showOptions">
-								[[__(lang, langReady, 'crm_app@options_showoptions')]]
+								[[__(lang, langReady, 'crm_app_options_showoptions')]]
 							</paper-toggle-option>
 							<paper-toggle-option id="recoverUnsavedData">
-								[[__(lang, langReady, 'crm_app@options_recoverUnsavedData')]]
+								[[__(lang, langReady, 'crm_app_options_recoverUnsavedData')]]
 							</paper-toggle-option>
-							<paper-toggle-option id="CRMOnPage" showmessage disabledreason="[[__(lang, langReady, 'crm_app@options_CRMOnPageDisabled')]]">
-								[[__(lang, langReady, 'crm_app@options_CRMOnPageOption')]]
+							<paper-toggle-option id="CRMOnPage" showmessage disabledreason="[[__(lang, langReady, 'crm_app_options_CRMOnPageDisabled')]]">
+								[[__(lang, langReady, 'crm_app_options_CRMOnPageOption')]]
 							</paper-toggle-option>
 							<paper-toggle-option id="editCRMInRM">
-								[[__(lang, langReady, 'crm_app@options_editCRMInRM')]]
+								[[__(lang, langReady, 'crm_app_options_editCRMInRM')]]
 							</paper-toggle-option>
 							<paper-toggle-option id="useStorageSync" disabledreason="[[_getDisabledReason()]]">
-								[[__(lang, langReady, 'crm_app@options_useStorageSyncOption')]]
+								[[__(lang, langReady, 'crm_app_options_useStorageSyncOption')]]
 								<span style$="{{_getSettingsJsonLengthColor(settingsJsonLength)}}">{{_placeCommas(settingsJsonLength)}}</span>/102,400 bytes
 							</paper-toggle-option>
-							<paper-button on-tap="domListener" data-on-tap="showManagePermissions" raised class="blue">[[__(lang, langReady, 'crm_app@options_managePermissions')]]</paper-button>
+							<paper-button on-tap="domListener" data-on-tap="showManagePermissions" raised class="blue">[[__(lang, langReady, 'crm_app_options_managePermissions')]]</paper-button>
 						</div>
 					</div>
 					<br /><br />
 					<div class="defaultCRMLinks">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@defaultLinks_header')]]
+							[[__(lang, langReady, 'crm_app_defaultLinks_header')]]
 						</div>
 						<div class="defaultsDescr">
-							[[__(lang, langReady, 'crm_app@defaultLinks_description')]]
+							[[__(lang, langReady, 'crm_app_defaultLinks_description')]]
 						</div>
 						<br />
 						<div class="defaultLinks">
@@ -298,10 +298,10 @@
 					<br /><br />
 					<div class="defaultCRMSearchEngines">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@searchEngines_header')]]
+							[[__(lang, langReady, 'crm_app_searchEngines_header')]]
 						</div>
 						<div class="defaultsDescr">
-							<echo-html html="[[__(lang, langReady, 'crm_app@searchEngines_description')]]"></echo-html>
+							<echo-html html="[[__(lang, langReady, 'crm_app_searchEngines_description')]]"></echo-html>
 						</div>
 						<div class="defaultSearchEngines">
 							<default-link search-engine href="https://www.google.com/search?q=%s" default-name="Search Google for %s"></default-link>
@@ -314,43 +314,43 @@
 					<br /><br />
 					<div class="URIScheme">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@uriScheme_header')]]
+							[[__(lang, langReady, 'crm_app_uriScheme_header')]]
 						</div>
 						<div class="URISchemeDescr">
-							<echo-html html="[[__(lang, langReady, 'crm_app@uriScheme_description')]]"></echo-html>
+							<echo-html html="[[__(lang, langReady, 'crm_app_uriScheme_description')]]"></echo-html>
 						</div>
 						<div class="URISchemeGenerator">
-							<paper-input id="URISchemeFilePath" label="[[__(lang, langReady, 'crm_app@uriScheme_filePathLabel')]]" value="C:\files\file.exe"></paper-input>
-							<paper-input id="URISchemeSchemeName" pattern="(\w|\d|_|\.|-)*" auto-validate="true" error-message="[[__(lang, langReady, 'crm_app@uriScheme_invalidScheme')]]" label="[[__(lang, langReady, 'crm_app@uriScheme_schemeNameLabel')]]" value="[[__(lang, langReady, 'crm_app@uriScheme_example')]]"></paper-input>
-							<animated-button cooldown raised class="blue topoffset" tap="domListener" data-on-click="_generateRegexFile" content="[[__(lang, langReady, 'crm_app@uriScheme_generate')]]"></animated-button>
+							<paper-input id="URISchemeFilePath" label="[[__(lang, langReady, 'crm_app_uriScheme_filePathLabel')]]" value="C:\files\file.exe"></paper-input>
+							<paper-input id="URISchemeSchemeName" pattern="(\w|\d|_|\.|-)*" auto-validate="true" error-message="[[__(lang, langReady, 'crm_app_uriScheme_invalidScheme')]]" label="[[__(lang, langReady, 'crm_app_uriScheme_schemeNameLabel')]]" value="[[__(lang, langReady, 'crm_app_uriScheme_example')]]"></paper-input>
+							<animated-button cooldown raised class="blue topoffset" tap="domListener" data-on-click="_generateRegexFile" content="[[__(lang, langReady, 'crm_app_uriScheme_generate')]]"></animated-button>
 						</div>
 					</div>
 					<br /><br />
 					<div class="importSettingsCont">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@importing_header')]]
+							[[__(lang, langReady, 'crm_app_importing_header')]]
 						</div>
 						<div class="importDescr">
-							[[__(lang, langReady, 'crm_app@importing_description')]]
+							[[__(lang, langReady, 'crm_app_importing_description')]]
 						</div>
 						<div class="importSettings">
 							<textarea rows="10" id="importSettingsInput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
 							<span id="importSettingsError">
-								[[__(lang, langReady, 'crm_app@importing_error')]]
+								[[__(lang, langReady, 'crm_app_importing_error')]]
 							</span>
 						</div>
-						<paper-checkbox title="[[__(lang, langReady, 'crm_app@importing_overwriteTitle')]]" checked id="overWriteImport">[[__(lang, langReady, 'crm_app@importing_overwrite')]]</paper-checkbox>
-						<paper-checkbox title="[[__(lang, langReady, 'crm_app@importing_legacyTitle')]]" id="oldCRMImport">[[__(lang, langReady, 'crm_app@importing_legacy')]]</paper-checkbox>
+						<paper-checkbox title="[[__(lang, langReady, 'crm_app_importing_overwriteTitle')]]" checked id="overWriteImport">[[__(lang, langReady, 'crm_app_importing_overwrite')]]</paper-checkbox>
+						<paper-checkbox title="[[__(lang, langReady, 'crm_app_importing_legacyTitle')]]" id="oldCRMImport">[[__(lang, langReady, 'crm_app_importing_legacy')]]</paper-checkbox>
 						<br />
-						<animated-button class="blue" cooldown raised id="importButton" tap="domListener" data-on-click="importData" content="[[__(lang, langReady, 'crm_app@importing_import')]]"></animated-button>
+						<animated-button class="blue" cooldown raised id="importButton" tap="domListener" data-on-click="importData" content="[[__(lang, langReady, 'crm_app_importing_import')]]"></animated-button>
 					</div>
 					<br /><br />
 					<div class="exportSettingsCont">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@exporting_header')]]
+							[[__(lang, langReady, 'crm_app_exporting_header')]]
 						</div>
 						<div class="exportDescr">
-							[[__(lang, langReady, 'crm_app@exporting_description')]]
+							[[__(lang, langReady, 'crm_app_exporting_description')]]
 						</div>
 						<div class="exportSettings">
 							<center-element id="exportSettingsSpinner" nostyle hide>
@@ -359,88 +359,88 @@
 										<paper-spinner active></paper-spinner>
 									</div>
 									<div>
-										[[__(lang, langReady, 'crm_app@exporting_waiting')]]
+										[[__(lang, langReady, 'crm_app_exporting_waiting')]]
 									</div>
 								</div>
 							</center-element>
 							<textarea rows="10" id="exportSettingsOutput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
 						</div>
-						<paper-checkbox checked id="exportCRM">[[__(lang, langReady, 'crm_app@exporting_exportCRM')]]</paper-checkbox>
-						<paper-checkbox checked id="exportSettings">[[__(lang, langReady, 'crm_app@exporting_exportSettings')]]</paper-checkbox>
+						<paper-checkbox checked id="exportCRM">[[__(lang, langReady, 'crm_app_exporting_exportCRM')]]</paper-checkbox>
+						<paper-checkbox checked id="exportSettings">[[__(lang, langReady, 'crm_app_exporting_exportSettings')]]</paper-checkbox>
 						<paper-icon-button id="exportCopyButton" icon="content-copy" title="copy to clipboard" on-tap="domListener" data-on-tap="copyExportToClipboard"></paper-icon-button>
 						<br/>
-						<animated-button cooldown class="blue" raised id="exportButton" tap="domListener" data-on-click="exportData" content="[[__(lang, langReady, 'crm_app@exporting_export')]]"></animated-button>
+						<animated-button cooldown class="blue" raised id="exportButton" tap="domListener" data-on-click="exportData" content="[[__(lang, langReady, 'crm_app_exporting_export')]]"></animated-button>
 					</div>
 					<br/><br/>
 					<div class="helpCont">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@help_header')]]
+							[[__(lang, langReady, 'crm_app_help_header')]]
 						</div>
 						<div class="helpDescr">
-							<echo-html html="[[__(lang, langReady, 'crm_app@help_description')]]"></echo-html>
+							<echo-html html="[[__(lang, langReady, 'crm_app_help_description')]]"></echo-html>
 						</div>
 					</div>
 					<br /><br />
 					<div class="contactCont">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@contact_header')]]
+							[[__(lang, langReady, 'crm_app_contact_header')]]
 						</div>
 						<div class="contactDescr">
-							<echo-html html="[[__(lang, langReady, 'crm_app@contact_description')]]"></echo-html>
+							<echo-html html="[[__(lang, langReady, 'crm_app_contact_description')]]"></echo-html>
 						</div>
 					</div>
 					<br /><br />
 					<div class="bugReportingCont">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@bugs_header')]]
+							[[__(lang, langReady, 'crm_app_bugs_header')]]
 						</div>
 						<div class="bugReportingDescr">
-							[[__(lang, langReady, 'crm_app@bugs_description')]]
+							[[__(lang, langReady, 'crm_app_bugs_description')]]
 						</div>
-						<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="_toggleBugReportingTool">[[__(lang, langReady, 'crm_app@bugs_toggle')]]</paper-button>
+						<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="_toggleBugReportingTool">[[__(lang, langReady, 'crm_app_bugs_toggle')]]</paper-button>
 					</div>
 					<br /><br />
 					<div class="globalExcludes">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@globalExcludes_header')]]
+							[[__(lang, langReady, 'crm_app_globalExcludes_header')]]
 						</div>
 						<div class="globalExcludesDescr">
-							[[__(lang, langReady, 'crm_app@globalExcludes_description')]]
+							[[__(lang, langReady, 'crm_app_globalExcludes_description')]]
 							<a href="https://developer.chrome.com/extensions/match_patterns" rel="noopener" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
 						</div>
 						<div class="globalExcludesItems">
 							<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
 								<div class="globalExcludeContainer">
-									<paper-input on-change="domListener" data-on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="[[__(lang, langReady, 'crm_app@globalExcludes_patternLabel')]]" error-message="[[__(lang, langReady, 'crm_app@globalExcludes_patternInvalid')]]" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
+									<paper-input on-change="domListener" data-on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="[[__(lang, langReady, 'crm_app_globalExcludes_patternLabel')]]" error-message="[[__(lang, langReady, 'crm_app_globalExcludes_patternInvalid')]]" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
 									<paper-icon-button hidden$="[[_isOnlyGlobalExclude(globalExcludes)]]" icon="clear" on-tap="domListener" data-on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
 								</div>
 							</template>
-							<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="addGlobalExcludeField">[[__(lang, langReady, 'generic@add')]]</paper-button>
+							<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="addGlobalExcludeField">[[__(lang, langReady, 'generic_add')]]</paper-button>
 						</div>
 					</div>
 					<br /><br />
 					<div class="loggingButtonCont">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@logging_header')]]
+							[[__(lang, langReady, 'crm_app_logging_header')]]
 						</div>
 						<div class="loggingDescr">
-							<echo-html html="[[__(lang, langReady, 'crm_app@logging_description')]]"></echo-html>
+							<echo-html html="[[__(lang, langReady, 'crm_app_logging_description')]]"></echo-html>
 						</div>
-						<paper-button class="blue topoffset" raised on-tap="domListener" data-on-tap="_openLogging">[[__(lang, langReady, 'crm_app@logging_logging')]]</paper-button>
+						<paper-button class="blue topoffset" raised on-tap="domListener" data-on-tap="_openLogging">[[__(lang, langReady, 'crm_app_logging_logging')]]</paper-button>
 					</div>
 					<br /><br />
 					<div class="privacyPolicyCont">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@privacyPolicy_header')]]
+							[[__(lang, langReady, 'crm_app_privacyPolicy_header')]]
 						</div>
 						<div class="privacyPolicyDescr">
-							<echo-html html="[[__(lang, langReady, 'crm_app@privacyPolicy_description')]]"></echo-html>
+							<echo-html html="[[__(lang, langReady, 'crm_app_privacyPolicy_description')]]"></echo-html>
 						</div>
 					</div>
 					<br/><br/>
 					<div class="changelogCont">
 						<div class="bigTxt">
-							[[__(lang, langReady, 'crm_app@changelog_changelog')]]
+							[[__(lang, langReady, 'crm_app_changelog_changelog')]]
 						</div>
 						<change-log></change-log>
 					</div>
@@ -452,16 +452,16 @@
 			<div id="dialogs">
 				<!--Toasts-->
 				<paper-toast id="messageToast" text="Please ignore this" duration="5000">
-					<span class="toastLink" on-tap="domListener" data-on-tap="hideGenericToast" role="button">[[__(lang, langReady, 'generic@dismiss')]]</span>
+					<span class="toastLink" on-tap="domListener" data-on-tap="hideGenericToast" role="button">[[__(lang, langReady, 'generic_dismiss')]]</span>
 				</paper-toast>
-				<paper-toast id="undoToast" text="[[__(lang, langReady, 'crm_app@toasts_revert')]]">
-					<span class="toastLink" on-tap="domListener" data-on-tap="undo" role="button">[[__(lang, langReady, 'generic@undo')]]</span>
+				<paper-toast id="undoToast" text="[[__(lang, langReady, 'crm_app_toasts_revert')]]">
+					<span class="toastLink" on-tap="domListener" data-on-tap="undo" role="button">[[__(lang, langReady, 'generic_undo')]]</span>
 				</paper-toast>
 				<paper-toast data-element-type="ScriptUpdatesToast" id="scriptUpdatesToast" text="Please ignore this" duration="10000">
-					<span id="nextScriptUpdateButton" class="toastLink" on-tap="domListener" data-on-tap="nextUpdatedScript" role="button">[[__(lang, langReady, 'generic@next')]]</span>
-					<span class="toastLink" on-tap="domListener" data-on-tap="hideScriptUpdatesToast" role="button">[[__(lang, langReady, 'generic@dismiss')]]</span>
+					<span id="nextScriptUpdateButton" class="toastLink" on-tap="domListener" data-on-tap="nextUpdatedScript" role="button">[[__(lang, langReady, 'generic_next')]]</span>
+					<span class="toastLink" on-tap="domListener" data-on-tap="hideScriptUpdatesToast" role="button">[[__(lang, langReady, 'generic_dismiss')]]</span>
 				</paper-toast>
-				<paper-toast id="contentTypeToast" text="[[__(lang, langReady, 'crm_app@toasts_contentType')]]" duration="5000"></paper-toast>
+				<paper-toast id="contentTypeToast" text="[[__(lang, langReady, 'crm_app_toasts_contentType')]]" duration="5000"></paper-toast>
 				<paper-toast id="externalEditorErrorToast" text="Something went wrong connecting to the CRM App, make sure you have the app installed" duration="10000">
 					<a class="toastLink" href="https://chrome.google.com/webstore/detail/crm-external-editor-app/hkjjmhkhhlmkflpihbikfpcojeofbjgn" rel="noopener" target="_blank">INSTALL</a>
 					<span id="externalEditorTryAgainButton" role="button">RETRY</span>
@@ -469,21 +469,21 @@
 				<paper-toast id="externalEditorLocationToast" text="The file is located at...." duration="10000">
 					<a href="file:///C:/" rel="noopener" target="_blank" id="externalEditoOpenLocationInBrowser" role="button">OPEN IN BROWSER</a>
 				</paper-toast>
-				<paper-toast id="storageExceededToast" text="[[__(lang, langReady, 'crm_app@toasts_storageExceeded')]]" duration="10000"></paper-toast>
-				<paper-toast id="noErrorsFound" text="[[__(lang, langReady, 'crm_app@toasts_noErrors')]]" duration="3500"></paper-toast>
-				<paper-toast id="acceptDownloadToast" text="[[__(lang, langReady, 'crm_app@toasts_acceptDownload')]]" duration="3500"></paper-toast>
+				<paper-toast id="storageExceededToast" text="[[__(lang, langReady, 'crm_app_toasts_storageExceeded')]]" duration="10000"></paper-toast>
+				<paper-toast id="noErrorsFound" text="[[__(lang, langReady, 'crm_app_toasts_noErrors')]]" duration="3500"></paper-toast>
+				<paper-toast id="acceptDownloadToast" text="[[__(lang, langReady, 'crm_app_toasts_acceptDownload')]]" duration="3500"></paper-toast>
 				<paper-toast id="updatedSettingsToast" text="Settings were updated to those on xx-xx-xxxx" duration="5000"></paper-toast>
 				<!--Dialogs-->
 				<paper-dialog id="codeSettingsDialog" no-cancel-on-outside-click no-cancel-on-esc-key data-element-type="CodeSettingsDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-					<h2 id="codeSettingsTitle">[[__(lang, langReady, 'crm_app@dialogs_codeSettings_changingOptions')]] <span class="bold" id="codeSettingsNodeName"></span></h2>
+					<h2 id="codeSettingsTitle">[[__(lang, langReady, 'crm_app_dialogs_codeSettings_changingOptions')]] <span class="bold" id="codeSettingsNodeName"></span></h2>
 					<div id="codeSettingsOptions">
 						<template is="dom-if" id="codeSettingsNoItems">
-							<div>[[__(lang, langReady, 'crm_app@dialogs_codeSettings_noOptions')]]</div>
+							<div>[[__(lang, langReady, 'crm_app_dialogs_codeSettings_noOptions')]]</div>
 						</template>
 						<template is="dom-repeat" id="codeSettingsRepeat" as="codeSetting">
 							<div class="codeSettingSetting" data-key$="[[codeSetting.key]]" data-type$="[[codeSetting.value.type]]">
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'number')}}">
-									<span class="optionMetaDescr">[[__(lang, langReady, 'crm_app@dialogs_codeSettings_numberInput')]]</span>
+									<span class="optionMetaDescr">[[__(lang, langReady, 'crm_app_dialogs_codeSettings_numberInput')]]</span>
 									<paper-input type="number" placeholder="[[_getString(codeSetting.value.descr)]]"
 										value="{{codeSetting.value.value}}" min="[[codeSetting.value.minimum]]"
 										max="[[codeSetting.value.maximum]]"
@@ -491,7 +491,7 @@
 										title="[[_getString(codeSetting.value.descr)]]"></paper-input>
 								</template>
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'boolean')}}">
-									<span class="optionMetaDescr">[[__(lang, langReady, 'crm_app@dialogs_codeSettings_booleanInput')]]</span>
+									<span class="optionMetaDescr">[[__(lang, langReady, 'crm_app_dialogs_codeSettings_booleanInput')]]</span>
 									<br><div class="optionPading"></div>
 									<paper-checkbox checked="{{codeSetting.value.value}}">
 										<span>
@@ -503,7 +503,7 @@
 									</paper-checkbox>
 								</template>
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'string')}}">
-									<span class="optionMetaDescr">[[__(lang, langReady, 'crm_app@dialogs_codeSettings_textInput')]]</span>
+									<span class="optionMetaDescr">[[__(lang, langReady, 'crm_app_dialogs_codeSettings_textInput')]]</span>
 									<paper-input type="text" placeholder="[[_getString(codeSetting.value.descr)]]"
 										value="{{codeSetting.value.value}}"
 										maxlength="[[codeSetting.value.maxLength]]"
@@ -512,7 +512,7 @@
 										title="[[_getString(codeSetting.value.descr)]]"></paper-input>
 								</template>
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'color')}}">
-									<span class="optionMetaDescr">[[__(lang, langReady, 'crm_app@dialogs_codeSettings_colorInput')]]</span>
+									<span class="optionMetaDescr">[[__(lang, langReady, 'crm_app_dialogs_codeSettings_colorInput')]]</span>
 									<input type="color" placeholder="[[_getString(codeSetting.value.descr)]]"
 										value="{{codeSetting.value.value}}"
 										label="[[codeSetting.key]]"
@@ -552,30 +552,30 @@
 						</template>
 					</div>
 					<div class="buttons">
-						<paper-button dialog-dismiss>[[__(lang, langReady, 'generic@cancel')]]</paper-button>
-						<paper-button dialog-confirm on-tap="domListener" data-on-tap="confirmCodeSettings">[[__(lang, langReady, 'generic@save')]]</paper-button>
+						<paper-button dialog-dismiss>[[__(lang, langReady, 'generic_cancel')]]</paper-button>
+						<paper-button dialog-confirm on-tap="domListener" data-on-tap="confirmCodeSettings">[[__(lang, langReady, 'generic_save')]]</paper-button>
 					</div>
 				</paper-dialog>
 				<paper-dialog no-cancel-on-outside-click no-cancel-on-esc-key id="restoreChangesDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 					<div id="restoreChangesMain">
-						<h2>[[__(lang, langReady, 'crm_app@dialogs_recoverUnsaved_header')]]</h2>
-						<span>[[__(lang, langReady, 'crm_app@dialogs_recoverUnsaved_description')]]</span>
-						<div id="highlightChangedScript" class="restoreChangesOption">[[__(lang, langReady, 'crm_app@dialogs_recoverUnsaved_whatNode')]]</div>
+						<h2>[[__(lang, langReady, 'crm_app_dialogs_recoverUnsaved_header')]]</h2>
+						<span>[[__(lang, langReady, 'crm_app_dialogs_recoverUnsaved_description')]]</span>
+						<div id="highlightChangedScript" class="restoreChangesOption">[[__(lang, langReady, 'crm_app_dialogs_recoverUnsaved_whatNode')]]</div>
 					</div>
 					<div id="restoreChangesHeader">
 						<div class="halfDivider">
 							<div class="half">
-								<h2>[[__(lang, langReady, 'crm_app@dialogs_recoverUnsaved_oldCode')]]</h2>
+								<h2>[[__(lang, langReady, 'crm_app_dialogs_recoverUnsaved_oldCode')]]</h2>
 							</div>
 							<div class="half">
-								<h2>[[__(lang, langReady, 'crm_app@dialogs_recoverUnsaved_unsavedCode')]]</h2>
+								<h2>[[__(lang, langReady, 'crm_app_dialogs_recoverUnsaved_unsavedCode')]]</h2>
 							</div>
 						</div>
 					</div>
 					<monaco-editor id="restoreChangesEditor"></monaco-editor>
 					<div class="buttons">
-						<paper-button id="discardButton" dialog-dismiss>[[__(lang, langReady, 'generic@discard')]]</paper-button>
-						<paper-button id="keepChangesButton" dialog-confirm>[[__(lang, langReady, 'crm_app@dialogs_recoverUnsaved_keepOld')]]</paper-button>
+						<paper-button id="discardButton" dialog-dismiss>[[__(lang, langReady, 'generic_discard')]]</paper-button>
+						<paper-button id="keepChangesButton" dialog-confirm>[[__(lang, langReady, 'crm_app_dialogs_recoverUnsaved_keepOld')]]</paper-button>
 					</div>
 				</paper-dialog>
 				<paper-dialog data-element-type="ChooseFileDialog" no-cancel-on-outside-click no-cancel-on-esc-key id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
@@ -583,7 +583,7 @@
 						<h2>Choose the file you want to keep</h2>
 						<monaco-editor id="chooseFileMerger"></monaco-editor>
 						<div class="buttons">
-							<paper-button class="closeChooseFileDialog">[[__(lang, langReady, 'generic@cancel')]]</paper-button>
+							<paper-button class="closeChooseFileDialog">[[__(lang, langReady, 'generic_cancel')]]</paper-button>
 							<paper-button id="chooseFileChooseCRM" dialog-confirm>Choose extension code</paper-button>
 							<paper-button id="chooseFileChooseDisk" dialog-confirm>Choose code on disk</paper-button>
 						</div>	
@@ -596,55 +596,55 @@
 						</div>
 					</div>
 					<div id="addLibraryProcessContainer">
-						<h2>[[__(lang, langReady, 'crm_app@dialogs_addLibrary_header')]]</h2>
-						<paper-input error-message="[[__(lang, langReady, 'crm_app@dialogs_addLibrary_noNameError')]]" id="addedLibraryName" label="name"></paper-input>
+						<h2>[[__(lang, langReady, 'crm_app_dialogs_addLibrary_header')]]</h2>
+						<paper-input error-message="[[__(lang, langReady, 'crm_app_dialogs_addLibrary_noNameError')]]" id="addedLibraryName" label="name"></paper-input>
 						<paper-radio-group id="addLibraryRadios" selected="url">
-							<paper-radio-button id="addLibraryUrlOption" name="url">[[__(lang, langReady, 'crm_app@dialogs_addLibrary_urlInput')]]</paper-radio-button>
-							<paper-radio-button id="addLibraryManualOption" name="manual">[[__(lang, langReady, 'crm_app@dialogs_addLibrary_codeInput')]]</paper-radio-button>
+							<paper-radio-button id="addLibraryUrlOption" name="url">[[__(lang, langReady, 'crm_app_dialogs_addLibrary_urlInput')]]</paper-radio-button>
+							<paper-radio-button id="addLibraryManualOption" name="manual">[[__(lang, langReady, 'crm_app_dialogs_addLibrary_codeInput')]]</paper-radio-button>
 						</paper-radio-group>
-						<paper-input pattern="$a" id="addLibraryUrlInput" label="[[__(lang, langReady, 'crm_app@dialogs_addLibrary_url')]]" error-message="[[__(lang, langReady, 'crm_app@dialogs_addLibrary_urlError')]]"></paper-input>
-						<paper-textarea id="addLibraryManualInput" label="[[__(lang, langReady, 'crm_app@dialogs_addLibrary_code')]]"></paper-textarea>
+						<paper-input pattern="$a" id="addLibraryUrlInput" label="[[__(lang, langReady, 'crm_app_dialogs_addLibrary_url')]]" error-message="[[__(lang, langReady, 'crm_app_dialogs_addLibrary_urlError')]]"></paper-input>
+						<paper-textarea id="addLibraryManualInput" label="[[__(lang, langReady, 'crm_app_dialogs_addLibrary_code')]]"></paper-textarea>
 						<br><br>
-						<paper-checkbox id="addLibraryIsTS">[[__(lang, langReady, 'crm_app@dialogs_addLibrary_usesTypescript')]] <a rel="noopener" href="https://www.typescriptlang.org/" target="_blank">typescript</a></paper-checkbox>
+						<paper-checkbox id="addLibraryIsTS">[[__(lang, langReady, 'crm_app_dialogs_addLibrary_usesTypescript')]] <a rel="noopener" href="https://www.typescriptlang.org/" target="_blank">typescript</a></paper-checkbox>
 						<div class="buttons">
-							<paper-button dialog-dismiss>[[__(lang, langReady, 'generic@cancel')]]</paper-button>
-							<paper-button id="addLibraryButton">[[__(lang, langReady, 'generic@add')]]</paper-button>
+							<paper-button dialog-dismiss>[[__(lang, langReady, 'generic_cancel')]]</paper-button>
+							<paper-button id="addLibraryButton">[[__(lang, langReady, 'generic_add')]]</paper-button>
 						</div>
 					</div>
 					<div id="addLibraryConfirmationContainer">
-						<h2>[[__(lang, langReady, 'crm_app@dialogs_addLibrary_isThisOkay')]]</h2>
+						<h2>[[__(lang, langReady, 'crm_app_dialogs_addLibrary_isThisOkay')]]</h2>
 						<textarea id="addLibraryConfirmationInput"></textarea>
 						<div class="buttons">
-							<paper-button id="addLibraryDenyConfirmation">[[__(lang, langReady, 'generic@no')]]</paper-button>
-							<paper-button id="addLibraryConfirmAddition">[[__(lang, langReady, 'generic@yes')]]</paper-button>
+							<paper-button id="addLibraryDenyConfirmation">[[__(lang, langReady, 'generic_no')]]</paper-button>
+							<paper-button id="addLibraryConfirmAddition">[[__(lang, langReady, 'generic_yes')]]</paper-button>
 						</div>
 					</div>
 					<div id="addLibraryDialogSucces">
 						<div id="addLibraryDialogSuccesCheckmark" class="checkmark"></div>
-						<div id="addLibraryDialogSuccesText">[[__(lang, langReady, 'crm_app@dialogs_addLibrary_added')]]</div>
+						<div id="addLibraryDialogSuccesText">[[__(lang, langReady, 'crm_app_dialogs_addLibrary_added')]]</div>
 					</div>
 				</paper-dialog>
 				<paper-dialog with-backdrop id="cssEditorInfoDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-					<h2>[[__(lang, langReady, 'crm_app@dialogs_cssEditorInfo_header')]]</h2>
+					<h2>[[__(lang, langReady, 'crm_app_dialogs_cssEditorInfo_header')]]</h2>
 					<br />
-					[[__(lang, langReady, 'crm_app@dialogs_cssEditorInfo_description')]]
+					[[__(lang, langReady, 'crm_app_dialogs_cssEditorInfo_description')]]
 					<div class="buttons">
-						<paper-button dialog-dismiss>[[__(lang, langReady, 'generic@close')]]</paper-button>
+						<paper-button dialog-dismiss>[[__(lang, langReady, 'generic_close')]]</paper-button>
 					</div>
 				</paper-dialog>
 				<center-element fullscreenoverlay id="exportCenterer">
 					<paper-dialog with-backdrop id="exportDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-						<h2>[[__(lang, langReady, 'crm_app@dialogs_cssEditorInfo_header')]]</h2>
+						<h2>[[__(lang, langReady, 'crm_app_dialogs_cssEditorInfo_header')]]</h2>
 						<div>
-							[[__(lang, langReady, 'crm_app@dialogs_cssEditorInfo_description')]]
+							[[__(lang, langReady, 'crm_app_dialogs_cssEditorInfo_description')]]
 						</div>
 						<div id="exportInputLine">
-							<paper-input always-float-label id="exportAuthorName" label="[[__(lang, langReady, 'crm_app@dialogs_exporting_authorName')]]" placeholder="anonymous"></paper-input>
-							<paper-icon-button id="dialogCopyButton" icon="content-copy" title="[[__(lang, langReady, 'crm_app@dialogs_exporting_copyToClipboard')]]" on-tap="domListener" data-on-tap="copyExportDialogToClipboard"></paper-icon-button>
+							<paper-input always-float-label id="exportAuthorName" label="[[__(lang, langReady, 'crm_app_dialogs_exporting_authorName')]]" placeholder="anonymous"></paper-input>
+							<paper-icon-button id="dialogCopyButton" icon="content-copy" title="[[__(lang, langReady, 'crm_app_dialogs_exporting_copyToClipboard')]]" on-tap="domListener" data-on-tap="copyExportDialogToClipboard"></paper-icon-button>
 						</div>
 						<textarea class="paperTextArea" id="exportJSONData" rows="20" spellcheck="false" autocomplete="off"></textarea>
 						<div class="buttons">
-							<paper-button dialog-dismiss>[[__(lang, langReady, 'generic@close')]]</paper-button>
+							<paper-button dialog-dismiss>[[__(lang, langReady, 'generic_close')]]</paper-button>
 						</div>
 					</paper-dialog>
 				</center-element>
@@ -655,11 +655,11 @@
 							Managing permisions for script "[[name]]"
 						</h2>
 						<div>
-							[[__(lang, langReady, 'crm_app@dialogs_permissions_description')]]
+							[[__(lang, langReady, 'crm_app_dialogs_permissions_description')]]
 						</div>
 						<div class="scriptPermissionsContainer">
 							<div class="scriptPermissionsUsedPermissionsTxt">
-								[[__(lang, langReady, 'crm_app@dialogs_permissions_usedPermissions')]]
+								[[__(lang, langReady, 'crm_app_dialogs_permissions_usedPermissions')]]
 							</div>
 							<div class="requestPermissionsPermissions">
 								<template is="dom-repeat" id="scriptPermissionsTemplate" items="[]" as="permission">
@@ -681,22 +681,22 @@
 							</div>
 						</div>
 						<div class="buttons">
-							<paper-button dialog-dismiss>[[__(lang, langReady, 'generic@close')]]</paper-button>
+							<paper-button dialog-dismiss>[[__(lang, langReady, 'generic_close')]]</paper-button>
 						</div>
 					</paper-dialog>
 				</center-element>
 				<center-element fullscreenoverlay id="requestPermissionsCenterer">
 					<paper-dialog no-cancel-on-outside-click no-cancel-on-esc-key with-backdrop id="requestPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 						<div>
-							<h2 id="requestPermissionsHeader">[[__(lang, langReady, 'crm_app@dialogs_requestPermissions_header')]]</h2>
+							<h2 id="requestPermissionsHeader">[[__(lang, langReady, 'crm_app_dialogs_requestPermissions_header')]]</h2>
 							<div id="requestPermissionsTxt">
-								[[__(lang, langReady, 'crm_app@dialogs_requestPermissions_description')]]
+								[[__(lang, langReady, 'crm_app_dialogs_requestPermissions_description')]]
 							<br />
 							<div class="requestPermissionsPermissions">
 								<div id="requestedPermissionsCont">
 									<div id="requestPermissionsAsked">
 										<div class="requestPermissionsType">
-											[[__(lang, langReady, 'crm_app@dialogs_requestPermissions_required')]] :
+											[[__(lang, langReady, 'crm_app_dialogs_requestPermissions_required')]] :
 										</div>
 										<template id="requestedPermissionsTemplate" is="dom-repeat" items="[]" as="requestedPermission">
 											<div class="requestPermissionsPermission">
@@ -735,7 +735,7 @@
 								</div>
 								<div id="requestPermissionsOther">
 									<div class="requestPermissionsType">
-										[[__(lang, langReady, 'crm_app@dialogs_requestPermissions_others')]] :
+										[[__(lang, langReady, 'crm_app_dialogs_requestPermissions_others')]] :
 									</div>
 									<template id="requestedPermissionsOtherTemplate" is="dom-repeat" items="[]" as="otherPermission">
 										<div class="requestPermissionsPermission">
@@ -757,7 +757,7 @@
 							</div>
 							<div class="buttons">
 								<paper-button dialog-dismiss>[[__(lang, langReady, '"generic')]]</paper-button>
-								<paper-button id="requestPermissionsAcceptAll">[[__(lang, langReady, 'crm_app@dialogs_requestPermissions_acceptAll')]]</paper-button>
+								<paper-button id="requestPermissionsAcceptAll">[[__(lang, langReady, 'crm_app_dialogs_requestPermissions_acceptAll')]]</paper-button>
 							</div>
 						</div>
 					</paper-dialog>
@@ -831,7 +831,7 @@
 										If you feel like helping out, reporting some issues, or just checking out the code and learning
 										please check it out. <br />
 										If you have any questions or suggestions, please don't hesitate to contact me by email over at
-										<a href="mailto:awsdfgvhbjn@gmail.com" target="_blank" rel="noopener">awsdfgvhbjn@gmail.com</a>.
+										<a href="mailto:awsdfgvhbjn_gmail.com" target="_blank" rel="noopener">awsdfgvhbjn_gmail.com</a>.
 										<br /><br />
 										<div class="finalMessage">Have fun using this extension!</div>
 										<br />
@@ -855,7 +855,7 @@
 							<template id="addedPermissionsTabRepeater" is="dom-repeat" as="nodeAddedPermission">
 								<div class="nodeAddedPermissionsCont" data-id$="[[nodeAddedPermission.node]]">
 									<h2 class="nodeAddedHeader">
-										[[__exec(lang, langReady, 'crm_app@dialogs_addedPermissions_header', _getNodeName, nodeAddedPermission.node, _getNodeVersion, nodeAddedPermission.node)]]
+										[[__exec(lang, langReady, 'crm_app_dialogs_addedPermissions_header', _getNodeName, nodeAddedPermission.node, _getNodeVersion, nodeAddedPermission.node)]]
 									</h2>
 									<div class="nodeAddedPermissions">
 										<template is="dom-repeat" items="[[nodeAddedPermission.permissions]]" as="permission">
@@ -878,10 +878,10 @@
 						<div class="buttons">
 							<paper-button
 								id="addedPermissionPrevButton"
-								on-tap="domListener" data-on-tap="addedPermissionPrev">[[__(lang, langReady, 'generic@previous')]]</paper-button>
+								on-tap="domListener" data-on-tap="addedPermissionPrev">[[__(lang, langReady, 'generic_previous')]]</paper-button>
 							<paper-button id="addedPermissionNextButton" on-tap="domListener" data-on-tap="addedPermissionNext">
-								<span class="close">[[__(lang, langReady, 'generic@apply')]]</span>
-								<span class="next">[[__(lang, langReady, 'generic@next')]]</span>
+								<span class="close">[[__(lang, langReady, 'generic_apply')]]</span>
+								<span class="next">[[__(lang, langReady, 'generic_next')]]</span>
 							</paper-button>
 						</div>
 					</paper-dialog>
