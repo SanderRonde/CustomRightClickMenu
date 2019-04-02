@@ -63,7 +63,9 @@ import * as operaExtensionData from './UI/drivers/opera-extension';
 import * as edgeExtensionData from './UI/drivers/edge-extension';
 import * as defaultExtensionData from './UI/drivers/default';
 import * as webdriver from 'selenium-webdriver';
+import * as path from 'path';
 import * as chai from 'chai';
+import * as fs from 'fs';
 import { 
 	tryReadManifest, getGitHash, setDriver, 
 	AppWindow, TypedWebdriver, setTimeModifier, 
@@ -74,8 +76,9 @@ import {
 	forEachPromise, FoundElementPromise, 
 	BrowserstackCapabilities, waitForCRM, resetSettings, ContextMenu, ContextMenuItem, ActiveTabs, ExecutedScript
 } from './imports';
-import { GlobalObject } from '../app/js/background/sharedTypes';
+import { I18NKeys } from '../app/_locales/i18n-keys';
 import { EncodedString } from '../app/elements/elements';
+import { GlobalObject } from '../app/js/background/sharedTypes';
 import { EditCrmItem } from '../app/elements/options/edit-crm-item/edit-crm-item';
 require('mocha-steps');
 const request = require('request');
@@ -1183,6 +1186,37 @@ describe('User entrypoints', function() {
 						throw new Error('Failed to get elements loaded message, page load is failing');
 					});
 				} catch(e) {}
+			});
+			it('should apply i18n', async function() {
+				this.timeout(10000 * TIME_MODIFIER);
+				this.slow(8000 * TIME_MODIFIER);
+
+				const content = await findElement(webdriver.By.tagName('crm-app'))
+					.findElement(webdriver.By.className('title'))
+					.findElement(webdriver.By.tagName('span'))
+					.getText();
+				const i18nFile = await new Promise<string>((resolve, reject) => {
+					fs.readFile(path.join(__dirname, '../', 'app/_locales/en/messages.json'), {
+						encoding: 'utf8'
+					}, (err, data) => {
+						if (err) {
+							reject(err);
+						} else {
+							resolve(data);
+						}
+					});
+				});
+				let parsed: {
+					[key: string]: {
+						message: string
+					};
+				};
+				assert.doesNotThrow(() => {
+					parsed = JSON.parse(i18nFile);
+				}, 'messages file should be JSON parsable');
+				const expected = parsed[I18NKeys.generic.app_title].message;
+				assert.strictEqual(content, expected,
+					'text was changed to i18n version');
 			});
 		});
 		describe('CheckboxOptions', function() {
