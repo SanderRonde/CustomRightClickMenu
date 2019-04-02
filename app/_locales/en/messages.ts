@@ -193,15 +193,15 @@ export const Messages: I18NBranch = {
 			message: 'Makes it possible for a script to get all recently closed pages and devices connected to sync, also allows it to re-open those closed pages. (https://developer.chrome.com/extensions/sessions)',
 			description: 'Description for the sessions permission'
 		},
-		"system.cpu": {
+		systemcpu: {
 			message: 'Allows a script to get info about the CPU. (https://developer.chrome.com/extensions/system_cpu)',
 			description: 'Description for the system.cpu permission'
 		},
-		"system.memory": {
+		systemmemory: {
 			message: 'Allows a script to get info about the amount of RAM memory on your computer. (https://developer.chrome.com/extensions/system_memory)',
 			description: 'Description for the system.memory permission'
 		},
-		"system.storage": {
+		systemstorage: {
 			message: 'Allows a script to get info about the amount of storage on your computer and be notified when external storage is attached or detached. (https://developer.chrome.com/extensions/system_storage)',
 			description: 'Description for the system.storage permission'
 		},
