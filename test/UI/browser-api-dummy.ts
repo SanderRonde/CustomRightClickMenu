@@ -855,6 +855,17 @@ testWindow.chrome = {
 			callback(true);
 		}
 	},
+	i18n: {
+		getAcceptLanguages(callback: (languages: string[]) => void) {
+			callback(['en', 'en-US']);
+		},
+		getMessage(messageName: string, _substitutions?: any): string {
+			return messageName;
+		},
+		getUILanguage(): string {
+			return 'en';
+		}
+	},
 	tabs: {
 		get: function(id: number, callback: (tab: _chrome.tabs.Tab) => void) {
 			TypeChecking.typeCheck({

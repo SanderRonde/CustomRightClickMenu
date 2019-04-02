@@ -42,6 +42,7 @@ interface Chrome {
 	identity: typeof _chrome.identity;
 	idle: typeof _chrome.idle;
 	input: typeof _chrome.input;
+	i18n: typeof _chrome.i18n;
 	management: typeof _chrome.management;
 	networking: typeof _chrome.networking;
 	notifications: typeof _chrome.notifications;
