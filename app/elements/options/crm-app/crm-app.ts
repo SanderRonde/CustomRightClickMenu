@@ -591,7 +591,7 @@ namespace CRMAppElement {
 			if (!updatedScript) {
 				return 'Please ignore';
 			}
-			return this.___(I18NKeys.crm_app.code.nodeUpdated, 
+			return this.___(I18NKeys.crmApp.code.nodeUpdated, 
 				updatedScript.name, updatedScript.oldVersion,
 				updatedScript.newVersion);
 		};
@@ -622,9 +622,9 @@ namespace CRMAppElement {
 
 		static _getDisabledReason(this: CrmApp) {
 			if (!this._supportsStorageSync()) {
-				return this.___(I18NKeys.crm_app.options.useStorageSyncDisabledUnavailable);
+				return this.___(I18NKeys.crmApp.options.useStorageSyncDisabledUnavailable);
 			} else {
-				return this.___(I18NKeys.crm_app.options.useStorageSyncDisabledTooBig);
+				return this.___(I18NKeys.crmApp.options.useStorageSyncDisabledTooBig);
 			}
 		}
 
@@ -1126,7 +1126,7 @@ namespace CRMAppElement {
 
 			//Reset regedit part
 			window.doc.URISchemeFilePath.value = 'C:\\files\\my_file.exe';
-			window.doc.URISchemeSchemeName.value = this.___(I18NKeys.crm_app.uriScheme.example);
+			window.doc.URISchemeSchemeName.value = this.___(I18NKeys.crmApp.uriScheme.example);
 
 			//Hide all open dialogs
 			Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
@@ -1674,7 +1674,7 @@ namespace CRMAppElement {
 			browserAPI.runtime.onInstalled.addListener(async (details) => {
 				if (details.reason === 'update') {
 					//Show a little message
-					this.$.messageToast.text = this.___(I18NKeys.crm_app.code.extensionUpdated,
+					this.$.messageToast.text = this.___(I18NKeys.crmApp.code.extensionUpdated,
 						(await browserAPI.runtime.getManifest()).version);
 					this.$.messageToast.show();
 				}
@@ -2290,7 +2290,7 @@ namespace CRMAppElement {
 					});
 
 					const toast = window.doc.updatedSettingsToast;
-					toast.text = this.parent().___(I18NKeys.crm_app.code.settingsUpdated,
+					toast.text = this.parent().___(I18NKeys.crmApp.code.settingsUpdated,
 						new Date(versionData.latest.date).toLocaleDateString());
 					toast.show();
 				}
@@ -2388,11 +2388,11 @@ namespace CRMAppElement {
 								}, 500);
 
 								if (BrowserAPI.getBrowser() === 'edge') {
-									console.log(this.parent().___(I18NKeys.crm_app.code.hiMessage));
+									console.log(this.parent().___(I18NKeys.crmApp.code.hiMessage));
 								} else {
-									console.log(`%c${this.parent().___(I18NKeys.crm_app.code.hiMessage)}`, 'font-size:120%;font-weight:bold;');
+									console.log(`%c${this.parent().___(I18NKeys.crmApp.code.hiMessage)}`, 'font-size:120%;font-weight:bold;');
 								}
-								console.log(this.parent().___(I18NKeys.crm_app.code.consoleInfo));
+								console.log(this.parent().___(I18NKeys.crmApp.code.consoleInfo));
 							}, 200);
 
 							window.CRMLoaded = window.CRMLoaded || {
@@ -3546,7 +3546,7 @@ namespace CRMAppElement {
 				if (browserAPI.permissions) {
 					await this.parent()._requestPermissions([], true);
 				} else {
-					window.app.util.showToast(this.parent().___(I18NKeys.crm_app.code.permissionsNotSupported));
+					window.app.util.showToast(this.parent().___(I18NKeys.crmApp.code.permissionsNotSupported));
 				}
 			};
 
@@ -3609,7 +3609,7 @@ namespace CRMAppElement {
 				}
 
 				if (!(BrowserAPI.getSrc().permissions)) {
-					window.app.util.showToast(this.parent().___(I18NKeys.crm_app.code.downloadNotSupported));
+					window.app.util.showToast(this.parent().___(I18NKeys.crmApp.code.downloadNotSupported));
 					callback(false);
 					return;
 				}
@@ -3657,7 +3657,7 @@ namespace CRMAppElement {
 								filename: schemeName + '.reg'
 							});
 						} else {
-							window.app.util.showToast(this.parent().___(I18NKeys.crm_app.code.downloadNotSupported));
+							window.app.util.showToast(this.parent().___(I18NKeys.crmApp.code.downloadNotSupported));
 						}
 					}
 				});
@@ -3776,7 +3776,7 @@ namespace CRMAppElement {
 						return;
 					}
 				}
-				this.parent().util.showToast(this.parent().___(I18NKeys.crm_app.code.importSuccess));
+				this.parent().util.showToast(this.parent().___(I18NKeys.crmApp.code.importSuccess));
 			};
 
 			static exportData() {
@@ -5101,7 +5101,7 @@ namespace CRMAppElement {
 
 			private static _editNodeFromClick(node: CRM.Node) {
 				if (window.app.item) {
-					window.app.$.messageToast.text = this.parent().___(I18NKeys.crm_app.code.alreadyEditingNode);
+					window.app.$.messageToast.text = this.parent().___(I18NKeys.crmApp.code.alreadyEditingNode);
 					window.app.$.messageToast.show();
 				} else {
 					const elements = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item');
@@ -5158,7 +5158,7 @@ namespace CRMAppElement {
 						if (window.app.storageLocal.editCRMInRM) {
 							this._editNodeFromClick(node);
 						} else {
-							window.app.$.messageToast.text = this.parent().___(I18NKeys.crm_app.code.wouldExecuteScript);
+							window.app.$.messageToast.text = this.parent().___(I18NKeys.crmApp.code.wouldExecuteScript);
 							window.app.$.messageToast.show();
 						}
 					},
@@ -5179,7 +5179,7 @@ namespace CRMAppElement {
 						if (window.app.storageLocal.editCRMInRM) {
 							this._editNodeFromClick(node);
 						} else {
-							window.app.$.messageToast.text = this.parent().___(I18NKeys.crm_app.code.wouldExecuteStylesheet);
+							window.app.$.messageToast.text = this.parent().___(I18NKeys.crmApp.code.wouldExecuteStylesheet);
 							window.app.$.messageToast.show();
 						}
 					},
@@ -5207,7 +5207,7 @@ namespace CRMAppElement {
 						if (window.app.storageLocal.editCRMInRM) {
 							this._editNodeFromClick(node);
 						} else {
-							window.app.$.messageToast.text = this.parent().___(I18NKeys.crm_app.code.wouldExecuteStylesheet);
+							window.app.$.messageToast.text = this.parent().___(I18NKeys.crmApp.code.wouldExecuteStylesheet);
 							thisEl.parentElement.classList.add('forcedVisible');
 							
 							timer && window.clearTimeout(timer);

@@ -369,7 +369,7 @@ export const Messages: I18NBranch = {
 			}
 		}
 	},
-	crm_app: {
+	crmApp: {
 		editcrm: {
 			editingCrm: {
 				message: 'Editing the CRM',
