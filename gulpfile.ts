@@ -509,7 +509,7 @@ class Tasks {
 			static compileTS() {
 				return new Promise(async (resolve, reject) => {
 					const files = await new Promise<string[]>((resolve, reject) => {
-						glob('app/_locales/*/*.ts', (err, matches) => {
+						glob('app/_locales/**/*.ts', (err, matches) => {
 							if (err) { 
 								reject(err);
 							} else {
