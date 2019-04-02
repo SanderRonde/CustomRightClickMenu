@@ -25,6 +25,7 @@ import glob from 'glob';
 import path from 'path';
 import del from 'del';
 import fs from 'fs';
+import stream from 'stream';
 
 // Only show subtasks when they are actually being run, otherwise
 // the -T screen is just being spammed
@@ -423,6 +424,26 @@ class Tasks {
 			[key: string]: I18NRoot|I18NMessage;
 		};
 
+		interface StreamFile {
+			path: string;
+			contents: Buffer;
+		}
+
+		class logstream extends stream.Transform {
+			constructor() {
+				super({objectMode: true});
+			}
+			
+			_transform(file: StreamFile, _encoding: string, 
+				callback: (error: Error|null, file: StreamFile) => void) {
+				console.log(file);
+		
+				callback(null, file);
+			}
+		}
+
+		new logstream();
+
 		@taskClass('i18n')
 		class I18N {
 			private static _isMessage(descriptor: I18NMessage|I18NRoot): descriptor is I18NMessage {
@@ -490,13 +511,29 @@ class Tasks {
 
 			@describe('Compiles the .ts files into .js files')
 			static compileTS() {
-				return new Promise((resolve, reject) => {
+				return new Promise(async (resolve, reject) => {
+					const files = await new Promise<string[]>((resolve, reject) => {
+						glob('app/_locales/*/*.ts', (err, matches) => {
+							if (err) { 
+								reject(err);
+							} else {
+								resolve(matches);
+							}
+						});
+					});
+					const dest = (() => {
+						if (files.length > 1) {
+							return './app/_locales';
+						}
+						return files[0].split('messages.ts')[0];
+					})();
+
 					const project = ts.createProject('app/_locales/tsconfig.json');
 					const proj = project.src().pipe(project());
 					proj.once('error', () => {
 						reject('Error(s) thrown during compilation');
 					});
-					proj.js.pipe(gulp.dest('./app/_locales')).once('end', () => {
+					proj.js.pipe(gulp.dest(dest)).once('end', () => {
 						resolve(null);
 					});
 				});
