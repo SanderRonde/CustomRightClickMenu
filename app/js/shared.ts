@@ -29,8 +29,8 @@ export const enum LANGS {
 };
 
 export interface I18N {
-	(key: string, ...replacements: string[]): Promise<string>;
-	sync(key: string, ...replacements: string[]): string;
+	(key: string, ...replacements: (string|number)[]): Promise<string>;
+	sync(key: string, ...replacements: (string|number)[]): string;
 
 	getLang(): Promise<LANGS>;
 	setLang(lang: LANGS): Promise<void>;
@@ -446,15 +446,15 @@ export type SharedWindow = Window & {
 				return message;
 			}
 	
-			__sync(key: string, ...replacements: string[]) {
+			__sync(key: string, ...replacements: (string|number)[]) {
 				if (!this._lang || !this._currentLangFile) return `{{${key}}}`;
 	
-				return this._getMessage( key, ...replacements);
+				return this._getMessage( key, ...replacements.map(s => s + ''));
 			}
 	
-			async __(key: string, ...replacements: string[]): Promise<string> {
+			async __(key: string, ...replacements: (string|number)[]): Promise<string> {
 				await this.ready;
-				return this._getMessage(key, ...replacements);
+				return this._getMessage(key, ...replacements.map(s => s + ''));
 			}
 
 			addLoadListener(fn: {
@@ -478,7 +478,7 @@ export type SharedWindow = Window & {
 		}
 		const langInstance = new Lang();
 		const boundGetMessage = langInstance.__.bind(langInstance);
-		const __: I18N = ((key: string, ...replacements: string[]) => {
+		const __: I18N = ((key: string, ...replacements: (string|number)[]) => {
 			return boundGetMessage(key, ...replacements);
 		}) as I18N;
 		__.sync = langInstance.__sync.bind(langInstance);
@@ -493,13 +493,13 @@ export type SharedWindow = Window & {
 			static instance = langInstance;
 
 			static __(_lang: string, _langReady: boolean,  
-				key: string, ...replacements: string[]): string {
+				key: string, ...replacements: (string|number)[]): string {
 					this.instance.addLoadListener(this as any);
 					return this.instance.__sync(key, ...replacements);
 				}
 			
 			static __exec(_lang: string, _langReady: boolean,  
-				key: string, ...replacements: (string|((...args: string[]) => string))[]): string {
+				key: string, ...replacements: (string|number|((...args: string[]) => string|number))[]): string {
 					const finalArgs = [];
 					for (let i = 0; i < replacements.length; i++) {
 						const arg = replacements[i];
@@ -516,12 +516,12 @@ export type SharedWindow = Window & {
 					return this.instance.__sync(key, ...finalArgs);
 				}
 
-			static __async(key: string, ...replacements: string[]): Promise<string> {
+			static __async(key: string, ...replacements: (string|number)[]): Promise<string> {
 				this.instance.addLoadListener(this as any);
 				return this.instance.__(key, ...replacements);
 			}
 
-			static ___(key: string, ...replacements: string[]): string {
+			static ___(key: string, ...replacements: (string|number)[]): string {
 				this.instance.addLoadListener(this as any);
 				return this.instance.__sync(key, ...replacements);
 			}
