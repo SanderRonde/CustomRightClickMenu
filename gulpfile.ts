@@ -762,7 +762,8 @@ class Tasks {
 						return watcher;
 					}
 
-					@subTask('Gens enums, then watches for file changes and updates enums on change')
+					@subTask('watch',
+						'Gens enums, then watches for file changes and updates enums on change')
 					static watch = series(
 						Defs.genEnums,
 						Defs.watcher
