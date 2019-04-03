@@ -542,28 +542,33 @@ class Tasks {
 						});
 					}
 
+					private static _activeTask: Promise<any>;
+
+					@describe('Runs when watched file changes')
+					static async watchFileChange() {
+						let currentTask = Compile._activeTask;
+						await Compile._activeTask.then(() => {
+							if (Compile._activeTask !== currentTask) {
+								return Compile._activeTask;
+							} else {
+								Compile._activeTask = null;
+								return true;
+							}
+						});
+					}
+
 					@describe('Watches for file changes and compiles on change')
 					static async watcher() {
-						let activeTask: Promise<any> = null;
-						const watcher = gulp.watch('./app/_locales/*/messages.js', async () => {
-							let currentTask = activeTask;
-							await activeTask.then(() => {
-								if (activeTask !== currentTask) {
-									return activeTask;
-								} else {
-									activeTask = null;
-									return true;
-								}
-							});
-						});
+						const watcher = gulp.watch('./app/_locales/*/messages.js', 
+							Compile.watchFileChange);
 						watcher.on('change', (fileName) => {
-							activeTask = (async () => {
+							Compile._activeTask = (async () => {
 								const fileData = I18N._getFreshFileExport(fileName);
 								await I18N.Compile._compileI18NFile(fileName, fileData);
 							})();
 						});
 						watcher.on('add', (fileName) => {
-							activeTask = (async () => {
+							Compile._activeTask = (async () => {
 								const fileData = I18N._getFreshFileExport(fileName);
 								await I18N.Compile._compileI18NFile(fileName, fileData);
 							})();
@@ -729,22 +734,26 @@ class Tasks {
 						)
 					)
 
+					private static _activeTask: Promise<any>;
+
+					@describe('Runs when watched file changes')
+					static async watchFileChange() {
+						let currentTask = Defs._activeTask;
+						await Defs._activeTask.then(() => {
+							if (Defs._activeTask !== currentTask) {
+								return Defs._activeTask;
+							} else {
+								Defs._activeTask = null;
+								return true;
+							}
+						});
+					}
+
 					@describe('Watches for file changes and updates enums on change')
 					static async watcher() {
-						let activeTask: Promise<any> = null;
-						const watcher = gulp.watch('./app/_locales/*/messages.js', async () => {
-							let currentTask = activeTask;
-							await activeTask.then(() => {
-								if (activeTask !== currentTask) {
-									return activeTask;
-								} else {
-									activeTask = null;
-									return true;
-								}
-							});
-						});
+						const watcher = gulp.watch('./app/_locales/*/messages.js', Defs.watchFileChange);
 						watcher.on('change', (fileName) => {
-							activeTask = (async () => {
+							Defs._activeTask = (async () => {
 								const fileData = I18N._getFreshFileExport(fileName);
 								const enums = await I18N.Defs.genEnumMessages(fileData)
 								await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
@@ -752,7 +761,7 @@ class Tasks {
 							})();
 						});
 						watcher.on('add', (fileName) => {
-							activeTask = (async () => {
+							Defs._activeTask = (async () => {
 								const fileData = I18N._getFreshFileExport(fileName);
 								const enums = await I18N.Defs.genEnumMessages(fileData)
 								await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
@@ -771,23 +780,27 @@ class Tasks {
 				}
 				return Defs;
 			})();
+
+			private static _activeTask: Promise<any>;
+
+			@describe('Runs when watched file changes')
+			static async watchFileChange() {
+				let currentTask = I18N._activeTask;
+				await I18N._activeTask.then(() => {
+					if (I18N._activeTask !== currentTask) {
+						return I18N._activeTask;
+					} else {
+						I18N._activeTask = null;
+						return true;
+					}
+				});
+			}
 			
 			@describe('Turns I18N TS files into messages.json files whenever they change')
 			static watcher() {
-				let activeTask: Promise<any> = null;
-				const watcher = gulp.watch('./app/_locales/*/messages.js', async () => {
-					let currentTask = activeTask;
-					await activeTask.then(() => {
-						if (activeTask !== currentTask) {
-							return activeTask;
-						} else {
-							activeTask = null;
-							return true;
-						}
-					});
-				});
+				const watcher = gulp.watch('./app/_locales/*/messages.js', I18N.watchFileChange);
 				watcher.on('change', (fileName) => {
-					activeTask = (async () => {
+					I18N._activeTask = (async () => {
 						const fileData = I18N._getFreshFileExport(fileName);
 						const [ , enums] = await Promise.all([
 							I18N.Compile._compileI18NFile(fileName, fileData),
@@ -798,7 +811,7 @@ class Tasks {
 					})();
 				});
 				watcher.on('add', (fileName) => {
-					activeTask = (async () => {
+					I18N._activeTask = (async () => {
 						const fileData = I18N._getFreshFileExport(fileName);
 						const [ , enums] = await Promise.all([
 							I18N.Compile._compileI18NFile(fileName, fileData),
