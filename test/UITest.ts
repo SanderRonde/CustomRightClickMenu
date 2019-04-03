@@ -1196,7 +1196,7 @@ describe('User entrypoints', function() {
 					.findElement(webdriver.By.tagName('span'))
 					.getText();
 				const i18nFile = await new Promise<string>((resolve, reject) => {
-					fs.readFile(path.join(__dirname, '../', 'app/_locales/en/messages.json'), {
+					fs.readFile(path.join(__dirname, '../', 'build/_locales/en/messages.json'), {
 						encoding: 'utf8'
 					}, (err, data) => {
 						if (err) {
