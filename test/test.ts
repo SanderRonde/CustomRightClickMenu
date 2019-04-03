@@ -1163,6 +1163,17 @@ const chrome = ({
 			callback([]);
 		}
 	},
+	i18n: {
+		getAcceptLanguages(callback: (languages: string[]) => void) {
+			callback(['en', 'en-US']);
+		},
+		getMessage(messageName: string, _substitutions?: any): string {
+			return messageName;
+		},
+		getUILanguage(): string {
+			return 'en';
+		}
+	},
 	tabs: {
 		onHighlighted: {
 			addListener: function (listener: () => void) {
