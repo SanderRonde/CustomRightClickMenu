@@ -25,7 +25,6 @@ import glob from 'glob';
 import path from 'path';
 import del from 'del';
 import fs from 'fs';
-import stream from 'stream';
 
 // Only show subtasks when they are actually being run, otherwise
 // the -T screen is just being spammed
@@ -423,26 +422,6 @@ class Tasks {
 		type I18NRoot = {
 			[key: string]: I18NRoot|I18NMessage;
 		};
-
-		interface StreamFile {
-			path: string;
-			contents: Buffer;
-		}
-
-		class logstream extends stream.Transform {
-			constructor() {
-				super({objectMode: true});
-			}
-			
-			_transform(file: StreamFile, _encoding: string, 
-				callback: (error: Error|null, file: StreamFile) => void) {
-				console.log(file);
-		
-				callback(null, file);
-			}
-		}
-
-		new logstream();
 
 		@taskClass('i18n')
 		class I18N {
