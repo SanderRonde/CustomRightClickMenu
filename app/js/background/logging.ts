@@ -1,6 +1,7 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
-import { ModuleData } from "./moduleTypes";
 import { BackgroundpageWindow, LogListenerObject, CRMAPIMessageInstance, TabData, LogListenerLine } from './sharedTypes';
+import { I18NKeys } from "../../_locales/i18n-keys.js";
+import { ModuleData } from "./moduleTypes";
 
 declare const browserAPI: browserAPI;
 declare const window: BackgroundpageWindow;
@@ -146,14 +147,14 @@ export namespace Logging {
 			window.log.apply(console, args);
 		}
 	}
-	export function backgroundPageLog(this: Window | typeof Logging, 
+	export async function backgroundPageLog(this: Window | typeof Logging, 
 		id: CRM.GenericNodeId, sourceData: [string, number], ...args: any[]) {
 			sourceData = sourceData || [undefined, undefined];
 
 			const srcObjDetails = {
-				tabId: 'background',
+				tabId: await window.__(I18NKeys.background.logging.background),
 				nodeTitle: modules.crm.crmById.get(id).name,
-				tabTitle: 'Background Page',
+				tabTitle: await window.__(I18NKeys.background.logging.background_page),
 				data: args,
 				lineNumber: sourceData[0],
 				logId: sourceData[1],
@@ -164,11 +165,13 @@ export namespace Logging {
 				id: id
 			} as any;
 			const logArgs = [
-				'Background page [', srcObj, ']: '
+				`${await window.__(I18NKeys.background.logging.background_page)} [`, 
+					srcObj, ']: '
 			].concat(args);
 
-			Logging.log.bind(modules.globalObject, id, 'background')
-				.apply(modules.globalObject, logArgs);
+			Logging.log.bind(modules.globalObject, id, 
+				await window.__(I18NKeys.background.logging.background))
+					.apply(modules.globalObject, logArgs);
 
 			for (let key in srcObjDetails) {
 				if (srcObjDetails.hasOwnProperty(key)) {

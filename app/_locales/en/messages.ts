@@ -99,6 +99,14 @@ export const Messages: I18NBranch = {
 			message: 'My Menu',
 			description: 'A default name for a menu node'
 		},
+		node: {
+			message: 'node',
+			description: 'Word for a single node/item'
+		},
+		id: {
+			message: 'id',
+			description: 'Word for the ID of a node/item. This is used to identify it in the extension itself (the user won\'t see it except in errors)'
+		}
 	},
 	permissions: {
 		alarms: {
@@ -1136,6 +1144,372 @@ export const Messages: I18NBranch = {
 		}
 	},
 	background: {
-		
+		crm: {
+			invalid_runat: {
+				message: 'Script with id $ID$' +
+					'runAt value was changed to default, $RUNAT$' +
+					'is not a valid value (use document_start, document_end or document_idle)',
+				description: 'runAt value is not valid for script with given id.' + 
+					'The runAt value describes when a script should run. At the start or end of' + 
+					' a page load or when the page is idle',
+				placeholders: {
+					id: {
+						content: '$1',
+						example: '1'
+					},
+					runat: {
+						content: '$2',
+						example: 'document_start'
+					}
+				}
+			},
+			execution_failed: {
+				message: 'Couldn\'t execute on tab with id $TABID$' +
+					'for node $NODEID$',
+				description: 'Message shown when execution failed for a script',
+				placeholders: {
+					tabid: {
+						content: '$1',
+						example: '1'
+					},
+					nodeid: {
+						content: '$2',
+						example: '1'
+					}
+				}
+			},
+			setup_error: {
+				message: 'An error occurred while setting up the script for node $NODEID$',
+				description: 'A message shown when an error has occurred in the setup stage',
+				placeholders: {
+					nodeid: {
+						content: '$1',
+						example: '1'
+					}
+				}
+			},
+			update_download_404: {
+				message: 'Tried to update $NODETYPE$ $NODEID$ $NODENAME$' +
+					' but could not reach download URL',
+				description: 'A message shown when a request to a node\'s download URL (the URL from which it should be updated) failed',
+				placeholders: {
+					nodeType: {
+						content: '$1',
+						example: 'script|stylesheet'
+					},
+					nodeId: {
+						content: '$2',
+						example: '1'
+					},
+					nodeName: {
+						content: '$3',
+						example: 'MyNode'
+					}
+				}
+			},
+			option_not_found: {
+				message: 'Could not find option $NODENAME$ for stylesheet $NODEID$',
+				description: 'A message shown when a key was not found in the supplied settings',
+				placeholders: {
+					nodeName: {
+						content: '$1',
+						example: 'MyNode'
+					},
+					nodeId: {
+						content: '$2',
+						example: '1'
+					}
+				}
+			},
+			css_compile_error: {
+				message: 'An error occurred while compiling $TYPE$ CSS for ' + 
+				'node $NODEID$',
+				description: 'An error shown when compilation failed for given node\'s preprocessor CSS',
+				placeholders: {
+					type: {
+						content: '$1',
+						example: 'less|stylus'
+					},
+					nodeId: {
+						content: '$2',
+						example: '1'
+					}
+				}
+			},
+			contextmenu_error_retry: {
+				message: 'An error occurred with your context menu,' + 
+					' attempting again with no url matching.',
+				description: 'Error shown when something went wrong creating the context menu. It will be retried with the URL matching feature disabled'
+			},
+			contextmenu_error: {
+				message: 'An error occurred with your context menu!',
+				description: 'Error shown when something went wrong creating the context menu.'
+			},
+			user_contextmenu_error: {
+				message: 'Error recreating user contextmenu',
+				description: 'Error shown when something went wrong creating a user context\'s contextmenu. The difference between the regular version and this version is that the other version is generated based on the CRM and its nodes while this one is created by the user themselves using the CRM API'
+			},
+			created_background_page: {
+				message: 'Creating backgroundpage for node $NODEID$',
+				description: 'Message shown when a backgroundpage for given node has started',
+				placeholders: {
+					nodeId: {
+						content: '$1',
+						example: '1'
+					}
+				}
+			},
+			restarting_background_page: {
+				message: 'Restarting background page...',
+				description: 'Message shown when restarting a backgroundpage'
+			},
+			terminated_background_page: {
+				message: 'Terminated background page...',
+				description: 'Message shown when restarting a backgroundpage'
+			}
+		},
+		globalDeclarations: {
+			getID: {
+				no_matches: {
+					message: 'Unfortunately no matches were found, please try again',
+					description: 'Message shown when the getID function finds no results'
+				},
+				one_match: {
+					message: 'One match was found, the id is $MATCHID$' +
+						' and the script is',
+					description: 'Message shown when the getID function finds one result. This message is followed by the node.',
+					placeholders: {
+						matchId: {
+							content: '$1',
+							example: '1'
+						}
+					}
+				},
+				multiple_matches: {
+					message: 'Found multiple matches, here they are:',
+					description: 'Message shown when the getID function finds multiple results'
+				}
+			},
+			tabRestore: {
+				success: {
+					message: 'Restored tab with id $TABID$',
+					description: 'Message shown when a tab that was already open when the extension started is retroactively executed on',
+					placeholders: {
+						tabId: {
+							content: '$1',
+							example: '1'
+						}
+					}
+				},
+				unknownError: {
+					message: 'Failed to restore tab with id $TABID$',
+					description: 'Message shown when a tab that was already open when the extension started is retroactively executed on but failed with an unknown error',
+					placeholders: {
+						tabId: {
+							content: '$1',
+							example: '1'
+						}
+					}
+				},
+				ignored: {
+					message: 'Ignoring tab with id $TABID$ (chrome or file url)$',
+					description: 'Message shown when a tab that was already open when the extension started is retroactively executed on but it was ignored since the extension can\'t run on that page (for example browser settings pages etc)',
+					placeholders: {
+						tabId: {
+							content: '$1',
+							example: '1'
+						}
+					}
+				},
+				frozen: {
+					message: 'Skipping restoration of tab with id $TABID$' +
+						'Tab is frozen, most likely due to user debugging',
+					description: 'Message shown when a tab that was already open when the extension started is retroactively executed on but it was frozen since the user is debugging it',
+					placeholders: {
+						tabId: {
+							content: '$1',
+							example: '1'
+						}
+					}
+				}
+			},
+			proxy: {
+				redirecting: {
+					message: 'Redirecting',
+					description: 'Message shown when redirecting a URL to another URL'
+				}
+			}
+		},
+		init: {
+			logging_explanation: {
+				message: 'If you\'re here to check out your background ' +
+					'script, get its ID (you can type getID("name") to ' +
+					'find the ID), and type filter(id, [optional tabId])' +
+					' to show only those messages. You can also visit ' +
+					'the logging page for even better logging over at ' +
+					'$LOGGINGURL$',
+				description: 'Message shown to inform the user of the getID and logging functions',
+				placeholders: {
+					loggingUrl: {
+						content: '$1',
+						example: 'chrome-extension://xxxxx/logging.html'
+					}
+				}
+			},
+			debug_explanation: {
+				message: 'You can also use the debugger for scripts by ' +
+					'calling window.debugNextScriptCall(id) ' +
+					'and window.debugBackgroundScript(id) for scripts ' +
+					'and backgroundscripts respectively. You can get the ' +
+					'id by using the getID("name") function.',
+				description: 'Message shown to inform the user of the debugging functions'
+			},
+			registering_permission_listeners: {
+				message: 'Registering permission listeners',
+				description: 'Info message shown when registers listeners for the browser.permissions API. Keeping track of when some are changed'
+			},
+			registering_handler: {
+				message: 'Setting CRMAPI message handler',
+				description: 'Info message shown when setting up message handler for the CRM API. Handling API requests from scripts'
+			},
+			building_crm: {
+				message: 'Building Custom Right-Click Menu',
+				description: 'Info message shown when building the contextmenu itself'
+			},
+			compiling_ts: {
+				message: 'Compiling typescript',
+				description: 'Info message shown when typescript is being compiled'
+			},
+			registering_handlers: {
+				message: 'Registering global handlers',
+				description: 'Info message shown when registering general global change handlers (tabs created/removed etc)'
+			},
+			updating_resources: {
+				message: 'Updating resources',
+				description: 'Info message shown when updating resources, which are scripts hosted on other websites'
+			},
+			updating_nodes: {
+				message: 'Updating scripts and stylesheets',
+				description: 'Info message shown when updating scripts and stylesheets\'s code'
+			},
+			debug_info: {
+				message: 'For all of these arrays goes, close and re-expand them to "refresh" their contents',
+				description: 'Info message telling the user how to refresh arrays in the console'
+			},
+			invalidated_tabs: {
+				message: 'Invalidated tabs:',
+				description: 'Label for array that contains invalidated tabs. Invalidated tabs are tabs that can\'t be accessed because they\'re options pages etc.'
+			},
+			insufficient_permissions: {
+				message: 'Insufficient permissions:',
+				description: 'Label for an array of scripts that failed because they had insufficient permissions'
+			},
+			registering_console_interface: {
+				message: 'Registering console user interface',
+				description: 'Info message shown when registering global functions that allow the user to run functions in the console'
+			},
+			done: {
+				message: 'Done!',
+				description: 'Info message shown when setup is done'
+			},
+			resource_update: {
+				message: 'Attempting resource update',
+				description: 'Info message shown when updating resources'
+			},
+			initialization: {
+				message: 'Initialization',
+				description: 'Message group for initialization messages'
+			},
+			storage: {
+				message: 'Loading storage data',
+				description: 'Message group for storage messages'
+			},
+			resources: {
+				message: 'Checking resources',
+				description: 'Message group for resource checking'
+			},
+			previous_open_tabs: {
+				message: 'Restoring previous open tabs',
+				description: 'Message group for the restoration of already-open tabs'
+			},
+			backgroundpages: {
+				message: 'Creating backgroundpages',
+				description: 'Message group for the creation of backgroundpages'
+			},
+			debugging: {
+				message: 'Debugging',
+				description: 'Message group for any debuging messages'
+			}
+		},
+		storages: {
+			sync_upload_error: {
+				message: 'Error on uploading to storage.sync, uploading to storage.local instead',
+				description: 'Error shown when uploading user settings to storage.sync fails. This is the synced data'
+			},
+			local_upload_error: {
+				message: 'Error on uploading to browser.storage.local',
+				description: 'Error shown when uploading user settings to storage.local fails. This is the non-synced local data'
+			},
+			upgrading: {
+				message: 'Upgrading minor version from $FROM$ to $TO$',
+				description: 'Message shown when upgrading version',
+				placeholders: {
+					from: {
+						content: '$1',
+						example: '1.2.3'
+					},
+					to: {
+						content: '$2',
+						example: '1.2.4'
+					}
+				}
+			},
+			setting_global_data: {
+				message: 'Setting global data stores',
+				description: 'Info message shown when setting up data storage'
+			},
+			building_crm: {
+				message: 'Building CRM representation',
+				description: 'Info message shown when building CRM and its in-background tree representation'
+			},
+			loading_sync: {
+				message: 'Loading sync storage data',
+				description: 'Info message shown when loading the browser.storage.sync synced data'
+			},
+			loading_local: {
+				message: 'Loading local storage data',
+				description: 'Info message shown when loading the browser.storage.local non-synced data'
+			},
+			checking_first: {
+				message: 'Checking if this is the first run',
+				description: 'Info message shown when checking if this is the very first run of the extension'
+			},
+			parsing_data: {
+				message: 'Parsing data encoding',
+				description: 'Info message shown when parsing the stored data and transforming it into usable structures. The data is stored in a sort of encoded way and this is a basic form of decoding it'
+			},
+			checking_updates: {
+				message: 'Checking for data updates',
+				description: 'Info message shown when checking whether any remote updates have happened. For example if the user makes a change on a different computer, this change is synced back to this computer. If something like this happens the user is notified'
+			},
+			initializing_first: {
+				message: 'Initializing for first run',
+				description: 'Info message shown when initializing the initial settings if this is the first run of the extension'
+			}
+		},
+		logging: {
+			background: {
+				message: 'background',
+				description: 'Name for a page that runs in the background similar to a browser extension\'s background page'
+			},
+			background_page: {
+				message: 'Background page',
+				description: 'Name for a page that runs in the background similar to a browser extension\'s background page'
+			}
+		}
 	}
 }
+
+//TODO: window.info
+
+//TODO: logging.ts:143

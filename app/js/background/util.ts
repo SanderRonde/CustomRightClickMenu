@@ -501,7 +501,7 @@ export namespace Util {
 			xhr.onreadystatechange = () => {
 				if (xhr.readyState === window.XMLHttpRequest.LOADING) {
 					//Close to being done, send message
-					msg.length > 0 && window.info.apply(console, msg);
+					msg.length > 0 && window.infoAsync.apply(console, msg);
 				}
 				if (xhr.readyState === window.XMLHttpRequest.DONE) {
 					if (xhr.status >= 200 && xhr.status < 300) {

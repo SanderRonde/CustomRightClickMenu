@@ -1,8 +1,9 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
+import { BackgroundpageWindow, TabData, LogListenerLine, LogListenerObject, LogListener, CRMAPIMessageInstance, ContextMenuItemTreeItem, ContextMenuOverrides } from './sharedTypes.js';
+import { I18NKeys } from "../../_locales/i18n-keys.js";
 import { MessageHandling } from "./messagehandling.js";
 import { BrowserHandler } from "./browserhandler.js";
 import { ModuleData } from "./moduleTypes";
-import { BackgroundpageWindow, TabData, LogListenerLine, LogListenerObject, LogListener, CRMAPIMessageInstance, ContextMenuItemTreeItem, ContextMenuOverrides } from './sharedTypes.js';
 
 declare const browserAPI: browserAPI;
 declare const window: BackgroundpageWindow;
@@ -77,14 +78,15 @@ export namespace GlobalDeclarations {
 			});
 
 			if (matches.length === 0) {
-				window.log('Unfortunately no matches were found, please try again');
+				window.logAsync(window.__(I18NKeys.background.globalDeclarations.getID.no_matches));
 			} else if (matches.length === 1) {
-				window.log('One match was found, the id is ', matches[0].id,
-					' and the script is ', matches[0].node);
+				window.logAsync(window.__(I18NKeys.background.globalDeclarations.getID.one_match,
+					matches[0].id), matches[0].node);
 			} else {
-				window.log('Found multiple matches, here they are:');
+				window.logAsync(window.__(I18NKeys.background.globalDeclarations.getID.multiple_matches));
 				matches.forEach((match) => {
-					window.log('Id is', match.id, ', script is', match.node);
+					window.logAsync(`${window.__(I18NKeys.crm.id)}:`, match.id, 
+						`, ${window.__(I18NKeys.crm.node)}:`, match.node);
 				});
 			}
 		};
@@ -669,7 +671,8 @@ export namespace GlobalDeclarations {
 
 		function setupResourceProxy() {
 			browserAPI.webRequest.onBeforeRequest.addListener((details) => {
-				window.info('Redirecting', details);
+				window.infoAsync(window.__(
+					I18NKeys.background.globalDeclarations.proxy.redirecting), details);
 				return {
 					redirectUrl: `${location.protocol}//${browserAPI.runtime.id}/fonts/fonts.css`
 				}
@@ -908,17 +911,24 @@ export namespace GlobalDeclarations {
 			]);
 			switch (state) {
 				case RestoreTabStatus.SUCCESS:
-					window.log('Restored tab with id', tab.id);
+					window.logAsync(
+						window.__(I18NKeys.background.globalDeclarations.tabRestore.success,
+						tab.id));
 					break;
 				case RestoreTabStatus.UNKNOWN_ERROR:
-					window.log('Failed to restore tab with id', tab.id);
+					window.logAsync(
+						window.__(I18NKeys.background.globalDeclarations.tabRestore.unknownError,
+						tab.id));
 					break;
 				case RestoreTabStatus.IGNORED:
-					window.log('Ignoring tab with id', tab.id, '(chrome or file url)');
+					window.logAsync(
+						window.__(I18NKeys.background.globalDeclarations.tabRestore.ignored,
+						tab.id));
 					break;
 				case RestoreTabStatus.FROZEN:
-					window.log('Skipping restoration of tab with id', tab.id,
-						'Tab is frozen, most likely due to user debugging');
+					window.logAsync(
+						window.__(I18NKeys.background.globalDeclarations.tabRestore.frozen,
+						tab.id));
 					break;
 			};
 		}));

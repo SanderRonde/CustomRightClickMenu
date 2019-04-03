@@ -1,8 +1,10 @@
 import {ModuleData, StorageModules, Modules } from "./moduleTypes";
+import { BackgroundpageWindow, GlobalObject } from './sharedTypes';
 import { GlobalDeclarations } from "./global-declarations.js";
 import { MessageHandling } from "./messagehandling.js";
 import { CRMAPIFunctions } from "./crmapifunctions.js";
 import { BrowserHandler } from "./browserhandler.js";
+import { I18NKeys } from "../../_locales/i18n-keys";
 import { APIMessaging } from "./api-messaging.js";
 import { CRMAPICall } from "./crmapicall.js";
 import { URLParsing } from "./urlparsing.js";
@@ -15,7 +17,6 @@ import { CRMNodes } from "./crm.js";
 import { Caches } from "./cache.js";
 import { Info } from "./info.js";
 import { Util } from "./util.js";
-import { BackgroundpageWindow, GlobalObject } from './sharedTypes';
 
 declare const browserAPI: browserAPI;
 declare const window: BackgroundpageWindow;
@@ -106,40 +107,42 @@ export namespace Init {
 	async function initRoutine() {
 		Info.init();
 
-		window.console.group('Initialization');
-		window.console.group('Loading storage data');
+		window.console.group(await window.__(I18NKeys.background.init.initialization));
+		window.console.group(await window.__(I18NKeys.background.init.storage));
 		modules.globalObject.backgroundPageLoaded = Util.iipe(async () => {
 			await Storages.loadStorages();
 			window.console.groupEnd();
 			try {
 				modules.globalObject.globals.latestId = 
 					modules.storages.settingsStorage.latestId;
-				window.info('Registering permission listeners');
+				window.info(await window.__(I18NKeys.background.init.registering_permission_listeners));
 				await GlobalDeclarations.refreshPermissions();
-				window.info('Setting CRMAPI message handler');
+				window.info(await window.__(I18NKeys.background.init.registering_handler));
 				GlobalDeclarations.setHandlerFunction();
 				browserAPI.runtime.onConnect.addListener((port) => {
 					port.onMessage.addListener(window.createHandlerFunction(port));
 				});
 				browserAPI.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessageInitial);
-				window.info('Building Custom Right-Click Menu');
+				window.info(await window.__(I18NKeys.background.init.building_crm));
 				await CRMNodes.buildPageCRM();
-				window.info('Compiling typescript');
+				window.info(await window.__(I18NKeys.background.init.compiling_ts));
 				await CRMNodes.TS.compileAllInTree();
-				window.console.groupCollapsed('Restoring previous open tabs');
+				window.console.groupCollapsed(
+					await window.__(I18NKeys.background.init.previous_open_tabs));
 				await GlobalDeclarations.restoreOpenTabs();
 				window.console.groupEnd();
-				window.console.groupCollapsed('Creating backgroundpages');
+				window.console.groupCollapsed(
+					await window.__(I18NKeys.background.init.backgroundpages));
 				await CRMNodes.Script.Background.createBackgroundPages();
 				window.console.groupEnd();
-				window.info('Registering global handlers');
+				window.info(await window.__(I18NKeys.background.init.registering_handlers));
 				GlobalDeclarations.init();
 
 				//Checks if all values are still correct
-				window.console.group('Checking Resources');
-				window.info('Updating resources');
+				window.console.group(await window.__(I18NKeys.background.init.resources));
+				window.info(await window.__(I18NKeys.background.init.updating_resources));
 				Resources.updateResourceValues();
-				window.info('Updating scripts and stylesheets');
+				window.info(await window.__(I18NKeys.background.init.updating_nodes));
 				//Dont' wait for them but do them in order
 				(async () => {
 					await CRMNodes.Script.Updating.updateScripts()
@@ -147,7 +150,7 @@ export namespace Init {
 				})();
 				window.setInterval(() => {
 					(async () => {
-						window.info('Updating scripts and stylesheets');
+						window.info(await window.__(I18NKeys.background.init.updating_nodes));
 						await CRMNodes.Script.Updating.updateScripts()
 						await CRMNodes.Stylesheet.Updating.updateStylesheets();
 					})();
@@ -155,15 +158,16 @@ export namespace Init {
 				window.console.groupEnd();
 
 				//Debugging data
-				window.console.groupCollapsed('Debugging'); 
-				window.info('For all of these arrays goes, close and re-expand them to "refresh" their contents')
-				window.info('Invalidated tabs:', 
+				window.console.groupCollapsed(
+					await window.__(I18NKeys.background.init.debugging));
+				window.info(await window.__(I18NKeys.background.init.debug_info));
+				window.info(await window.__(I18NKeys.background.init.invalidated_tabs),
 					modules.storages.failedLookups);
-				window.info('Insufficient permissions:', 
+				window.info(await window.__(I18NKeys.background.init.insufficient_permissions),
 					modules.storages.insufficientPermissions);
 				window.console.groupEnd();
 
-				window.info('Registering console user interface');
+				window.info(await window.__(I18NKeys.background.init.registering_console_interface));
 				GlobalDeclarations.initGlobalFunctions();
 
 				if (location.href.indexOf('test') > -1) {
@@ -178,18 +182,12 @@ export namespace Init {
 					window.console.groupEnd();
 				}
 
-				window.info('Done!');
+				window.info(await window.__(I18NKeys.background.init.done));
 				if (!isNode()) {
 					window.log('');
-					window.log('If you\'re here to check out your background script,' +
-						' get its ID (you can type getID("name") to find the ID),' +
-						' and type filter(id, [optional tabId]) to show only those messages.' +
-						' You can also visit the logging page for even better logging over at ',
-						browserAPI.runtime.getURL('html/logging.html'));
-					window.log('You can also use the debugger for scripts by calling' + 
-						' window.debugNextScriptCall(id) and window.debugBackgroundScript(id)' +
-						' for scripts and backgroundscripts respectively. You can get the id by using' +
-						' the getID("name") function.');
+					window.logAsync(window.__(I18NKeys.background.init.logging_explanation,
+						browserAPI.runtime.getURL('html/logging.html')));
+					window.logAsync(window.__(I18NKeys.background.init.debug_explanation));
 				}
 			} catch (e) {
 				for (let i = 0; i < 10; i++) {

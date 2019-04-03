@@ -1,8 +1,9 @@
 /// <reference path="../../../tools/definitions/chrome.d.ts" />
 /// <reference path="../background/sharedTypes.d.ts"/>
-import { ModuleData } from "./moduleTypes";
 import { BackgroundpageWindow, GreaseMonkeyData, EncodedContextData, MatchPattern, ToExecuteNode, ContextMenuCreateProperties, ContextMenuOverrides, UserAddedContextMenu, ContextMenuItemTreeItem } from './sharedTypes';
 import { EncodedString } from '../../elements/elements';
+import { I18NKeys } from "../../_locales/i18n-keys";
+import { ModuleData } from "./moduleTypes";
 
 declare const browserAPI: browserAPI;
 declare const BrowserAPI: BrowserAPI;
@@ -214,9 +215,9 @@ export namespace CRMNodes.Script.Handler {
 			runAt === 'document_idle') {
 				newScript.runAt = runAt;
 			} else {
-				window.log('Script with id', id, 
-				'runAt value was changed to default, ', runAt, 
-				'is not a valid value (use document_start, document_end or document_idle)');
+				window.logAsync(
+					window.__(I18NKeys.background.crm.invalid_runat, 
+						id + '', runAt));
 			}
 
 		return newScript;
@@ -241,7 +242,8 @@ export namespace CRMNodes.Script.Handler {
 						await browserAPI.tabs.executeScript(tabId, ensureRunAt(nodeId, script)).catch((err) => {
 							if (err.message.indexOf('Could not establish connection') === -1 &&
 								err.message.indexOf('closed') === -1) {
-								window.log('Couldn\'t execute on tab with id', tabId, 'for node', nodeId, err);
+									window.logAsync(window.__(I18NKeys.background.crm.execution_failed,
+										tabId, nodeId), err);
 							}
 						});
 					} catch(e) {
@@ -573,11 +575,11 @@ export namespace CRMNodes.Script.Background {
 		if (modules.background.byId.has(node.id)) {
 			isRestart = true;
 
-			modules.Logging.backgroundPageLog(node.id, null,
-				'Restarting background page...');
+			await modules.Logging.backgroundPageLog(node.id, null,
+				await window.__(I18NKeys.background.crm.restarting_background_page));
 			modules.background.byId.get(node.id).terminate();
 			modules.Logging.backgroundPageLog(node.id, null,
-				'Terminated background page...');
+				await window.__(I18NKeys.background.crm.terminated_background_page));
 		}
 
 		if (modules.background.byId.has(node.id)) {
@@ -598,8 +600,8 @@ export namespace CRMNodes.Script.Background {
 			err = e;
 		}
 		if (err) {
-			window.log('An error occurred while setting up the script for node ',
-				node.id, err);
+
+			window.logAsync(window.__(I18NKeys.background.crm.setup_error, node.id), err);
 			throw err;
 		}
 
@@ -684,7 +686,8 @@ export namespace CRMNodes.Script.Background {
 		modules.Util.asyncIterateMap(modules.crm.crmById, async (_nodeId, node) => {
 			if (node.type === 'script' && node.value.backgroundScript.length > 0) {
 				if (isValidBackgroundPage(node)) {
-					window.info('Creating backgroundpage for node', node.id);
+					window.info(await window.__(I18NKeys.background.crm.created_background_page,
+						node.id));
 				}
 				await createBackgroundPage(node);
 			}
@@ -1272,18 +1275,18 @@ export namespace CRMNodes.Script.Updating {
 								}
 
 							} catch (err) {
-								window.log('Tried to update script ', node.id, ' ', node.name,
-									' but could not reach download URL');
+								window.logAsync(window.__(I18NKeys.background.crm.update_download_404,
+									'script', node.id, node.name));
 							}
 							resolve(null);
 						}, () => {
-							window.log('Tried to update script ', node.id, ' ', node.name,
-							' but could not reach download URL');
+							window.logAsync(window.__(I18NKeys.background.crm.update_download_404,
+								'script', node.id, node.name));
 							resolve(null);
 						});
 					} catch (e) {
-						window.log('Tried to update script ', node.id, ' ', node.name,
-							' but could not reach download URL');
+						window.logAsync(window.__(I18NKeys.background.crm.update_download_404,
+							'script', node.id, node.name));
 						resolve(null);
 					}
 				}
@@ -1505,8 +1508,8 @@ export namespace CRMNodes.Stylesheet.Updating {
 						resolve(null);
 					}
 				}, () => {
-					window.log('Tried to update stylesheet ', node.id, ' ', node.name,
-						' but could not reach download URL');
+					window.logAsync(window.__(I18NKeys.background.crm.update_download_404,
+						'stylesheet', node.id, node.name));
 					resolve(null);
 				});
 			});
@@ -1562,7 +1565,8 @@ export namespace CRMNodes.Stylesheet.Options {
 		while ((match = _variableRegex.exec(stylesheet))) {
 			const name = match[1];
 			if (!(name in options)) {
-				window.log(`Could not find option ${name} for stylesheet ${id}`)
+				window.logAsync(window.__(I18NKeys.background.crm.option_not_found,
+					name, id));
 				//Prevent it from matching again
 				stylesheet = stylesheet.replace(_variableRegex, `/*[${name}]*/`);
 			} else {
@@ -1761,8 +1765,8 @@ export namespace CRMNodes.Stylesheet.Options {
 				if (!err) {
 					resolve(result.toCSS());
 				} else {
-					window.log(`An error occurred while compiling less CSS for node ${
-						id}: ${err.name} ${err.message}`);
+					window.logAsync(`${window.__(I18NKeys.background.crm.css_compile_error,
+						'less', id)}:`, err.name, err.message);
 					resolve(stylesheet);;
 				}
 			});
@@ -1774,8 +1778,8 @@ export namespace CRMNodes.Stylesheet.Options {
 				if (!err) {
 					resolve(result.trim());
 				} else {
-					window.log(`An error occurred while compiling stylus CSS for node ${
-						id}: ${err.name} ${err.message}`);
+					window.logAsync(`${window.__(I18NKeys.background.crm.css_compile_error,
+						'stylus', id)}:`, err.name, err.message);
 					resolve(stylesheet);;
 				}
 			});
@@ -2362,18 +2366,17 @@ export namespace CRMNodes.NodeCreation {
 			id: number|string;
 		}) {
 			if (options.documentUrlPatterns) {
-				window.log('An error occurred with your context menu,' + 
-					' attempting again with no url matching.', e);
+				window.logAsync(window.__(I18NKeys.background.crm.contextmenu_error_retry), e);
 				delete options.documentUrlPatterns;
 				idHolder.id = await browserAPI.contextMenus.create(options, async () => {
 					idHolder.id = await browserAPI.contextMenus.create({
 						title: 'ERROR',
 						onclick: createOptionsPageHandler()
 					});
-					window.log('Another error occured with your context menu!', e);
+					window.logAsync(window.__(I18NKeys.background.crm.contextmenu_error), e);
 				});
 			} else {
-				window.log('An error occured with your context menu!', e);
+				window.logAsync(window.__(I18NKeys.background.crm.contextmenu_error), e);
 			}
 		}
 	async function generateContextMenuItem(rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
@@ -2684,12 +2687,12 @@ export namespace CRMNodes {
 		if (__window.chrome && __window.chrome.runtime) {
 			const __chrome: typeof _chrome = __window.chrome;
 			if (__chrome && __chrome.runtime && __chrome.runtime.lastError) {
-				window.log('Error recreating user contextmenu',
+				window.logAsync(window.__(I18NKeys.background.crm.user_contextmenu_error),
 					__chrome.runtime.lastError)
 			}
 		} else {
 			if (browserAPI.runtime.lastError) {
-				window.log('Error recreating user contextmenu',
+				window.logAsync(window.__(I18NKeys.background.crm.user_contextmenu_error),
 					browserAPI.runtime.lastError)
 			}
 		}

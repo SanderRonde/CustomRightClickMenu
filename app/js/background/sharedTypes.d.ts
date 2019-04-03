@@ -307,6 +307,8 @@ type BackgroundpageWindow = Window & SharedWindow & {
 
 	log: typeof console.log;
 	info: typeof console.log;
+	logAsync: typeof console.log;
+	infoAsync: typeof console.log;
 	testLog?: typeof console.log;
 }
 

@@ -1,5 +1,6 @@
-import { ModuleData } from "./moduleTypes";
 import { BackgroundpageWindow } from './sharedTypes';
+import { I18NKeys } from "../../_locales/i18n-keys";
+import { ModuleData } from "./moduleTypes";
 
 declare const browserAPI: browserAPI;
 declare const window: BackgroundpageWindow;
@@ -273,8 +274,8 @@ export namespace Resources {
 		}[];
 		scriptId: CRM.NodeId<CRM.ScriptNode>;
 	}) {
-		return () => {
-			window.info('Attempting resource update');
+		return async () => {
+			window.info(await window.__(I18NKeys.background.init.resource_update));
 			compareResource(resourceKey);
 		};
 	}
