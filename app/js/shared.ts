@@ -304,7 +304,7 @@ export type SharedWindow = Window & {
 							browserAPI.runtime.getURL(name);
 						xhr.open('GET', url);
 						xhr.onreadystatechange = () => {
-							if (xhr.readyState === XMLHttpRequest.DONE) {
+							if (xhr.readyState === window.XMLHttpRequest.DONE) {
 								if (xhr.status === 200) {
 									resolve(xhr.responseText);
 								} else {
