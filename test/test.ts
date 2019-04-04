@@ -5593,9 +5593,17 @@ describe('CRMAPI', () => {
 			});
 		});
 		it('should throw an error when a non-existent "any" function is tried', async () => {
+			let warn = console.warn;
+			console.warn = (...args: string[]) => {
+				if (args[0] === 'Error:' &&
+					args[1] === 'Passed API does note exist') {
+					warn.apply(console, args);
+				}
+			};
 			await asyncThrows(() => {
 				return crmAPI.browser.any('alarms.doesnotexist').send();
 			}, /Passed API does not exist/, 'non-existent function throws');
+			console.warn = warn;
 		});
 	});
 	describe('GM', () => {
