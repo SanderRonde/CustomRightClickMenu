@@ -2322,6 +2322,7 @@ describe('CRMAPI', () => {
 			useAsUserstylesInstaller: true,
 			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
 			globalExcludes: [''],
+			lang: 'en',
 			lastUpdatedAt: JSON.parse(fs.readFileSync(
 				path.join(__dirname, '../', './build/manifest.json'), {
 					encoding: 'utf8'
