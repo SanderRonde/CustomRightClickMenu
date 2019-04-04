@@ -30,7 +30,7 @@ export namespace Init {
 
 	export async function init() {
 		await initModules();
-		await initRoutine();
+		await (modules.globalObject.backgroundPageLoaded = initRoutine());
 		setGlobals();
 	}
 
@@ -109,7 +109,7 @@ export namespace Init {
 
 		window.console.group(await window.__(I18NKeys.background.init.initialization));
 		window.console.group(await window.__(I18NKeys.background.init.storage));
-		modules.globalObject.backgroundPageLoaded = Util.iipe(async () => {
+		await Util.iipe(async () => {
 			await Storages.loadStorages();
 			window.console.groupEnd();
 			try {
@@ -199,7 +199,6 @@ export namespace Init {
 				throw e;
 			}
 		});
-		await modules.globalObject.backgroundPageLoaded;
 	}
 
 	function setGlobals() {
