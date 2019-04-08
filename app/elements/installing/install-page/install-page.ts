@@ -1,6 +1,7 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
 import { Polymer } from '../../../../tools/definitions/polymer';
+import { I18NKeys } from '../../../_locales/i18n-keys';
 
 declare const browserAPI: browserAPI;
 declare const BrowserAPI: BrowserAPI;
@@ -120,7 +121,7 @@ namespace InstallPageElement {
 						if (xhr.status >= 200 && xhr.status < 300) {
 							resolve(xhr.responseText);
 						} else {
-							reject(new Error('Failed XHR'));
+							reject(new Error(I18NKeys.install.page.failed_xhr));
 						}
 					}
 				}
@@ -205,7 +206,8 @@ namespace InstallPageElement {
 
 		static ready(this: InstallPage) {
 			this.userscriptUrl = this.getUserscriptUrl();
-			this.$.title.innerHTML = 'Installing userscript from ' + this.userscriptUrl;
+			this.$.title.innerHTML = this.___(I18NKeys.install.page.installing, 
+				this.userscriptUrl);
 			this.fetchUserscript(this.userscriptUrl);
 			window.installPage = this;
 			this._initSettings();

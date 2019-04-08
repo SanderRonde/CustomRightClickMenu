@@ -1507,5 +1507,103 @@ export const Messages: I18NBranch = {
 				description: 'Name for a page that runs in the background similar to a browser extension\'s background page'
 			}
 		}
+	},
+	install: {
+		confirm: {
+			installed: {
+				message: 'Installed!',
+				description: 'Success message shown when installation completes'
+			},
+			description: {
+				message: 'Description',
+				description: 'Label for description field'
+			},
+			author: {
+				message: 'Author',
+				description: 'Label for author field'
+			},
+			source: {
+				message: 'Source',
+				description: 'Label for source field. Source being the URL from which it was installed'
+			},
+			permissions: {
+				message: 'Permissions',
+				description: 'Label for permissions field'
+			},
+			permissionInfo: {
+				message: 'Not accepting a permission might lead to scripts silently failing.' +
+					'You can re-enable them at any time by going to the options page, editing' +
+					'the node and clicking the "manager permissions" button.',
+				description: 'Info for what permissions are'
+			},
+			allow: {
+				message: 'Allow',
+				description: 'Allows a permission'
+			},
+			none_required: {
+				message: 'No permissions required',
+				description: 'Message shown when no permissions are required for a script'
+			},
+			none: {
+				message: 'none',
+				description: 'Shown when there are no permissions required in the form "permission: {none}"'
+			},
+			toggle_all: {
+				message: 'Toggle All',
+				description: 'Allows or disallows all permissions at once'
+			},
+			allow_accept: {
+				message: 'Allow all and install',
+				description: 'Allows all permissions and installs the script'
+			},
+			install: {
+				message: 'install',
+				description: 'Installs the script'
+			},
+			not_asking: {
+				message: 'Not asking for permission $PERMISSION$ as your browser does not support asking for permissions',
+				description: 'Message shown when requesting permissions is not supported',
+				placeholders: {
+					permission: {
+						content: '$1',
+						example: 'alarms'
+					}
+				}
+			}
+		},
+		error: {
+			not_found_1: {
+				message: 'Userscript',
+				description: 'Part 1 of the message "userscript not found"' +
+					'It\'s split over 2 lines. If a single line is better, fill this one' +
+					' and empty the second one'
+			},
+			not_found_2: {
+				message: 'Not Found',
+				description: 'Part 2 of the message "userscript not found"' +
+					'It\'s split over 2 lines. If a single line is better, keep this one empty' +
+					' and fill the second one'
+			}
+		},
+		page: {
+			fetching: {
+				message: 'Fetching Userscript',
+				description: 'State shown when downloading/fetching the userscript'
+			},
+			failed_xhr:{ 
+				message: 'Failed XHR',
+				description: 'Message shown when the XHR network request fails'
+			},
+			installing: {
+				message: 'Installing userscript from $SOURCE$',
+				description: 'State shown when installing a usescript from given URL',
+				placeholders: {
+					source: {
+						content: '$1',
+						example: 'www.example.com/script.user.js'
+					}
+				}
+			}
+		}
 	}
 }

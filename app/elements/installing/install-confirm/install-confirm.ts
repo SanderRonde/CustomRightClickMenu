@@ -2,6 +2,7 @@
 
 import { MonacoEditor, MonacoEditorScriptMetaMods } from '../../options/editpages/monaco-editor/monaco-editor';
 import { Polymer } from '../../../../tools/definitions/polymer';
+import { I18NKeys } from '../../../_locales/i18n-keys';
 
 declare const browserAPI: browserAPI;
 declare const BrowserAPI: BrowserAPI;
@@ -135,72 +136,72 @@ namespace InstallConfirmElement {
 
 		static getDescription(this: InstallConfirm, permission: CRM.Permission): string {
 			const descriptions = {
-				alarms: 'Makes it possible to create, view and remove alarms.',
-				activeTab: 'Gives temporary access to the tab on which browserActions or contextmenu items are clicked',
-				background: 'Runs the extension in the background even while chrome is closed. (https://developer.chrome.com/extensions/alarms)',
-				bookmarks: 'Makes it possible to create, edit, remove and view all your bookmarks.',
-				browsingData: 'Makes it possible to remove any saved data on your browser at specified time allowing the user to delete any history, saved passwords, cookies, cache and basically anything that is not saved in incognito mode but is in regular mode. This is editable so it is possible to delete ONLY your history and not the rest for example. (https://developer.chrome.com/extensions/bookmarks)',
-				clipboardRead: 'Allows reading of the users\' clipboard',
-				clipboardWrite: 'Allows writing data to the users\' clipboard',
-				cookies: 'Allows for the setting, getting and listenting for changes of cookies on any website. (https://developer.chrome.com/extensions/cookies)',
-				contentSettings: 'Allows changing or reading your browser settings to allow or deny things like javascript, plugins, popups, notifications or other things you can choose to accept or deny on a per-site basis. (https://developer.chrome.com/extensions/contentSettings)',
-				contextMenus: 'Allows for the changing of the chrome contextmenu',
-				declarativeContent: 'Allows for the running of scripts on pages based on their url and CSS contents. (https://developer.chrome.com/extensions/declarativeContent)',
-				desktopCapture: 'Makes it possible to capture your screen, current tab or chrome window (https://developer.chrome.com/extensions/desktopCapture)',
-				downloads: 'Allows for the creating, pausing, searching and removing of downloads and listening for any downloads happenng. (https://developer.chrome.com/extensions/downloads)',
-				history: 'Makes it possible to read your history and remove/add specific urls. This can also be used to search your history and to see howmany times you visited given website. (https://developer.chrome.com/extensions/history)',
-				identity: 'Allows for the API to ask you to provide your (google) identity to the script using oauth2, allowing you to pull data from lots of google APIs: calendar, contacts, custom search, drive, gmail, google maps, google+, url shortener (https://developer.chrome.com/extensions/identity)',
-				idle: 'Allows a script to detect whether your pc is in a locked, idle or active state. (https://developer.chrome.com/extensions/idle)',
-				management: 'Allows for a script to uninstall or get information about an extension you installed, this does not however give permission to install other extensions. (https://developer.chrome.com/extensions/management)',
-				notifications: 'Allows for the creating of notifications. (https://developer.chrome.com/extensions/notifications)',
-				pageCapture: 'Allows for the saving of any page in MHTML. (https://developer.chrome.com/extensions/pageCapture)',
-				power: 'Allows for a script to keep either your screen or your system altogether from sleeping. (https://developer.chrome.com/extensions/power)',
-				privacy: 'Allows for a script to query what privacy features are on/off, for exaple autoFill, password saving, the translation feature. (https://developer.chrome.com/extensions/privacy)',
-				printerProvider: 'Allows for a script to capture your print jobs\' content and the printer used. (https://developer.chrome.com/extensions/printerProvider)',
-				sessions: 'Makes it possible for a script to get all recently closed pages and devices connected to sync, also allows it to re-open those closed pages. (https://developer.chrome.com/extensions/sessions)',
-				"system.cpu": 'Allows a script to get info about the CPU. (https://developer.chrome.com/extensions/system_cpu)',
-				"system.memory": 'Allows a script to get info about the amount of RAM memory on your computer. (https://developer.chrome.com/extensions/system_memory)',
-				"system.storage": 'Allows a script to get info about the amount of storage on your computer and be notified when external storage is attached or detached. (https://developer.chrome.com/extensions/system_storage)',
-				topSites: 'Allows a script to your top sites, which are the sites on your new tab screen. (https://developer.chrome.com/extensions/topSites)',
-				tabCapture: 'Allows the capturing of the CURRENT tab and only the tab. (https://developer.chrome.com/extensions/tabCapture)',
-				tabs: 'Allows for the opening, closing and getting of tabs',
-				tts: 'Allows a script to use chrome\'s text so speach engine. (https://developer.chrome.com/extensions/tts)',
-				webNavigation: 'Allows a script info about newly created pages and allows it to get info about what website visit at that time.' +
-					' (https://developer.chrome.com/extensions/webNavigation)',
-				webRequest: 'Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded on the side, and can basically track the entire process of opening a new website. (https://developer.chrome.com/extensions/webRequest)',
-				webRequestBlocking: 'Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded on the side, and can basically track the entire process of opening a new website. This also allows the script to block certain requests for example for blocking ads or bad sites. (https://developer.chrome.com/extensions/webRequest)',
+				alarms: this.___(I18NKeys.permissions.alarms),
+				activeTab: this.___(I18NKeys.permissions.activeTab),
+				background: this.___(I18NKeys.permissions.background),
+				bookmarks: this.___(I18NKeys.permissions.bookmarks),
+				browsingData: this.___(I18NKeys.permissions.browsingData),
+				clipboardRead: this.___(I18NKeys.permissions.clipboardRead),
+				clipboardWrite: this.___(I18NKeys.permissions.clipboardWrite),
+				cookies: this.___(I18NKeys.permissions.cookies),
+				contentSettings: this.___(I18NKeys.permissions.contentSettings),
+				contextMenus: this.___(I18NKeys.permissions.contextMenus),
+				declarativeContent: this.___(I18NKeys.permissions.declarativeContent),
+				desktopCapture: this.___(I18NKeys.permissions.desktopCapture),
+				downloads: this.___(I18NKeys.permissions.downloads),
+				history: this.___(I18NKeys.permissions.history),
+				identity: this.___(I18NKeys.permissions.identity),
+				idle: this.___(I18NKeys.permissions.idle),
+				management: this.___(I18NKeys.permissions.management),
+				notifications: this.___(I18NKeys.permissions.notifications),
+				pageCapture: this.___(I18NKeys.permissions.pageCapture),
+				power: this.___(I18NKeys.permissions.power),
+				privacy: this.___(I18NKeys.permissions.privacy),
+				printerProvider: this.___(I18NKeys.permissions.printerProvider),
+				sessions: this.___(I18NKeys.permissions.sessions),
+				"system.cpu": this.___(I18NKeys.permissions.systemcpu),
+				"system.memory": this.___(I18NKeys.permissions.systemmemory),
+				"system.storage": this.___(I18NKeys.permissions.systemstorage),
+				topSites: this.___(I18NKeys.permissions.topSites),
+				tabCapture: this.___(I18NKeys.permissions.tabCapture),
+				tabs: this.___(I18NKeys.permissions.tabs),
+				tts: this.___(I18NKeys.permissions.tts),
+				webNavigation: this.___(I18NKeys.permissions.webNavigation) +
+				' (https://developer.chrome.com/extensions/webNavigation)',
+				webRequest: this.___(I18NKeys.permissions.webRequest),
+				webRequestBlocking: this.___(I18NKeys.permissions.webRequestBlocking),
 
 				//Script-specific descriptions
-				crmGet: 'Allows the reading of your Custom Right-Click Menu, including names, contents of all nodes, what they do and some metadata for the nodes',
-				crmWrite: 'Allows the writing of data and nodes to your Custom Right-Click Menu. This includes <b>creating</b>, <b>copying</b> and <b>deleting</b> nodes. Be very careful with this permission as it can be used to just copy nodes until your CRM is full and delete any nodes you had. It also allows changing current values in the CRM such as names, actual scripts in script-nodes etc.',
-				crmRun: 'Allows the running of arbitrary scripts from the background-page',
-				crmContextmenu: 'Allows the editing of this item\'s name in the contextmenu at runtime',
-				chrome: 'Allows the use of chrome API\'s.',
-				browser: 'Allows the use of browser API\'s',
+				crmGet: this.___(I18NKeys.permissions.crmGet),
+				crmWrite: this.___(I18NKeys.permissions.crmWrite),
+				crmRun: this.___(I18NKeys.permissions.crmRun),
+				crmContextmenu: this.___(I18NKeys.permissions.crmContextmenu),
+				chrome: this.___(I18NKeys.permissions.chrome),
+				browser: this.___(I18NKeys.permissions.browser),
 
 				//Tampermonkey APIs
-				GM_addStyle: 'Allows the adding of certain styles to the document through this API',
-				GM_deleteValue: 'Allows the deletion of storage items',
-				GM_listValues: 'Allows the listing of all storage data',
-				GM_addValueChangeListener: 'Allows for the listening of changes to the storage area',
-				GM_removeValueChangeListener: 'Allows for the removing of listeners',
-				GM_setValue: 'Allows for the setting of storage data values',
-				GM_getValue: 'Allows the reading of values from the storage',
-				GM_log: 'Allows for the logging of values to the console (same as normal console.log)',
-				GM_getResourceText: 'Allows the reading of the content of resources defined in the header',
-				GM_getResourceURL: 'Allows the reading of the URL of the predeclared resource',
-				GM_registerMenuCommand: 'Allows the adding of a button to the extension menu - not implemented',
-				GM_unregisterMenuCommand: 'Allows the removing of an added button - not implemented',
-				GM_openInTab: 'Allows the opening of a tab with given URL',
-				GM_xmlhttpRequest: 'Allows you to make an XHR to any site you want',
-				GM_download: 'Allows the downloading of data to the hard disk',
-				GM_getTab: 'Allows the reading of an object that\'s persistent while the tab is open - not implemented',
-				GM_saveTab: 'Allows the saving of the tab object to reopen after a page unload - not implemented',
-				GM_getTabs: 'Allows the readin gof all tab object - not implemented',
-				GM_notification: 'Allows sending desktop notifications',
-				GM_setClipboard: 'Allows copying data to the clipboard - not implemented',
-				GM_info: 'Allows the reading of some script info',
-				unsafeWindow: 'Allows the running on an unsafe window object - available by default'
+				GM_addStyle: this.___(I18NKeys.permissions.GM_addStyle),
+				GM_deleteValue: this.___(I18NKeys.permissions.GM_deleteValue),
+				GM_listValues: this.___(I18NKeys.permissions.GM_listValues),
+				GM_addValueChangeListener: this.___(I18NKeys.permissions.GM_addValueChangeListener),
+				GM_removeValueChangeListener: this.___(I18NKeys.permissions.GM_removeValueChangeListener),
+				GM_setValue: this.___(I18NKeys.permissions.GM_setValue),
+				GM_getValue: this.___(I18NKeys.permissions.GM_getValue),
+				GM_log: this.___(I18NKeys.permissions.GM_log),
+				GM_getResourceText: this.___(I18NKeys.permissions.GM_getResourceText),
+				GM_getResourceURL: this.___(I18NKeys.permissions.GM_getResourceURL),
+				GM_registerMenuCommand: this.___(I18NKeys.permissions.GM_registerMenuCommand),
+				GM_unregisterMenuCommand: this.___(I18NKeys.permissions.GM_unregisterMenuCommand),
+				GM_openInTab: this.___(I18NKeys.permissions.GM_openInTab),
+				GM_xmlhttpRequest: this.___(I18NKeys.permissions.GM_xmlhttpRequest),
+				GM_download: this.___(I18NKeys.permissions.GM_download),
+				GM_getTab: this.___(I18NKeys.permissions.GM_getTab),
+				GM_saveTab: this.___(I18NKeys.permissions.GM_saveTab),
+				GM_getTabs: this.___(I18NKeys.permissions.GM_getTabs),
+				GM_notification: this.___(I18NKeys.permissions.GM_notification),
+				GM_setClipboard: this.___(I18NKeys.permissions.GM_setClipboard),
+				GM_info: this.___(I18NKeys.permissions.GM_info),
+				unsafeWindow: this.___(I18NKeys.permissions.unsafeWindow)
 			};
 
 			return descriptions[permission as keyof typeof descriptions];
@@ -294,7 +295,8 @@ namespace InstallConfirmElement {
 					if (permissions.indexOf(permission as _browser.permissions.Permission) === -1) {
 						try {
 							if (!(browserAPI.permissions)) {
-								window.app.util.showToast(`Not asking for permission ${permission} as your browser does not support asking for permissions`);
+								window.app.util.showToast(this.___(I18NKeys.install.confirm.not_asking,
+									permission));
 								return;
 							}
 
