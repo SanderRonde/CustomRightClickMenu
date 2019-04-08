@@ -629,6 +629,10 @@ export type CRMAPIMessage = {
 		LOCAL
 	}
 
+	type Wrappable = {
+		[key: string]: Wrappable|Function;
+	}
+
 	/**
 	 * A class for constructing the CRM API
 	 *
@@ -929,9 +933,7 @@ export type CRMAPIMessage = {
 			 * @param {Object} instance - The CRM API instance that is the parent
 			 * @param {string[]} [parents] - The parents of this call
 			 */
-			_wrapBrowserObject<T extends {
-				[key: string]: Function|T;	
-			}>(toWrap: T, instance: CrmAPIInstance, parents?: string[]): T;
+			_wrapBrowserObject<T extends Wrappable>(toWrap: T, instance: CrmAPIInstance, parents?: string[]): T;
 
 			/**
 			 * Uses given arguments as arguments for the API in order specified. If the argument is
@@ -2345,9 +2347,7 @@ export type CRMAPIMessage = {
 				return true;
 			},
 
-			_wrapBrowserObject<T extends {
-				[key: string]: Function|T;	
-			}>(toWrap: T, instance: CrmAPIInstance, parents: string[] = []): T {
+			_wrapBrowserObject<T extends Wrappable>(toWrap: T, instance: CrmAPIInstance, parents: string[] = []): T {
 				const __this = this;
 				const wrapped: T = {} as T;
 				for (const key in toWrap) {

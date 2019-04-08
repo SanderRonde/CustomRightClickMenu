@@ -112,7 +112,8 @@
 				if (lastContextmenuCall === null) {
 					respond(null);
 				} else {
-					lastContextmenuCall.srcElement.classList.add('crm_element_identifier_' + ++contextElementId);
+					lastContextmenuCall.srcElement &&
+						(lastContextmenuCall.srcElement as any).classList.add('crm_element_identifier_' + ++contextElementId);
 					responseObj.srcElement = contextElementId as Element & number;
 					(lastContextmenuCall.target as HTMLElement).classList.add('crm_element_identifier_' + ++contextElementId);
 					responseObj.target = contextElementId as Element & number;

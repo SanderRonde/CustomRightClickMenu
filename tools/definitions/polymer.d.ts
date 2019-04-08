@@ -37,6 +37,7 @@ import { LangSelector } from "../../app/elements/util/lang-selector/lang-selecto
 
 
 
+
 export declare namespace Polymer {
 	interface InitializerProperties {
 		is?: string;
@@ -78,7 +79,7 @@ export declare namespace Polymer {
 	}
 	
 	//Basically an HTMLElement with all queryselector methods set to return null
-	type WebcomponentElement = GlobalEventHandlers & DocumentAndElementEventHandlers & ElementContentEditable & HTMLOrSVGElement & ElementCSSInlineStyle & 
+	type WebcomponentElement = Animatable & GlobalEventHandlers & DocumentAndElementEventHandlers & ElementContentEditable & HTMLOrSVGElement & ElementCSSInlineStyle & 
 			NonDocumentTypeChildNode & Slotable & Animatable & EventTarget & {
 		accessKey: string;
 		readonly accessKeyLabel: string;
@@ -124,7 +125,7 @@ export declare namespace Polymer {
 		readonly shadowRoot: ShadowRoot | null;
 		slot: string;
 		readonly tagName: string;
-		attachShadow(shadowRootInitDict: ShadowRootInit): ShadowRoot;
+		attachShadow(init: ShadowRootInit): ShadowRoot;
 		closest<K extends keyof HTMLElementTagNameMap>(selector: K): HTMLElementTagNameMap[K] | null;
 		closest<K extends keyof SVGElementTagNameMap>(selector: K): SVGElementTagNameMap[K] | null;
 		closest(selector: string): Element | null;
@@ -155,7 +156,8 @@ export declare namespace Polymer {
 		removeAttribute(qualifiedName: string): void;
 		removeAttributeNS(namespace: string | null, localName: string): void;
 		removeAttributeNode(attr: Attr): Attr;
-		requestFullscreen(): Promise<void>;
+		requestFullscreen(options?: FullscreenOptions): Promise<void>;
+		requestPointerLock(): void;
 		scroll(options?: ScrollToOptions): void;
 		scroll(x: number, y: number): void;
 		scrollBy(options?: ScrollToOptions): void;
@@ -179,7 +181,7 @@ export declare namespace Polymer {
 		readonly firstChild: ChildNode | null;
 		readonly isConnected: boolean;
 		readonly lastChild: ChildNode | null;
-		readonly nextSibling: Node | null;
+		readonly nextSibling: ChildNode | null;
 		readonly nodeName: string;
 		readonly nodeType: number;
 		nodeValue: string | null;
@@ -558,15 +560,27 @@ declare global {
 	type HTMLAnimatedButtonElement = AnimatedButton;
 	type HTMLLangSelectorElement = LangSelector;
 
+	interface GenericNodeList<TNode> {
+		readonly length: number;
+		item(index: number): TNode|null;
+		/**
+		 * Performs the specified action for each node in an list.
+		 * @param callbackfn  A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the list.
+		 * @param thisArg  An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+		 */
+		forEach(callbackfn: (value: TNode, key: number, parent: GenericNodeList<TNode>) => void, thisArg?: any): void;
+		[index: number]: TNode;
+	}
+
 	interface NodeSelector {
 		querySelector<K extends keyof ElementTagNameMaps>(selectors: K): ElementTagNameMaps[K] | null;
 		querySelector(selectors: string): HTMLElement | null;
-		querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): NodeListOf<Polymer.ElementTagNameMap[K]> | null;
+		querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): GenericNodeList<Polymer.ElementTagNameMap[K]> | null;
 	}
 	
 	interface ParentNode {
 		querySelector<K extends keyof ElementTagNameMaps>(selectors: K): ElementTagNameMaps[K] | null;
 		querySelector(selectors: string): HTMLElement | null;
-		querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): NodeListOf<Polymer.ElementTagNameMap[K]> | null;
+		querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): GenericNodeList<Polymer.ElementTagNameMap[K]> | null;
 	}
 }
