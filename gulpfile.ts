@@ -576,7 +576,7 @@ class Tasks {
 						return watcher;
 					}
 
-					@subTask('Compiles, then watches for file changes and compiles on change')
+					@subTask('watch', 'Compiles, then watches for file changes and compiles on change')
 					static watch = series(
 						Compile.compile,
 						Compile.watcher
