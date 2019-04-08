@@ -123,9 +123,10 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.local': true,
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
+			'browserstack.noPipeline': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-		}
+		} as BrowserstackCapabilities;
 	}
 	if (arrContains<string>(process.argv, str => str.indexOf('--chrome-') > -1)) {
 		const chromeStr = arrContains<string>(process.argv, str => str.indexOf('--chrome-') > -1);
