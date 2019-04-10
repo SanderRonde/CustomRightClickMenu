@@ -1670,6 +1670,10 @@ export const Messages: I18NBranch = {
 		something_went_wrong: {
 			message: 'Something went wrong highlighting the tab',
 			description: 'Generic warning shown when an error occurred on highlighting a tab. Highlighting is the flashing you see on tabs in browsers when something happens on them (for example an alert).'
+		},
+		logs: {
+			message: 'Logs',
+			description: 'Title for this page. Describes that this is the log page and contains logs'
 		}
 	}
 }
