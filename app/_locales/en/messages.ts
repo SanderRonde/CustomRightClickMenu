@@ -1732,5 +1732,17 @@ export const Messages: I18NBranch = {
 				description: 'Placeholder for the user to write a titel in'
 			}
 		}
+	},
+	options: {
+		nodeEditBehavior: {
+			globPattern: {
+				message: 'Globbing pattern or regex',
+				description: 'Label shown for an input that wants either a glob pattern or regex'
+			},
+			matchPattern: {
+				message: 'URL match pattern',
+				description: 'Label shown for an input that wants a URL match pattern'
+			}
+		}
 	}
 }

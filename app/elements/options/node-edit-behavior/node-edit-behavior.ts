@@ -2,9 +2,10 @@
 
 import { CodeEditBehaviorScriptInstance, CodeEditBehaviorStylesheetInstance, CodeEditBehavior } from "../editpages/code-edit-pages/code-edit-behavior";
 import { DividerEdit } from '../editpages/divider-edit/divider-edit';
+import { Polymer } from '../../../../tools/definitions/polymer';
 import { LinkEdit } from '../editpages/link-edit/link-edit';
 import { MenuEdit } from '../editpages/menu-edit/menu-edit';
-import { Polymer } from '../../../../tools/definitions/polymer';
+import { I18NKeys } from "../../../_locales/i18n-keys";
 
 namespace NodeEditBehaviorNamespace {
 	interface NodeEditBehaviorProperties {
@@ -260,12 +261,13 @@ namespace NodeEditBehaviorNamespace {
 		/**
 		 * Returns the label that a trigger needs to have for the current launchMode
 		 */
-		static _getLabel(this: NodeEditBehaviorScriptInstance|NodeEditBehaviorStylesheetInstance) {
-			if (this.newSettings.value.launchMode === 2) {
-				return 'Globbing pattern or regex';
-			} else {
-				return 'URL match pattern';
-			}
+		static _getLabel(this: NodeEditBehaviorScriptInstance|NodeEditBehaviorStylesheetInstance,
+			lang: string, langReady: boolean) {
+				if (this.newSettings.value.launchMode === 2) {
+					return this.__(lang, langReady, I18NKeys.options.nodeEditBehavior.globPattern);
+				} else {
+					return this.__(lang, langReady, I18NKeys.options.nodeEditBehavior.matchPattern);
+				}
 		};
 
 		static animateTriggers(this: CodeEditBehavior, show: boolean): Promise<void> {

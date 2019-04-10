@@ -133,7 +133,7 @@
 										<div class="executionTriggerCheckboxCenterer">
 											<paper-checkbox class="executionTriggerNot" checked="{{trigger.not}}" color="red">NOT</paper-checkbox>
 										</div>
-										<paper-input pattern="{{_getPattern(newSettings.value.launchMode)}}" auto-validate="true" label="{{_getLabel(newSettings.value.launchMode)}}"
+										<paper-input pattern="{{_getPattern(newSettings.value.launchMode)}}" auto-validate="true" label="{{_getLabel(lang, langReady, newSettings.value.launchMode)}}"
 										 error-message="This is not a valid URL pattern!" class="triggerInput" value="{{trigger.url}}"></paper-input>
 										<paper-icon-button class="executionTriggerClear" on-tap="clearTriggerAndNotifyMetaTags" icon="clear"></paper-icon-button>
 									</div>
