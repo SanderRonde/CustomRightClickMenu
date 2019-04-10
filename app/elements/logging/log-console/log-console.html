@@ -19,7 +19,7 @@
 					<div id="consoleInfo">
 						<div id="filterCont">
 							<div id="idFilter" class="dropdownFilter centerVertical">
-								<paper-dropdown-menu inline id="idDropdown" label="ID" overflowing indent="false" selected="{{selectedId}}">
+								<paper-dropdown-menu inline id="idDropdown" label="[[__(lang, langReady, 'crm_id_capital')]]" overflowing indent="false" selected="{{selectedId}}">
 									<paper-menu slot="menu" selected="0">
 										<div slot="content">
 											<paper-item>
@@ -28,7 +28,7 @@
 														<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
 													</svg>
 												</div>
-												<span class="menuOptionName">ALL</span>
+												<span class="menuOptionName">[[__(lang, langReady, 'generic_all_capital')]]</span>
 											</paper-item>
 											<template id="idRepeat" is="dom-repeat" items="{{_getTabsIds(selectedTab, ids)}}" as="id">
 												<paper-item>
@@ -45,7 +45,7 @@
 								</paper-dropdown-menu>
 							</div>
 							<div id="tabFilter" class="dropdownFilter centerVertical">
-								<paper-dropdown-menu inline id="tabDropdown" label="Tab" overflowing indent="false" selected="{{selectedTab}}">
+								<paper-dropdown-menu inline id="tabDropdown" label="[[__(lang, langReady, 'generic_tab')]]" overflowing indent="false" selected="{{selectedTab}}">
 									<paper-menu slot="menu" selected="0">
 										<div slot="content">
 											<paper-item>
@@ -54,7 +54,7 @@
 														<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
 													</svg>
 												</div>
-												<span class="menuOptionName">ALL</span>
+												<span class="menuOptionName">[[__(lang, langReady, 'generic_all_capital')]]</span>
 											</paper-item>
 											<template id="tabRepeat" is="dom-repeat" items="{{_getIdTabs(selectedId, tabs)}}" as="tab">
 												<paper-item>
@@ -71,7 +71,7 @@
 								</paper-dropdown-menu>
 							</div>
 							<div id="tabIndexFilter" class="dropdownFilter centerVertical">
-								<paper-dropdown-menu inline id="tabIndexDropdown" label="TabIndex" overflowing indent="false" selected="0">
+								<paper-dropdown-menu inline id="tabIndexDropdown" label="[[__(lang, langReady, 'generic_tabIndex')]]" overflowing indent="false" selected="0">
 									<paper-menu slot="menu" selected="0">
 										<div slot="content">
 											<paper-item>
@@ -80,7 +80,7 @@
 														<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
 													</svg>
 												</div>
-												<span class="menuOptionName">ALL</span>
+												<span class="menuOptionName">[[__(lang, langReady, 'generic_all_capital')]]</span>
 											</paper-item>
 											<template id="tabIndexRepeat" is="dom-repeat" items="{{_getTabIndexes(selectedId, selectedTab)}}" as="tabIndex">
 												<paper-item>
@@ -97,7 +97,7 @@
 								</paper-dropdown-menu>
 							</div>
 							<div id="textFilterCont">
-								<paper-input label="filter" id="textFilter" no-label-float="true" value="{{textfilter}}" on-change="_textFilterChange"></paper-input>
+								<paper-input label="[[__(lang, langReady, 'logging_filter')]]" id="textFilter" no-label-float="true" value="{{textfilter}}" on-change="_textFilterChange"></paper-input>
 							</div>
 						</div>
 						<div id="consoleStats">
@@ -116,16 +116,13 @@
 								</div>
 								<div class="paper-material" id="consoleInfoTxtCont" elevation="3">
 									<div id="consoleInfoTxt" class="expandLeft">
-										This page serves as a sort of devTools for specific instances of scripts on tabs.
-										You can choose to view logs for all instances, specific nodes, specific tabs, or a combination
-										of both. You can access a specific instance's variables and get/set them just as you would
-										in the chrome dev tools, to do this simply select an ID and a tab ID. 
+										[[__(lang, langReady, 'logging_description')]]. 
 									</div>
 								</div>
 							</div>
 							<div class="centerVertical">
 								<div id="totalLines">
-									<span id="totalLinesNumber">[[_getTotalLines(lines)]]</span> lines
+									<span id="totalLinesNumber">[[_getTotalLines(lines)]]</span>[[__(lang, langReady, 'logging_lines')]]
 								</div>
 							</div>
 						</div>
@@ -138,7 +135,7 @@
 							&gt;
 						</div>
 						<div id="inputFieldWarning">
-							Running code is not possible in the current context (select both an ID and a tab)
+							[[__(lang, langReady, 'logging_running_code_not_possible')]]
 						</div>
 						<textarea rows="1" style="resize:none;"
 							type="text" id="consoleInput"
@@ -151,24 +148,24 @@
 		</div>
 		<div id="contextMenu" data-element-type="ContextMenuElement">
 			<div on-tap="_contextStoreAsLocal" id="storeAsLocal" class="contextMenuElement">
-				Store as local variable
+				[[__(lang, langReady, 'logging_store_as_local')]]
 			</div>
 			<div on-tap="_contextLogValue" id="logValue" class="contextMenuElement">
-				Log this
+				[[__(lang, langReady, 'logging_log_this')]]
 			</div>
 			<div on-tap="_contextCopyAsJSON" id="copyAsJSON" class="contextMenuElement">
-				Copy as JSON
+				[[__(lang, langReady, 'logging_copy_as_json')]]
 			</div>
 			<div on-tap="_contextCopyPath" id="copyPath" class="contextMenuElement">
-				Copy path
+				[[__(lang, langReady, 'logging_copy_path')]]
 			</div>
 			<div on-tap="_contextClearConsole" id="clearConsole" class="contextMenuElement">
-				Clear console
+				[[__(lang, langReady, 'logging_clear_console')]]
 			</div>
 		</div>
 		<span id="copySource"></span>
 		<paper-toast id="genericToast" text="">
-			<span class="toastLink" on-tap="_hideGenericToast" role="button">DISMISS</span>
+		<span class="toastLink" on-tap="_hideGenericToast" role="button">[[__(lang, langReady, 'generic_dismiss')]]</span>
 		</paper-toast>
 	</template>
 </dom-module>

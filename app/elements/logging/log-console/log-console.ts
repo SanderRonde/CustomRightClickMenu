@@ -5,6 +5,7 @@ import { LogLineContainerInterface } from '../../elements';
 import { Polymer } from '../../../../tools/definitions/polymer';
 import { PaperDropdownMenu } from '../../options/inputs/paper-dropdown-menu/paper-dropdown-menu';
 import { TabData, LogLineData, LogListenerLine, BackgroundpageWindow, LogListenerObject } from '../../../js/background/sharedTypes';
+import { I18NKeys } from '../../../_locales/i18n-keys';
 
 declare const ReactDOM: {
 	render<T>(el: React.ReactElement<T>, container: HTMLElement): any;
@@ -120,8 +121,8 @@ namespace LogConsoleElement {
 			const target = event.target;
 			let tabId = (target.children[0] as HTMLElement).innerText;
 			
-			const tab = await browserAPI.tabs.get(~~tabId).catch(() => {
-				window.logConsole.$.genericToast.text = 'Tab has been closed';
+			const tab = await browserAPI.tabs.get(~~tabId).catch(async () => {
+				window.logConsole.$.genericToast.text = await this.___(I18NKeys.logging.tab_closed);
 				window.logConsole.$.genericToast.show();
 			});
 			if (!tab) {
@@ -136,10 +137,10 @@ namespace LogConsoleElement {
 				await chromeTabs.highlight({
 					windowId: tab.windowId,
 					tabs: tab.index
-				}, () => {
+				}, async () => {
 					if ((window as any).chrome.runtime.lastError) {
 						console.log((window as any).chrome.runtime.lastError);
-						console.log('Something went wrong highlighting the tab');
+						console.log(await this.___(I18NKeys.logging.something_went_wrong));
 					}
 				});
 			}

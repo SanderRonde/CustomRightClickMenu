@@ -76,6 +76,18 @@ export const Messages: I18NBranch = {
 		apply: {
 			message: 'apply',
 			description: 'Applies changes'
+		},
+		all_capital: {
+			message: 'ALL',
+			description: 'Would be clicked to select all items in a list for a filter (capitalized)'
+		},
+		tab: {
+			message: 'Tab',
+			description: 'Name for a browser tab. First letter capitalized'
+		},
+		tabIndex: {
+			message: 'TabIndex',
+			description: 'The index of a script within a tab. First letter capitalized'
 		}
 	},
 	crm: {
@@ -106,6 +118,11 @@ export const Messages: I18NBranch = {
 		id: {
 			message: 'id',
 			description: 'Word for the ID of a node/item. This is used to identify it in the extension itself (the user won\'t see it except in errors)'
+		},
+		id_capital: {
+			message: 'ID',
+			description: 'Word for the ID of a node/item. This is used to identify it in the extension itself (the user won\'t see it except in errors).' +
+				'This is the same word as above except capitalizd'
 		}
 	},
 	permissions: {
@@ -1604,6 +1621,55 @@ export const Messages: I18NBranch = {
 					}
 				}
 			}
+		}
+	},
+	logging: {
+		filter: {
+			message: 'filter',
+			description: 'A filter that only lists items that match give filter text'
+		},
+		description: {
+			message: 'This page serves as a sort of devTools for specific instances of scripts on tabs.' +
+				'You can choose to view logs for all instances, specific nodes, specific tabs, or a combination' +
+				'of both. You can access a specific instance\'s variables and get/set them just as you would' +
+				'in the chrome dev tools, to do this simply select an ID and a tab ID',
+			description: 'Description of the logging page'
+		},
+		lines: {
+			message: 'lines',
+			description: 'Prefixed by the amount of logging lines there are in the logging console'
+		},
+		running_code_not_possible: {
+			message: 'Running code is not possible in the current context (select both an ID and a tab)',
+			description: 'Warning that running code is not possible right now since no context has been selected.'
+		},
+		store_as_local: {
+			message: 'Store as local variable',
+			description: 'Stores clicked javascript value in a local value so it can be referenced locally'
+		},
+		log_this: {
+			message: 'Logthis',
+			description: 'Logs given value'
+		},
+		copy_as_json: {
+			message: 'Copy as JSON',
+			description: 'Copies given value to the clipboard as JSON'
+		},
+		copy_path: {
+			message: 'Copy path',
+			description: 'Copies the path to a value. For example if the user expands an array and runs this on the first element, the path is [0]'
+		},
+		clear_console: {
+			message: 'Clear console',
+			description: 'Empties the console and all its log messages'
+		},
+		tab_closed: {
+			message: 'Tab has been closed',
+			description: 'Warning that a tab has been closed and as such its log won\'t be updated'
+		},
+		something_went_wrong: {
+			message: 'Something went wrong highlighting the tab',
+			description: 'Generic warning shown when an error occurred on highlighting a tab. Highlighting is the flashing you see on tabs in browsers when something happens on them (for example an alert).'
 		}
 	}
 }
