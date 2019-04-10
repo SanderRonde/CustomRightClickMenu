@@ -109,6 +109,7 @@
 
 #submitHighlightButton, #cancelHighlightButton {
 	background-color: white;
+	text-transform: capitalize;
 }
 
 .capture {

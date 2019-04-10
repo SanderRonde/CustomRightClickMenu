@@ -1675,5 +1675,62 @@ export const Messages: I18NBranch = {
 			message: 'Logs',
 			description: 'Title for this page. Describes that this is the log page and contains logs'
 		}
+	},
+	util: {
+		errorReportingTool: {
+			finish: {
+				message: 'Finish',
+				description: 'Finishes the action of highlighting the error/bug'
+			},
+			title: {
+				message: 'Reporting a bug or suggesting a feature',
+				description: 'Title for the error reporting tool'
+			},
+			description: {
+				message: 'You can report a bug that happened or a feature you would like to see in this extension. If you want you can also highlight a section of the page and send it along. ' +
+					'When clicking the submit buton you will be taken to the github website where you ' +
+					'can file an issue. All nessecary files (the image and if you want to your settings) ' +
+					'will be downloaded, after which you can drop them on the report issue page. For ' +
+					'this to be possible you need to accept the downloads permission window that will ' +
+					'pop up.',
+				description: 'Description for the error reporting tool'
+			},
+			bugreportInfo: {
+				message: 'Your CRM and settings will be included in the report that will be publicly ' +
+					'visible, if you do not wish this you can report a bug or suggest a feature ' +
+					'by sending an email to $EMAIL$',
+				description: 'Bug report info. Keep in mind that "this address" in the placeholder should also be replaced',
+				placeholders: {
+					email: {
+						content: '<a rel="noopener" target="_blank" href="mailto:awsdfgvhbjn@gmail.com">this address.</a></span>'
+					}
+				}
+			},
+			page_capture: {
+				message: 'Page Capture',
+				description: 'Launches a page capturing program with which the user can select ' +
+					'a section of the page that is then converted to an image and uploaded'
+			},
+			reporting_bug: {
+				message: 'Reporting a bug',
+				description: 'Button to press when reporting a bug/fault in the extension'
+			},
+			suggesting_feature: {
+				message: 'Suggesting a feature',
+				description: 'Button to press when suggesting a new feature for the extension'
+			},
+			submit: {
+				message: 'submit',
+				description: 'Submits given bug report or feature request'
+			},
+			messagePlaceholder:{ 
+				message: 'WRITE MESSAGE HERE',
+				description: 'Placeholder for the user to write a message in'
+			},
+			titlePlaceholder: {
+				message: 'TITLE HERE',
+				description: 'Placeholder for the user to write a titel in'
+			}
+		}
 	}
 }

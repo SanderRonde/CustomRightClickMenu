@@ -1,6 +1,7 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
 import { Polymer } from '../../../../tools/definitions/polymer';
+import { I18NKeys } from '../../../_locales/i18n-keys';
 
 declare const browserAPI: browserAPI;
 declare const BrowserAPI: BrowserAPI;
@@ -433,61 +434,53 @@ namespace ErrorReportingToolElement {
 			}, 350);
 		};
 
-		private static _getDownloadPermission(this: ErrorReportingTool, callback: (allowed: boolean) => void) {
+		private static async _getDownloadPermission(this: ErrorReportingTool): Promise<boolean> {
 			if (BrowserAPI.getSrc().downloads && BrowserAPI.getSrc().downloads.download) {
-				callback(true);
-				return;
+				return true;
 			}
 
 			if (!(BrowserAPI.getSrc().permissions)) {
-				window.app.util.showToast('Your browser does not support asking for the download permission');
-				callback(false);
-				return;
+				window.app.util.showToast(await this.___(I18NKeys.crmApp.code.downloadNotSupported));
+				return false;
 			}
 
-			browserAPI.permissions.contains({
+			const granted = await browserAPI.permissions.contains({
 				permissions: ['downloads']
-			}).then(async (granted) => {
-				if (granted) {
-					window.errorReportingTool.$.errorReportingDialog.close();
-					callback(true);
-
-					const listener = () => {
-						this._checkCheckmark();
-						window.removeEventListener('focus', listener);
-					};
-					window.addEventListener('focus', listener);
-				} else {
-					browserAPI.permissions.request({
-						permissions: ['downloads']
-					}).then((granted) => {
-						//Refresh browserAPI object
-						browserAPI.downloads = browserAPI.downloads || BrowserAPI.getDownloadAPI();
-						if (!granted) {
-							window.doc.acceptDownloadToast.show();
-						}
-						callback(granted);
-					});
-				}
 			});
+			if (granted) {
+				window.errorReportingTool.$.errorReportingDialog.close();
+
+				const listener = () => {
+					this._checkCheckmark();
+					window.removeEventListener('focus', listener);
+				};
+				window.addEventListener('focus', listener);
+				return true;
+			} else {
+				const nowGranted = await browserAPI.permissions.request({
+					permissions: ['downloads']
+				});
+				//Refresh browserAPI object
+				browserAPI.downloads = browserAPI.downloads || BrowserAPI.getDownloadAPI();
+				if (!nowGranted) {
+					window.doc.acceptDownloadToast.show();
+				}
+				return nowGranted;
+			}
 		};
 
 		static async submitErrorReport(this: ErrorReportingTool) {
-			const granted = await new Promise<boolean>((resolve) => {
-				this._getDownloadPermission((granted) => {
-					resolve(granted);
-				});
-			});
+			const granted = await this._getDownloadPermission();
 			if (!granted) {
 				return;
 			}
 			if (!await this._downloadFiles()) {
-				window.app.util.showToast('Your browser does not support the downloads API');
+				window.app.util.showToast(await this.___(I18NKeys.crmApp.code.downloadNotSupported));
 				return;
 			}
 			//Take the user to the github page
-			const messageBody = 'WRITE MESSAGE HERE\n';
-			const title = (this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + 'TITLE HERE';
+			const messageBody = `${await this.___(I18NKeys.util.errorReportingTool.messagePlaceholder)}\n`;
+			const title = (this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + await this.___(I18NKeys.util.errorReportingTool.titlePlaceholder);
 			window.open('https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=' + title + '&body=' + messageBody, '_blank');
 		};
 
