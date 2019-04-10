@@ -7,9 +7,6 @@ cache: yarn
 branches:
   only:
   - master
-  - beta
-  - reset
-  - polymer-2
 stages:
 - build
 - test
