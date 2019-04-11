@@ -376,7 +376,7 @@ before('Driver connect', async function() {
 			name: (() => {
 				if (process.env.TRAVIS) {
 					// Travis
-					return process.env.TEST;
+					return `${process.env.TEST} attempt ${process.env.ATTEMPTS}`;
 				}
 				// Local
 				return `local:${

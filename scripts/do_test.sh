@@ -2,6 +2,7 @@
 
 script_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
+export ATTEMPTS=1
 
 # Only run the test if it's not a pull request or if it is, 
 # only run ones that don't require browserstack
@@ -49,13 +50,13 @@ $script_path/is_eq.sh "$1" "test:chrome:latest:extension:post-stylesheet" && do_
 
 if ((run_test)); then
 	if ((do_retry_a_lot)); then
-		yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1
+		yarn run $1 || export ATTEMPTS=2 && yarn run $1 || export ATTEMPTS=3 && yarn run $1 || export ATTEMPTS=4 && yarn run $1 || export ATTEMPTS=5 && yarn run $1 || export ATTEMPTS=6 && yarn run $1 || export ATTEMPTS=7 && yarn run $1 || export ATTEMPTS=8 && yarn run $1 || export ATTEMPTS=9 && yarn run $1 || export ATTEMPTS=10 && yarn run $1 || export ATTEMPTS=11 && yarn run $1 || export ATTEMPTS=12 && yarn run $1
 	elif ((do_retry_trice)); then
-		yarn run $1 || yarn run $1 || yarn run $1 || yarn run $1
+		yarn run $1 || export ATTEMPTS=2 && yarn run $1 || export ATTEMPTS=3 && yarn run $1 || export ATTEMPTS=4 && yarn run $1
 	elif ((do_retry_twice)); then
-		yarn run $1 || yarn run $1 || yarn run $1
+		yarn run $1 || export ATTEMPTS=2 && yarn run $1 || export ATTEMPTS=3 && yarn run $1
 	elif ((do_retry_once)); then
-		yarn run $1 || yarn run $1
+		yarn run $1 || export ATTEMPTS=2 && yarn run $1
 	else
 		yarn run $1
 	fi
