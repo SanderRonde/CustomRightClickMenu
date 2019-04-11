@@ -373,11 +373,18 @@ before('Driver connect', async function() {
 				await tryReadManifest('app/manifest.json') ||
 				await tryReadManifest('app/manifest.chrome.json')
 			).version} - ${await getGitHash()}`,
-			name: `${
-				browserCapabilities.browserName
-			} ${
-				browserCapabilities.browser_version || 'latest'
-			}`,
+			name: (() => {
+				if (process.env.TRAVIS) {
+					// Travis
+					return process.env.TEST;
+				}
+				// Local
+				return `local:${
+					browserCapabilities.browserName
+				} ${
+					browserCapabilities.browser_version || 'latest'
+				}`
+			})(),
 			'browserstack.local': !TEST_EXTENSION
 		}}).merge(additionalCapabilities));
 	if (TEST_LOCAL) {
