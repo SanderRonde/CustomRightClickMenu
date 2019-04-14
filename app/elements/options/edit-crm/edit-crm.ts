@@ -2,6 +2,7 @@
 
 import { EditCrmItem } from '../edit-crm-item/edit-crm-item';
 import { Polymer } from '../../../../tools/definitions/polymer';
+import { I18NKeys } from '../../../_locales/i18n-keys';
 
 declare const browserAPI: browserAPI;
 
@@ -241,6 +242,11 @@ namespace EditCrmElement {
 		static listeners = {
 			'crmTypeChanged': '_typeChanged'
 		};
+
+		static _addNodeType(this: EditCrm, nodeType: CRM.NodeType) {
+				return this.___(I18NKeys.options.editCrm.addNodeType,
+					window.app.crm.getI18NNodeType(nodeType));
+			}
 
 		static _isColumnEmpty(this: EditCrm, column: CRMColumn): boolean {
 			return column.list.length === 0 && !this.isAdding;

@@ -4590,6 +4590,21 @@ namespace CRMAppElement {
 		 * CRM functions.
 		 */
 		static crm = class CRMAppCRMFunctions {
+			static getI18NNodeType(nodeType: CRM.NodeType) {
+				switch (nodeType) {
+					case 'link':
+						return this._parent().___(I18NKeys.crm.link);
+					case 'script':
+						return this._parent().___(I18NKeys.crm.script);
+					case 'stylesheet':
+						return this._parent().___(I18NKeys.crm.stylesheet);
+					case 'menu':
+						return this._parent().___(I18NKeys.crm.menu);
+					case 'divider':
+						return this._parent().___(I18NKeys.crm.divider);
+				}
+			}
+
 			static lookup(path: number[], returnArray?: boolean): CRM.Node | CRM.Node[];
 			static lookup(path: number[], returnArray: false): CRM.Node;
 			static lookup(path: number[], returnArray: true): CRM.Node[];

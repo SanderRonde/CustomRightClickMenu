@@ -91,6 +91,26 @@ export const Messages: I18NBranch = {
 		}
 	},
 	crm: {
+		link: {
+			message: 'Link',
+			description: 'Name of the link node type. Used like: "Add {Link}"'
+		},
+		script: {
+			message: 'Script',
+			description: 'Name of the script node type. Used like: "Add {Script}"'
+		},
+		stylesheet: {
+			message: 'Stylesheet',
+			description: 'Name of the stylesheet node type. Used like: "Add {Stylesheet}"'
+		},
+		menu: {
+			message: 'Menu',
+			description: 'Name of the menu node type. Used like: "Add {Menu}"'
+		},
+		divider: {
+			message: 'Divider',
+			description: 'Name of the divider node type. Used like: "Add {Divider}"'
+		},
 		exampleLinkName: {
 			message: 'My Link',
 			description: 'A default name for a link node'
@@ -1812,6 +1832,27 @@ export const Messages: I18NBranch = {
 				description: 'The name for a website. For example for www.google.com ' +
 					'the name is "google". For www.facebook.com it\'s "facebook". ' +
 					'this is the label for that field.'
+			}
+		},
+		editCrm: {
+			empty: {
+				message: 'It seems like there is no right-click menu for this content type, try something else or add a new node!',
+				description: 'Message shown when the CRM is empty for given content type'
+			},
+			addHere: {
+				message: 'Add Here',
+				description: 'Click location for adding a new node. When clicked ' +
+					'in adding mode adds a new node at the given location.'
+			},
+			addNodeType: {
+				message: 'Add $NODETYPE$',
+				description: 'Adds a new node of given node type',
+				placeholders: {
+					nodeType: {
+						content: '$1',
+						example: 'Internationalized version of Link, Script, Stylesheet etc'
+					}
+				}
 			}
 		}
 	}
