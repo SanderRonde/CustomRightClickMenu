@@ -2,6 +2,7 @@
 
 import { Polymer } from '../../../../tools/definitions/polymer';
 import { LANGS } from '../../../js/shared';
+import { I18NKeys } from '../../../_locales/i18n-keys';
 
 namespace LangSelectorElement {
 	export const langSelectorProperties: {
@@ -27,8 +28,8 @@ namespace LangSelectorElement {
 		private static async _getCurrentLang(this: LangSelector) {
 			this._lang = await window.__.getLang();
 			this.$.mainBubble.title = `${
-				await this.__async('langs@selector_clickToChangeLanguage')
-			} (${await this.__async('langs@selector_current')}: ${this._lang})`;
+				await this.__async(I18NKeys.langs.selector.clickToChangeLanguage)
+			} (${await this.__async(I18NKeys.langs.selector.current)}: ${this._lang})`;
 		}
 
 		private static async _updateAvailableLangs(this: LangSelector) {
@@ -36,10 +37,10 @@ namespace LangSelectorElement {
 			const currentLang = this._lang;
 
 			this.langs = await Promise.all(availableLangs.map(async (lang) => {
-				const baseName = await this.__async(`langs@languages_${lang}`);
+				const baseName = await this.__async(`langs_languages_${lang}`);
 				return {
 					name: lang === currentLang ?
-						`${baseName} (${lang}, ${await this.__async('langs@selector_current')})` :
+						`${baseName} (${lang}, ${await this.__async(I18NKeys.langs.selector.current)})` :
 						`${baseName} (${lang})`,
 					code: lang,
 					url: `../../images/country_flags/${lang}.svg`,
