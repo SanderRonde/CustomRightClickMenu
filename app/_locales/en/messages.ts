@@ -1805,6 +1805,14 @@ export const Messages: I18NBranch = {
 					}
 				}
 			}
+		},
+		defaultLink: {
+			name: {
+				message: 'Name',
+				description: 'The name for a website. For example for www.google.com ' +
+					'the name is "google". For www.facebook.com it\'s "facebook". ' +
+					'this is the label for that field.'
+			}
 		}
 	}
 }
