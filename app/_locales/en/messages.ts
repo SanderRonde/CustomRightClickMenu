@@ -544,6 +544,19 @@ export const Messages: I18NBranch = {
 				message: 'Use your custom right-click menu on this page as a preview instead of your browser\'s regular one.',
 				description: 'See message'
 			},
+			chromeLow: {
+				message: 'Your chrome version is too low for this to be possible (min is chrome 34, you have $VERSION$)',
+				description: 'A message informing the user that their browser is old and as such some features are unsupported',
+				placeholders: {
+					version: {
+						content: '$1',
+					}
+				}
+			},
+			notChrome: {
+				message: 'not chrome',
+				description: 'Used in the form "min chrome version is 34, you have {not chrome}'
+			},
 			useStorageSyncDisabledUnavailable: {
 				message: 'Syncing is not available in your browser',
 				description: 'Reason the useStorageSync option is disabled. Reason is because the browser.storage.sync API is not available in the user\'s browser'

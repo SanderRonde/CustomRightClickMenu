@@ -20,9 +20,7 @@ namespace PaperToggleOptionElement {
 		disabledreason: {
 			type: String,
 			notify: true,
-			value: `Your chrome version is too low for this to be possible (min is 34, you have ${
-				~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent) ? ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] : 'not chrome'
-			})`
+			value: 'disbled'
 		},
 		showmessage: {
 			type: Boolean,

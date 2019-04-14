@@ -620,7 +620,14 @@ namespace CRMAppElement {
 				'get' in BrowserAPI.getSrc().storage.sync;
 		}
 
-		static _getDisabledReason(this: CrmApp) {
+		static _getCRMInRMDisabledReason(this: CrmApp) {
+			return this.___(I18NKeys.crmApp.options.chromeLow, 
+				~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent) ? 
+					(~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] + '') : 
+					this.___(I18NKeys.crmApp.options.notChrome));
+		}
+
+		static _getStorageSyncDisabledReason(this: CrmApp) {
 			if (!this._supportsStorageSync()) {
 				return this.___(I18NKeys.crmApp.options.useStorageSyncDisabledUnavailable);
 			} else {

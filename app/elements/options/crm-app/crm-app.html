@@ -261,13 +261,13 @@
 							<paper-toggle-option id="recoverUnsavedData">
 								[[__(lang, langReady, 'crmApp_options_recoverUnsavedData')]]
 							</paper-toggle-option>
-							<paper-toggle-option id="CRMOnPage" showmessage disabledreason="[[__(lang, langReady, 'crmApp_options_CRMOnPageDisabled')]]">
+							<paper-toggle-option id="CRMOnPage" showmessage disabledreason="[[_getCRMInRMDisabledReason(lang, langReady)]]">
 								[[__(lang, langReady, 'crmApp_options_CRMOnPageOption')]]
 							</paper-toggle-option>
-							<paper-toggle-option id="editCRMInRM">
+							<paper-toggle-option id="editCRMInRM" disabledreason="[[__(lang, langReady, 'options_inputs_paperToggleOption_chromeLow')]]">
 								[[__(lang, langReady, 'crmApp_options_editCRMInRM')]]
 							</paper-toggle-option>
-							<paper-toggle-option id="useStorageSync" disabledreason="[[_getDisabledReason()]]">
+							<paper-toggle-option id="useStorageSync" disabledreason="[[_getStorageSyncDisabledReason(lang, langReady)]]">
 								[[__(lang, langReady, 'crmApp_options_useStorageSyncOption')]]
 								<span style$="{{_getSettingsJsonLengthColor(settingsJsonLength)}}">{{_placeCommas(settingsJsonLength)}}</span>/102,400 bytes
 							</paper-toggle-option>
