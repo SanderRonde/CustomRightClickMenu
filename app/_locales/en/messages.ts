@@ -1743,6 +1743,68 @@ export const Messages: I18NBranch = {
 				message: 'URL match pattern',
 				description: 'Label shown for an input that wants a URL match pattern'
 			}
+		},
+		crmEditPage: {
+			createdBy: {
+				message: 'Created by $AUTHOR$',
+				description: 'Label displaying the author of a script',
+				placeholders: {
+					author: {
+						content: '<b title="$1" id="nodeInfoAuthorCont">$1</b>',
+						example: 'Anonymous'
+					}
+				}
+			},
+			installedFrom: {
+				message: 'installed from ($SOURCEURL$)',
+				description: 'Label displaying where a script was downloaded from. ' +
+					'Keep in mind that the "url" word in the placeholder should be replaced as well',
+				placeholders: {
+					sourceurl: {
+						content: '<span id="nodeInfoFrom"><b>' + 
+							'<a id="nodeInfoUrl" title="$1" target="_blank" rel="noopener"' +
+							'href="$1">url</a></b></span>',
+						example: 'www.google.com/script.user.js'
+					}
+				}
+			},
+			createdByYou: {
+				message: 'Created by $AUTHOR$',
+				description: 'Label displaying the author of a script. This is the same as the ' +
+					'other one. The only difference is the HTML in the placeholder which doesn\'t ' +
+					'have to be replaced',
+				placeholders: {
+					author: {
+						content: '$1',
+						example: 'You'
+					}
+				}
+			},
+			hasAllPermissions: {
+				message: 'This means it has access to all permissions without having to enable them',
+				description: 'Describes the additional permissions enabled when a script ' +
+					'is created by the current user and as such has all permissions'
+			},
+			createdOn: {
+				message: 'Created on $DATE$',
+				description: 'Date when a script was created',
+				placeholders: {
+					date: {
+						content: '$1',
+						example: 'xxxx-xx-xx'
+					}
+				}
+			},
+			installedOn: {
+				message: 'Installed on $DATE$',
+				description: 'Date when a script was installed',
+				placeholders: {
+					date: {
+						content: '$1',
+						example: 'xxxx-xx-xx'
+					}
+				}
+			}
 		}
 	}
 }

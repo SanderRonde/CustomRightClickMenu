@@ -38,33 +38,16 @@
 							</span>
 							<span hidden$="[[isLocal(nodeInfo.source)]]">
 								<span id="nodeInfoAuthor">
-									Created by <b title$="[[nodeInfo.source.author]]" id="nodeInfoAuthorCont">[[nodeInfo.source.author]]</b></span>,
-									installed from <span id="nodeInfoFrom">
-									<b>
-										<a id="nodeInfoUrl" title$="[[nodeInfo.source.url]]" target="_blank" rel="noopener" href$="[[nodeInfo.source.url]]">(url)</a>
-									</b>
+									<echo-html html="[[__(lang, langReady, 'options_crmEditPage_createdBy', nodeInfo.source.author)]"></echo-html>
 								</span>
+								<echo-html html="[[__(lang, langReady, 'options_crmEditPage_installedFrom', nodeInfo.source.url)]]"></echo-html>
 							</span>
 							<span hidden$="[[!isLocal(nodeInfo.source)]]">
-								Created by <b id="nodeInfoByYou" title="This means it has access to all permissions without having to enable them">You</b>
+								<echo-html html="[[getCreatedBy(lang, langReady)]]"></echo-html>
 							</span>
 						</div>
 						<div id="nodeInfoSource" hidden$="[[!hasInstallDate(nodeInfo)]]">
-							<span id="NodeInfoAcquiredThrough">
-								<span hidden$="[[!isLocal(nodeInfo.source)]]">
-									Created
-								</span>
-								<span hidden$="[[isLocal(nodeInfo.source)]]">
-									Installed
-								</span>
-							</span>
-							<span id="installedOn">
-								on
-								<b>
-									<span id="NodeInfoInstallDate" title$="{{getInstallDateTextFormat(nodeInfo.installDate)}}">[[nodeInfo.installDate]]</span>
-								</b>
-							</span>
-						</div>
+							[[nodeInfoSource(lang, langReady, nodeInfo)]]
 					</div>
 				</div>
 			</div>

@@ -2,6 +2,7 @@
 
 import { EditPage } from '../../elements';
 import { Polymer } from '../../../../tools/definitions/polymer';
+import { I18NKeys } from '../../../_locales/i18n-keys';
 
 declare const browserAPI: browserAPI;
 
@@ -100,6 +101,22 @@ namespace CrmEditPageElement {
 		static listeners = {
 			"neon-animation-finish": '_onNeonAnimationFinish'
 		};
+
+		static getCreatedBy(this: CrmEditPage) {
+			return this.___(I18NKeys.options.crmEditPage.createdByYou, 
+				`<b id="nodeInfoByYou" title="${
+					this.___(I18NKeys.options.crmEditPage.hasAllPermissions)
+				}">You</b>`)
+		}
+
+		static nodeInfoSource(this: CrmEditPage) {
+			return this.___(this.isLocal(this.nodeInfo.source) ? 
+					I18NKeys.options.crmEditPage.createdOn : 
+					I18NKeys.options.crmEditPage.installedOn,
+				`<b title="${
+					this.getInstallDateTextFormat()
+				}">${this.nodeInfo.installDate}</b>`)
+		}
 
 		static isLocal(this: CrmEditPage, source: {
 			updateURL?: string;
