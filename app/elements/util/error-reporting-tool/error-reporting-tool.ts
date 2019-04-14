@@ -440,7 +440,7 @@ namespace ErrorReportingToolElement {
 			}
 
 			if (!(BrowserAPI.getSrc().permissions)) {
-				window.app.util.showToast(await this.___(I18NKeys.crmApp.code.downloadNotSupported));
+				window.app.util.showToast(await this.__async(I18NKeys.crmApp.code.downloadNotSupported));
 				return false;
 			}
 
@@ -475,12 +475,12 @@ namespace ErrorReportingToolElement {
 				return;
 			}
 			if (!await this._downloadFiles()) {
-				window.app.util.showToast(await this.___(I18NKeys.crmApp.code.downloadNotSupported));
+				window.app.util.showToast(await this.__async(I18NKeys.crmApp.code.downloadNotSupported));
 				return;
 			}
 			//Take the user to the github page
-			const messageBody = `${await this.___(I18NKeys.util.errorReportingTool.messagePlaceholder)}\n`;
-			const title = (this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + await this.___(I18NKeys.util.errorReportingTool.titlePlaceholder);
+			const messageBody = `${await this.__async(I18NKeys.util.errorReportingTool.messagePlaceholder)}\n`;
+			const title = (this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + await this.__async(I18NKeys.util.errorReportingTool.titlePlaceholder);
 			window.open('https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=' + title + '&body=' + messageBody, '_blank');
 		};
 
