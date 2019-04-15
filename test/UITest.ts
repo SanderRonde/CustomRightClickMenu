@@ -13,6 +13,8 @@ const TEST_LOCAL: boolean = hasSetting('remote') || !!process.env.TRAVIS ?
 const TEST_EXTENSION = hasSetting('test-extension');
 const TIME_MODIFIER = 1.2;
 const LOCAL_URL = 'http://localhost:9515';
+const REMOTE_URL = hasSetting('remote-url') ?
+	getSetting('remote-url') : 'http://hub-cloud.browserstack.com/wd/hub';
 
 const SKIP_ENTRYPOINTS = hasSetting('skip-entrypoints');
 const SKIP_OPTIONS_PAGE_NON_DIALOGS = hasSetting('skip-non-dialogs');
@@ -27,6 +29,10 @@ const WAIT_ON_DONE = hasSetting('wait-on-done');
 
 function hasSetting(setting: string) {
 	return process.argv.indexOf(`--${setting}`) > -1;
+}
+
+function getSetting(setting: string) {
+	return process.argv[process.argv.indexOf(`--${setting}`) + 1];
 }
 
 type SkipOption = 'stylesheet'|'divider'|'script'|
@@ -359,7 +365,7 @@ async function openTestPageURL(capabilities: BrowserstackCapabilities) {
 
 before('Driver connect', async function() {
 	const url = TEST_LOCAL ?
-		LOCAL_URL : 'http://hub-cloud.browserstack.com/wd/hub';
+		LOCAL_URL : REMOTE_URL;
 
 	global.Promise = _promise;
 
