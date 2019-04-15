@@ -65,13 +65,13 @@ function run_cmd() {
 
 if ((run_test)); then
 	if ((do_retry_a_lot)); then
-		run_cmd || export ATTEMPTS=2 && run_cmd || export ATTEMPTS=3 && run_cmd || export ATTEMPTS=4 && run_cmd || export ATTEMPTS=5 && run_cmd || export ATTEMPTS=6 && run_cmd || export ATTEMPTS=7 && run_cmd || export ATTEMPTS=8 && run_cmd || export ATTEMPTS=9 && run_cmd || export ATTEMPTS=10 && run_cmd || export ATTEMPTS=11 && run_cmd || export ATTEMPTS=12 && run_cmd
+		(export ATTEMPTS=1 && run_cmd) || (export ATTEMPTS=2 && run_cmd) || (export ATTEMPTS=3 && run_cmd) || (export ATTEMPTS=4 && run_cmd) || (export ATTEMPTS=5 && run_cmd) || (export ATTEMPTS=6 && run_cmd) || (export ATTEMPTS=7 && run_cmd) || (export ATTEMPTS=8 && run_cmd) || (export ATTEMPTS=9 && run_cmd) || (export ATTEMPTS=10 && run_cmd)
 	elif ((do_retry_trice)); then
-		run_cmd || export ATTEMPTS=2 && run_cmd || export ATTEMPTS=3 && run_cmd || export ATTEMPTS=4 && run_cmd
+		(export ATTEMPTS=1 && run_cmd) || (export ATTEMPTS=2 && run_cmd) || (export ATTEMPTS=3 && run_cmd) || (export ATTEMPTS=4 && run_cmd)
 	elif ((do_retry_twice)); then
-		run_cmd || export ATTEMPTS=2 && run_cmd || export ATTEMPTS=3 && run_cmd
+		(export ATTEMPTS=1 && run_cmd) || (export ATTEMPTS=2 && run_cmd) || (export ATTEMPTS=3 && run_cmd)
 	elif ((do_retry_once)); then
-		run_cmd || export ATTEMPTS=2 && run_cmd
+		(export ATTEMPTS=1 && run_cmd) || (export ATTEMPTS=2 && run_cmd)
 	else
 		run_cmd
 	fi
