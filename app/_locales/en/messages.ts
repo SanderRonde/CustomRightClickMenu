@@ -1866,6 +1866,78 @@ export const Messages: I18NBranch = {
 						example: 'Internationalized version of Link, Script, Stylesheet etc'
 					}
 				}
+			},
+			select: {
+				message: 'Select',
+				description: 'Enables selection mode in which you can select nodes ' +
+					'and do things like deleting/moving them.'
+			},
+			exportSelected: {
+				message: 'Export Selected',
+				description: 'Exports the nodes selected in selection mode. ' +
+					'Exporting allows them to be imported in either another instance ' +
+					'of this extension or in a different one such as tampermonkey'
+			},
+			removeSelected: {
+				message: 'Remove Selected',
+				description: 'Deletes the nodes selected in selection mode.'
+			},
+			menuRemoveWarning: {
+				message: 'Warning: Children of a removed menu will also be removed recursively!',
+				description: 'Warning telling the user that if a node of type menu ' +
+					'is removed, its children will also be removed.'
+			},
+			dragInfo: {
+				message: 'Click and hold the three dashes ($HANDLE$) to drag the nodes.',
+				description: 'Description on how to use the dragging handle to drag nodes around.',
+				placeholders: {
+					handle: {
+						content: '<svg xmlns="http://www.w3.org/2000/svg" class="infoSvg" viewbox="0 0 32 48" height="30" width="20">' +
+							'<path d="M4 31v4h40v-4H4zm0-10v4h40v-4H4zm0-10v4h40v-4H4z"/> ' +
+							'</svg>',
+						example: 'See above. No need to replace anything'
+					}
+				}
+			},
+			typeInfo: {
+				message: 'Hover over and click the colored areas to change types.',
+				description: 'Description of how to change the types of node'
+			},
+			editInfo: {
+				message: 'Click the nodes to edit them.',
+				description: 'Description of how to edit nodes'
+			},
+			menuInfo: {
+				message: 'Click the arrows ($ARROW$) to show a menu\'s contents.',
+				description: 'Description of how to expand a menu\'s children/contents',
+				placeholders: {
+					arrow: {
+						content: '<svg class="infoSvg triangleInfoSvg" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewbox="0 0 48 48">' +
+							'<path d="M16 10v28l22-14z"/>' +
+							'</svg>',
+						example: 'See above. No changes need to be made'
+					}
+				}
+			},
+			editItem: {
+				message: 'Edit item "$NAME$"',
+				description: 'Accessibility label for the "edit node" button',
+				placeholders: {
+					name: {
+						content: '$1',
+						example: 'MyLink'
+					}
+				}
+			},
+			addFail: {
+				message: 'Failed to add $NODETYPE$',
+				description: 'Error message shown when the adding of a node of type NODETYPE failed',
+				placeholders: {
+					nodeType: {
+						content: '$1',
+						example: 'localized version of script'
+					}
+				}
 			}
 		}
 	}

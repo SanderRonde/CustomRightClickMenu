@@ -34,7 +34,7 @@
 							<div class="paper-material" elevation="5" is-empty$="{{_isColumnEmpty(column)}}">
 								<div class="CRMEditColumn" index="{{column.index}}" items="{{column.list}}">
 									<template is="dom-repeat" items="{{column.list}}" as="row" observe="*" restamp="true">
-										<edit-crm-item expanded="{{row.expanded}}" role="button" tabindex="0" aria-label$="{{_getAriaLabel(row)}}" title="{{row.name}}" shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" crm-type-hidden$="{{row.hiddenOnCrmType}}" item="{{row}}"></edit-crm-item>
+										<edit-crm-item expanded="{{row.expanded}}" role="button" tabindex="0" aria-label$="{{_getAriaLabel(row, lang, langReady)}}" title="{{row.name}}" shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" crm-type-hidden$="{{row.hiddenOnCrmType}}" item="{{row}}"></edit-crm-item>
 									</template>
 									<template is="dom-if" if="[[isAdding]]">
 										<div on-tap="addToPosition" class="addingItemPlaceholder" data-path$="{{column.menuPath}}">
@@ -61,14 +61,14 @@
 				<paper-button class="blue" id="addButton" on-tap="setAddStateStylesheet" raised hidden$="[[isAddingOrSelecting]]">[[_addNodeType('stylesheet', lang, langReady)</paper-button>
 				<paper-button class="blue" id="addButton" on-tap="setAddStateMenu" raised hidden$="[[isAddingOrSelecting]]">[[_addNodeType('menu', lang, langReady)</paper-button>
 				<paper-button class="blue" id="addButton" on-tap="setAddStateDivider" raised hidden$="[[isAddingOrSelecting]]">[[_addNodeType('divider', lang, langReady)r</paper-button>
-				<paper-button class="blue" id="removeButton" on-tap="selectItems" raised hidden$="[[isAddingOrSelecting]]">Select</paper-button>
+				<paper-button class="blue" id="removeButton" on-tap="selectItems" raised hidden$="[[isAddingOrSelecting]]">[[__(lang, langReady, 'options_editCrm_select')]]</paper-button>
 
-				<paper-button class="blue" id="cancelSelecting" on-tap="cancelAddOrSelect" raised hidden$="[[!isAddingOrSelecting]]">Cancel</paper-button>
-				<paper-button class="blue" id="exportSelected" on-tap="exportSelected" raised hidden$="[[!isSelecting]]">Export Selected</paper-button>
-				<paper-button class="blue" id="removeSelectedButton" on-tap="removeSelected" raised hidden$="[[!isSelecting]]">Remove Selected</paper-button>
+				<paper-button class="blue" id="cancelSelecting" on-tap="cancelAddOrSelect" raised hidden$="[[!isAddingOrSelecting]]">[[__(lang, langReady, 'generic_cancel')]]</paper-button>
+				<paper-button class="blue" id="exportSelected" on-tap="exportSelected" raised hidden$="[[!isSelecting]]">[[__(lang, langReady, 'options_editCrm_exportSelected')]]</paper-button>
+				<paper-button class="blue" id="removeSelectedButton" on-tap="removeSelected" raised hidden$="[[!isSelecting]]">[[__(lang, langReady, 'options_editCrm_removeSelected')]]</paper-button>
 			</div>
 			<div id="warning" hidden$="[[!isSelecting]]">
-				<span id="removeWarning">Warning: Children of a removed menu will also be removed recursively!</span>
+				<span id="removeWarning">[[__(lang, langReady, 'options_editCrm_menuRemoveWarning')]]</span>
 			</div>
 			<div id="editCRMHelp">
 				<svg class="inactive" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
@@ -83,20 +83,16 @@
 					<div class="infoDivText">
 						<ul>
 							<li>
-								Click and hold the three stripes (<svg xmlns="http://www.w3.org/2000/svg" class="infoSvg" viewbox="0 0 32 48" height="30" width="20">
-									<path d="M4 31v4h40v-4H4zm0-10v4h40v-4H4zm0-10v4h40v-4H4z"/>
-								</svg>) to drag the nodes.
+								[[__(lang, langReady, 'options_editCrm_dragInfo')]]
 							</li>
 							<li>
-								Hover over and click the colored areas to change types.
+								[[__(lang, langReady, 'options_editCrm_typeInfo')]]
 							</li>
 							<li>
-								Click the nodes to edit them.
+								[[__(lang, langReady, 'options_editCrm_editInfo')]]
 							</li>
 							<li>
-								Click the arrows (<svg class="infoSvg triangleInfoSvg" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewbox="0 0 48 48">
-									<path d="M16 10v28l22-14z"/>
-								</svg>) to show a menu's contents.
+								[[__(lang, langReady, 'options_editCrm_menuInfo')]]
 							</li>
 						</ul>
 					</div>

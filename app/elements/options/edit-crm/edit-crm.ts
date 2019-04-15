@@ -257,7 +257,7 @@ namespace EditCrmElement {
 		};
 
 		static _getAriaLabel(this: EditCrm, item: CRM.Node): string {
-			return 'Edit item "' + item.name + '"';
+			return this.___(I18NKeys.options.editCrm.editItem, item.name);
 		};
 
 		static _isAddingOrSelecting(this: EditCrm) {
@@ -698,11 +698,11 @@ namespace EditCrmElement {
 			});
 		};
 
-		static addToPosition(this: EditCrm, e: Polymer.ClickEvent) {
+		static async addToPosition(this: EditCrm, e: Polymer.ClickEvent) {
 			const node = window.app.util.findElementWithClassName(e, 'addingItemPlaceholder');
 
 			const menuPath = JSON.parse(node.getAttribute('data-path'));
-			this._addItem(menuPath, this.addingType);
+			await this._addItem(menuPath, this.addingType);
 			this.isAdding = false;
 		};
 
@@ -766,7 +766,7 @@ namespace EditCrmElement {
 			});
 		}
 
-		private static _addItem(this: EditCrm, path: number[], type: CRM.NodeType) {
+		private static async _addItem(this: EditCrm, path: number[], type: CRM.NodeType) {
 			const newItem = window.app.templates.getDefaultNodeOfType(type, {
 				id: window.app.generateItemId() as CRM.NodeId<any>
 			});
@@ -774,7 +774,8 @@ namespace EditCrmElement {
 			window.app.uploading.createRevertPoint();
 			const container = window.app.crm.lookup(path, true);
 			if (container === null) {
-				window.app.util.showToast(`Failed to add ${type}`);
+				window.app.util.showToast(await this.__async(I18NKeys.options.editCrm.addFail,
+					type));
 				window.app.util.wait(5000).then(() => {
 					window.app.listeners.hideGenericToast();
 				});
