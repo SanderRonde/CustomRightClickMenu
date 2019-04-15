@@ -517,12 +517,27 @@ class Tasks {
 			static Compile = (() => {
 				@taskClass('compile')
 				class Compile {					
+					private static _removeMetadata(message: I18NMessage) {
+						const cleanedMessage: Partial<I18NMessage> = {};
+						cleanedMessage.message = message.message;
+						if (message.placeholders) {
+							cleanedMessage.placeholders = {};
+						}
+						for (const placeholder in message.placeholders || {}) {
+							cleanedMessage.placeholders[placeholder] = {
+								content: message.placeholders[placeholder].content
+							}
+						}
+						return cleanedMessage as I18NMessage;
+					}
+
 					private static _normalizeMessages(root: I18NRoot) {
 						const normalized: {
 							[key: string]: I18NMessage;
 						} = {};
 						I18N._walkMessages(root, (message, currentPath, key) => {
-							normalized[I18N._genPath(currentPath, key)] = message;
+							normalized[I18N._genPath(currentPath, key)] = 
+								this._removeMetadata(message);
 						});
 						return normalized;
 					}
