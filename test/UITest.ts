@@ -13,8 +13,26 @@ const TEST_LOCAL: boolean = hasSetting('remote') || !!process.env.TRAVIS ?
 const TEST_EXTENSION = hasSetting('test-extension');
 const TIME_MODIFIER = 1.2;
 const LOCAL_URL = 'http://localhost:9515';
-const REMOTE_URL = hasSetting('remote-url') ?
-	getSetting('remote-url') : 'http://hub-cloud.browserstack.com/wd/hub';
+const REMOTE_URL = (() => {
+	if (hasSetting('remote-url')) {
+		return getSetting('remote-url');
+	}
+	if (process.env.REMOTE_URL) {
+		console.log('Using custom remote URL');
+		return process.env.REMOTE_URL;
+	}
+	return 'http://hub-cloud.browserstack.com/wd/hub';
+})();
+const SELENIUM_PW = (() => {
+	if (hasSetting('remote-pw')) {
+		return getSetting('remote-pw');
+	}
+	if (process.env.SELENIUM_PW) {
+		console.log('Using custom remote PW');
+		return process.env.SELENIUM_PW;
+	}
+	return 'PW';
+})();
 
 const SKIP_ENTRYPOINTS = hasSetting('skip-entrypoints');
 const SKIP_OPTIONS_PAGE_NON_DIALOGS = hasSetting('skip-non-dialogs');
@@ -379,6 +397,7 @@ before('Driver connect', async function() {
 				await tryReadManifest('app/manifest.json') ||
 				await tryReadManifest('app/manifest.chrome.json')
 			).version} - ${await getGitHash()}`,
+			pw: SELENIUM_PW,
 			name: (() => {
 				if (process.env.TRAVIS) {
 					// Travis
