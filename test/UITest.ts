@@ -388,7 +388,7 @@ before('Driver connect', async function() {
 			'browserstack.local': !TEST_EXTENSION
 		}}).merge(additionalCapabilities));
 	if (TEST_LOCAL) {
-		driver = unBuilt.forBrowser('Chrome').build();
+		driver = unBuilt.forBrowser('chrome').build();
 	} else {
 		driver = unBuilt.build();
 	}
