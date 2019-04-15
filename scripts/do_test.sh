@@ -48,17 +48,31 @@ do_retry_a_lot=0
 $script_path/is_eq.sh "$1" "test:chrome:old:page:post-stylesheet" && do_retry_a_lot=1
 $script_path/is_eq.sh "$1" "test:chrome:latest:extension:post-stylesheet" && do_retry_a_lot=1
 
-if ((run_test)); then
-	if ((do_retry_a_lot)); then
-		yarn run $1 || export ATTEMPTS=2 && yarn run $1 || export ATTEMPTS=3 && yarn run $1 || export ATTEMPTS=4 && yarn run $1 || export ATTEMPTS=5 && yarn run $1 || export ATTEMPTS=6 && yarn run $1 || export ATTEMPTS=7 && yarn run $1 || export ATTEMPTS=8 && yarn run $1 || export ATTEMPTS=9 && yarn run $1 || export ATTEMPTS=10 && yarn run $1 || export ATTEMPTS=11 && yarn run $1 || export ATTEMPTS=12 && yarn run $1
-	elif ((do_retry_trice)); then
-		yarn run $1 || export ATTEMPTS=2 && yarn run $1 || export ATTEMPTS=3 && yarn run $1 || export ATTEMPTS=4 && yarn run $1
-	elif ((do_retry_twice)); then
-		yarn run $1 || export ATTEMPTS=2 && yarn run $1 || export ATTEMPTS=3 && yarn run $1
-	elif ((do_retry_once)); then
-		yarn run $1 || export ATTEMPTS=2 && yarn run $1
+is_chrome_latest=0
+
+if [[ $1 == test:chrome:latest* ]]; then
+	is_chrome_latest=1
+fi
+
+function run_cmd() {
+	if [ $is_chrome_latest -eq 1 ]; then
+		(export SELENIUM_SERVER=$SELENIUM_SERVER && export REMOTE_PW=$SELENIUM_PW && yarn run $1)
 	else
 		yarn run $1
+	fi
+}
+
+if ((run_test)); then
+	if ((do_retry_a_lot)); then
+		run_cmd || export ATTEMPTS=2 && run_cmd || export ATTEMPTS=3 && run_cmd || export ATTEMPTS=4 && run_cmd || export ATTEMPTS=5 && run_cmd || export ATTEMPTS=6 && run_cmd || export ATTEMPTS=7 && run_cmd || export ATTEMPTS=8 && run_cmd || export ATTEMPTS=9 && run_cmd || export ATTEMPTS=10 && run_cmd || export ATTEMPTS=11 && run_cmd || export ATTEMPTS=12 && run_cmd
+	elif ((do_retry_trice)); then
+		run_cmd || export ATTEMPTS=2 && run_cmd || export ATTEMPTS=3 && run_cmd || export ATTEMPTS=4 && run_cmd
+	elif ((do_retry_twice)); then
+		run_cmd || export ATTEMPTS=2 && run_cmd || export ATTEMPTS=3 && run_cmd
+	elif ((do_retry_once)); then
+		run_cmd || export ATTEMPTS=2 && run_cmd
+	else
+		run_cmd
 	fi
 else
 	echo "Skipping test because this is a pull request"
