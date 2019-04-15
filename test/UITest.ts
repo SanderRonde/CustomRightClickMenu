@@ -23,13 +23,13 @@ const REMOTE_URL = (() => {
 	}
 	return 'http://hub-cloud.browserstack.com/wd/hub';
 })();
-const SELENIUM_PW = (() => {
+const REMOTE_PW = (() => {
 	if (hasSetting('remote-pw')) {
 		return getSetting('remote-pw');
 	}
-	if (process.env.SELENIUM_PW) {
+	if (process.env.REMOTE_PW) {
 		console.log('Using custom remote PW');
-		return process.env.SELENIUM_PW;
+		return process.env.REMOTE_PW;
 	}
 	return 'PW';
 })();
@@ -397,7 +397,7 @@ before('Driver connect', async function() {
 				await tryReadManifest('app/manifest.json') ||
 				await tryReadManifest('app/manifest.chrome.json')
 			).version} - ${await getGitHash()}`,
-			pw: SELENIUM_PW,
+			pw: REMOTE_PW,
 			name: (() => {
 				if (process.env.TRAVIS) {
 					// Travis
