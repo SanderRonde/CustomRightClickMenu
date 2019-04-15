@@ -54,11 +54,12 @@ if [[ $1 == test:chrome:latest* ]]; then
 	is_chrome_latest=1
 fi
 
+test_to_run=$1
 function run_cmd() {
 	if [ $is_chrome_latest -eq 1 ]; then
-		(export SELENIUM_SERVER=$SELENIUM_SERVER && export REMOTE_PW=$SELENIUM_PW && yarn run $1)
+		(export SELENIUM_SERVER=$SELENIUM_SERVER && export REMOTE_PW=$SELENIUM_PW && yarn run $test_to_run)
 	else
-		yarn run $1
+		yarn run $test_to_run
 	fi
 }
 
