@@ -22,12 +22,12 @@
 				</svg>
 				<div class="paper-material" id="libraryInfoTxtCont" elevation="3">
 					<div id="libraryInfoTxt">
-						Try to refrain from using unnecessary libaries, libraries load on every single page and load seperately for all scripts. This can easily take 100ms for libraries like jQuery. For a jQuery alternative consider using crmAPI.$ or simply $ (without loading jQuery) which features the selector function only.
+						[[__(lang, langReady, 'options_paperLibrariesSelector_libraryInfo')]]
 					</div>
 				</div>
 			</div>
 			<div on-tap="_toggleDropdown" id="dropdownSelectedCont">
-				<div id="dropdownSelected">Libraries</div>
+				<div id="dropdownSelected">[[__(lang, langReady, 'options_paperLibrariesSelector_libraries')]]</div>
 				<svg id="dropdownArrow" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewbox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
 			</div>
 		</template>

@@ -3,6 +3,8 @@
 import { MonacoEditorTSLibrariesMetaMods } from '../../../monaco-editor/monaco-editor';
 import { Polymer } from '../../../../../../../tools/definitions/polymer';
 import { PaperDropdownBehavior } from '../../../../inputs/paper-dropdown-behavior/paper-dropdown-behavior';
+import { I18NKeys } from '../../../../../../_locales/i18n-keys';
+import { I18NClass } from '../../../../../../js/shared';
 
 declare const browserAPI: browserAPI;
 
@@ -67,7 +69,7 @@ namespace PaperLibrariesSelectorElement {
 		selected?: 'true'|'false';
 	}
 
-	export class PLS {
+	export class PLS implements I18NClass {
 		static is: string = 'paper-libraries-selector';
 
 		static properties = paperLibrariesSelectorProperties;
@@ -85,6 +87,11 @@ namespace PaperLibrariesSelectorElement {
 		}[] = [];
 
 		private static _srcNode: CRM.ScriptNode = null;
+
+		private static _viewLibs: {
+			anonymous: LibrarySelectorLibrary[];
+			libraries: LibrarySelectorLibrary[];
+		} = null;
 
 		static ready(this: PaperLibrariesSelector) {
 			browserAPI.storage.local.get<CRM.StorageLocal>().then((keys) => {
@@ -158,6 +165,41 @@ namespace PaperLibrariesSelectorElement {
 			});
 			this.selected = selected;
 		}
+
+		private static _displayLibraries(this: PaperLibrariesSelector,
+			anonymous: LibrarySelectorLibrary[], libraries: LibrarySelectorLibrary[]) {
+				const anonymousLibraries: LibrarySelectorLibrary[] = [];
+				anonymous.forEach((item) => {
+					const itemCopy: LibrarySelectorLibrary = {
+						isLibrary: true,
+						name: `${item.url} (${
+							this.___(I18NKeys.options.tools.paperLibrariesSelector.anonymous)
+						})`,
+						classes: 'library iron-selected anonymous',
+						selected: 'true'
+					};
+					anonymousLibraries.push(itemCopy);
+				});
+				anonymousLibraries.sort(this.sortByName);
+
+				libraries = libraries.concat(anonymousLibraries);
+
+				libraries.push({
+					name: this.___(I18NKeys.options.tools.paperLibrariesSelector.addOwn),
+					classes: 'library addLibrary',
+					selected: 'false',
+					isLibrary: false
+				} as any);
+				this.libraries = libraries;
+			}
+
+		static onLangChanged(this: PaperLibrariesSelector) {
+			// Not loaded yet, this means that it will be loaded by the element eventually
+			if (!this._viewLibs) return;
+
+			this._displayLibraries(this._viewLibs.anonymous, 
+				this._viewLibs.libraries);
+		}
 		
 		static async init(this: PaperLibrariesSelector, cancelOpen: boolean = false) {
 			if (!this.noroot && this._expanded && !cancelOpen) {
@@ -176,27 +218,10 @@ namespace PaperLibrariesSelectorElement {
 			} = this.categorizeLibraries();
 			let libraries = this._getLibraries(selectedObj)
 			this._setSelectedLibraries(libraries);
-			const anonymousLibraries: LibrarySelectorLibrary[] = [];
-			anonymous.forEach(function(item) {
-				const itemCopy: LibrarySelectorLibrary = {
-					isLibrary: true,
-					name: `${item.url} (anonymous)`,
-					classes: 'library iron-selected anonymous',
-					selected: 'true'
-				};
-				anonymousLibraries.push(itemCopy);
-			});
-			anonymousLibraries.sort(this.sortByName);
-
-			libraries = libraries.concat(anonymousLibraries);
-
-			libraries.push({
-				name: 'Add your own',
-				classes: 'library addLibrary',
-				selected: 'false',
-				isLibrary: false
-			} as any);
-			this.libraries = libraries;
+			this._viewLibs = {
+				anonymous, libraries
+			}
+			this._displayLibraries(anonymous, libraries);
 		};
 
 		private static _resetAfterAddDecision(this: PaperLibrariesSelector) {
@@ -380,7 +405,7 @@ namespace PaperLibrariesSelectorElement {
 			}
 		}
 
-		private static _addLibraryHandler(this: PaperLibrariesSelector) {
+		private static async _addLibraryHandler(this: PaperLibrariesSelector) {
 			const input = window.doc.addedLibraryName;
 			const name = input.$$('input').value;
 			let taken = false;
@@ -400,11 +425,15 @@ namespace PaperLibrariesSelectorElement {
 					window.app.util.xhr(url, false).then((data) => {
 						this.confirmLibraryFile(name, window.doc.addLibraryIsTS.checked, 
 							data, url);
-					}).catch((statusCode) => {
+					}).catch(async (statusCode) => {
 						const statusMsg = this._getStatusCodeDescr(statusCode);
 						const msg = statusMsg ? 
-							`Failed with status code ${statusCode} "${statusMsg}"` :
-							`Failed with status code ${statusCode}";`
+							await this.__async(
+								I18NKeys.options.tools.paperLibrariesSelector.xhrFailedMsg,
+									statusCode, statusMsg) :
+							await this.__async(
+								I18NKeys.options.tools.paperLibrariesSelector.xhrFailed,
+									statusCode);
 						window.app.util.showToast(msg);
 						libraryInput.setAttribute('invalid', 'true');
 					});
@@ -416,9 +445,11 @@ namespace PaperLibrariesSelectorElement {
 				}
 			} else {
 				if (taken) {
-					input.errorMessage = 'That name is already taken';
+					input.errorMessage = await this.__async(
+						I18NKeys.options.tools.paperLibrariesSelector.nameTaken);
 				} else {
-					input.errorMessage = 'Please enter a name';
+					input.errorMessage = await this.__async(
+						I18NKeys.options.tools.paperLibrariesSelector.nameMissing);
 				}
 				input.invalid = true;
 			}
@@ -549,15 +580,15 @@ namespace PaperLibrariesSelectorElement {
 			this._revertToNormalEditor();
 		}
 
-		private static _genOverlayWidget(this: PaperLibrariesSelector) {
+		private static async _genOverlayWidget(this: PaperLibrariesSelector) {
 			const container = document.createElement('div');
 			container.style.backgroundColor = 'white';
 			container.style.padding = '10px';
 			window.setDisplayFlex(container);
 			const cancelButton = document.createElement('paper-button');
-			cancelButton.innerText = 'Cancel';
+			cancelButton.innerText = await this.___(I18NKeys.generic.cancel);
 			const saveButton = document.createElement('paper-button');
-			saveButton.innerText = 'Save';
+			saveButton.innerText = await this.___(I18NKeys.generic.save);
 			saveButton.style.marginLeft = '15px';
 
 			cancelButton.addEventListener('click', () => {
@@ -597,7 +628,9 @@ namespace PaperLibrariesSelectorElement {
 				library
 			}
 
-			window.app.$.ribbonScriptName.innerText = 'Editing library ' + library.name;
+			window.app.$.ribbonScriptName.innerText = await this.___(
+				I18NKeys.options.tools.paperLibrariesSelector.editing,
+					library.name);
 
 			await window.scriptEdit.enterFullScreen();
 			const installedLibrary = await this._getInstalledLibrary(library);
@@ -608,13 +641,14 @@ namespace PaperLibrariesSelectorElement {
 					window.scriptEdit.fullscreenEditorManager.EditorMode.JS);
 			
 			window.app.$.fullscreenEditorToggle.style.display = 'none';
-			this._genOverlayWidget();
+			await this._genOverlayWidget();
 		}
 
-		static _edit(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
+		static async _edit(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
 			const manager = window.codeEditBehavior.getEditor();
 			if (manager.isTextarea(manager.getEditorAsMonaco())) {
-				window.app.util.showToast('Please update your chrome (at least chrome 30) to use this feature');
+				window.app.util.showToast(
+					this.___(I18NKeys.options.tools.paperLibrariesSelector.pleaseUpdate));
 				return;
 			}
 

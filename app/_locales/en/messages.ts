@@ -2030,6 +2030,77 @@ export const Messages: I18NBranch = {
 					description: 'The element that was right-clicked on when ' +
 						'right-clicking on the page and bringing up the right-click menu'
 				}
+			},
+			paperLibrariesSelector: {
+				libraryInfo: {
+					message: 'Try to refrain from using unnecessary libaries, libraries ' +
+						'load on every single page and load seperately for all scripts. ' +
+						'This can easily take 100ms for libraries like jQuery. For a ' +
+						'jQuery alternative consider using crmAPI.$ or simply $ ' +
+						'(without loading jQuery) which features the selector function only.',
+					description: 'Warning about not using too many libraries'
+				},
+				libraries: {
+					message: 'Libraries',
+					description: 'Label for a list of javascript/typescript libraries'
+				},
+				anonymous: {
+					message: 'anonymous',
+					description: 'Name for an anonymous script'
+				},
+				addOwn: {
+					message: 'Add your own',
+					description: 'Label for a button that allows you to add your own library'
+				},
+				xhrFailedMsg: {
+					message: 'Failed with status code $STATUSCODE$ "$STATUSMSG$"',
+					description: 'Message shown when a request to a script fails',
+					placeholders: {
+						statusCode: {
+							content: '$1',
+							example: '404'
+						},
+						statusMsg: {
+							content: '$2',
+							example: 'Not Found'
+						}
+					}
+				},
+				xhrFailed: {
+					message: 'Failed with status code $STATUSCODE$',
+					description: 'Message shown when a request to a script fails',
+					placeholders: {
+						statusCode: {
+							content: '$1',
+							example: '404'
+						}
+					}
+				},
+				nameTaken: {
+					message: 'That name is already taken',
+					description: 'Error shown when the name for a library is alread taken'
+				},
+				nameMissing: {
+					message: 'Please enter a name',
+					description: 'Error shown when no name has been entered'
+				},
+				editing: {
+					message: 'Editing library $NAME$',
+					description: 'Title when editing a library',
+					placeholders: {
+						name: {
+							content: '$1',
+							example: 'MyScript'
+						}
+					}
+				},
+				pleaseUpdate: {
+					message: 'Please update your chrome (at least chrome 30) to use ' +
+						'this feature',
+					description: 'Message shown when chrome version is too low ' +
+						'to use the (better) monaco editor. Instead falling back to ' +
+						'a simple textarea input'
+				}
 			}
 		}
 	}
