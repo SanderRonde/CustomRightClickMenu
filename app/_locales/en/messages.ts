@@ -1939,6 +1939,54 @@ export const Messages: I18NBranch = {
 					}
 				}
 			}
+		},
+		editCrmItem: {
+			changeType: {
+				message: 'Click to change type',
+				description: 'Title of an element that changes the type of a node'
+			},
+			dragNode: {
+				message: 'Click and hold to drag node around',
+				description: 'Title of an element that moves a node around when dragging it'
+			},
+			clickToShowChildren: {
+				message: 'Click to show children',
+				description: 'Title for an element that shows a menu node\'s children'
+			},
+			clickToShowXChildren: {
+				message: 'Click to show $NUMBER$ children',
+				description: 'Title for an element that shows a menu node\'s children',
+				placeholders: {
+					number: {
+						content: '$1',
+						example: '10'
+					}
+				}
+			},
+			clickToShowChild: {
+				message: 'Click to show 1 child',
+				description: 'Title for an element that shows a menu node\'s child'
+			},
+			rootName: {
+				message: 'Custom Menu',
+				description: 'Default root name'
+			},
+			clickToEditRoot: {
+				message: 'Click to edit root node name',
+				description: 'Title for a button that allows editing/changing of the '+
+					'root node\'s name'
+			},
+			nodeHidden: {
+				message: 'This node won\'t be visible on this content type ' +
+					'(select a different one in the top-right corner)',
+				description: 'Title for a hidden node. A different content type can be ' +
+					'selected by clicking a content type on the top-right of the edit-crm ' +
+					'section'
+			},
+			clickToEdit: {
+				message: 'Click to edit node',
+				description: 'Title for an element that, on-click edits a regular node'
+			}
 		}
 	}
 }

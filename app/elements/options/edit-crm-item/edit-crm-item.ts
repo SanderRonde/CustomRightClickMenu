@@ -2,6 +2,7 @@
 
 import { CRMColumnElement } from '../edit-crm/edit-crm';
 import { Polymer } from '../../../../tools/definitions/polymer';
+import { I18NKeys } from '../../../_locales/i18n-keys';
 
 namespace EditCrmItemElement {
 	export const editCrmItemProperties: {
@@ -98,10 +99,13 @@ namespace EditCrmItemElement {
 
 		static getMenuExpandMessage(this: EditCrmItem) {
 			if (!this.item.children) {
-				return `Click to show children`;
+				return this.___(I18NKeys.options.editCrmItem.clickToShowChildren);
 			}
-			return 'Click to show ' + (this.item as CRM.MenuNode).children.length + ' child' + 
-				((this.item as CRM.MenuNode).children.length > 1 ? 'ren' : '');
+			if ((this.item as CRM.MenuNode).children.length === 1) {
+				return this.___(I18NKeys.options.editCrmItem.clickToShowChild);
+			}
+			return this.___(I18NKeys.options.editCrmItem.clickToShowXChildren,
+				(this.item as CRM.MenuNode).children.length + '');
 		};
 
 		static update(this: EditCrmItem) {
@@ -119,9 +123,10 @@ namespace EditCrmItemElement {
 			}
 		};
 
-		static updateName(this: EditCrmItem, name: string) {
+		static async updateName(this: EditCrmItem, name: string) {
 			if (name === undefined) {
-				name = window.app.settings.rootName = 'Custom Menu';
+				name = window.app.settings.rootName = 
+					await this.__async(I18NKeys.options.editCrmItem.rootName);;
 				window.app.upload();
 			}
 			this.set('itemName', name);
@@ -271,11 +276,11 @@ namespace EditCrmItemElement {
 
 		static getTitle(this: EditCrmItem): string {
 			if (this.rootNode) {
-				return 'Click to edit root node name';
+				return this.___(I18NKeys.options.editCrmItem.clickToEditRoot);
 			} else if (this.hasAttribute('crm-type-hidden')) {
-				return 'This node won\'t be visible on this content type (select a different one on the top-right)';
+				return this.___(I18NKeys.options.editCrmItem.nodeHidden);
 			} else {
-				return 'Click to edit node';
+				return this.___(I18NKeys.options.editCrmItem.clickToEdit);
 			}
 		}
 
