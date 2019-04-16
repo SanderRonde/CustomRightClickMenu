@@ -2000,6 +2000,14 @@ class Tasks {
 				await del('./app/bower_components');
 			}
 
+			@rootTask('copyJeckyllConfig',
+				'Copies the jeckyll config file to the demo root')
+			static copyJeckyllConfig() {
+				return gulp
+					.src('_config.yml', { cwd: './resources/demo', base: './resources/demo' })
+					.pipe(gulp.dest('./'));
+			}
+
 			@rootTask('changeGitIgnore',
 				'Moves the gitignore for the gh-pages branch to the root')
 			static changeGitIgnore() {

@@ -23,6 +23,7 @@ yarn install
 
 gulp compile
 gulp removeBowerComponents
+gulp copyJeckyllConfig
 gulp changeGitIgnore
 
 set +e
