@@ -67,7 +67,7 @@ jobs:
     - ./scripts/set_build_artifacts.sh || echo "Failed to upload build artifacts"
   - stage: deploy website
     script:
-    - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./scripts/is_latest_commit.sh
+    - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ -z "$TRAVIS_TAG" ]; then ./scripts/is_latest_commit.sh
       && sh ./scripts/deploy-website.sh || echo "Not latest commit, not deploying"
       ; fi
     env: TEST=none
