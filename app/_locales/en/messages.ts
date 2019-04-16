@@ -88,6 +88,10 @@ export const Messages: I18NBranch = {
 		tabIndex: {
 			message: 'TabIndex',
 			description: 'The index of a script within a tab. First letter capitalized'
+		},
+		url: {
+			message: 'url',
+			description: 'Word for URL'
 		}
 	},
 	crm: {
@@ -984,10 +988,6 @@ export const Messages: I18NBranch = {
 				codeInput: {
 					message: 'Input the code',
 					description: 'Option to input URL library through code'
-				},
-				url: {
-					message: 'url',
-					description: 'Word for URL'
 				},
 				code: {
 					message: 'code',
@@ -1986,6 +1986,50 @@ export const Messages: I18NBranch = {
 			clickToEdit: {
 				message: 'Click to edit node',
 				description: 'Title for an element that, on-click edits a regular node'
+			}
+		},
+		tools: {
+			paperGetPageProperties: {
+				selection: {
+					message: 'Selection',
+					description: 'Name for the current text selection in a browser'
+				},
+				host: {
+					message: 'Host',
+					description: 'The host of a URL. For example for ' +
+						'www.google.com/example this would be www.google.com'
+				},
+				path: {
+					message: 'Path',
+					description: 'The path of a URL. For example for ' +
+						'www.google.com/example this would be /example'
+				},
+				protocol: {
+					message: 'Protocol',
+					description: 'The protocol of a URL. this is the part ' +
+						'before and including :// For example http:// https:// file://'
+				},
+				width: {
+					message: 'Width',
+					description: 'The width of the page in pixels'
+				},
+				height: {
+					message: 'Height',
+					description: 'The height of the page in pixels'
+				},
+				scrolled: {
+					message: 'Pixels Scrolled',
+					description: 'The amount of pixels scrolled down on a page'
+				},
+				title: {
+					message: 'Title',
+					description: 'The title of a page'
+				},
+				clickedElement: {
+					message: 'Clicked Element',
+					description: 'The element that was right-clicked on when ' +
+						'right-clicking on the page and bringing up the right-click menu'
+				}
 			}
 		}
 	}

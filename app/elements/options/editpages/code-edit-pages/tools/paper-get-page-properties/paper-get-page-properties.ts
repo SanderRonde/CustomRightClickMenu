@@ -1,6 +1,8 @@
 ﻿/// <reference path="../../../../../elements.d.ts" />
 
 import { Polymer } from '../../../../../../../tools/definitions/polymer';
+import { I18NKeys } from '../../../../../../_locales/i18n-keys';
+import { I18NClass } from '../../../../../../js/shared';
 
 namespace PaperGetPagePropertiesElement {
 	export const paperGetPagePropertiesProperties: {
@@ -13,7 +15,7 @@ namespace PaperGetPagePropertiesElement {
 		}
 	} as any;
 
-	export class PGPP {
+	export class PGPP implements I18NClass {
 		static is: string = 'paper-get-page-properties';
 
 		/**
@@ -84,44 +86,55 @@ namespace PaperGetPagePropertiesElement {
 			this.listener = listener;
 		};
 
+		private static async _setOptions(this: PaperGetPageProperties) {
+			this.options = [
+				{
+					name: this.___(I18NKeys.options.tools.paperGetPageProperties.selection),
+					id: 'paperGetPropertySelection'
+				}, {
+					name: (() => {
+						const str = this.___(I18NKeys.generic.url);
+						return str[0].toLocaleUpperCase() + str.slice(1);
+					})(),
+					id: 'paperGetPropertyUrl'
+				}, {
+					name: this.___(I18NKeys.options.tools.paperGetPageProperties.host),
+					id: 'paperGetPropertyHost'
+				}, {
+					name: this.___(I18NKeys.options.tools.paperGetPageProperties.path),
+					id: 'paperGetPropertyPath'
+				}, {
+					name: this.___(I18NKeys.options.tools.paperGetPageProperties.protocol),
+					id: 'paperGetPropertyProtocol'
+				}, {
+					name: this.___(I18NKeys.options.tools.paperGetPageProperties.width),
+					id: 'paperGetPropertyWidth'
+				}, {
+					name: this.___(I18NKeys.options.tools.paperGetPageProperties.height),
+					id: 'paperGetPropertyHeight'
+				}, {
+					name: this.___(I18NKeys.options.tools.paperGetPageProperties.scrolled),
+					id: 'paperGetPropertyPixels'
+				}, {
+					name: this.___(I18NKeys.options.tools.paperGetPageProperties.title),
+					id: 'paperGetPropertyTitle'
+				}, {
+					name: this.___(I18NKeys.options.tools.paperGetPageProperties.clickedElement),
+					id: 'paperGetPropertyClicked'
+				}
+			];
+		}
+
+		static onLangChanged(this: PaperGetPageProperties) {
+			this._setOptions();
+		}
+
 		static ready(this: PaperGetPageProperties) {
 			this.selected = [];
 			this.addEventListener('click', (e) => {
 				this._menuClick(e as any);
 			});
-			this.options = [
-				{
-					name: 'Selection',
-					id: 'paperGetPropertySelection'
-				}, {
-					name: 'Url',
-					id: 'paperGetPropertyUrl'
-				}, {
-					name: 'Host',
-					id: 'paperGetPropertyHost'
-				}, {
-					name: 'Path',
-					id: 'paperGetPropertyPath'
-				}, {
-					name: 'Protocol',
-					id: 'paperGetPropertyProtocol'
-				}, {
-					name: 'Width',
-					id: 'paperGetPropertyWidth'
-				}, {
-					name: 'Height',
-					id: 'paperGetPropertyHeight'
-				}, {
-					name: 'Pixels Scrolled',
-					id: 'paperGetPropertyPixels'
-				}, {
-					name: 'Title',
-					id: 'paperGetPropertyTitle'
-				}, {
-					name: 'Clicked Element',
-					id: 'paperGetPropertyClicked'
-				}
-			];
+			this._setOptions();
 		};
 
 		static _getMenu(this: PaperGetPageProperties): HTMLPaperMenuElement {
