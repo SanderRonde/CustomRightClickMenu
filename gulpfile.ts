@@ -2000,11 +2000,11 @@ class Tasks {
 				await del('./app/bower_components');
 			}
 
-			@rootTask('copyJeckyllConfig',
-				'Copies the jeckyll config file to the demo root')
+			@rootTask('noJekyll',
+				'Copies the nojekyll file to the root')
 			static copyJeckyllConfig() {
 				return gulp
-					.src('_config.yml', { cwd: './resources/demo', base: './resources/demo' })
+					.src('.nojekyll', { cwd: './resources/demo', base: './resources/demo' })
 					.pipe(gulp.dest('./'));
 			}
 
