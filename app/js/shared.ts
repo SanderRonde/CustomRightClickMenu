@@ -39,21 +39,21 @@ export interface I18N {
 	SUPPORTED_LANGS: LANGS[];
 };
 
-export class I18NClass {
+export interface I18NClass {
 	/**
 	 * Fired when a language is going to change but hasn't been loaded yet
 	 * 
 	 * @param {LANGS} newLang - The name of the new language
 	 * @param {LANGS} oldLang - The name of the old language
 	 */
-	static onLangChange?(newLang: LANGS, oldLang: LANGS): void;
+	onLangChange?(newLang: LANGS, oldLang: LANGS): void;
 	/**
 	 * Fired when a language is going to change and has been loaded
 	 * 
 	 * @param {LANGS} newLang - The name of the new language
 	 * @param {LANGS} oldLang - The name of the old language
 	 */
-	static onLangChanged?(newLang: LANGS, oldLang: LANGS): void;
+	onLangChanged?(newLang: LANGS, oldLang: LANGS): void;
 }
 
 interface I18NElement {
