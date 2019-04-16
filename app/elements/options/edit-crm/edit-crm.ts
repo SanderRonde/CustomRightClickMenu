@@ -25,6 +25,7 @@ namespace EditCrmElement {
 		isSelecting: boolean;
 		isAdding: boolean;
 		isAddingOrSelecting: boolean;
+		appExists: boolean;
 	} = {
 		crm: {
 			type: Array,
@@ -78,6 +79,14 @@ namespace EditCrmElement {
 			value: false,
 			notify: true,
 			computed: '_isAddingOrSelecting(isAdding, isSelecting)'
+		},
+		/**
+		 * Whether the window.app element is registered yet
+		 */
+		appExists: {
+			type: Boolean,
+			value: false,
+			notify: true
 		}
 	} as any;
 
@@ -244,9 +253,12 @@ namespace EditCrmElement {
 		};
 
 		static _addNodeType(this: EditCrm, nodeType: CRM.NodeType) {
-				return this.___(I18NKeys.options.editCrm.addNodeType,
-					window.app.crm.getI18NNodeType(nodeType));
-			}
+			return this.___(I18NKeys.options.editCrm.addNodeType,
+				window.app ?
+					window.app.crm.getI18NNodeType(nodeType) :
+					`{{${nodeType}}}`
+				);
+		}
 
 		static _isColumnEmpty(this: EditCrm, column: CRMColumn): boolean {
 			return column.list.length === 0 && !this.isAdding;
@@ -691,6 +703,7 @@ namespace EditCrmElement {
 		static ready(this: EditCrm) {
 			window.onExists('app').then(() => {
 				window.app.editCRM = this;
+				this.appExists = true;
 				window.app.addEventListener('crmTypeChanged', () => {
 					this._typeChanged();
 				});

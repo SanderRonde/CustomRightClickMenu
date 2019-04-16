@@ -56,11 +56,11 @@
 		<div id="crmButtonsContainer">
 			<div id="crmButtons">
 
-				<paper-button class="blue" id="addButton" on-tap="setAddStateLink" raised hidden$="[[isAddingOrSelecting]]">[[_addNodeType('link', lang, langReady)</paper-button>
-				<paper-button class="blue" id="addButton" on-tap="setAddStateScript" raised hidden$="[[isAddingOrSelecting]]">[[_addNodeType('script', lang, langReady)</paper-button>
-				<paper-button class="blue" id="addButton" on-tap="setAddStateStylesheet" raised hidden$="[[isAddingOrSelecting]]">[[_addNodeType('stylesheet', lang, langReady)</paper-button>
-				<paper-button class="blue" id="addButton" on-tap="setAddStateMenu" raised hidden$="[[isAddingOrSelecting]]">[[_addNodeType('menu', lang, langReady)</paper-button>
-				<paper-button class="blue" id="addButton" on-tap="setAddStateDivider" raised hidden$="[[isAddingOrSelecting]]">[[_addNodeType('divider', lang, langReady)r</paper-button>
+				<paper-button class="blue" id="addButton" on-tap="setAddStateLink" raised hidden$="[[isAddingOrSelecting]]">[[_addNodeType('link', lang, langReady, appExists)]]</paper-button>
+				<paper-button class="blue" id="addButton" on-tap="setAddStateScript" raised hidden$="[[isAddingOrSelecting]]">[[_addNodeType('script', lang, langReady, appExists)]]</paper-button>
+				<paper-button class="blue" id="addButton" on-tap="setAddStateStylesheet" raised hidden$="[[isAddingOrSelecting]]">[[_addNodeType('stylesheet', lang, langReady, appExists)]]</paper-button>
+				<paper-button class="blue" id="addButton" on-tap="setAddStateMenu" raised hidden$="[[isAddingOrSelecting]]">[[_addNodeType('menu', lang, langReady, appExists)]]</paper-button>
+				<paper-button class="blue" id="addButton" on-tap="setAddStateDivider" raised hidden$="[[isAddingOrSelecting]]">[[_addNodeType('divider', lang, langReady, appExists)]]</paper-button>
 				<paper-button class="blue" id="removeButton" on-tap="selectItems" raised hidden$="[[isAddingOrSelecting]]">[[__(lang, langReady, 'options_editCrm_select')]]</paper-button>
 
 				<paper-button class="blue" id="cancelSelecting" on-tap="cancelAddOrSelect" raised hidden$="[[!isAddingOrSelecting]]">[[__(lang, langReady, 'generic_cancel')]]</paper-button>
