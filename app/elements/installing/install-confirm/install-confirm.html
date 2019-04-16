@@ -84,7 +84,7 @@
 											</div>
 											<paper-checkbox permission$="{{permission}}" on-tap="checkPermission" class="infoPermissionCheckbox">[[__(lang, langReady, 'install_confirm_allow')]]</paper-checkbox>
 										</div>
-										<div class="infoPermissionExtraText">{{getDescription(permission)}}</div>
+										<div class="infoPermissionExtraText">{{getDescription(permission, lang, langReady)}}</div>
 									</div>
 								</template>
 								<paper-checkbox id="permissionsToggleAll" on-tap="toggleAll">[[__(lang, langReady, 'install_confirm_toggle_all')]]</paper-checkbox>

@@ -1,7 +1,7 @@
 /// <reference path="../../elements.d.ts" />
 
 import { Polymer } from '../../../../tools/definitions/polymer';
-import { LANGS } from '../../../js/shared';
+import { LANGS, I18NClass } from '../../../js/shared';
 import { I18NKeys } from '../../../_locales/i18n-keys';
 
 namespace LangSelectorElement {
@@ -20,7 +20,7 @@ namespace LangSelectorElement {
 		}
 	} as any;
 
-	export class LS {
+	export class LS implements I18NClass {
 		private static _lang: LANGS
 
 		static is: string = 'lang-selector';
@@ -49,16 +49,13 @@ namespace LangSelectorElement {
 			}));
 		}
 
-		private static async update(this: LangSelector) {
+		static async onLangChanged(this: LangSelector) {
 			await this._getCurrentLang();
 			this._updateAvailableLangs();
 		}
 		
 		static async ready(this: LangSelector) {
-			window.__.addListener(() => {
-				this.update();
-			});
-			this.update();
+			this.onLangChanged();
 		};
 
 		static mainClick(this: LangSelector) {

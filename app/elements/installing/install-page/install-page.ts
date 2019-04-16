@@ -2,6 +2,7 @@
 
 import { Polymer } from '../../../../tools/definitions/polymer';
 import { I18NKeys } from '../../../_locales/i18n-keys';
+import { I18NClass } from '../../../js/shared';
 
 declare const browserAPI: browserAPI;
 declare const BrowserAPI: BrowserAPI;
@@ -47,7 +48,7 @@ namespace InstallPageElement {
 		}
 	} as any;
 
-	export class IP {
+	export class IP implements I18NClass {
 		static is: string = 'install-page';
 
 		static properties = installPageProperties;
@@ -204,13 +205,18 @@ namespace InstallPageElement {
 			});
 		}
 
-		static ready(this: InstallPage) {
-			this.userscriptUrl = this.getUserscriptUrl();
+		static onLangChanged(this: InstallPage) {
 			this.$.title.innerHTML = this.___(I18NKeys.install.page.installing, 
 				this.userscriptUrl);
+		}
+
+		static async ready(this: InstallPage) {
+			this.userscriptUrl = this.getUserscriptUrl();
 			this.fetchUserscript(this.userscriptUrl);
 			window.installPage = this;
 			this._initSettings();
+			this.$.title.innerHTML = await this.__async(I18NKeys.install.page.installing, 
+				this.userscriptUrl);
 		}
 	}
 

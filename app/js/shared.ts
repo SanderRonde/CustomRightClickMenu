@@ -39,6 +39,42 @@ export interface I18N {
 	SUPPORTED_LANGS: LANGS[];
 };
 
+export class I18NClass {
+	/**
+	 * Fired when a language is going to change but hasn't been loaded yet
+	 * 
+	 * @param {LANGS} newLang - The name of the new language
+	 * @param {LANGS} oldLang - The name of the old language
+	 */
+	static onLangChange?(newLang: LANGS, oldLang: LANGS): void;
+	/**
+	 * Fired when a language is going to change and has been loaded
+	 * 
+	 * @param {LANGS} newLang - The name of the new language
+	 * @param {LANGS} oldLang - The name of the old language
+	 */
+	static onLangChanged?(newLang: LANGS, oldLang: LANGS): void;
+}
+
+interface I18NElement {
+	/**
+	 * Fired when a language is going to change but hasn't been loaded yet
+	 * 
+	 * @param {LANGS} newLang - The name of the new language
+	 * @param {LANGS} oldLang - The name of the old language
+	 */
+	onLangChange?(newLang: LANGS, oldLang: LANGS): void;
+	/**
+	 * Fired when a language is going to change and has been loaded
+	 * 
+	 * @param {LANGS} newLang - The name of the new language
+	 * @param {LANGS} oldLang - The name of the old language
+	 */
+	onLangChanged?(newLang: LANGS, oldLang: LANGS): void;
+	lang: LANGS;
+	langReady: boolean;
+}
+
 declare global {
 	interface Window {
 		Promise: typeof Promise;
@@ -273,10 +309,7 @@ export type SharedWindow = Window & {
 			static readonly SUPPORTED_LANGS: LANGS[] = [LANGS.EN];
 			private _currentLangFile: LangFile = null;
 			private _lang: LANGS = null;
-			private _listeners: {
-				lang: LANGS;
-				langReady: boolean;
-			}[] = [];
+			private _listeners: I18NElement[] = [];
 			private _languageChangeListeners: (() => void)[] = [];
 
 			ready = (async () => {
@@ -285,6 +318,8 @@ export type SharedWindow = Window & {
 				this._currentLangFile = await this.Files.loadLang(this._lang);
 				this._listeners.forEach((listener) => {
 					listener.langReady = true;
+					listener.onLangChanged && 
+						listener.onLangChanged.call(listener, this._lang, null);
 				});
 			})();
 	
@@ -394,9 +429,12 @@ export type SharedWindow = Window & {
 			}
 	
 			async setLang(lang: LANGS) {
+				const prevLang = await this.getLang();
 				await browserAPI.storage.local.set({
 					lang: lang
 				});
+				this._listeners.forEach(l => l.onLangChange && 
+					l.onLangChange.call(l, lang, prevLang));
 				this.ready = (async () => {
 					this._currentLangFile = await this.Files.loadLang(lang);
 					this._listeners.forEach((listener) => {
@@ -405,6 +443,9 @@ export type SharedWindow = Window & {
 						listener.langReady = true;
 
 						this._languageChangeListeners.forEach(fn => fn());
+						this._listeners
+							.forEach(l => l.onLangChanged && 
+								l.onLangChanged.call(l, lang, prevLang));
 					});
 				})();
 			}
@@ -457,10 +498,7 @@ export type SharedWindow = Window & {
 				return this._getMessage(key, ...replacements.map(s => s + ''));
 			}
 
-			addLoadListener(fn: {
-				lang: LANGS;
-				langReady: boolean;
-			}) {
+			addLoadListener(fn: I18NElement) {
 				if (this._listeners.indexOf(fn) !== -1) return;
 
 				this._listeners.push(fn);

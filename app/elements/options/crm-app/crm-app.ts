@@ -512,7 +512,7 @@ namespace CRMAppElement {
 			})
 		}
 
-		static _getPageTitle(this: CrmApp, _lang: any, _langReady: any): string {
+		static _getPageTitle(this: CrmApp): string {
 			return this._isDemo() ?
 				'Demo, actual right-click menu does NOT work in demo' :
 				this.___(I18NKeys.generic.app_title);
@@ -1133,7 +1133,7 @@ namespace CRMAppElement {
 
 			//Reset regedit part
 			window.doc.URISchemeFilePath.value = 'C:\\files\\my_file.exe';
-			window.doc.URISchemeSchemeName.value = this.___(I18NKeys.crmApp.uriScheme.example);
+			window.doc.URISchemeSchemeName.value = await this.__async(I18NKeys.crmApp.uriScheme.example);
 
 			//Hide all open dialogs
 			Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
