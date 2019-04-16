@@ -6,23 +6,23 @@
 		<!-- /build -->
 		<paper-dialog no-cancel-on-esc-key with-backdrop id="paperSearchWebsiteDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 			<div id="initialWindow">
-				<h2>Add a search for a website</h2>
-				This code will search given website for any text you highlight, or if nothing is highlighted will promt you for a query.<br/>
+				<h2>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_title')]]</h2>
+				[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_description')]]<br/>
 				<paper-radio-group selected="manual" id="initialWindowChoicesCont">
 					<paper-radio-button name="manual" class="initialWindowChoice">
-						Input one yourself
+						[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_inputOne')]]
 					</paper-radio-button>
 					<paper-radio-button name="defaults" class="initialWindowChoice">
-						Choose one of the defaults
+						[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_inputDefault')]]
 					</paper-radio-button>
 				</paper-radio-group>
 				<div class="buttons">
-					<paper-button dialog-dismiss>Cancel</paper-button>
-					<paper-button on-tap="confirmInitialChoice">Next</paper-button>
+					<paper-button dialog-dismiss>[[__(lang, langReady, 'generic_cancel')]]</paper-button>
+					<paper-button on-tap="confirmInitialChoice">[[__(lang, langReady, 'generic_next')]]</paper-button>
 				</div>
 			</div>
 			<div id="chooseDefaultSearchWindow">
-				<h2>Choose a default search engine</h2>
+				<h2>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_chooseDefault')]]</h2>
 				<br/>
 				<div id="searchWebsiteDefaultsCont">
 					<paper-radio-group selected="google" id="searchWebsitesRadioGroup">
@@ -41,22 +41,22 @@
 					</paper-radio-group>
 				</div>
 				<div class="buttons">
-					<paper-button on-tap="goBackWindow">Back</paper-button>
-					<paper-button window="confirmationWindow" on-tap="applyDefaultsUrls" class="goToConfirmationWindowButton">Try</paper-button>
+					<paper-button on-tap="goBackWindow">[[__(lang, langReady, 'generic_back')]]</paper-button>
+					<paper-button window="confirmationWindow" on-tap="applyDefaultsUrls" class="goToConfirmationWindowButton">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_try')]]</paper-button>
 				</div>
 			</div>
 			<div id="manuallyInputSearchWebsiteWindow">
-				<h2>Manually input your search website</h2>
+				<h2>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_manualInput')]]</h2>
 				<paper-radio-group id="manualInputChoiceRadios" selected="{{selectedOption}}">
-					<paper-radio-button id="manualInputURLChoice" name="url">By finding the search URL</paper-radio-button>
-					<paper-radio-button id="manualInputSavedChoice" name="list">By choosing from a list of your visited websites (chrome only)</paper-radio-button>
+					<paper-radio-button id="manualInputURLChoice" name="url">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_findingSearchURL')]]</paper-radio-button>
+					<paper-radio-button id="manualInputSavedChoice" name="list">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_chooseFromList')]]</paper-radio-button>
 				</paper-radio-group>
 				<div hidden$="[[!selectedIsUrl]]" id="manualInputURLOption">
-					Please go to the website you want to search. Search for "customRightClickMenu" without quotes and then paste the URL in the input below.
-					<paper-input id="manualInputURLInput" label="URL"></paper-input>
+					[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_goToWebsite')]]
+					<paper-input id="manualInputURLInput" label="[[__(lang, langReady, 'generic_url')]]"></paper-input>
 				</div>
 				<div hidden$="[[selectedIsUrl]]" id="manualInputListChoice">
-					Please right-click the omnibar (the white bar above any page) and go to "edit search engines", press F12, paste the following code in the "console" tab and paste the contents into the box below.
+					[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_clickOmnibar')]]
 					<br><br>
 					<code>
 						copy(JSON.stringify(Array.prototype.slice.apply(document.querySelectorAll('#search-engine-manager-page .deletable-item')).slice(0, -1).map(function(searchEngine) {
@@ -68,18 +68,18 @@
 								};
 							})));
 					</code>
-					<paper-textarea on-paste="fixFit" on-keyup="fixOnChange" id="manualInputListChoiceInput" label="paste here" error-message="invalid input"></paper-textarea>
+					<paper-textarea on-paste="fixFit" on-keyup="fixOnChange" id="manualInputListChoiceInput" label="[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_pasteHere')]]" error-message="[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_pasteHere')]]"></paper-textarea>
 				</div>
 				<div class="buttons">
-					<paper-button on-tap="backFromManualInput">Back</paper-button>
+					<paper-button on-tap="backFromManualInput">[[__(lang, langReady, 'generic_cancel')]]</paper-button>
 					<paper-button on-tap="processManualInput">
-						<span hidden$="[[!selectedIsUrl]]">Test</span>
-						<span hidden$="[[selectedIsUrl]]">Process</span>
+						<span hidden$="[[!selectedIsUrl]]">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_try')]]</span>
+						<span hidden$="[[selectedIsUrl]]">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_process')]]</span>
 					</paper-button>
 				</div>
 			</div>
 			<div id="processedListWindow">
-				<h2>Choose the binding you want from this list</h2>
+				<h2>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_processedTitle')]]</h2>
 				<div id="listInputSearchList">
 					<template is="dom-repeat" items="{{searchList}}" as="searchOption">
 						<div class="searchOptionContainer">
@@ -90,47 +90,47 @@
 					</template>
 				</div>
 				<div class="buttons">
-					<paper-button on-tap="goBackWindow">Back</paper-button>
-					<paper-button disabled$="[[disableManualButton]]" on-tap="confirmManualSearchListInput">Choose</paper-button>
+					<paper-button on-tap="goBackWindow">[[__(lang, langReady, 'generic_back')]]</paper-button>
+					<paper-button disabled$="[[disableManualButton]]" on-tap="confirmManualSearchListInput">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_choose')]]</paper-button>
 				</div>
 			</div>
 			<div id="confirmationWindow">
-				<h2>Here you can test whether the given URL gives the expected results</h2>
+				<h2>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_confirmTitle')]]</h2>
 				<br/>
 				<div class="textAndInputContainer">
-					<span>URL</span>
+					<span class="capitalized">[[__(lang, langReady, 'generic_url')]]</span>
 					<paper-input id="urlPreviewInput" disabled value="[[chosenUrl]]"></paper-input>
 				</div>
 				<div class="textAndInputContainer">
-					<span>Search query</span>
-					<paper-input id="queryInput" value="{{searchQuery}}" label="query"></paper-input>
+					<span>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_searchQuery')]]</span>
+					<paper-input id="queryInput" value="{{searchQuery}}" label="[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_query')]]"></paper-input>
 				</div>
 				<br/><br/>
 				<div id="testResultContainer">
-					<span>Test URL: </span>
+					<span>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_testURL')]] </span>
 					<div id="testUrlLink">
 						<a href="[[searchTestResult]]" rel="noopener" target="_blank">[[searchTestResult]]</a>
 					</div>
 				</div>
 				<div class="buttons">
-					<paper-button on-tap="goBackWindow">Back</paper-button>
-					<paper-button on-tap="switchWindow" window="howToOpenWindow">Confirm</paper-button>
+					<paper-button on-tap="goBackWindow">[[__(lang, langReady, 'generic_back')]]</paper-button>
+					<paper-button on-tap="switchWindow" window="howToOpenWindow">[[__(lang, langReady, 'generic_confirm')]]</paper-button>
 				</div>
 			</div>
 			<div id="howToOpenWindow">
-				<h2>How do you want the link to open?</h2>
+				<h2>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_howOpenTitle')]]</h2>
 				<paper-radio-group id="howToOpenLink" selected="newTab">
-					<paper-radio-button name="newTab">A new tab</paper-radio-button>
-					<paper-radio-button name="currentTab">The current tab</paper-radio-button>
+					<paper-radio-button name="newTab">__options_tools_paperSearchWebsiteDialog_newTab</paper-radio-button>
+					<paper-radio-button name="currentTab">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_currentTab')]]</paper-radio-button>
 				</paper-radio-group>
 				<div class="buttons">
-					<paper-button on-tap="goBackWindow">Back</paper-button>
-					<paper-button on-tap="switchWindow" window="successWindow">Confirm</paper-button>
+					<paper-button on-tap="goBackWindow">[[__(lang, langReady, 'generic_back')]]</paper-button>
+					<paper-button on-tap="switchWindow" window="successWindow">[[__(lang, langReady, 'generic_confirm')]]</paper-button>
 				</div>
 			</div>
 			<div id="successWindow">
 				<div class="checkmark"></div>
-				<div class="successText">Added!</div>
+				<div class="successText">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_added')]]</div>
 			</div>
 			<div id="loadingWindow">
 				<center-element fill="true">

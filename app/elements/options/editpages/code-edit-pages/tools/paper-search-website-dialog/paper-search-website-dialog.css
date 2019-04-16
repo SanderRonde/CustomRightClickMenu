@@ -184,3 +184,7 @@ a:focus::before {
 	right: -4px;
 	top: -4px;
 }
+
+.capitalized {
+	text-transform: uppercase;
+}

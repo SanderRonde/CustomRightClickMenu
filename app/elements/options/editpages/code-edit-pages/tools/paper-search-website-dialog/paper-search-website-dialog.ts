@@ -2,6 +2,7 @@
 
 import { EncodedString } from '../../../../../elements';
 import { Polymer } from '../../../../../../../tools/definitions/polymer';
+import { I18NKeys } from '../../../../../../_locales/i18n-keys';
 
 declare const BrowserAPI: BrowserAPI;
 
@@ -165,9 +166,9 @@ namespace PaperSearchWebsiteDialog {
 			}));
 		}
 
-		static applySearchWebsite(this: PaperSearchWebsiteDialog) {
+		static async applySearchWebsite(this: PaperSearchWebsiteDialog) {
 			if (this.outputType === 'script') {
-				this.insertCode();
+				await this.insertCode();
 			} else {
 				this.createSearchWebsiteLinkNode();
 			}
@@ -188,7 +189,7 @@ namespace PaperSearchWebsiteDialog {
 					duration: 300,
 					easing: 'easeOutCubic'
 				});
-				this.applySearchWebsite();
+				await this.applySearchWebsite();
 				await window.app.util.wait(2500);
 				this.doHide();
 			} else {
@@ -241,9 +242,11 @@ namespace PaperSearchWebsiteDialog {
 		/**
 		 * Inserts the chosen code and closes the dialog
 		 */
-		static insertCode(this: PaperSearchWebsiteDialog) {
+		static async insertCode(this: PaperSearchWebsiteDialog) {
 			const code = 
-`var search = crmAPI.getSelection() || prompt('Please enter a search query');
+`var search = crmAPI.getSelection() || prompt('${
+	await this.__async(I18NKeys.options.tools.paperSearchWebsiteDialog.enterSearchQuery)
+}');
 var url = '${this.chosenUrl}';
 var toOpen = url.replace(/%s/g,search);
 ${this.$.howToOpenLink.selected === 'currentTab' ? 
@@ -324,10 +327,12 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 		/**
 		 * Confirms the choice of one of the search engines from the list
 		 */
-		static confirmManualSearchListInput(this: PaperSearchWebsiteDialog) {
+		static async confirmManualSearchListInput(this: PaperSearchWebsiteDialog) {
 			const checkedButton = this.$.listInputSearchList.querySelector('paper-radio-button[checked]');
 			if (!checkedButton) {
-				window.app.util.showToast('Please select something');
+				window.app.util.showToast(await this.__async(
+					I18NKeys.options.tools.paperSearchWebsiteDialog.selectSomething
+				));
 				return;
 			}
 			this.chosenUrl = (checkedButton as HTMLPaperRadioButtonElement & {
