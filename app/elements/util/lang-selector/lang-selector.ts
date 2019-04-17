@@ -43,7 +43,7 @@ namespace LangSelectorElement {
 						`${baseName} (${lang}, ${await this.__async(I18NKeys.langs.selector.current)})` :
 						`${baseName} (${lang})`,
 					code: lang,
-					url: `../images/country_flags/${lang}.svg`,
+					url: `images/country_flags/${lang}.svg`,
 					selected: lang === currentLang
 				}
 			}));
