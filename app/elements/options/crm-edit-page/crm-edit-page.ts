@@ -268,7 +268,7 @@ namespace CrmEditPageElement {
 
 		static getInstallDateTextFormat(this: CrmEditPage) {
 			if (window.Intl && typeof window.Intl === 'object' && this.nodeInfo) {
-				const format = (new Date('1-13-2016').toLocaleDateString() === '1-13-2016' ? 'eu' : 'na');
+				const format = (new Date(2016, 1, 13).toLocaleDateString() === '13-2-2016' ? 'eu' : 'na');
 				let date;
 				if (format === 'eu') {
 					date = this.nodeInfo.installDate.split('-');
