@@ -3134,7 +3134,7 @@ export const Messages: I18NBranch = {
 							content: '<a href="https://wiki.greasespot.net/Include_and_' +
 								'exclude_rules" rel="noopener" target="_blank">'
 						},
-						executePostHTML: {
+						matchPreHTML: {
 							content: '<a href="https://developer.chrome.com/extensions/match_' +
 								'patterns" rel="noopener" target="_blank">'
 						},
