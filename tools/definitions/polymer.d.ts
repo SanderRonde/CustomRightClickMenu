@@ -242,7 +242,7 @@ export declare namespace Polymer {
 		getElementsByTagNameNS(namespaceURI: string, localName: string): null;
 	} & ElementBase;
 
-	interface ElementI18N {
+	export interface ElementI18N {
 		lang: string|null;
 		langReady: boolean;
 
