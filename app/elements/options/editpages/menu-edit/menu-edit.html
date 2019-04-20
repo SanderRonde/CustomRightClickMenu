@@ -12,28 +12,28 @@
 		<div id="menuEditCont">
 			<div id="menuEditLeft">
 				<div id="changeName">
-					<div class="itemEditBigTxt">Name </div>
+						<div class="itemEditBigTxt">[[__(lang, langReady, 'options_editPages_generic_name')]]</div>
 					<div id="changeNameInput">
 						<paper-input no-label-float id="nameInput" on-keydown="inputKeyPress" value="{{newSettings.name}}"></paper-input>
 					</div>
 				</div>
 				<div id="showOnContentContainer">
 					<div class="itemEditBigTxt">
-						Show on content type
+							[[__(lang, langReady, 'options_editPages_generic_contentType')]]
 					</div>
 					<div id="showOnContentIconsContainer">
-						<div title="Toggle showing this item when right-clicking on regular webpages" class="showOnContentItemCont pageType">
+						<div title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmTypes_webpages')]]" class="showOnContentItemCont pageType">
 							<div class="showOnContentItemIcon" on-tap="toggleIcon">
 								<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="80" height="80" viewbox="0 0 24 24">
 									<path d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z"/>
 								</svg>
 							</div>
 							<div class="showOnContentItemTxt" on-tap="toggleIcon">
-								Webpages
+								[[__(lang, langReady, 'crmTypes_webpages')]]
 							</div>
 							<paper-checkbox class="showOnContentItemCheckbox" checked="{{pageContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
 						</div>
-						<div title="Toggle showing this item when right-clicking on web links" class="showOnContentItemCont linkType">
+						<div title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmtype_weblinks')]]" class="showOnContentItemCont linkType">
 							<div class="showOnContentItemIcon" on-tap="toggleIcon">
 								<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none"/>
@@ -41,11 +41,11 @@
 								</svg>
 							</div>
 							<div class="showOnContentItemTxt" on-tap="toggleIcon">
-								Weblinks
+								[[__(lang, langReady, 'crmTypes_weblinks')]]
 							</div>
 							<paper-checkbox class="showOnContentItemCheckbox" checked="{{linkContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
 						</div>
-						<div title="Toggle showing this item when right-clicking on selected text" class="showOnContentItemCont selectionType">
+						<div title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmtype_selection')]]" class="showOnContentItemCont selectionType">
 							<div class="showOnContentItemIcon" on-tap="toggleIcon">
 								<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none"/>
@@ -53,11 +53,11 @@
 								</svg>
 							</div>
 							<div class="showOnContentItemTxt" on-tap="toggleIcon">
-								Selection
+								[[__(lang, langReady, 'crmTypes_selection')]]
 							</div>
 							<paper-checkbox class="showOnContentItemCheckbox" checked="{{selectionContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
 						</div>
-						<div title="Toggle showing this item when right-clicking on images" class="showOnContentItemCont imageType">
+						<div title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmTypes_images')]]" class="showOnContentItemCont imageType">
 							<div class="showOnContentItemIcon" on-tap="toggleIcon">
 								<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none"/>
@@ -65,11 +65,11 @@
 								</svg>
 							</div>
 							<div class="showOnContentItemTxt" on-tap="toggleIcon">
-								Images
+								[[__(lang, langReady, 'crmTypes_images')]]
 							</div>
 							<paper-checkbox class="showOnContentItemCheckbox" checked="{{imageContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
 						</div>
-						<div title="Toggle showing this item when right-clicking on videos" class="showOnContentItemCont videoType">
+						<div title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmTypes_videos')]]" class="showOnContentItemCont videoType">
 							<div class="showOnContentItemIcon" on-tap="toggleIcon">
 								<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none"/>
@@ -77,11 +77,11 @@
 								</svg>
 							</div>
 							<div class="showOnContentItemTxt" on-tap="toggleIcon">
-								Videos
+								[[__(lang, langReady, 'crmTypes_videos')]]
 							</div>
 							<paper-checkbox class="showOnContentItemCheckbox" checked="{{videoContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
 						</div>
-						<div title="Toggle showing this item when right-clicking on audio elements" class="showOnContentItemCont audioType">
+						<div title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmTypes_audio')]]" class="showOnContentItemCont audioType">
 							<div class="showOnContentItemIcon" on-tap="toggleIcon">
 								<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none"/>
@@ -89,7 +89,7 @@
 								</svg>
 							</div>
 							<div class="showOnContentItemTxt" on-tap="toggleIcon">
-								Audio
+								[[__(lang, langReady, 'crmTypes_audio')]]
 							</div>
 							<paper-checkbox class="showOnContentItemCheckbox" checked="{{audioContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
 						</div>
@@ -99,12 +99,12 @@
 			<div id="menuEditRight">
 				<div id="showOnSitesCont">
 					<br/>
-					<paper-checkbox id="showOnSpecified" checked="{{newSettings.showOnSpecified}}">Show only on specified sites</paper-checkbox>
+					<paper-checkbox id="showOnSpecified" checked="{{newSettings.showOnSpecified}}">[[__(lang, langReady, 'options_editPages_generic_showOnSpecified')]]</paper-checkbox>
 					<br/>
 					<br/>
 					<div hidden$="[[!newSettings.showOnSpecified]]">
 						<div class="itemEditBigTxt">
-							Show on:
+							[[__(lang, langReady, 'options_editPages_generic_showOn')]]
 							<div id="triggersInfoCont">
 								<svg class="inactive" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none"/>
@@ -116,7 +116,7 @@
 								</svg>
 								<div class="paper-material" id="triggersInfoTxtCont" elevation="3">
 									<div id="triggersInfoTxt">
-										Regex is available, check the synthax <a href="https://developer.chrome.com/extensions/match_patterns" rel="noopener" target="_blank">here</a>.
+										<echo-html html="[[__(lang, langReady, 'options_editPages_generic_regexDescr')]]"></echo-html>
 									</div>
 								</div>
 							</div>
@@ -124,30 +124,30 @@
 						<br/>
 						<template is="dom-repeat" items="[[newSettings.triggers]]" as="trigger">
 							<div class="executionTrigger">
-								<paper-checkbox class="executionTriggerNot" checked="[[trigger.not]]" color="red">NOT</paper-checkbox>
-								<paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="[[trigger.url]]"></paper-input>
+								<paper-checkbox class="executionTriggerNot" checked="[[trigger.not]]" color="red">[[__(lang, langReady, 'options_editPages_generic_not')]]</paper-checkbox>
+								<paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="[[__(lang, langReady, 'options_editPages_generic_matchPattern')]]" error-message="[[__(lang, langReady, 'options_editPages_generic_invalidURLPattern')]]" class="triggerInput" value="[[trigger.url]]"></paper-input>
 								<paper-icon-button class="executionTriggerClear" on-tap="clearTrigger" icon="clear"></paper-icon-button>
 							</div>
 						</template>
-						<paper-button on-tap="addTrigger" raised id="addTrigger">Add</paper-button>
+						<paper-button on-tap="addTrigger" raised id="addTrigger">[[__(lang, langReady, 'generic_add')]]</paper-button>
 					</div>
 				</div>
 			</div>
 		</div>
 		<div id="buttonCont">
 			<div id="buttons">
-				<paper-dropdown-menu slot="menu" overflowing indent="false" id="changeType" selected="0" fallback="CHANGE TYPE">
+				<paper-dropdown-menu slot="menu" overflowing indent="false" id="changeType" selected="0" fallback="[[__(lang, langReady, 'options_editCrmItem_changeType')]]">
 					<paper-menu slot="menu" selected="0">
 						<div slot="content">
-							<paper-item on-tap="changeTypeToLink">Link</paper-item>
-							<paper-item on-tap="changeTypeToScript">Script</paper-item>
-							<paper-item on-tap="changeTypeToStylesheet">Stylesheet</paper-item>
-							<paper-item on-tap="changeTypeToDivider">Divider</paper-item>
+							<paper-item on-tap="changeTypeToLink">[[__(lang, langReady, 'crm_link')]]</paper-item>
+							<paper-item on-tap="changeTypeToScript">[[__(lang, langReady, 'crm_script')]]</paper-item>
+							<paper-item on-tap="changeTypeToStylesheet">[[__(lang, langReady, 'crm_stylesheet')]]</paper-item>
+							<paper-item on-tap="changeTypeToMenu">[[__(lang, langReady, 'crm_menu')]]</paper-item>
 						</div>
 					</paper-menu>
 				</paper-dropdown-menu>
-				<paper-button id="cancelButton" on-tap="cancel">Cancel</paper-button>
-				<paper-button id="saveButton" on-tap="save">Save</paper-button>
+				<paper-button id="cancelButton" on-tap="cancel">[[__(lang, langReady, 'generic_cancel')]]</paper-button>
+				<paper-button id="saveButton" on-tap="save">[[__(lang, langReady, 'generic_save')]]</paper-button>
 			</div>
 		</div>
 	</template>

@@ -653,16 +653,17 @@ namespace CodeEditBehaviorNamespace {
 		/**
 		 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
 		 */
-		static fillEditorOptions(this: CodeEditBehaviorInstance, container: CrmApp|CodeEditBehaviorInstance) {
+		static async fillEditorOptions(this: CodeEditBehaviorInstance, container: CrmApp|CodeEditBehaviorInstance) {
 			if (this.item.type === 'script') {
 				const __this = this as CodeEditBehaviorScriptInstance;
 				const scriptContainer = container as CodeEditBehaviorScriptInstance;
-				scriptContainer.$.keyBindingsTemplate.items = __this.keyBindings;
+				const keyBindings = await __this.getKeyBindings();
+				scriptContainer.$.keyBindingsTemplate.items = keyBindings;
 				scriptContainer.$.keyBindingsTemplate.render();
 
 				window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {
-					goToDef: __this.keyBindings[0].defaultKey,
-					rename: __this.keyBindings[1].defaultKey
+					goToDef: keyBindings[0].defaultKey,
+					rename: keyBindings[1].defaultKey
 				};
 	
 				Array.prototype.slice.apply(scriptContainer.$.keyBindingsTemplate.querySelectorAll('paper-input')).forEach((input: HTMLPaperInputElement) => {

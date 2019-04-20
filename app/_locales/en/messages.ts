@@ -102,6 +102,32 @@ export const Messages: I18NBranch = {
 			description: 'Word for URL'
 		}
 	},
+	crmTypes: {
+		webpages: {
+			message: 'Webpages',
+			description: 'A short description for webpages'
+		},
+		weblinks: {
+			message: 'weblinks',
+			description: 'A short description for weblinks (HTML anchor elements)'
+		},
+		selection: {
+			message: 'selection',
+			description: 'A short description for a block of selected text'
+		},
+		images: {
+			message: 'images',
+			description: 'A description for images/pictures'
+		},
+		videos: {
+			message: 'videos',
+			description: 'A description for videos'
+		},
+		audio: {
+			message: 'audio',
+			description: 'A description for audio elements (music, mp3 etc)'
+		}
+	},
 	crm: {
 		link: {
 			message: 'Link',
@@ -595,33 +621,9 @@ export const Messages: I18NBranch = {
 				message: 'regular webpages',
 				description: 'A longer description for webpages'
 			},
-			webpages: {
-				message: 'Webpages',
-				description: 'A short description for webpages'
-			},
-			weblinks: {
-				message: 'weblinks',
-				description: 'A short description for weblinks (HTML anchor elements)'
-			},
 			selectedText: {
 				message: 'selected text',
 				description: 'A short description selected text (a selection)'
-			},
-			selection: {
-				message: 'selection',
-				description: 'A short description for a block of selected text'
-			},
-			images: {
-				message: 'images',
-				description: 'A description for images/pictures'
-			},
-			videos: {
-				message: 'videos',
-				description: 'A description for videos'
-			},
-			audio: {
-				message: 'audio',
-				description: 'A description for audio elements (music, mp3 etc)'
 			}
 		},
 		options: {
@@ -2246,8 +2248,7 @@ export const Messages: I18NBranch = {
 							'class="infoSvg" viewbox="0 0 32 48" height="30" ' +
 							'width="20">' +
 							'<path d="M4 31v4h40v-4H4zm0-10v4h40v-4H4zm0-10v4h40v-4H4z"/> ' +
-							'</svg>',
-						example: 'See above. No need to replace anything'
+							'</svg>'
 					}
 				}
 			},
@@ -2268,8 +2269,7 @@ export const Messages: I18NBranch = {
 							'xmlns="http://www.w3.org/2000/svg" width="48" ' +
 							'height="48" viewbox="0 0 48 48">' +
 							'<path d="M16 10v28l22-14z"/>' +
-							'</svg>',
-						example: 'See above. No changes need to be made'
+							'</svg>'
 					}
 				}
 			},
@@ -2590,6 +2590,680 @@ export const Messages: I18NBranch = {
 				selectSomething: {
 					message: 'Please select something',
 					description: 'Message shown when no option has been selected'
+				}
+			}
+		},
+		editPages: {
+			generic: {
+				name: {
+					message: 'Name',
+					description: 'Label for the name of a node'
+				},
+				contentType: {
+					message: 'Show on content type',
+					description: 'Label for the content types section'
+				},
+				contentTypeTitle: {
+					message: 'Toggle showing this item when right-clicking ' +
+						'$CONTENTTYPE$',
+					description: 'Title for content types',
+					placeholders: {
+						contentType: {
+							content: '$1',
+							example: 'Audio'
+						}
+					}
+				},
+				showOnSpecified: {
+					message: 'Show only on specified sites',
+					description: 'Checkbox that allows you to enable ' +
+						'showing this on specified sites'
+				},
+				showOn: {
+					message: 'Show on:',
+					description: 'Label for what URLs to show this on'
+				},
+				regexDescr: {
+					message: 'Regex is available, check the synthax ' +
+						'$PREHTML$here$POSTHTML$.',
+					description: 'Info section explaining that regex is available',
+					placeholders: {
+						prehtml: {
+							content: '<a href="https://developer.chrome.com/' +
+								'extensions/match_patterns" rel="noopener" ' +
+								'target="_blank">'
+						},
+						posthtml: {
+							content: '</a>'
+						}
+					}
+				},
+				not: {
+					message: 'NOT',
+					description: 'Inverts given input when checked. ' +
+						'Try to keep this short'
+				},
+				matchPattern: {
+					message: 'URL match pattern',
+					description: 'Label for the match pattern input'
+				},
+				invalidURLPattern: {
+					message: 'This is not a valid URL pattern!',
+					description: 'Error message shown when match pattern is invalid'
+				},
+				changeType: {
+					message: 'CHANGE TYPE',
+					description: 'Allows the changing of a node\'s type'
+				}
+			},
+			link: {
+				linkLabel: {
+					message: 'Link(s)',
+					description: 'Label for the link section where you can ' +
+						'configure the links this node will open'
+				},
+				currentTab: {
+					message: 'Open in current tab',
+					description: 'Option that, when enabled, will open the URLs ' +
+						'in a new tab instead of the current one'
+				}
+			},
+			metadata: {
+				name: {
+					message: 'The name of this script',
+					description: 'Metadata for the "name" key'
+				},
+				namespace: {
+					message: 'The namespace of the script',
+					description: 'Metadata for the "namespace" key'
+				},
+				version: {
+					message: 'The script version. This is used for the update check.',
+					description: 'Metadata for the "version" key'
+				},
+				author: {
+					message: 'The scripts author',
+					description: 'Metadata for the "author" key'
+				},
+				description: {
+					message: 'A short description.',
+					description: 'Metadata for the "description" key'
+				},
+				homepage: {
+					message: 'The author\'s homepage',
+					description: 'Metadata for the "homepage" key'
+				},
+				homepageURL: {
+					message: 'The author\'s homepage',
+					description: 'Metadata for the "homepageURL" key'
+				},
+				website: {
+					message: 'The author\'s homepage',
+					description: 'Metadata for the "website" key'
+				},
+				source: {
+					message: 'The author\'s homepage',
+					description: 'Metadata for the "source" key'
+				},
+				icon: {
+					message: 'The script\'s icon in low res',
+					description: 'Metadata for the "icon" key'
+				},
+				iconURL: {
+					message: 'The script\'s icon in low res',
+					description: 'Metadata for the "iconURL" key'
+				},
+				defaulticon: {
+					message: 'The script\'s icon in low res',
+					description: 'Metadata for the "defaulticon" key'
+				},
+				icon64: {
+					message: 'This scripts icon in 64x64 pixels.',
+					description: 'Metadata for the "icon64" key'
+				},
+				icon64URL: {
+					message: 'This scripts icon in 64x64 pixels.',
+					description: 'Metadata for the "icon64URL" key'
+				},
+				updateURL: {
+					message: 'An update URL for the userscript',
+					description: 'Metadata for the "updateURL" key'
+				},
+				downloadURL: {
+					message: 'Defines the URL where the script will be downloaded from when an update was detected',
+					description: 'Metadata for the "downloadURL" key'
+				},
+				supportURL: {
+					message: 'Defines the URL where the user can report issues and get personal support',
+					description: 'Metadata for the "supportURL" key'
+				},
+				include: {
+					message: 'The pages on which the script should run',
+					description: 'Metadata for the "include" key'
+				},
+				match: {
+					message: 'The pages on which the script should run',
+					description: 'Metadata for the "match" key'
+				},
+				exclude: {
+					message: 'Exclude URLs even if they are included by **@include** or **@match**',
+					description: 'Metadata for the "exclude" key'
+				},
+				require: {
+					message: 'Points to a javascript file that is loaded and executed before the script itself',
+					description: 'Metadata for the "require" key'
+				},
+				resource: {
+					message: 'The Preloads resources that can be accessed by `GM_getResourceURL` and `GM_getResourceText` by the script of this script',
+					description: 'Metadata for the "resource" key'
+				},
+				connect: {
+					message: 'Domains which are allowed to be retrieved by `GM_xmlhttpRequest`',
+					description: 'Metadata for the "connect" key'
+				},
+				runAt: {
+					message: 'The moment the script is injected (document-start, document-body, document-end, document-idle or document-menu)',
+					description: 'Metadata for the "runAt" key'
+				},
+				grant: {
+					message: 'Whitelists given `GM_*` functions',
+					description: 'Metadata for the "grant" key'
+				},
+				noframes: {
+					message: 'Makes the script run on the main page but not in iframes',
+					description: 'Metadata for the "noframes" key'
+				},
+				CRM_contentTypes: {
+					message: 'The content types on which to run this script as a 6 items long boolean array (e.g. [true, false, true, false, true, false]) (CRM ONLY)',
+					description: 'Metadata for the "CRM_contentTypes" key'
+				},
+				CRM_launchMode: {
+					message: 'When to run this script. 0 = Run on clicking, 1 = always run, 2 = run on specified, 3 = show on specified, 4 = disabled. (CRM ONLY)',
+					description: 'Metadata for the "CRM_launchMode" key'
+				},
+				CRM_stylesheet: {
+					message: 'Interpret this as a stylesheet (userstyle) instead of a script (userscript). (CRM ONLY)',
+					description: 'Metadata for the "CRM_stylesheet" key'
+				},
+				CRM_toggle: {
+					message: 'A boolean value (true/false) indicating whether to allow toggling this stylesheet on or off. Only used when @CRM_stylesheet is present. (CRM ONLY)',
+					description: 'Metadata for the "CRM_toggle" key'
+				},
+				CRM_defaultOn: {
+					message: 'A boolean value (true/false) indicating whether this stylesheet is toggled on by default. Only used when @CRM_stylesheet and @CRM_toggle are present. (CRM ONLY)',
+					description: 'Metadata for the "CRM_defaultOn" key'
+				},
+				CRM_libraries: {
+					message: 'An array containing stringified objects with a "url" and a "name" key, pointing to external libraries used in this script.',
+					description: 'Metadata for the "CRM_libraries" key'
+				},
+				license: {
+					message: 'The license for this script. If none is supplied, it\'s under exclusive copyright by default',
+					description: 'Metadata for the "license" key'
+				},
+				preprocessor: {
+					message: 'The css preprocessor to use, choose from \'less\', \'stylus\', \'uso\' or \'default\'. For more info check out https://github.com/openstyles/stylus/wiki/Usercss#preprocessor',
+					description: 'Metadata for the "preprocessor" key'
+				},
+				var: {
+					message: 'A variable that can be changed by the user and is replaced when compiling the stylesheet',
+					description: 'Metadata for the "var" key'
+				}
+			},
+			monaco: {
+				startTagUserscript: {
+					message: 'The start tag for a UserScript metadata block',
+					description: 'Label for the Userscript start tag'
+				},
+				endTagUserscript: {
+					message: 'The end tag for a UserScript metadata block',
+					description: 'Label for the Userscript end tag'
+				},
+				startTagUserstyle: {
+					message: 'The start tag for a UserStyle metadata block',
+					description: 'Label for the UserStyle start tag'
+				},
+				endTagUserstyle: {
+					message: 'The end tag for a UserStyle metadata block',
+					description: 'Label for the UserStyle end tag'
+				},
+				scriptStart: {
+					message: 'UserScript start tag',
+					description: 'Short description for the Userscript start tag'
+				},
+				scriptEnd: {
+					message: 'UserScript end tag',
+					description: 'Short description for the Userscript end tag'
+				},
+				styleStart: {
+					message: 'Userstyle start tag',
+					description: 'Short description for the Userstyle start tag'
+				},
+				styleEnd: {
+					message: 'Userstyle end tag',
+					description: 'Short description for the Userstyle end tag'
+				},
+				metaKey: {
+					message: 'Metadata key',
+					description: 'Short description for any metadata keys'
+				},
+				disableMeta: {
+					message: 'Disable Metadata Highlight',
+					description: 'Description for a button that allows you to '+
+						'disable highlighting of metadata values in the editor'
+				},
+				enableMeta: {
+					message: 'Enable Metadata Highlight',
+					description: 'Description for a button that allows you to '+
+						'enable highlighting of metadata values in the editor'
+				},
+				keyDescription: {
+					message: 'Metadata key $METAKEY$: $METADESCRIPTION$',
+					description: 'Long description for metadata keys',
+					placeholders: {
+						metaKey: {
+							content: '$1',
+							example: 'Name'
+						},
+						metaDescription: {
+							content: '$2',
+							example: 'The name of a script'
+						}
+					}
+				},
+				keyDescriptionUnknown: {
+					message: 'Metadata key $METAKEY$, unknown key',
+					description: 'Long description for metadata keys when the key is unknown',
+					placeholders: {
+						metaKey: {
+							content: '$1',
+							example: 'Name'
+						}
+					}
+				},
+				valueForKey: {
+					message: 'Value $VALUE$ for key $KEY$',
+					description: 'Description shown when hovering over a key-value combination',
+					placeholders: {
+						value: {
+							content: '$1',
+							example: 'SomeValue'
+						},
+						key: {
+							content: '$2',
+							example: 'SomeKey'
+						}
+					}
+				},
+				disableUnderline: {
+					message: 'Disable CSS underline',
+					description: 'Label for a button that disables underlining of ' +
+						'colors in CSS'
+				},
+				enableUnderline: {
+					message: 'Enable CSS underline',
+					description: 'Label for a button that enables underlining of ' +
+						'colors in CSS'
+				},
+				optionName: {
+					message: 'The name of the option',
+					description: 'Label for the "name" field of an option config'
+				},
+				numberOption: {
+					message: 'A number type option',
+					description: 'Label for any number-type options in config'
+				},
+				minValue: {
+					message: 'The minimum value of the number',
+					description: 'Label for the "minimum" field of a number-type ' +
+						'option in a config'
+				},
+				maxValue: {
+					message: 'The maximum value of the number',
+					description: 'Label for the "maximum" field of a number-type ' +
+						'option in a config'
+				},
+				descr: {
+					message: 'A description for this option',
+					description: 'Label for the "description" field of an option'
+				},
+				defaultValue: {
+					message: 'The default value for this option',
+					description: 'label for the "defaultvalue" field of an option. ' +
+						'This value specifies the default value of given option'
+				},
+				value: {
+					message: 'The value of this option (set to null to unset)',
+					description: 'Label for the "value" field of an option. This is ' +
+						'the value that is set when the option is filled in. ' +
+						'If this value is set to "null" it\'s treated as not set at all.' +
+						'For example if the choices are A and B and the value is null, ' +
+						'the value is neither.'
+				},
+				valueExpanded: {
+					message: 'The value of this option, changing it here will have the' + 
+						' same effect as changing it in the options dialog',
+					description: 'Expanded version of the description above'
+				},
+				stringOption: {
+					message: 'A string type option',
+					description: 'Label for any string-type options in config'
+				},
+				maxLength: {
+					message: 'The maximum length of the string',
+					description: 'Label for the "maxLength" field of a string-type ' +
+						'option which specifies the max length of the string'
+				},
+				format: {
+					message: 'A regex format that the string has to follow',
+					description: 'Label for the "format" field of a string-type ' +
+						'option which asks for a regex value that should match ' +
+						'the eventual value of the string'
+				},
+				choiceOption: {
+					message: 'A choice type option',
+					description: 'Label for any choice-type options in config'
+				},
+				selected: {
+					message: 'The selected value\'s index',
+					description: 'Label for the "selected" field which ' +
+						'takes a number value that is the index of ' +
+						'the chosen value in the choices'
+				},
+				values: {
+					message: 'The possible values of this option',
+					description: 'Label for the "values" field which ' +
+						'takes an array of possible values which can be ' +
+						'chosen'
+				},
+				colorOption: {
+					message: 'A color type option',
+					description: 'Label for any color-type options in config'
+				},
+				booleanOption: {
+					message: 'A boolean type option',
+					description: 'Label for any boolean-type options in config'
+				},
+				arrayOption: {
+					message: 'An array type option',
+					description: 'Label for any array-type options in config'
+				},
+				maxItems: {
+					message: 'The maximum number of array items',
+					description: 'Label for the "maxItems" field of an ' +
+						'array-type option, which limits the max amount of ' +
+						'values that can be inputted'
+				},
+				items: {
+					message: 'The type of items this array contains (number or string)',
+					description: 'Label for the "items" field of an array-type option ' +
+						'which sets the type of the elements it has to either ' +
+						'numbers or strings'
+				},
+				lintingDisabled: {
+					message: 'No linting possible in $MODE$ mode',
+					description: 'Message shown when linting is not possible in this mode',
+					placeholders: {
+						mode: {
+							content: '$1',
+							example: 'typescript|LESS/stylus'
+						}
+					}
+				},
+				monacoError: {
+					message: 'Caught monaco editor error (ignore these)',
+					description: 'Error shown when a monaco editor is caught'
+				}
+			},
+			script: {
+				autoUpdate: {
+					message: 'toggle auto-update',
+					description: 'Button that toggles automatically updating ' +
+						'the script when a new version is hosted on the source'
+				},
+				permissions: {
+					message: 'Used Permissions(s)',
+					description: 'Title for the used permissions of this script. ' +
+						'The permissions specify which APIs the script can use'
+				},
+				manage: {
+					message: 'Manage',
+					description: 'Button that opens the permissions manager'
+				},
+				script: {
+					message: 'Script',
+					description: 'Title for the script editing section ' +
+						'of a javascript script node'
+				},
+				docs: {
+					message: 'docs',
+					description: 'Button that opens the documentation of the API' +
+						'when clicked'
+				},
+				scriptMain: {
+					message: 'Main',
+					description: 'Main section of the script. This is the script ' +
+						'that is run on the page, not a background-script'
+				},
+				scriptBackground: {
+					message: 'Background',
+					description: 'Background section of the script. This script ' +
+						'is ran in the background like an extension background-page'
+				},
+				scriptOptions: {
+					message: 'Options',
+					description: 'Options editor for a script. These allow for ' +
+						'custom options to be passed to a script'
+				},
+				scriptLibraries: {
+					message: 'Libraries',
+					description: 'Library editor. Libraries are external scripts ' +
+						'ran whenever this script is ran'
+				},
+				showBackgroundLibs: {
+					message: 'Show backgroundscript libraries',
+					description: 'Button that toggles showing libraries for the ' +
+						'background script'
+				},
+				crmNode: {
+					message: 'CRM Node',
+					description: 'One of the options to which a script can be ' +
+						'exported. This exports it to a JSON version of this ' + 
+						'node'
+				},
+				userScript: {
+					message: 'Userscript',
+					description: 'One of the options to which a script can be ' +
+						'exported. This exports it to a greasemonkey and ' +
+						'tampermonkey compatible userscript ' +
+						'(https://en.wikipedia.org/wiki/Userscript)' +
+						'This word probably won\'t have to be changed'
+				}
+			},
+			code: {
+				triggers: {
+					message: 'Trigger(s)',
+					description: 'Title for the triggers section. ' +
+						'The triggers specify when the script/stylesheet is ' +
+						'ran'
+				},
+				triggerOnClick: {
+					message: 'Execute on clicking',
+					description: 'Trigger option that makes the script/stlylesheet ' +
+						'run on clicking it in the right-click menu'
+				},
+				triggerAlways: {
+					message: 'Always execute',
+					description: 'Trigger option that makes the script/stylesheet ' +
+						'always execute.'
+				},
+				triggerSpecified: {
+					message: 'Execute when visiting specified sites',
+					description: 'Trigger option that makes the script/stylesheet ' +
+						'execute when visiting the specified websites'
+				},
+				triggerShowOnSpecified: {
+					message: 'Show only on specified sites',
+					description: 'Trigger option that only shows the script/stylesheet ' +
+						'on specified websites'
+				},
+				triggerDisabled: {
+					message: 'Disabled',
+					description: 'Disables this script/stylesheet altogether and ' +
+						'does not show it in the right-click menu. Basically the ' +
+						'same as hidden'
+				},
+				showOn: {
+					message: 'Show on:',
+					description: 'Label for the showing of a node in the right-click ' +
+						'menu on specified websites'
+				},
+				executeOn: {
+					message: 'Execute on:',
+					description: 'Label for the executing of a node in the right-click ' +
+						'menu on specified websites'
+				},
+				triggerInfo: {
+					message: 'For trigger mode "execute when visiting sides" urls need ' +
+						'to match $EXECUTEPREHTML$the following pattern$POSTHTML$ and ' +
+						'for trigger mode "show when visiting specified sites" they need ' +
+						'to match $MATCHPREHTML$this pattern$POSTHTML$. Regular URLs ' +
+						'without wildcards (*) will match just that URL.',
+					placeholders: {
+						executePreHtml: {
+							content: '<a href="https://wiki.greasespot.net/Include_and_' +
+								'exclude_rules" rel="noopener" target="_blank">'
+						},
+						executePostHTML: {
+							content: '<a href="https://developer.chrome.com/extensions/match_' +
+								'patterns" rel="noopener" target="_blank">'
+						},
+						postHTML: {
+							content: '</a>'
+						}
+					}
+				},
+				backgroundInfo: {
+					message: 'The background page will always be running. It\'s ' +
+						'possible to communicate with it using the $COMMAPI$. ' +
+						'The scripts only share their permissions.',
+					description: 'Info about the background script and what it does',
+					placeholders: {
+						commAPI: {
+							content: '<a href="http://sanderronde.github.io' +
+								'/CustomRightClickMenu/documentation/classes/' +
+								'crm.crmapi.instance.html#comm"target="_blank" ' +
+								'rel="noopener">crmAPI.comm API</a>'
+						}
+					}
+				},
+				optionsInfo: {
+					message: 'Create a key and press Ctrl+Space for format hints ' +
+						'in the option object. Check out $PREHTML$this page$POSTHTML$ ' +
+						'to see the format of the options. Keep the $schema line ' +
+						'to enable format hints on pressing Ctrl+Space',
+					description: 'Info about the options editor and how it works',
+					placeholders: {
+						preHTML: {
+							content: '<a href="http://sanderronde.github.io/' +
+								'CustomRightClickMenu/documentation/modules/' +
+								'crm.scriptoptionsschema.html#options" ' +
+								'target="_blank" rel="noopener">'
+						},
+						postHTML: {
+							content: '</a>'
+						}
+					}
+				},
+				settings: {
+					message: 'Editor Settings',
+					description: 'Title for the settings section. This allows ' +
+						'you to edit the internal monaco editor\'s settings'
+				},
+				theme: {
+					message: 'Theme',
+					description: 'Title for the theme editing section.'
+				},
+				fontSize: {
+					message: 'font size %',
+					description: 'The font size of the editor. Include the % sign ' +
+						'in some way to convey that it\'s displayed in percentages'
+				},
+				globals: {
+					message: 'Comma seperated list of JSLint globals',
+					description: 'A list of global javascript values that ' +
+						'should be ignored when doing a JSLint ' +
+						'syntax check'
+				},
+				keyBindings: {
+					message: 'Key Bindings',
+					description: 'Title for the key bindings section'
+				},
+				goToDef: {
+					message: 'Go To Type Definition',
+					description: 'The go to definition code action.'
+				},
+				rename: {
+					message: 'Rename Symbol',
+					description: 'Renames a variable/function/symbol'
+				},
+				exportAs: {
+					message: 'EXPORT AS',
+					description: 'Allows you to export a script/stylesheet. ' +
+						'This button then allows you to select something to ' +
+						'export it as. For example a regular CRM-compatibel node ' +
+						'or a userscritp'
+				}
+			},
+			stylesheet: {
+				togglable: {
+					message: 'Is Togglable',
+					description: 'A button that sets whether a stylesheet ' +
+						'should be togglable from on to off'
+				},
+				onByDefault: {
+					message: 'On by default',
+					description: 'A button that sets whether a stylesheet ' +
+						'is toggled on by default or off by default'
+				},
+				toggleInfo: {
+					message: 'Non-togglable CSS is not in the right-click ' +
+						'menu but always active instead.',
+					description: 'Info about the toggle buttons'
+				},
+				stylesheet: {
+					message: 'Stylesheet',
+					description: 'The stylesheet itself in this node that ' +
+						'can be edited'
+				},
+				optionsInfo: {
+					message: 'See $PRESTYLUSHTML$this page$POSTHTML$ for more ' +
+						'info about code options (vars) and preprocessors ' +
+						'and see $PREUSERCSSHTML$this section$POSTHTML$ for ' +
+						'examples (ignore the @-moz-document part).',
+					placeholders: {
+						preStylusHTML: {
+							content: '<a href="https://github.com/openstyles' +
+								'/stylus/wiki/Usercss#var" rel="noopener" ' +
+								'target="_blank">'
+						},
+						preUserCSSHTML: {
+							content: '<a href="https://github.com/openstyles' +
+								'/stylus/wiki/Usercss#more-examples" ' +
+								'rel="noopener" target="_blank">'
+						},
+						postHTML: {
+							content: '</a'
+						}
+					}
+				},
+				stylusInfo: {
+					message: 'Unfortunately there\'s no syntax highlighting ' +
+						'support for Stylus (yet). The editor will use LESS ' +
+						'syntax highlighting instead as it\'s somewhat close ' +
+						'to Stylus.',
+					description: 'Info about the stylus syntax highlighting ' +
+						'(and lack thereof)'
 				}
 			}
 		}

@@ -3,6 +3,8 @@
 import { NodeEditBehaviorScriptInstance, NodeEditBehaviorInstance } from '../../node-edit-behavior/node-edit-behavior';
 import { MonacoEditorScriptMetaMods, MetaBlock } from '../monaco-editor/monaco-editor';
 import { Polymer } from '../../../../../tools/definitions/polymer';
+import { I18NKeys } from '../../../../_locales/i18n-keys';
+import { I18NClass } from '../../../../js/shared';
 
 declare const browserAPI: browserAPI;
 
@@ -17,7 +19,7 @@ namespace ScriptEditElement {
 		}
 	} as any;
 
-	export class SCE {
+	export class SCE implements I18NClass {
 		static is: string = 'script-edit';
 
 		static behaviors = [window.Polymer.NodeEditBehavior, window.Polymer.CodeEditBehavior];
@@ -94,10 +96,10 @@ namespace ScriptEditElement {
 			window.open(docsUrl, '_blank');
 		}
 
-		static onKeyBindingKeyDown(this: NodeEditBehaviorScriptInstance, e: Polymer.PolymerKeyDownEvent) {
+		static async onKeyBindingKeyDown(this: NodeEditBehaviorScriptInstance, e: Polymer.PolymerKeyDownEvent) {
 			const input = window.app.util.findElementWithTagname(e, 'paper-input');
 			const index = ~~input.getAttribute('data-index');
-			this._createKeyBindingListener(input, this.keyBindings[index]);
+			this._createKeyBindingListener(input, (await this.getKeyBindings())[index]);
 		}
 
 		static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
@@ -515,7 +517,7 @@ namespace ScriptEditElement {
 			monacoKey: string;
 			storageKey: keyof CRM.KeyBindings;
 		}) {
-			return (event: KeyboardEvent) => {
+			return async (event: KeyboardEvent) => {
 				event.preventDefault();
 				//Make sure it's not just one modifier key being pressed and nothing else
 				if (event.keyCode < 16 || event.keyCode > 18) {
@@ -535,9 +537,10 @@ namespace ScriptEditElement {
 						values.push(String.fromCharCode(event.keyCode));
 						const value = element.value = values.join('-');
 						element.setAttribute('data-prev-value', value);
+						const keyBindings = await this.getKeyBindings();
 						window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {
-							goToDef: this.keyBindings[0].defaultKey,
-							rename: this.keyBindings[1].defaultKey
+							goToDef: keyBindings[0].defaultKey,
+							rename: keyBindings[1].defaultKey
 						};
 
 						window.app.settings.editor.keyBindings[keyBinding.storageKey] = value;
@@ -550,23 +553,24 @@ namespace ScriptEditElement {
 			};
 		};
 
-		static keyBindings: {
+		static async getKeyBindings(this: Polymer.ElementI18N): Promise<{
 			name: string;
 			defaultKey: string;
 			monacoKey: string;
 			storageKey: keyof CRM.KeyBindings;
-		}[] = [{
-				name: 'Go To Type Definition',
+		}[]> {
+			return [{
+				name: await this.__async(I18NKeys.options.editPages.code.goToDef),
 				defaultKey: 'Ctrl-F12',
 				monacoKey: 'editor.action.goToTypeDefinition',
 				storageKey: 'goToDef'
 			}, {
-				name: 'Rename Symbol',
+				name: await this.__async(I18NKeys.options.editPages.code.rename),
 				defaultKey: 'Ctrl-F2',
 				monacoKey: 'editor.action.rename',
 				storageKey: 'rename'
-			}
-		];
+			}];
+		}
 
 		private static _translateKeyCombination(this: NodeEditBehaviorScriptInstance, keys: string): number[] {
 			const monacoKeys: number[] = [];
@@ -619,8 +623,9 @@ namespace ScriptEditElement {
 		/**
 		 * Initializes the keybindings for the editor
 		 */
-		private static _initKeyBindings(this: NodeEditBehaviorScriptInstance) {
-			for (const keyBinding of this.keyBindings) {
+		private static async _initKeyBindings(this: NodeEditBehaviorScriptInstance) {
+			const keyBindings = await this.getKeyBindings();
+			for (const keyBinding of keyBindings) {
 				this._initKeyBinding(keyBinding);
 			}
 		};
@@ -628,7 +633,7 @@ namespace ScriptEditElement {
 		/**
 		 * Triggered when the monaco editor has been loaded, fills it with the options and fullscreen element
 		 */
-		static editorLoaded(this: NodeEditBehaviorScriptInstance) {
+		static async editorLoaded(this: NodeEditBehaviorScriptInstance) {
 			const editorManager = this.editorManager;
 			(editorManager.getTypeHandler() as any)[0].listen('metaChange', (_oldMetaTags: MetaBlock, newMetaTags: MetaBlock) => {
 				if (this.editorMode === 'main') {
@@ -645,8 +650,13 @@ namespace ScriptEditElement {
 			if (this.fullscreen) {
 				this.$.editorFullScreen.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 			}
+			await window.__.ready;
 			this._initKeyBindings();
 		};
+
+		onLangChanged(this: NodeEditBehaviorScriptInstance) {
+			this._initKeyBindings();
+		}
 
 		/**
 		 * Loads the monaco editor
@@ -655,12 +665,13 @@ namespace ScriptEditElement {
 			const placeHolder = $(this.$.editor);
 			this.editorHeight = placeHolder.height();
 			this.editorWidth = placeHolder.width();
+			const keyBindings = await this.getKeyBindings();
 			!window.app.settings.editor && (window.app.settings.editor = {
 				theme: 'dark',
 				zoom: '100',
 				keyBindings: {
-					goToDef: this.keyBindings[0].defaultKey,
-					rename: this.keyBindings[1].defaultKey
+					goToDef: keyBindings[0].defaultKey,
+					rename: keyBindings[1].defaultKey
 				},
 				cssUnderlineDisabled: false,
 				disabledMetaDataHighlight: false

@@ -360,7 +360,10 @@ namespace NodeEditBehaviorNamespace {
 			}
 
 			if (newStates.showInsteadOfExecute !== oldStates.showInsteadOfExecute) {
-				((this.$ as any)['showOrExecutetxt'] as HTMLSpanElement).innerText = (newStates.showInsteadOfExecute ? 'Show' : 'Execute');
+				((this.$ as any)['showOrExecutetxt'] as HTMLSpanElement).innerText = 
+					(newStates.showInsteadOfExecute ? 
+						await this.___(I18NKeys.options.editPages.code.showOn) : 
+						await this.___(I18NKeys.options.editPages.code.executeOn));
 			}
 			this.async(() => {
 				if (this.editorManager) {

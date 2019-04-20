@@ -3,6 +3,8 @@
 import { NodeEditBehaviorStylesheetInstance } from "../../node-edit-behavior/node-edit-behavior";
 import { Polymer } from '../../../../../tools/definitions/polymer';
 import { MetaBlock } from "../monaco-editor/monaco-editor";
+import { I18NKeys } from "../../../../_locales/i18n-keys";
+import { I18NClass } from "../../../../js/shared";
 
 declare const browserAPI: browserAPI;
 
@@ -17,7 +19,7 @@ namespace StylesheetEditElement {
 		}
 	} as any;
 
-	export class STE {
+	export class STE implements I18NClass {
 		static is: any = 'stylesheet-edit';
 
 		static behaviors: any = [window.Polymer.NodeEditBehavior, window.Polymer.CodeEditBehavior];
@@ -185,12 +187,17 @@ namespace StylesheetEditElement {
 			this.editorLoaded();
 		};
 
-		static init(this: NodeEditBehaviorStylesheetInstance) {
+		static async onLangChanged(this: NodeEditBehaviorStylesheetInstance) {
+			this.$.exportMenu.$.dropdownSelected.innerText = await this.__async(
+				I18NKeys.options.editPages.code.exportAs);
+		}
+
+		static async init(this: NodeEditBehaviorStylesheetInstance) {
 			this._init();
 			this._CEBIinit();
 			this.$.dropdownMenu.init();
 			this.$.exportMenu.init();
-			this.$.exportMenu.$.dropdownSelected.innerText = 'EXPORT AS';
+			await this.onLangChanged();
 			this.initDropdown();
 			this.selectorStateChange(0, this.newSettings.value.launchMode);
 			window.app.$.editorToolsRibbonContainer.classList.remove('editingScript');

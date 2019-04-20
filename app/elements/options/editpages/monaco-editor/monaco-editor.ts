@@ -2,6 +2,7 @@
 
 import { EncodedString, LinterWarning } from "../../../elements";
 import { Polymer } from '../../../../../tools/definitions/polymer';
+import { I18NKeys } from "../../../../_locales/i18n-keys";
 
 declare const browserAPI: browserAPI;
 declare const BrowserAPI: BrowserAPI;
@@ -14,44 +15,46 @@ export type MonacoEditorTSLibrariesMetaMods =
 	MonacoEditorElement.MonacoEditorTSLibrariesMetaMods;
 export type MetaBlock = MonacoEditorElement.MetaBlock;
 namespace MonacoEditorElement {
-	const metaDataDescriptions = {
-		name: 'The name of this script',
-		namespace: 'The namespace of the script',
-		version: 'The script version. This is used for the update check.',
-		author: 'The scripts author',
-		description: 'A short description.',
-		homepage: 'The author\'s homepage',
-		homepageURL: 'The author\'s homepage',
-		website : 'The author\'s homepage',
-		source: 'The author\'s homepage',
-		icon: 'The script\'s icon in low res',
-		iconURL : 'The script\'s icon in low res',
-		defaulticon: 'The script\'s icon in low res',
-		icon64: 'This scripts icon in 64x64 pixels.',
-		icon64URL: 'This scripts icon in 64x64 pixels.',
-		updateURL: 'An update URL for the userscript',
-		downloadURL: 'Defines the URL where the script will be downloaded from when an update was detected',
-		supportURL: 'Defines the URL where the user can report issues and get personal support',
-		include: 'The pages on which the script should run',
-		match: 'The pages on which the script should run',
-		exclude: 'Exclude URLs even if they are included by **@include** or **@match**',
-		require: 'Points to a javascript file that is loaded and executed before the script itself',
-		resource: 'Preloads resources that can be accessed by `GM_getResourceURL` and `GM_getResourceText` by the script',
-		connect: 'Domains which are allowed to be retrieved by `GM_xmlhttpRequest`',
-		'run_at': 'The moment the script is injected (document-start, document-body, document-end, document-idle or document-menu)',
-		'run-at': 'The moment the script is injected (document-start, document-body, document-end, document-idle or document-menu)',
-		grant: 'Whitelists given `GM_*` functions',
-		noframes: 'Makes the script run on the main page but not in iframes',
-		CRM_contentTypes: 'The content types on which to run this script as a 6 items long boolean array (e.g. [true, false, true, false, true, false]) (CRM ONLY)',
-		CRM_launchMode: 'When to run this script. 0 = Run on clicking, 1 = always run, 2 = run on specified, 3 = show on specified, 4 = disabled. (CRM ONLY)',
-		CRM_stylesheet: 'Interpret this as a stylesheet (userstyle) instead of a script (userscript). (CRM ONLY)',
-		CRM_toggle: 'A boolean value (true/false) indicating whether to allow toggling this stylesheet on or off. Only used when @CRM_stylesheet is present. (CRM ONLY)',
-		CRM_defaultOn: 'A boolean value (true/false) indicating whether this stylesheet is toggled on by default. Only used when @CRM_stylesheet and @CRM_toggle are present. (CRM ONLY)',
-		CRM_libraries: 'An array containing stringified objects with a "url" and a "name" key, pointing to external libraries used in this script.',
-		license: 'The license for this script. If none is supplied, it\'s under exclusive copyright by default',
-		preprocessor: 'The css preprocessor to use, choose from \'less\', \'stylus\', \'uso\' or \'default\'. For more info check out https://github.com/openstyles/stylus/wiki/Usercss#preprocessor',
-		var: 'A variable that can be changed by the user and is replaced when compiling the stylesheet'
-	};
+	function getMetaDescriptions() {
+		return {
+			name: window.__.sync(I18NKeys.options.editPages.metadata.name),
+			namespace: window.__.sync(I18NKeys.options.editPages.metadata.namespace),
+			version: window.__.sync(I18NKeys.options.editPages.metadata.version),
+			author: window.__.sync(I18NKeys.options.editPages.metadata.author),
+			description: window.__.sync(I18NKeys.options.editPages.metadata.description),
+			homepage: window.__.sync(I18NKeys.options.editPages.metadata.homepage),
+			homepageURL: window.__.sync(I18NKeys.options.editPages.metadata.homepageURL),
+			website: window.__.sync(I18NKeys.options.editPages.metadata.website),
+			source: window.__.sync(I18NKeys.options.editPages.metadata.source),
+			icon: window.__.sync(I18NKeys.options.editPages.metadata.icon),
+			iconURL: window.__.sync(I18NKeys.options.editPages.metadata.iconURL),
+			defaulticon: window.__.sync(I18NKeys.options.editPages.metadata.defaulticon),
+			icon64: window.__.sync(I18NKeys.options.editPages.metadata.icon64),
+			icon64URL: window.__.sync(I18NKeys.options.editPages.metadata.icon64URL),
+			updateURL: window.__.sync(I18NKeys.options.editPages.metadata.updateURL),
+			downloadURL: window.__.sync(I18NKeys.options.editPages.metadata.downloadURL),
+			supportURL: window.__.sync(I18NKeys.options.editPages.metadata.supportURL),
+			include: window.__.sync(I18NKeys.options.editPages.metadata.include),
+			match: window.__.sync(I18NKeys.options.editPages.metadata.match),
+			exclude: window.__.sync(I18NKeys.options.editPages.metadata.exclude),
+			require: window.__.sync(I18NKeys.options.editPages.metadata.require),
+			resource: window.__.sync(I18NKeys.options.editPages.metadata.resource),
+			connect: window.__.sync(I18NKeys.options.editPages.metadata.connect),
+			'run-at': window.__.sync(I18NKeys.options.editPages.metadata.runAt),
+			'run_at': window.__.sync(I18NKeys.options.editPages.metadata.runAt),
+			grant: window.__.sync(I18NKeys.options.editPages.metadata.grant),
+			noframes: window.__.sync(I18NKeys.options.editPages.metadata.noframes),
+			CRM_contentTypes: window.__.sync(I18NKeys.options.editPages.metadata.CRM_contentTypes),
+			CRM_launchMode: window.__.sync(I18NKeys.options.editPages.metadata.CRM_launchMode),
+			CRM_stylesheet: window.__.sync(I18NKeys.options.editPages.metadata.CRM_stylesheet),
+			CRM_toggle: window.__.sync(I18NKeys.options.editPages.metadata.CRM_toggle),
+			CRM_defaultOn: window.__.sync(I18NKeys.options.editPages.metadata.CRM_defaultOn),
+			CRM_libraries: window.__.sync(I18NKeys.options.editPages.metadata.CRM_libraries),
+			license: window.__.sync(I18NKeys.options.editPages.metadata.license),
+			preprocessor: window.__.sync(I18NKeys.options.editPages.metadata.preprocessor),
+			var: window.__.sync(I18NKeys.options.editPages.metadata.var)
+		};
+	}
 
 	abstract class EventEmitter<PubL extends string, PriL extends string> {
 		private _privateListenerMap: {
@@ -243,26 +246,34 @@ namespace MonacoEditorElement {
 					label: '==UserScript==',
 					kind: monaco.languages.CompletionItemKind.Property,
 					insertText: '==UserScript==',
-					detail: 'UserScript start tag',
-					documentation: 'The start tag for a UserScript metadata block'
+					detail: window.__.sync(
+						I18NKeys.options.editPages.monaco.scriptStart),
+					documentation: window.__.sync(
+						I18NKeys.options.editPages.monaco.startTagUserscript)
 				}, {
 					label: '==/UserScript==',
 					kind: monaco.languages.CompletionItemKind.Property,
 					insertText: '==/UserScript==',
-					detail: 'UserScript end tag',
-					documentation: 'The end tag for a UserScript metadata block'
+					detail: window.__.sync(
+						I18NKeys.options.editPages.monaco.scriptEnd),
+					documentation: window.__.sync(
+						I18NKeys.options.editPages.monaco.endTagUserscript)
 				}, {
 					label: '==UserStyle==',
 					kind: monaco.languages.CompletionItemKind.Property,
 					insertText: '==UserStyle==',
-					detail: 'UserStyle start tag',
-					documentation: 'The start tag for a UserStyle metadata block'
+					detail: window.__.sync(
+						I18NKeys.options.editPages.monaco.styleStart),
+					documentation: window.__.sync(
+						I18NKeys.options.editPages.monaco.startTagUserstyle)
 				}, {
 					label: '==/UserStyle==',
 					kind: monaco.languages.CompletionItemKind.Property,
 					insertText: '==/UserStyle==',
-					detail: 'UserStyle end tag',
-					documentation: 'The end tag for a UserStyle metadata block'
+					detail: window.__.sync(
+						I18NKeys.options.editPages.monaco.styleEnd),
+					documentation: window.__.sync(
+						I18NKeys.options.editPages.monaco.endTagUserstyle)
 				}];
 			}
 		}
@@ -294,19 +305,21 @@ namespace MonacoEditorElement {
 								const matchRange = new monaco.Range(position.lineNumber, matchIndex, 
 									position.lineNumber, matchIndex + match[0].length);
 								if (matchRange.containsPosition(position)) {
+									const descriptions = getMetaDescriptions();
 									return {
 										isIncomplete: true,
-										items: Object.getOwnPropertyNames(metaDataDescriptions).map((key: keyof typeof metaDataDescriptions) => {
-											const description = metaDataDescriptions[key];
+										items: Object.getOwnPropertyNames(descriptions).map((key: keyof typeof descriptions) => {
+											const description = descriptions[key];
 											return {
 												label: `@${key}`,
 												kind: monaco.languages.CompletionItemKind.Property,
 												insertText: `@${key}`,
-												detail: 'Metadata key',
+												detail: window.__.sync(
+													I18NKeys.options.editPages.monaco.metaKey),
 												documentation: description
 											}
 										})
-									}
+									};
 								}
 							}
 							length += partialStr.length;
@@ -380,7 +393,7 @@ namespace MonacoEditorElement {
 			if (!this._isDiff(this._editor)) {
 				this._disposables.push(this._editor.addAction({
 					id: 'disable-metadata-highlight',
-					label: 'Disable Metadata Highlight',
+					label: window.__.sync(I18NKeys.options.editPages.monaco.disableMeta),
 					run: () => {
 						this._isMetaDataHighlightDisabled = true;
 					}
@@ -389,7 +402,7 @@ namespace MonacoEditorElement {
 			if (!this._isDiff(this._editor)) {
 				this._disposables.push(this._editor.addAction({
 					id: 'enable-metadata-highlight',
-					label: 'Enable Metadata Highlight',
+					label: window.__.sync(I18NKeys.options.editPages.monaco.enableMeta),
 					run: () => {
 						this._isMetaDataHighlightDisabled = false;
 					}
@@ -622,10 +635,13 @@ namespace MonacoEditorElement {
 		}
 
 		private _getKeyDescription(metaKey: string) {
-			if (metaKey in metaDataDescriptions) {
-				return `Metadata key \`${metaKey}\`:\n${metaDataDescriptions[metaKey as keyof typeof metaDataDescriptions]}`;
+			const descriptions = getMetaDescriptions();
+			if (metaKey in descriptions) {
+				return window.__.sync(I18NKeys.options.editPages.monaco.keyDescription,
+					metaKey, descriptions[metaKey as keyof typeof descriptions]);
 			}
-			return `Metadata key \`${metaKey}\`, unknown key`;
+			return window.__.sync(I18NKeys.options.editPages.monaco.keyDescriptionUnknown,
+				metaKey);
 		}
 
 		private _isInMetaRange(range: monaco.IRange) {
@@ -702,7 +718,8 @@ namespace MonacoEditorElement {
 							options: {
 								stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
 								inlineClassName: 'userScriptValueHighlight',
-								hoverMessage: `Value \`${value}\` for key \`${key}\``,
+								hoverMessage: window.__.sync(
+									I18NKeys.options.editPages.monaco.valueForKey, value, key),
 								isWholeLine: false
 							}
 						});
@@ -876,14 +893,16 @@ namespace MonacoEditorElement {
 			if (!this._isDiff(this._editor)) {
 				this._disposables.push(this._editor.addAction({
 					id: 'disable-css-underline',
-					label: 'Disable CSS underline',
+					label: window.__.sync(
+						I18NKeys.options.editPages.monaco.disableUnderline),
 					run: () => {
 						this._underlineDisabled = true;
 					}
 				}));
 				this._disposables.push(this._editor.addAction({
 					id: 'enable-css-underline',
-					label: 'Enable CSS Underline',
+					label: window.__.sync(
+						I18NKeys.options.editPages.monaco.enableUnderline),
 					run: () => {
 						this._underlineDisabled = false;
 					}
@@ -1254,36 +1273,42 @@ namespace MonacoEditorElement {
 					}
 				},
 				additionalProperties: {
-					title: 'The name of the option',
+					title: window.__.sync(I18NKeys.options.editPages.monaco.optionName),
 					type: 'object',
 					oneOf: [{
 						type: 'object',
 						properties: {
 							type: {
-								title: 'A number type option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.numberOption),
 								type: 'string',
 								enum: ['number']
 							},
 							minimum: {
-								title: 'The minimum value of the number',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.minValue),
 								type: 'number'
 							},
 							maximum: {
-								title: 'The maximum value of the number',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.maxValue),
 								type: 'number'
 							},
 							descr: {
-								title: 'A description for this option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.descr),
 								type: 'string'
 							},
 							defaultValue: {
-								title: 'The default value for this option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.defaultValue),
 								type: 'number'
 							},
 							value: {
-								title: 'The value of this option (set to null for unset)',
-								description: 'The value of this option, changing it here will have the' + 
-									' same effect as changing it in the options dialog',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.value),
+								description: window.__.sync(
+									I18NKeys.options.editPages.monaco.valueExpanded),
 								type: ['number', 'null']
 							}
 						}
@@ -1291,30 +1316,36 @@ namespace MonacoEditorElement {
 						type: 'object',
 						properties: {
 							type: {
-								title: 'A string type option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.stringOption),
 								type: 'string',
 								enum: ['string']
 							},
 							maxLength: {
-								title: 'The maximum length of the string',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.maxLength),
 								type: 'number'
 							},
 							format: {
-								title: 'A regex format that the string has to follow',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.format),
 								type: 'string'
 							},
 							descr: {
-								title: 'A description for this option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.descr),
 								type: 'string'
 							},
 							defaultValue: {
-								title: 'The default value for this option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.defaultValue),
 								type: 'string'
 							},
 							value: {
-								title: 'The value of this option (set to null for unset)',
-								description: 'The value of this option, changing it here will have the' + 
-									' same effect as changing it in the options dialog',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.value),
+								description: window.__.sync(
+									I18NKeys.options.editPages.monaco.valueExpanded),
 								type: ['string', 'null']
 							}
 						}
@@ -1322,20 +1353,24 @@ namespace MonacoEditorElement {
 						type: 'object',
 						properties: {
 							type: {
-								title: 'A choice type option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.choiceOption),
 								type: 'string',
 								enum: ['choice']
 							},
 							selected: {
-								title: 'The selected value\'s index',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.selected),
 								type: 'number'
 							},
 							descr: {
-								title: 'A description for this option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.descr),
 								type: 'string'
 							},
 							values: {
-								title: 'The possible values of this option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.values),
 								type: 'array',
 								items: {
 									type: ['string', 'number']
@@ -1346,22 +1381,26 @@ namespace MonacoEditorElement {
 						type: 'object',
 						properties: {
 							type: {
-								title: 'A choice type option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.colorOption),
 								type: 'string',
 								enum: ['color']
 							},
 							descr: {
-								title: 'A description for this option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.descr),
 								type: 'string'
 							},
 							defaultValue: {
-								title: 'The default value for this option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.defaultValue),
 								type: 'string'
 							},
 							value: {
-								title: 'The value of this option (set to null for unset)',
-								description: 'The value of this option, changing it here will have the' + 
-									' same effect as changing it in the options dialog',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.value),
+								description: window.__.sync(
+									I18NKeys.options.editPages.monaco.valueExpanded),
 								type: ['string', 'null']
 							}
 						}
@@ -1369,22 +1408,26 @@ namespace MonacoEditorElement {
 						type: 'object',
 						properties: {
 							type: {
-								title: 'A boolean type option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.booleanOption),
 								type: 'string',
 								enum: ['boolean']
 							},
 							descr: {
-								title: 'A description for this option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.descr),
 								type: 'string'
 							},
 							defaultValue: {
-								title: 'The default value for this option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.defaultValue),
 								type: 'boolean'
 							},
 							value: {
-								title: 'The value of this option (set to null for unset)',
-								description: 'The value of this option, changing it here will have the' + 
-									' same effect as changing it in the options dialog',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.value),
+								description: window.__.sync(
+									I18NKeys.options.editPages.monaco.valueExpanded),
 								type: ['boolean', 'null']
 							}
 						}
@@ -1392,34 +1435,40 @@ namespace MonacoEditorElement {
 						type: 'object',
 						properties: {
 							type: {
-								title: 'An array type option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.arrayOption),
 								type: 'string',
 								enum: ['array']
 							},
 							maxItems: {
-								title: 'The maximum number of array items',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.maxItems),
 								type: 'number'
 							},
 							items: {
-								title: 'The type of items this array contains (array or string)',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.items),
 								type: 'string',
 								enum: ['string', 'number']
 							},
 							descr: {
-								title: 'A description for this option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.descr),
 								type: 'string'
 							},
 							defaultValue: {
-								title: 'The default value for this option',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.defaultValue),
 								type: 'array',
 								items: {
 									type: ['string', 'number']
 								}
 							},
 							value: {
-								title: 'The value of this option (set to null for unset)',
-								description: 'The value of this option, changing it here will have the' + 
-									' same effect as changing it in the options dialog',
+								title: window.__.sync(
+									I18NKeys.options.editPages.monaco.value),
+								description: window.__.sync(
+									I18NKeys.options.editPages.monaco.valueExpanded),
 								type: ['array', 'null'],
 								items: {
 									type: ['string', 'number']
@@ -2726,9 +2775,11 @@ namespace MonacoEditorElement {
 				await MonacoEditorHookManager.Libraries.runFile('js/libraries/jslint.js');
 				this._showLintResults('jslint', this._runJsLint());
 			} else if (this._typeIsTS(type)) {
-				alert('No linting possible in typescript mode');
+				alert(await window.__(I18NKeys.options.editPages.monaco.lintingDisabled,
+					'typescript'));
 			} else if (this._typeIsLESS(type)) {
-				alert('No linting possible in LESS/stylus mode');
+				alert(await window.__(I18NKeys.options.editPages.monaco.lintingDisabled,
+					'LESS/stylus'));
 			} else if (this._typeIsCss(type)) {
 				await MonacoEditorHookManager.Libraries.runFile('js/libraries/csslint.js');
 				this._showLintResults('csslint', this._runCssLint());
@@ -3004,23 +3055,27 @@ namespace MonacoEditorElement {
 				kind: monaco.languages.CompletionItemKind.Property,
 				insertText: '==UserScript==',
 				detail: 'UserScript start tag',
-				documentation: 'The start tag for a UserScript metadata block'
+				documentation: window.__.sync(
+					I18NKeys.options.editPages.monaco.startTagUserscript)
 			}, {
 				label: '==/UserScript==',
 				kind: monaco.languages.CompletionItemKind.Property,
 				insertText: '==/UserScript==',
 				detail: 'UserScript end tag',
-				documentation: 'The end tag for a UserScript metadata block'
+				documentation: window.__.sync(
+					I18NKeys.options.editPages.monaco.endTagUserscript)
 			}] as monaco.languages.CompletionItem[];
+			const descriptions = getMetaDescriptions();
 			const keyCompletions = {
 				isIncomplete: true,
-				items: Object.getOwnPropertyNames(metaDataDescriptions).map((key: keyof typeof metaDataDescriptions) => {
-					const description = metaDataDescriptions[key];
+				items: Object.getOwnPropertyNames(descriptions).map((key: keyof typeof descriptions) => {
+					const description = descriptions[key];
 					return {
 						label: `@${key}`,
 						kind: monaco.languages.CompletionItemKind.Property,
 						insertText: `@${key}`,
-						detail: 'Metadata key',
+						detail: window.__.sync(
+							I18NKeys.options.editPages.monaco.metaKey),
 						documentation: description
 					}
 				})
@@ -3169,7 +3224,8 @@ namespace MonacoEditorElement {
 		private static _captureMonacoErrors() {
 			window.onerror = (_msg, filename) => {
 				if (filename.indexOf('vs/editor/editor.main.js') > -1) {
-					console.log('Caught monaco editor error (ignore these)');
+					console.log(window.__.sync(
+						I18NKeys.options.editPages.monaco.monacoError));
 					return true;
 				}
 				return undefined;
