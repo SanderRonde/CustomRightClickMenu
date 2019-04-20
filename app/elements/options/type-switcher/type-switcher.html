@@ -12,7 +12,7 @@
 		</div>
 		<div id="typeSwitchChoicesContainer">
 			<template is="dom-repeat" items="{{remainingTypes}}" as="remainingType">
-				<div on-tap="changeType" class="typeSwitchChoice">
+				<div on-tap="changeType" class="typeSwitchChoice" title="[[getTitle(remainingType)]]">
 					<span class="typeSwitchChoiceTxt">[[remainingType]]</span>
 				</div>
 			</template>

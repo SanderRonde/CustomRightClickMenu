@@ -3266,6 +3266,18 @@ export const Messages: I18NBranch = {
 						'(and lack thereof)'
 				}
 			}
+		},
+		typeSwitcher: {
+			title: {
+				message: 'Change type to $TYPE$',
+				description: 'Changes the type of this node to another type',
+				placeholders: {
+					type: {
+						content: '$1',
+						example: 'Script'
+					}
+				}
+			}
 		}
 	}
 }
