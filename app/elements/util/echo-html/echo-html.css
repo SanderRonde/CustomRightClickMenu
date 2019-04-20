@@ -20,3 +20,7 @@ a:focus::before {
 	right: -4px;
 	top: -4px;
 }
+
+#content.inline {
+	display: inline;
+}

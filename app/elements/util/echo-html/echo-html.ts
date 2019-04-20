@@ -6,6 +6,7 @@ namespace EchoHtmlElement {
 	export const echoHtmlProperties: {
 		html: string;
 		makelink: boolean;
+		inline: boolean;
 	} = {
 		html: {
 			type: String,
@@ -13,6 +14,10 @@ namespace EchoHtmlElement {
 			observer: 'htmlChanged'
 		},
 		makelink: {
+			type: Boolean,
+			value: false
+		},
+		inline: {
 			type: Boolean,
 			value: false
 		}
@@ -42,6 +47,9 @@ namespace EchoHtmlElement {
 
 		static ready(this: EchoHtml) {
 			this.htmlChanged();
+			if (this.inline) {
+				this.$.content.classList.add('inline');
+			}
 		}
 	}
 
