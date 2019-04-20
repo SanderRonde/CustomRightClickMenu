@@ -262,6 +262,7 @@ namespace TypeSwitcherElement {
 			//Update color
 			editCrmEl.type = item.type;
 			editCrmEl.calculateType();
+			editCrmEl.updateName(item.name);
 			this.onReady();
 
 			let i;
