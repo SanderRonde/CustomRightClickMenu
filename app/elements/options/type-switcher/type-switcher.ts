@@ -286,7 +286,7 @@ namespace TypeSwitcherElement {
 			this.closeTypeSwitchContainer(true);
 			window.app.upload();
 
-			window.app.uploading.showRevertPointToast(revertPoint, 150000);
+			window.app.uploading.showRevertPointToast(revertPoint, 15000);
 		}
 	}
 
