@@ -553,6 +553,25 @@ namespace ScriptEditElement {
 			};
 		};
 
+		static getKeyBindingsSync(this: Polymer.ElementI18N): {
+			name: string;
+			defaultKey: string;
+			monacoKey: string;
+			storageKey: keyof CRM.KeyBindings;
+		}[] {
+			return [{
+				name: this.___(I18NKeys.options.editPages.code.goToDef),
+				defaultKey: 'Ctrl-F12',
+				monacoKey: 'editor.action.goToTypeDefinition',
+				storageKey: 'goToDef'
+			}, {
+				name: this.___(I18NKeys.options.editPages.code.rename),
+				defaultKey: 'Ctrl-F2',
+				monacoKey: 'editor.action.rename',
+				storageKey: 'rename'
+			}];
+		}
+
 		static async getKeyBindings(this: Polymer.ElementI18N): Promise<{
 			name: string;
 			defaultKey: string;

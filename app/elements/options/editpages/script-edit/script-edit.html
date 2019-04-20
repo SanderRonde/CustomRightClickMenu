@@ -320,7 +320,7 @@
 															<br />
 															<div id="keyBindingsText" class="editorSettingsTxt">[[__(lang, langReady, 'options_editPages_code_keyBindings')]]</div>
 															<div id="keyBindingsContainer">
-																<template id="keyBindingsTemplate" is="dom-repeat" items="{{getKeyBindings(lang, langReady)}}" as="keyBinding">
+																<template id="keyBindingsTemplate" is="dom-repeat" items="{{getKeyBindingsSync(lang, langReady)}}" as="keyBinding">
 																	<div class="keyBinding">
 																		<div>
 																			<paper-input data-index="{{itemIndex}}" on-keydown="onKeyBindingKeyDown" label="{{keyBinding.name}}" value="{{getKeyBindingValue(keyBinding)}}" class="keyBindingSettingKeyInput"></paper-input>
