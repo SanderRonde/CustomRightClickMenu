@@ -114,7 +114,7 @@ namespace CrmEditPageElement {
 					I18NKeys.options.crmEditPage.createdOn : 
 					I18NKeys.options.crmEditPage.installedOn,
 				`<b title="${
-					this.getInstallDateTextFormat()
+					this.getInstallDate()
 				}">${this.nodeInfo.installDate}</b>`)
 		}
 
@@ -266,19 +266,20 @@ namespace CrmEditPageElement {
 			chooseDialog.open();
 		};
 
-		static getInstallDateTextFormat(this: CrmEditPage) {
-			if (window.Intl && typeof window.Intl === 'object' && this.nodeInfo) {
-				const format = (new Date(2016, 1, 13).toLocaleDateString() === '13-2-2016' ? 'eu' : 'na');
-				let date;
-				if (format === 'eu') {
-					date = this.nodeInfo.installDate.split('-');
-					date = date[1] + '-' + date[0] + '-' + date[2];
-				} else {
-					date = this.nodeInfo.installDate;
+		static getInstallDate(this: CrmEditPage) {
+			if (window.Intl && typeof window.Intl === 'object' && this.nodeInfo &&
+				this.nodeInfo.installDate) {
+					const format = (new Date(2016, 1, 13).toLocaleDateString() === '13-2-2016' ? 'eu' : 'na');
+					let date;
+					if (format === 'eu') {
+						date = this.nodeInfo.installDate.split('-');
+						date = date[1] + '-' + date[0] + '-' + date[2];
+					} else {
+						date = this.nodeInfo.installDate;
+					}
+					date = new Date(date);
+					return Math.floor(new Date(Date.now() - date.getMilliseconds()).getMilliseconds() / (1000 * 60 * 60 * 24)) + ' days ago';
 				}
-				date = new Date(date);
-				return Math.floor(new Date(Date.now() - date.getMilliseconds()).getMilliseconds() / (1000 * 60 * 60 * 24)) + ' days ago';
-			}
 			return null;
 		};
 
