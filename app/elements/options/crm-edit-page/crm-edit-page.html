@@ -38,16 +38,16 @@
 							</span>
 							<span hidden$="[[isLocal(nodeInfo.source)]]">
 								<span id="nodeInfoAuthor">
-									<echo-html html="[[__(lang, langReady, 'options_crmEditPage_createdBy', nodeInfo.source.author)]"></echo-html>
+									<echo-html inline html="[[__(lang, langReady, 'options_crmEditPage_createdBy', nodeInfo.source.author)]"></echo-html>
 								</span>
-								<echo-html html="[[__(lang, langReady, 'options_crmEditPage_installedFrom', nodeInfo.source.url)]]"></echo-html>
+								<echo-html inline html="[[__(lang, langReady, 'options_crmEditPage_installedFrom', nodeInfo.source.url)]]"></echo-html>
 							</span>
 							<span hidden$="[[!isLocal(nodeInfo.source)]]">
-								<echo-html html="[[getCreatedBy(lang, langReady)]]"></echo-html>
+								<echo-html inline html="[[getCreatedBy(lang, langReady)]]"></echo-html>
 							</span>
 						</div>
 						<div id="nodeInfoSource" hidden$="[[!hasInstallDate(nodeInfo)]]">
-							<echo-html html="[[nodeInfoSource(lang, langReady, nodeInfo)]]"></echo-html>
+							<echo-html inline html="[[nodeInfoSource(lang, langReady, nodeInfo)]]"></echo-html>
 						</div>
 					</div>
 				</div>
