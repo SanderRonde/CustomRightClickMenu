@@ -742,10 +742,12 @@ class Tasks {
 					@rootTask('i18nDefs', 'Generates definitions files based on i18n files')
 					static defs = series(
 						I18N.compileTS,
-						parallel(
-							Defs.genEnums,
-							Defs.genSpec
-						)
+						Defs.genEnums
+					)
+
+					@rootTask('i18nSpec', 'Generates language spec')
+					static spec = series(
+						Defs.genSpec
 					)
 
 					private static _activeTask: Promise<any>;
