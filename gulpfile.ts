@@ -850,7 +850,6 @@ class Tasks {
 			@rootTask('i18n', 
 				'Compiles I18N files and generates spec and enum files')
 			static i18n = series(
-				I18N.Defs.genSpec,
 				I18N.Defs.genEnums,
 				I18N.Compile.compile
 			)
