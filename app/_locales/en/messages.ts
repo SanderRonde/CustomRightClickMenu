@@ -2583,7 +2583,7 @@ export const Messages: I18NBranch = {
 						'completed. Try to keep this short'
 				},
 				enterSearchQuery: {
-					message: 'Please enter a seach query',
+					message: 'Please enter a search query',
 					description: 'Prompt shown to the user when they need to ' +
 						'add a search query'
 				},
