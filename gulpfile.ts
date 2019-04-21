@@ -1675,27 +1675,20 @@ class Tasks {
 										}).pipe(gulp.dest('build/elements/options/editpages/monaco-editor/src/min/'));
 									}
 
-									@describe('Copies non-JS files from monaco to build/ and uglifies them')
+									@describe('Copies non-JS files from monaco to build/')
 									static nonjs() {
-										return cache('monaco-post-nonjs', () => {
-											return gulp
-												.src([
-													'**/**',
-													'!**/**/*.js',
-													'!vs/basic-languages/src/**'
-												], {
-														base: 'node_modules/monaco-editor/min',
-														cwd: 'node_modules/monaco-editor/min'
-													})
-												.pipe(replace(/node = node\.parentNode/g,
-													'node = node.parentNode || node.host'))
-												.pipe(replace(/document\.body/g,
-													'MonacoEditorHookManager.getLocalBodyShadowRoot'))
-												.pipe(replace(/document\.caretRangeFromPoint/g,
-													'MonacoEditorHookManager.caretRangeFromPoint(arguments[0])'))
-												.pipe(replace(/this.target(\s)?=(\s)?e.target/g,
-													'this.target = e.path ? e.path[0] : e.target'))
-										}).pipe(gulp.dest('build/elements/options/editpages/monaco-editor/src/min/'));
+										return gulp
+											.src([
+												'**/**',
+												'!**/**/*.js',
+												'!vs/basic-languages/src/**'
+											], {
+												base: 'node_modules/monaco-editor/min',
+												cwd: 'node_modules/monaco-editor/min'
+											})
+											.pipe(
+												gulp.dest(
+													'build/elements/options/editpages/monaco-editor/src/min/'));
 									}
 
 									@subTask('Operations related to copying monaco')
