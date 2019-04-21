@@ -611,7 +611,6 @@ class Tasks {
 					'	description?: string;',
 					'	placeholders?: {',
 					'		[key: string]: {',
-					'			key: string;',
 					'			example?: string;',
 					'			content: string;',
 					'		}',
