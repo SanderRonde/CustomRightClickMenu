@@ -122,7 +122,7 @@ namespace LogConsoleElement {
 			let tabId = (target.children[0] as HTMLElement).innerText;
 			
 			const tab = await browserAPI.tabs.get(~~tabId).catch(async () => {
-				window.logConsole.$.genericToast.text = await this.__async(I18NKeys.logging.tab_closed);
+				window.logConsole.$.genericToast.text = await this.__async(I18NKeys.logging.tabClosed);
 				window.logConsole.$.genericToast.show();
 			});
 			if (!tab) {
@@ -140,7 +140,7 @@ namespace LogConsoleElement {
 				}, async () => {
 					if ((window as any).chrome.runtime.lastError) {
 						console.log((window as any).chrome.runtime.lastError);
-						console.log(await this.__async(I18NKeys.logging.something_went_wrong));
+						console.log(await this.__async(I18NKeys.logging.somethingWentWrong));
 					}
 				});
 			}

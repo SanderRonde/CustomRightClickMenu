@@ -275,7 +275,7 @@ export namespace Resources {
 		scriptId: CRM.NodeId<CRM.ScriptNode>;
 	}) {
 		return async () => {
-			window.info(await window.__(I18NKeys.background.init.resource_update));
+			window.info(await window.__(I18NKeys.background.init.resourceUpdate));
 			compareResource(resourceKey);
 		};
 	}

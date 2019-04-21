@@ -515,7 +515,7 @@ namespace CRMAppElement {
 		static _getPageTitle(this: CrmApp): string {
 			return this._isDemo() ?
 				'Demo, actual right-click menu does NOT work in demo' :
-				this.___(I18NKeys.generic.app_title);
+				this.___(I18NKeys.generic.appTitle);
 		}
 
 		static _isOldChrome() {
@@ -4561,27 +4561,27 @@ namespace CRMAppElement {
 					browser: this.parent().___(I18NKeys.permissions.browser),
 
 					//Tampermonkey APIs
-					GM_addStyle: this.parent().___(I18NKeys.permissions.GM_addStyle),
-					GM_deleteValue: this.parent().___(I18NKeys.permissions.GM_deleteValue),
-					GM_listValues: this.parent().___(I18NKeys.permissions.GM_listValues),
-					GM_addValueChangeListener: this.parent().___(I18NKeys.permissions.GM_addValueChangeListener),
-					GM_removeValueChangeListener: this.parent().___(I18NKeys.permissions.GM_removeValueChangeListener),
-					GM_setValue: this.parent().___(I18NKeys.permissions.GM_setValue),
-					GM_getValue: this.parent().___(I18NKeys.permissions.GM_getValue),
-					GM_log: this.parent().___(I18NKeys.permissions.GM_log),
-					GM_getResourceText: this.parent().___(I18NKeys.permissions.GM_getResourceText),
-					GM_getResourceURL: this.parent().___(I18NKeys.permissions.GM_getResourceURL),
-					GM_registerMenuCommand: this.parent().___(I18NKeys.permissions.GM_registerMenuCommand),
-					GM_unregisterMenuCommand: this.parent().___(I18NKeys.permissions.GM_unregisterMenuCommand),
-					GM_openInTab: this.parent().___(I18NKeys.permissions.GM_openInTab),
-					GM_xmlhttpRequest: this.parent().___(I18NKeys.permissions.GM_xmlhttpRequest),
-					GM_download: this.parent().___(I18NKeys.permissions.GM_download),
-					GM_getTab: this.parent().___(I18NKeys.permissions.GM_getTab),
-					GM_saveTab: this.parent().___(I18NKeys.permissions.GM_saveTab),
-					GM_getTabs: this.parent().___(I18NKeys.permissions.GM_getTabs),
-					GM_notification: this.parent().___(I18NKeys.permissions.GM_notification),
-					GM_setClipboard: this.parent().___(I18NKeys.permissions.GM_setClipboard),
-					GM_info: this.parent().___(I18NKeys.permissions.GM_info),
+					GM_addStyle: this.parent().___(I18NKeys.permissions.GMAddStyle),
+					GM_deleteValue: this.parent().___(I18NKeys.permissions.GMDeleteValue),
+					GM_listValues: this.parent().___(I18NKeys.permissions.GMListValues),
+					GM_addValueChangeListener: this.parent().___(I18NKeys.permissions.GMAddValueChangeListener),
+					GM_removeValueChangeListener: this.parent().___(I18NKeys.permissions.GMRemoveValueChangeListener),
+					GM_setValue: this.parent().___(I18NKeys.permissions.GMSetValue),
+					GM_getValue: this.parent().___(I18NKeys.permissions.GMGetValue),
+					GM_log: this.parent().___(I18NKeys.permissions.GMLog),
+					GM_getResourceText: this.parent().___(I18NKeys.permissions.GMGetResourceText),
+					GM_getResourceURL: this.parent().___(I18NKeys.permissions.GMGetResourceURL),
+					GM_registerMenuCommand: this.parent().___(I18NKeys.permissions.GMRegisterMenuCommand),
+					GM_unregisterMenuCommand: this.parent().___(I18NKeys.permissions.GMUnregisterMenuCommand),
+					GM_openInTab: this.parent().___(I18NKeys.permissions.GMOpenInTab),
+					GM_xmlhttpRequest: this.parent().___(I18NKeys.permissions.GMXmlhttpRequest),
+					GM_download: this.parent().___(I18NKeys.permissions.GMDownload),
+					GM_getTab: this.parent().___(I18NKeys.permissions.GMGetTab),
+					GM_saveTab: this.parent().___(I18NKeys.permissions.GMSaveTab),
+					GM_getTabs: this.parent().___(I18NKeys.permissions.GMGetTabs),
+					GM_notification: this.parent().___(I18NKeys.permissions.GMNotification),
+					GM_setClipboard: this.parent().___(I18NKeys.permissions.GMSetClipboard),
+					GM_info: this.parent().___(I18NKeys.permissions.GMInfo),
 					unsafeWindow: this.parent().___(I18NKeys.permissions.unsafeWindow)
 				};
 

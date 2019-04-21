@@ -216,7 +216,7 @@ export namespace CRMNodes.Script.Handler {
 				newScript.runAt = runAt;
 			} else {
 				window.logAsync(
-					window.__(I18NKeys.background.crm.invalid_runat, 
+					window.__(I18NKeys.background.crm.invalidRunat, 
 						id + '', runAt));
 			}
 
@@ -242,7 +242,7 @@ export namespace CRMNodes.Script.Handler {
 						await browserAPI.tabs.executeScript(tabId, ensureRunAt(nodeId, script)).catch((err) => {
 							if (err.message.indexOf('Could not establish connection') === -1 &&
 								err.message.indexOf('closed') === -1) {
-									window.logAsync(window.__(I18NKeys.background.crm.execution_failed,
+									window.logAsync(window.__(I18NKeys.background.crm.executionFailed,
 										tabId, nodeId), err);
 							}
 						});
@@ -576,10 +576,10 @@ export namespace CRMNodes.Script.Background {
 			isRestart = true;
 
 			await modules.Logging.backgroundPageLog(node.id, null,
-				await window.__(I18NKeys.background.crm.restarting_background_page));
+				await window.__(I18NKeys.background.crm.restartingBackgroundPage));
 			modules.background.byId.get(node.id).terminate();
 			modules.Logging.backgroundPageLog(node.id, null,
-				await window.__(I18NKeys.background.crm.terminated_background_page));
+				await window.__(I18NKeys.background.crm.terminatedBackgroundPage));
 		}
 
 		if (modules.background.byId.has(node.id)) {
@@ -601,7 +601,7 @@ export namespace CRMNodes.Script.Background {
 		}
 		if (err) {
 
-			window.logAsync(window.__(I18NKeys.background.crm.setup_error, node.id), err);
+			window.logAsync(window.__(I18NKeys.background.crm.setupError, node.id), err);
 			throw err;
 		}
 
@@ -686,7 +686,7 @@ export namespace CRMNodes.Script.Background {
 		modules.Util.asyncIterateMap(modules.crm.crmById, async (_nodeId, node) => {
 			if (node.type === 'script' && node.value.backgroundScript.length > 0) {
 				if (isValidBackgroundPage(node)) {
-					window.info(await window.__(I18NKeys.background.crm.created_background_page,
+					window.info(await window.__(I18NKeys.background.crm.createdBackgroundPage,
 						node.id));
 				}
 				await createBackgroundPage(node);
@@ -1275,17 +1275,17 @@ export namespace CRMNodes.Script.Updating {
 								}
 
 							} catch (err) {
-								window.logAsync(window.__(I18NKeys.background.crm.update_download_404,
+								window.logAsync(window.__(I18NKeys.background.crm.updateDownload404,
 									'script', node.id, node.name));
 							}
 							resolve(null);
 						}, () => {
-							window.logAsync(window.__(I18NKeys.background.crm.update_download_404,
+							window.logAsync(window.__(I18NKeys.background.crm.updateDownload404,
 								'script', node.id, node.name));
 							resolve(null);
 						});
 					} catch (e) {
-						window.logAsync(window.__(I18NKeys.background.crm.update_download_404,
+						window.logAsync(window.__(I18NKeys.background.crm.updateDownload404,
 							'script', node.id, node.name));
 						resolve(null);
 					}
@@ -1508,7 +1508,7 @@ export namespace CRMNodes.Stylesheet.Updating {
 						resolve(null);
 					}
 				}, () => {
-					window.logAsync(window.__(I18NKeys.background.crm.update_download_404,
+					window.logAsync(window.__(I18NKeys.background.crm.updateDownload404,
 						'stylesheet', node.id, node.name));
 					resolve(null);
 				});
@@ -1565,7 +1565,7 @@ export namespace CRMNodes.Stylesheet.Options {
 		while ((match = _variableRegex.exec(stylesheet))) {
 			const name = match[1];
 			if (!(name in options)) {
-				window.logAsync(window.__(I18NKeys.background.crm.option_not_found,
+				window.logAsync(window.__(I18NKeys.background.crm.optionNotFound,
 					name, id));
 				//Prevent it from matching again
 				stylesheet = stylesheet.replace(_variableRegex, `/*[${name}]*/`);
@@ -1765,7 +1765,7 @@ export namespace CRMNodes.Stylesheet.Options {
 				if (!err) {
 					resolve(result.toCSS());
 				} else {
-					window.logAsync(`${window.__(I18NKeys.background.crm.css_compile_error,
+					window.logAsync(`${window.__(I18NKeys.background.crm.cssCompileError,
 						'less', id)}:`, err.name, err.message);
 					resolve(stylesheet);;
 				}
@@ -1778,7 +1778,7 @@ export namespace CRMNodes.Stylesheet.Options {
 				if (!err) {
 					resolve(result.trim());
 				} else {
-					window.logAsync(`${window.__(I18NKeys.background.crm.css_compile_error,
+					window.logAsync(`${window.__(I18NKeys.background.crm.cssCompileError,
 						'stylus', id)}:`, err.name, err.message);
 					resolve(stylesheet);;
 				}
@@ -2366,17 +2366,17 @@ export namespace CRMNodes.NodeCreation {
 			id: number|string;
 		}) {
 			if (options.documentUrlPatterns) {
-				window.logAsync(window.__(I18NKeys.background.crm.contextmenu_error_retry), e);
+				window.logAsync(window.__(I18NKeys.background.crm.contextmenuErrorRetry), e);
 				delete options.documentUrlPatterns;
 				idHolder.id = await browserAPI.contextMenus.create(options, async () => {
 					idHolder.id = await browserAPI.contextMenus.create({
 						title: 'ERROR',
 						onclick: createOptionsPageHandler()
 					});
-					window.logAsync(window.__(I18NKeys.background.crm.contextmenu_error), e);
+					window.logAsync(window.__(I18NKeys.background.crm.contextmenuError), e);
 				});
 			} else {
-				window.logAsync(window.__(I18NKeys.background.crm.contextmenu_error), e);
+				window.logAsync(window.__(I18NKeys.background.crm.contextmenuError), e);
 			}
 		}
 	async function generateContextMenuItem(rightClickItemOptions: ContextMenuCreateProperties, idHolder: {
@@ -2687,12 +2687,12 @@ export namespace CRMNodes {
 		if (__window.chrome && __window.chrome.runtime) {
 			const __chrome: typeof _chrome = __window.chrome;
 			if (__chrome && __chrome.runtime && __chrome.runtime.lastError) {
-				window.logAsync(window.__(I18NKeys.background.crm.user_contextmenu_error),
+				window.logAsync(window.__(I18NKeys.background.crm.userContextmenuError),
 					__chrome.runtime.lastError)
 			}
 		} else {
 			if (browserAPI.runtime.lastError) {
-				window.logAsync(window.__(I18NKeys.background.crm.user_contextmenu_error),
+				window.logAsync(window.__(I18NKeys.background.crm.userContextmenuError),
 					browserAPI.runtime.lastError)
 			}
 		}

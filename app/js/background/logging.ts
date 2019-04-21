@@ -154,7 +154,7 @@ export namespace Logging {
 			const srcObjDetails = {
 				tabId: await window.__(I18NKeys.background.logging.background),
 				nodeTitle: modules.crm.crmById.get(id).name,
-				tabTitle: await window.__(I18NKeys.background.logging.background_page),
+				tabTitle: await window.__(I18NKeys.background.logging.backgroundPage),
 				data: args,
 				lineNumber: sourceData[0],
 				logId: sourceData[1],
@@ -165,7 +165,7 @@ export namespace Logging {
 				id: id
 			} as any;
 			const logArgs = [
-				`${await window.__(I18NKeys.background.logging.background_page)} [`, 
+				`${await window.__(I18NKeys.background.logging.backgroundPage)} [`, 
 					srcObj, ']: '
 			].concat(args);
 

@@ -1246,7 +1246,7 @@ describe('User entrypoints', function() {
 				assert.doesNotThrow(() => {
 					parsed = JSON.parse(i18nFile);
 				}, 'messages file should be JSON parsable');
-				const expected = parsed[I18NKeys.generic.app_title].message;
+				const expected = parsed[I18NKeys.generic.appTitle].message;
 				assert.strictEqual(content, expected,
 					'text was changed to i18n version');
 			});

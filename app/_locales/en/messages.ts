@@ -25,7 +25,7 @@ type I18NLeaf = {
 
 export const Messages: I18NBranch = {
 	generic: {
-		app_title: {
+		appTitle: {
 			message: 'Custom Right-Click Menu',
 			description: 'The name of the extension'
 		},
@@ -179,7 +179,7 @@ export const Messages: I18NBranch = {
 				'This is used to identify it in the extension ' +
 				'itself (the user won\'t see it except in errors)'
 		},
-		id_capital: {
+		idCapital: {
 			message: 'ID',
 			description: 'Word for the ID of a node/item. This is ' +
 				'used to identify it in the extension itself ' +
@@ -417,93 +417,93 @@ export const Messages: I18NBranch = {
 			message: 'Allows the use of browser API\'s',
 			description: 'Description for the browser permission'
 		},
-		GM_addStyle: {
+		GMAddStyle: {
 			message: 'Allows the adding of certain styles to the document ' +
 				'through this API',
 			description: 'Description for the GM_addStyle permission'
 		},
-		GM_deleteValue: {
+		GMDeleteValue: {
 			message: 'Allows the deletion of storage items',
 			description: 'Description for the GM_deleteValue permission'
 		},
-		GM_listValues: {
+		GMListValues: {
 			message: 'Allows the listing of all storage data',
 			description: 'Description for the GM_listValues permission'
 		},
-		GM_addValueChangeListener: {
+		GMAddValueChangeListener: {
 			message: 'Allows for the listening of changes to the storage area',
 			description: 'Description for the GM_addValueChangeListener permission'
 		},
-		GM_removeValueChangeListener: {
+		GMRemoveValueChangeListener: {
 			message: 'Allows for the removing of listeners',
 			description: 'Description for the GM_removeValueChangeListener permission'
 		},
-		GM_setValue: {
+		GMSetValue: {
 			message: 'Allows for the setting of storage data values',
 			description: 'Description for the GM_setValue permission'
 		},
-		GM_getValue: {
+		GMGetValue: {
 			message: 'Allows the reading of values from the storage',
 			description: 'Description for the GM_getValue permission'
 		},
-		GM_log: {
+		GMLog: {
 			message: 'Allows for the logging of values to the console ' +
 				'(same as normal console.log)',
 			description: 'Description for the GM_log permission'
 		},
-		GM_getResourceText: {
+		GMGetResourceText: {
 			message: 'Allows the reading of the content of resources ' +
 				'defined in the header',
 			description: 'Description for the GM_getResourceText permission'
 		},
-		GM_getResourceURL: {
+		GMGetResourceURL: {
 			message: 'Allows the reading of the URL of the pre-declared resource',
 			description: 'Description for the GM_getResourceURL permission'
 		},
-		GM_registerMenuCommand: {
+		GMRegisterMenuCommand: {
 			message: 'Allows the adding of a button to the extension ' +
 				'menu - not implemented',
 			description: 'Description for the GM_registerMenuCommand permission'
 		},
-		GM_unregisterMenuCommand: {
+		GMUnregisterMenuCommand: {
 			message: 'Allows the removing of an added button - not implemented',
 			description: 'Description for the GM_unregisterMenuCommand permission'
 		},
-		GM_openInTab: {
+		GMOpenInTab: {
 			message: 'Allows the opening of a tab with given URL',
 			description: 'Description for the GM_openInTab permission'
 		},
-		GM_xmlhttpRequest: {
+		GMXmlhttpRequest: {
 			message: 'Allows you to make an XHR to any site you want',
 			description: 'Description for the GM_xmlhttpRequest permission'
 		},
-		GM_download: {
+		GMDownload: {
 			message: 'Allows the downloading of data to the hard disk',
 			description: 'Description for the GM_download permission'
 		},
-		GM_getTab: {
+		GMGetTab: {
 			message: 'Allows the reading of an object that\'s persistent ' +
 				'while the tab is open - not implemented',
 			description: 'Description for the GM_getTab permission'
 		},
-		GM_saveTab: {
+		GMSaveTab: {
 			message: 'Allows the saving of the tab object to reopen after ' +
 				'a page unload - not implemented',
 			description: 'Description for the GM_saveTab permission'
 		},
-		GM_getTabs: {
+		GMGetTabs: {
 			message: 'Allows the reading of all tab object - not implemented',
 			description: 'Description for the GM_getTabs permission'
 		},
-		GM_notification: {
+		GMNotification: {
 			message: 'Allows sending desktop notifications',
 			description: 'Description for the GM_notification permission'
 		},
-		GM_setClipboard: {
+		GMSetClipboard: {
 			message: 'Allows copying data to the clipboard - not implemented',
 			description: 'Description for the GM_setClipboard permission'
 		},
-		GM_info: {
+		GMInfo: {
 			message: 'Allows the reading of some script info',
 			description: 'Description for the GM_info permission'
 		},
@@ -1350,19 +1350,19 @@ export const Messages: I18NBranch = {
 		},
 		code: {
 			nodeUpdated: {
-				message: 'Node $NAME$ was updated from version $OLD_VERSION ' +
-					'to version $NEW_VERSION',
+				message: 'Node $NAME$ was updated from version $OLDVERSION ' +
+					'to version $NEWVERSION',
 				description: 'A message telling the user a node has been updated',
 				placeholders: {
 					name: {
 						content: '$1',
 						example: 'MyNode'
 					},
-					old_version: {
+					oldVersion: {
 						content: '$2',
 						example: '1.2.3'
 					},
-					new_version: {
+					newVersion: {
 						content: '$3',
 						example: '1.2.4'
 					}
@@ -1439,8 +1439,7 @@ export const Messages: I18NBranch = {
 	},
 	background: {
 		crm: {
-			//TODO:
-			invalid_runat: {
+			invalidRunat: {
 				message: 'Script with id $ID$' +
 					'runAt value was changed to default, $RUNAT$' +
 					'is not a valid value (use document_start, ' +
@@ -1460,7 +1459,7 @@ export const Messages: I18NBranch = {
 					}
 				}
 			},
-			execution_failed: {
+			executionFailed: {
 				message: 'Couldn\'t execute on tab with id $TABID$' +
 					'for node $NODEID$',
 				description: 'Message shown when execution failed for a script',
@@ -1475,7 +1474,7 @@ export const Messages: I18NBranch = {
 					}
 				}
 			},
-			setup_error: {
+			setupError: {
 				message: 'An error occurred while setting up the script for ' +
 					'node $NODEID$',
 				description: 'A message shown when an error has occurred in ' +
@@ -1487,7 +1486,7 @@ export const Messages: I18NBranch = {
 					}
 				}
 			},
-			update_download_404: {
+			updateDownload404: {
 				message: 'Tried to update $NODETYPE$ $NODEID$ $NODENAME$' +
 					' but could not reach download URL',
 				description: 'A message shown when a request to a node\'s ' +
@@ -1507,7 +1506,7 @@ export const Messages: I18NBranch = {
 					}
 				}
 			},
-			option_not_found: {
+			optionNotFound: {
 				message: 'Could not find option $NODENAME$ for stylesheet $NODEID$',
 				description: 'A message shown when a key was not found in ' +
 					'the supplied settings',
@@ -1522,7 +1521,7 @@ export const Messages: I18NBranch = {
 					}
 				}
 			},
-			css_compile_error: {
+			cssCompileError: {
 				message: 'An error occurred while compiling $TYPE$ CSS for ' + 
 				'node $NODEID$',
 				description: 'An error shown when compilation failed for ' +
@@ -1538,19 +1537,19 @@ export const Messages: I18NBranch = {
 					}
 				}
 			},
-			contextmenu_error_retry: {
+			contextmenuErrorRetry: {
 				message: 'An error occurred with your context menu,' + 
 					' attempting again with no url matching.',
 				description: 'Error shown when something went wrong creating ' +
 					'the context menu. It will be retried with the URL ' +
 					'matching feature disabled'
 			},
-			contextmenu_error: {
+			contextmenuError: {
 				message: 'An error occurred with your context menu!',
 				description: 'Error shown when something went wrong creating ' +
 					'the context menu.'
 			},
-			user_contextmenu_error: {
+			userContextmenuError: {
 				message: 'Error recreating user contextmenu',
 				description: 'Error shown when something went wrong creating a ' +
 					'user context\'s contextmenu. The difference between the ' +
@@ -1558,7 +1557,7 @@ export const Messages: I18NBranch = {
 					'is generated based on the CRM and its nodes while this one ' +
 					'is created by the user themselves using the CRM API'
 			},
-			created_background_page: {
+			createdBackgroundPage: {
 				message: 'Creating backgroundpage for node $NODEID$',
 				description: 'Message shown when a backgroundpage for given ' +
 					'node has started',
@@ -1569,22 +1568,22 @@ export const Messages: I18NBranch = {
 					}
 				}
 			},
-			restarting_background_page: {
+			restartingBackgroundPage: {
 				message: 'Restarting background page...',
 				description: 'Message shown when restarting a backgroundpage'
 			},
-			terminated_background_page: {
+			terminatedBackgroundPage: {
 				message: 'Terminated background page...',
 				description: 'Message shown when restarting a backgroundpage'
 			}
 		},
 		globalDeclarations: {
 			getID: {
-				no_matches: {
+				noMatches: {
 					message: 'Unfortunately no matches were found, please try again',
 					description: 'Message shown when the getID function finds no results'
 				},
-				one_match: {
+				oneMatch: {
 					message: 'One match was found, the id is $MATCHID$' +
 						' and the script is',
 					description: 'Message shown when the getID function finds one ' +
@@ -1596,7 +1595,7 @@ export const Messages: I18NBranch = {
 						}
 					}
 				},
-				multiple_matches: {
+				multipleMatches: {
 					message: 'Found multiple matches, here they are:',
 					description: 'Message shown when the getID function finds ' +
 						'multiple results'
@@ -1662,7 +1661,7 @@ export const Messages: I18NBranch = {
 			}
 		},
 		init: {
-			logging_explanation: {
+			loggingExplanation: {
 				message: 'If you\'re here to check out your background ' +
 					'script, get its ID (you can type getID("name") to ' +
 					'find the ID), and type filter(id, [optional tabId])' +
@@ -1678,7 +1677,7 @@ export const Messages: I18NBranch = {
 					}
 				}
 			},
-			debug_explanation: {
+			debugExplanation: {
 				message: 'You can also use the debugger for scripts by ' +
 					'calling window.debugNextScriptCall(id) ' +
 					'and window.debugBackgroundScript(id) for scripts ' +
@@ -1687,58 +1686,58 @@ export const Messages: I18NBranch = {
 				description: 'Message shown to inform the user of the ' +
 					'debugging functions'
 			},
-			registering_permission_listeners: {
+			registeringPermissionListeners: {
 				message: 'Registering permission listeners',
 				description: 'Info message shown when registers listeners ' +
 					'for the browser.permissions API. Keeping track of when ' +
 					'some are changed'
 			},
-			registering_handler: {
+			registeringHandler: {
 				message: 'Setting CRMAPI message handler',
 				description: 'Info message shown when setting up message ' +
 					'handler for the CRM API. Handling API requests from scripts'
 			},
-			building_crm: {
+			buildingCrm: {
 				message: 'Building Custom Right-Click Menu',
 				description: 'Info message shown when building the contextmenu itself'
 			},
-			compiling_ts: {
+			compilingTs: {
 				message: 'Compiling typescript',
 				description: 'Info message shown when typescript is being compiled'
 			},
-			registering_handlers: {
+			registeringHandlers: {
 				message: 'Registering global handlers',
 				description: 'Info message shown when registering general ' +
 					'global change handlers (tabs created/removed etc)'
 			},
-			updating_resources: {
+			updatingResources: {
 				message: 'Updating resources',
 				description: 'Info message shown when updating resources, which ' +
 					'are scripts hosted on other websites'
 			},
-			updating_nodes: {
+			updatingNodes: {
 				message: 'Updating scripts and stylesheets',
 				description: 'Info message shown when updating scripts and ' +
 					'stylesheets\'s code'
 			},
-			debug_info: {
+			debugInfo: {
 				message: 'For all of these arrays goes, close and re-expand ' +
 					'them to "refresh" their contents',
 				description: 'Info message telling the user how to refresh ' +
 					'arrays in the console'
 			},
-			invalidated_tabs: {
+			invalidatedTabs: {
 				message: 'Invalidated tabs:',
 				description: 'Label for array that contains invalidated tabs. ' +
 					'Invalidated tabs are tabs that can\'t be accessed because ' +
 					'they\'re options pages etc.'
 			},
-			insufficient_permissions: {
+			insufficientPermissions: {
 				message: 'Insufficient permissions:',
 				description: 'Label for an array of scripts that failed because ' +
 					'they had insufficient permissions'
 			},
-			registering_console_interface: {
+			registeringConsoleInterface: {
 				message: 'Registering console user interface',
 				description: 'Info message shown when registering global ' +
 					'functions that allow the user to run functions in the console'
@@ -1747,7 +1746,7 @@ export const Messages: I18NBranch = {
 				message: 'Done!',
 				description: 'Info message shown when setup is done'
 			},
-			resource_update: {
+			resourceUpdate: {
 				message: 'Attempting resource update',
 				description: 'Info message shown when updating resources'
 			},
@@ -1763,7 +1762,7 @@ export const Messages: I18NBranch = {
 				message: 'Checking resources',
 				description: 'Message group for resource checking'
 			},
-			previous_open_tabs: {
+			previousOpenTabs: {
 				message: 'Restoring previous open tabs',
 				description: 'Message group for the restoration of already-open tabs'
 			},
@@ -1777,13 +1776,13 @@ export const Messages: I18NBranch = {
 			}
 		},
 		storages: {
-			sync_upload_error: {
+			syncUploadError: {
 				message: 'Error on uploading to storage.sync, uploading to ' +
 					'storage.local instead',
 				description: 'Error shown when uploading user settings to ' +
 					'storage.sync fails. This is the synced data'
 			},
-			local_upload_error: {
+			localUploadError: {
 				message: 'Error on uploading to browser.storage.local',
 				description: 'Error shown when uploading user settings to ' +
 					'storage.local fails. This is the non-synced local data'
@@ -1802,38 +1801,38 @@ export const Messages: I18NBranch = {
 					}
 				}
 			},
-			setting_global_data: {
+			settingGlobalData: {
 				message: 'Setting global data stores',
 				description: 'Info message shown when setting up data storage'
 			},
-			building_crm: {
+			buildingCrm: {
 				message: 'Building CRM representation',
 				description: 'Info message shown when building CRM and its ' +
 					'in-background tree representation'
 			},
-			loading_sync: {
+			loadingSync: {
 				message: 'Loading sync storage data',
 				description: 'Info message shown when loading the ' +
 					'browser.storage.sync synced data'
 			},
-			loading_local: {
+			loadingLocal: {
 				message: 'Loading local storage data',
 				description: 'Info message shown when loading the ' +
 					'browser.storage.local non-synced data'
 			},
-			checking_first: {
+			checkingFirst: {
 				message: 'Checking if this is the first run',
 				description: 'Info message shown when checking if this ' +
 					'is the very first run of the extension'
 			},
-			parsing_data: {
+			parsingData: {
 				message: 'Parsing data encoding',
 				description: 'Info message shown when parsing the stored data ' +
 					'and transforming it into usable structures. The data is ' +
 					'stored in a sort of encoded way and this is a basic form ' +
 					'of decoding it'
 			},
-			checking_updates: {
+			checkingUpdates: {
 				message: 'Checking for data updates',
 				description: 'Info message shown when checking whether any ' +
 					'remote updates have happened. For example if the user ' +
@@ -1841,7 +1840,7 @@ export const Messages: I18NBranch = {
 					'synced back to this computer. If something like this ' +
 					'happens the user is notified'
 			},
-			initializing_first: {
+			initializingFirst: {
 				message: 'Initializing for first run',
 				description: 'Info message shown when initializing the initial ' +
 					'settings if this is the first run of the extension'
@@ -1853,7 +1852,7 @@ export const Messages: I18NBranch = {
 				description: 'Name for a page that runs in the background ' +
 					'similar to a browser extension\'s background page'
 			},
-			background_page: {
+			backgroundPage: {
 				message: 'Background page',
 				description: 'Name for a page that runs in the background ' +
 					'similar to a browser extension\'s background page'
@@ -1895,7 +1894,7 @@ export const Messages: I18NBranch = {
 				message: 'Allow',
 				description: 'Allows a permission'
 			},
-			none_required: {
+			noneRequired: {
 				message: 'No permissions required',
 				description: 'Message shown when no permissions are ' +
 					'required for a script'
@@ -1905,11 +1904,11 @@ export const Messages: I18NBranch = {
 				description: 'Shown when there are no permissions required ' +
 					'in the form "permission: {none}"'
 			},
-			toggle_all: {
+			toggleAll: {
 				message: 'Toggle All',
 				description: 'Allows or disallows all permissions at once'
 			},
-			allow_accept: {
+			allowAccept: {
 				message: 'Allow all and install',
 				description: 'Allows all permissions and installs the script'
 			},
@@ -1917,7 +1916,7 @@ export const Messages: I18NBranch = {
 				message: 'install',
 				description: 'Installs the script'
 			},
-			not_asking: {
+			notAsking: {
 				message: 'Not asking for permission $PERMISSION$ as your ' +
 					'browser does not support asking for permissions',
 				description: 'Message shown when requesting permissions ' +
@@ -1931,14 +1930,14 @@ export const Messages: I18NBranch = {
 			}
 		},
 		error: {
-			not_found_1: {
+			notFound1: {
 				message: 'Userscript',
 				description: 'Part 1 of the message "userscript not found"' +
 					'It\'s split over 2 lines. If a single line is ' +
 					'better, fill this one' +
 					' and empty the second one'
 			},
-			not_found_2: {
+			notFound2: {
 				message: 'Not Found',
 				description: 'Part 2 of the message "userscript not found"' +
 					'It\'s split over 2 lines. If a single line is better, ' +
@@ -1951,7 +1950,7 @@ export const Messages: I18NBranch = {
 				message: 'Fetching Userscript',
 				description: 'State shown when downloading/fetching the userscript'
 			},
-			failed_xhr:{ 
+			failedXhr:{ 
 				message: 'Failed XHR',
 				description: 'Message shown when the XHR network request fails'
 			},
@@ -1988,40 +1987,40 @@ export const Messages: I18NBranch = {
 				'in the logging console'
 		},
 		//TODO:
-		running_code_not_possible: {
+		runningCodeNotPossible: {
 			message: 'Running code is not possible in the current context ' +
 				'(select both an ID and a tab)',
 			description: 'Warning that running code is not possible right ' +
 				'now since no context has been selected.'
 		},
-		store_as_local: {
+		storeAsLocal: {
 			message: 'Store as local variable',
 			description: 'Stores clicked javascript value in a local value so ' +
 				'it can be referenced locally'
 		},
-		log_this: {
+		logThis: {
 			message: 'Logthis',
 			description: 'Logs given value'
 		},
-		copy_as_json: {
+		copyAsJson: {
 			message: 'Copy as JSON',
 			description: 'Copies given value to the clipboard as JSON'
 		},
-		copy_path: {
+		copyPath: {
 			message: 'Copy path',
 			description: 'Copies the path to a value. For example if the user ' +
 				'expands an array and runs this on the first element, the path is [0]'
 		},
-		clear_console: {
+		clearConsole: {
 			message: 'Clear console',
 			description: 'Empties the console and all its log messages'
 		},
-		tab_closed: {
+		tabClosed: {
 			message: 'Tab has been closed',
 			description: 'Warning that a tab has been closed and as such ' +
 				'its log won\'t be updated'
 		},
-		something_went_wrong: {
+		somethingWentWrong: {
 			message: 'Something went wrong highlighting the tab',
 			description: 'Generic warning shown when an error occurred on ' +
 				'highlighting a tab. Highlighting is the flashing you see ' +
@@ -2075,19 +2074,19 @@ export const Messages: I18NBranch = {
 					}
 				}
 			},
-			page_capture: {
+			pageCapture: {
 				message: 'Page Capture',
 				description: 'Launches a page capturing program with which ' +
 					'the user can select ' +
 					'a section of the page that is then converted to an ' +
 					'image and uploaded'
 			},
-			reporting_bug: {
+			reportingBug: {
 				message: 'Reporting a bug',
 				description: 'Button to press when reporting a bug/fault in ' +
 					'the extension'
 			},
-			suggesting_feature: {
+			suggestingFeature: {
 				message: 'Suggesting a feature',
 				description: 'Button to press when suggesting a new feature ' +
 					'for the extension'
@@ -2775,27 +2774,27 @@ export const Messages: I18NBranch = {
 					message: 'Makes the script run on the main page but not in iframes',
 					description: 'Metadata for the "noframes" key'
 				},
-				CRM_contentTypes: {
+				CRMContentTypes: {
 					message: 'The content types on which to run this script as a 6 items long boolean array (e.g. [true, false, true, false, true, false]) (CRM ONLY)',
 					description: 'Metadata for the "CRM_contentTypes" key'
 				},
-				CRM_launchMode: {
+				CRMLaunchMode: {
 					message: 'When to run this script. 0 = Run on clicking, 1 = always run, 2 = run on specified, 3 = show on specified, 4 = disabled. (CRM ONLY)',
 					description: 'Metadata for the "CRM_launchMode" key'
 				},
-				CRM_stylesheet: {
+				CRMStylesheet: {
 					message: 'Interpret this as a stylesheet (userstyle) instead of a script (userscript). (CRM ONLY)',
 					description: 'Metadata for the "CRM_stylesheet" key'
 				},
-				CRM_toggle: {
+				CRMToggle: {
 					message: 'A boolean value (true/false) indicating whether to allow toggling this stylesheet on or off. Only used when @CRM_stylesheet is present. (CRM ONLY)',
 					description: 'Metadata for the "CRM_toggle" key'
 				},
-				CRM_defaultOn: {
+				CRMDefaultOn: {
 					message: 'A boolean value (true/false) indicating whether this stylesheet is toggled on by default. Only used when @CRM_stylesheet and @CRM_toggle are present. (CRM ONLY)',
 					description: 'Metadata for the "CRM_defaultOn" key'
 				},
-				CRM_libraries: {
+				CRMLibraries: {
 					message: 'An array containing stringified objects with a "url" and a "name" key, pointing to external libraries used in this script.',
 					description: 'Metadata for the "CRM_libraries" key'
 				},

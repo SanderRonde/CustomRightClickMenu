@@ -180,27 +180,27 @@ namespace InstallConfirmElement {
 				browser: this.___(I18NKeys.permissions.browser),
 
 				//Tampermonkey APIs
-				GM_addStyle: this.___(I18NKeys.permissions.GM_addStyle),
-				GM_deleteValue: this.___(I18NKeys.permissions.GM_deleteValue),
-				GM_listValues: this.___(I18NKeys.permissions.GM_listValues),
-				GM_addValueChangeListener: this.___(I18NKeys.permissions.GM_addValueChangeListener),
-				GM_removeValueChangeListener: this.___(I18NKeys.permissions.GM_removeValueChangeListener),
-				GM_setValue: this.___(I18NKeys.permissions.GM_setValue),
-				GM_getValue: this.___(I18NKeys.permissions.GM_getValue),
-				GM_log: this.___(I18NKeys.permissions.GM_log),
-				GM_getResourceText: this.___(I18NKeys.permissions.GM_getResourceText),
-				GM_getResourceURL: this.___(I18NKeys.permissions.GM_getResourceURL),
-				GM_registerMenuCommand: this.___(I18NKeys.permissions.GM_registerMenuCommand),
-				GM_unregisterMenuCommand: this.___(I18NKeys.permissions.GM_unregisterMenuCommand),
-				GM_openInTab: this.___(I18NKeys.permissions.GM_openInTab),
-				GM_xmlhttpRequest: this.___(I18NKeys.permissions.GM_xmlhttpRequest),
-				GM_download: this.___(I18NKeys.permissions.GM_download),
-				GM_getTab: this.___(I18NKeys.permissions.GM_getTab),
-				GM_saveTab: this.___(I18NKeys.permissions.GM_saveTab),
-				GM_getTabs: this.___(I18NKeys.permissions.GM_getTabs),
-				GM_notification: this.___(I18NKeys.permissions.GM_notification),
-				GM_setClipboard: this.___(I18NKeys.permissions.GM_setClipboard),
-				GM_info: this.___(I18NKeys.permissions.GM_info),
+				GM_addStyle: this.___(I18NKeys.permissions.GMAddStyle),
+				GM_deleteValue: this.___(I18NKeys.permissions.GMDeleteValue),
+				GM_listValues: this.___(I18NKeys.permissions.GMListValues),
+				GM_addValueChangeListener: this.___(I18NKeys.permissions.GMAddValueChangeListener),
+				GM_removeValueChangeListener: this.___(I18NKeys.permissions.GMRemoveValueChangeListener),
+				GM_setValue: this.___(I18NKeys.permissions.GMSetValue),
+				GM_getValue: this.___(I18NKeys.permissions.GMGetValue),
+				GM_log: this.___(I18NKeys.permissions.GMLog),
+				GM_getResourceText: this.___(I18NKeys.permissions.GMGetResourceText),
+				GM_getResourceURL: this.___(I18NKeys.permissions.GMGetResourceURL),
+				GM_registerMenuCommand: this.___(I18NKeys.permissions.GMRegisterMenuCommand),
+				GM_unregisterMenuCommand: this.___(I18NKeys.permissions.GMUnregisterMenuCommand),
+				GM_openInTab: this.___(I18NKeys.permissions.GMOpenInTab),
+				GM_xmlhttpRequest: this.___(I18NKeys.permissions.GMXmlhttpRequest),
+				GM_download: this.___(I18NKeys.permissions.GMDownload),
+				GM_getTab: this.___(I18NKeys.permissions.GMGetTab),
+				GM_saveTab: this.___(I18NKeys.permissions.GMSaveTab),
+				GM_getTabs: this.___(I18NKeys.permissions.GMGetTabs),
+				GM_notification: this.___(I18NKeys.permissions.GMNotification),
+				GM_setClipboard: this.___(I18NKeys.permissions.GMSetClipboard),
+				GM_info: this.___(I18NKeys.permissions.GMInfo),
 				unsafeWindow: this.___(I18NKeys.permissions.unsafeWindow)
 			};
 
@@ -295,7 +295,7 @@ namespace InstallConfirmElement {
 					if (permissions.indexOf(permission as _browser.permissions.Permission) === -1) {
 						try {
 							if (!(browserAPI.permissions)) {
-								window.app.util.showToast(this.___(I18NKeys.install.confirm.not_asking,
+								window.app.util.showToast(this.___(I18NKeys.install.confirm.notAsking,
 									permission));
 								return;
 							}

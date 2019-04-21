@@ -78,12 +78,12 @@ export namespace GlobalDeclarations {
 			});
 
 			if (matches.length === 0) {
-				window.logAsync(window.__(I18NKeys.background.globalDeclarations.getID.no_matches));
+				window.logAsync(window.__(I18NKeys.background.globalDeclarations.getID.noMatches));
 			} else if (matches.length === 1) {
-				window.logAsync(window.__(I18NKeys.background.globalDeclarations.getID.one_match,
+				window.logAsync(window.__(I18NKeys.background.globalDeclarations.getID.oneMatch,
 					matches[0].id), matches[0].node);
 			} else {
-				window.logAsync(window.__(I18NKeys.background.globalDeclarations.getID.multiple_matches));
+				window.logAsync(window.__(I18NKeys.background.globalDeclarations.getID.multipleMatches));
 				matches.forEach((match) => {
 					window.logAsync(`${window.__(I18NKeys.crm.id)}:`, match.id, 
 						`, ${window.__(I18NKeys.crm.node)}:`, match.node);

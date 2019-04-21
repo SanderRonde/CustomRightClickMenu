@@ -1213,7 +1213,7 @@ export namespace Storages.SetupHandling {
 				});
 			}).catch(async (err) => {
 				//Switch to local storage
-				window.logAsync(window.__(I18NKeys.background.storages.sync_upload_error), err);
+				window.logAsync(window.__(I18NKeys.background.storages.syncUploadError), err);
 				modules.storages.storageLocal.useStorageSync = false;
 				await browserAPI.storage.local.set({
 					useStorageSync: false
@@ -1416,7 +1416,7 @@ export namespace Storages {
 					});
 				}
 			}).catch((e) => {
-				window.logAsync(window.__(I18NKeys.background.storages.local_upload_error), e);
+				window.logAsync(window.__(I18NKeys.background.storages.localUploadError), e);
 				
 				if (e.message.indexOf('MAX_WRITE_OPERATIONS_PER_MINUTE') > -1 ||
 					e.message.indexOf('MAX_WRITE_OPERATIONS_PER_HOUR') > -1) {
@@ -1451,7 +1451,7 @@ export namespace Storages {
 						settings: null
 					});
 				}).catch(async (err) => {
-					window.logAsync(window.__(I18NKeys.background.storages.sync_upload_error), err);
+					window.logAsync(window.__(I18NKeys.background.storages.syncUploadError), err);
 					modules.storages.storageLocal.useStorageSync = false;
 					await browserAPI.storage.local.set({
 						useStorageSync: false
@@ -1557,7 +1557,7 @@ export namespace Storages {
 
 	export async function setStorages(storageLocalCopy: CRM.StorageLocal, settingsStorage: CRM.SettingsStorage,
 		chromeStorageLocal: CRM.StorageLocal, callback?: () => void) {
-			window.info(await window.__(I18NKeys.background.storages.setting_global_data));
+			window.info(await window.__(I18NKeys.background.storages.settingGlobalData));
 			modules.storages.storageLocal = storageLocalCopy;
 			modules.storages.settingsStorage = settingsStorage;
 
@@ -1602,7 +1602,7 @@ export namespace Storages {
 					}
 				});
 
-				window.info(await window.__(I18NKeys.background.storages.building_crm));
+				window.info(await window.__(I18NKeys.background.storages.buildingCrm));
 			await modules.CRMNodes.updateCRMValues();
 
 			callback && callback();
@@ -1654,17 +1654,17 @@ export namespace Storages {
 	}
 	export function loadStorages() {
 		return new Promise<void>(async (resolve) => {
-			window.info(await window.__(I18NKeys.background.storages.loading_sync));
+			window.info(await window.__(I18NKeys.background.storages.loadingSync));
 			const storageSync: {
 				[key: string]: string
 			} & {
 				indexes: number|string[];
 			} = supportsStorageSync() ? await browserAPI.storage.sync.get() as any : {};
-			window.info(await window.__(I18NKeys.background.storages.loading_local));
+			window.info(await window.__(I18NKeys.background.storages.loadingLocal));
 			let storageLocal: CRM.StorageLocal & {
 				settings?: CRM.SettingsStorage;
 			} = await browserAPI.storage.local.get() as any;
-			window.info(await window.__(I18NKeys.background.storages.checking_first));
+			window.info(await window.__(I18NKeys.background.storages.checkingFirst));
 			const result = await isFirstTime(storageLocal);
 			if (result.type === 'firstTimeCallback') {
 				const data = await result.fn;
@@ -1676,7 +1676,7 @@ export namespace Storages {
 				if (result.type === 'upgradeVersion') {
 					storageLocal = result.storageLocal;
 				}
-				window.info(await window.__(I18NKeys.background.storages.parsing_data));
+				window.info(await window.__(I18NKeys.background.storages.parsingData));
 				const storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 				delete storageLocalCopy.globalExcludes;
 
@@ -1711,7 +1711,7 @@ export namespace Storages {
 					}
 				}
 
-				window.info(await window.__(I18NKeys.background.storages.checking_updates));
+				window.info(await window.__(I18NKeys.background.storages.checkingUpdates));
 				checkForStorageSyncUpdates(settingsStorage, storageLocal);
 
 				await setStorages(storageLocalCopy, settingsStorage,
@@ -2067,7 +2067,7 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 					fn: SetupHandling.handleTransfer()
 				}
 			} else {
-				window.info(await window.__(I18NKeys.background.storages.initializing_first));
+				window.info(await window.__(I18NKeys.background.storages.initializingFirst));
 				return {
 					type: 'firstTimeCallback',
 					fn: SetupHandling.handleFirstRun()

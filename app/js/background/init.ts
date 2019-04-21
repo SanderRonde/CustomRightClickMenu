@@ -115,34 +115,34 @@ export namespace Init {
 			try {
 				modules.globalObject.globals.latestId = 
 					modules.storages.settingsStorage.latestId;
-				window.info(await window.__(I18NKeys.background.init.registering_permission_listeners));
+				window.info(await window.__(I18NKeys.background.init.registeringPermissionListeners));
 				await GlobalDeclarations.refreshPermissions();
-				window.info(await window.__(I18NKeys.background.init.registering_handler));
+				window.info(await window.__(I18NKeys.background.init.registeringHandler));
 				GlobalDeclarations.setHandlerFunction();
 				browserAPI.runtime.onConnect.addListener((port) => {
 					port.onMessage.addListener(window.createHandlerFunction(port));
 				});
 				browserAPI.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessageInitial);
-				window.info(await window.__(I18NKeys.background.init.building_crm));
+				window.info(await window.__(I18NKeys.background.init.buildingCrm));
 				await CRMNodes.buildPageCRM();
-				window.info(await window.__(I18NKeys.background.init.compiling_ts));
+				window.info(await window.__(I18NKeys.background.init.compilingTs));
 				await CRMNodes.TS.compileAllInTree();
 				window.console.groupCollapsed(
-					await window.__(I18NKeys.background.init.previous_open_tabs));
+					await window.__(I18NKeys.background.init.previousOpenTabs));
 				await GlobalDeclarations.restoreOpenTabs();
 				window.console.groupEnd();
 				window.console.groupCollapsed(
 					await window.__(I18NKeys.background.init.backgroundpages));
 				await CRMNodes.Script.Background.createBackgroundPages();
 				window.console.groupEnd();
-				window.info(await window.__(I18NKeys.background.init.registering_handlers));
+				window.info(await window.__(I18NKeys.background.init.registeringHandlers));
 				GlobalDeclarations.init();
 
 				//Checks if all values are still correct
 				window.console.group(await window.__(I18NKeys.background.init.resources));
-				window.info(await window.__(I18NKeys.background.init.updating_resources));
+				window.info(await window.__(I18NKeys.background.init.updatingResources));
 				Resources.updateResourceValues();
-				window.info(await window.__(I18NKeys.background.init.updating_nodes));
+				window.info(await window.__(I18NKeys.background.init.updatingNodes));
 				//Dont' wait for them but do them in order
 				(async () => {
 					await CRMNodes.Script.Updating.updateScripts()
@@ -150,7 +150,7 @@ export namespace Init {
 				})();
 				window.setInterval(() => {
 					(async () => {
-						window.info(await window.__(I18NKeys.background.init.updating_nodes));
+						window.info(await window.__(I18NKeys.background.init.updatingNodes));
 						await CRMNodes.Script.Updating.updateScripts()
 						await CRMNodes.Stylesheet.Updating.updateStylesheets();
 					})();
@@ -160,14 +160,14 @@ export namespace Init {
 				//Debugging data
 				window.console.groupCollapsed(
 					await window.__(I18NKeys.background.init.debugging));
-				window.info(await window.__(I18NKeys.background.init.debug_info));
-				window.info(await window.__(I18NKeys.background.init.invalidated_tabs),
+				window.info(await window.__(I18NKeys.background.init.debugInfo));
+				window.info(await window.__(I18NKeys.background.init.invalidatedTabs),
 					modules.storages.failedLookups);
-				window.info(await window.__(I18NKeys.background.init.insufficient_permissions),
+				window.info(await window.__(I18NKeys.background.init.insufficientPermissions),
 					modules.storages.insufficientPermissions);
 				window.console.groupEnd();
 
-				window.info(await window.__(I18NKeys.background.init.registering_console_interface));
+				window.info(await window.__(I18NKeys.background.init.registeringConsoleInterface));
 				GlobalDeclarations.initGlobalFunctions();
 
 				if (location.href.indexOf('test') > -1) {
@@ -185,9 +185,9 @@ export namespace Init {
 				window.info(await window.__(I18NKeys.background.init.done));
 				if (!isNode()) {
 					window.log('');
-					window.logAsync(window.__(I18NKeys.background.init.logging_explanation,
+					window.logAsync(window.__(I18NKeys.background.init.loggingExplanation,
 						browserAPI.runtime.getURL('html/logging.html')));
-					window.logAsync(window.__(I18NKeys.background.init.debug_explanation));
+					window.logAsync(window.__(I18NKeys.background.init.debugExplanation));
 				}
 			} catch (e) {
 				for (let i = 0; i < 10; i++) {

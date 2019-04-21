@@ -45,7 +45,7 @@
 						<echo-html html="[[__(lang, langReady, 'util_errorReportingTool_bugreportInfo')]]"></echo-html>
 				</div>
 				<div class="imagesContainer">
-					<div class="imagesTitle">[[__(lang, langReady, 'util_errorReportingTool_page_capture')]]</div>
+					<div class="imagesTitle">[[__(lang, langReady, 'util_errorReportingTool_pageCapture')]]</div>
 					<div class="imgContainer" hidden$="[[isEmptyImage(image)]]" on-tap="addCapture">
 						<div class="paper-material captureElevation captureCont" elevation="2">
 							<img src="[[image]]" class="capture captureCont" alt="screencap">
@@ -56,8 +56,8 @@
 					</div>
 				</div>
 				<paper-radio-group selected="{{reportType}}">
-					<paper-radio-button name="bug">[[__(lang, langReady, 'util_errorReportingTool_reporting_bug')]]</paper-radio-button>
-					<paper-radio-button name="feature">[[__(lang, langReady, 'util_errorReportingTool_suggesting_feature')]]</paper-radio-button>
+					<paper-radio-button name="bug">[[__(lang, langReady, 'util_errorReportingTool_reportingBug')]]</paper-radio-button>
+					<paper-radio-button name="feature">[[__(lang, langReady, 'util_errorReportingTool_suggestingFeature')]]</paper-radio-button>
 				</paper-radio-group>
 				<div class="buttons">
 					<paper-button on-tap="submitErrorReport">[[__(lang, langReady, 'util_errorReportingTool_submit')]]</paper-button>

@@ -122,7 +122,7 @@ namespace InstallPageElement {
 						if (xhr.status >= 200 && xhr.status < 300) {
 							resolve(xhr.responseText);
 						} else {
-							reject(new Error(I18NKeys.install.page.failed_xhr));
+							reject(new Error(I18NKeys.install.page.failedXhr));
 						}
 					}
 				}

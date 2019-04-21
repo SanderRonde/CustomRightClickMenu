@@ -19,7 +19,7 @@
 					<div id="consoleInfo">
 						<div id="filterCont">
 							<div id="idFilter" class="dropdownFilter centerVertical">
-								<paper-dropdown-menu inline id="idDropdown" label="[[__(lang, langReady, 'crm_id_capital')]]" overflowing indent="false" selected="{{selectedId}}">
+								<paper-dropdown-menu inline id="idDropdown" label="[[__(lang, langReady, 'crm_idCapital')]]" overflowing indent="false" selected="{{selectedId}}">
 									<paper-menu slot="menu" selected="0">
 										<div slot="content">
 											<paper-item>
@@ -135,7 +135,7 @@
 							&gt;
 						</div>
 						<div id="inputFieldWarning">
-							[[__(lang, langReady, 'logging_running_code_not_possible')]]
+							[[__(lang, langReady, 'logging_runningCodeNotPossible')]]
 						</div>
 						<textarea rows="1" style="resize:none;"
 							type="text" id="consoleInput"
@@ -148,19 +148,19 @@
 		</div>
 		<div id="contextMenu" data-element-type="ContextMenuElement">
 			<div on-tap="_contextStoreAsLocal" id="storeAsLocal" class="contextMenuElement">
-				[[__(lang, langReady, 'logging_store_as_local')]]
+				[[__(lang, langReady, 'logging_storeAsLocal')]]
 			</div>
 			<div on-tap="_contextLogValue" id="logValue" class="contextMenuElement">
-				[[__(lang, langReady, 'logging_log_this')]]
+				[[__(lang, langReady, 'logging_logThis')]]
 			</div>
 			<div on-tap="_contextCopyAsJSON" id="copyAsJSON" class="contextMenuElement">
-				[[__(lang, langReady, 'logging_copy_as_json')]]
+				[[__(lang, langReady, 'logging_copyAsJson')]]
 			</div>
 			<div on-tap="_contextCopyPath" id="copyPath" class="contextMenuElement">
-				[[__(lang, langReady, 'logging_copy_path')]]
+				[[__(lang, langReady, 'logging_copyPath')]]
 			</div>
 			<div on-tap="_contextClearConsole" id="clearConsole" class="contextMenuElement">
-				[[__(lang, langReady, 'logging_clear_console')]]
+				[[__(lang, langReady, 'logging_clearConsole')]]
 			</div>
 		</div>
 		<span id="copySource"></span>

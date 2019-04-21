@@ -69,7 +69,7 @@
 										</div>
 										<paper-checkbox permission$="{{permission}}" on-tap="checkPermission" disabled class="infoPermissionCheckbox">[[__(lang, langReady, 'install_confirm_allow')]]</paper-checkbox>
 									</div>
-									<div class="infoPermissionExtraText">[[__(lang, langReady, 'install_confirm_none_required')]]</div>
+									<div class="infoPermissionExtraText">[[__(lang, langReady, 'install_confirm_noneRequired')]]</div>
 								</div>
 							</template>
 							<div hidden="{{lengthIs(permissions, 0)}}">
@@ -87,7 +87,7 @@
 										<div class="infoPermissionExtraText">{{getDescription(permission, lang, langReady)}}</div>
 									</div>
 								</template>
-								<paper-checkbox id="permissionsToggleAll" on-tap="toggleAll">[[__(lang, langReady, 'install_confirm_toggle_all')]]</paper-checkbox>
+								<paper-checkbox id="permissionsToggleAll" on-tap="toggleAll">[[__(lang, langReady, 'install_confirm_toggleAll')]]</paper-checkbox>
 							</div>
 						</div>
 					</div>
@@ -95,7 +95,7 @@
 			</div>
 			<monaco-editor id="editorCont"></monaco-editor>
 			<div id="installButtons">
-				<paper-button on-tap="acceptAndCompleteInstall" class="installButton" raised id="acceptAndInstallbutton">[[__(lang, langReady, 'install_confirm_allow_accept')]]</paper-button>
+				<paper-button on-tap="acceptAndCompleteInstall" class="installButton" raised id="acceptAndInstallbutton">[[__(lang, langReady, 'install_confirm_allowAccept')]]</paper-button>
 				<paper-button on-tap="completeInstall" class="installButton" raised id="installButton">[[__(lang, langReady, 'install_confirm_install')]]</paper-button>
 				<paper-button on-tap="cancelInstall" class="installButton" raised id="cancelButton">[[__(lang, langReady, 'generic_cancel')]]</paper-button>
 				<paper-button on-tap="cancelInstall" class="installButton" raised id="closePage">[[__(lang, langReady, 'generic_close')]]</paper-button>
