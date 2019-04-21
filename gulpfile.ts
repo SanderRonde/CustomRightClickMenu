@@ -492,7 +492,9 @@ class Tasks {
 							if (err) { 
 								reject(err);
 							} else {
-								resolve(matches);
+								resolve(matches.filter(
+									f => !f.endsWith('.d.ts')
+								));
 							}
 						});
 					});
