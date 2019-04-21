@@ -184,7 +184,7 @@ export const Messages: I18NBranch = {
 			description: 'Word for the ID of a node/item. This is ' +
 				'used to identify it in the extension itself ' +
 				'(the user won\'t see it except in errors).' +
-				'This is the same word as above except capitalizd'
+				'This is the same word as above except capitalized'
 		}
 	},
 	permissions: {
@@ -226,7 +226,7 @@ export const Messages: I18NBranch = {
 			description: 'Description for the clipboardWrite permission'
 		},
 		cookies: {
-			message: 'Allows for the setting, getting and listenting for ' +
+			message: 'Allows for the setting, getting and listening for ' +
 				'changes of cookies on any website. ' +
 				'(https://developer.chrome.com/extensions/cookies)',
 			description: 'Description for the cookies permission'
@@ -263,7 +263,7 @@ export const Messages: I18NBranch = {
 		history: {
 			message: 'Makes it possible to read your history and remove/add ' +
 				'specific urls. This can also be used to search your history ' +
-				'and to see howmany times you visited given website. ' +
+				'and to see how many times you visited given website. ' +
 				'(https://developer.chrome.com/extensions/history)',
 			description: 'Description for the history permission'
 		},
@@ -305,7 +305,7 @@ export const Messages: I18NBranch = {
 		},
 		privacy: {
 			message: 'Allows for a script to query what privacy features are ' +
-				'on/off, for exaple autoFill, password saving, the translation ' +
+				'on/off, for example autoFill, password saving, the translation ' +
 				'feature. (https://developer.chrome.com/extensions/privacy)',
 			description: 'Description for the privacy permission'
 		},
@@ -356,7 +356,7 @@ export const Messages: I18NBranch = {
 			description: 'Description for the tabs permission'
 		},
 		tts: {
-			message: 'Allows a script to use chrome\'s text so speach engine. ' +
+			message: 'Allows a script to use chrome\'s text so speech engine. ' +
 				'(https://developer.chrome.com/extensions/tts)',
 			description: 'Description for the tts permission'
 		},
@@ -457,7 +457,7 @@ export const Messages: I18NBranch = {
 			description: 'Description for the GM_getResourceText permission'
 		},
 		GM_getResourceURL: {
-			message: 'Allows the reading of the URL of the predeclared resource',
+			message: 'Allows the reading of the URL of the pre-declared resource',
 			description: 'Description for the GM_getResourceURL permission'
 		},
 		GM_registerMenuCommand: {
@@ -611,7 +611,7 @@ export const Messages: I18NBranch = {
 				description: 'Clicking this button will toggle visibility ' +
 					'of given content-type',
 				placeholders: {
-					contenttype: {
+					contentType: {
 						content: '$1',
 						example: 'regular webpages, web links, selected'
 					}
@@ -733,7 +733,7 @@ export const Messages: I18NBranch = {
 				description: 'The description for the search engines section',
 				placeholders: {
 					replace_val: {
-						content: '<code class="codeSynthax">%s</code>',
+						content: '<code class="codeSyntax">%s</code>',
 						example: 'Code above'
 					}
 				}
@@ -870,7 +870,7 @@ export const Messages: I18NBranch = {
 				description: 'Description for the export section'
 			},
 			waiting: {
-				message: 'Waiting for textfield... This may take some time',
+				message: 'Waiting for text field... This may take some time',
 				description: 'Message that is displayed while waiting for the exporting'
 			},
 			exportCRM: {
@@ -962,14 +962,14 @@ export const Messages: I18NBranch = {
 				message: 'If you would like to report any bugs, you can do ' +
 					'so by using the bug reporting tool.' +
 					'This is a screen overlay that will be visible when you ' +
-					'toggle it. It is overlayed' +
+					'toggle it. It is overlaid' +
 					'on top of every other dialog so you can always use it. ' +
 					'To toggle it on/off use' +
 					'the button below or hit $CTRL$ 3 times in a row quickly.',
 				description: 'Description for the bugs section',
 				placeholders: {
 					ctrl: {
-						content: '<code class="codeSynthax">ctrl</code>'
+						content: '<code class="codeSyntax">ctrl</code>'
 					}
 				}
 			},
@@ -1018,7 +1018,7 @@ export const Messages: I18NBranch = {
 				description: 'Description for the logging section',
 				placeholders: {
 					code: {
-						content: '<code class="codeSynthax">crmAPI.log</code>'
+						content: '<code class="codeSyntax">crmAPI.log</code>'
 					},
 					br: {
 						content: '<br />'
@@ -1088,7 +1088,7 @@ export const Messages: I18NBranch = {
 			acceptDownload: {
 				message: 'Please accept the permission request to report a ' +
 					'bug or suggest a feature',
-				description: 'Notificaiton asking the user to accept the ' +
+				description: 'Notification asking the user to accept the ' +
 					'permission request in order to continue'
 			}
 		},
@@ -1188,7 +1188,7 @@ export const Messages: I18NBranch = {
 				added: {
 					message: 'Added!',
 					description: 'Message telling the user that the library ' +
-						'was sucessfully added'
+						'was successfully added'
 				}
 			},
 			cssEditorInfo: {
@@ -1298,9 +1298,9 @@ export const Messages: I18NBranch = {
 						'have not yet allowed for this extension, please allow ' +
 						'these permissions as you see fit.' +
 						'Remember that this will only allow YOU to write scripts ' +
-						'that acces these permissions and not downloaded and ' +
+						'that access these permissions and not downloaded and ' +
 						'installed scripts.' +
-						'Other scripts can only acces these permissons if you ' +
+						'Other scripts can only access these permissions if you ' +
 						'give those scripts specifically that permission on ' +
 						'installing them.' +
 						'You can basically allow any permission, they will only ' +
@@ -1336,11 +1336,11 @@ export const Messages: I18NBranch = {
 					description: 'Header signaling that a script with given ' +
 						'name has been updated and it requires new permissions',
 					placeholders: {
-						nodename: {
+						nodeName: {
 							content: '$1',
 							example: 'MyScript'
 						},
-						nodeversion: {
+						nodeVersion: {
 							content: '$2',
 							example: '1.2.3'
 						}
@@ -1439,6 +1439,7 @@ export const Messages: I18NBranch = {
 	},
 	background: {
 		crm: {
+			//TODO:
 			invalid_runat: {
 				message: 'Script with id $ID$' +
 					'runAt value was changed to default, $RUNAT$' +
@@ -1772,7 +1773,7 @@ export const Messages: I18NBranch = {
 			},
 			debugging: {
 				message: 'Debugging',
-				description: 'Message group for any debuging messages'
+				description: 'Message group for any debugging messages'
 			}
 		},
 		storages: {
@@ -1956,7 +1957,7 @@ export const Messages: I18NBranch = {
 			},
 			installing: {
 				message: 'Installing userscript from $SOURCE$',
-				description: 'State shown when installing a usescript from given URL',
+				description: 'State shown when installing a userscript from given URL',
 				placeholders: {
 					source: {
 						content: '$1',
@@ -1986,6 +1987,7 @@ export const Messages: I18NBranch = {
 			description: 'Prefixed by the amount of logging lines there are ' +
 				'in the logging console'
 		},
+		//TODO:
 		running_code_not_possible: {
 			message: 'Running code is not possible in the current context ' +
 				'(select both an ID and a tab)',
@@ -2046,9 +2048,9 @@ export const Messages: I18NBranch = {
 				message: 'You can report a bug that happened or a feature you ' +
 					'would like to see in this extension. If you want you can ' +
 					'also highlight a section of the page and send it along. ' +
-					'When clicking the submit buton you will be taken to the ' +
+					'When clicking the submit button you will be taken to the ' +
 					'github website where you ' +
-					'can file an issue. All nessecary files (the image and if ' +
+					'can file an issue. All necessary files (the image and if ' +
 					'you want to your settings) ' +
 					'will be downloaded, after which you can drop them on the ' +
 					'report issue page. For ' +
@@ -2100,7 +2102,7 @@ export const Messages: I18NBranch = {
 			},
 			titlePlaceholder: {
 				message: 'TITLE HERE',
-				description: 'Placeholder for the user to write a titel in'
+				description: 'Placeholder for the user to write a title in'
 			}
 		}
 	},
@@ -2133,7 +2135,7 @@ export const Messages: I18NBranch = {
 					'Keep in mind that the "url" word in the placeholder ' +
 					'should be replaced as well',
 				placeholders: {
-					sourceurl: {
+					sourceURL: {
 						content: '<span id="nodeInfoFrom"><b>' + 
 							'<a id="nodeInfoUrl" title="$1" target="_blank" ' +
 							'rel="noopener"' +
@@ -2390,8 +2392,8 @@ export const Messages: I18NBranch = {
 			},
 			paperLibrariesSelector: {
 				libraryInfo: {
-					message: 'Try to refrain from using unnecessary libaries, libraries ' +
-						'load on every single page and load seperately for all scripts. ' +
+					message: 'Try to refrain from using unnecessary libraries, libraries ' +
+						'load on every single page and load sepaerately for all scripts. ' +
 						'This can easily take 100ms for libraries like jQuery. For a ' +
 						'jQuery alternative consider using crmAPI.$ or simply $ ' +
 						'(without loading jQuery) which features the selector function only.',
@@ -2437,7 +2439,7 @@ export const Messages: I18NBranch = {
 				nameTaken: {
 					message: 'That name is already taken',
 					description: 'Error shown when the name for a library is ' +
-						'alread taken'
+						'already taken'
 				},
 				nameMissing: {
 					message: 'Please enter a name',
@@ -2469,7 +2471,7 @@ export const Messages: I18NBranch = {
 				description: {
 					message: 'This code will search given website for any ' +
 						'text you highlight,' +
-						' or if nothing is highlighted will promt you for a query.',
+						' or if nothing is highlighted will prompt you for a query.',
 					description: 'Description of what the ' +
 						'paper-search-website-dialog does'
 				},
@@ -2483,7 +2485,7 @@ export const Messages: I18NBranch = {
 				},
 				chooseDefault: {
 					message: 'Choose a default search engine',
-					description: 'Title for choosing one of the default serach engines'
+					description: 'Title for choosing one of the default search engines'
 				},
 				try: {
 					message: 'Try',
@@ -2491,7 +2493,7 @@ export const Messages: I18NBranch = {
 				},
 				manualInput: {
 					message: 'Manually input your search website',
-					description: 'Title for the manual seach engine input window'
+					description: 'Title for the manual search engine input window'
 				},
 				findingSearchURL: {
 					message: 'By finding out the search URL',
@@ -2561,13 +2563,13 @@ export const Messages: I18NBranch = {
 				testURL: {
 					message: 'Test URL:',
 					description: 'The URL that will be outputted when ' +
-						'inputting the query into the serach engine. ' +
+						'inputting the query into the search engine. ' +
 						'Will be used in the form: {Test URL:} www.google.com/xxxxx'
 				},
 				howOpenTitle: {
 					message: 'How do you want the link to open?',
 					description: 'Title for the how to open field. This will give ' +
-						'the choice between opening in the curent tab or in a new tab'
+						'the choice between opening in the current tab or in a new tab'
 				},
 				newTab: {
 					message: 'A new tab',
@@ -2624,7 +2626,7 @@ export const Messages: I18NBranch = {
 					description: 'Label for what URLs to show this on'
 				},
 				regexDescr: {
-					message: 'Regex is available, check the synthax ' +
+					message: 'Regex is available, check the syntax ' +
 						'$PREHTML$here$POSTHTML$.',
 					description: 'Info section explaining that regex is available',
 					placeholders: {
@@ -2929,7 +2931,7 @@ export const Messages: I18NBranch = {
 				},
 				defaultValue: {
 					message: 'The default value for this option',
-					description: 'label for the "defaultvalue" field of an option. ' +
+					description: 'label for the "defaultValue" field of an option. ' +
 						'This value specifies the default value of given option'
 				},
 				value: {
@@ -3089,7 +3091,7 @@ export const Messages: I18NBranch = {
 				},
 				triggerOnClick: {
 					message: 'Execute on clicking',
-					description: 'Trigger option that makes the script/stlylesheet ' +
+					description: 'Trigger option that makes the script/stylesheet ' +
 						'run on clicking it in the right-click menu'
 				},
 				triggerAlways: {
@@ -3190,7 +3192,7 @@ export const Messages: I18NBranch = {
 						'in some way to convey that it\'s displayed in percentages'
 				},
 				globals: {
-					message: 'Comma seperated list of JSLint globals',
+					message: 'Comma separated list of JSLint globals',
 					description: 'A list of global javascript values that ' +
 						'should be ignored when doing a JSLint ' +
 						'syntax check'
@@ -3211,8 +3213,8 @@ export const Messages: I18NBranch = {
 					message: 'EXPORT AS',
 					description: 'Allows you to export a script/stylesheet. ' +
 						'This button then allows you to select something to ' +
-						'export it as. For example a regular CRM-compatibel node ' +
-						'or a userscritp'
+						'export it as. For example a regular CRM-compatible node ' +
+						'or a userscript'
 				}
 			},
 			stylesheet: {
