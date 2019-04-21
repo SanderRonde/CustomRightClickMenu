@@ -1,29 +1,9 @@
-//TODO: uncomment when done with file
-// import { LocaleSpec } from '../i18n';
-
-interface I18NMessage {
-	message: string;
-	description?: string;
-	placeholders?: {
-		[key: string]: {
-			content: string;
-			example?: string;
-		}
-	}
-}
-
-type I18NBranch = {
-	[key: string]: I18NBranch|I18NLeaf;
-}
-
-type I18NLeaf = {
-	[key: string]: I18NMessage;
-};
+import { LocaleSpec } from '../i18n';
 
 // Structure only allows a branch to split into subbranches or
 // to contain leafs with messages. Not both at the same time
 
-export const Messages: I18NBranch = {
+export const Messages: LocaleSpec = {
 	generic: {
 		appTitle: {
 			message: 'Custom Right-Click Menu',
