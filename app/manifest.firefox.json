@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 
 	"options_ui": {
-		"page": "html/options.html",
+		"page": "entrypoints/options.html",
 		"browser_style": true,
 		"open_in_tab": true
 	},
@@ -18,7 +18,7 @@
 	"default_locale": "en",
 
 	"background": {
-		"page": "html/background.html"
+		"page": "entrypoints/background.html"
 	},
 
 	"content_scripts": [
@@ -61,8 +61,8 @@
 	"web_accessible_resources": [
 		"js/jquery-2.0.3.js",
 		"js/crmapi.js",
-		"html/install.html",
-		"html/logging.html"
+		"entrypoints/install.html",
+		"entrypoints/logging.html"
 	],
 
 	"optional_permissions": [

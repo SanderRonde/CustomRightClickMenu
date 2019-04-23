@@ -149,7 +149,7 @@
 
 	browserAPI.storage.local.get().then((result) => {
 		if (result.useAsUserscriptInstaller) {
-			const installURL = browserAPI.runtime.getURL('html/install.html');
+			const installURL = browserAPI.runtime.getURL('entrypoints/install.html');
 			document.body.addEventListener('mousedown', (e) => {
 				const target = e.target as HTMLAnchorElement;
 				const isValidTarget = target && target.href && target.href.indexOf(installURL) === -1;

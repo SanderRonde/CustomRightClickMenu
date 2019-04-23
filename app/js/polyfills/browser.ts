@@ -528,7 +528,7 @@ namespace BrowserAPINS {
 				return createPromise<void>((handler) => {
 					if (BrowserAPINS.getBrowser() === 'edge') {
 						polyfill.tabs.create({
-							url: polyfill.runtime.getURL('html/options.html')
+							url: polyfill.runtime.getURL('entrypoints/options.html')
 						}).then(() => {
 							handler();
 						});

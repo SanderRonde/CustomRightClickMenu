@@ -1112,10 +1112,10 @@ class Tasks {
 									.src([
 										'fonts/*',
 										'js/**/*',
-										'html/install.html',
-										'html/logging.html',
-										'html/options.html',
-										'html/background.html',
+										'entrypoints/install.html',
+										'entrypoints/logging.html',
+										'entrypoints/options.html',
+										'entrypoints/background.html',
 										'bower_components/**/*',
 										'images/chromearrow.png',
 										'images/shadowImg.png',
@@ -1170,7 +1170,7 @@ class Tasks {
 										strip: true,
 										data: {
 											classes: 'content extension',
-											base: 'html/'
+											base: 'entrypoints/'
 										}
 									}))
 									.pipe(gulp.dest('./temp/elements/'));
@@ -1223,14 +1223,14 @@ class Tasks {
 									static process() {
 										return gulp
 											.src([
-												'html/entrypointPrefix.html',
+												'entrypoints/entrypointPrefix.html',
 												'elements/installing/install-confirm/install-confirm.html'
 											], { cwd: './app/', base: './app/' })
 											.pipe(processhtml({
 												strip: true,
 												data: {
 													classes: 'content extension',
-													base: 'html/'
+													base: 'entrypoints/'
 												}
 											}))
 											.pipe(gulp.dest('./temp/'));
@@ -1238,7 +1238,7 @@ class Tasks {
 
 									@describe('Crisp the entrypoint file')
 									static async crisp() {
-										const entrypointPrefix = await readFile('./temp/html/entrypointPrefix.html');
+										const entrypointPrefix = await readFile('./temp/entrypoints/entrypointPrefix.html');
 										const { html, js } = crisper({
 											jsFileName: 'entrypointPrefix.js',
 											source: entrypointPrefix,
@@ -1246,8 +1246,8 @@ class Tasks {
 											cleanup: false
 										});
 										await Promise.all([
-											writeFile('./temp/html/entrypointPrefix.html', html),
-											writeFile('./temp/html/entrypointPrefix.js', js),
+											writeFile('./temp/entrypoints/entrypointPrefix.html', html),
+											writeFile('./temp/entrypoints/entrypointPrefix.js', js),
 										]);
 									}
 
@@ -1264,19 +1264,19 @@ class Tasks {
 							static processHTMLTemp() {
 								return gulp
 									.src([
-										'./temp/html/background.html',
-										'./temp/html/logging.html',
-										'./temp/html/install.html',
-										'./temp/html/options.html'
+										'./temp/entrypoints/background.html',
+										'./temp/entrypoints/logging.html',
+										'./temp/entrypoints/install.html',
+										'./temp/entrypoints/options.html'
 									])
 									.pipe(processhtml({
 										strip: true,
 										data: {
 											classes: 'content extension',
-											base: 'html/'
+											base: 'entrypoints/'
 										}
 									}))
-									.pipe(gulp.dest('./temp/html/'));
+									.pipe(gulp.dest('./temp/entrypoints/'));
 							}
 
 							@subTask('All pre-polymer tasks during building')
@@ -1336,7 +1336,7 @@ class Tasks {
 							@describe('Copies entrypointPrefix from temp/ to build/')
 							static copyPrefixJs() {
 								return gulp
-									.src('html/entrypointPrefix.js', {
+									.src('entrypoints/entrypointPrefix.js', {
 										cwd: './temp/',
 										base: './temp/'
 									})
@@ -1351,7 +1351,7 @@ class Tasks {
 										class Crisp {
 											@describe('Crisps the options.html page')
 											static async options() {
-												const options = await readFile('./build/html/options.html');
+												const options = await readFile('./build/entrypoints/options.html');
 												const { html, js } = crisper({
 													jsFileName: 'options.js',
 													source: options,
@@ -1361,14 +1361,14 @@ class Tasks {
 												const optionsRemoved = html.replace(
 													/<script src="options.js"><\/script>/g, '');
 												await Promise.all([
-													writeFile('./build/html/options.html', optionsRemoved),
-													writeFile('./build/html/options.js', js)
+													writeFile('./build/entrypoints/options.html', optionsRemoved),
+													writeFile('./build/entrypoints/options.js', js)
 												]);
 											}
 
 											@describe('Crisps the logging.html page')
 											static async logging() {
-												const content = await readFile('./build/html/logging.html');
+												const content = await readFile('./build/entrypoints/logging.html');
 												const { html, js } = crisper({
 													jsFileName: 'logging.js',
 													source: content,
@@ -1378,14 +1378,14 @@ class Tasks {
 												const tagRemoved = html.replace(
 													/<script src="logging.js"><\/script>/g, '');
 												await Promise.all([
-													writeFile('./build/html/logging.html', tagRemoved),
-													writeFile('./build/html/logging.js', js),
+													writeFile('./build/entrypoints/logging.html', tagRemoved),
+													writeFile('./build/entrypoints/logging.js', js),
 												]);
 											}
 
 											@describe('Crisps the install.html page')
 											static async install() {
-												const content = await readFile('./build/html/install.html');
+												const content = await readFile('./build/entrypoints/install.html');
 												const { html, js } = crisper({
 													jsFileName: 'install.js',
 													source: content,
@@ -1395,14 +1395,14 @@ class Tasks {
 												const tagRemoved = html.replace(
 													/<script src="install.js"><\/script>/g, '');
 												await Promise.all([
-													writeFile('./build/html/install.html', tagRemoved),
-													writeFile('./build/html/install.js', js),
+													writeFile('./build/entrypoints/install.html', tagRemoved),
+													writeFile('./build/entrypoints/install.js', js),
 												]);
 											}
 
 											@describe('Crisps the background.html page')
 											static async background() {
-												const background = await readFile('./build/html/background.html');
+												const background = await readFile('./build/entrypoints/background.html');
 												const { html, js } = crisper({
 													jsFileName: 'background.js',
 													source: background,
@@ -1410,8 +1410,8 @@ class Tasks {
 													cleanup: false
 												});
 												await Promise.all([
-													writeFile('./build/html/background.html', html),
-													writeFile('./build/html/background.js', js),
+													writeFile('./build/entrypoints/background.html', html),
+													writeFile('./build/entrypoints/background.js', js),
 												]);
 											}
 
@@ -1432,58 +1432,58 @@ class Tasks {
 											@describe('Babel the options page')
 											static options() {
 												return gulp
-													.src('./build/html/options.js')
+													.src('./build/entrypoints/options.js')
 													.pipe(gulpBabel({
 														compact: false,
 														presets: ['es3', 'es2015']
 													}))
 													.pipe(rename('options.es3.js'))
-													.pipe(gulp.dest('./build/html/'));
+													.pipe(gulp.dest('./build/entrypoints/'));
 											}
 
 											@describe('Babel the logging page')
 											static logging() {
 												return gulp
-													.src('./build/html/logging.js')
+													.src('./build/entrypoints/logging.js')
 													.pipe(gulpBabel({
 														compact: false,
 														presets: ['es3', 'es2015']
 													}))
 													.pipe(rename('logging.es3.js'))
-													.pipe(gulp.dest('./build/html/'));
+													.pipe(gulp.dest('./build/entrypoints/'));
 											}
 
 											@describe('Babel the install page')
 											static install() {
 												return gulp
-													.src('./build/html/install.js')
+													.src('./build/entrypoints/install.js')
 													.pipe(gulpBabel({
 														compact: false,
 														presets: ['es3', 'es2015']
 													}))
 													.pipe(rename('install.es3.js'))
-													.pipe(gulp.dest('./build/html/'));
+													.pipe(gulp.dest('./build/entrypoints/'));
 											}
 
 											@describe('Babel the background page')
 											static background() {
 												return gulp
-													.src('./build/html/background.js')
+													.src('./build/entrypoints/background.js')
 													.pipe(gulpBabel({
 														compact: false,
 														presets: ['es3', 'es2015']
 													}))
-													.pipe(gulp.dest('./build/html/'));
+													.pipe(gulp.dest('./build/entrypoints/'));
 											}
 
 											@describe('Joins the options page with the prefix')
 											static async joinOptions() {
 												await joinPages({
 													parts: [
-														'temp/html/entrypointPrefix.html',
-														'build/html/options.html'
+														'temp/entrypoints/entrypointPrefix.html',
+														'build/entrypoints/options.html'
 													],
-													dest: 'build/html/options.html'
+													dest: 'build/entrypoints/options.html'
 												});
 											}
 
@@ -1491,10 +1491,10 @@ class Tasks {
 											static async joinLogging() {
 												await joinPages({
 													parts: [
-														'temp/html/entrypointPrefix.html',
-														'build/html/logging.html'
+														'temp/entrypoints/entrypointPrefix.html',
+														'build/entrypoints/logging.html'
 													],
-													dest: 'build/html/logging.html'
+													dest: 'build/entrypoints/logging.html'
 												});
 											}
 
@@ -1502,10 +1502,10 @@ class Tasks {
 											static async joinInstall() {
 												await joinPages({
 													parts: [
-														'temp/html/entrypointPrefix.html',
-														'build/html/install.html'
+														'temp/entrypoints/entrypointPrefix.html',
+														'build/entrypoints/install.html'
 													],
-													dest: 'build/html/install.html'
+													dest: 'build/entrypoints/install.html'
 												});
 											}
 
@@ -1527,13 +1527,13 @@ class Tasks {
 									static fixBackgroundOptions() {
 										return gulp
 											.src([
-												'./build/html/background.js',
-												'./build/html/options.js',
-												'./build/html/options.es3.js',
-												'./build/html/install.js',
-												'./build/html/install.es3.js',
-												'./build/html/logging.js',
-												'./build/html/logging.es3.js'
+												'./build/entrypoints/background.js',
+												'./build/entrypoints/options.js',
+												'./build/entrypoints/options.es3.js',
+												'./build/entrypoints/install.js',
+												'./build/entrypoints/install.es3.js',
+												'./build/entrypoints/logging.js',
+												'./build/entrypoints/logging.es3.js'
 											])
 											.pipe(replace(
 												/Object.setPrototypeOf\(((\w|\.)+),(\s*)((\w|\.)*)\)/g,
@@ -1553,7 +1553,7 @@ class Tasks {
 												`try { eval('class foo {}'); eval("(()=>{if(!window.customElements)$1")` +
 												` } catch (e) { }`
 											))
-											.pipe(gulp.dest('./build/html/'));
+											.pipe(gulp.dest('./build/entrypoints/'));
 									}
 
 									@describe('Fix some bugs in the webcomponents file that is used in the options page')
@@ -1590,12 +1590,12 @@ class Tasks {
 									static nodefer() {
 										return gulp
 											.src([
-												'./build/html/options.html',
-												'./build/html/install.html',
-												'./build/html/logging.html',
+												'./build/entrypoints/options.html',
+												'./build/entrypoints/install.html',
+												'./build/entrypoints/logging.html',
 											])
 											.pipe(replace(/\sdefer/g, ''))
-											.pipe(gulp.dest('./build/html/'));
+											.pipe(gulp.dest('./build/entrypoints/'));
 									}
 
 									static Banners = (() => {
@@ -1604,16 +1604,16 @@ class Tasks {
 											@describe('Creates banners in the HTML files')
 											static html() {
 												return gulp
-													.src(['build/html/**.html'])
+													.src(['build/entrypoints/**.html'])
 													.pipe(banner(BANNERS.html))
-													.pipe(gulp.dest('./build/html/'))
+													.pipe(gulp.dest('./build/entrypoints/'))
 											}
 
 											@describe('Creates banners in the JS files')
 											static js() {
 												return gulp
 													.src([
-														'html/**.js',
+														'entrypoints/**.js',
 														'js/crmapi.js',
 													], {
 															cwd: './build',
@@ -1731,14 +1731,14 @@ class Tasks {
 								await polymerBuild({
 									project: {
 										entrypoint: [
-											"html/options.html",
-											"html/logging.html",
-											"html/install.html"
+											"entrypoints/options.html",
+											"entrypoints/logging.html",
+											"entrypoints/install.html"
 										],
 										sources: ['elements/**'],
 										root: "temp/",
 										extraDependencies: [
-											"html/background.html",
+											"entrypoints/background.html",
 											"fonts/**/*",
 											'_locales/**/*',
 											"images/**/*",
@@ -1754,7 +1754,7 @@ class Tasks {
 											"manifest.json"
 										],
 										nonPolymerEntrypoints: [
-											"html/background.html"
+											"entrypoints/background.html"
 										]
 									},
 									optimization: {
@@ -1820,13 +1820,13 @@ class Tasks {
 								await polymerBuild({
 									project: {
 										entrypoint: [
-											"html/options.html",
-											"html/logging.html",
-											"html/install.html"
+											"entrypoints/options.html",
+											"entrypoints/logging.html",
+											"entrypoints/install.html"
 										],
 										root: "temp/",
 										extraDependencies: [
-											"html/background.html",
+											"entrypoints/background.html",
 											"fonts/**/*",
 											"images/**/*",
 											'_locales/**/*',
@@ -1842,7 +1842,7 @@ class Tasks {
 											"manifest.json"
 										],
 										nonPolymerEntrypoints: [
-											"html/background.html"
+											"entrypoints/background.html"
 										]
 									},
 									optimization: {
@@ -1866,10 +1866,10 @@ class Tasks {
 							static uglify() {
 								return gulp
 									.src([
-										'./build/html/entrypointPrefix.js'
+										'./build/entrypoints/entrypointPrefix.js'
 									])
 									.pipe(uglify())
-									.pipe(gulp.dest('./build/html/'));
+									.pipe(gulp.dest('./build/entrypoints/'));
 							}
 						}
 						return Prod;
@@ -1944,10 +1944,10 @@ class Tasks {
 						await joinPages({
 							parts: [
 								'test/UI/skeleton.html',
-								'build/html/background.html',
-								'build/html/options.html'
+								'build/entrypoints/background.html',
+								'build/entrypoints/options.html'
 							],
-							dest: 'build/html/UITest.html'
+							dest: 'build/entrypoints/UITest.html'
 						});
 					}
 
@@ -1972,9 +1972,9 @@ class Tasks {
 					@describe('Copies the demo website to /demo')
 					static copy() {
 						return gulp
-							.src('UITest.html', { cwd: './build/html', base: './build/html' })
+							.src('UITest.html', { cwd: './build/entrypoints', base: './build/entrypoints' })
 							.pipe(replace(/<title>((\w|\s)+)<\/title>/g, '<title>Demo</title>'))
-							.pipe(replace(/<head>/, '<head><base href="../build/html/">'))
+							.pipe(replace(/<head>/, '<head><base href="../build/entrypoints/">'))
 							.pipe(rename('index.html'))
 							.pipe(gulp.dest('./demo'));
 					}

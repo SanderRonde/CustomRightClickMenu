@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 
-	"options_page": "html/options.html",
+	"options_page": "entrypoints/options.html",
 	"name": "Custom Right-Click Menu",
 	"description": "Create a custom right-click menu and choose the links and scripts you want in it.",
 	"version": "2.2.7",
@@ -10,7 +10,7 @@
 	"default_locale": "en",
 
 	"background": {
-		"page": "html/background.html"
+		"page": "entrypoints/background.html"
 	},
 
 	"content_scripts": [
@@ -53,8 +53,8 @@
 	"web_accessible_resources": [
 		"js/jquery-2.0.3.js",
 		"js/crmapi.js",
-		"html/install.html",
-		"html/logging.html"
+		"entrypoints/install.html",
+		"entrypoints/logging.html"
 	],
 
 	"optional_permissions": [

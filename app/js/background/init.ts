@@ -186,7 +186,7 @@ export namespace Init {
 				if (!isNode()) {
 					window.log('');
 					window.logAsync(window.__(I18NKeys.background.init.loggingExplanation,
-						browserAPI.runtime.getURL('html/logging.html')));
+						browserAPI.runtime.getURL('entrypoints/logging.html')));
 					window.logAsync(window.__(I18NKeys.background.init.debugExplanation));
 				}
 			} catch (e) {

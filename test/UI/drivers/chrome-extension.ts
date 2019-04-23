@@ -72,7 +72,7 @@ export async function getExtensionURLPrefix(driver: TypedWebdriver, capabilities
 			.findElement(webdriver.By.className('options-link'))
 			.getAttribute('href');
 		
-		return href.split('/html/options.html')[0];
+		return href.split('/entrypoints/options.html')[0];
 	} else {
 		return `chrome-extension://${await driver.executeScript(inlineFn(() => {
 			return location.href.split('?id=')[1];

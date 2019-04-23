@@ -262,7 +262,7 @@ function installScriptFromInstallPage(getConfig: () => {
 		const {
 			prefix, url, href
 		} = getConfig();
-		await driver.get(`${prefix}/html/install.html?i=${
+		await driver.get(`${prefix}/entrypoints/install.html?i=${
 			encodeURIComponent(href)
 		}&s=${url}`);
 		await wait(5000);
@@ -285,7 +285,7 @@ function installScriptFromInstallPage(getConfig: () => {
 		const {
 			prefix, href, title
 		} = getConfig();
-		await driver.get(`${prefix}/html/options.html`);
+		await driver.get(`${prefix}/entrypoints/options.html`);
 
 		await wait(5000);
 
@@ -331,7 +331,7 @@ function installStylesheetFromInstallPage(getConfig: () => {
 		const {
 			prefix, href
 		} = getConfig();
-		await driver.get(`${prefix}/html/options.html`);
+		await driver.get(`${prefix}/entrypoints/options.html`);
 
 		await wait(15000);
 

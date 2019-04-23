@@ -3819,7 +3819,7 @@ namespace CRMAppElement {
 
 
 			static _openLogging() {
-				window.open(browserAPI.runtime.getURL('html/logging.html'), '_blank');
+				window.open(browserAPI.runtime.getURL('entrypoints/logging.html'), '_blank');
 			};
 
 			static hideGenericToast() {

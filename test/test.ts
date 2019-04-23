@@ -1566,7 +1566,7 @@ describe('Conversion', () => {
 			};
 			assert.doesNotThrow(() => {
 				backgroundCode = fs.readFileSync(
-					path.join(__dirname, '../', './build/html/background.js'), {
+					path.join(__dirname, '../', './build/entrypoints/background.js'), {
 						encoding: 'utf8'
 					});
 			}, 'File background.js is readable');

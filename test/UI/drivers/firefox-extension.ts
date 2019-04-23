@@ -50,7 +50,7 @@ export async function openOptionsPage(_driver: TypedWebdriver, _capabilities: Br
 	// 	if ((await title.getText()).indexOf('Custom Right-Click Menu') > -1) {
 	// 		const uuid = await addon.findElement(
 	// 			webdriver.By.css('.internal-uuid > *')).getText();
-	// 		const optionsURL = `moz-extension://${uuid}/html/options.html`;
+	// 		const optionsURL = `moz-extension://${uuid}/entrypoints/options.html`;
 	// 		await driver.get(optionsURL);
 	// 		return;
 	// 	}

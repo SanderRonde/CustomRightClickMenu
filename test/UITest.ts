@@ -375,7 +375,7 @@ async function openTestPageURL(capabilities: BrowserstackCapabilities) {
 	if (TEST_EXTENSION) {
 		await getExtensionDataOnly().openOptionsPage(driver, capabilities);
 	} else {
-		await driver.get(`http://localhost:${PORT}/build/html/UITest.html#test-noBackgroundInfo`);
+		await driver.get(`http://localhost:${PORT}/build/entrypoints/UITest.html#test-noBackgroundInfo`);
 	}
 	await wait(5000);
 	await enableTestLogging();
@@ -1157,7 +1157,7 @@ describe('User entrypoints', function() {
 					this.timeout(600000 * TIME_MODIFIER);
 					this.slow(600000 * TIME_MODIFIER);
 					const prefix = await getExtensionDataOnly().getExtensionURLPrefix(driver, browserCapabilities);
-					await driver.get(`${prefix}/html/logging.html`);
+					await driver.get(`${prefix}/entrypoints/logging.html`);
 					currentTestWindow = await driver.getWindowHandle();
 					await waitFor(() => {
 						return driver.executeScript(inlineFn(() => {
@@ -1176,7 +1176,7 @@ describe('User entrypoints', function() {
 					this.timeout(600000 * TIME_MODIFIER);
 					this.slow(600000 * TIME_MODIFIER);
 					const prefix = await getExtensionDataOnly().getExtensionURLPrefix(driver, browserCapabilities);
-					await driver.get(`${prefix}/html/install.html`);
+					await driver.get(`${prefix}/entrypoints/install.html`);
 					currentTestWindow = await driver.getWindowHandle();
 					await waitFor(() => {
 						return driver.executeScript(inlineFn(() => {
