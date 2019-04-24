@@ -15,7 +15,7 @@
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
         "noUnusedLocals": true,
-        "target": "es3",
+        "target": "es6",
         "noUnusedParameters": true,
         "experimentalDecorators": true
 	}, 
@@ -27,6 +27,7 @@
     "exclude": [
         "./js/libraries/crmapi.d.ts",
         "./bower_components",
-        "./_locales"
+        "./_locales",
+        "./modules/"
     ]
 }

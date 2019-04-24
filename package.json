@@ -97,6 +97,7 @@
     "extract-zip": "^1.6.6",
     "firefox-xpi": "^2.0.4",
     "fs": "0.0.1-security",
+    "fs-extra": "^7.0.1",
     "glob": "^7.1.2",
     "gulp": "^4.0.0",
     "gulp-babel": "^7.0.1",
@@ -115,11 +116,13 @@
     "gulp-yarn": "^1.0.1",
     "gulp-zip": "^4.1.0",
     "html-minifier": "^3.5.6",
-    "html-typings": "^1.0.10",
+    "html-typings": "^1.1.2",
     "htmlparser": "^1.7.7",
     "htmlparser2": "^3.9.2",
     "http-server": "^0.11.1",
     "json3": "^3.3.2",
+    "lit-html": "^1.0.0",
+    "log-symbols": "^3.0.0",
     "merge-stream": "^1.0.1",
     "mkdirp": "^0.5.1",
     "mocha": "^2.5.3",
@@ -142,6 +145,7 @@
     "typescript": "^3.4.2",
     "util": "^0.10.3",
     "vinyl-fs": "^2.4.4",
+    "wclib": "https://github.com/SanderRonde/wc-lib",
     "web-ext-types": "^2.0.1",
     "which": "^1.3.0"
   },
@@ -222,8 +226,11 @@
     "genAppx:create": "yarn genAppx:gen && gulp genAppx:copy && gulp genAppx:replace && yarn genAppx:sign",
     "genAppx": "node scripts/has-edge-secrets.js && (yarn genAppx:create && yarn genAppx:finish) || echo \"Edge secrets not present, skipping edge packaging\"",
     "package": "gulp genCRX && gulp genXPI && yarn genAppx",
-    "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'app/bower_components', 'junction') } catch (e) { }\""
+    "postinstall.bower": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'app/bower_components', 'junction') } catch (e) { }\"",
+    "postinstall.symlinkdir": "node -e \"try { !require('fs').existsSync(require('path').join(__dirname, 'app/modules') && require('fs').mkdirSync(require('path').join(__dirname, 'app/modules'))) } catch (e) { }\"",
+    "postinstall.wclib": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/wclib'), 'app/modules/wclib', 'junction'); } catch (e) { }\"",
+    "postinstall.lithtml": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/lit-html'), 'app/modules/lit-html', 'junction'); } catch (e) { }\"",
+    "postinstall": "yarn postinstall.bower && yarn postinstall.symlinkdir && yarn postinstall.wclib && yarn postinstall.lithtml"
   },
-  "version": "2.2.7",
-  "dependencies": {}
+  "version": "2.2.7"
 }

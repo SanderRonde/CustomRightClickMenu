@@ -25,6 +25,7 @@ import glob from 'glob';
 import path from 'path';
 import del from 'del';
 import fs from 'fs';
+import htmlTypings = require('html-typings');
 
 // Only show subtasks when they are actually being run, otherwise
 // the -T screen is just being spammed
@@ -861,6 +862,135 @@ class Tasks {
 
 	@group('compilation')
 	static Compilation = (() => {
+		/**
+		 * Finds files with a glob pattern
+		 */
+		function findWithGlob(pattern: string): Promise<string[]> {
+			return new Promise<string[]>((resolve, reject) => {
+				glob(pattern, (err, matches) => {
+					if (err) {
+						reject(err);
+					} else {
+						resolve(matches);
+					}
+				});
+			});
+		}
+
+		/**
+		 * Converts a JSON object string to typings
+		 */
+		function stringToType(str: string): string {
+			return str.replace(/":( )?"((\w|#|\.|\|)+)"/g, '": $2');
+		}
+		
+		/**
+		 * Formats a JSON object
+		 */
+		function prettyify(str: string): string {
+			if (str === '{}') {
+				return '{}';
+			}
+			str = str
+				.replace(/"((#|\.)?\w+)": ((\w|\|)+),/g, '"$1": $3,')
+				.replace(/"((#|\.)?\w+)": ((\w|\|)+)},/g, '"$1": $3\n},')
+				.replace(/"(\w+)":{/g, '"$1":{\n')
+				.replace(/\n},"/g, '\n},\n"')
+				.replace(/{\n}/g, '{ }')
+				.replace(/"(\w+)": (\w+)}}/g, '\t"$1": $2\n}\n}')
+				.replace(/{"/g, '{\n"')
+				.replace(/:"{ }",/, ':{ },\n')
+				.replace(/,/g, ';')
+				.replace(/(\s+)\}/g, ';\n}')
+			const split = str.split('\n');
+			return split.join('\n');
+		}
+
+		/**
+		 * Formats a typings object into a string
+		 */
+		function formatTypings(typings: {
+			[key: string]: string;
+		}): string {
+			return prettyify(stringToType(JSON.stringify(typings, null, '\t')))
+		}
+
+		/**
+		 * Capitalizes a string
+		 */
+		function capitalize(str: string): string {
+			return `${str[0].toUpperCase()}${str.slice(1)}`;
+		}
+
+		/**
+		 * Converts dashes to an uppercase char
+		 */
+		function dashesToUppercase(str: string): string {
+			let newStr = '';
+			for (let i = 0; i < str.length; i++) {
+				const char = str[i];
+				if (char === '-') {
+					newStr += str[i + 1].toUpperCase();
+					i += 1;
+				} else {
+					newStr += char;
+				}
+			}
+			return newStr;
+		}
+
+
+		/**
+		 * Creates a component query map for given component
+		 */
+		function createComponentQueryMap(name: string, queryObj: HTMLTypings.TypingsObj): string {
+			const {
+				// @ts-ignore
+				classes, ids, selectors, tags
+			} = queryObj;
+			const prefix = capitalize(dashesToUppercase(name));
+			return `export type ${prefix}SelectorMap = ${formatTypings(selectors)}
+
+	export type ${prefix}IDMap = ${formatTypings(ids)}
+
+	export type ${prefix}ClassMap = ${formatTypings(classes)}
+
+	export type ${prefix}TagMap = ${formatTypings(tags)}`
+		}
+		
+		/**
+		 * Strips invalid values from a query map (such as ${classNames(...
+		 * 
+		 * @param {{[key: string]: string;}} queryObj - The query object
+		 * 
+		 * @returns {HTMLTypings.TypingsObj} The query map
+		 */
+		function stripInvalidValues(obj: { 
+			[key: string]: string; 
+		}): HTMLTypings.TypingsObj {
+			const newObj = {} as HTMLTypings.TypingsObj;
+			for (const key in obj) {
+				if (obj[key].indexOf('${') === -1 &&
+					key.indexOf('${') === -1) {
+						(newObj as any)[key] = obj[key];
+					}
+			}
+			return newObj;
+		}
+
+		/**
+		 * Strips invalid values from a query map obj (such as ${classNames(...
+		 */
+		function stripInvalidValuesObj(queryObj: htmlTypings.TypingsObj): HTMLTypings.TypingsObj {
+			return {
+				classes: stripInvalidValues(queryObj.classes),
+				ids: stripInvalidValues(queryObj.ids),
+				selectors: stripInvalidValues(queryObj.selectors),
+				modules: queryObj.modules,
+				tags: stripInvalidValues((queryObj as any).tags || {})
+			} as any as HTMLTypings.TypingsObj;
+		}
+
 		class Compilation {
 			@rootTask('fileIdMaps',
 				'Updates the HTML to Typescript maps')
@@ -868,6 +998,18 @@ class Tasks {
 				const pattern = '{app/elements/**/*.html,!app/elements/elements.html}';
 				const typings = await extractGlobTypes(pattern);
 				await writeFile('./app/elements/fileIdMaps.d.ts', typings);
+			}
+
+			@rootTask('WCfileIdMaps',
+				'Updates the HTML to Typescript maps')
+			static async WCfileIdMaps() {
+				await Promise.all((await findWithGlob('app/wc-elements/**/*.html.ts')).map(async (fileName) => {
+					const componentName = fileName.split('/').pop().split('.')[0];
+					const defs = await htmlTypings.extractFileTypes(fileName, true);
+					await writeFile(path.join(path.dirname(fileName), `${componentName}-querymap.d.ts`),
+						createComponentQueryMap(componentName, 
+							stripInvalidValuesObj(defs)));
+				}));
 			}
 
 			@rootTask('defs',

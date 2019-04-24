@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Options</title>
+		<style type="text/css">
+			/*#region Fonts*/
+			@font-face {
+				font-family: 'Roboto';
+				font-style: normal;
+				font-weight: 400;
+				src: url(../fonts/Roboto-Regular.ttf);
+			}
+
+			@font-face {
+				font-family: 'Roboto';
+				font-style: normal;
+				font-weight: 500;
+				src: url(../fonts/Roboto-Medium.ttf);
+			}
+
+			@font-face {
+				font-family: 'Roboto';
+				font-style: normal;
+				font-weight: 700;
+				src: url(../fonts/Roboto-Bold.ttf);
+			}
+
+			@font-face {
+				font-family: 'Inconsolata';
+				font-style: normal;
+				font-weight: 400;
+				src: url(../fonts/Inconsolata-Regular.ttf);
+			}
+
+			@font-face {
+				font-family: 'Inconsolata';
+				font-style: normal;
+				font-weight: 700;
+				src: url(../fonts/Inconsolata-Bold.ttf);
+			}
+
+			@font-face {
+				font-family: 'RobotoSlab';
+				font-style: normal;
+				font-weight: 400;
+				src: url(../fonts/RobotoSlab-Regular.ttf);
+			}
+
+			body {
+				font-size: 75%;
+				font-family: 'Roboto', "segoe UI", tahoma, sans serif;
+			}
+			/*#endregion*/
+
+			/*#region Contextmenu Demo*/
+			.contextMenuRoot {
+				z-index: 9999999999999999;
+				position: fixed;
+			}			
+
+			.contextMenuRoot.rootHidden {
+				display: none;
+			}
+
+			.contextMenuMenuSubmenu {
+				box-shadow: 1px 3px 1px 0 rgba(0, 0, 0, 0.14), 
+					0 1px 8px 0 rgba(0, 0, 0, 0.12), 
+					0 3px 3px -2px rgba(0, 0, 0, 0.4);
+				border: 1px solid #BABABA;
+				background-color: white;
+				padding-top: 2px;
+				padding-bottom: 2px;
+			}
+
+			.contextMenuMenuSubmenu.hidden {
+				display: none;
+			}
+
+			.contextMenuMenuChildren {
+				position: absolute;
+				margin-left: calc(100% - 3px);
+				margin-top: -27px;
+			}
+
+			.contextMenuLink, .contextMenuScript, 
+			.contextMenuStylesheet, .contextMenuMenuContainer {
+				padding-top: 7px;
+				padding-left: 36px;
+				padding-right: 25px;
+				padding-bottom: 3px;
+				text-overflow: ellipsis;
+				background-color: white;
+			}
+
+			.contextMenuNode {
+				cursor: default;
+			}
+
+			.contextMenuLink:hover, .contextMenuScript:hover, 
+			.contextMenuStylesheet:hover, .contextMenuMenuContainer:hover,
+			.contextMenuMenuContainer.hover {
+				background-color: #EBEBEB;
+			}
+
+			.contextMenuDivider {
+				margin-top: 5px;
+				border-top: 1px solid #E9E9E9;
+				margin-bottom: 5px;
+			}
+
+			.hidden0 .contextMenuNode.hidden0,
+			.hidden1 .contextMenuNode.hidden1,
+			.hidden2 .contextMenuNode.hidden2,
+			.hidden3 .contextMenuNode.hidden3,
+			.hidden4 .contextMenuNode.hidden4,
+			.hidden5 .contextMenuNode.hidden5 {
+				display: none;
+			}
+
+			.contextMenuMenuContainer {
+				display: flex;
+				justify-content: space-between;
+			}
+
+			.contextMenuMenuArrow {
+				background-size: cover;
+				width: 0px;
+				height: 7px;
+				fill: #5A5A5A;
+				stroke: #5A5A5A;
+				stroke-width: 5px;
+			}
+
+			.contextMenuMenuArrowImage {
+				height: 10px;
+				width: 15px;
+				margin-top: 3px;
+				margin-left: 4px;
+			}
+
+			.contextMenuRoot.clickable, .contextMenuRoot.clickable .contextMenuNode {
+				cursor: pointer;
+			}
+			/*#endregion*/
+
+			#splashScreen {
+				top: 0;
+				bottom: 0;
+				right: 0;
+				left: 0;
+				background-color: #FF5722;
+				z-index: 999999999999999;
+				color: white;
+			}
+
+			html {
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body style="margin: 0;">
+		<splash-screen max="48" id="splashScreen" name="Custom Right-Click Menu">
+			<error-reporting-tool></error-reporting-tool>
+			<crm-app></crm-app>
+		</splash-screen>
+		<!-- build:js inline -->
+		<!-- <script src="../js/polyfills/browser.js"></script> -->
+		<!-- <script src="../js/shared.js"></script> -->
+		<script type="module" src="./wctest.js"></script>
+		<!-- /build -->
+	</body>
+</html>

@@ -1,0 +1,136 @@
+import { TemplateFn, CHANGE_TYPE } from "../../../modules/wclib/build/es/wclib.js";
+import { render } from "../../../modules/lit-html/lit-html.js";
+import { SplashScreen } from "./splash-screen.js";
+
+export const SplashScreenCSS = new TemplateFn<SplashScreen>(function (html) {
+	return html`<style>
+		#splashContainer {
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			opacity: 0;
+			width: 100%;
+			height: 100%;
+			color: white;
+			position: absolute;
+			overflow: hidden;
+			pointer-events: none;
+			z-index: 999999999999999;
+			background-color: #FF5722;
+		}
+
+		@-webkit-keyframes fadeIn {
+			0% {
+				opacity: 0;
+			}
+			100% {
+				opacity: 1;
+			}
+		}
+
+		@keyframes fadeIn {
+			0% {
+				opacity: 0;
+			}
+			100% {
+				opacity: 1;
+			}
+		}
+
+		#splashContainer.visible {
+			-webkit-animation: fadeIn 150ms ease-in forwards;
+			animation: fadeIn 150ms ease-in forwards;
+		}
+
+		#splashContainer.invisible {
+			-webkit-animation: none;
+			animation: none;
+			opacity: 0;
+		}
+
+		#splashVerticalCenterer {
+			display: -webkit-flex;
+			display: -webkit-box;
+			display: flex;
+			height: 100%;
+			-webkit-flex-direction: column;
+			-webkit-box-orient: vertical;
+			-webkit-box-direction: normal;
+					flex-direction: column;
+			-webkit-justify-content: center;
+			-webkit-box-pack: center;
+					justify-content: center;
+		}
+
+		#splashHorizontalCenterer {
+			display: -webkit-flex;
+			display: -webkit-box;
+			display: flex;
+			width: 100%;
+			-webkit-flex-direction: row;
+			-webkit-box-orient: horizontal;
+			-webkit-box-direction: normal;
+					flex-direction: row;
+			-webkit-justify-content: center;
+			-webkit-box-pack: center;
+					justify-content: center;
+		}
+
+		#splashTitle {
+			font-size: 800%;
+			font-size: -webkit-calc(100vw / 20);
+			font-size: calc(100vw / 20);
+			text-align: center;
+		}
+
+		#splashLoaderCenterer {
+			display: -webkit-flex;
+			display: -webkit-box;
+			display: flex;
+			-webkit-flex-direction: row;
+			-webkit-box-orient: horizontal;
+			-webkit-box-direction: normal;
+					flex-direction: row;
+			-webkit-justify-content: center;
+			-webkit-box-pack: center;
+					justify-content: center;
+		}
+
+		#splashBarCont {
+			width: 50vw;
+			height: 4px;
+			background-color: rgb(224, 224, 224);
+			margin-top: 20px;
+			position: relative;
+		}
+
+		#progressBar {
+			will-change: transform;
+			-webkit-transform-origin: left center;
+			transform-origin: left center;
+			position: absolute;
+			-webkit-transform: scaleX(0);
+			transform: scaleX(0);
+			background-color: rgb(38, 153, 244);
+			width: 50vw;
+			height: 4px;
+			-webkit-transition: transform 200ms linear, -webkit-transform 200ms linear;
+			transition: transform 200ms linear, -webkit-transform 200ms linear
+		}
+
+		#contentContainer {
+			background-color: white;
+			color: black;
+			pointer-events: all;
+			overflow: auto;
+			max-height: 100vh;
+			width: 100vw;
+			height: 100vh;
+			position: absolute;
+			top: 0;
+			left: 0;
+			overflow-x: hidden;
+		}
+	</style>`;
+}, CHANGE_TYPE.NEVER, render);

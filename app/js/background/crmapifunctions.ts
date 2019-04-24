@@ -48,7 +48,7 @@ export namespace CRMAPIFunctions.contextMenuItem {
 						tabs: new window.Map<CRM.GenericNodeId, {
 							checked?: boolean;
 							overrides?: ContextMenuOverrides;
-						}>([[tabId, {
+						}>([[tabId as CRM.GenericNodeId, {
 							overrides: {}
 						}]])
 					});

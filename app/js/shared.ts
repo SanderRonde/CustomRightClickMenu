@@ -2,6 +2,21 @@
 
 import { Polymer } from '../../tools/definitions/polymer';
 
+let _supportsTransformUnprefixed: boolean = 
+	window.getComputedStyle && 
+	'transform' in window.getComputedStyle(document.documentElement, '');
+export function setTransform(el: HTMLElement|SVGElement, value: string) {
+	if (_supportsTransformUnprefixed) {
+		el.style.transform = value;
+	} else {
+		el.style.webkitTransform = value;
+	}
+}
+
+
+
+
+
 declare const BrowserAPI: BrowserAPI;
 declare const browserAPI: browserAPI;
 declare const window: SharedWindow;
@@ -78,6 +93,7 @@ interface I18NElement {
 declare global {
 	interface Window {
 		Promise: typeof Promise;
+		Map: typeof Map;
 		onExists<T extends keyof C, C = Window>(key: T, container?: C): PromiseLike<C[T]>;
 		onExistsChain<C, T1 extends keyof C, T2 extends keyof C[T1], 
 			T3 extends keyof C[T1][T2], T4 extends keyof C[T1][T2][T3], 
@@ -620,9 +636,6 @@ export type SharedWindow = Window & {
 	}
 
 	let _supportsFlexUnprefixed: boolean = null;
-	let _supportsTransformUnprefixed: boolean = 
-		window.getComputedStyle && 
-		'transform' in window.getComputedStyle(document.documentElement, '');
 
 	window.setDisplayFlex = (el: HTMLElement|SVGElement) => {
 		if (_supportsFlexUnprefixed === null) {
@@ -634,14 +647,6 @@ export type SharedWindow = Window & {
 			el.style.display = 'flex';
 		} else {
 			el.style.display = '-webkit-flex';
-		}
-	}
-
-	window.setTransform = (el: HTMLElement|SVGElement, value: string) => {
-		if (_supportsTransformUnprefixed) {
-			el.style.transform = value;
-		} else {
-			el.style.webkitTransform = value;
 		}
 	}
 

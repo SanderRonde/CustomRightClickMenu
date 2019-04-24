@@ -971,6 +971,7 @@ export namespace CRMNodes.Script.Updating {
 					});
 					if (!code) {
 						resolve(null);
+						return;
 					}
 					resolve({
 						name, code, url,

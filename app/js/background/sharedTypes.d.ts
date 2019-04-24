@@ -303,7 +303,8 @@ type BackgroundpageWindow = Window & SharedWindow & {
 		exports?: any;
 	}
 	crypto: Crypto;
-	WeakMap: typeof WeakMapPolyfill;
+	WeakMap: typeof WeakMap;
+	Map: typeof Map;
 
 	log: typeof console.log;
 	info: typeof console.log;

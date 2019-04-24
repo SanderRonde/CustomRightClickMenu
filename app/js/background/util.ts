@@ -355,7 +355,7 @@ export namespace Util {
 	export function toMap<V, K extends string|number, O extends CRM.ObjectifiedMap<K, V>>(obj: O): Map<K, V> {
 		return new window.Map<K, V>(Object.getOwnPropertyNames(obj).map((key: any) => {
 			return [key, obj[key as Extract<keyof CRM.ObjectifiedMap<K, V>, string>]];
-		}));
+		}) as any);
 	}
 	export function fromMap<K, V>(map: Map<K, V>): CRM.ObjectifiedMap<K, V> {
 		const obj: CRM.ObjectifiedMap<K, V> = {} as any;

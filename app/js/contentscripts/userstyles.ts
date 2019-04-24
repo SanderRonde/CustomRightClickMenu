@@ -222,7 +222,7 @@ function getMeta(name: string) {
 
 	function onDOMready() {
 		if (document.readyState !== 'loading') {
-		  return Promise.resolve();
+		  return new Promise(resolve => resolve());
 		}
 		return new Promise(resolve => {
 			document.addEventListener('DOMContentLoaded', function _() {
