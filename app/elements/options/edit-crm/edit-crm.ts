@@ -289,7 +289,7 @@ namespace EditCrmElement {
 				return element.classList.contains('CRMEditColumnCont');
 			}).map((columnCont: CRMColumnElement) => {
 				return columnCont.querySelector('.CRMEditColumn');
-			}));
+			}) as CRMColumnElement[]);
 		};
 
 		/**

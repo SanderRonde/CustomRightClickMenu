@@ -14,9 +14,16 @@
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
         "noUnusedLocals": true,
-        "target": "es5",
+        "target": "es6",
         "noUnusedParameters": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "paths": {
+            "*": [
+                "../app/modules/*"
+            ],
+            "*/wclib.js": ["wclib"],
+            "*/lit-html.js": ["lit-html"]
+        }
 	}, 
     "allowJs": true,
     "compileOnSave": true,

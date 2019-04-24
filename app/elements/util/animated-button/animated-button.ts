@@ -81,7 +81,7 @@ namespace AnimatedButtonElement {
 				if (this.tap in host) {
 					(host[this.tap as keyof typeof host] as (e: MouseEvent) => void)(e);
 				} else {
-					console.warn.apply(console, host._logf(`_createEventHandler`, 
+					console.warn.call(console, ...host._logf(`_createEventHandler`, 
 						`listener method ${this.tap} not defined`));
 				}
 			}

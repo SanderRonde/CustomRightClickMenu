@@ -1570,7 +1570,7 @@ export type CRMAPIMessage = {
 					const global = (this.__privates._isBackground ? self : window);
 					val = {
 						type: 'success',
-						result: JSON.stringify(CrmAPIInstance._helpers.specialJSON.toJSON.apply(CrmAPIInstance._helpers.specialJSON, [(
+						result: JSON.stringify(CrmAPIInstance._helpers.specialJSON.toJSON.apply(CrmAPIInstance._helpers.specialJSON as any, [(
 							eval.apply(global, [message.code]))]))
 					};
 
@@ -2105,7 +2105,7 @@ export type CRMAPIMessage = {
 				logId: number;
 			} {
 				const { json, originalValues } = CrmAPIInstance._helpers.specialJSON.toJSON.apply(
-					CrmAPIInstance._helpers.specialJSON, [arr, true]);
+					CrmAPIInstance._helpers.specialJSON as any, [arr, true]);
 
 				this.__privates._sentLogs.push({
 					logObj: json as SpecialJSONObject,
@@ -2269,9 +2269,15 @@ export type CRMAPIMessage = {
 						message: string;
 						stackTrace: string;
 						lineNumber: number;
-					}, stackTrace: string[]) => {
+					}|any[], stackTrace: string[]) => {
 						if (status === 'error') {
-							this.onError && this.onError(messageOrParams);
+							const message = messageOrParams as {
+								error: string;
+								message: string;
+								stackTrace: string;
+								lineNumber: number;
+							};
+							this.onError && this.onError(message);
 							if (this.stackTraces) {
 								setTimeout(() => {
 									console.log('stack trace: ');
@@ -2281,13 +2287,13 @@ export type CRMAPIMessage = {
 								}, 5);
 							}
 							if (this.errors) {
-								reject(new Error('CrmAPIError: ' + messageOrParams.error));
+								reject(new Error('CrmAPIError: ' + message.error));
 							} else {
-								console.warn('CrmAPIError: ' + messageOrParams.error);
+								console.warn('CrmAPIError: ' + message.error);
 							}
 						} else {
-							callback && callback.apply(this, messageOrParams);
-							resolve((messageOrParams as any)[0]);
+							callback && callback.apply(this, messageOrParams as any[]);
+							resolve((messageOrParams as any[])[0]);
 						}
 					}
 					const message = {
@@ -3425,7 +3431,7 @@ export type CRMAPIMessage = {
 				}
 			}
 			static specialJSON = {
-				_regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'],
+				_regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'] as string[],
 				_getRegexFlags(this: SpecialJSON, expr: RegExp): string[] {
 					const flags: string[] = [];
 					this._regexFlagNames.forEach((flagName: string) => {
@@ -5319,9 +5325,9 @@ export type CRMAPIMessage = {
 			runScript(this: CrmAPIInstance, id: number, options: BrowserTabsQueryInfo & {
 				tabId?: MaybeArray<number>;
 				all?: boolean;
-			}): void {
+			}): Promise<void> {
 				if (!this.__privates._ensureBackground()) {
-					return;
+					return Promise.resolve();
 				}
 				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 
 					'crm.background.runScript', null, {
@@ -5354,9 +5360,9 @@ export type CRMAPIMessage = {
 			runSelf(this: CrmAPIInstance, options: BrowserTabsQueryInfo & {
 				tabId?: MaybeArray<number>;
 				all?: boolean;
-			}): void {
+			}): Promise<void> {
 				if (!this.__privates._ensureBackground()) {
-					return;
+					return Promise.resolve();
 				}
 				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 
 					'crm.background.runSelf', null, {
@@ -5369,9 +5375,9 @@ export type CRMAPIMessage = {
 			 * @param {string} key - The keyboard shortcut to listen for
 			 * @param {function} callback - The function to call when a keyboard event occurs
 			 */
-			addKeyboardListener(this: CrmAPIInstance, key: string, callback: () => void): void {
+			addKeyboardListener(this: CrmAPIInstance, key: string, callback: () => void): Promise<void> {
 				if (!this.__privates._ensureBackground()) {
-					return;
+					return Promise.resolve();
 				}
 				return this.__privates._sendOptionalCallbackCrmMessage.call(this, 
 					'crm.background.addKeyboardListener', callback, {
@@ -5941,7 +5947,7 @@ export type CRMAPIMessage = {
 		 * @param {Object} [context] - The context of the search (the node from which to start, default is document)
 		 * @returns {Element[]} An array of the matching HTML elements
 		 */
-		$(selector: string, context: HTMLElement = (document as any)): HTMLElement|Element {
+		$(selector: string, context: HTMLElement = (document as any)): (HTMLElement|Element)[] {
 			return Array.prototype.slice.apply(context.querySelectorAll(selector));
 		};
 		$crmAPI = this.$;

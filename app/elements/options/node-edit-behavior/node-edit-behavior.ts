@@ -77,7 +77,7 @@ namespace NodeEditBehaviorNamespace {
 			const containers = this.$.showOnContentIconsContainer.children;
 			resultStorage.onContentTypes = Array.prototype.slice.apply(containers).map((item: Element) => {
 				return item.querySelector('paper-checkbox').checked;
-			});
+			}) as any;
 		};
 
 		static getTriggers(this: NodeEditBehaviorInstance, resultStorage: Partial<CRM.Node>) {

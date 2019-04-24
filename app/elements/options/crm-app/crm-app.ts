@@ -146,10 +146,10 @@ namespace CRMAppElement {
 							state.isPaused = false;
 							state.finishPromise && state.finishPromise(returnVal);
 							if (returnVal.onfinish) {
-								returnVal.onfinish.apply(returnVal, {
+								returnVal.onfinish.apply(returnVal, [{
 									currentTime: Date.now(),
-    								timelineTime: null
-								});
+									timelineTime: null
+								} as any]);
 							}
 						},
 						progress(_animation, progress, remainingMs) {
@@ -174,10 +174,10 @@ namespace CRMAppElement {
 						element.style[prop as any] = props[prop];
 					}
 
-					returnVal.oncancel && returnVal.oncancel.apply(returnVal, {
+					returnVal.oncancel && returnVal.oncancel.apply(returnVal, [{
 						currentTime: Date.now(),
 						timelineTime: null
-					});
+					} as any]);
 				},
 				finish() {
 					state.isPaused = false;
@@ -187,10 +187,10 @@ namespace CRMAppElement {
 							state.playState = 'finished';
 							state.finishPromise && state.finishPromise(returnVal);
 							if (returnVal.onfinish) {
-								returnVal.onfinish.apply(returnVal, {
+								returnVal.onfinish.apply(returnVal, [{
 									currentTime: Date.now(),
-    								timelineTime: null
-								});
+									timelineTime: null
+								} as any]);
 							}
 						}
 					});
@@ -271,7 +271,7 @@ namespace CRMAppElement {
 			});
 			$(this).animate(properties[1], options.duration, function () {
 				if (returnVal.onfinish) {
-					returnVal.onfinish.apply({
+					(returnVal.onfinish as any).apply({
 						effect: {
 							target: element
 						}
@@ -466,14 +466,14 @@ namespace CRMAppElement {
 			if (fnName) {
 				if (fnName !== 'prototype' && fnName !== 'parent' && listeners[fnName]) {
 					const listener = this.listeners[fnName];
-					(listener as (this: typeof listener,
+					(listener.bind(listeners) as (this: any,
 						event: Polymer.CustomEvent,
-						eDetail: Polymer.CustomEvent['detail']) => void).bind(listeners)(event, event.detail);
+						eDetail: Polymer.CustomEvent['detail']) => void)(event, event.detail);
 				} else {
-					console.warn.apply(console, this._logf(`_createEventHandler`, `listener method ${fnName} not defined`));
+					console.warn.call(console, ...this._logf(`_createEventHandler`, `listener method ${fnName} not defined`));
 				}
 			} else {
-				console.warn.apply(console, this._logf(`_createEventHandler`, `property data-on${event.type} not defined`));
+				console.warn.call(console, ...this._logf(`_createEventHandler`, `property data-on${event.type} not defined`));
 			}
 		}
 
@@ -1180,7 +1180,7 @@ namespace CRMAppElement {
 			if (currentWord.length > 0) {
 				logArgs.push(currentWord);
 			}
-			console.log.apply(console, [logArgs.join(' ')].concat(styleArgs));
+			console.log.call(console, ...[logArgs.join(' ')].concat(styleArgs));
 		}
 
 		private static _getDotValue<T extends {

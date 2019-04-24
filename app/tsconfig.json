@@ -16,11 +16,15 @@
         "noImplicitReturns": true,
         "noUnusedLocals": true,
         "target": "es6",
+        "strictBindCallApply": true,
         "noUnusedParameters": true,
         "experimentalDecorators": true,
         "paths": {
-            "modules/wclib/build/es/wclib.js": ["wclib"],
-            "modules/lit-html/lit-html.js": ["lit-html"]
+            "*": [
+                "../app/modules/*"
+            ],
+            "*/wclib.js": ["wclib"],
+            "*/lit-html.js": ["lit-html"]
         }
 	}, 
     "allowJs": true,

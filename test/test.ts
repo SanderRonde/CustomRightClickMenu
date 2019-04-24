@@ -11,7 +11,6 @@ process.on('unhandledRejection', err => {
 // @ts-ignore
 const mochaSteps = require('mocha-steps');
 const step: Mocha.ITestDefinition = mochaSteps.step;
-const Map: typeof MapPolyfill = (global as any).Map;
 import * as request from 'request';
 import { assert } from 'chai';
 import * as path from 'path';

@@ -262,7 +262,7 @@ type BackgroundpageWindow = Window & SharedWindow & {
 	createHandlerFunction: (port: {
 		postMessage: (message: Object) => void;
 	}|_browser.runtime.Port) => (message: any) => Promise<void>;
-	backgroundPageLog: (id: CRM.GenericNodeId, sourceData: [string, number], ...params: any[]) => void;
+	backgroundPageLog: (id: CRM.GenericNodeId, sourceData: [string|number, string|number], ...params: any[]) => void;
 	filter: (nodeId: any, tabId: any) => void;
 	_getCurrentTabIndex: (id: CRM.GenericNodeId, currentTab: TabId|'background', callback: (newTabIndexes: TabIndex[]) => void) => void;
 	_getIdsAndTabs: (selectedId: CRM.GenericNodeId, selectedTab: TabId|'background', callback: (result: {

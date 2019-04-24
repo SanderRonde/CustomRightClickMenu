@@ -1,3 +1,4 @@
+import rollupResolve from 'rollup-plugin-node-resolve';
 import { extractGlobTypes } from 'html-typings';
 import { joinPages } from './tools/joinPages';
 import { polymerBuild } from './tools/build';
@@ -10,9 +11,9 @@ import replace from 'gulp-replace';
 import gulpBabel from 'gulp-babel';
 import ts from 'gulp-typescript';
 import rename from 'gulp-rename';
-import uglify from 'gulp-uglify';
 import banner from 'gulp-banner';
 import * as rollup from 'rollup';
+import uglifyEs from 'uglify-es';
 import xpi from 'firefox-xpi';
 import crisper from 'crisper';
 import mkdirp from 'mkdirp';
@@ -171,6 +172,55 @@ function readFile(filePath: string, options?: { encoding?: 'utf8'; }): Promise<s
 		}
 	});
 }
+
+async function uglify(src: string, dest: string|string[], 
+	process?: (code: string) => string) {
+		const result = uglifyEs.minify(process ?
+			process(await readFile(src)) : await readFile(src));
+		if (result.error) {
+			throw result.error;
+		}
+		if (result.warnings) {
+			console.log(result.warnings);
+		}
+
+		const dests = Array.isArray(dest) ? dest : [dest];
+		for (const dest of dests) {
+			await assertDir(path.dirname(dest));
+			await writeFile(dest, result.code);
+		}
+	}
+
+function globProm(pattern: string, options?: glob.IOptions) {
+	return new Promise<string[]>((resolve, reject) => [
+		glob(pattern, options || {}, (err, matches) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(matches);
+			}
+		})
+	]);
+}
+
+async function globAll(patterns: string|string[], options?: glob.IOptions): Promise<string[]> {
+	return (await Promise.all(
+		(Array.isArray(patterns) ? patterns : [patterns]).map((pattern) => {
+			return globProm(pattern, options);
+		}))).reduce((prev, current) => {
+			return [...prev, ...current];
+		}, []);
+}
+
+async function uglifyGlob(globPatterns: string|string[], base: string, dest: string|string[],
+	process?: (code: string) => string) {
+		const dests = Array.isArray(dest) ? dest : [dest];
+		return (await globAll(globPatterns, {
+			cwd: base
+		})).map((file) => {
+			return [path.join(base, file), dests.map(dest => path.join(dest, file))];
+		}).map(([src, dest]) => uglify(src as string, dest, process));
+	}
 
  /* Decorators */
 interface TaskStructure {
@@ -340,14 +390,9 @@ class Tasks {
 					};
 			
 					@describe('Embed the typescript compiler')
-					static tsEmbedDev() {
-						return gulp
-							.src('typescript.js', {
-								cwd: './node_modules/typescript/lib',
-								base: './node_modules/typescript/lib'
-							})
-							.pipe(uglify())
-							.pipe(gulp.dest('./app/js/libraries/'))
+					static async tsEmbedDev() {
+						uglify('node_modules/typescript/lib/typescript.js',
+							'app/js/libraries/typescript.js');
 					};
 			
 					@describe('Embed the less compiler')
@@ -1178,21 +1223,16 @@ class Tasks {
 						@taskClass('prepolymer')
 						class PrePolymer {
 							@describe('Copies monaco files from node_modules to app/ and temp/')
-							static copyMonacoJs() {
-								return cache('monaco-js', () => {
-									return gulp
-										.src([
-											'**/**/*.js',
-											'!vs/basic-languages/src/**',
-											'vs/basic-languages/src/css.js',
-											'vs/basic-languages/src/less.js'
-										], {
-												base: 'node_modules/monaco-editor/min',
-												cwd: 'node_modules/monaco-editor/min'
-											})
-										.pipe(uglify())
-								}).pipe(gulp.dest('temp/elements/options/editpages/monaco-editor/src/min/'))
-									.pipe(gulp.dest('app/elements/options/editpages/monaco-editor/src/min/'));
+							static async copyMonacoJs() {
+								await uglifyGlob([
+									'**/**/*.js',
+									'!vs/basic-languages/src/**',
+									'vs/basic-languages/src/css.js',
+									'vs/basic-languages/src/less.js'
+								], 'node_modules/monaco-editor/min', [
+									'temp/elements/options/editpages/monaco-editor/src/min/',
+									'app/elements/options/editpages/monaco-editor/src/min/'
+								]);
 							}
 
 							@describe('Copies non-js monaco files from node_modules to app/ and temp/')
@@ -1258,6 +1298,7 @@ class Tasks {
 										'entrypoints/logging.html',
 										'entrypoints/options.html',
 										'entrypoints/background.html',
+										'entrypoints/wctest.html',
 										'bower_components/**/*',
 										'images/chromearrow.png',
 										'images/shadowImg.png',
@@ -1330,15 +1371,10 @@ class Tasks {
 							}
 
 							@describe('Embeds the typescript compilation library')
-							static embedTS() {
-								return cache('ts-lib-ugly', () => {
-									return gulp
-										.src('typescript.js', {
-											cwd: './node_modules/typescript/lib',
-											base: './node_modules/typescript/lib'
-										})
-										.pipe(uglify())
-								}).pipe(gulp.dest('./temp/js/libraries'));
+							static async embedTS() {
+								await uglifyGlob([
+									'typescript.js'
+								], 'node_modules/typescript/lib', './temp/js/libraries');
 							}
 
 							@describe('Embeds the Less compiler')
@@ -1793,28 +1829,23 @@ class Tasks {
 								@taskClass('monaco')
 								class Monaco {
 									@describe('Copies JS files from monaco to build/ and uglifies them')
-									static js() {
-										return cache('monaco-post-js', () => {
-											return gulp
-												.src([
-													'**/**/*.js',
-													'!vs/basic-languages/src/**',
-													'vs/basic-languages/src/css.js',
-													'vs/basic-languages/src/less.js'
-												], {
-														base: 'node_modules/monaco-editor/min',
-														cwd: 'node_modules/monaco-editor/min'
-													})
-												.pipe(replace(/node = node\.parentNode/g,
-													'node = node.parentNode || node.host'))
-												.pipe(replace(/document\.body/g,
-													'MonacoEditorHookManager.getLocalBodyShadowRoot'))
-												.pipe(replace(/document\.caretRangeFromPoint/g,
-													'MonacoEditorHookManager.caretRangeFromPoint(arguments[0])'))
-												.pipe(replace(/this.target(\s)?=(\s)?e.target/g,
-													'this.target = e.path ? e.path[0] : e.target'))
-												.pipe(uglify())
-										}).pipe(gulp.dest('build/elements/options/editpages/monaco-editor/src/min/'));
+									static async js() {
+										await uglifyGlob([
+											'**/**/*.js',
+											'!vs/basic-languages/src/**',
+											'vs/basic-languages/src/css.js',
+											'vs/basic-languages/src/less.js'
+										], 'node_modules/monaco-editor/min', 
+											'build/elements/options/editpages/monaco-editor/src/min/', (code) => {
+												return code.replace(/node = node\.parentNode/g,
+													'node = node.parentNode || node.host')
+													.replace(/document\.body/g,
+														'MonacoEditorHookManager.getLocalBodyShadowRoot')
+													.replace(/document\.caretRangeFromPoint/g,
+														'MonacoEditorHookManager.caretRangeFromPoint(arguments[0])')
+													.replace(/this.target(\s)?=(\s)?e.target/g,
+														'this.target = e.path ? e.path[0] : e.target')
+											});
 									}
 
 									@describe('Copies non-JS files from monaco to build/')
@@ -1921,25 +1952,20 @@ class Tasks {
 					})();
 
 					@describe('Copies extra dependencies not already copied by polymer')
-					static extraDependencies() {
-						return gulp
-							.src([
-								'./js/crmapi.js',
-								'./js/contentscripts/openusercss.js',
-								'./js/contentscripts/usercss.js',
-								'./js/contentscripts/userstyles.js',
-								'./js/sandbox.js',
-								'./js/libraries/typescript.js',
-								'./js/libraries/less.js',
-								'./js/libraries/stylus.js',
-								'./js/contentscripts/contentscript.js',
-								'./js/polyfills/browser.js'
-							], {
-									cwd: './temp',
-									base: './temp'
-							})
-							.pipe(uglify())
-							.pipe(gulp.dest('./build'));
+					static async uglifyJS() {
+						await uglifyGlob([
+							'./js/crmapi.js',
+							'./js/contentscripts/openusercss.js',
+							'./js/contentscripts/usercss.js',
+							'./js/contentscripts/userstyles.js',
+							'./js/sandbox.js',
+							'./js/libraries/typescript.js',
+							'./js/libraries/less.js',
+							'./js/libraries/stylus.js',
+							'./js/contentscripts/contentscript.js',
+							'./js/polyfills/browser.js',
+							'./entrypoints/wctest.js'
+						], 'temp', 'build');
 					}
 
 
@@ -1949,7 +1975,7 @@ class Tasks {
 					static buildDevNoCompile = series(
 						Build.PrePolymer.prepolymer,
 						Build.Dev.polymer,
-						Build.extraDependencies,
+						Build.uglifyJS,
 						Build.PostPolymer.postpolymer,
 						Build.Dev.beautify
 					)
@@ -2005,13 +2031,10 @@ class Tasks {
 							}
 
 							@describe('Uglifies the entrypoint prefix')
-							static uglify() {
-								return gulp
-									.src([
-										'./build/entrypoints/entrypointPrefix.js'
-									])
-									.pipe(uglify())
-									.pipe(gulp.dest('./build/entrypoints/'));
+							static async uglify() {
+								await uglifyGlob([
+									'./build/entrypoints/entrypointPrefix.js'
+								], './', './build/entrypoints/');
 							}
 						}
 						return Prod;
@@ -2021,7 +2044,7 @@ class Tasks {
 					static buildNoCompile = series(
 						Build.PrePolymer.prepolymer,
 						Build.Prod.polymer,
-						Build.extraDependencies,
+						Build.uglifyJS,
 						Build.PostPolymer.postpolymer,
 						Build.Prod.uglify
 					)
@@ -2038,6 +2061,147 @@ class Tasks {
 						Tasks.Compilation.Compile.compile,
 						Tasks.I18N.i18n,
 						Build.buildNoCompile
+					)
+
+					@describe('Rolls WCTest.js into a bundle')
+					static async rollupWCTest() {
+						const bundle = await rollup.rollup({
+							input: path.join(__dirname, 'app/entrypoints/wctest.js'),
+							onwarn(warning) {
+								if (typeof warning !== 'string' && warning.code === 'THIS_IS_UNDEFINED') {
+									//Typescript inserted helper method, ignore it
+									return;
+								}
+								console.log(warning);
+							},
+							plugins: [
+								rollupResolve({
+									browser: true
+								})
+							]
+						});
+
+						await bundle.write({
+							format: 'iife',
+							file: path.join(__dirname, 'temp/entrypoints/wctest.js')
+						});
+					}
+
+					@describe('Copies the wctest.html file to build/')
+					static copyWCTest() {
+						return gulp
+							.src('wctest.html', {
+								base: 'app/entrypoints',
+								cwd: 'app/entrypoints'
+							})
+							.pipe(processhtml({
+								strip: true
+							}))
+							.pipe(gulp.dest('build/entrypoints/'));
+					}
+
+					@describe('Copies the background.html file to build/')
+					static copyBackground() {
+						return gulp
+							.src([
+								'./temp/entrypoints/background.html'
+							])
+							.pipe(processhtml({
+								strip: true,
+								data: {
+									classes: 'content extension',
+									base: 'entrypoints/'
+								}
+							}))
+							.pipe(gulp.dest('./build/entrypoints/'));
+					}
+
+					@describe('Copies files from temp/ to build/')
+					static copyFromTemp() {
+						return gulp
+							.src([
+								'manifest.json',
+								"js/libraries/crmapi.d.ts"
+							], { cwd: './temp', base: './temp' })
+							.pipe(gulp.dest('./build'))
+					}
+
+					@describe('Embeds the CRM API')
+					static async copyDefs() {
+						await writeFile('./temp/js/libraries/crmapi.d.ts', 
+							await Tasks.Definitions._joinDefs());
+					}
+
+					@describe('Copies files from app/ to build/')
+					static copyFromApp() {
+						return gulp
+							.src([
+								'_locales/**/*.json',
+								"fonts/**/*",
+								"images/**/*",
+								"js/libraries/csslint.js",
+								"js/libraries/jslint.js",
+								"js/contentscripts/contentscript.js",
+								"js/libraries/tern/*.*",
+								"icon-large.png",
+								"icon-small.png",
+								"icon-supersmall.png",
+								"LICENSE.txt",
+								"manifest.json"
+							], { cwd: './app', base: './app' })
+							.pipe(gulp.dest('./build'))
+					}
+
+					// @describe('Crisps the wctest file')
+					// static async crispWCTest() {
+					// 	const options = await readFile('./build/entrypoints/wctest.html');
+					// 	const { html, js } = crisper({
+					// 		jsFileName: 'wctest.js',
+					// 		source: options,
+					// 		scriptInHead: false,
+					// 		cleanup: false
+					// 	});
+					// 	const optionsRemoved = html.replace(
+					// 		/<script src="options.js"><\/script>/g, '');
+					// 	await Promise.all([
+					// 		writeFile('./build/entrypoints/options.html', optionsRemoved),
+					// 		writeFile('./build/entrypoints/options.js', js)
+					// 	]);
+					// }
+
+					@rootTask('buildWC', 'Builds the extension in WC mode')
+					static buildWC = series(
+						Tasks.Compilation.Compile.compile,
+						Tasks.I18N.i18n,
+						Tasks.Convenience.Clean.build,
+						parallel(
+							Build.PrePolymer.devManifest,
+							Build.PrePolymer.rollupBackground,
+							Build.PrePolymer.copyBuild,
+							Build.PrePolymer.copyInstalling,
+							// Build.PrePolymer.changeWebComponentThis,
+							Build.PrePolymer.embedTS,
+							Build.PrePolymer.embedLess,
+							Build.PrePolymer.embedStylus,
+							Build.PrePolymer.embedCRMAPI,
+							Build.PrePolymer.Entrypoint.entrypoint,
+
+							Build.rollupWCTest,
+							Build.copyWCTest,
+
+							// Polymer
+
+							Build.uglifyJS
+						),
+						Build.PostPolymer.moveUpDir,
+						Build.PostPolymer.cleanBuildTemp,
+						Build.PostPolymer.copyPrefixJs,
+
+						Build.copyBackground,
+						Build.PostPolymer.EntrypointJS.Crisp.background,
+						Build.copyDefs,
+						Build.copyFromTemp,
+						Build.copyFromApp
 					)
 
 					@rootTask('testBuild', 'Attempts to build everything')

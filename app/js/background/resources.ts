@@ -106,7 +106,7 @@ export namespace Resources {
 		hash: string;
 	}) {
 		window.crypto.subtle.digest(name, data).then((hash) => {
-			return String.fromCharCode.apply(null, hash) === lastMatchingHash.hash;
+			return String.fromCharCode.apply(null, hash as any) === lastMatchingHash.hash;
 		});
 	}
 	function algorithmNameToFnName(name: string): string {

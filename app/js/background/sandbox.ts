@@ -85,9 +85,8 @@ export class SandboxWorker implements SandboxWorkerInterface {
 				this._verifyKey(data, this._handler);
 				break;
 			case 'log':
-				window.backgroundPageLog.apply(window,
-					[this.id, [data.lineNo, -1]].concat(JSON
-						.parse(data.data)));
+				window.backgroundPageLog.call(window,
+					this.id, [data.lineNo, -1], JSON.parse(data.data));
 				break;
 		}
 		if (this._callbacks) {

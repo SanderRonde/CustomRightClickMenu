@@ -661,27 +661,27 @@ export type SharedWindow = Window & {
 			oncancel: null,
 			cancel() {
 				currentAnimation && currentAnimation.cancel();
-				this.oncancel && this.oncancel.apply(this, {
+				this.oncancel && this.oncancel.apply(this, [{
 					currentTime: Date.now(),
 					timelineTime: null
-				});
+				} as any]);
 			},
 			play() {
 				currentAnimation && currentAnimation.cancel();
 				currentAnimation = doAnimation(from, to, () => {
-					this.onfinish && this.onfinish.apply(this, {
+					this.onfinish && this.onfinish.apply(this, [{
 						currentTime: Date.now(),
 						timelineTime: null
-					});
+					} as any]);
 				});
 			},
 			reverse() {
 				currentAnimation && currentAnimation.cancel();
 				currentAnimation = doAnimation(to, from, () => {
-					this.onfinish && this.onfinish.apply(this, {
+					this.onfinish && this.onfinish.apply(this, [{
 						currentTime: Date.now(),
 						timelineTime: null
-					});
+					} as any]);
 				});
 			},
 			pause() {},
@@ -724,10 +724,10 @@ export type SharedWindow = Window & {
 			},
 		}
 		doAnimation(from, to, () => {
-			retVal.onfinish && retVal.onfinish.apply(retVal, {
+			retVal.onfinish && retVal.onfinish.apply(retVal, [{
 				currentTime: Date.now(),
 				timelineTime: null
-			});
+			} as any]);
 		});
 		return retVal;
 	}

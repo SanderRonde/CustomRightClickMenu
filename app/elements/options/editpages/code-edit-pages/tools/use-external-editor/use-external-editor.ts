@@ -241,7 +241,7 @@ namespace UseExternalEditorElement {
 					])
 				]);
 				el.addEventListener('click', () => {
-					this.parent().cancelOpenFiles.apply(this, []);
+					this.parent().cancelOpenFiles.apply(this.parent(), []);
 					onDc.fn && onDc.fn();
 				});
 				return {
