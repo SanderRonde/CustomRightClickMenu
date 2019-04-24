@@ -17,7 +17,11 @@
         "noUnusedLocals": true,
         "target": "es6",
         "noUnusedParameters": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "paths": {
+            "modules/wclib/build/es/wclib.js": ["wclib"],
+            "modules/lit-html/lit-html.js": ["lit-html"]
+        }
 	}, 
     "allowJs": true,
     "compileOnSave": true,
