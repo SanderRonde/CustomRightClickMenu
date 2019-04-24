@@ -1,6 +1,6 @@
 /// <reference path="promiseType.ts" />
 
-import { Polymer } from '../../tools/definitions/polymer';
+// import { Polymer } from '../../tools/definitions/polymer';
 
 let _supportsTransformUnprefixed: boolean = 
 	window.getComputedStyle && 
@@ -17,8 +17,8 @@ export function setTransform(el: HTMLElement|SVGElement, value: string) {
 
 
 
-declare const BrowserAPI: BrowserAPI;
-declare const browserAPI: browserAPI;
+// declare const BrowserAPI: BrowserAPI;
+// declare const browserAPI: browserAPI;
 declare const window: SharedWindow;
 
 export interface PromiseConstructor<T = {}> {
@@ -71,24 +71,24 @@ export interface I18NClass {
 	onLangChanged?(newLang: LANGS, oldLang: LANGS): void;
 }
 
-interface I18NElement {
-	/**
-	 * Fired when a language is going to change but hasn't been loaded yet
-	 * 
-	 * @param {LANGS} newLang - The name of the new language
-	 * @param {LANGS} oldLang - The name of the old language
-	 */
-	onLangChange?(newLang: LANGS, oldLang: LANGS): void;
-	/**
-	 * Fired when a language is going to change and has been loaded
-	 * 
-	 * @param {LANGS} newLang - The name of the new language
-	 * @param {LANGS} oldLang - The name of the old language
-	 */
-	onLangChanged?(newLang: LANGS, oldLang: LANGS): void;
-	lang: LANGS;
-	langReady: boolean;
-}
+// interface I18NElement {
+// 	/**
+// 	 * Fired when a language is going to change but hasn't been loaded yet
+// 	 * 
+// 	 * @param {LANGS} newLang - The name of the new language
+// 	 * @param {LANGS} oldLang - The name of the old language
+// 	 */
+// 	onLangChange?(newLang: LANGS, oldLang: LANGS): void;
+// 	/**
+// 	 * Fired when a language is going to change and has been loaded
+// 	 * 
+// 	 * @param {LANGS} newLang - The name of the new language
+// 	 * @param {LANGS} oldLang - The name of the old language
+// 	 */
+// 	onLangChanged?(newLang: LANGS, oldLang: LANGS): void;
+// 	lang: LANGS;
+// 	langReady: boolean;
+// }
 
 declare global {
 	interface Window {
@@ -287,331 +287,331 @@ export type SharedWindow = Window & {
 		});
 	}
 
-	const objectify = <T>(fn: T): T => {
-		const obj: Partial<T> = {};
-		Object.getOwnPropertyNames(fn).forEach((key: string) => {
-			obj[key as keyof T] = fn[key as keyof T];
-		});
-		return obj as T;
-	}
+	// const objectify = <T>(fn: T): T => {
+	// 	const obj: Partial<T> = {};
+	// 	Object.getOwnPropertyNames(fn).forEach((key: string) => {
+	// 		obj[key as keyof T] = fn[key as keyof T];
+	// 	});
+	// 	return obj as T;
+	// }
 
-	const ElementI18nManager = (() => {
-		interface RawLangFile {
-			[key: string]: {
-				message: string;
-				description?: string;
-				placeholders?: {
-					[key: string]: {
-						key: string;
-						example?: string;
-						content: string;
-					}
-				}
-			}
-		}
-		interface LangItem {
-			message: string;
-			placeholders: {
-				index: number;
-				expr: RegExp;
-				content: string;
-			}[];
-		};
-		interface LangFile {
-			[key: string]: LangItem;
-		};
-		class Lang {
-			static readonly DEFAULT_LANG = LANGS.EN;
-			static readonly SUPPORTED_LANGS: LANGS[] = [LANGS.EN];
-			private _currentLangFile: LangFile = null;
-			private _lang: LANGS = null;
-			private _listeners: I18NElement[] = [];
-			private _languageChangeListeners: (() => void)[] = [];
+	// const ElementI18nManager = (() => {
+	// 	interface RawLangFile {
+	// 		[key: string]: {
+	// 			message: string;
+	// 			description?: string;
+	// 			placeholders?: {
+	// 				[key: string]: {
+	// 					key: string;
+	// 					example?: string;
+	// 					content: string;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	interface LangItem {
+	// 		message: string;
+	// 		placeholders: {
+	// 			index: number;
+	// 			expr: RegExp;
+	// 			content: string;
+	// 		}[];
+	// 	};
+	// 	interface LangFile {
+	// 		[key: string]: LangItem;
+	// 	};
+	// 	class Lang {
+	// 		static readonly DEFAULT_LANG = LANGS.EN;
+	// 		static readonly SUPPORTED_LANGS: LANGS[] = [LANGS.EN];
+	// 		private _currentLangFile: LangFile = null;
+	// 		private _lang: LANGS = null;
+	// 		private _listeners: I18NElement[] = [];
+	// 		private _languageChangeListeners: (() => void)[] = [];
 
-			ready = (async () => {
-				// Load the "current" language
-				this._lang = await this.fetchLang();
-				this._currentLangFile = await this.Files.loadLang(this._lang);
-				this._listeners.forEach((listener) => {
-					listener.langReady = true;
-					listener.onLangChanged && 
-						listener.onLangChanged.call(listener, this._lang, null);
-				});
-			})();
+	// 		ready = (async () => {
+	// 			// Load the "current" language
+	// 			this._lang = await this.fetchLang();
+	// 			this._currentLangFile = await this.Files.loadLang(this._lang);
+	// 			this._listeners.forEach((listener) => {
+	// 				listener.langReady = true;
+	// 				listener.onLangChanged && 
+	// 					listener.onLangChanged.call(listener, this._lang, null);
+	// 			});
+	// 		})();
 	
-			Files = class LangFiles {
-				private static _loadedLangs: {
-					[key in LANGS]?: LangFile;
-				} = {};
+	// 		Files = class LangFiles {
+	// 			private static _loadedLangs: {
+	// 				[key in LANGS]?: LangFile;
+	// 			} = {};
 	
-				private static _isWebPageEnv() {
-					return location.protocol === 'http:' || location.protocol === 'https:';
-				}
+	// 			private static _isWebPageEnv() {
+	// 				return location.protocol === 'http:' || location.protocol === 'https:';
+	// 			}
 		
-				private static _loadFile(name: string): Promise<string> {
-					return new window.Promise((resolve, reject) => {
-						const xhr: XMLHttpRequest = new window.XMLHttpRequest();
-						const url = this._isWebPageEnv() ? `../${name}` :
-							browserAPI.runtime.getURL(name);
-						xhr.open('GET', url);
-						xhr.onreadystatechange = () => {
-							if (xhr.readyState === window.XMLHttpRequest.DONE) {
-								if (xhr.status === 200) {
-									resolve(xhr.responseText);
-								} else {
-									reject(new Error('Failed XHR'));
-								}
-							}
-						}
-						xhr.send();
-					});
-				}
+	// 			private static _loadFile(name: string): Promise<string> {
+	// 				return new window.Promise((resolve, reject) => {
+	// 					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
+	// 					const url = this._isWebPageEnv() ? `../${name}` :
+	// 						browserAPI.runtime.getURL(name);
+	// 					xhr.open('GET', url);
+	// 					xhr.onreadystatechange = () => {
+	// 						if (xhr.readyState === window.XMLHttpRequest.DONE) {
+	// 							if (xhr.status === 200) {
+	// 								resolve(xhr.responseText);
+	// 							} else {
+	// 								reject(new Error('Failed XHR'));
+	// 							}
+	// 						}
+	// 					}
+	// 					xhr.send();
+	// 				});
+	// 			}
 	
-				private static _parseLang(str: string): LangFile {
-					const rawParsed = JSON.parse(str) as RawLangFile;
+	// 			private static _parseLang(str: string): LangFile {
+	// 				const rawParsed = JSON.parse(str) as RawLangFile;
 	
-					const parsed: LangFile = {};
-					for (const key in rawParsed) {
-						if (key === '$schema' || key === 'comments') continue;
-						const item = rawParsed[key];
+	// 				const parsed: LangFile = {};
+	// 				for (const key in rawParsed) {
+	// 					if (key === '$schema' || key === 'comments') continue;
+	// 					const item = rawParsed[key];
 	
-						const placeholders: {
-							content: string;
-							expr: RegExp;
-							index: number;
-						}[] = [];
-						for (const key in item.placeholders || {}) {
-							const { content } = item.placeholders[key];
-							placeholders.push({
-								index: placeholders.length,
-								content,
-								expr: new RegExp(`\\$${key}\\$`, 'gi')
-							});
-						}
-						parsed[key] = {
-							message: item.message || `{{${key}}}`,
-							placeholders: placeholders
-						};
-					}
-					return parsed;
-				}
+	// 					const placeholders: {
+	// 						content: string;
+	// 						expr: RegExp;
+	// 						index: number;
+	// 					}[] = [];
+	// 					for (const key in item.placeholders || {}) {
+	// 						const { content } = item.placeholders[key];
+	// 						placeholders.push({
+	// 							index: placeholders.length,
+	// 							content,
+	// 							expr: new RegExp(`\\$${key}\\$`, 'gi')
+	// 						});
+	// 					}
+	// 					parsed[key] = {
+	// 						message: item.message || `{{${key}}}`,
+	// 						placeholders: placeholders
+	// 					};
+	// 				}
+	// 				return parsed;
+	// 			}
 	
-				static async loadLang(lang: LANGS) {
-					if (this._loadedLangs[lang]) {
-						return this._loadedLangs[lang];
-					}
-					try {
-						const langData = await this._loadFile(`_locales/${lang}/messages.json`);
-						const parsed = this._parseLang(langData);
-						this._loadedLangs[lang] = parsed;
-						return parsed;
-					} catch(e) {
-						throw e;
-					}
-				}
+	// 			static async loadLang(lang: LANGS) {
+	// 				if (this._loadedLangs[lang]) {
+	// 					return this._loadedLangs[lang];
+	// 				}
+	// 				try {
+	// 					const langData = await this._loadFile(`_locales/${lang}/messages.json`);
+	// 					const parsed = this._parseLang(langData);
+	// 					this._loadedLangs[lang] = parsed;
+	// 					return parsed;
+	// 				} catch(e) {
+	// 					throw e;
+	// 				}
+	// 			}
 	
-				static getLangFile(lang: LANGS): LangFile|undefined {
-					return this._loadedLangs[lang];
-				}
-			}
+	// 			static getLangFile(lang: LANGS): LangFile|undefined {
+	// 				return this._loadedLangs[lang];
+	// 			}
+	// 		}
 	
-			private async _getDefaultLang() {
-				const acceptLangs = await browserAPI.i18n.getAcceptLanguages();
-				if (acceptLangs.indexOf(Lang.DEFAULT_LANG) > -1) return Lang.DEFAULT_LANG;
+	// 		private async _getDefaultLang() {
+	// 			const acceptLangs = await browserAPI.i18n.getAcceptLanguages();
+	// 			if (acceptLangs.indexOf(Lang.DEFAULT_LANG) > -1) return Lang.DEFAULT_LANG;
 	
-				const availableLangs = acceptLangs
-					.filter(i => Lang.SUPPORTED_LANGS.indexOf(i as LANGS) !== -1);
-				return availableLangs[0] || Lang.DEFAULT_LANG;
-			}
+	// 			const availableLangs = acceptLangs
+	// 				.filter(i => Lang.SUPPORTED_LANGS.indexOf(i as LANGS) !== -1);
+	// 			return availableLangs[0] || Lang.DEFAULT_LANG;
+	// 		}
 	
-			async fetchLang() {
-				await window.onExists('browserAPI');
-				const { lang } = await browserAPI.storage.local.get('lang') as {
-					lang?: LANGS;
-				};
-				if (!lang) {
-					const newLang = await this._getDefaultLang();
-					browserAPI.storage.local.set({
-						lang: newLang
-					});
-					return newLang as LANGS;
-				}
-				return lang;
-			}
+	// 		async fetchLang() {
+	// 			await window.onExists('browserAPI');
+	// 			const { lang } = await browserAPI.storage.local.get('lang') as {
+	// 				lang?: LANGS;
+	// 			};
+	// 			if (!lang) {
+	// 				const newLang = await this._getDefaultLang();
+	// 				browserAPI.storage.local.set({
+	// 					lang: newLang
+	// 				});
+	// 				return newLang as LANGS;
+	// 			}
+	// 			return lang;
+	// 		}
 	
-			async getLang() {
-				if (this._lang) return this._lang;
-				return this.fetchLang();
-			}
+	// 		async getLang() {
+	// 			if (this._lang) return this._lang;
+	// 			return this.fetchLang();
+	// 		}
 	
-			async setLang(lang: LANGS) {
-				const prevLang = await this.getLang();
-				await browserAPI.storage.local.set({
-					lang: lang
-				});
-				this._listeners.forEach(l => l.onLangChange && 
-					l.onLangChange.call(l, lang, prevLang));
-				this.ready = (async () => {
-					this._currentLangFile = await this.Files.loadLang(lang);
-					this._listeners.forEach((listener) => {
-						this._lang = lang;
-						listener.lang = lang;
-						listener.langReady = true;
+	// 		async setLang(lang: LANGS) {
+	// 			const prevLang = await this.getLang();
+	// 			await browserAPI.storage.local.set({
+	// 				lang: lang
+	// 			});
+	// 			this._listeners.forEach(l => l.onLangChange && 
+	// 				l.onLangChange.call(l, lang, prevLang));
+	// 			this.ready = (async () => {
+	// 				this._currentLangFile = await this.Files.loadLang(lang);
+	// 				this._listeners.forEach((listener) => {
+	// 					this._lang = lang;
+	// 					listener.lang = lang;
+	// 					listener.langReady = true;
 
-						this._languageChangeListeners.forEach(fn => fn());
-						this._listeners
-							.forEach(l => l.onLangChanged && 
-								l.onLangChanged.call(l, lang, prevLang));
-					});
-				})();
-			}
+	// 					this._languageChangeListeners.forEach(fn => fn());
+	// 					this._listeners
+	// 						.forEach(l => l.onLangChanged && 
+	// 							l.onLangChanged.call(l, lang, prevLang));
+	// 				});
+	// 			})();
+	// 		}
 	
-			async langReady(lang: LANGS) {
-				return this.Files.getLangFile(lang) !== undefined;
-			}
+	// 		async langReady(lang: LANGS) {
+	// 			return this.Files.getLangFile(lang) !== undefined;
+	// 		}
 	
-			static readonly INDEX_REGEXPS = [
-				new RegExp(/\$1/g),
-				new RegExp(/\$2/g),
-				new RegExp(/\$3/g),
-				new RegExp(/\$4/g),
-				new RegExp(/\$5/g),
-				new RegExp(/\$6/g),
-				new RegExp(/\$7/g),
-				new RegExp(/\$8/g),
-				new RegExp(/\$9/g)
-			];
-			// Basically the same as __sync but optimistic
-			private _getMessage(key: string, ...replacements: string[]): string {
-				const entryData = this._currentLangFile[key];
-				if (!entryData) return `{{${key}}}`;
+	// 		static readonly INDEX_REGEXPS = [
+	// 			new RegExp(/\$1/g),
+	// 			new RegExp(/\$2/g),
+	// 			new RegExp(/\$3/g),
+	// 			new RegExp(/\$4/g),
+	// 			new RegExp(/\$5/g),
+	// 			new RegExp(/\$6/g),
+	// 			new RegExp(/\$7/g),
+	// 			new RegExp(/\$8/g),
+	// 			new RegExp(/\$9/g)
+	// 		];
+	// 		// Basically the same as __sync but optimistic
+	// 		private _getMessage(key: string, ...replacements: string[]): string {
+	// 			const entryData = this._currentLangFile[key];
+	// 			if (!entryData) return `{{${key}}}`;
 	
-				let { message, placeholders } = entryData;
-				let placeholderContents = placeholders.map(p => p.content);
-				if (!message) return `{{${key}}}`;
+	// 			let { message, placeholders } = entryData;
+	// 			let placeholderContents = placeholders.map(p => p.content);
+	// 			if (!message) return `{{${key}}}`;
 	
-				for (let i = 0; i < replacements.length; i++) {
-					const expr = Lang.INDEX_REGEXPS[i];
-					message = message.replace(expr, replacements[i]);
-					placeholderContents = placeholderContents.map((placeholder) => {
-						return placeholder.replace(expr, replacements[i]);
-					});
-				}
-				for (const { expr, index } of placeholders) {
-					message = message.replace(expr, placeholderContents[index]);
-				}
-				return message;
-			}
+	// 			for (let i = 0; i < replacements.length; i++) {
+	// 				const expr = Lang.INDEX_REGEXPS[i];
+	// 				message = message.replace(expr, replacements[i]);
+	// 				placeholderContents = placeholderContents.map((placeholder) => {
+	// 					return placeholder.replace(expr, replacements[i]);
+	// 				});
+	// 			}
+	// 			for (const { expr, index } of placeholders) {
+	// 				message = message.replace(expr, placeholderContents[index]);
+	// 			}
+	// 			return message;
+	// 		}
 	
-			__sync(key: string, ...replacements: (string|number)[]) {
-				if (!this._lang || !this._currentLangFile) return `{{${key}}}`;
+	// 		__sync(key: string, ...replacements: (string|number)[]) {
+	// 			if (!this._lang || !this._currentLangFile) return `{{${key}}}`;
 	
-				return this._getMessage( key, ...replacements.map(s => s + ''));
-			}
+	// 			return this._getMessage( key, ...replacements.map(s => s + ''));
+	// 		}
 	
-			async __(key: string, ...replacements: (string|number)[]): Promise<string> {
-				await this.ready;
-				return this._getMessage(key, ...replacements.map(s => s + ''));
-			}
+	// 		async __(key: string, ...replacements: (string|number)[]): Promise<string> {
+	// 			await this.ready;
+	// 			return this._getMessage(key, ...replacements.map(s => s + ''));
+	// 		}
 
-			addLoadListener(fn: I18NElement) {
-				if (this._listeners.indexOf(fn) !== -1) return;
+	// 		addLoadListener(fn: I18NElement) {
+	// 			if (this._listeners.indexOf(fn) !== -1) return;
 
-				this._listeners.push(fn);
-				if (this._lang) {
-					fn.lang = this._lang;
-					if (this.Files.getLangFile(this._lang)) {
-						fn.langReady = true;
-					}
-				}
-			}
+	// 			this._listeners.push(fn);
+	// 			if (this._lang) {
+	// 				fn.lang = this._lang;
+	// 				if (this.Files.getLangFile(this._lang)) {
+	// 					fn.langReady = true;
+	// 				}
+	// 			}
+	// 		}
 
-			addLanguageChangeListener(fn: () => void) {
-				this._languageChangeListeners.push(fn);
-			}
-		}
-		const langInstance = new Lang();
-		const boundGetMessage = langInstance.__.bind(langInstance);
-		const __: I18N = ((key: string, ...replacements: (string|number)[]) => {
-			return boundGetMessage(key, ...replacements);
-		}) as I18N;
-		__.sync = langInstance.__sync.bind(langInstance);
-		__.getLang = langInstance.getLang.bind(langInstance);
-		__.setLang = langInstance.setLang.bind(langInstance);
-		__.SUPPORTED_LANGS = Lang.SUPPORTED_LANGS;
-		__.addListener = langInstance.addLanguageChangeListener.bind(langInstance);
-		__.ready = () => langInstance.ready;
-		window.__ = __;
+	// 		addLanguageChangeListener(fn: () => void) {
+	// 			this._languageChangeListeners.push(fn);
+	// 		}
+	// 	}
+	// 	const langInstance = new Lang();
+	// 	const boundGetMessage = langInstance.__.bind(langInstance);
+	// 	const __: I18N = ((key: string, ...replacements: (string|number)[]) => {
+	// 		return boundGetMessage(key, ...replacements);
+	// 	}) as I18N;
+	// 	__.sync = langInstance.__sync.bind(langInstance);
+	// 	__.getLang = langInstance.getLang.bind(langInstance);
+	// 	__.setLang = langInstance.setLang.bind(langInstance);
+	// 	__.SUPPORTED_LANGS = Lang.SUPPORTED_LANGS;
+	// 	__.addListener = langInstance.addLanguageChangeListener.bind(langInstance);
+	// 	__.ready = () => langInstance.ready;
+	// 	window.__ = __;
 
-		class ElementI18nManager {
-			static instance = langInstance;
+	// 	class ElementI18nManager {
+	// 		static instance = langInstance;
 
-			static __(_lang: string, _langReady: boolean,  
-				key: string, ...replacements: (string|number)[]): string {
-					this.instance.addLoadListener(this as any);
-					return this.instance.__sync(key, ...replacements);
-				}
+	// 		static __(_lang: string, _langReady: boolean,  
+	// 			key: string, ...replacements: (string|number)[]): string {
+	// 				this.instance.addLoadListener(this as any);
+	// 				return this.instance.__sync(key, ...replacements);
+	// 			}
 			
-			static __exec(_lang: string, _langReady: boolean,  
-				key: string, ...replacements: (string|number|((...args: string[]) => string|number))[]): string {
-					const finalArgs = [];
-					for (let i = 0; i < replacements.length; i++) {
-						const arg = replacements[i];
-						if (typeof arg === 'string') {
-							finalArgs.push(arg);
-						} else if (typeof arg === 'function') {
-							// Use the next N replacements as parameters
-							const result = arg.bind(this)(...replacements.slice(i + 1, i + 1 + arg.length) as string[]);
-							finalArgs.push(result);
-						}
-					}
+	// 		static __exec(_lang: string, _langReady: boolean,  
+	// 			key: string, ...replacements: (string|number|((...args: string[]) => string|number))[]): string {
+	// 				const finalArgs = [];
+	// 				for (let i = 0; i < replacements.length; i++) {
+	// 					const arg = replacements[i];
+	// 					if (typeof arg === 'string') {
+	// 						finalArgs.push(arg);
+	// 					} else if (typeof arg === 'function') {
+	// 						// Use the next N replacements as parameters
+	// 						const result = arg.bind(this)(...replacements.slice(i + 1, i + 1 + arg.length) as string[]);
+	// 						finalArgs.push(result);
+	// 					}
+	// 				}
 					
-					this.instance.addLoadListener(this as any);
-					return this.instance.__sync(key, ...finalArgs);
-				}
+	// 				this.instance.addLoadListener(this as any);
+	// 				return this.instance.__sync(key, ...finalArgs);
+	// 			}
 
-			static __async(key: string, ...replacements: (string|number)[]): Promise<string> {
-				this.instance.addLoadListener(this as any);
-				return this.instance.__(key, ...replacements);
-			}
+	// 		static __async(key: string, ...replacements: (string|number)[]): Promise<string> {
+	// 			this.instance.addLoadListener(this as any);
+	// 			return this.instance.__(key, ...replacements);
+	// 		}
 
-			static ___(key: string, ...replacements: (string|number)[]): string {
-				this.instance.addLoadListener(this as any);
-				return this.instance.__sync(key, ...replacements);
-			}
-		}
+	// 		static ___(key: string, ...replacements: (string|number)[]): string {
+	// 			this.instance.addLoadListener(this as any);
+	// 			return this.instance.__sync(key, ...replacements);
+	// 		}
+	// 	}
 
-		return ElementI18nManager;
-	})();
+	// 	return ElementI18nManager;
+	// })();
 
-	function addI18nHook(object: any) {
-		object.properties = object.properties || {};
-		object.properties.lang = {
-			type: String,
-			notify: true,
-			value: null
-		};
-		object.properties.langReady = {
-			type: Boolean,
-			notify: true,
-			value: false
-		};
-	}
+	// function addI18nHook(object: any) {
+	// 	object.properties = object.properties || {};
+	// 	object.properties.lang = {
+	// 		type: String,
+	// 		notify: true,
+	// 		value: null
+	// 	};
+	// 	object.properties.langReady = {
+	// 		type: Boolean,
+	// 		notify: true,
+	// 		value: false
+	// 	};
+	// }
 
-	const register = (fn: any) => {
-		let objectified = {...fn, ...ElementI18nManager};
-		const prevReady = objectified.ready;
-		addI18nHook(objectified);
+	// const register = (fn: any) => {
+	// 	let objectified = {...fn, ...ElementI18nManager};
+	// 	const prevReady = objectified.ready;
+	// 	addI18nHook(objectified);
 
-		window.Polymer({...objectified, ...{
-			ready(this: Polymer.InitializerProperties & Polymer.PolymerElement) {
-				this.classList.add(`browser-${BrowserAPI.getBrowser()}`);
-				if (prevReady && typeof prevReady === 'function') {
-					prevReady.apply(this, []);
-				}
-			}
-		}});
-	}
+	// 	window.Polymer({...objectified, ...{
+	// 		ready(this: Polymer.InitializerProperties & Polymer.PolymerElement) {
+	// 			this.classList.add(`browser-${BrowserAPI.getBrowser()}`);
+	// 			if (prevReady && typeof prevReady === 'function') {
+	// 				prevReady.apply(this, []);
+	// 			}
+	// 		}
+	// 	}});
+	// }
 
 	window.withAsync = async <T>(initializer: () => Promise<Withable>, fn: () => Promise<T>): Promise<T> => {
 		const toRun = await initializer();
@@ -782,16 +782,16 @@ export type SharedWindow = Window & {
 	}
 
 
-	if (typeof Event !== 'undefined' && location.href.indexOf('background.html') === -1) {
-		window.onExists('Promise').then(() => {
-			window.onExists('Polymer').then(() => {
-				window.objectify = objectify;
-				window.register = register;
-				const event = new Event('RegisterReady');
-				window.dispatchEvent(event);
-			});
-		});
-	}
+	// if (typeof Event !== 'undefined' && location.href.indexOf('background.html') === -1) {
+	// 	window.onExists('Promise').then(() => {
+	// 		window.onExists('Polymer').then(() => {
+	// 			window.objectify = objectify;
+	// 			window.register = register;
+	// 			const event = new Event('RegisterReady');
+	// 			window.dispatchEvent(event);
+	// 		});
+	// 	});
+	// }
 
 	window.onExistsChain = <C, T1 extends keyof C, T2 extends keyof C[T1], 
 		T3 extends keyof C[T1][T2], T4 extends keyof C[T1][T2][T3], 
