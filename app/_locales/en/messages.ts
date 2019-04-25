@@ -1966,7 +1966,6 @@ export const Messages: LocaleSpec = {
 			description: 'Prefixed by the amount of logging lines there are ' +
 				'in the logging console'
 		},
-		//TODO:
 		runningCodeNotPossible: {
 			message: 'Running code is not possible in the current context ' +
 				'(select both an ID and a tab)',
