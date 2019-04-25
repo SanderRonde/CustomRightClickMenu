@@ -741,10 +741,38 @@ class Tasks {
 						return '\t'.repeat(length);
 					}
 
+					private static _objToArr<K extends string, V>(obj: {
+						[key: string]: V;
+					}): [K, V][] {
+						const arr: [K, V][] = [];
+						for (let key in obj) {
+							arr.push([key as K, obj[key as keyof typeof obj]]);
+						}
+						return arr;
+					}
+					
+					private static _genComment(message: I18NMessage, indent: string) {
+						return [
+							`${indent}/**`,
+							`${indent} * **Message**: ${message.message}  `,
+							`${indent} * **Description**: ${message.description || '-'}  `,
+							...(!message.placeholders ? [] : 
+								[`${indent} * **Placeholders**:`, ...
+									this._objToArr(message.placeholders).map(([key, value]: [string, {
+										content: string;
+									}]) => {
+										return `${indent} * * **${key}**: ${value.content}`
+									})
+								]
+							),
+							`${indent} */`
+						]
+					}
+
 					static genEnumMessages(root: I18NRoot) {
 						let str: string[] = [];
 						let tree: string[] = [];
-						I18N._walkMessages(root, (_message, currentPath, finalKey) => {
+						I18N._walkMessages(root, (message, currentPath, finalKey) => {
 							const diff = Defs._getDiffPath(tree, currentPath);
 							if (diff.length) {
 								for (let i = 0; i < diff.length; i++) {
@@ -761,7 +789,8 @@ class Tasks {
 										tree.push(change.name);
 									}
 								}
-							} 
+							}
+							str.push(...this._genComment(message, Defs._indent(tree.length)));
 							str.push(`${Defs._indent(tree.length)}"${finalKey}" = '${
 								I18N._genPath(currentPath, finalKey)}',`);
 						});
