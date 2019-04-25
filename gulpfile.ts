@@ -654,7 +654,7 @@ class Tasks {
 				};
 
 				const I18NMessage = [
-					'interface I18NMessage {',
+					'export interface I18NMessage {',
 					'	message: string;',
 					'	description?: string;',
 					'	placeholders?: {',
