@@ -804,33 +804,15 @@ declare global {
 	}
 }
 
-window.BrowserAPIInstances = window.BrowserAPIInstances || [];
-window.BrowserAPIInstances.push(BrowserAPINS);
-
-if (!window.browserAPI || window.__isVirtual) {
-	// Force override of window.browser if browser is edge or if no "browser"
-	//	global exists already. Basically equal to 
-	// 	window.browser = BrowserAPI.polyfill || window.browser  	&
-	// 	if getBrowser() === 'edge': window.browser = BrowserAPI.polyfill
-	window.BrowserAPINS = window.BrowserAPI = BrowserAPINS;
-	window.browserAPI = (BrowserAPINS.getBrowser() === 'edge' || !(window as any).browser) ?
+export const BrowserAPI = BrowserAPINS;
+export const browserAPI = (() => {
+	const browserAPI = BrowserAPINS.getBrowser() === 'edge' || !(window as any).browser ?
 		{...BrowserAPINS.polyfill as typeof BrowserAPI.polyfill, ...{
 			__isProxied: true
 		}} : (window as any).browser;
-
-	type MenusBrowserAPI = typeof BrowserAPI.polyfill & {
-		menus?: (typeof BrowserAPI.polyfill)['contextMenus']
-	};
-	const menusBrowserAPI = window.browserAPI as MenusBrowserAPI;
-	if (!menusBrowserAPI.contextMenus) {
-		menusBrowserAPI.contextMenus = menusBrowserAPI.menus;
-	} else if (!menusBrowserAPI.menus) {
-		menusBrowserAPI.menus = menusBrowserAPI.contextMenus;
+	if (!browserAPI.contextMenus) {
+		return {...browserAPI, contextMenus: browserAPI.menus};
+	} else {
+		return {...browserAPI, menus: browserAPI.contextMenus};
 	}
-}
-const BrowserAPI = window.BrowserAPINS;
-const browserAPI = window.browserAPI as typeof BrowserAPI.polyfill;
-declare global {
-	type browserAPI = typeof BrowserAPI.polyfill;
-	type BrowserAPI = typeof BrowserAPINS;
-}
+})() as typeof BrowserAPI.polyfill;

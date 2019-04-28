@@ -299,3 +299,5 @@ app/_locales/i18n-keys.js
 app/wc-elements/**/*.js
 app/entrypoints/**/*.js
 app/modules/
+
+app/**/*-querymap.d.ts
