@@ -649,9 +649,9 @@ export const Messages: LocaleSpec = {
 				}
 			},
 			notChrome: {
-				message: 'not chrome',
+				message: 'a non-chrome browser',
 				description: 'Used in the form "min chrome version is 34, ' +
-					'you have {not chrome}'
+					'you have {a non-chrome browser}'
 			},
 			useStorageSyncDisabledUnavailable: {
 				message: 'Syncing is not available in your browser',
