@@ -2725,7 +2725,6 @@ export namespace CRMNodes {
 					contexts.push(node.onContentTypes || [false, false, false, false, false, false]);
 				});
 
-				console.log(contexts, CRMNodes.getJoinedContexts(contexts));
 				const done = await modules.Util.lock(modules.Util.LOCK.ROOT_CONTEXTMENU_NODE);
 				modules.crmValues.rootId = await browserAPI.contextMenus.create({
 					title: modules.storages.settingsStorage.rootName || 'Custom Menu',
