@@ -2,7 +2,9 @@ import rollupResolve from 'rollup-plugin-node-resolve';
 import { extractGlobTypes } from 'html-typings';
 import { joinPages } from './tools/joinPages';
 import { polymerBuild } from './tools/build';
+import htmlTypings = require('html-typings');
 import processhtml from 'gulp-processhtml';
+// import htmlMinifier from 'html-minifier';
 import childProcess from 'child_process';
 import StreamZip from 'node-stream-zip';
 import beautify from 'gulp-beautify';
@@ -11,6 +13,7 @@ import replace from 'gulp-replace';
 import gulpBabel from 'gulp-babel';
 import ts from 'gulp-typescript';
 import rename from 'gulp-rename';
+import uglifyCSS from 'uglifycss';
 import banner from 'gulp-banner';
 import * as rollup from 'rollup';
 import uglifyEs from 'uglify-es';
@@ -26,7 +29,6 @@ import glob from 'glob';
 import path from 'path';
 import del from 'del';
 import fs from 'fs';
-import htmlTypings = require('html-typings');
 
 // Only show subtasks when they are actually being run, otherwise
 // the -T screen is just being spammed
@@ -1654,7 +1656,7 @@ class Tasks {
 													.src('./build/entrypoints/logging.js')
 													.pipe(gulpBabel({
 														compact: false,
-														presets: ['es3', 'es2015']
+														presets: ['es3', 'es2015', '@babel/preset-react']
 													}))
 													.pipe(rename('logging.es3.js'))
 													.pipe(gulp.dest('./build/entrypoints/'));
@@ -2198,40 +2200,89 @@ class Tasks {
 					// 	]);
 					// }
 
+					@describe('Babel the wctest page')
+					static babelWCTest() {
+						return gulp
+							.src('./build/entrypoints/wctest.js')
+							.pipe(gulpBabel({
+								compact: false,
+								presets: [
+									['@babel/preset-env', {
+										"targets": {
+											"chrome": "26",
+											"firefox": "57"
+										}
+									}] as any
+								],
+								plugins: [
+									'transform-custom-element-classes'
+								]
+							}))
+							.pipe(rename('wctest.es5.js'))
+							.pipe(gulp.dest('./build/entrypoints/'));
+					}
+
+					@describe('Minifies the CSS of components')
+					static async minifyCSS() {
+						const files = await globProm('app/wc-elements/**/*.css.js');
+						await Promise.all(files.map(async (file) => {
+							const content = await readFile(file);
+
+							const replaced = content.replace(/<style>((.|\n|\r)*?)<\/style>/g, 
+								(_substring, innerContent) => {
+									return `<style>${uglifyCSS.processString(innerContent, { })}</style>`;
+								});
+
+							await writeFile(file, replaced);
+						}));
+					}
+
+					//TODO: htmlMinifier
+
+					//TODO: minify wctest.es5.js
+
+					@rootTask('buildWCNoCompile', 'Builds the extension in WC mode without compiling')
+					static buildWCNoCompile = series(
+						series(
+							Tasks.Convenience.Clean.build,
+							parallel(
+								Build.PrePolymer.devManifest,
+								Build.PrePolymer.rollupBackground,
+								Build.PrePolymer.copyBuild,
+								Build.PrePolymer.copyInstalling,
+								// Build.PrePolymer.changeWebComponentThis,
+								Build.PrePolymer.embedTS,
+								Build.PrePolymer.embedLess,
+								Build.PrePolymer.embedStylus,
+								Build.PrePolymer.embedCRMAPI,
+								Build.PrePolymer.Entrypoint.entrypoint,
+
+								Build.rollupWCTest,
+								
+								Build.uglifyJS,
+								Build.minifyCSS
+							),
+							Build.copyWCTest,
+							Build.babelWCTest,
+							Build.PostPolymer.moveUpDir,
+							Build.PostPolymer.cleanBuildTemp,
+							Build.PostPolymer.copyPrefixJs,
+
+							Build.copyBackground,
+							Build.PostPolymer.EntrypointJS.Crisp.background,
+							Build.copyDefs,
+							Build.copyFromTemp,
+							Build.copyFromApp
+						)
+					)
+
 					@rootTask('buildWC', 'Builds the extension in WC mode')
 					static buildWC = series(
 						Tasks.Compilation.Compile.compile,
 						Tasks.I18N.i18n,
-						Tasks.Convenience.Clean.build,
-						parallel(
-							Build.PrePolymer.devManifest,
-							Build.PrePolymer.rollupBackground,
-							Build.PrePolymer.copyBuild,
-							Build.PrePolymer.copyInstalling,
-							// Build.PrePolymer.changeWebComponentThis,
-							Build.PrePolymer.embedTS,
-							Build.PrePolymer.embedLess,
-							Build.PrePolymer.embedStylus,
-							Build.PrePolymer.embedCRMAPI,
-							Build.PrePolymer.Entrypoint.entrypoint,
-
-							Build.rollupWCTest,
-							Build.copyWCTest,
-
-							// Polymer
-
-							Build.uglifyJS
-						),
-						Build.PostPolymer.moveUpDir,
-						Build.PostPolymer.cleanBuildTemp,
-						Build.PostPolymer.copyPrefixJs,
-
-						Build.copyBackground,
-						Build.PostPolymer.EntrypointJS.Crisp.background,
-						Build.copyDefs,
-						Build.copyFromTemp,
-						Build.copyFromApp
+						Build.buildWCNoCompile
 					)
+
 
 					@rootTask('testBuild', 'Attempts to build everything')
 					static testBuild = series(
