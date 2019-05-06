@@ -13,7 +13,7 @@
 					<template is="dom-repeat" items="[[langs]]" as="lang">
 						<div class="languageBubble" title="[[lang.name]]" data-code$="[[lang.code]]"
 							selected$="[[lang.selected]]" on-tap="langClick" tabindex="0">
-								<img class="languageImage" src="[[lang.url]]" />
+								<img with="28" height="28" class="languageImage" src="[[lang.url]]" />
 								<paper-ripple></paper-ripple>
 						</div>
 					</template>
