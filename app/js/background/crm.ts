@@ -2720,10 +2720,16 @@ export namespace CRMNodes {
 		return new Promise<void>((resolve) => {
 			modules.crmValues.nodeTabStatuses = new window.Map();
 			browserAPI.contextMenus.removeAll().then(async () => {
+				const contexts: CRM.ContentTypes[] = [];
+				modules.Util.crmForEach(modules.crm.crmTree, (node) => {
+					contexts.push(node.onContentTypes || [false, false, false, false, false, false]);
+				});
+
+				console.log(contexts, CRMNodes.getJoinedContexts(contexts));
 				const done = await modules.Util.lock(modules.Util.LOCK.ROOT_CONTEXTMENU_NODE);
 				modules.crmValues.rootId = await browserAPI.contextMenus.create({
 					title: modules.storages.settingsStorage.rootName || 'Custom Menu',
-					contexts: ['all']
+					contexts: CRMNodes.getJoinedContexts(contexts)
 				});
 				done();
 				modules.toExecuteNodes = {
@@ -2804,6 +2810,24 @@ export namespace CRMNodes {
 			newContexts.push('editable');
 		}
 		return newContexts;
+	}
+	export function getJoinedContexts(contexts: CRM.ContentTypes[]): _browser.contextMenus.ContextType[] {
+		const newContexts: {
+			[key: string]: boolean;
+		} = {};
+		newContexts['browser_action'] = true;
+		const textContexts = modules.constants.contexts;
+		for (const context of contexts) {
+			for (let i = 0; i < 6; i++) {
+				if (context[i]) {
+					newContexts[textContexts[i]] = true;
+				}
+			}
+			if (context[0]) {
+				newContexts['editable'] = true;
+			}
+		}
+		return Object.getOwnPropertyNames(newContexts) as _browser.contextMenus.ContextType[];
 	}
 	export async function converToLegacy(): Promise<{
 		[key: number]: string;
