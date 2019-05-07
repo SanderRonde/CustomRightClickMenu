@@ -1,6 +1,7 @@
 import rollupResolve from 'rollup-plugin-node-resolve';
 import { extractGlobTypes } from 'html-typings';
 import { joinPages } from './tools/joinPages';
+// import commonJS from 'rollup-plugin-commonjs';
 import { polymerBuild } from './tools/build';
 import htmlTypings = require('html-typings');
 import processhtml from 'gulp-processhtml';
@@ -18,17 +19,18 @@ import banner from 'gulp-banner';
 import * as rollup from 'rollup';
 import uglifyEs from 'uglify-es';
 import xpi from 'firefox-xpi';
+import webpack from 'webpack';
 import crisper from 'crisper';
 import mkdirp from 'mkdirp';
 import zip from 'gulp-zip';
 import "reflect-metadata";
 import chalk from 'chalk';
 import which from 'which';
+import fs from 'fs-extra';
 import gulp from 'gulp';
 import glob from 'glob';
 import path from 'path';
 import del from 'del';
-import fs from 'fs';
 
 // Only show subtasks when they are actually being run, otherwise
 // the -T screen is just being spammed
@@ -88,31 +90,15 @@ function assertDir(dirPath: string): Promise<void> {
 /**
  * Write a file
  */
-function writeFile(filePath: string, data: string, options?: { encoding?: 'utf8'; }): Promise<void> {
-	return new Promise(async (resolve, reject) => {
-		await assertDir(path.dirname(filePath)).catch((err) => {
-			resolve(err);
+async function writeFile(filePath: string, data: string, options?: { encoding?: 'utf8'; }): Promise<void> {
+	await assertDir(path.dirname(filePath));
+	if (!options) {
+		return fs.writeFile(filePath, data, {
+			encoding: 'utf8'
 		});
-		if (!options) {
-			fs.writeFile(filePath, data, {
-				encoding: 'utf8'
-			}, (err) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve();
-				}
-			});
-		} else {
-			fs.writeFile(filePath, data, options, (err) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve();
-				}
-			});
-		}
-	});
+	} else {
+		return fs.writeFile(filePath, data, options);
+	}
 }
 
 /**
@@ -152,27 +138,13 @@ function cache(name: string, fallback: () => NodeJS.ReadWriteStream): NodeJS.Rea
  * Read a file
  */
 function readFile(filePath: string, options?: { encoding?: 'utf8'; }): Promise<string> {
-	return new Promise<string>((resolve, reject) => {
-		if (!options) {
-			fs.readFile(filePath, {
-				encoding: 'utf8'
-			}, (err, data) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve(data);
-				}
-			});
-		} else {
-			fs.readFile(filePath, options, (err, data) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve(data.toString());
-				}
-			});
-		}
-	});
+	if (!options) {
+		return fs.readFile(filePath, {
+			encoding: 'utf8'
+		});
+	} else {
+		return fs.readFile(filePath, options as { encoding: string; flag?: string });
+	}
 }
 
 async function uglify(src: string, dest: string|string[], 
@@ -2096,8 +2068,43 @@ class Tasks {
 
 					@describe('Rolls WCTest.js into a bundle')
 					static async rollupWCTest() {
+						// Create a polyfilled version
+						// const file = await readFile(path.join(__dirname,
+						// 	'app/entrypoints/wctest.js'));
+						// const destPath = path.join(__dirname, 'app/entrypoints/wctest.js');
+						// await writeFile(destPath, `${file}`);
+
 						const bundle = await rollup.rollup({
-							input: path.join(__dirname, 'app/entrypoints/wctest.js'),
+							input: path.join(__dirname,
+								'app/entrypoints/wctest.js'),
+							onwarn(warning) {
+								if (typeof warning !== 'string' && warning.code === 'THIS_IS_UNDEFINED') {
+									//Typescript inserted helper method, ignore it
+									return;
+								}
+								console.log(warning);
+							},
+							plugins: [
+								rollupResolve({
+									mainFields: ['browser', 'module', 'main'],
+									preferBuiltins: true,
+									jail: './'
+								})
+							]
+						});
+
+						await bundle.write({
+							format: 'iife',
+							file: path.join(__dirname, 'build/entrypoints/wctest.js')
+						});
+						// await fs.unlink(destPath);
+					}
+
+					@describe('Rolls the added polyfilled libs into the bundle')
+					static async rollupWCTestTwo() {
+						// Create a polyfilled version
+						const bundle = await rollup.rollup({
+							input: path.join(__dirname, 'temp/entrypoints/wctest.es5.polyfilled.js'),
 							onwarn(warning) {
 								if (typeof warning !== 'string' && warning.code === 'THIS_IS_UNDEFINED') {
 									//Typescript inserted helper method, ignore it
@@ -2108,13 +2115,16 @@ class Tasks {
 							plugins: [
 								rollupResolve({
 									browser: true
-								})
+								}),
+								// commonJS({
+								// 	include: 'node_modules/**/*'
+								// })
 							]
 						});
 
 						await bundle.write({
 							format: 'iife',
-							file: path.join(__dirname, 'temp/entrypoints/wctest.js')
+							file: path.join(__dirname, 'build/entrypoints/wctest.es5.js')
 						});
 					}
 
@@ -2174,6 +2184,7 @@ class Tasks {
 								"js/libraries/jslint.js",
 								"js/contentscripts/contentscript.js",
 								"js/libraries/tern/*.*",
+								"entrypoints/loader.js",
 								"icon-large.png",
 								"icon-small.png",
 								"icon-supersmall.png",
@@ -2203,7 +2214,7 @@ class Tasks {
 					@describe('Babel the wctest page')
 					static babelWCTest() {
 						return gulp
-							.src('./build/entrypoints/wctest.js')
+							.src('./build/entrypoints/wctest.es5.js')
 							.pipe(gulpBabel({
 								compact: false,
 								presets: [
@@ -2220,6 +2231,33 @@ class Tasks {
 							}))
 							.pipe(rename('wctest.es5.js'))
 							.pipe(gulp.dest('./build/entrypoints/'));
+					}
+
+					static async webpackWCTest() {
+						await new Promise((resolve, reject) => {
+							webpack({
+								mode: 'production',
+								entry: [
+									'@babel/polyfill',
+									'@webcomponents/webcomponentsjs/webcomponents-bundle.js',
+									path.join(__dirname, 'build/entrypoints/wctest.js')
+								],
+								output: {
+									filename: 'wctest.es5.js',
+									path: path.resolve(__dirname, 'build/entrypoints/')
+								}
+							}, (err, stats) => {
+								if (stats.hasWarnings()) {
+									console.log(stats.toJson().warnings);
+								}
+								if (err || stats.hasErrors()) {
+									console.log(stats.toJson().errors);
+									reject(err);
+								} else {
+									resolve();
+								}
+							})
+						});
 					}
 
 					@describe('Minifies the CSS of components')
@@ -2241,6 +2279,14 @@ class Tasks {
 
 					//TODO: minify wctest.es5.js
 
+					@rootTask('quickCompile', 'x')
+					static quickCompile = series(
+						Build.rollupWCTest,
+						Build.copyWCTest,
+						Build.webpackWCTest,
+						Build.babelWCTest
+					)
+
 					@rootTask('buildWCNoCompile', 'Builds the extension in WC mode without compiling')
 					static buildWCNoCompile = series(
 						series(
@@ -2257,13 +2303,11 @@ class Tasks {
 								Build.PrePolymer.embedCRMAPI,
 								Build.PrePolymer.Entrypoint.entrypoint,
 
-								Build.rollupWCTest,
-								
 								Build.uglifyJS,
 								Build.minifyCSS
 							),
-							Build.copyWCTest,
-							Build.babelWCTest,
+							Build.quickCompile,
+							// Build.rollupWCTestTwo,
 							Build.PostPolymer.moveUpDir,
 							Build.PostPolymer.cleanBuildTemp,
 							Build.PostPolymer.copyPrefixJs,
