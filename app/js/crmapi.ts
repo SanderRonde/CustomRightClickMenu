@@ -5935,6 +5935,67 @@ export type CRMAPIMessage = {
 		};
 
 		/**
+		 * Fetches resource at given url. If this keeps failing with
+		 * a CORB error, try crmAPI.fetchBackground
+		 * 
+		 * @param {string} url - The url to fetch the data from
+		 * @returns {Promise<string>} A promise that resolves to the content
+		 */
+		fetch(url: string): Promise<string> {
+			if ('fetch' in window && window.fetch !== undefined) {
+				return fetch(url).then(r => r.text()) as unknown as Promise<string>;
+			}
+
+			return new Promise<string>((resolve, reject) => {
+				const xhr = new window.XMLHttpRequest();
+				xhr.open('GET', url);
+				xhr.onreadystatechange = () => {
+					if (xhr.readyState === 4) {
+						if (xhr.status >= 200 && xhr.status < 300) {
+							resolve(xhr.responseText);
+						} else {
+							reject(new Error(`Failed xhr with status ${xhr.status}`));
+						}
+					}
+				}
+				xhr.send();
+			});
+		}
+
+		/**
+		 * Fetches resource at given url through the background-page, bypassing
+		 * any CORS or CORB-like blocking
+		 * 
+		 * @param {string} url - The url to fetch the data from
+		 * @returns {Promise<string>} A promise that resolves to the content
+		 */
+		fetchBackground(url: string): Promise<string> {
+			return new Promise<string>((resolve, reject) => {
+				this.__privates._sendMessage({
+					id: this.__privates._id,
+					type: 'fetch',
+					tabId: this.__privates._tabData.id,
+					tabIndex: this.__privates._tabIndex,
+					data: {
+						url: url,
+						onFinish: this.__privates._createCallbackFunction((err: boolean, data: string) => {
+							if (err) {
+								reject(data);
+							} else {
+								resolve(data);
+							}
+						}, new Error(), {
+							maxCalls: 1
+						}),
+						id: this.__privates._id,
+						tabIndex: this.__privates._tabIndex,
+						tabId: this.__privates._tabData.id
+					}
+				})
+			});
+		}
+
+		/**
 		 * Returns the elements matching given selector within given context
 		 *
 		 * @param {string} selector - A css selector string to find elements with
