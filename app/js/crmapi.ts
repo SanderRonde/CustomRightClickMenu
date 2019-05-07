@@ -5477,8 +5477,8 @@ export type CRMAPIMessage = {
 		 *
 		 * @permission chrome
 		 * @param {string} api - The API to use
-		 * @returns {Object} - An object on which you can call .args, .fn, .return and .send
-		 * 		(and their first-letter-only versions)
+		 * @returns {Object} - An object on which you can call .args, .fn, .return and .send (and their 
+		 * first-letter-only versions)
 		 */
 		chrome(api: string) {
 			return new this.__privates._chromeRequest(this, api);
@@ -5537,8 +5537,8 @@ export type CRMAPIMessage = {
 		 * @permission chrome
 		 * @permission browser
 		 * @param {string} api - The API to use
-		 * @returns {Object} - An object on which you can call .args, .fn and .send
-		 * 		(and their first-letter-only versions)
+		 * @returns {Object} - An object on which you can call .args, .fn, .return and .send (and their 
+		 * first-letter-only versions)
 		 */
 		browser: any = null;
 
