@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 
-	"options_page": "entrypoints/wctest.html",
+	"options_page": "entrypoints/options.html",
 	"name": "Custom Right-Click Menu",
 	"description": "Create a custom right-click menu and choose the links and scripts you want in it.",
 	"version": "2.2.7",

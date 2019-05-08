@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="elementsLoading">
 	<head>
 		<meta charset="UTF-8">
 		<title>Options</title>
@@ -158,18 +158,33 @@
 				overflow: hidden;
 			}
 		</style>
+		<!-- build:template
+			<script src="../bower_components/webcomponentsjs/custom-elements-es5-adapter.js"></script>
+		/build -->
+		<!-- build:remove -->
+		<link rel="import" href="../bower_components/polymer/polymer.html">
+		<!-- /build -->
+		<!-- build:remove -->
+		<script src="../bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+		<!-- /build -->
+		<link rel="import" href="../bower_components/polymer/lib/legacy/class.html" />
+		<link rel="import" href="../elements/util/splash-screen/splash-screen.html" />
+		<link async rel="import" href="../elements/options/crm-app/crm-app.html" />
+		<link async rel="import" href="../elements/util/error-reporting-tool/error-reporting-tool.html" />
 	</head>
 	<body style="margin: 0;">
-		<splash-screen max="1" id="splashScreen" name="Custom Right-Click Menu">
+		<splash-screen max="48" id="splashScreen" name="Custom Right-Click Menu">
 			<error-reporting-tool></error-reporting-tool>
 			<crm-app></crm-app>
 		</splash-screen>
-		<!-- build:remove -->
-		<script type="module" src="./options.js"></script>
+		<!-- build:js inline -->
+		<script src="../js/polyfills/browser.js"></script>
+		<script src="../elements/options/editpages/monaco-editor/src/min/vs/loader.js"></script>
+		<script src="../js/libraries/jquery/jquery-3.3.1.js"></script>
+		<script src="../js/libraries/jquery/jquery-ui.min.js"></script>
+		<script src="../js/libraries/jquery/jquery.requestAnimationFrame.min.js"></script>
+		<script src="../js/libraries/jquery/jquery.bez.js"></script>
+		<script src="../js/calcPolyfill.js" defer async></script>
 		<!-- /build -->
-		<!-- build:template
-			<script src="./options.js"></script>
-		/build -->
-	<script defer async src="./loader.js"></script>
 	</body>
 </html>

@@ -1,4 +1,5 @@
 import rollupResolve from 'rollup-plugin-node-resolve';
+import * as minifyLiterals from 'minify-html-literals';
 import { extractGlobTypes } from 'html-typings';
 import { joinPages } from './tools/joinPages';
 import { polymerBuild } from './tools/build';
@@ -12,7 +13,7 @@ import replace from 'gulp-replace';
 import gulpBabel from 'gulp-babel';
 import ts from 'gulp-typescript';
 import rename from 'gulp-rename';
-import uglifyCSS from 'uglifycss';
+// import uglifyCSS from 'uglifycss';
 import banner from 'gulp-banner';
 import * as rollup from 'rollup';
 import uglifyEs from 'uglify-es';
@@ -1299,7 +1300,6 @@ class Tasks {
 										'entrypoints/logging.html',
 										'entrypoints/options.html',
 										'entrypoints/background.html',
-										'entrypoints/wctest.html',
 										'bower_components/**/*',
 										'images/chromearrow.png',
 										'images/shadowImg.png',
@@ -1964,8 +1964,7 @@ class Tasks {
 							'./js/libraries/less.js',
 							'./js/libraries/stylus.js',
 							'./js/contentscripts/contentscript.js',
-							'./js/polyfills/browser.js',
-							'./entrypoints/wctest.js'
+							'./js/polyfills/browser.js'
 						], 'temp', 'build');
 					}
 
@@ -2064,11 +2063,11 @@ class Tasks {
 						Build.buildNoCompile
 					)
 
-					@describe('Rolls WCTest.js into a bundle')
-					static async rollupWCTest() {
+					@describe('Rolls options.js into a bundle')
+					static async rollupOptionsESNext() {
 						const bundle = await rollup.rollup({
 							input: path.join(__dirname,
-								'app/entrypoints/wctest.js'),
+								'app/entrypoints/options.js'),
 							onwarn(warning) {
 								if (typeof warning !== 'string' && warning.code === 'THIS_IS_UNDEFINED') {
 									//Typescript inserted helper method, ignore it
@@ -2087,14 +2086,42 @@ class Tasks {
 
 						await bundle.write({
 							format: 'iife',
-							file: path.join(__dirname, 'build/entrypoints/wctest.js')
+							file: path.join(__dirname, 'build/entrypoints/options.js')
 						});
 					}
 
-					@describe('Copies the wctest.html file to build/')
-					static copyWCTest() {
+					@describe('Rolls options.js into a bundle using the ' +
+						'es5 version .[html|css].js files')
+					static async rollupOptionsES5() {
+						const bundle = await rollup.rollup({
+							input: path.join(__dirname,
+								'app/entrypoints/options.js'),
+							onwarn(warning) {
+								if (typeof warning !== 'string' && warning.code === 'THIS_IS_UNDEFINED') {
+									//Typescript inserted helper method, ignore it
+									return;
+								}
+								console.log(warning);
+							},
+							plugins: [
+								rollupResolve({
+									mainFields: ['browser', 'module', 'main'],
+									preferBuiltins: true,
+									jail: './'
+								})
+							]
+						});
+
+						await bundle.write({
+							format: 'iife',
+							file: path.join(__dirname, 'build/entrypoints/options.es5.js')
+						});
+					}
+
+					@describe('Copies the options.html file to build/')
+					static copyOptions() {
 						return gulp
-							.src('wctest.html', {
+							.src('options.html', {
 								base: 'app/entrypoints',
 								cwd: 'app/entrypoints'
 							})
@@ -2157,10 +2184,10 @@ class Tasks {
 							.pipe(gulp.dest('./build'))
 					}
 
-					@describe('Babel the wctest page')
-					static babelWCTest() {
+					@describe('Babel the options page')
+					static babelOptions() {
 						return gulp
-							.src('./build/entrypoints/wctest.es5.js')
+							.src('./build/entrypoints/options.es5.js')
 							.pipe(gulpBabel({
 								compact: false,
 								presets: [
@@ -2175,21 +2202,21 @@ class Tasks {
 									'transform-custom-element-classes'
 								]
 							}))
-							.pipe(rename('wctest.es5.js'))
+							.pipe(rename('options.es5.js'))
 							.pipe(gulp.dest('./build/entrypoints/'));
 					}
 
-					static async webpackWCTest() {
+					static async webpackOptions() {
 						await new Promise((resolve, reject) => {
 							webpack({
 								mode: 'production',
 								entry: [
 									'@babel/polyfill',
 									'@webcomponents/webcomponentsjs/webcomponents-bundle.js',
-									path.join(__dirname, 'build/entrypoints/wctest.js')
+									path.join(__dirname, 'build/entrypoints/options.es5.js')
 								],
 								output: {
-									filename: 'wctest.es5.js',
+									filename: 'options.es5.js',
 									path: path.resolve(__dirname, 'build/entrypoints/')
 								}
 							}, (err, stats) => {
@@ -2206,55 +2233,88 @@ class Tasks {
 						});
 					}
 
-					@describe('Minifies the CSS of components')
-					static async minifyCSS() {
+					@describe('Create copies of the .[html|css].js files')
+					static async createCopies() {
+						const files = [
+							...(await globProm('app/wc-elements/**/*.css.js')),
+							...(await globProm('app/wc-elements/**/*.html.js'))
+						];
+						await Promise.all(files.map(async (file) => {
+							const fileSplit = file.split('.');
+							await writeFile(
+								`${fileSplit.slice(0, fileSplit.length - 1)}.copy.js`,
+								await readFile(file));
+						}));
+					}
+
+					@describe('Copies the copies of the .[html|css].js files back')
+					static async copyBack() {
+						const files = [
+							...(await globProm('app/wc-elements/**/*.css.copy.js')),
+							...(await globProm('app/wc-elements/**/*.html.copy.js'))
+						];
+						await Promise.all(files.map(async (file) => {
+							const fileSplit = file.split('.');
+							await writeFile(
+								`${fileSplit.slice(0, fileSplit.length - 2)}.js`,
+								await readFile(file));
+							await fs.unlink(file);
+						}));
+					}
+					
+					@describe('Inlines all calc(str) calls in the non-es5 bundle')
+					static async inlineCalcs() {
 						const files = await globProm('app/wc-elements/**/*.css.js');
 						await Promise.all(files.map(async (file) => {
 							const content = await readFile(file);
 
-							const replaced = content.replace(/<style>((.|\n|\r)*?)<\/style>/g, 
-								(_substring, innerContent) => {
-									return `<style>${uglifyCSS.processString(innerContent, { })}</style>`;
-								});
+							const replaced = content.replace(/\$\{calc\(['"](.*)['"]\)\}/g,
+								'calc($1)')
 
 							await writeFile(file, replaced);
 						}));
 					}
 
-					@describe('Minifies the wctest.es5.js file')
-					static async minifyWCTestEs5() {
+					@describe('Minifies all template literals')
+					static async minifyLiterals() {
+						const files = [
+							...(await globProm('app/wc-elements/**/*.css.js')),
+							...(await globProm('app/wc-elements/**/*.html.js')),
+							...(await globProm('app/wc-elements/**/*.css.copy.js')),
+							...(await globProm('app/wc-elements/**/*.html.copy.js'))
+						];
+						await Promise.all(files.map(async (file) => {
+							const content = await readFile(file);
+
+							await writeFile(file, minifyLiterals.minifyHTMLLiterals(content).code);
+						}));
+					}
+
+					@describe('Minifies the options.es5.js file')
+					static async minifyOptionsES5() {
 						await uglify(
-							path.join(__dirname, 'build/entrypoints/wctest.es5.js'),
-							path.join(__dirname, 'build/entrypoints/wctest.es5.js'));
+							path.join(__dirname, 'build/entrypoints/options.es5.js'),
+							path.join(__dirname, 'build/entrypoints/options.es5.js'));
 					}
 
-					@describe('Minifies the wctst.js file')
-					static async minifyWCTest() {
+					@describe('Minifies the options.js file')
+					static async minifyOptions() {
 						await uglify(
-							path.join(__dirname, 'build/entrypoints/wctest.js'),
-							path.join(__dirname, 'build/entrypoints/wctest.js'));
+							path.join(__dirname, 'build/entrypoints/options.js'),
+							path.join(__dirname, 'build/entrypoints/options.js'));
 					}
 
-					@describe('Inlines all calc(str) calls in the non-es5 bundle')
-					static async inlineCalcs() {
-						const file = await readFile(
-							path.join(__dirname, 'build/entrypoints/wctest.js'));
-						await writeFile(
-							path.join(__dirname, 'build/entrypoints/wctest.js'),
-							file.replace(/\$\{calc\(['"](.*)['"]\)\}/g,
-								'calc($1)'));
-					}
-
-					@rootTask('quickCompile', 'x')
+					@rootTask('quickCompile', 'Does all compiling for just options.js')
 					static quickCompile = series(
-						Build.rollupWCTest,
-						Build.copyWCTest,
-						Build.webpackWCTest,
-						Build.babelWCTest,
-						Build.inlineCalcs,
+						Build.rollupOptionsESNext,
+						Build.copyBack,
+						Build.rollupOptionsES5,
+						Build.copyOptions,
+						Build.webpackOptions,
+						Build.babelOptions,
 						parallel(
-							Build.minifyWCTest,
-							Build.minifyWCTestEs5
+							Build.minifyOptions,
+							Build.minifyOptionsES5
 						)
 					)
 
@@ -2267,7 +2327,6 @@ class Tasks {
 								Build.PrePolymer.rollupBackground,
 								Build.PrePolymer.copyBuild,
 								Build.PrePolymer.copyInstalling,
-								// Build.PrePolymer.changeWebComponentThis,
 								Build.PrePolymer.embedTS,
 								Build.PrePolymer.embedLess,
 								Build.PrePolymer.embedStylus,
@@ -2275,8 +2334,10 @@ class Tasks {
 								Build.PrePolymer.Entrypoint.entrypoint,
 
 								Build.uglifyJS,
-								Build.minifyCSS
+								Build.createCopies
 							),
+							Build.inlineCalcs,
+							Build.minifyLiterals,
 							Build.quickCompile,
 							Build.PostPolymer.moveUpDir,
 							Build.PostPolymer.cleanBuildTemp,

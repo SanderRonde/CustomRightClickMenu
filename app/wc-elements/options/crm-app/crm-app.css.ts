@@ -452,7 +452,6 @@ export const CrmAppCSS = new TemplateFn<CrmApp>(function (html) {
 			}
 
 		#chooseFileMergerEditor, .CodeMirror-merge-3pane .CodeMirror-merge-pane, .CodeMirror-merge-3pane .CodeMirror-merge-gap {
-			height: -webkit-calc(100vh - 148px);
 			height: ${calc('(100vh - 148px)')}
 		}
 
