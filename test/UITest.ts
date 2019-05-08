@@ -13,11 +13,20 @@ const TEST_LOCAL: boolean = hasSetting('remote') || !!process.env.TRAVIS ?
 const TEST_EXTENSION = hasSetting('test-extension');
 const TIME_MODIFIER = 1.2;
 const LOCAL_URL = 'http://localhost:9515';
-const REMOTE_URL = (() => {
+function ping(url: string): Promise<boolean> {
+	return new Promise<boolean>((resolve) => {
+		http.get(url, () => {
+			resolve(true);
+		}).on('error', () => {
+			resolve(false);
+		});
+	});
+}
+const REMOTE_URL = (async () => {
 	if (hasSetting('remote-url')) {
 		return getSetting('remote-url');
 	}
-	if (process.env.REMOTE_URL) {
+	if (process.env.REMOTE_URL && await ping(process.env.REMOTE_URL)) {
 		console.log('Using custom remote URL');
 		return process.env.REMOTE_URL;
 	}
@@ -383,7 +392,7 @@ async function openTestPageURL(capabilities: BrowserstackCapabilities) {
 
 before('Driver connect', async function() {
 	const url = TEST_LOCAL ?
-		LOCAL_URL : REMOTE_URL;
+		LOCAL_URL : await REMOTE_URL;
 
 	global.Promise = _promise;
 
