@@ -1,5 +1,6 @@
 import { TemplateFn, CHANGE_TYPE } from "../../../modules/wclib/build/es/wclib.js";
 import { render } from "../../../modules/lit-html/lit-html.js";
+import { calc } from "../../lib/polyfills/calc.js";
 import { SplashScreen } from "./splash-screen.js";
 
 export const SplashScreenCSS = new TemplateFn<SplashScreen>(function (html) {
@@ -79,8 +80,7 @@ export const SplashScreenCSS = new TemplateFn<SplashScreen>(function (html) {
 
 		#splashTitle {
 			font-size: 800%;
-			font-size: -webkit-calc(100vw / 20);
-			font-size: calc(100vw / 20);
+			font-size: ${calc('100vw / 20')};
 			text-align: center;
 		}
 
