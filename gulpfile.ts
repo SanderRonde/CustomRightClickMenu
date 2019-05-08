@@ -1,7 +1,6 @@
 import rollupResolve from 'rollup-plugin-node-resolve';
 import { extractGlobTypes } from 'html-typings';
 import { joinPages } from './tools/joinPages';
-// import commonJS from 'rollup-plugin-commonjs';
 import { polymerBuild } from './tools/build';
 import htmlTypings = require('html-typings');
 import processhtml from 'gulp-processhtml';
