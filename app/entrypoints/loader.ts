@@ -6,13 +6,11 @@
 		} catch (err) {
 			return false;
 		}
-	}()) || true) {
+	}())) {
 		var tag = document.createElement('script');
 		tag.src = './' + 
 			location.pathname.split('/').pop().split('.')[0] + 
 			'.es5.js';
 		document.body.appendChild(tag);
-
-		//TODO: calc polyfill
 	}
 })();
