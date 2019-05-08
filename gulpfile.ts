@@ -2068,12 +2068,6 @@ class Tasks {
 
 					@describe('Rolls WCTest.js into a bundle')
 					static async rollupWCTest() {
-						// Create a polyfilled version
-						// const file = await readFile(path.join(__dirname,
-						// 	'app/entrypoints/wctest.js'));
-						// const destPath = path.join(__dirname, 'app/entrypoints/wctest.js');
-						// await writeFile(destPath, `${file}`);
-
 						const bundle = await rollup.rollup({
 							input: path.join(__dirname,
 								'app/entrypoints/wctest.js'),
@@ -2096,35 +2090,6 @@ class Tasks {
 						await bundle.write({
 							format: 'iife',
 							file: path.join(__dirname, 'build/entrypoints/wctest.js')
-						});
-						// await fs.unlink(destPath);
-					}
-
-					@describe('Rolls the added polyfilled libs into the bundle')
-					static async rollupWCTestTwo() {
-						// Create a polyfilled version
-						const bundle = await rollup.rollup({
-							input: path.join(__dirname, 'temp/entrypoints/wctest.es5.polyfilled.js'),
-							onwarn(warning) {
-								if (typeof warning !== 'string' && warning.code === 'THIS_IS_UNDEFINED') {
-									//Typescript inserted helper method, ignore it
-									return;
-								}
-								console.log(warning);
-							},
-							plugins: [
-								rollupResolve({
-									browser: true
-								}),
-								// commonJS({
-								// 	include: 'node_modules/**/*'
-								// })
-							]
-						});
-
-						await bundle.write({
-							format: 'iife',
-							file: path.join(__dirname, 'build/entrypoints/wctest.es5.js')
 						});
 					}
 
@@ -2193,23 +2158,6 @@ class Tasks {
 							], { cwd: './app', base: './app' })
 							.pipe(gulp.dest('./build'))
 					}
-
-					// @describe('Crisps the wctest file')
-					// static async crispWCTest() {
-					// 	const options = await readFile('./build/entrypoints/wctest.html');
-					// 	const { html, js } = crisper({
-					// 		jsFileName: 'wctest.js',
-					// 		source: options,
-					// 		scriptInHead: false,
-					// 		cleanup: false
-					// 	});
-					// 	const optionsRemoved = html.replace(
-					// 		/<script src="options.js"><\/script>/g, '');
-					// 	await Promise.all([
-					// 		writeFile('./build/entrypoints/options.html', optionsRemoved),
-					// 		writeFile('./build/entrypoints/options.js', js)
-					// 	]);
-					// }
 
 					@describe('Babel the wctest page')
 					static babelWCTest() {
@@ -2307,7 +2255,6 @@ class Tasks {
 								Build.minifyCSS
 							),
 							Build.quickCompile,
-							// Build.rollupWCTestTwo,
 							Build.PostPolymer.moveUpDir,
 							Build.PostPolymer.cleanBuildTemp,
 							Build.PostPolymer.copyPrefixJs,
