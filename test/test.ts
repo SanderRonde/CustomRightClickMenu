@@ -6036,4 +6036,37 @@ describe('CRMAPI', () => {
 			});
 		});
 	});
+	describe('#fetch()', () => {
+		it('should return the data at the URL', async function() {
+			this.timeout(5000);
+			this.slow(2500);
+
+ 			assert.isFunction(crmAPI.fetch);
+			await asyncDoesNotThrow(() => {
+				return new Promise(async (resolve) => {
+					const result = await crmAPI.fetch('https://www.example.com');
+					assert.isTrue(result.indexOf('example') > -1,
+						'page is successfully loaded');
+					resolve(null);
+				});
+			});
+		});
+	});
+	describe('#fetchBackground()', () => {
+		it('should return the data at the URL', async function() {
+			this.timeout(5000);
+			this.slow(2500);
+
+ 			assert.isFunction(crmAPI.fetchBackground);
+			await asyncDoesNotThrow(() => {
+				return new Promise(async (resolve) => {
+					debugger;
+					const result = await crmAPI.fetchBackground('https://www.example.com');
+					assert.isTrue(result.indexOf('example') > -1,
+						'page is successfully loaded');
+					resolve(null);
+				});
+			});
+		});
+	});
 });
