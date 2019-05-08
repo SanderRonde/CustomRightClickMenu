@@ -3,6 +3,7 @@
 /// <reference path="../app/elements/options/edit-crm-item/edit-crm-item.ts" />
 /// <reference path="../tools/definitions/chrome.d.ts" />
 
+import * as http from 'http';
 declare const browserAPI: browserAPI;
 
 const PORT: number = 1250;
