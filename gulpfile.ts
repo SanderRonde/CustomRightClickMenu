@@ -4,7 +4,6 @@ import { joinPages } from './tools/joinPages';
 import { polymerBuild } from './tools/build';
 import htmlTypings = require('html-typings');
 import processhtml from 'gulp-processhtml';
-// import htmlMinifier from 'html-minifier';
 import childProcess from 'child_process';
 import StreamZip from 'node-stream-zip';
 import beautify from 'gulp-beautify';
@@ -2222,8 +2221,6 @@ class Tasks {
 						}));
 					}
 
-					//TODO: htmlMinifier
-
 					@describe('Minifies the wctest.es5.js file')
 					static async minifyWCTestEs5() {
 						await uglify(
@@ -2238,12 +2235,23 @@ class Tasks {
 							path.join(__dirname, 'build/entrypoints/wctest.js'));
 					}
 
+					@describe('Inlines all calc(str) calls in the non-es5 bundle')
+					static async inlineCalcs() {
+						const file = await readFile(
+							path.join(__dirname, 'build/entrypoints/wctest.js'));
+						await writeFile(
+							path.join(__dirname, 'build/entrypoints/wctest.js'),
+							file.replace(/\$\{calc\(['"](.*)['"]\)\}/g,
+								'calc($1)'));
+					}
+
 					@rootTask('quickCompile', 'x')
 					static quickCompile = series(
 						Build.rollupWCTest,
 						Build.copyWCTest,
 						Build.webpackWCTest,
 						Build.babelWCTest,
+						Build.inlineCalcs,
 						parallel(
 							Build.minifyWCTest,
 							Build.minifyWCTestEs5
