@@ -1,5 +1,6 @@
 /// <reference path="../../elements.d.ts" />
 
+import { WebComponentI18NManager } from '../../../modules/wclib/build/es/wclib';
 import { Polymer } from '../../../../tools/definitions/polymer';
 
 namespace SplashScreenElement {
@@ -91,7 +92,8 @@ namespace SplashScreenElement {
 			this.setProgress(progress);
 
 			if (registered >= this._settings.max) {
-				this.async(() => {
+				this.async(async () => {
+					await WebComponentI18NManager.langReady;
 					this.finish();
 					resolve(null);
 				}, 500);
