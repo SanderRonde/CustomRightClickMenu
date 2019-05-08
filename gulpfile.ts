@@ -2224,14 +2224,30 @@ class Tasks {
 
 					//TODO: htmlMinifier
 
-					//TODO: minify wctest.es5.js
+					@describe('Minifies the wctest.es5.js file')
+					static async minifyWCTestEs5() {
+						await uglify(
+							path.join(__dirname, 'build/entrypoints/wctest.es5.js'),
+							path.join(__dirname, 'build/entrypoints/wctest.es5.js'));
+					}
+
+					@describe('Minifies the wctst.js file')
+					static async minifyWCTest() {
+						await uglify(
+							path.join(__dirname, 'build/entrypoints/wctest.js'),
+							path.join(__dirname, 'build/entrypoints/wctest.js'));
+					}
 
 					@rootTask('quickCompile', 'x')
 					static quickCompile = series(
 						Build.rollupWCTest,
 						Build.copyWCTest,
 						Build.webpackWCTest,
-						Build.babelWCTest
+						Build.babelWCTest,
+						parallel(
+							Build.minifyWCTest,
+							Build.minifyWCTestEs5
+						)
 					)
 
 					@rootTask('buildWCNoCompile', 'Builds the extension in WC mode without compiling')
