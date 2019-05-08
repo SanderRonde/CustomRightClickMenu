@@ -1,5 +1,6 @@
 import { TemplateFn, CHANGE_TYPE } from '../../../modules/wclib/build/es/wclib.js';
 import { render } from '../../../modules/lit-html/lit-html.js';
+import { calc } from '../../lib/polyfills/calc.js';
 import { CrmApp } from './crm-app.js';
 
 export const CrmAppCSS = new TemplateFn<CrmApp>(function (html) {
@@ -19,10 +20,8 @@ export const CrmAppCSS = new TemplateFn<CrmApp>(function (html) {
 		.container {
 			font-size:150%;
 			width: 1000px;
-			padding-left: -webkit-calc((100vw - 1020px) / 2);
-			padding-left: calc((100vw - 1020px) / 2);
-			padding-right: -webkit-calc((100vw - 1020px) / 2);
-			padding-right: calc((100vw - 1020px) / 2);
+			padding-left: ${calc('(100vw - 1020px) / 2')};
+			padding-right: ${calc('((100vw - 1020px) / 2)')};
 			margin-top: 64px;
 		}
 
@@ -454,12 +453,11 @@ export const CrmAppCSS = new TemplateFn<CrmApp>(function (html) {
 
 		#chooseFileMergerEditor, .CodeMirror-merge-3pane .CodeMirror-merge-pane, .CodeMirror-merge-3pane .CodeMirror-merge-gap {
 			height: -webkit-calc(100vh - 148px);
-			height: calc(100vh - 148px);
+			height: ${calc('(100vh - 148px)')}
 		}
 
 		.updateMerge #chooseFileMergerEditor, .updateMerge .CodeMirror-merge-3pane .CodeMirror-merge-pane, .updateMerge .CodeMirror-merge-3pane .CodeMirror-merge-gap {
-			height: -webkit-calc(100vh - 164px);
-			height: calc(100vh - 164px);
+			height: ${calc('(100vh - 164px)')}
 		}
 
 		.updateMerge #chooseFileTitleTxt {
@@ -714,8 +712,7 @@ export const CrmAppCSS = new TemplateFn<CrmApp>(function (html) {
 		}
 
 		.requestPermissionsPermissions {
-			max-height: -webkit-calc(100vh - 400px);
-			max-height: calc(100vh - 400px);
+			max-height: ${calc('(100vh - 400px)')};
 			overflow-y: auto;
 			box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.4);
 			margin: 0 24px;
@@ -903,8 +900,7 @@ export const CrmAppCSS = new TemplateFn<CrmApp>(function (html) {
 		.paperTextArea {
 			padding: 0;
 			margin: 0 24px;
-			width: -webkit-calc(100% - 48px);
-			width: calc(100% - 48px);
+			width: ${calc('(100% - 48px)')};
 			outline: none;
 			border: none;
 			border-bottom: 2px solid rgb(60,60,60);
@@ -1339,10 +1335,8 @@ export const CrmAppCSS = new TemplateFn<CrmApp>(function (html) {
 		}
 
 		#restoreChangesEditor {
-			height: -webkit-calc(100vh - 500px);
-			height: calc(100vh - 500px);
-			width: -webkit-calc(100vw - 500px);
-			width: calc(100vw - 500px);
+			height: ${calc('(100vh - 500px)')};
+			width: ${calc('(100vw - 500px)')};
 		}
 
 		.halfDivider {
