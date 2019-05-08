@@ -1,4 +1,3 @@
-// import '@babel/polyfill';
 import { 
 	TemplateResult, PropertyCommitter, EventPart, 
 	BooleanAttributePart, AttributeCommitter, 
