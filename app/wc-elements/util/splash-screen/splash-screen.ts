@@ -1,4 +1,4 @@
-import { ConfigurableWebComponent, Props, PROP_TYPE, config, DefineData } from '../../../modules/wclib/build/es/wclib.js';
+import { ConfigurableWebComponent, Props, PROP_TYPE, config, DefineMetadata } from '../../../modules/wclib/build/es/wclib.js';
 import { SplashScreenIDMap, SplashScreenClassMap } from './splash-screen-querymap';
 import { SplashScreenHTML } from './splash-screen.html.js';
 import { SplashScreenCSS } from './splash-screen.css.js';
@@ -107,8 +107,8 @@ export class SplashScreen extends ConfigurableWebComponent<{
 
 	private _listenForRegistrations() {
 		this.done = new Promise<void>((resolve) => {
-			this._onRegistration(DefineData.defined, resolve);
-			DefineData.onDefine((amount) => {
+			this._onRegistration(DefineMetadata.defined, resolve);
+			DefineMetadata.onDefine((amount) => {
 				this._onRegistration(amount, resolve);
 			});
 		});
