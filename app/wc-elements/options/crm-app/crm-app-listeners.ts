@@ -74,7 +74,7 @@ export class CRMAppListeners {
 	;
 	async showManagePermissions() {
 		if (browserAPI.permissions) {
-			await this.parent._requestPermissions([], true);
+			await this.parent.requestPermissions([], true);
 		}
 		else {
 			window.app.util.showToast(this.parent.___(I18NKeys.crmApp.code.permissionsNotSupported));
@@ -397,114 +397,6 @@ export class CRMAppListeners {
 	copyExportToClipboard() {
 		this._copyFromElement(this.parent.$.exportSettingsOutput, this.parent.$.exportCopyButton);
 	}
-	goNextVersionUpdateTab() {
-		if (this.parent.versionUpdateTab === 4) {
-			this.parent.$.versionUpdateDialog.close();
-		}
-		else {
-			const nextTabIndex = this.parent.versionUpdateTab + 1;
-			const tabs = (document.getElementsByClassName('versionUpdateTab') as any) as HTMLElement[];
-			const selector = tabs[nextTabIndex];
-			selector.style.height = 'auto';
-			let i;
-			for (i = 0; i < tabs.length; i++) {
-				tabs[i].style.display = 'none';
-			}
-			const newHeight = $(selector).innerHeight();
-			for (i = 0; i < tabs.length; i++) {
-				tabs[i].style.display = 'block';
-			}
-			selector.style.height = '0';
-			const newHeightPx = newHeight + 'px';
-			const tabCont = this.parent.$.versionUpdateTabSlider;
-			const currentHeight = tabCont.getBoundingClientRect().height;
-			if (newHeight > currentHeight) {
-				tabCont.animate([
-					{
-						height: currentHeight + 'px'
-					}, {
-						height: newHeightPx
-					}
-				], {
-						duration: 500,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-					}).onfinish = () => {
-						tabCont.style.height = newHeightPx;
-						selector.style.height = 'auto';
-						this.parent.versionUpdateTab = nextTabIndex;
-					};
-			}
-			else {
-				selector.style.height = 'auto';
-				this.parent.versionUpdateTab = nextTabIndex;
-				setTimeout(function () {
-					tabCont.animate([
-						{
-							height: currentHeight + 'px'
-						}, {
-							height: newHeightPx
-						}
-					], {
-							duration: 500,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-						}).onfinish = function () {
-							tabCont.style.height = newHeightPx;
-						};
-				}, 500);
-			}
-		}
-	}
-	goPrevVersionUpdateTab() {
-		if (this.parent.versionUpdateTab !== 0) {
-			const prevTabIndex = this.parent.versionUpdateTab - 1;
-			const tabs = (document.getElementsByClassName('versionUpdateTab') as any) as HTMLElement[];
-			const selector = tabs[prevTabIndex];
-			selector.style.height = 'auto';
-			let i;
-			for (i = 0; i < tabs.length; i++) {
-				tabs[i].style.display = 'none';
-			}
-			const newHeight = $(selector).innerHeight();
-			for (i = 0; i < tabs.length; i++) {
-				tabs[i].style.display = 'block';
-			}
-			selector.style.height = '0';
-			const newHeightPx = newHeight + 'px';
-			const tabCont = this.parent.$.versionUpdateTabSlider;
-			const currentHeight = tabCont.getBoundingClientRect().height;
-			if (newHeight > currentHeight) {
-				tabCont.animate([{
-					height: currentHeight + 'px'
-				}, {
-					height: newHeightPx
-				}], {
-						duration: 500,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-					}).onfinish = () => {
-						tabCont.style.height = newHeightPx;
-						selector.style.height = 'auto';
-						this.parent.versionUpdateTab = prevTabIndex;
-					};
-			}
-			else {
-				selector.style.height = 'auto';
-				this.parent.versionUpdateTab = prevTabIndex;
-				setTimeout(function () {
-					tabCont.animate([{
-						height: currentHeight + 'px'
-					}, {
-						height: newHeightPx
-					}], {
-							duration: 500,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-						}).onfinish = function () {
-							tabCont.style.height = newHeightPx;
-						};
-				}, 500);
-			}
-		}
-	}
-	;
 	private _applyAddedPermissions() {
 		const panels = Array.prototype.slice.apply(window.doc.addedPermissionsTabContainer
 			.querySelectorAll('.nodeAddedPermissionsCont'));

@@ -100,87 +100,87 @@ declare global {
 		stringify<T>(value: T, replacer?: (number | string)[] | null, space?: string | number): EncodedString<T>;
 	}
 
-	interface Window {
-		jslint(source: String, option_object: {
-			[key: string]: any;
-		}, globals: string[]): JSLintResult;
-		CSSLint: {
-			verify(text: string, ruleset?: any[]): {
-				messages: CSSLintWarning[];
-			}
-		}
-		monaco: typeof monaco;
-		AMDLoader: {
-			global: {
-				require: {
-					(paths: string[], callback: () => void): void;
-					config(config: {
-						paths: {
-							[key: string]: string;
-						}
-					}): void;
-				};
-			};
-		};
-		onIsTest: boolean|(() => void);
-		dummyContainer: HTMLElement;
-		monacoCommands: MonacoCommands;
-		MonacoEditorHookManager: MonacoEditorHookManager;
-		crmAPIDefs?: any;
-		lastError?: Error;
-		polymerElementsLoaded?: boolean;
-		CRMLoaded?: {
-			listener: () => void;
-			register(fn: () => void): void;
-		}
-		requestIdleCallback(callback: (deadline: {
-			timeRemaining(): number;
-		}) => void): number;
-		Intl: typeof Intl;
-		unescape(str: string): string;
-		md5: (input: any) => string;
-		XMLHttpRequest: any;
+	// interface Window {
+	// 	jslint(source: String, option_object: {
+	// 		[key: string]: any;
+	// 	}, globals: string[]): JSLintResult;
+	// 	CSSLint: {
+	// 		verify(text: string, ruleset?: any[]): {
+	// 			messages: CSSLintWarning[];
+	// 		}
+	// 	}
+	// 	monaco: typeof monaco;
+	// 	AMDLoader: {
+	// 		global: {
+	// 			require: {
+	// 				(paths: string[], callback: () => void): void;
+	// 				config(config: {
+	// 					paths: {
+	// 						[key: string]: string;
+	// 					}
+	// 				}): void;
+	// 			};
+	// 		};
+	// 	};
+	// 	onIsTest: boolean|(() => void);
+	// 	dummyContainer: HTMLElement;
+	// 	monacoCommands: MonacoCommands;
+	// 	MonacoEditorHookManager: MonacoEditorHookManager;
+	// 	crmAPIDefs?: any;
+	// 	lastError?: Error;
+	// 	polymerElementsLoaded?: boolean;
+	// 	CRMLoaded?: {
+	// 		listener: () => void;
+	// 		register(fn: () => void): void;
+	// 	}
+	// 	requestIdleCallback(callback: (deadline: {
+	// 		timeRemaining(): number;
+	// 	}) => void): number;
+	// 	Intl: typeof Intl;
+	// 	unescape(str: string): string;
+	// 	md5: (input: any) => string;
+	// 	XMLHttpRequest: any;
 	
-		doc: ModuleMap['crm-app'];
-		logElements?: {
-			logLines: any;
-		};
-		runOrAddAsCallback(toRun: Function, thisElement: HTMLElement, params: any[]): void;
-		addCalcFn(element: HTMLElement, prop: keyof CSSStyleDeclaration, calcValue: string, disable?: boolean): void;
-		useOptionsCompletions: boolean;
-		Storages: {
-			loadStorages(): Promise<void>;
-			clearStorages(): void;
-		}
-		Polymer: Polymer.Polymer;
-		React: typeof React;
+	// 	doc: ModuleMap['crm-app'];
+	// 	logElements?: {
+	// 		logLines: any;
+	// 	};
+	// 	runOrAddAsCallback(toRun: Function, thisElement: HTMLElement, params: any[]): void;
+	// 	addCalcFn(element: HTMLElement, prop: keyof CSSStyleDeclaration, calcValue: string, disable?: boolean): void;
+	// 	useOptionsCompletions: boolean;
+	// 	Storages: {
+	// 		loadStorages(): Promise<void>;
+	// 		clearStorages(): void;
+	// 	}
+	// 	Polymer: Polymer.Polymer;
+	// 	React: typeof React;
 	
-		app: CrmApp;
-		logPage: LogPage;
-		changeLog: ChangeLog;
-		logConsole: LogConsole;
-		crmEditPage: CrmEditPage;
-		installPage: InstallPage;
-		splashScreen: SplashScreen;
-		installConfirm: InstallConfirm;
-		externalEditor: UseExternalEditor;
-		errorReportingTool: ErrorReportingTool;
-		linkEdit: NodeEditBehaviorLinkInstance;
-		menuEdit: NodeEditBehaviorMenuInstance;
-		codeEditBehavior: CodeEditBehaviorGlobal;
-		scriptEdit: NodeEditBehaviorScriptInstance;
-		dividerEdit: NodeEditBehaviorDividerInstance;
-		stylesheetEdit: NodeEditBehaviorStylesheetInstance;
+	// 	app: CrmApp;
+	// 	logPage: LogPage;
+	// 	changeLog: ChangeLog;
+	// 	logConsole: LogConsole;
+	// 	crmEditPage: CrmEditPage;
+	// 	installPage: InstallPage;
+	// 	splashScreen: SplashScreen;
+	// 	installConfirm: InstallConfirm;
+	// 	externalEditor: UseExternalEditor;
+	// 	errorReportingTool: ErrorReportingTool;
+	// 	linkEdit: NodeEditBehaviorLinkInstance;
+	// 	menuEdit: NodeEditBehaviorMenuInstance;
+	// 	codeEditBehavior: CodeEditBehaviorGlobal;
+	// 	scriptEdit: NodeEditBehaviorScriptInstance;
+	// 	dividerEdit: NodeEditBehaviorDividerInstance;
+	// 	stylesheetEdit: NodeEditBehaviorStylesheetInstance;
 	
-		consoleInfo(): void;
-		getLocalFormat(): void;
-		getSyncFormat(): void;
-		getCRMFormat(): void;
-		upload(): void;
-		getChanges(): void;
-		checkFormat(): void;
-		uploadIfCorrect(): void;
-	}
+	// 	consoleInfo(): void;
+	// 	getLocalFormat(): void;
+	// 	getSyncFormat(): void;
+	// 	getCRMFormat(): void;
+	// 	upload(): void;
+	// 	getChanges(): void;
+	// 	checkFormat(): void;
+	// 	uploadIfCorrect(): void;
+	// }
 }
 
 interface Completion {

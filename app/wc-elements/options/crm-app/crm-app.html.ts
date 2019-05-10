@@ -1,5 +1,5 @@
+import { printIfTrue, onTypeChange, freeze, __, renderable, twoWay } from '../../utils.js';
 import { TemplateFn, CHANGE_TYPE } from '../../../modules/wclib/build/es/wclib.js';
-import { printIfTrue, onTypeChange, freeze, __, renderable, twoWay, waitFor } from '../../utils.js';
 import { render } from '../../../modules/lit-html/lit-html.js';
 import { I18NKeys } from '../../../_locales/i18n-keys.js';
 import { CrmApp } from './crm-app.js';
@@ -11,7 +11,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 				<div id="editorCurrentScriptTitle">
 					<div id="showHideToolsRibbonCont">
 						<paper-icon-button title="tools" id="showHideToolsRibbonButton" 
-							icon="menu" on-tap="domListener" data-on-tap="toggleToolsRibbon">
+							icon="menu" @tap="${this.listeners.toggleToolsRibbon}">
 						</paper-icon-button>							
 					</div>
 					<div id="editorTitleRibbon">
@@ -20,15 +20,15 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 					</div>
 					<div id="titleRibbonEnd">
 						<div id="fullscreenEditorButtons">
-							<div hidden="{{_currentItemIsCss(item)}}" title="Toggle typescript" id="editorTypescript" on-tap="domListener" data-on-tap="toggleTypescript">
+							<div hidden="{{_currentItemIsCss(item)}}" title="Toggle typescript" id="editorTypescript" @tap="${this.listeners.toggleTypescript}">
 								${__(change, I18NKeys.crmApp.ribbons.ts)}
 							</div>
-							<div title="Exit fullscreen" id="fullscreenEditorToggle" on-tap="domListener" data-on-tap="exitFullscreen">
+							<div title="Exit fullscreen" id="fullscreenEditorToggle" @tap="${this.listeners.exitFullscreen}">
 								<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
 									<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>
 								</svg>
 							</div>
-							<div title="Toggle options" id="fullscreenEditorSettings" on-tap="domListener" data-on-tap="toggleFullscreenOptions">
+							<div title="Toggle options" id="fullscreenEditorSettings" @tap="${this.listeners.toggleFullscreenOptions}">
 								<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48">
 									<path d="M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
 								</svg>
@@ -42,11 +42,11 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 				<div id="fullscreenEditorHorizontal">
 					<div id="editorToolsRibbonContainer">
 						<div id="editorToolsRibbon">
-							<div on-tap="domListener" data-on-tap="launchExternalEditorDialog" class="ribbonTool" id="externalEditorDialogTrigger">Use External Editor</div>
+							<div @tap="${this.listeners.launchExternalEditorDialog}" class="ribbonTool" id="externalEditorDialogTrigger">Use External Editor</div>
 							<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool jsTool" usedlibraries="[[scriptItem.value.libraries]]"></paper-libraries-selector>
 							<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool jsTool"></paper-get-page-properties>
-							<div on-tap="domListener" data-on-tap="launchSearchWebsiteToolScript" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
-							<div on-tap="domListener" data-on-tap="runLint" class="ribbonTool" id="runCssLintButton">
+							<div @tap="${this.listeners.launchSearchWebsiteToolScript}" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
+							<div @tap="${this.listeners.runLint}" class="ribbonTool" id="runCssLintButton">
 								<span class="cssTool">
 									${__(change, I18NKeys.crmApp.ribbons.tslint)}
 								</span>
@@ -54,7 +54,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 									${__(change, I18NKeys.crmApp.ribbons.jslint)}
 								</span>
 							</div>
-							<div on-tap="domListener" data-on-tap="showCssTips" class="ribbonTool cssTool" id="showCssTipsButton">
+							<div @tap="${this.listeners.showCssTips}" class="ribbonTool cssTool" id="showCssTipsButton">
 								${__(change, I18NKeys.crmApp.ribbons.info)}
 							</div>
 						</div>
@@ -68,20 +68,20 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 								<div id="editorThemeSettingCont">
 									<div id="editorThemeSettingTxt">${__(change, I18NKeys.crmApp.editor.settings.theme)}:</div>
 									<div id="editorThemeSettingChoicesCont">
-										<div id="editorThemeSettingWhite" on-tap="domListener" data-on-tap="setThemeWhite" class="editorThemeSetting"></div>
-										<div id="editorThemeSettingDark" on-tap="domListener" data-on-tap="setThemeDark" class="editorThemeSetting"></div>
+										<div id="editorThemeSettingWhite" @tap="${this.listeners.setThemeWhite}" class="editorThemeSetting"></div>
+										<div id="editorThemeSettingDark" @tap="${this.listeners.setThemeDark}" class="editorThemeSetting"></div>
 									</div>
 								</div>
 								<br />
 								<div id="editorThemeFontSize">
-									<paper-input on-change="domListener" data-on-change="fontSizeChange" id="editorThemeFontSizeInput" type="number" always-float-label label="${__(change, I18NKeys.crmApp.editor.settings.fontsizePercentage)}">
+									<paper-input on-change="domListener" @change="${this.listeners.fontSizeChange}" id="editorThemeFontSizeInput" type="number" always-float-label label="${__(change, I18NKeys.crmApp.editor.settings.fontsizePercentage)}">
 										<div suffix>%</div>
 									</paper-input>
 								</div>
 								<br />
 								<div id="editorJSLintGlobals">
 									<div id="editorJSLintGlobalsFlexCont">
-										<paper-input on-keypress="domListener" data-on-keypress="jsLintGlobalsChange" id="editorJSLintGlobalsInput" label="${__(change, I18NKeys.crmApp.editor.settings.jslintGlobals)}"  always-float-label></paper-input>
+										<paper-input on-keypress="domListener" @keypress="${this.listeners.jsLintGlobalsChange}" id="editorJSLintGlobalsInput" label="${__(change, I18NKeys.crmApp.editor.settings.jslintGlobals)}"  always-float-label></paper-input>
 									</div>
 								</div>
 								<br />
@@ -91,7 +91,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 									<template id="keyBindingsTemplate" is="dom-repeat" as="keyBinding">
 										<div class="keyBinding">
 											<div>
-												<paper-input data-index="{{itemIndex}}" on-keydown="domListener" data-on-keydown="onKeyBindingKeyDown" label="{{keyBinding.name}}" value="{{getKeyBindingValue(keyBinding)}}" class="keyBindingSettingKeyInput" always-float-label></paper-input>
+												<paper-input data-index="{{itemIndex}}" on-keydown="domListener" @keydown="${this.listeners.onKeyBindingKeyDown}" label="{{keyBinding.name}}" value="{{getKeyBindingValue(keyBinding)}}" class="keyBindingSettingKeyInput" always-float-label></paper-input>
 											</div>
 											<br />
 										</div>
@@ -169,7 +169,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 								<div class="crmType pageType" title="${
 										__(change, I18NKeys.crmApp.crmtype.toggle, 
 											this.__(I18NKeys.crmApp.crmtype.regularWebpages))
-									}"  on-tap="domListener" data-on-tap="iconSwitch">
+									}"  @tap="${this.listeners.iconSwitch}">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
 										<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="80" height="80" viewbox="0 0 24 24">
@@ -183,7 +183,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 								<div class="crmType linkType" title="${
 									__(change, I18NKeys.crmApp.crmtype.toggle, 
 										this.__(I18NKeys.crmTypes.weblinks))
-								}" on-tap="domListener" data-on-tap="iconSwitch">
+								}" @tap="${this.listeners.iconSwitch}">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
 										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -198,7 +198,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 								<div class="crmType selectionType" title="${
 									__(change, I18NKeys.crmApp.crmtype.toggle, 
 										this.__(I18NKeys.crmApp.crmtype.selectedText))
-								}" on-tap="domListener" data-on-tap="iconSwitch">
+								}" @tap="${this.listeners.iconSwitch}">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
 										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -213,7 +213,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 								<div class="crmType imageType" title="${
 									__(change, I18NKeys.crmApp.crmtype.toggle, 
 										this.__(I18NKeys.crmTypes.images))
-								}" on-tap="domListener" data-on-tap="iconSwitch">
+								}" @tap="${this.listeners.iconSwitch}">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
 										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -228,7 +228,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 								<div class="crmType videoType" title="${
 									__(change, I18NKeys.crmApp.crmtype.toggle, 
 										this.__(I18NKeys.crmTypes.videos))
-								}" on-tap="domListener" data-on-tap="iconSwitch">
+								}" @tap="${this.listeners.iconSwitch}">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
 										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -243,7 +243,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 								<div class="crmType audioType" title="${
 									__(change, I18NKeys.crmApp.crmtype.toggle, 
 										this.__(I18NKeys.crmTypes.audio))
-								}" on-tap="domListener" data-on-tap="iconSwitch">
+								}" @tap="${this.listeners.iconSwitch}">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
 										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -295,7 +295,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 									renderable(this.settingsJsonLength, this._formatJSONLength)
 								}</span>/102,400 bytes
 							</paper-toggle-option>
-							<paper-button on-tap="domListener" data-on-tap="showManagePermissions" raised class="blue">${__(change, I18NKeys.crmApp.options.managePermissions)}</paper-button>
+							<paper-button @tap="${this.listeners.showManagePermissions}" raised class="blue">${__(change, I18NKeys.crmApp.options.managePermissions)}</paper-button>
 						</div>
 					</div>
 					<br /><br />
@@ -333,7 +333,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 							<default-link search-engine href="https://www.youtube.com/results?search_query=%s" default-name="Search Youtube for %s"></default-link>
 							<default-link search-engine href="https://www.amazon.com/s/?url=search-alias%3Daps&field-keywords=%s" default-name="Search Amazon for %s"></default-link>
 						</div>
-						<paper-button class="blue topoffset" id="removeButton" on-tap="domListener" data-on-tap="launchSearchWebsiteToolLink" raised>ADD CUSTOM WEBSITE</paper-button>
+						<paper-button class="blue topoffset" id="removeButton" @tap="${this.listeners.launchSearchWebsiteToolLink}" raised>ADD CUSTOM WEBSITE</paper-button>
 					</div>
 					<br /><br />
 					<div class="URIScheme">
@@ -346,7 +346,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 						<div class="URISchemeGenerator">
 							<paper-input id="URISchemeFilePath" label="${__(change, I18NKeys.crmApp.uriScheme.filePathLabel)}" value="C:\files\file.exe"></paper-input>
 							<paper-input id="URISchemeSchemeName" pattern="(\w|\d|_|\.|-)*" auto-validate="true" error-message="${__(change, I18NKeys.crmApp.uriScheme.invalidScheme)}" label="${__(change, I18NKeys.crmApp.uriScheme.schemeNameLabel)}" value="${__(change, I18NKeys.crmApp.uriScheme.example)}"></paper-input>
-							<animated-button cooldown raised class="blue topoffset" tap="domListener" data-on-click="_generateRegexFile" content="${__(change, I18NKeys.crmApp.uriScheme.generate)}"></animated-button>
+							<animated-button cooldown raised class="blue topoffset" tap="domListener" @click="${this.listeners._generateRegexFile}" content="${__(change, I18NKeys.crmApp.uriScheme.generate)}"></animated-button>
 						</div>
 					</div>
 					<br /><br />
@@ -366,7 +366,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 						<paper-checkbox title="${__(change, I18NKeys.crmApp.importing.overwriteTitle)}" checked id="overWriteImport">${__(change, I18NKeys.crmApp.importing.overwrite)}</paper-checkbox>
 						<paper-checkbox title="${__(change, I18NKeys.crmApp.importing.legacyTitle)}" id="oldCRMImport">${__(change, I18NKeys.crmApp.importing.legacy)}</paper-checkbox>
 						<br />
-						<animated-button class="blue" cooldown raised id="importButton" tap="domListener" data-on-click="importData" content="${__(change, I18NKeys.crmApp.importing.import)}"></animated-button>
+						<animated-button class="blue" cooldown raised id="importButton" tap="domListener" @click="${this.listeners.importData}" content="${__(change, I18NKeys.crmApp.importing.import)}"></animated-button>
 					</div>
 					<br /><br />
 					<div class="exportSettingsCont">
@@ -391,9 +391,9 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 						</div>
 						<paper-checkbox checked id="exportCRM">${__(change, I18NKeys.crmApp.exporting.exportCRM)}</paper-checkbox>
 						<paper-checkbox checked id="exportSettings">${__(change, I18NKeys.crmApp.exporting.exportSettings)}</paper-checkbox>
-						<paper-icon-button id="exportCopyButton" icon="content-copy" title="copy to clipboard" on-tap="domListener" data-on-tap="copyExportToClipboard"></paper-icon-button>
+						<paper-icon-button id="exportCopyButton" icon="content-copy" title="copy to clipboard" @tap="${this.listeners.copyExportToClipboard}"></paper-icon-button>
 						<br/>
-						<animated-button cooldown class="blue" raised id="exportButton" tap="domListener" data-on-click="exportData" content="${__(change, I18NKeys.crmApp.exporting.export)}"></animated-button>
+						<animated-button cooldown class="blue" raised id="exportButton" tap="domListener" @click="${this.listeners.exportData}" content="${__(change, I18NKeys.crmApp.exporting.export)}"></animated-button>
 					</div>
 					<br/><br/>
 					<div class="helpCont">
@@ -421,7 +421,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 						<div class="bugReportingDescr">
 							${__(change, I18NKeys.crmApp.bugs.description)}
 						</div>
-						<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="_toggleBugReportingTool">${__(change, I18NKeys.crmApp.bugs.toggle)}</paper-button>
+						<paper-button raised class="blue topoffset" @tap="${this.listeners._toggleBugReportingTool}">${__(change, I18NKeys.crmApp.bugs.toggle)}</paper-button>
 					</div>
 					<br /><br />
 					<div class="globalExcludes">
@@ -437,7 +437,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 								return globalExcludes.map((globalExclude) => {
 									return html`
 										<div class="globalExcludeContainer">
-											<paper-input on-change="domListener" data-on-change="globalExcludeChange" 
+											<paper-input on-change="domListener" @change="${this.listeners.globalExcludeChange}" 
 												pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" 
 												auto-validate="true" 
 												label="${__(change, I18NKeys.crmApp.globalExcludes.patternLabel)}" 
@@ -450,7 +450,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 									`;
 								});
 							})}
-							<paper-button raised class="blue topoffset" on-tap="domListener" data-on-tap="addGlobalExcludeField">
+							<paper-button raised class="blue topoffset" @tap="${this.listeners.addGlobalExcludeField}">
 								${__(change, I18NKeys.generic.add)}
 							</paper-button>
 						</div>
@@ -463,7 +463,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 						<div class="loggingDescr">
 							<echo-html html="${__(change, I18NKeys.crmApp.logging.description)}"></echo-html>
 						</div>
-						<paper-button class="blue topoffset" raised on-tap="domListener" data-on-tap="_openLogging">${__(change, I18NKeys.crmApp.logging.logging)}</paper-button>
+						<paper-button class="blue topoffset" raised @tap="${this.listeners._openLogging}">${__(change, I18NKeys.crmApp.logging.logging)}</paper-button>
 					</div>
 					<br /><br />
 					<div class="privacyPolicyCont">
@@ -489,14 +489,14 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 			<div id="dialogs">
 				<!--Toasts-->
 				<paper-toast id="messageToast" text="Please ignore this" duration="5000">
-					<span class="toastLink" on-tap="domListener" data-on-tap="hideGenericToast" role="button">${__(change, I18NKeys.generic.dismiss)}</span>
+					<span class="toastLink" @tap="${this.listeners.hideGenericToast}" role="button">${__(change, I18NKeys.generic.dismiss)}</span>
 				</paper-toast>
 				<paper-toast id="undoToast" text="${__(change, I18NKeys.crmApp.toasts.revert)}">
-					<span class="toastLink" on-tap="domListener" data-on-tap="undo" role="button">${__(change, I18NKeys.generic.undo)}</span>
+					<span class="toastLink" @tap="${this.listeners.undo}" role="button">${__(change, I18NKeys.generic.undo)}</span>
 				</paper-toast>
 				<paper-toast data-element-type="ScriptUpdatesToast" id="scriptUpdatesToast" text="Please ignore this" duration="10000">
-					<span id="nextScriptUpdateButton" class="toastLink" on-tap="domListener" data-on-tap="nextUpdatedScript" role="button">${__(change, I18NKeys.generic.next)}</span>
-					<span class="toastLink" on-tap="domListener" data-on-tap="hideScriptUpdatesToast" role="button">${__(change, I18NKeys.generic.dismiss)}</span>
+					<span id="nextScriptUpdateButton" class="toastLink" @tap="${this.listeners.nextUpdatedScript}" role="button">${__(change, I18NKeys.generic.next)}</span>
+					<span class="toastLink" @tap="${this.listeners.hideScriptUpdatesToast}" role="button">${__(change, I18NKeys.generic.dismiss)}</span>
 				</paper-toast>
 				<paper-toast id="contentTypeToast" text="${__(change, I18NKeys.crmApp.toasts.contentType)}" duration="5000"></paper-toast>
 				<paper-toast id="externalEditorErrorToast" text="Something went wrong connecting to the CRM App, make sure you have the app installed" duration="10000">
@@ -625,7 +625,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 					</div>
 					<div class="buttons">
 						<paper-button dialog-dismiss>${__(change, I18NKeys.generic.cancel)}</paper-button>
-						<paper-button dialog-confirm on-tap="domListener" data-on-tap="confirmCodeSettings">${__(change, I18NKeys.generic.save)}</paper-button>
+						<paper-button dialog-confirm @tap="${this.listeners.confirmCodeSettings}">${__(change, I18NKeys.generic.save)}</paper-button>
 					</div>
 				</paper-dialog>
 				<paper-dialog no-cancel-on-outside-click no-cancel-on-esc-key id="restoreChangesDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
@@ -712,7 +712,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 						</div>
 						<div id="exportInputLine">
 							<paper-input always-float-label id="exportAuthorName" label="${__(change, I18NKeys.crmApp.dialogs.exporting.authorName)}" placeholder="anonymous"></paper-input>
-							<paper-icon-button id="dialogCopyButton" icon="content-copy" title="${__(change, I18NKeys.crmApp.dialogs.exporting.copyToClipboard)}" on-tap="domListener" data-on-tap="copyExportDialogToClipboard"></paper-icon-button>
+							<paper-icon-button id="dialogCopyButton" icon="content-copy" title="${__(change, I18NKeys.crmApp.dialogs.exporting.copyToClipboard)}" @tap="${this.listeners.copyExportDialogToClipboard}"></paper-icon-button>
 						</div>
 						<textarea class="paperTextArea" id="exportJSONData" rows="20" spellcheck="false" autocomplete="off"></textarea>
 						<div class="buttons">
@@ -834,92 +834,6 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 						</div>
 					</paper-dialog>
 				</center-element>
-				<center-element fullscreenoverlay id="versionUpdateCenterer">
-					<paper-dialog data-element-type="VersionUpdateDialog" with-backdrop id="versionUpdateDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-						<br />
-						<div id="versionUpdateTabContainer" tab$="[[versionUpdateTab]]">
-							<div id="versionUpdateTabSlider">
-								<div class="versionUpdateTab">
-									<h2 class="versionUpdateTabHeader">Welcome to the new Custom Right-Click Menu</h2>
-									<div class="versionUpdateTabTxt">
-										Custom Right-Click Menu (CRM) has been updated to version 2.0. This version has a hugely upgraded
-										UI, lots of new features, a new editor, a CRM API for your scripting and includes the new stylesheet type.
-										It's now also fully compatible with userscripts (such as GreaseMonkey and TamperMonkey).
-										Click the next button to see more features.
-									</div>
-								</div>
-								<div class="versionUpdateTab">
-									<h2 class="versionUpdateTabHeader">A new editor</h2>
-									<div class="versionUpdateTabTxt">
-										This update also includes a new editor featuring the widely used CodeMirror. This editor allows
-										you to better edit your code with features like:
-										<ul>
-											<li>Synthax highlighting</li>
-											<li>Autocomplete</li>
-											<li>Function definitions</li>
-											<li>A search/replace function</li>
-											<li>Custom theme, custom keybindings</li>
-										</ul>
-										And even if you don't like it, you can now sync up a script/stylesheet to a file on your hard drive
-										so you can edit files in your favorite editor and have them be used here.
-										<br />
-										<b>Try it out below:</b>
-										<monaco-editor id="tryOutEditor"></monaco-editor>
-									</div>
-								</div>
-								<div class="versionUpdateTab">
-									<h2 class="versionUpdateTabHeader">The new stylesheet type</h2>
-									<div class="versionUpdateTabTxt">
-										Often you're not satisfied with some elements on a page, and wish them to be removed. Or you just
-										want to change the background color of a site to be less straining on the eyes. The new stylesheet
-										type allows you to either always apply it or have the ability to toggle it on and off.
-										<div id="gifCropper">
-											<img id="stylesheetGif" data-src="../../images/stylesheet.gif" alt="stylesheet demo gif" />
-										</div>
-									</div>
-								</div>
-								<div class="versionUpdateTab">
-									<h2 class="versionUpdateTabHeader">Compatible with userscripts</h2>
-									<div class="versionUpdateTabTxt">
-										Custom Right-Click Menu is now fully compatible with userscripts. These are the scripts used by
-										extensions such as TamperMonkey and GreaseMonkey. These extensions work great but a lot of
-										features are simply missing. That is why it's now possible to install any userscript in this
-										extension as well. Simply go to a page where you can find a userscript
-										(such as <a href="https://greasyfork.org/" rel="noopener" target="_blank">greasyfork</a> or
-										<a href="http://userscripts-mirror.org/" rel="noopener" target="_blank">userscripts-mirror</a>), click the install button
-										and the script will be installed for you. <br />
-										You can also export scripts from CRM as userscripts. Keep in mind that while all features
-										that userscripts include are included in CRM, the opposite is NOT true. This means that CRM-only features
-										will not be usable on extensions such as TamperMonkey/GreaseMonkey. CRM users installing that script
-										will however have all the original features.
-									</div>
-								</div>
-								<div class="versionUpdateTab">
-									<h2 class="versionUpdateTabHeader">Extra open source</h2>
-									<div class="versionUpdateTabTxt">
-										While the source of browser extensions can be looked at by anyone, the extension wasn't
-										completely open source before. With this new version the entire project is online over
-										at <a href="https://www.github.com/SanderRonde/CustomRightClickMenu" rel="noopener" target="_blank">Github</a>.
-										If you feel like helping out, reporting some issues, or just checking out the code and learning
-										please check it out. <br />
-										If you have any questions or suggestions, please don't hesitate to contact me by email over at
-										<a href="mailto:awsdfgvhbjn_gmail.com" target="_blank" rel="noopener">awsdfgvhbjn_gmail.com</a>.
-										<br /><br />
-										<div class="finalMessage">Have fun using this extension!</div>
-										<br />
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="buttons">
-							<paper-button notshown$="[[_isVersionUpdateTabX(versionUpdateTab, 0)]]" id="versionUpdatePrevTab" on-tap="domListener" data-on-tap="goPrevVersionUpdateTab">previous</paper-button>
-							<paper-button id="versionUpdateNextTab" on-tap="domListener" data-on-tap="goNextVersionUpdateTab">
-								<span hidden$="[[!_isVersionUpdateTabX(versionUpdateTab, 4)]]">close</span>
-								<span hidden$="[[_isVersionUpdateTabX(versionUpdateTab, 4)]]">next</span>
-							</paper-button>
-						</div>
-					</paper-dialog>
-				</center-element>
 				<center-element fullscreenoverlay id="addedPermissionsCenterer">
 					<paper-dialog with-backdrop id="addedPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 						<br>
@@ -950,8 +864,8 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 						<div class="buttons">
 							<paper-button
 								id="addedPermissionPrevButton"
-								on-tap="domListener" data-on-tap="addedPermissionPrev">${__(change, I18NKeys.generic.previous)}</paper-button>
-							<paper-button id="addedPermissionNextButton" on-tap="domListener" data-on-tap="addedPermissionNext">
+								@tap="${this.listeners.addedPermissionPrev}">${__(change, I18NKeys.generic.previous)}</paper-button>
+							<paper-button id="addedPermissionNextButton" @tap="${this.listeners.addedPermissionNext}">
 								<span class="close">${__(change, I18NKeys.generic.apply)}</span>
 								<span class="next">${__(change, I18NKeys.generic.next)}</span>
 							</paper-button>

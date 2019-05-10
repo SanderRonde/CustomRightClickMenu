@@ -1,19 +1,35 @@
-import { ConfigurableWebComponent, Props, config, WebComponent, bindToClass } from '../../../modules/wclib/build/es/wclib.js';
-import { CrmAppIDMap, CrmAppClassMap } from './crm-app-querymap';
-import { I18NKeys } from '../../../_locales/i18n-keys.js';
-import { CrmAppHTML } from './crm-app.html.js';
-import { CrmAppCSS } from './crm-app.css.js';
-import { ResolvablePromise, waitFor } from '../../utils.js';
+import { ConfigurableWebComponent, Props, config, bindToClass } from '../../../modules/wclib/build/es/wclib.js';
+import { BrowserAPI, browserAPI } from '../../../js/polyfills/browser.js';
 import { EditCrm } from '../../../elements/options/edit-crm/edit-crm.js';
-import { CRMAppSetup } from './crm-app-setup.js';
+import { registerAnimatePolyfill } from './registerAnimatePolyfill.js';
+import { setTransform, onExistsChain } from '../../../js/shared.js';
+import { CrmAppIDMap, CrmAppClassMap } from './crm-app-querymap';
+import { CRMAppCRMFunctions } from './crm-app-crm-functions.js';
+import { ResolvablePromise, waitFor } from '../../utils.js';
+import { I18NKeys } from '../../../_locales/i18n-keys.js';
 import { CRMAppListeners } from './crm-app-listeners.js';
 import { CRMAppTemplates } from './crm-app-templates.js';
 import { CRMAppUploading } from './crm-app-uploading.js';
-import { CRMAppCRMFunctions } from './crm-app-crm-functions.js';
-import { CRMAppUtil } from './crm-app-util.js';
 import { CRMAppPageDemo } from './crm-app-page-demo.js';
-import { registerAnimatePolyfill } from './registerAnimatePolyfill.js';
-import { BrowserAPI, browserAPI } from '../../../js/polyfills/browser.js';
+import { CRMWindow } from '../../defs/globals.js';
+import { CRMAppSetup } from './crm-app-setup.js';
+import { CrmAppHTML } from './crm-app.html.js';
+import { CRMAppUtil } from './crm-app-util.js';
+import { CrmAppCSS } from './crm-app.css.js';
+
+export interface CrmAppWindow {
+	app: CrmApp;
+	consoleInfo(): void;
+	getLocalFormat(): void;
+	getSyncFormat(): void;
+	getCRMFormat(): void;
+	upload(): void;
+	getChanges(): void;
+	checkFormat(): void;
+	uploadIfCorrect(): void;
+}
+
+declare const window: CRMWindow;
 
 type TypeCheckErrors = {
 	err: string;
@@ -50,6 +66,16 @@ export class CrmApp extends ConfigurableWebComponent<{
 	});
 
 	editCRM: EditCrm;
+
+	settings: CRM.SettingsStorage;
+
+	onSettingsReadyCallbacks: {
+		callback: Function;
+		thisElement: HTMLElement;
+		params: any[]
+	}[] = [];
+
+	crmTypes: CRM.ContentTypes;
 
 	constructor() {
 		super();
@@ -103,7 +129,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 	 * The nodes in an object where the key is the ID and the
 	 * value is the node
 	 */
-	nodesById: CRMStore = new window.Map();
+	nodesById: CRMStore = new Map();
 
 	/**
 	 * The column index of the "shadow" node, if any
@@ -135,40 +161,6 @@ export class CrmApp extends ConfigurableWebComponent<{
 		key: keyof CRM.Options;
 		value: CRM.Options[keyof CRM.Options]
 	}[]>();
-
-	//TODO: 
-	private _getRegisteredListener(
-		element: WebComponent|HTMLElement|DocumentFragment, 
-		eventType: string) {
-			const listeners = this.listeners;
-			if (!element || !('getAttribute' in element)) {
-				return null;
-			}
-			return (element as Polymer.PolymerElement)
-				.getAttribute(`data-on-${eventType}`) as keyof typeof listeners;
-		}
-
-	//TODO: 
-	domListener(event: Polymer.CustomEvent) {
-		const listeners = this.listeners;
-
-		const fnName: keyof typeof listeners = window.app.util.iteratePath(event, (element) => {
-			return this._getRegisteredListener(element, event.type);
-		});
-
-		if (fnName) {
-			if (fnName !== 'prototype' && fnName !== 'parent' && listeners[fnName]) {
-				const listener = this.listeners[fnName];
-				(listener.bind(listeners) as (this: any,
-					event: Polymer.CustomEvent,
-					eDetail: Polymer.CustomEvent['detail']) => void)(event, event.detail);
-			} else {
-				console.warn.call(console, ...this._logf(`_createEventHandler`, `listener method ${fnName} not defined`));
-			}
-		} else {
-			console.warn.call(console, ...this._logf(`_createEventHandler`, `property data-on${event.type} not defined`));
-		}
-	}
 
 	getKeyBindingValue(binding: {
 		name: string;
@@ -250,23 +242,6 @@ export class CrmApp extends ConfigurableWebComponent<{
 			}
 		});
 	}
-
-	_isVersionUpdateTabX(currentTab: number, desiredTab: number) {
-		return currentTab === desiredTab;
-	};
-
-	private _getUpdatedScriptString(updatedScript: {
-		name: string;
-		oldVersion: string;
-		newVersion: string;
-	}): string {
-		if (!updatedScript) {
-			return 'Please ignore';
-		}
-		return this.___(I18NKeys.crmApp.code.nodeUpdated, 
-			updatedScript.name, updatedScript.oldVersion,
-			updatedScript.newVersion);
-	};
 
 	_getPermissionDescription(): (permission: string) => string {
 		return this.templates.getPermissionDescription;
@@ -391,10 +366,10 @@ export class CrmApp extends ConfigurableWebComponent<{
 				el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
 				svg = $(this).find('.requestPermissionsSvg')[0];
 				if ((svg as any).__rotated) {
-					window.setTransform(svg, 'rotate(90deg)');
+					setTransform(svg, 'rotate(90deg)');
 					(svg as any).rotated = false;
 				} else {
-					window.setTransform(svg, 'rotate(270deg)');
+					setTransform(svg, 'rotate(270deg)');
 					(svg as any).rotated = true;
 				}
 				if (el.animation && el.animation.reverse) {
@@ -411,7 +386,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 					});
 				}
 			});
-			$(this.shadowRoot.querySelectorAll('#requestPermissionsShowOther')).off('click').on('click', function (this: HTMLElement) {
+			$(this.$('#requestPermissionsShowOther')).off('click').on('click', function (this: HTMLElement) {
 				const showHideSvg = this;
 				const otherPermissions = $(this).parent().parent().parent().children('#requestPermissionsOther')[0];
 				if (!otherPermissions.style.height || otherPermissions.style.height === '0px') {
@@ -432,7 +407,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 			});
 
 			let permission: string;
-			$(this.shadowRoot.querySelectorAll('.requestPermissionButton')).off('click').on('click', function (this: HTMLPaperCheckboxElement) {
+			$(this.$('.requestPermissionButton')).off('click').on('click', function (this: HTMLPaperCheckboxElement) {
 				permission = this.previousElementSibling.previousElementSibling.textContent;
 				const slider = this;
 				if (this.checked) {
@@ -476,7 +451,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 				}
 			});
 
-			$(this.shadowRoot.querySelectorAll('#requestPermissionsAcceptAll')).off('click').on('click', function () {
+			$(this.$('#requestPermissionsAcceptAll')).off('click').on('click', function () {
 				browserAPI.permissions.request({
 					permissions: toRequest as _browser.permissions.Permission[]
 				}).then((accepted) => {
@@ -497,7 +472,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 	/**
 	 * Shows the user a dialog and asks them to allow/deny those permissions
 	 */
-	private async _requestPermissions(toRequest: CRM.Permission[],
+	async requestPermissions(toRequest: CRM.Permission[],
 		force: boolean = false) {
 		let i;
 		let index;
@@ -591,20 +566,13 @@ export class CrmApp extends ConfigurableWebComponent<{
 		}
 	};
 
-	private async _transferCRMFromOld(openInNewTab: boolean, storageSource: {
-		getItem(index: string | number): any;
-	} = localStorage, method: SCRIPT_CONVERSION_TYPE = SCRIPT_CONVERSION_TYPE.BOTH): Promise<CRM.Tree> {
-		return await this._transferFromOld.transferCRMFromOld(openInNewTab, storageSource, method);
-	};
-
 	initCodeOptions(node: CRM.ScriptNode | CRM.StylesheetNode) {
 		this.$.codeSettingsDialog.item = node;
 		this.$.codeSettingsNodeName.innerText = node.name;
 
-		this.$.codeSettingsRepeat.items = this.generateCodeOptionsArray(node.value.options);
-		this.codeSettingsNoItems.setValue(this.$.codeSettingsRepeat.items.length === 0);
-		this.$.codeSettingsRepeat.render();
-		this.async(() => {
+		this.codeSettings.setValue(this.generateCodeOptionsArray(node.value.options));
+		this.codeSettingsNoItems.setValue(this.codeSettings.getValue().length === 0);
+		window.setTimeout(() => {
 			this.$.codeSettingsDialog.fit();
 			Array.prototype.slice.apply(this.$.codeSettingsDialog.querySelectorAll('paper-dropdown-menu'))
 				.forEach((el: HTMLPaperDropdownMenuElement) => {
@@ -614,22 +582,6 @@ export class CrmApp extends ConfigurableWebComponent<{
 			this.$.codeSettingsDialog.open();
 		}, 250);
 	}
-
-	async versionUpdateChanged() {
-		if (this._isVersionUpdateTabX(this.versionUpdateTab, 1)) {
-			const versionUpdateDialog = this.$.versionUpdateDialog;
-			if (!versionUpdateDialog.editorManager) {
-				versionUpdateDialog.editorManager = await this.$.tryOutEditor.create(this.$.tryOutEditor.EditorMode.JS, {
-					value: '//some javascript code\nvar body = document.getElementById(\'body\');\nbody.style.color = \'red\';\n\n',
-					language: 'javascript',
-					theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
-					wordWrap: 'off',
-					fontSize: (~~window.app.settings.editor.zoom / 100) * 14,
-					folding: true
-				});
-			}
-		}
-	};
 
 	/**
 	 * Generates an ID for a node
@@ -662,7 +614,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 			}, 250, function () {
 				window.addCalcFn($settingsCont[0], 'height', '100vh - 66px');
 			});
-			window.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(270deg)');
+			setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(270deg)');
 
 			window.doc.showHideToolsRibbonButton.classList.add('hidden');
 		} else {
@@ -678,7 +630,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 			}, 250, function () {
 				window.addCalcFn($settingsCont[0], 'height', '100vh - -29px');
 			});
-			window.setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(90deg)');
+			setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(90deg)');
 
 			window.doc.showHideToolsRibbonButton.classList.remove('hidden');
 		}
@@ -702,7 +654,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 	upload(force: boolean = false) {
 		this.uploading.upload(force);
 		(async () => {
-			await window.onExistsChain(window, 'app', 'settings', 'crm');
+			await onExistsChain(window, 'app', 'settings', 'crm');
 			this.updateCrmRepresentation(window.app.settings.crm);
 		})();
 	}
@@ -812,7 +764,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 
 		//Reset regedit part
 		window.doc.URISchemeFilePath.value = 'C:\\files\\my_file.exe';
-		window.doc.URISchemeSchemeName.value = await this.__async(I18NKeys.crmApp.uriScheme.example);
+		window.doc.URISchemeSchemeName.value = await this.__prom(I18NKeys.crmApp.uriScheme.example);
 
 		//Hide all open dialogs
 		Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
@@ -820,7 +772,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 		});
 
 		this.upload(true);
-		await window.onExistsChain(window, 'app', 'settings', 'crm');
+		await onExistsChain(window, 'app', 'settings', 'crm');
 	};
 
 	private _codeStr(code: string): {
@@ -1360,7 +1312,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 		browserAPI.runtime.onInstalled.addListener(async (details) => {
 			if (details.reason === 'update') {
 				//Show a little message
-				this.$.messageToast.text = this.___(I18NKeys.crmApp.code.extensionUpdated,
+				this.$.messageToast.text = this.__(I18NKeys.crmApp.code.extensionUpdated,
 					(await browserAPI.runtime.getManifest()).version);
 				this.$.messageToast.show();
 			}

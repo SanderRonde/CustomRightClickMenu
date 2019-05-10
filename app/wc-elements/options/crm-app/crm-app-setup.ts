@@ -244,7 +244,7 @@ export class CRMAppSetup {
 		delete storageLocal.nodeStorage;
 		if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
 			if (browserAPI.permissions) {
-				await parent._requestPermissions(storageLocal.requestPermissions as CRM.Permission[]);
+				await parent.requestPermissions(storageLocal.requestPermissions as CRM.Permission[]);
 			}
 		}
 		if (storageLocal.editing) {
@@ -349,15 +349,6 @@ export class CRMAppSetup {
 			const toast = window.doc.updatedSettingsToast;
 			toast.text = this.parent.___(I18NKeys.crmApp.code.settingsUpdated, new Date(versionData.latest.date).toLocaleDateString());
 			toast.show();
-		}
-		if (storageLocal.isTransfer) {
-			browserAPI.storage.local.set({
-				isTransfer: false
-			});
-			//Lazyload the image
-			window.app.$.stylesheetGif.src =
-				window.app.$.stylesheetGif.getAttribute('data-src');
-			window.doc.versionUpdateDialog.open();
 		}
 		parent.storageLocal = storageLocal;
 		parent._storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));

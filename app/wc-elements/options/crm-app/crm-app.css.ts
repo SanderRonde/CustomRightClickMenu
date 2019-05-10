@@ -668,7 +668,6 @@ export const CrmAppCSS = new TemplateFn<CrmApp>(function (html) {
 		#requestPermissionsDialog,
 		#scriptPermissionDialog,
 		#exportDialog,
-		#versionUpdateDialog, 
 		#addedPermissionsDialog {
 			width: 800px;
 			position: static!important;
@@ -979,76 +978,6 @@ export const CrmAppCSS = new TemplateFn<CrmApp>(function (html) {
 
 		#updateMergeRightNextError:hover, #updateMergeLeftNextError:hover {
 			text-decoration:underline;
-		}
-
-		#versionUpdateDialog {
-			width: 500px;
-		}
-
-		#versionUpdateTabContainer {
-			overflow: hidden;
-			width:413.5px;
-			padding:0;
-			margin-left:24px;
-			margin-right:24px;
-		}
-
-		#versionUpdateTabSlider {
-			display: -webkit-box;
-			display: -webkit-flex;
-			display: flex;
-			transition: transform 500ms ease-in-out, -webkit-transform 500ms ease-in-out;
-		}
-
-		.versionUpdateTab {
-			margin-right:150px;
-			margin-left:150px;
-			min-width:413.5px;
-			max-width:413.5px;
-			height: 0;
-		}
-
-			.versionUpdateTab:first-child {
-				margin-left: 0;
-				height: auto;
-			}
-
-		#versionUpdateTabContainer[tab="0"] #versionUpdateTabSlider {
-			-webkit-transform: translateX(0);
-			transform: translateX(0);
-		}
-
-		#versionUpdateTabContainer[tab="1"] #versionUpdateTabSlider {
-			-webkit-transform: translateX(-713.5px);
-			transform: translateX(-713.5px);
-		}
-
-		#versionUpdateTabContainer[tab="2"] #versionUpdateTabSlider {
-			-webkit-transform: translateX(-1427px);
-			transform: translateX(-1427px);
-		}
-
-		#versionUpdateTabContainer[tab="3"] #versionUpdateTabSlider {
-			-webkit-transform: translateX(-2140.5px);
-			transform: translateX(-2140.5px);
-		}
-
-		#versionUpdateTabContainer[tab="4"] #versionUpdateTabSlider {
-			-webkit-transform: translateX(-2854px);
-			transform: translateX(-2854px);
-		}
-
-		#versionUpdatePrevTab[notshown] {
-			opacity: 0;
-			cursor: default;
-		}
-
-		.versionUpdateTabHeader {
-			font-size: 130%;
-		}
-
-		.versionUpdateTabTxt {
-			margin-top: 15px;
 		}
 
 		.finalMessage {
