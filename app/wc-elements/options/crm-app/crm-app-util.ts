@@ -1,8 +1,8 @@
-import { WebComponent } from '../../../modules/wclib/build/es/wclib';
-import { browserAPI } from '../../../js/polyfills/browser';
-import { TagNameMaps } from '../../defs/wc-elements';
-import { CRMWindow } from '../../defs/crm-window';
-import { CrmApp } from './crm-app';
+import { WebComponent } from '../../../modules/wclib/build/es/wclib.js';
+import { browserAPI } from '../../../js/polyfills/browser.js';
+import { TagNameMaps } from '../../defs/wc-elements.js';
+import { CRMWindow } from '../../defs/crm-window.js';
+import { CrmApp } from './crm-app.js';
 
 declare const window: CRMWindow;
 

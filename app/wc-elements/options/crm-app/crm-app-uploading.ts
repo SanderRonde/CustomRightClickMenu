@@ -1,6 +1,6 @@
-import { browserAPI } from '../../../js/polyfills/browser';
-import { CRMWindow } from '../../defs/crm-window';
-import { CrmApp } from './crm-app';
+import { browserAPI } from '../../../js/polyfills/browser.js';
+import { CRMWindow } from '../../defs/crm-window.js';
+import { CrmApp } from './crm-app.js';
 
 declare const window: CRMWindow;
 
