@@ -15,8 +15,8 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 						</paper-icon-button>							
 					</div>
 					<div id="editorTitleRibbon">
-						<span id="ribbonScriptName" ?hidden="${props.item.type !== 'script'}"></span>
-						<span id="ribbonStylesheetName" ?hidden="${props.item.type !== 'stylesheet'}"></span>
+						<span id="ribbonScriptName" ?hidden="${!props.item || props.item.type !== 'script'}"></span>
+						<span id="ribbonStylesheetName" ?hidden="${!props.item || props.item.type !== 'stylesheet'}"></span>
 					</div>
 					<div id="titleRibbonEnd">
 						<div id="fullscreenEditorButtons">
@@ -43,7 +43,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 					<div id="editorToolsRibbonContainer">
 						<div id="editorToolsRibbon">
 							<div @tap="${this.listeners.launchExternalEditorDialog}" class="ribbonTool" id="externalEditorDialogTrigger">Use External Editor</div>
-							<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool jsTool" .usedlibraries="${props.item.type === 'script' ?
+							<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool jsTool" .usedlibraries="${props.item && props.item.type === 'script' ?
 								props.item.value.libraries : []} "></paper-libraries-selector>
 							<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool jsTool"></paper-get-page-properties>
 							<div @tap="${this.listeners.launchSearchWebsiteToolScript}" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
@@ -737,7 +737,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 					<paper-dialog with-backdrop id="scriptPermissionDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 						<br>
 						<h2 class="requestPermissionsScriptName">
-							Managing permisions for script "${props.item.name}"
+							Managing permisions for script "${props.item && props.item.name}"
 						</h2>
 						<div>
 							${__(change, I18NKeys.crmApp.dialogs.permissions.description)}
