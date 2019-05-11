@@ -1,4 +1,4 @@
-﻿declare const browserAPI: browserAPI;
+﻿import { browserAPI } from "../polyfills/browser";
 
 (() => {
 	function hacksecuteScript(script: string) {

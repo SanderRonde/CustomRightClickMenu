@@ -1,6 +1,9 @@
-import { ModuleData } from "./moduleTypes";
+import { EncodedString } from '../../wc-elements/defs/globals';
+import { CRMWindow } from '../../wc-elements/defs/crm-window';
 import { Globals, CRMTemplates } from './sharedTypes';
-import { EncodedString } from '../../elements/elements';
+import { ModuleData } from "./moduleTypes";
+
+declare const window: CRMWindow;
 
 export namespace Global {
 	export let modules: ModuleData;

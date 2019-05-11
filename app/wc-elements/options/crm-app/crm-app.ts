@@ -1,6 +1,7 @@
-import { ConfigurableWebComponent, Props, config, bindToClass } from '../../../modules/wclib/build/es/wclib.js';
+/// <reference path="../../defs/wc-elements.d.ts" />
+
+import { ConfigurableWebComponent, Props, config, bindToClass, ComplexType } from '../../../modules/wclib/build/es/wclib.js';
 import { BrowserAPI, browserAPI } from '../../../js/polyfills/browser.js';
-import { EditCrm } from '../../../elements/options/edit-crm/edit-crm.js';
 import { registerAnimatePolyfill } from './registerAnimatePolyfill.js';
 import { setTransform, onExistsChain } from '../../../js/shared.js';
 import { CrmAppIDMap, CrmAppClassMap } from './crm-app-querymap';
@@ -11,7 +12,8 @@ import { CRMAppListeners } from './crm-app-listeners.js';
 import { CRMAppTemplates } from './crm-app-templates.js';
 import { CRMAppUploading } from './crm-app-uploading.js';
 import { CRMAppPageDemo } from './crm-app-page-demo.js';
-import { CRMWindow } from '../../defs/globals.js';
+import { calc } from '../../lib/polyfills/calc.js';
+import { CRMWindow } from '../../defs/crm-window';
 import { CRMAppSetup } from './crm-app-setup.js';
 import { CrmAppHTML } from './crm-app.html.js';
 import { CRMAppUtil } from './crm-app-util.js';
@@ -52,6 +54,32 @@ interface TypeCheckConfig {
 	max?: number;
 }
 
+interface JQContextMenuObj {
+	name: string;
+	callback(): void;
+
+	type?: 'checkbox';
+	selected?: boolean;
+	items?: {
+		[key: number]: JQContextMenuItem
+	};
+}
+
+type JQContextMenuItem = JQContextMenuObj | string;
+
+export interface JQueryContextMenu extends JQueryStatic {
+	contextMenu(settings: {
+		selector: string;
+		items: JQContextMenuItem[];
+	} | 'destroy'): void;
+	bez(curve: number[]): string;
+}
+
+export type AddedPermissionsTabContainerEl = any; //TODO:
+export type CodeSettingsDialogEl = any; //TODO:
+export type ScriptUpdatesToastEl = any; //TODO:
+export type ChooseFileDialogEl = any; //TODO:
+
 @config({
 	is: 'crm-app',
 	css: CrmAppCSS,
@@ -60,12 +88,21 @@ interface TypeCheckConfig {
 export class CrmApp extends ConfigurableWebComponent<{
 	IDS: CrmAppIDMap;
 	CLASSES: CrmAppClassMap;
+}, {
+	crmTypeChanged: {
+		args: [];
+	}
 }> {
-	props = Props.define(this, {
-		// ...
+	props = Props.define(this, { 
+		reflect: {
+			item: {
+				type: ComplexType<CRM.Node>(),
+				value: null
+			}
+		}
 	});
 
-	editCRM: EditCrm;
+	editCRM: any; //TODO:
 
 	settings: CRM.SettingsStorage;
 
@@ -86,16 +123,6 @@ export class CrmApp extends ConfigurableWebComponent<{
 	_log: any[] = [];
 
 	/**
-	 * Whether to show the item-edit-page
-	 */
-	show: boolean = false;
-
-	/**
-	 * What item to show in the item-edit-page
-	 */
-	item: CRM.Node = null;
-
-	/**
 	 * The item to show, if it is a script
 	 */
 	scriptItem: CRM.ScriptNode;
@@ -108,7 +135,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 	/**
 	 * The last-used unique ID
 	 */
-	private _latestId: CRM.GenericNodeId = -1 as CRM.GenericNodeId;
+	latestId: CRM.GenericNodeId = -1 as CRM.GenericNodeId;
 
 	/**
 	 * The value of the storage.local
@@ -118,12 +145,12 @@ export class CrmApp extends ConfigurableWebComponent<{
 	/**
 	 * A copy of the storage.local to compare when calling upload
 	 */
-	private _storageLocalCopy: CRM.StorageLocal;
+	storageLocalCopy: CRM.StorageLocal;
 
 	/**
 	 * A copy of the settings to compare when calling upload
 	 */
-	private _settingsCopy: CRM.SettingsStorage;
+	settingsCopy: CRM.SettingsStorage;
 
 	/**
 	 * The nodes in an object where the key is the ID and the
@@ -157,9 +184,40 @@ export class CrmApp extends ConfigurableWebComponent<{
 
 	codeSettingsNoItems = new ResolvablePromise<boolean>();
 
+	scriptPermissions = new ResolvablePromise<{
+		name: string;
+		toggled: boolean;
+		required: boolean;
+		description: string;
+	}[]>()
+
 	codeSettings = new ResolvablePromise<{
 		key: keyof CRM.Options;
 		value: CRM.Options[keyof CRM.Options]
+	}[]>();
+
+	requestedPermissions = new ResolvablePromise<{
+		name: string;
+		description: string;
+		toggled: boolean;
+	}[]>();
+
+	requestedPermissionsOther = new ResolvablePromise<{
+		name: string;
+		description: string;
+		toggled: boolean;
+	}[]>();
+
+	addedPermissions = new ResolvablePromise<{
+		node: number;
+		permissions: Array<string>;
+	}[]>();
+
+	keyBindingsSettings = new ResolvablePromise<{
+		name: string;
+		defaultKey: string;
+		monacoKey: string;
+		storageKey: keyof CRM.KeyBindings;
 	}[]>();
 
 	getKeyBindingValue(binding: {
@@ -172,12 +230,8 @@ export class CrmApp extends ConfigurableWebComponent<{
 			window.app.settings.editor.keyBindings[binding.storageKey]) ||
 				binding.defaultKey;
 	}
-
-	_currentItemIsCss(_item: CRM.ScriptNode|CRM.StylesheetNode) {
-		return (this.item && this.item.type === 'stylesheet');
-	}
-
-	private _isDemo() {
+	
+	isDemo() {
 		return location.href.indexOf('demo') > -1;
 	}
 
@@ -197,9 +251,23 @@ export class CrmApp extends ConfigurableWebComponent<{
 		})
 	}
 
+	/**
+	 * Shows the crm-edit-page element
+	 */
+	public showEditPage() {
+		this.$.editPage.style.display = 'none';
+	}
+
+	/**
+	 * Hides the crm-edit-page element
+	 */
+	public hideEditPage() {
+		this.$.editPage.style.display = 'block';
+	}
+
 	@bindToClass
 	_getPageTitle(): string {
-		return this._isDemo() ?
+		return this.isDemo() ?
 			'Demo, actual right-click menu does NOT work in demo' :
 			this.__(I18NKeys.generic.appTitle);
 	}
@@ -242,20 +310,6 @@ export class CrmApp extends ConfigurableWebComponent<{
 			}
 		});
 	}
-
-	_getPermissionDescription(): (permission: string) => string {
-		return this.templates.getPermissionDescription;
-	};
-
-	_getNodeName(nodeId: CRM.GenericNodeId) {
-		return window.app.nodesById.get(nodeId).name;
-	};
-
-	_getNodeVersion(nodeId: CRM.GenericNodeId) {
-		return (window.app.nodesById.get(nodeId).nodeInfo && 
-			window.app.nodesById.get(nodeId).nodeInfo.version) ||
-				'1.0';
-	};
 
 	@bindToClass
 	_formatJSONLength(num: number): string {
@@ -324,11 +378,11 @@ export class CrmApp extends ConfigurableWebComponent<{
 			await window.scriptEdit.openPermissionsDialog(script);
 			await this._runDialogsForImportedScripts(nodesToAdd, dialogs);
 		} else {
-			this._addImportedNodes(nodesToAdd);
+			this.addImportedNodes(nodesToAdd);
 		}
 	};
 
-	private _addImportedNodes(nodesToAdd: CRM.Node[]): boolean {
+	addImportedNodes(nodesToAdd: CRM.Node[]): boolean {
 		if (!nodesToAdd[0]) {
 			return false;
 		}
@@ -503,7 +557,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 			for (i = 0; i < toRequest.length; i++) {
 				requested.push({
 					name: toRequest[i],
-					description: this.templates.getPermissionDescription(toRequest[i]),
+					description: await this.templates.getPermissionDescription(toRequest[i]),
 					toggled: false
 				});
 			}
@@ -516,7 +570,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 			for (i = 0; i < allPermissions.length; i++) {
 				other.push({
 					name: allPermissions[i],
-					description: this.templates.getPermissionDescription(allPermissions[i]),
+					description: await this.templates.getPermissionDescription(allPermissions[i]),
 					toggled: (allowed.permissions.indexOf((allPermissions as _browser.permissions.Permission[])[i]) > -1)
 				});
 			}
@@ -532,14 +586,14 @@ export class CrmApp extends ConfigurableWebComponent<{
 
 			const interval = window.setInterval(() => {
 				try {
-					const centerer = window.doc.requestPermissionsCenterer as CenterElement;
+					const centerer = window.doc.requestPermissionsCenterer as any; //TODO: CenterElement
 					const overlay = overlayContainer.overlay = 
 						window.app.util.getQuerySlot()(centerer)[0] as HTMLPaperDialogElement;
 					if (overlay.open) {
 						window.clearInterval(interval);
 						const innerOverlay = window.app.util.getQuerySlot()(overlay)[0] as HTMLElement;
-						window.app.$.requestedPermissionsTemplate.items = requested;
-						window.app.$.requestedPermissionsOtherTemplate.items = other;
+						this.requestedPermissions.setValue(requested);
+						this.requestedPermissionsOther.setValue(other);
 						overlay.addEventListener('iron-overlay-opened', handler);
 						setTimeout(function () {
 							const requestedPermissionsCont = innerOverlay.querySelector('#requestedPermissionsCont');
@@ -587,15 +641,15 @@ export class CrmApp extends ConfigurableWebComponent<{
 	 * Generates an ID for a node
 	 */
 	generateItemId() {
-		this._latestId = this._latestId || 0 as CRM.GenericNodeId;
-		this._latestId++;
+		this.latestId = this.latestId || 0 as CRM.GenericNodeId;
+		this.latestId++;
 
 		if (this.settings) {
-			this.settings.latestId = this._latestId;
+			this.settings.latestId = this.latestId;
 			window.app.upload();
 		}
 
-		return this._latestId;
+		return this.latestId;
 	};
 
 	toggleShrinkTitleRibbon() {
@@ -612,7 +666,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 			$settingsCont.animate({
 				height: viewportHeight - 50
 			}, 250, function () {
-				window.addCalcFn($settingsCont[0], 'height', '100vh - 66px');
+				$settingsCont[0].style.height = calc('100vh - 66px')
 			});
 			setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(270deg)');
 
@@ -628,7 +682,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 			$settingsCont.animate({
 				height: viewportHeight - 18
 			}, 250, function () {
-				window.addCalcFn($settingsCont[0], 'height', '100vh - -29px');
+				$settingsCont[0].style.height = calc('100vh + 29px');
 			});
 			setTransform(window.doc.shrinkTitleRibbonButton, 'rotate(90deg)');
 
@@ -708,7 +762,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 
 	updateCrmRepresentation(crm: CRM.Tree) {
 		this._assertCRMShape(crm);
-		this._setup.orderNodesById(crm);
+		this.setup.orderNodesById(crm);
 		this.crm.buildNodePaths(crm);
 	}
 
@@ -723,25 +777,39 @@ export class CrmApp extends ConfigurableWebComponent<{
 			this.upload();
 
 			if (key === 'CRMOnPage' || key === 'editCRMInRM') {
-				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue &&
-				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal.CRMOnPage);
+				(window.doc.editCRMInRM as any).setCheckboxDisabledValue && //TODO: PaperToggleOption
+				(window.doc.editCRMInRM as any).setCheckboxDisabledValue(!storageLocal.CRMOnPage); //TODO: PaperToggleOption
 				this.pageDemo.create();
 			}
 		});
 	};
 
+	private _getDialog() {
+		switch (window.app.props.item.type) {
+			case 'script':
+				return window.scriptEdit;
+			case 'stylesheet':
+				return window.stylesheetEdit;
+			case 'divider':
+				return window.dividerEdit;
+			case 'menu':
+				return window.menuEdit;
+			case 'link':
+				return window.linkEdit;
+		}
+	}
+
 	async refreshPage() {
 		//Reset dialog
-		if (window.app.item) {
-			const dialog = window[window.app.item.type + 'Edit' as
-				'scriptEdit' | 'stylesheetEdit' | 'linkEdit' | 'dividerEdit' | 'menuEdit'];
+		if (window.app.props.item) {
+			const dialog = this._getDialog();
 			dialog && dialog.cancel();
 		}
-		window.app.item = null;
+		window.app.props.item = null;
 
 		//Reset storages
 		window.app.settings = window.app.storageLocal = null;
-		window.app._settingsCopy = window.app._storageLocalCopy = null;
+		window.app.settingsCopy = window.app.storageLocalCopy = null;
 		if (window.Storages) {
 			window.Storages.clearStorages();
 			await window.Storages.loadStorages();
@@ -752,13 +820,13 @@ export class CrmApp extends ConfigurableWebComponent<{
 		}
 
 		//On a demo or test page right now, use background page to init settings
-		await this._setup.setupStorages();
+		await this.setup.setupStorages();
 
 		//Reset checkboxes
-		this._setup.initCheckboxes(window.app.storageLocal);
+		this.setup.initCheckboxes(window.app.storageLocal);
 		
 		//Reset default links and searchengines
-		Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('default-link')).forEach(function (link: DefaultLink) {
+		Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('default-link')).forEach(function (link: any) { //TODO: DefaultLink
 			link.reset();
 		});
 
@@ -1324,7 +1392,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 				_sender: _browser.runtime.MessageSender, 
 				respond: (response: object) => any) => {
 					if (message.type === 'idUpdate') {
-						this._latestId = message.latestId;
+						this.latestId = message.latestId;
 					}
 					respond(null);
 				});
@@ -1347,8 +1415,8 @@ export class CrmApp extends ConfigurableWebComponent<{
 			}
 		});
 
-		this._setup.setupLoadingBar().then(() => {
-			this._setup.setupStorages();
+		this.setup.setupLoadingBar().then(() => {
+			this.setup.setupStorages();
 		});
 
 		if (this._onIsTest()) {
@@ -1370,23 +1438,13 @@ export class CrmApp extends ConfigurableWebComponent<{
 			document.head.appendChild(node);
 		}
 
-		this.show = false;
+		this.hideEditPage();
 	};
-
-	private _TernFile = class TernFile {
-		parent: any;
-		scope: any;
-		text: string;
-		ast: Tern.ParsedFile;
-		lineOffsets: number[];
-
-		constructor(public name: string) { }
-	}
 
 	/**
 	 * Functions related to setting up the page on launch
 	 */
-	private _setup = new CRMAppSetup(this)
+	setup = new CRMAppSetup(this)
 
 	/**
 	 * Functions related to uploading the data to the backgroundpage

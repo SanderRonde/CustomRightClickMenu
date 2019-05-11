@@ -86,14 +86,14 @@ export class ResolvablePromise<R> {
 		return this._lastValue;
 	}
 
-	setValue(value: R) {
+	async setValue(value: R) {
 		this._set = true;
 		if (!this.part) {
 			return;
 		}
 
 		this._lastValue = value;
-		this.part.setValue(this.handler(value));
+		this.part.setValue(await this.handler(value));
 		this.part.commit();
 	}
 }
@@ -108,8 +108,11 @@ export const waitFor = directive(<R>(prom: Promise<R>, placeholder?: any) => (pa
 	});
 });
 
-export const renderable = directive(<R>(resolvable: ResolvablePromise<R>,
-	handler?: (value: R) => any, placeholder?: any) => (part: Part) => {
+type RenderableType = <R>(resolvable: ResolvablePromise<R>, 
+	handler?: (value: R) => any, placeholder?: any) => (part: Part) => void;
+
+export const renderable = directive((resolvable: ResolvablePromise<any>,
+	handler?: (value: any) => any, placeholder?: any) => (part: Part) => {
 		if (freezeSet.has(part)) return;
 		freezeSet.add(part);
 
@@ -118,7 +121,7 @@ export const renderable = directive(<R>(resolvable: ResolvablePromise<R>,
 		if (placeholder) {
 			part.setValue(placeholder);
 		}
-	});
+	}) as RenderableType;
 
 const listeningSet: WeakSet<AttributePart> = new WeakSet();
 export const twoWay = directive(<V>(value: V, onChange: (newValue: V) => any) => (part: AttributePart) => {

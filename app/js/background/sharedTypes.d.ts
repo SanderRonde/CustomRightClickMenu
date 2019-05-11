@@ -2,7 +2,7 @@
 /// <reference path="../../../tools/definitions/specialJSON.d.ts" />
 /// <reference path="../polyfills/weakmap.ts" />
 
-import { SharedWindow } from "../shared";
+import { CRMWindow } from "../../wc-elements/defs/crm-window";
 
 interface CRMAPIMessageInstance<T, TD> {
 	id: CRM.GenericNodeId;
@@ -256,7 +256,7 @@ interface MessageLogging {
 	};
 }
 
-type BackgroundpageWindow = Window & SharedWindow & {
+type BackgroundpageWindow = CRMWindow & {
 	logging?: MessageLogging;
 	isDev: boolean;
 	createHandlerFunction: (port: {
@@ -915,7 +915,7 @@ interface BGListeners {
 type UpgradeErrorHandler = (oldScriptErrors: CursorPosition[],
 	newScriptErrors: CursorPosition[], parseError: boolean) => void;
 
-interface GlobalObject extends Partial<Window> {
+interface GlobalObject extends Partial<CRMWindow> {
 	globals?: Globals;
 	TransferFromOld?: {
 		transferCRMFromOld(openInNewTab: boolean, storageSource?: {

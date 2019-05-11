@@ -149,7 +149,7 @@ namespace CrmEditPageElement {
 			this.$.overlayCont.style.display = 'none';
 			document.body.style.overflow = 'auto';
 			document.body.style.marginRight = '0';
-			window.app.show = false;
+			window.app.hideEditPage();
 			window.app.item = null;
 			this._unassignItems();
 		};
@@ -165,7 +165,7 @@ namespace CrmEditPageElement {
 				
 			document.body.style.overflow = 'hidden';
 			document.body.style.marginRight = '17px';
-			window.app.show = true;
+			window.app.showEditPage();
 			this.$.overlayCont.style.display = 'block';
 			return window.animateTransform(this.$.overlayCont, {
 				propName: 'scale',
@@ -334,7 +334,7 @@ namespace CrmEditPageElement {
 
 			}
 			setTimeout(() => {
-				window.app.show = true;
+				window.app.showEditPage();
 				this.isScript = valueStorer.isScript;
 				this.isLink = valueStorer.isLink;
 				this.isMenu = valueStorer.isMenu;

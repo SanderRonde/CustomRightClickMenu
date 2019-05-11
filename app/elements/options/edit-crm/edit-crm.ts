@@ -253,6 +253,7 @@ namespace EditCrmElement {
 		};
 
 		static _addNodeType(this: EditCrm, nodeType: CRM.NodeType) {
+			//TODO: this returns a promise now
 			return this.___(I18NKeys.options.editCrm.addNodeType,
 				window.app ?
 					window.app.crm.getI18NNodeType(nodeType) :
@@ -704,7 +705,7 @@ namespace EditCrmElement {
 			window.onExists('app').then(() => {
 				window.app.editCRM = this;
 				this.appExists = true;
-				window.app.addEventListener('crmTypeChanged', () => {
+				window.app.listen('crmTypeChanged', () => {
 					this._typeChanged();
 				});
 				this._typeChanged(true);

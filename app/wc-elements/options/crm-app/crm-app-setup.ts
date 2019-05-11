@@ -1,5 +1,10 @@
+import { browserAPI, BrowserAPI } from '../../../js/polyfills/browser.js';
 import { I18NKeys } from '../../../_locales/i18n-keys.js';
+import { CRMWindow } from '../../defs/crm-window.js';
 import { CrmApp } from './crm-app';
+
+declare const window: CRMWindow;
+
 export class CRMAppSetup {
 	constructor(private _parent: CrmApp) { }
 	public get parent() {
@@ -65,7 +70,7 @@ export class CRMAppSetup {
 						crmType.classList.add('dim');
 					});
 					const editCrmItems = window.app.editCRM.getItems();
-					editCrmItems.forEach((el) => {
+					editCrmItems.forEach((el: any) => { //TODO: 
 						el.$('.item').animate([{
 							opacity: '0'
 						}, {
@@ -114,7 +119,7 @@ export class CRMAppSetup {
 				Array.prototype.slice.apply(this.parent.shadowRoot.querySelectorAll('.crmType')).forEach((crmType: HTMLElement) => {
 					crmType.classList.remove('dim');
 				});
-				const crmeditItemItems = window.app.editCRM.getItems().map((element) => {
+				const crmeditItemItems = window.app.editCRM.getItems().map((element: any) => { //TODO: 
 					return element.$('.item');
 				});
 				$(crmeditItemItems).animate({
@@ -129,7 +134,7 @@ export class CRMAppSetup {
 			//Check if the element is already visible
 			window.doc.restoreChangesDialog.style.display = 'none';
 			this.parent.$('.pageCont').style.backgroundColor = 'rgba(0,0,0,0.4)';
-			window.app.editCRM.getItems().forEach((element) => {
+			window.app.editCRM.getItems().forEach((element: any) => { //TODO: 
 				const item = element.$('.item');
 				item.style.opacity = '0.6';
 			});
@@ -204,15 +209,27 @@ export class CRMAppSetup {
 		arr[crmType] = true;
 		return arr;
 	}
+	async getUpdatedScriptString(updatedScript: {
+		name: string;
+		oldVersion: string;
+		newVersion: string;
+	}): Promise<string> {
+		if (!updatedScript) {
+			return 'Please ignore';
+		}
+		return this.parent.__prom(I18NKeys.crmApp.code.nodeUpdated, 
+			updatedScript.name, updatedScript.oldVersion,
+			updatedScript.newVersion);
+	};
 	async setupStorages() {
 		const parent = this.parent;
 		const storageLocal = await browserAPI.storage.local.get<CRM.StorageLocal & {
 			nodeStorage: any;
 			settings?: CRM.SettingsStorage;
 		}>();
-		function callback(items: CRM.SettingsStorage) {
+		const callback = (items: CRM.SettingsStorage) => {
 			parent.settings = items;
-			parent._settingsCopy = JSON.parse(JSON.stringify(items));
+			parent.settingsCopy = JSON.parse(JSON.stringify(items));
 			window.app.editCRM.$.rootCRMItem.updateName(items.rootName);
 			for (let i = 0; i < parent.onSettingsReadyCallbacks.length; i++) {
 				parent.onSettingsReadyCallbacks[i].callback.apply(parent.onSettingsReadyCallbacks[i].thisElement, parent.onSettingsReadyCallbacks[i].params);
@@ -220,14 +237,14 @@ export class CRMAppSetup {
 			parent.updateEditorZoom();
 			parent.updateCrmRepresentation(items.crm);
 			if (parent.settings.latestId) {
-				parent._latestId = items.latestId as CRM.GenericNodeId;
+				parent.latestId = items.latestId as CRM.GenericNodeId;
 			}
 			else {
-				parent._latestId = 0 as CRM.GenericNodeId;
+				parent.latestId = 0 as CRM.GenericNodeId;
 			}
 			window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal
 				.CRMOnPage);
-			if (parent._isDemo()) {
+			if (parent.isDemo()) {
 				window.doc.CRMOnPage.toggled = true;
 				window.app.setLocal('CRMOnPage', true);
 				window.doc.CRMOnPage.setCheckboxDisabledValue(true);
@@ -237,10 +254,10 @@ export class CRMAppSetup {
 				storageLocal.CRMOnPage && parent.pageDemo.create();
 			}
 		}
-		Array.prototype.slice.apply(parent.shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
+		Array.prototype.slice.apply(parent.shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: any) { //TODO: PaperToggleOption
 			setting.init(storageLocal);
 		});
-		parent._setup._bindListeners();
+		parent.setup._bindListeners();
 		delete storageLocal.nodeStorage;
 		if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
 			if (browserAPI.permissions) {
@@ -260,7 +277,7 @@ export class CRMAppSetup {
 				const nodeCurrentCode = (node.type === 'script' ? node.value.script :
 					node.value.stylesheet);
 				if (nodeCurrentCode.trim() !== editing.val.trim()) {
-					parent._setup._restoreUnsavedInstances(editing);
+					parent.setup._restoreUnsavedInstances(editing);
 				}
 				else {
 					browserAPI.storage.local.set({
@@ -273,15 +290,15 @@ export class CRMAppSetup {
 			const selected = Array.isArray(storageLocal.selectedCrmType) ?
 				storageLocal.selectedCrmType :
 				this._crmTypeNumberToArr(storageLocal.selectedCrmType);
-			parent.crmTypes = selected;
-			parent._setup.switchToIcons(selected);
+			parent.crmTypes = selected as CRM.ContentTypes;
+			parent.setup.switchToIcons(selected);
 		}
 		else {
 			browserAPI.storage.local.set({
 				selectedCrmType: [true, true, true, true, true, true]
 			});
 			parent.crmTypes = [true, true, true, true, true, true];
-			parent._setup.switchToIcons([true, true, true, true, true, true]);
+			parent.setup.switchToIcons([true, true, true, true, true, true]);
 		}
 		if (storageLocal.jsLintGlobals) {
 			parent.jsLintGlobals = storageLocal.jsLintGlobals;
@@ -302,12 +319,11 @@ export class CRMAppSetup {
 			});
 		}
 		if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
-			window.setTimeout(function () {
-				(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).tab = 0;
-				(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).maxTabs =
+			window.setTimeout(() => {
+				(window.doc.addedPermissionsTabContainer as any).tab = 0; //TODO: AddedPermissionsTabContainer
+				(window.doc.addedPermissionsTabContainer as any).maxTabs = //TODO: AddedPermissionsTabContainer
 					storageLocal.addedPermissions.length;
-				window.doc.addedPermissionsTabRepeater.items =
-					storageLocal.addedPermissions;
+				this.parent.addedPermissions.setValue(storageLocal.addedPermissions);
 				if (storageLocal.addedPermissions.length === 1) {
 					(window.doc.addedPermissionNextButton.querySelector('.next') as HTMLElement)
 						.style.display = 'none';
@@ -317,7 +333,6 @@ export class CRMAppSetup {
 						.style.display = 'none';
 				}
 				window.doc.addedPermissionPrevButton.style.display = 'none';
-				window.doc.addedPermissionsTabRepeater.render();
 				window.doc.addedPermissionsDialog.open();
 				browserAPI.storage.local.set({
 					addedPermissions: null
@@ -325,7 +340,7 @@ export class CRMAppSetup {
 			}, 2500);
 		}
 		if (storageLocal.updatedNodes && storageLocal.updatedNodes.length > 0) {
-			parent.$.scriptUpdatesToast.text = parent._getUpdatedScriptString(storageLocal.updatedNodes[0]);
+			parent.$.scriptUpdatesToast.text = this.getUpdatedScriptString(storageLocal.updatedNodes[0]);
 			parent.$.scriptUpdatesToast.scripts = storageLocal.updatedNodes;
 			parent.$.scriptUpdatesToast.index = 0;
 			parent.$.scriptUpdatesToast.show();
@@ -347,11 +362,11 @@ export class CRMAppSetup {
 				settingsVersionData: versionData
 			});
 			const toast = window.doc.updatedSettingsToast;
-			toast.text = this.parent.___(I18NKeys.crmApp.code.settingsUpdated, new Date(versionData.latest.date).toLocaleDateString());
+			toast.text = await this.parent.__prom(I18NKeys.crmApp.code.settingsUpdated, new Date(versionData.latest.date).toLocaleDateString());
 			toast.show();
 		}
 		parent.storageLocal = storageLocal;
-		parent._storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
+		parent.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 		if (storageLocal.useStorageSync && parent._supportsStorageSync()) {
 			//Parse the data before sending it to the callback
 			browserAPI.storage.sync.get().then((storageSync: any) => {
@@ -378,7 +393,7 @@ export class CRMAppSetup {
 					const jsonString = settingsJsonArray.join('');
 					parent.settingsJsonLength.setValue(jsonString.length);
 					const settings = JSON.parse(jsonString);
-					if (parent.settingsJsonLength >= 102400) {
+					if (parent.settingsJsonLength.getValue() >= 102400) {
 						window.app.$.useStorageSync.setCheckboxDisabledValue(true);
 					}
 					callback(settings);
@@ -415,7 +430,7 @@ export class CRMAppSetup {
 			else {
 				callback(storageLocal.settings);
 			}
-			if (!parent._supportsStorageSync() || parent.settingsJsonLength >= 102400) {
+			if (!parent._supportsStorageSync() || parent.settingsJsonLength.getValue() >= 102400) {
 				window.app.$.useStorageSync.setCheckboxDisabledValue(true);
 			}
 		}
@@ -427,18 +442,18 @@ export class CRMAppSetup {
 				//Wait until the element is actually registered to the DOM
 				window.setTimeout(() => {
 					//All elements have been loaded, unhide them all
-					window.setTimeout(() => {
+					window.setTimeout(async () => {
 						window.setTimeout(() => {
 							//Wait for the fade to pass
 							window.polymerElementsLoaded = true;
 						}, 500);
 						if (BrowserAPI.getBrowser() === 'edge') {
-							console.log(this.parent.___(I18NKeys.crmApp.code.hiMessage));
+							console.log(await this.parent.__prom(I18NKeys.crmApp.code.hiMessage));
 						}
 						else {
-							console.log(`%c${this.parent.___(I18NKeys.crmApp.code.hiMessage)}`, 'font-size:120%;font-weight:bold;');
+							console.log(`%c${await this.parent.__prom(I18NKeys.crmApp.code.hiMessage)}`, 'font-size:120%;font-weight:bold;');
 						}
-						console.log(this.parent.___(I18NKeys.crmApp.code.consoleInfo));
+						console.log(await this.parent.__prom(I18NKeys.crmApp.code.consoleInfo));
 					}, 200);
 					window.CRMLoaded = window.CRMLoaded || {
 						listener: null,
@@ -454,7 +469,7 @@ export class CRMAppSetup {
 	}
 	;
 	initCheckboxes(defaultLocalStorage: CRM.StorageLocal) {
-		Array.prototype.slice.apply(this.parent.shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
+		Array.prototype.slice.apply(this.parent.shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: any) { //TODO: PaperToggleOption
 			setting.init && setting.init(defaultLocalStorage);
 		});
 	}
@@ -485,8 +500,8 @@ export class CRMAppSetup {
 				element.classList.add('toggled');
 			}
 		}
-		this.parent.crmTypes = [...indexes];
-		this.parent.fire('crmTypeChanged', {});
+		this.parent.crmTypes = [...indexes] as CRM.ContentTypes;
+		this.parent.fire('crmTypeChanged');
 	}
 	;
 }

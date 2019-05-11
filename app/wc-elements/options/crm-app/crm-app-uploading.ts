@@ -1,4 +1,9 @@
+import { browserAPI } from '../../../js/polyfills/browser';
+import { CRMWindow } from '../../defs/crm-window';
 import { CrmApp } from './crm-app';
+
+declare const window: CRMWindow;
+
 export class CRMAppUploading {
 	constructor(private _parent: CrmApp) { }
 	public get parent() {
@@ -79,16 +84,16 @@ export class CRMAppUploading {
 		return changes.length > 0;
 	}
 	;
-	getChanges(force: boolean, { local = this.parent.storageLocal, localCopy = this.parent._storageLocalCopy, sync = this.parent.settings, syncCopy = this.parent._settingsCopy, }: {
+	getChanges(force: boolean, { local = this.parent.storageLocal, localCopy = this.parent.storageLocalCopy, sync = this.parent.settings, syncCopy = this.parent.settingsCopy, }: {
 		local?: CRM.StorageLocal;
 		localCopy?: CRM.StorageLocal;
 		sync?: CRM.SettingsStorage;
 		syncCopy?: CRM.SettingsStorage;
 	} = {
 			local: this.parent.storageLocal,
-			localCopy: this.parent._storageLocalCopy,
+			localCopy: this.parent.storageLocalCopy,
 			sync: this.parent.settings,
-			syncCopy: this.parent._settingsCopy,
+			syncCopy: this.parent.settingsCopy,
 		}): {
 			hasLocalChanged: boolean;
 			haveSettingsChanged: boolean;
@@ -115,9 +120,9 @@ export class CRMAppUploading {
 		};
 	}
 	private _updateCopies() {
-		this.parent._storageLocalCopy =
+		this.parent.storageLocalCopy =
 			JSON.parse(JSON.stringify(this.parent.storageLocal));
-		this.parent._settingsCopy =
+		this.parent.settingsCopy =
 			JSON.parse(JSON.stringify(this.parent.settings));
 	}
 	private _uploadChanges({ hasLocalChanged, haveSettingsChanged, localChanges, settingsChanges }: {

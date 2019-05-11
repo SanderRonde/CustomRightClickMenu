@@ -1,6 +1,9 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
 
 import { ContextMenuCreateProperties, BrowserTabsQueryInfo } from "../background/sharedTypes";
+import { CRMWindow } from "../../wc-elements/defs/crm-window";
+
+declare const window: CRMWindow;
 
 declare global {
 	namespace _browser.runtime {
@@ -20,7 +23,7 @@ declare global {
 }
 
 namespace BrowserAPINS {
-	interface AllBrowserAPIsWindow extends Window {
+	interface AllBrowserAPIsWindow extends CRMWindow {
 		browser: typeof _browser;
 		chrome: typeof _chrome;
 		StyleMedia?: any;
@@ -816,3 +819,6 @@ export const browserAPI = (() => {
 		return {...browserAPI, menus: browserAPI.contextMenus};
 	}
 })() as typeof BrowserAPI.polyfill;
+
+export type BrowserAPIType = typeof BrowserAPI;
+export type browserAPIType = typeof browserAPI;

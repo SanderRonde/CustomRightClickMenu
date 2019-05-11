@@ -4,7 +4,7 @@ import { render } from '../../../modules/lit-html/lit-html.js';
 import { I18NKeys } from '../../../_locales/i18n-keys.js';
 import { CrmApp } from './crm-app.js';
 
-export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme, change) {
+export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, change) {
 	return html`
 		<div class="popupCont">
 			<div id="fullscreenEditor">
@@ -15,12 +15,12 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 						</paper-icon-button>							
 					</div>
 					<div id="editorTitleRibbon">
-						<span id="ribbonScriptName" hidden$="[[!scriptItem]]"></span>
-						<span id="ribbonStylesheetName" hidden$="[[!stylesheetItem]]"></span>
+						<span id="ribbonScriptName" ?hidden="${props.item.type !== 'script'}"></span>
+						<span id="ribbonStylesheetName" ?hidden="${props.item.type !== 'stylesheet'}"></span>
 					</div>
 					<div id="titleRibbonEnd">
 						<div id="fullscreenEditorButtons">
-							<div hidden="{{_currentItemIsCss(item)}}" title="Toggle typescript" id="editorTypescript" @tap="${this.listeners.toggleTypescript}">
+							<div hidden="${props.item && props.item.type === 'stylesheet'}" title="Toggle typescript" id="editorTypescript" @tap="${this.listeners.toggleTypescript}">
 								${__(change, I18NKeys.crmApp.ribbons.ts)}
 							</div>
 							<div title="Exit fullscreen" id="fullscreenEditorToggle" @tap="${this.listeners.exitFullscreen}">
@@ -43,7 +43,8 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 					<div id="editorToolsRibbonContainer">
 						<div id="editorToolsRibbon">
 							<div @tap="${this.listeners.launchExternalEditorDialog}" class="ribbonTool" id="externalEditorDialogTrigger">Use External Editor</div>
-							<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool jsTool" usedlibraries="[[scriptItem.value.libraries]]"></paper-libraries-selector>
+							<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool jsTool" .usedlibraries="${props.item.type === 'script' ?
+								props.item.value.libraries : []} "></paper-libraries-selector>
 							<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool jsTool"></paper-get-page-properties>
 							<div @tap="${this.listeners.launchSearchWebsiteToolScript}" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
 							<div @tap="${this.listeners.runLint}" class="ribbonTool" id="runCssLintButton">
@@ -88,14 +89,26 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 								<br />
 								<div id="keyBindingsText" class="editorSettingsTxt">${__(change, I18NKeys.crmApp.editor.settings.keybindings)}</div>
 								<div id="keyBindingsContainer">
-									<template id="keyBindingsTemplate" is="dom-repeat" as="keyBinding">
-										<div class="keyBinding">
-											<div>
-												<paper-input data-index="{{itemIndex}}" on-keydown="domListener" @keydown="${this.listeners.onKeyBindingKeyDown}" label="{{keyBinding.name}}" value="{{getKeyBindingValue(keyBinding)}}" class="keyBindingSettingKeyInput" always-float-label></paper-input>
-											</div>
-											<br />
-										</div>
-									</template>
+									<div id="keyBindingsTemplate">
+										${renderable(this.keyBindingsSettings, (keyBindings) => {
+											return keyBindings.map((keyBinding, index) => {
+												return html`
+													<div class="keyBinding">
+														<div>
+															<paper-input data-index="${index}" 
+																@keydown="${this.listeners.onKeyBindingKeyDown}" 
+																.label="${keyBinding.name}" 
+																.value="${(this.settings && 
+																	this.settings.editor.keyBindings[keyBinding.storageKey]) ||
+																		keyBinding.defaultKey}" 
+																class="keyBindingSettingKeyInput" 
+																.always-float-label></paper-input>
+														</div>
+														<br />
+													</div>`
+											});
+										})}
+									</div>
 								</div>
 								<br id="afterEditorSettingsSpacing" /><br /><br />
 							</div>
@@ -104,7 +117,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 					<monaco-editor no-spinner id="fullscreenEditorEditor"></monaco-editor>
 				</div>
 			</div>
-			<crm-edit-page hidden$="[[!show]]" id="editPage" item="{{item}}"></crm-edit-page>
+			<crm-edit-page id="editPage" item="${props.item}"></crm-edit-page>
 		</div>
 		<div class="backdropCont"></div>
 		<div class="pageCont">
@@ -724,7 +737,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 					<paper-dialog with-backdrop id="scriptPermissionDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 						<br>
 						<h2 class="requestPermissionsScriptName">
-							Managing permisions for script "[[name]]"
+							Managing permisions for script "${props.item.name}"
 						</h2>
 						<div>
 							${__(change, I18NKeys.crmApp.dialogs.permissions.description)}
@@ -734,22 +747,27 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 								${__(change, I18NKeys.crmApp.dialogs.permissions.usedPermissions)}
 							</div>
 							<div class="requestPermissionsPermissions">
-								<template is="dom-repeat" id="scriptPermissionsTemplate" items="[]" as="permission">
-									<div class="requestPermissionsPermission">
-										<div class="requestPermissionsPermissionTopCont" is-required$="[[permission.required]]">
-											<span class="requestPermissionName">[[permission.name]]</span>
-											<div class="requestPermissionsShowBot">
-												<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
-											</div>
-											<paper-toggle-button class="scriptPermissionsToggle" checked="[[permission.toggled]]" ischecked$="[[permission.toggled]]"></paper-toggle-button>
-										</div>
-										<div class="requestPermissionsPermissionBotCont">
-											<span class="requestPermissionsDescription">
-												<echo-html makelink html="[[permission.description]]"></echo-html>
-											</span>
-										</div>
-									</div>
-								</template>
+								${renderable(this.scriptPermissions, (permissions) => {
+									return permissions.map((permission) => {
+										return html`
+											<div class="requestPermissionsPermission">
+												<div class="requestPermissionsPermissionTopCont" ?is-required="${permission.required}">
+													<span class="requestPermissionName">${permission.name}</span>
+													<div class="requestPermissionsShowBot">
+														<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" 
+															width="25" height="25" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+													</div>
+													<paper-toggle-button class="scriptPermissionsToggle" 
+														.checked="${permission.toggled}" ?ischecked="${permission.toggled}"></paper-toggle-button>
+												</div>
+												<div class="requestPermissionsPermissionBotCont">
+													<span class="requestPermissionsDescription">
+														<echo-html makelink .html="${permission.description}"></echo-html>
+													</span>
+												</div>
+											</div>`;
+									});
+								})}
 							</div>
 						</div>
 						<div class="buttons">
@@ -770,32 +788,29 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 										<div class="requestPermissionsType">
 											${__(change, I18NKeys.crmApp.dialogs.requestPermissions.required)} :
 										</div>
-										<template id="requestedPermissionsTemplate" is="dom-repeat" items="[]" as="requestedPermission">
-											<div class="requestPermissionsPermission">
-												<div class="requestPermissionsPermissionTopCont">
-													<span class="requestPermissionName">[[requestedPermission.name]]</span>
-													<div class="requestPermissionsShowBot">
-														<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
-													</div>
-													<paper-toggle-button class="requestPermissionButton required" checked="[[requestedPermission.toggled]]" ischecked$="[[requestedPermission.toggled]]"></paper-toggle-button>
-												</div>
-												<div class="requestPermissionsPermissionBotCont">
-													<span class="requestPermissionsDescription">[[requestedPermission.description]]</span>
-												</div>
-											</div>
-										</template>
-										<div class="requestPermissionsPermission">
-											<div class="requestPermissionsPermissionTopCont">
-												<span class="requestPermissionName">[[requestedPermission.name]]</span>
-												<div class="requestPermissionsShowBot">
-													<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
-												</div>
-												<paper-toggle-button class="requestPermissionButton required" checked="[[requestedPermission.toggled]]" ischecked$="[[requestedPermission.toggled]]"></paper-toggle-button>
-											</div>
-											<div class="requestPermissionsPermissionBotCont">
-												<span class="requestPermissionsDescription">[[requestedPermission.description]]</span>
-											</div>
-										</div>
+										${renderable(this.requestedPermissions, (requestedPermissions) => {
+											return requestedPermissions.map((requestedPermission) => {
+												return html`
+													<div class="requestPermissionsPermission">
+														<div class="requestPermissionsPermissionTopCont">
+															<span class="requestPermissionName">${requestedPermission.name}</span>
+															<div class="requestPermissionsShowBot">
+																<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" 
+																	width="25" height="25" 
+																	viewbox="0 0 48 48"
+																>
+																	<path d="M16 10v28l22-14z" />
+																</svg>
+															</div>
+															<paper-toggle-button class="requestPermissionButton required" 
+																.checked="${requestedPermission.toggled}" ?ischecked="${requestedPermission.toggled}"></paper-toggle-button>
+														</div>
+														<div class="requestPermissionsPermissionBotCont">
+															<span class="requestPermissionsDescription">${requestedPermission.description}</span>
+														</div>
+													</div>`;
+											})
+										})}
 									</div>
 									<div id="requestPermissionsLineCont">
 										<div id="requestPermissionsSplitter"></div>
@@ -809,22 +824,31 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 									<div class="requestPermissionsType">
 										${__(change, I18NKeys.crmApp.dialogs.requestPermissions.others)} :
 									</div>
-									<template id="requestedPermissionsOtherTemplate" is="dom-repeat" items="[]" as="otherPermission">
-										<div class="requestPermissionsPermission">
-											<div class="requestPermissionsPermissionTopCont">
-												<span class="requestPermissionName">[[otherPermission.name]]</span>
-												<div class="requestPermissionsShowBot">
-													<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
-												</div>
-												<paper-toggle-button class="requestPermissionButton" checked="[[otherPermission.toggled]]" ischecked$="[[otherPermission.toggled]]"></paper-toggle-button>
-											</div>
-											<div class="requestPermissionsPermissionBotCont">
-												<span class="requestPermissionsDescription">
-													<echo-html makelink html="[[otherPermission.description]]"></echo-html>
-												</span>
-											</div>
-										</div>
-									</template>
+									${renderable(this.requestedPermissionsOther, (otherPermissions) => {
+										return otherPermissions.map((otherPermission) => {
+											return html`
+												<div class="requestPermissionsPermission">
+													<div class="requestPermissionsPermissionTopCont">
+														<span class="requestPermissionName">${otherPermission.name}</span>
+														<div class="requestPermissionsShowBot">
+															<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" 
+																	width="25" height="25" 
+																	viewbox="0 0 48 48"
+																>
+																	<path d="M16 10v28l22-14z" />
+																</svg>
+															</div>
+															<paper-toggle-button class="requestPermissionButton required" 
+																.checked="${otherPermission.toggled}" ?ischecked="${otherPermission.toggled}"></paper-toggle-button>
+													</div>
+													<div class="requestPermissionsPermissionBotCont">
+														<span class="requestPermissionsDescription">
+															<echo-html makelink .html="${otherPermission.description}"></echo-html>
+														</span>
+													</div>
+												</div>`;
+										})
+									})}
 								</div>
 							</div>
 							<div class="buttons">
@@ -838,28 +862,37 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, _props, _theme,
 					<paper-dialog with-backdrop id="addedPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 						<br>
 						<div id="addedPermissionsTabContainer" data-element-type="AddedPermissionsTabContainer">
-							<template id="addedPermissionsTabRepeater" is="dom-repeat" as="nodeAddedPermission">
-								<div class="nodeAddedPermissionsCont" data-id$="[[nodeAddedPermission.node]]">
-									<h2 class="nodeAddedHeader">
-										[[__exec(lang, langReady, 'crmApp_dialogs_addedPermissions_header', _getNodeName, nodeAddedPermission.node, _getNodeVersion, nodeAddedPermission.node)]]
-									</h2>
-									<div class="nodeAddedPermissions">
-										<template is="dom-repeat" items="[[nodeAddedPermission.permissions]]" as="permission">
-											<div class="nodeAddedPermissionCont">
-												<div class="nodeAddedPermissionTop">
-													<div class="nodeAddedPermissionCheckbox">
-														<paper-checkbox 
-															data-permission$="[[permission]]">
-															<b>[[permission]]</b>
-														</paper-checkbox>
-													</div>
-												</div>
-												<div class="nodeAddedPermissionDescription">[[_getPermissionDescription(permission)]]</div>
+							${renderable(this.addedPermissions, (addedPermissions) => {
+								return Promise.all(addedPermissions.map(async (addedPermission) => {
+									return html`
+										<div class="nodeAddedPermissionsCont" data-id="${addedPermission.node}">
+											<h2 class="nodeAddedHeader">
+												${__(change, I18NKeys.crmApp.dialogs.addedPermissions.header, 
+													this.nodesById.get(addedPermission.node as CRM.GenericNodeId).name,
+													(this.nodesById.get(addedPermission.node as CRM.GenericNodeId).nodeInfo &&
+														this.nodesById.get(addedPermission.node as CRM.GenericNodeId).nodeInfo.version)) || '1.0'}
+											</h2>
+											<div class="nodeAddedPermissions">
+												${await Promise.all(addedPermission.permissions.map(async (permission) => {
+													return html`
+														<div class="nodeAddedPermissionCont">
+															<div class="nodeAddedPermissionTop">
+																<div class="nodeAddedPermissionCheckbox">
+																	<paper-checkbox 
+																		data-permission="${permission}">
+																		<b>${permission}</b>
+																	</paper-checkbox>
+																</div>
+															</div>
+															<div class="nodeAddedPermissionDescription">${
+																await this.templates.getPermissionDescription(permission as CRM.Permission)
+															}</div>
+														</div>`;
+												}))}
 											</div>
-										</template>
-									</div>
-								</div>
-							</template>
+										</div>`;
+								}));
+							})}
 						</div>
 						<div class="buttons">
 							<paper-button

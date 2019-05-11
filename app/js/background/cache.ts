@@ -1,6 +1,6 @@
-import { ModuleData } from "./moduleTypes";
+import { EncodedString } from '../../wc-elements/defs/globals';
 import { BackgroundpageWindow } from './sharedTypes';
-import { EncodedString } from '../../elements/elements';
+import { ModuleData } from "./moduleTypes";
 
 declare const window: BackgroundpageWindow;
 

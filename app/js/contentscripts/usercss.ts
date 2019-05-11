@@ -1,3 +1,5 @@
+import { browserAPI } from "../polyfills/browser";
+
 /**
  * Copied from https://github.com/openstyles/stylus. For this file the following
  * license applies:
@@ -16,7 +18,7 @@
  * more details.
  */
 
-interface Window {
+declare const window: Window & {
 	initUsercssInstall?: Function;
 }
 

@@ -1,3 +1,5 @@
+import { browserAPI, BrowserAPI } from "../polyfills/browser";
+
 /**
  * Copied from https://github.com/openstyles/stylus. For this file the following
  * license applies:
@@ -16,9 +18,7 @@
  * more details.
  */
 
-declare const BrowserAPI: BrowserAPI;
-
-interface Window {
+declare const window: Window & {
 	MutationObserver: typeof MutationObserver;
 	WebkitMutationObserver: typeof MutationObserver;
 	Image: any;

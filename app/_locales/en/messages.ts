@@ -819,17 +819,6 @@ export const Messages: LocaleSpec = {
 					'If not checked, imported CRM is appended to the current one',
 				description: 'Description for the overwrite function'
 			},
-			legacy: {
-				message: 'CRM legacy',
-				description: 'Label for the "CRM legacy" option. Checking this ' +
-					'assumes the data comes from the (very) old version of ' +
-					'the extension'
-			},
-			legacyTitle: {
-				message: 'Check this if you\'re importing from the old version ' +
-					'of the extension (pre-2016)',
-				description: 'Description for the legacy checkbox'
-			},
 			import: {
 				message: 'Import',
 				description: 'Label for the main importing function. Imports ' +

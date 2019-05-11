@@ -1,15 +1,13 @@
 /// <reference path="background.ts" />
 /// <reference path="background/crmapifunctions.ts" />
 
-import { EncodedString } from "../elements/elements";
 import { EncodedContextData, GreaseMonkeyData, BrowserTabsQueryInfo, GreaseMonkeyDataInfo } from './background/sharedTypes';
+import { EncodedString } from '../wc-elements/defs/globals';
+import { browserAPI } from "./polyfills/browser";
+import { CRMWindow } from '../wc-elements/defs/crm-window';
 
-declare const browserAPI: browserAPI;
-
-declare global {
-	interface Window {
-		_crmAPIRegistry: any[];
-	}
+declare const window: CRMWindow & {
+	_crmAPIRegistry: any[];
 }
 
 export type CRMAPIMessage = {
@@ -203,7 +201,9 @@ export type CRMAPIMessage = {
 	}
 };
 
-(function(window: Window) {
+(function(window: CRMWindow & {
+	_crmAPIRegistry: any[];
+}) {
 	function runtimeGetURL(url: string): string {
 		if (typeof browserAPI !== 'undefined') {
 			return browserAPI.runtime.getURL(url);
@@ -6051,4 +6051,4 @@ export type CRMAPIMessage = {
 	}
 	window._crmAPIRegistry = window._crmAPIRegistry || [];
 	window._crmAPIRegistry.push(CrmAPIInstance);
-}(typeof window === 'undefined' ? self : window));
+}(typeof window === 'undefined' ? self as any : window as any));

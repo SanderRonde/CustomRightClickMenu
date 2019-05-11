@@ -1,8 +1,11 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
+import { CRMWindow } from "../../wc-elements/defs/crm-window.js";
+import { CRMAPIMessageInstance } from './sharedTypes.js';
 import { BrowserHandler } from "./browserhandler.js";
 import { CRMAPIFunctions } from "./crmapifunctions";
 import { ModuleData } from "./moduleTypes";
-import { CRMAPIMessageInstance } from './sharedTypes.js';
+
+declare const window: CRMWindow;
 
 export namespace MessageHandling.Instances {
 	export function respond(message: {

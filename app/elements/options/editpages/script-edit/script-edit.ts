@@ -452,7 +452,7 @@ namespace ScriptEditElement {
 				permissionList.push.apply(permissionList, requiredInactive);
 				permissionList.push.apply(permissionList, nonRequiredNonActive);
 
-				window.app.$.scriptPermissionsTemplate.items = permissionList;
+				window.app.scriptPermissions.setValue(permissionList);
 				window.app.shadowRoot.querySelector('.requestPermissionsScriptName').innerHTML = 'Managing permisions for script "' + nodeItem.name;
 				const scriptPermissionDialog = window.app.$.scriptPermissionDialog;
 				scriptPermissionDialog.addEventListener('iron-overlay-opened', () => {

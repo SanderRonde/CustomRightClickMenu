@@ -1,22 +1,27 @@
+import { WebComponent } from '../../../modules/wclib/build/es/wclib';
+import { browserAPI } from '../../../js/polyfills/browser';
+import { TagNameMaps } from '../../defs/wc-elements';
+import { CRMWindow } from '../../defs/crm-window';
 import { CrmApp } from './crm-app';
+
+declare const window: CRMWindow;
+
+
 export class CRMAppUtil {
 	constructor(private _parent: CrmApp) { }
 	public get parent() {
 		return this._parent;
 	}
-	iteratePath<T>(e: {
-		path: HTMLElement[];
-	} | {
-		Aa: HTMLElement[];
-	} | Polymer.CustomEvent, condition: (element: Polymer.PolymerElement | DocumentFragment | HTMLElement) => T): T {
-		let index = 0;
-		const path = this.getPath(e);
-		let result: T = condition(path[index]);
-		while (path[index + 1] && result === null) {
-			result = condition(path[++index]);
+	iteratePath<T>(e: MouseEvent, 
+		condition: (element: WebComponent | DocumentFragment | HTMLElement) => T): T {
+			let index = 0;
+			const path = this.getPath(e);
+			let result: T = condition(path[index]);
+			while (path[index + 1] && result === null) {
+				result = condition(path[++index]);
+			}
+			return result;
 		}
-		return result;
-	}
 	arraysOverlap<T>(arr1: T[], arr2: T[]): boolean {
 		for (let i = 0; i < arr1.length; i++) {
 			if (arr1[i] && arr2[i]) {
@@ -65,7 +70,7 @@ export class CRMAppUtil {
 		toast.text = text;
 		toast.show();
 	}
-	createElement<K extends keyof ElementTagNameMaps, T extends ElementTagNameMaps[K]>(tagName: K, options: {
+	createElement<K extends keyof TagNameMaps, T extends TagNameMaps[K]>(tagName: K, options: {
 		id?: string;
 		classes?: string[];
 		props?: {
@@ -82,13 +87,13 @@ export class CRMAppUtil {
 		for (const key in options.props || {}) {
 			el.setAttribute(key, options.props[key] + '');
 		}
-		options.onclick && el.addEventListener('click', (e) => {
+		options.onclick && el.addEventListener('click', (e: MouseEvent) => {
 			options.onclick(el, e);
 		});
-		options.onhover && el.addEventListener('mouseenter', (e) => {
+		options.onhover && el.addEventListener('mouseenter', (e: MouseEvent) => {
 			options.onhover(el, e);
 		});
-		options.onblur && el.addEventListener('mouseleave', (e) => {
+		options.onblur && el.addEventListener('mouseleave', (e: MouseEvent) => {
 			options.onblur(el, e);
 		});
 		options.ref && options.ref(el);
@@ -127,31 +132,11 @@ export class CRMAppUtil {
 		}
 		return arr;
 	}
-	private _generatePathFrom(element: HTMLElement): HTMLElement[] {
-		const path = [];
-		while (element) {
-			path.push(element);
-			element = element.parentElement;
-		}
-		path.push(document.documentElement, window);
-		return path as HTMLElement[];
-	}
-	getPath(e: {
-		path: HTMLElement[];
-	} | {
-		Aa: HTMLElement[];
-	} | {
-		target: HTMLElement;
-	} | Polymer.CustomEvent) {
+	getPath(e: MouseEvent) {
 		if ('path' in e && e.path) {
 			return this._toArray(e.path);
 		}
-		else if ('Aa' in e && e.Aa) {
-			return this._toArray(e.Aa);
-		}
-		return this._generatePathFrom((e as {
-			target: HTMLElement;
-		}).target);
+		return [];
 	}
 	private _dummy: HTMLElement = null;
 	getDummy(): HTMLElement {
@@ -162,45 +147,33 @@ export class CRMAppUtil {
 		this.parent.appendChild(this._dummy);
 		return this._dummy;
 	}
-	findElementWithTagname<T extends keyof ElementTagNameMaps>(event: {
-		path: HTMLElement[];
-	} | {
-		Aa: HTMLElement[];
-	} | Polymer.CustomEvent, tagName: T): ElementTagNameMaps[T] {
+	findElementWithTagname<T extends keyof TagNameMaps>(event: MouseEvent, tagName: T): TagNameMaps[T] {
 		return this.iteratePath(event, (node) => {
 			if (node && 'tagName' in node &&
-				(node as Polymer.PolymerElement).tagName.toLowerCase() === tagName) {
+				(node as HTMLElement).tagName.toLowerCase() === tagName) {
 				return node;
 			}
 			return null;
-		}) as ElementTagNameMaps[T];
+		}) as TagNameMaps[T];
 	}
-	findElementWithClassName(event: {
-		path: HTMLElement[];
-	} | {
-		Aa: HTMLElement[];
-	} | Polymer.CustomEvent, className: string): Polymer.PolymerElement {
+	findElementWithClassName(event: MouseEvent, className: string): WebComponent {
 		return this.iteratePath(event, (node) => {
 			if (node && 'classList' in node &&
-				(node as Polymer.PolymerElement).classList.contains(className)) {
+				node.classList.contains(className)) {
 				return node;
 			}
 			return null;
-		}) as Polymer.PolymerElement;
+		}) as WebComponent;
 	}
 	;
-	findElementWithId(event: {
-		path: HTMLElement[];
-	} | {
-		Aa: HTMLElement[];
-	} | Polymer.CustomEvent, id: string): Polymer.PolymerElement {
+	findElementWithId(event: MouseEvent, id: string): WebComponent {
 		return this.iteratePath(event, (node) => {
 			if (node && 'id' in node &&
-				(node as Polymer.PolymerElement).id === id) {
+				node.id === id) {
 				return node;
 			}
 			return null;
-		}) as Polymer.PolymerElement;
+		}) as WebComponent;
 	}
     /**
         * Inserts the value into given array
@@ -325,10 +298,10 @@ export class CRMAppUtil {
 	}
 	;
 	getQuerySlot() {
-		return window.Polymer.PaperDropdownBehavior.querySlot;
+		return {} as (_arg1: any, _arg2?: any) => any[]; // TODO: window.Polymer.PaperDropdownBehavior.querySlot;
 	}
-	getDialog(): CodeEditBehaviorInstance {
-		return this.parent.item.type === 'script' ?
+	getDialog(): any { //TODO: CodeEditBehaviorInstance
+		return this.parent.props.item.type === 'script' ?
 			window.scriptEdit : window.stylesheetEdit;
 	}
 }

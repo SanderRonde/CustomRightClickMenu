@@ -16,7 +16,9 @@
  * more details.
  */
 
-'use strict';	
+'use strict';
+
+import { browserAPI } from "../polyfills/browser";
 
 (async () => {
 	if (!(await browserAPI.storage.local.get()).useAsUserstylesInstaller) {

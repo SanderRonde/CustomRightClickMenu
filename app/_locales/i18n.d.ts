@@ -192,8 +192,6 @@ export type LocaleSpec = {
 			"error": I18NMessage,
 			"overwrite": I18NMessage,
 			"overwriteTitle": I18NMessage,
-			"legacy": I18NMessage,
-			"legacyTitle": I18NMessage,
 			"import": I18NMessage
 		},
 		"exporting": {

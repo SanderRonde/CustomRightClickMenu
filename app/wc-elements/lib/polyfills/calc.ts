@@ -96,6 +96,6 @@ export function calc(calcString: string) {
 		return `-webkit-calc(${calcString})`;
 	} else {
 		// Calculate the actual contents
-		return calculate(calcString);
+		return `${calculate(calcString)}px`;
 	}
 }

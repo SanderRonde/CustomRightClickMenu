@@ -1,5 +1,10 @@
 import { I18NKeys } from '../../../_locales/i18n-keys.js';
+import { CRMWindow } from '../../defs/crm-window.js';
 import { CrmApp } from './crm-app';
+import { onExistsChain } from '../../../js/shared.js';
+
+declare const window: CRMWindow;
+
 export class CRMAppPageDemo {
 	constructor(private _parent: CrmApp) { }
 	public get parent() {
@@ -17,9 +22,9 @@ export class CRMAppPageDemo {
 			contentTypes[i] && el.classList.add(`contentType${i}`);
 		}
 	}
-	private _editNodeFromClick(node: CRM.Node) {
-		if (window.app.item) {
-			window.app.$.messageToast.text = this.parent.___(I18NKeys.crmApp.code.alreadyEditingNode);
+	private async _editNodeFromClick(node: CRM.Node) {
+		if (window.app.props.item) {
+			window.app.$.messageToast.text = await this.parent.__prom(I18NKeys.crmApp.code.alreadyEditingNode);
 			window.app.$.messageToast.show();
 		}
 		else {
@@ -71,12 +76,12 @@ export class CRMAppPageDemo {
 	private _genScriptNode(node: CRM.ScriptNode) {
 		return this.parent.util.createElement('div', {
 			classes: ['contextMenuScript'],
-			onclick: () => {
+			onclick: async () => {
 				if (window.app.storageLocal.editCRMInRM) {
 					this._editNodeFromClick(node);
 				}
 				else {
-					window.app.$.messageToast.text = this.parent.___(I18NKeys.crmApp.code.wouldExecuteScript);
+					window.app.$.messageToast.text = await this.parent.__prom(I18NKeys.crmApp.code.wouldExecuteScript);
 					window.app.$.messageToast.show();
 				}
 			},
@@ -92,12 +97,12 @@ export class CRMAppPageDemo {
 	private _genStylesheetNode(node: CRM.StylesheetNode) {
 		return this.parent.util.createElement('div', {
 			classes: ['contextMenuStylesheet'],
-			onclick: () => {
+			onclick: async () => {
 				if (window.app.storageLocal.editCRMInRM) {
 					this._editNodeFromClick(node);
 				}
 				else {
-					window.app.$.messageToast.text = this.parent.___(I18NKeys.crmApp.code.wouldExecuteStylesheet);
+					window.app.$.messageToast.text = await this.parent.__prom(I18NKeys.crmApp.code.wouldExecuteStylesheet);
 					window.app.$.messageToast.show();
 				}
 			},
@@ -120,12 +125,13 @@ export class CRMAppPageDemo {
 			ref(el) {
 				thisEl = el;
 			},
-			onclick: () => {
+			onclick: async () => {
 				if (window.app.storageLocal.editCRMInRM) {
 					this._editNodeFromClick(node);
 				}
 				else {
-					window.app.$.messageToast.text = this.parent.___(I18NKeys.crmApp.code.wouldExecuteStylesheet);
+					window.app.$.messageToast.text = await this.parent.__prom(
+						I18NKeys.crmApp.code.wouldExecuteStylesheet);
 					thisEl.parentElement.classList.add('forcedVisible');
 					timer && window.clearTimeout(timer);
 					timer = window.setTimeout(() => {
@@ -230,7 +236,7 @@ export class CRMAppPageDemo {
 		el.classList[op](...arr.map((_item: any, i: number) => `hidden${i}`));
 		el.classList[op]('rootHidden');
 	}
-	private _setMenuPosition(menu: HTMLElement, e: Polymer.ClickEvent) {
+	private _setMenuPosition(menu: HTMLElement, e: MouseEvent) {
 		menu.style.left = `${e.clientX}px`;
 		menu.classList.remove('rootHidden');
 		const bcr = menu.getBoundingClientRect();
@@ -242,7 +248,7 @@ export class CRMAppPageDemo {
 			menu.style.top = `${e.clientY - bcr.height}px`;
 		}
 	}
-	private _showMenu(menu: HTMLElement, e: Polymer.ClickEvent) {
+	private _showMenu(menu: HTMLElement, e: MouseEvent) {
 		this._setMenuPosition(menu, e);
 		if (window.app.util.findElementWithId(e, 'mainCont')) {
 			//Get the current content type
@@ -298,7 +304,7 @@ export class CRMAppPageDemo {
 		if (!window.app.storageLocal.CRMOnPage) {
 			return;
 		}
-		await window.onExistsChain(window, 'app', 'settings', 'crm');
+		await onExistsChain(window, 'app', 'settings', 'crm');
 		this._active = true;
 		this._enable();
 	}

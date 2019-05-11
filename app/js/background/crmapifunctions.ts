@@ -1,11 +1,10 @@
 /// <reference path="./sharedTypes.d.ts"/>
+import { BackgroundpageWindow, ContextMenuOverrides, ContextMenuUpdateProperties, BrowserTabsQueryInfo } from './sharedTypes.js';
 import { MessageHandling } from "./messagehandling.js";
+import { browserAPI, BrowserAPI } from '../polyfills/browser.js';
 import { CRMAPICall } from "./crmapicall.js";
 import { ModuleData } from "./moduleTypes";
-import { BackgroundpageWindow, ContextMenuOverrides, ContextMenuUpdateProperties, BrowserTabsQueryInfo } from './sharedTypes.js';
 
-declare const browserAPI: browserAPI;
-declare const BrowserAPI: BrowserAPI;
 declare const window: BackgroundpageWindow;
 
 export namespace CRMAPIFunctions {

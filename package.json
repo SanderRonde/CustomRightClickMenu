@@ -71,6 +71,7 @@
     "@types/gulp-uglify": "^3.0.6",
     "@types/gulp-zip": "^4.0.0",
     "@types/html-minifier": "^3.5.3",
+    "@types/jquery": "^3.3.29",
     "@types/merge-stream": "^1.1.2",
     "@types/mkdirp": "^0.5.2",
     "@types/mocha": "^2.2.43",

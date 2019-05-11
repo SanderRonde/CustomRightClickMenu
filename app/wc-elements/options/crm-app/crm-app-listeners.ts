@@ -1,5 +1,11 @@
+import { browserAPI, BrowserAPI } from '../../../js/polyfills/browser.js';
 import { I18NKeys } from '../../../_locales/i18n-keys.js';
-import { CrmApp } from './crm-app';
+import { CrmApp, JQueryContextMenu } from './crm-app';
+import { CRMWindow } from '../../defs/crm-window.js';
+import { EncodedString } from '../../defs/globals.js';
+
+declare const window: CRMWindow;
+
 export class CRMAppListeners {
 	constructor(private _parent: CrmApp) { }
 	public get parent() {
@@ -39,7 +45,7 @@ export class CRMAppListeners {
 	}
 	;
 	launchSearchWebsiteToolScript() {
-		if (this.parent.item && this.parent.item.type === 'script' && window.scriptEdit) {
+		if (this.parent.props.item && this.parent.props.item.type === 'script' && window.scriptEdit) {
 			const paperSearchWebsiteDialog = this.parent.$.paperSearchWebsiteDialog;
 			paperSearchWebsiteDialog.init();
 			paperSearchWebsiteDialog.setOutputType('script');
@@ -55,7 +61,7 @@ export class CRMAppListeners {
 	}
 	;
 	launchExternalEditorDialog() {
-		if (!(window.doc.externalEditorDialogTrigger as HTMLElement & {
+		if (!(window.doc.externalEditorDialogTrigger as HTMLDivElement & {
 			disabled: boolean;
 		}).disabled) {
 			window.externalEditor.init();
@@ -77,21 +83,21 @@ export class CRMAppListeners {
 			await this.parent.requestPermissions([], true);
 		}
 		else {
-			window.app.util.showToast(this.parent.___(I18NKeys.crmApp.code.permissionsNotSupported));
+			window.app.util.showToast(await this.parent.__prom(I18NKeys.crmApp.code.permissionsNotSupported));
 		}
 	}
 	;
-	iconSwitch(e: Polymer.ClickEvent, types: {
+	iconSwitch(e: MouseEvent, types: {
 		x?: any;
 	} | boolean[]) {
 		let parentCrmTypes = this.parent.crmTypes;
 		if (typeof parentCrmTypes === 'number') {
-			const arr = [false, false, false, false, false, false];
+			const arr: CRM.ContentTypes = [false, false, false, false, false, false];
 			arr[parentCrmTypes] = true;
 			parentCrmTypes = arr;
 		}
 		else {
-			parentCrmTypes = [...parentCrmTypes];
+			parentCrmTypes = [...parentCrmTypes] as CRM.ContentTypes;
 		}
 		let selectedTypes = parentCrmTypes;
 		if (Array.isArray(types)) {
@@ -104,7 +110,7 @@ export class CRMAppListeners {
 					crmEl.classList.remove('toggled');
 				}
 			}
-			selectedTypes = [...types];
+			selectedTypes = [...types] as CRM.ContentTypes;
 		}
 		else {
 			const element = this.parent.util.findElementWithClassName(e, 'crmType');
@@ -130,38 +136,38 @@ export class CRMAppListeners {
 		});
 		for (let i = 0; i < 6; i++) {
 			if (this.parent.crmTypes[i] !== selectedTypes[i]) {
-				this.parent.fire('crmTypeChanged', {});
+				this.parent.fire('crmTypeChanged');
 				break;
 			}
 		}
 		this.parent.crmTypes = selectedTypes;
 	}
 	;
-	private _getDownloadPermission(callback: (allowed: boolean) => void) {
+	private async _getDownloadPermission(): Promise<boolean> {
 		if (BrowserAPI.getSrc().downloads && BrowserAPI.getSrc().downloads.download) {
-			callback(true);
-			return;
+			return true;
 		}
 		if (!(BrowserAPI.getSrc().permissions)) {
-			window.app.util.showToast(this.parent.___(I18NKeys.crmApp.code.downloadNotSupported));
-			callback(false);
-			return;
+			window.app.util.showToast(
+				await this.parent.__prom(I18NKeys.crmApp.code.downloadNotSupported));
+			return false;
 		}
-		browserAPI.permissions.contains({
-			permissions: ['downloads']
-		}).then(async (granted) => {
-			if (granted) {
-				callback(true);
-			}
-			else {
-				browserAPI.permissions.request({
-					permissions: ['downloads']
-				}).then((granted) => {
-					//Refresh browserAPI object
-					browserAPI.downloads = browserAPI.downloads || BrowserAPI.getDownloadAPI();
-					callback(granted);
-				});
-			}
+		return new Promise<boolean>((resolve) => {
+			browserAPI.permissions.contains({
+				permissions: ['downloads']
+			}).then(async (granted) => {
+				if (granted) {
+					resolve(true);
+				} else {
+					browserAPI.permissions.request({
+						permissions: ['downloads']
+					}).then((granted) => {
+						//Refresh browserAPI object
+						browserAPI.downloads = browserAPI.downloads || BrowserAPI.getDownloadAPI();
+						resolve(granted);
+					});
+				}
+			});
 		});
 	}
 	async _generateRegexFile() {
@@ -181,22 +187,21 @@ export class CRMAppListeners {
 			'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open\\command]',
 			'@="\\"' + filePath + '\\""'
 		].join('\n');
-		this._getDownloadPermission((allowed) => {
-			if (allowed) {
-				if (browserAPI.downloads) {
-					browserAPI.downloads.download({
-						url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
-						filename: schemeName + '.reg'
-					});
-				}
-				else {
-					window.app.util.showToast(this.parent.___(I18NKeys.crmApp.code.downloadNotSupported));
-				}
+		const allowed = await this._getDownloadPermission();
+		if (allowed) {
+			if (browserAPI.downloads) {
+				browserAPI.downloads.download({
+					url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
+					filename: schemeName + '.reg'
+				});
 			}
-		});
+			else {
+				window.app.util.showToast(await this.parent.__prom(I18NKeys.crmApp.code.downloadNotSupported));
+			}
+		}
 	}
 	;
-	globalExcludeChange(e: Polymer.ClickEvent) {
+	globalExcludeChange(e: MouseEvent) {
 		const input = this.parent.util.findElementWithTagname(e, 'paper-input');
 		let excludeIndex = null;
 		const allExcludes = document.getElementsByClassName('globalExcludeContainer');
@@ -244,73 +249,42 @@ export class CRMAppListeners {
 			storageLocal?: CRM.StorageLocal;
 			settings: CRM.SettingsStorage;
 		}>;
-		if (!this.parent.$.oldCRMImport.checked) {
-			let data: {
-				crm?: CRM.Tree;
-				local?: CRM.StorageLocal;
-				nonLocal?: CRM.SettingsStorage;
-				storageLocal?: CRM.StorageLocal;
-			};
-			try {
-				data = JSON.parse(dataString);
-				this.parent.$.importSettingsError.style.display = 'none';
-			}
-			catch (e) {
-				this.parent.$.importSettingsError.style.display = 'block';
-				return;
-			}
-			window.app.uploading.createRevertPoint();
-			const overWriteImport = this.parent.$.overWriteImport;
-			if (overWriteImport.checked && (data.local || data.storageLocal)) {
-				this.parent.settings = data.nonLocal || this.parent.settings;
-				this.parent.storageLocal = data.local || this.parent.storageLocal;
-			}
-			if (data.crm) {
-				if (overWriteImport.checked) {
-					this.parent.settings.crm = this.parent.util.crmForEach(data.crm, (node) => {
-						node.id = this.parent.generateItemId();
-					});
-				}
-				else {
-					this.parent._addImportedNodes(data.crm);
-				}
-				this.parent.editCRM.build();
-			}
-			//Apply settings
-			this.parent._setup.initCheckboxes(this.parent.storageLocal);
-			this.parent.upload();
+		let data: {
+			crm?: CRM.Tree;
+			local?: CRM.StorageLocal;
+			nonLocal?: CRM.SettingsStorage;
+			storageLocal?: CRM.StorageLocal;
+		};
+		try {
+			data = JSON.parse(dataString);
+			this.parent.$.importSettingsError.style.display = 'none';
 		}
-		else {
-			try {
-				const settingsArr: any[] = dataString.split('%146%');
-				if (settingsArr[0] === 'all') {
-					this.parent.storageLocal.showOptions = settingsArr[2];
-					const rows = settingsArr.slice(6);
-					class LocalStorageWrapper {
-						getItem(index: 'numberofrows' | number): string {
-							if (index === 'numberofrows') {
-								return '' + (rows.length - 1);
-							}
-							return rows[index];
-						}
-					}
-					window.app.uploading.createRevertPoint();
-					const crm = await this.parent._transferCRMFromOld(settingsArr[4], new LocalStorageWrapper());
-					this.parent.settings.crm = crm;
-					this.parent.editCRM.build();
-					this.parent._setup.initCheckboxes(this.parent.storageLocal);
-					this.parent.upload();
-				}
-				else {
-					alert('This method of importing no longer works, please export all your settings instead');
-				}
-			}
-			catch (e) {
-				this.parent.$.importSettingsError.style.display = 'block';
-				return;
-			}
+		catch (e) {
+			this.parent.$.importSettingsError.style.display = 'block';
+			return;
 		}
-		this.parent.util.showToast(this.parent.___(I18NKeys.crmApp.code.importSuccess));
+		window.app.uploading.createRevertPoint();
+		const overWriteImport = this.parent.$.overWriteImport;
+		if (overWriteImport.checked && (data.local || data.storageLocal)) {
+			this.parent.settings = data.nonLocal || this.parent.settings;
+			this.parent.storageLocal = data.local || this.parent.storageLocal;
+		}
+		if (data.crm) {
+			if (overWriteImport.checked) {
+				this.parent.settings.crm = this.parent.util.crmForEach(data.crm, (node) => {
+					node.id = this.parent.generateItemId();
+				});
+			}
+			else {
+				this.parent.addImportedNodes(data.crm);
+			}
+			this.parent.editCRM.build();
+		}
+		//Apply settings
+		this.parent.setup.initCheckboxes(this.parent.storageLocal);
+		this.parent.upload();
+
+		this.parent.util.showToast(await this.parent.__prom(I18NKeys.crmApp.code.importSuccess));
 	}
 	;
 	exportData() {
@@ -355,7 +329,7 @@ export class CRMAppListeners {
 	;
 	nextUpdatedScript() {
 		let index = this.parent.$.scriptUpdatesToast.index;
-		this.parent.$.scriptUpdatesToast.text = this.parent._getUpdatedScriptString(this.parent.$.scriptUpdatesToast.scripts[++index]);
+		this.parent.$.scriptUpdatesToast.text = this.parent.setup.getUpdatedScriptString(this.parent.$.scriptUpdatesToast.scripts[++index]);
 		this.parent.$.scriptUpdatesToast.index = index;
 		if (this.parent.$.scriptUpdatesToast.scripts.length - index > 1) {
 			this.parent.$.nextScriptUpdateButton.style.display = 'inline';
@@ -385,7 +359,7 @@ export class CRMAppListeners {
 			button.icon = 'error';
 		}
 		// Return to the copy button after a second.
-		this.parent.async(function () {
+		window.setTimeout(() => {
 			button.icon = 'content-copy';
 		}, 1000);
 		selection.removeAllRanges();
@@ -486,17 +460,17 @@ export class CRMAppListeners {
 					case 'array':
 						const arrayInput = element.querySelector('paper-array-input');
 						arrayInput.saveSettings();
-						let values = arrayInput.values;
+						let values = arrayInput.values as (string[]|number[]);
 						if ((currentVal as CRM.OptionArray).items === 'string') {
 							//Strings
-							values = values.map(value => value + '');
+							values = (values as string[]).map(value => value + '');
 						}
 						else {
 							//Numbers
-							values = values.map(value => ~~value);
+							values = (values as number[]).map(value => ~~value);
 						}
 						value = this.parent.templates.mergeObjects(currentVal, {
-							value: values
+							value: values as string[]
 						});
 						break;
 				}
@@ -522,17 +496,17 @@ export class CRMAppListeners {
 		window.app.util.getDialog().setThemeDark();
 	}
 	fontSizeChange() {
-		window.app.async(() => {
+		window.setTimeout(() => {
 			window.app.util.getDialog().fontSizeChange();
 		}, 0);
 	}
 	jsLintGlobalsChange() {
-		window.app.async(() => {
+		window.setTimeout(() => {
 			window.scriptEdit.jsLintGlobalsChange();
 		}, 0);
 	}
-	onKeyBindingKeyDown(e: Polymer.PolymerKeyDownEvent) {
-		if (this.parent.item.type === 'script') {
+	onKeyBindingKeyDown(e: KeyboardEvent) {
+		if (this.parent.props.item.type === 'script') {
 			window.scriptEdit.onKeyBindingKeyDown(e);
 		}
 	}

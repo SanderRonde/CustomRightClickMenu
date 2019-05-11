@@ -105,11 +105,11 @@ export class CRMAppTemplates {
 	}
 	;
     /**
-        * Gets the default link node object with given options applied
-        */
-	getDefaultLinkNode(options: Partial<CRM.LinkNode> = {}): CRM.LinkNode {
+	 * Gets the default link node object with given options applied
+	 */
+	async getDefaultLinkNode(options: Partial<CRM.LinkNode> = {}): Promise<CRM.LinkNode> {
 		const defaultNode: Partial<CRM.LinkNode> = {
-			name: this.parent.___(I18NKeys.crm.exampleLinkName),
+			name: await this.parent.__prom(I18NKeys.crm.exampleLinkName),
 			onContentTypes: [true, true, true, false, false, false],
 			type: 'link',
 			showOnSpecified: false,
@@ -166,11 +166,11 @@ export class CRMAppTemplates {
 	}
 	;
     /**
-        * Gets the default script node object with given options applied
-        */
-	getDefaultScriptNode(options: CRM.PartialScriptNode = {}): CRM.ScriptNode {
+	 * Gets the default script node object with given options applied
+	 */
+	async getDefaultScriptNode(options: CRM.PartialScriptNode = {}): Promise<CRM.ScriptNode> {
 		const defaultNode: CRM.PartialScriptNode = {
-			name: this.parent.___(I18NKeys.crm.exampleScriptName),
+			name: await this.parent.__prom(I18NKeys.crm.exampleScriptName),
 			onContentTypes: [true, true, true, false, false, false],
 			type: 'script',
 			isLocal: true,
@@ -187,11 +187,11 @@ export class CRMAppTemplates {
 	}
 	;
     /**
-        * Gets the default stylesheet node object with given options applied
-        */
-	getDefaultStylesheetNode(options: CRM.PartialStylesheetNode = {}): CRM.StylesheetNode {
+	 * Gets the default stylesheet node object with given options applied
+	 */
+	async getDefaultStylesheetNode(options: CRM.PartialStylesheetNode = {}): Promise<CRM.StylesheetNode> {
 		const defaultNode: CRM.PartialStylesheetNode = {
-			name: this.parent.___(I18NKeys.crm.exampleStylesheetName),
+			name: await this.parent.__prom(I18NKeys.crm.exampleStylesheetName),
 			onContentTypes: [true, true, true, false, false, false],
 			type: 'stylesheet',
 			isLocal: true,
@@ -210,14 +210,14 @@ export class CRMAppTemplates {
     /**
         * Gets the default divider or menu node object with given options applied
         */
-	getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode>, type: 'divider' | 'menu'): CRM.DividerNode | CRM.MenuNode;
-	getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode>, type: 'divider'): CRM.DividerNode;
-	getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode>, type: 'menu'): CRM.MenuNode;
-	getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode> = {}, type: 'divider' | 'menu'): CRM.DividerNode | CRM.MenuNode {
+	async getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode>, type: 'divider' | 'menu'): Promise<CRM.DividerNode|CRM.MenuNode>;
+	async getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode>, type: 'divider'): Promise<CRM.DividerNode>;
+	async getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode>, type: 'menu'): Promise<CRM.MenuNode>;
+	async getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode> = {}, type: 'divider' | 'menu'): Promise<CRM.DividerNode|CRM.MenuNode> {
 		const defaultNode: Partial<CRM.PassiveNode> = {
 			name: type === 'menu' ?
-				this.parent.___(I18NKeys.crm.exampleMenuName) :
-				this.parent.___(I18NKeys.crm.exampleDividerName),
+				await this.parent.__prom(I18NKeys.crm.exampleMenuName) :
+				await this.parent.__prom(I18NKeys.crm.exampleDividerName),
 			type: type,
 			nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 			onContentTypes: [true, true, true, false, false, false],
@@ -229,23 +229,23 @@ export class CRMAppTemplates {
 	}
 	;
     /**
-        * Gets the default divider node object with given options applied
-        */
-	getDefaultDividerNode(options: Partial<CRM.DividerNode> = {}): CRM.DividerNode {
+	 * Gets the default divider node object with given options applied
+	 */
+	getDefaultDividerNode(options: Partial<CRM.DividerNode> = {}): Promise<CRM.DividerNode> {
 		return this.getDefaultDividerOrMenuNode(options, 'divider');
 	}
 	;
     /**
         * Gets the default menu node object with given options applied
         */
-	getDefaultMenuNode(options: Partial<CRM.MenuNode> = {}): CRM.MenuNode {
+	getDefaultMenuNode(options: Partial<CRM.MenuNode> = {}): Promise<CRM.MenuNode> {
 		return this.getDefaultDividerOrMenuNode(options, 'menu');
 	}
 	;
     /**
         * Gets the default node of given type
         */
-	getDefaultNodeOfType(type: CRM.NodeType, options: Partial<CRM.Node> = {}): CRM.Node {
+	getDefaultNodeOfType(type: CRM.NodeType, options: Partial<CRM.Node> = {}): Promise<CRM.Node> {
 		switch (type) {
 			case 'link':
 				return this.getDefaultLinkNode(options as Partial<CRM.LinkNode>);
@@ -364,74 +364,74 @@ export class CRMAppTemplates {
 	}
 	;
     /**
-        * Gets the description for given permission
-        */
-	getPermissionDescription(permission: CRM.Permission): string {
+	 * Gets the description for given permission
+	 */
+	async getPermissionDescription(permission: CRM.Permission): Promise<string> {
 		const descriptions = {
-			alarms: this.parent.___(I18NKeys.permissions.alarms),
-			activeTab: this.parent.___(I18NKeys.permissions.activeTab),
-			background: this.parent.___(I18NKeys.permissions.background),
-			bookmarks: this.parent.___(I18NKeys.permissions.bookmarks),
-			browsingData: this.parent.___(I18NKeys.permissions.browsingData),
-			clipboardRead: this.parent.___(I18NKeys.permissions.clipboardRead),
-			clipboardWrite: this.parent.___(I18NKeys.permissions.clipboardWrite),
-			cookies: this.parent.___(I18NKeys.permissions.cookies),
-			contentSettings: this.parent.___(I18NKeys.permissions.contentSettings),
-			contextMenus: this.parent.___(I18NKeys.permissions.contextMenus),
-			declarativeContent: this.parent.___(I18NKeys.permissions.declarativeContent),
-			desktopCapture: this.parent.___(I18NKeys.permissions.desktopCapture),
-			downloads: this.parent.___(I18NKeys.permissions.downloads),
-			history: this.parent.___(I18NKeys.permissions.history),
-			identity: this.parent.___(I18NKeys.permissions.identity),
-			idle: this.parent.___(I18NKeys.permissions.idle),
-			management: this.parent.___(I18NKeys.permissions.management),
-			notifications: this.parent.___(I18NKeys.permissions.notifications),
-			pageCapture: this.parent.___(I18NKeys.permissions.pageCapture),
-			power: this.parent.___(I18NKeys.permissions.power),
-			privacy: this.parent.___(I18NKeys.permissions.privacy),
-			printerProvider: this.parent.___(I18NKeys.permissions.printerProvider),
-			sessions: this.parent.___(I18NKeys.permissions.sessions),
-			"system.cpu": this.parent.___(I18NKeys.permissions.systemcpu),
-			"system.memory": this.parent.___(I18NKeys.permissions.systemmemory),
-			"system.storage": this.parent.___(I18NKeys.permissions.systemstorage),
-			topSites: this.parent.___(I18NKeys.permissions.topSites),
-			tabCapture: this.parent.___(I18NKeys.permissions.tabCapture),
-			tabs: this.parent.___(I18NKeys.permissions.tabs),
-			tts: this.parent.___(I18NKeys.permissions.tts),
-			webNavigation: this.parent.___(I18NKeys.permissions.webNavigation) +
-				' (https://developer.chrome.com/extensions/webNavigation)',
-			webRequest: this.parent.___(I18NKeys.permissions.webRequest),
-			webRequestBlocking: this.parent.___(I18NKeys.permissions.webRequestBlocking),
-			//Script-specific descriptions
-			crmGet: this.parent.___(I18NKeys.permissions.crmGet),
-			crmWrite: this.parent.___(I18NKeys.permissions.crmWrite),
-			crmRun: this.parent.___(I18NKeys.permissions.crmRun),
-			crmContextmenu: this.parent.___(I18NKeys.permissions.crmContextmenu),
-			chrome: this.parent.___(I18NKeys.permissions.chrome),
-			browser: this.parent.___(I18NKeys.permissions.browser),
-			//Tampermonkey APIs
-			GM_addStyle: this.parent.___(I18NKeys.permissions.GMAddStyle),
-			GM_deleteValue: this.parent.___(I18NKeys.permissions.GMDeleteValue),
-			GM_listValues: this.parent.___(I18NKeys.permissions.GMListValues),
-			GM_addValueChangeListener: this.parent.___(I18NKeys.permissions.GMAddValueChangeListener),
-			GM_removeValueChangeListener: this.parent.___(I18NKeys.permissions.GMRemoveValueChangeListener),
-			GM_setValue: this.parent.___(I18NKeys.permissions.GMSetValue),
-			GM_getValue: this.parent.___(I18NKeys.permissions.GMGetValue),
-			GM_log: this.parent.___(I18NKeys.permissions.GMLog),
-			GM_getResourceText: this.parent.___(I18NKeys.permissions.GMGetResourceText),
-			GM_getResourceURL: this.parent.___(I18NKeys.permissions.GMGetResourceURL),
-			GM_registerMenuCommand: this.parent.___(I18NKeys.permissions.GMRegisterMenuCommand),
-			GM_unregisterMenuCommand: this.parent.___(I18NKeys.permissions.GMUnregisterMenuCommand),
-			GM_openInTab: this.parent.___(I18NKeys.permissions.GMOpenInTab),
-			GM_xmlhttpRequest: this.parent.___(I18NKeys.permissions.GMXmlhttpRequest),
-			GM_download: this.parent.___(I18NKeys.permissions.GMDownload),
-			GM_getTab: this.parent.___(I18NKeys.permissions.GMGetTab),
-			GM_saveTab: this.parent.___(I18NKeys.permissions.GMSaveTab),
-			GM_getTabs: this.parent.___(I18NKeys.permissions.GMGetTabs),
-			GM_notification: this.parent.___(I18NKeys.permissions.GMNotification),
-			GM_setClipboard: this.parent.___(I18NKeys.permissions.GMSetClipboard),
-			GM_info: this.parent.___(I18NKeys.permissions.GMInfo),
-			unsafeWindow: this.parent.___(I18NKeys.permissions.unsafeWindow)
+			alarms: await this.parent.__prom(I18NKeys.permissions.alarms),
+			activeTab: await this.parent.__prom(I18NKeys.permissions.activeTab),
+			background: await this.parent.__prom(I18NKeys.permissions.background),
+			bookmarks: await this.parent.__prom(I18NKeys.permissions.bookmarks),
+			browsingData: await this.parent.__prom(I18NKeys.permissions.browsingData),
+			clipboardRead: await this.parent.__prom(I18NKeys.permissions.clipboardRead),
+			clipboardWrite: await this.parent.__prom(I18NKeys.permissions.clipboardWrite),
+			cookies: await this.parent.__prom(I18NKeys.permissions.cookies),
+			contentSettings: await this.parent.__prom(I18NKeys.permissions.contentSettings),
+			contextMenus: await this.parent.__prom(I18NKeys.permissions.contextMenus),
+			declarativeContent: await this.parent.__prom(I18NKeys.permissions.declarativeContent),
+			desktopCapture: await this.parent.__prom(I18NKeys.permissions.desktopCapture),
+			downloads: await this.parent.__prom(I18NKeys.permissions.downloads),
+			history: await this.parent.__prom(I18NKeys.permissions.history),
+			identity: await this.parent.__prom(I18NKeys.permissions.identity),
+			idle: await this.parent.__prom(I18NKeys.permissions.idle),
+			management: await this.parent.__prom(I18NKeys.permissions.management),
+			notifications: await this.parent.__prom(I18NKeys.permissions.notifications),
+			pageCapture: await this.parent.__prom(I18NKeys.permissions.pageCapture),
+			power: await this.parent.__prom(I18NKeys.permissions.power),
+			privacy: await this.parent.__prom(I18NKeys.permissions.privacy),
+			printerProvider: await this.parent.__prom(I18NKeys.permissions.printerProvider),
+			sessions: await this.parent.__prom(I18NKeys.permissions.sessions),
+			"system.cawait pu": this.parent.__prom(I18NKeys.permissions.systemcpu),
+			"system.mawait emory": this.parent.__prom(I18NKeys.permissions.systemmemory),
+			"system.sawait torage": this.parent.__prom(I18NKeys.permissions.systemstorage),
+			topSites: await this.parent.__prom(I18NKeys.permissions.topSites),
+			tabCapture: await this.parent.__prom(I18NKeys.permissions.tabCapture),
+			tabs: await this.parent.__prom(I18NKeys.permissions.tabs),
+			tts: await this.parent.__prom(I18NKeys.permissions.tts),
+			webNavigation: await this.parent.__prom(I18NKeys.permissions.webNavigation) +
+				' (await https://developer.chrome.com/extensions/webNavigation)',
+			webRequest: await this.parent.__prom(I18NKeys.permissions.webRequest),
+			webRequestBlocking: await this.parent.__prom(I18NKeys.permissions.webRequestBlocking),
+			//Scawait ript-specific descriptions
+			crmGet: await this.parent.__prom(I18NKeys.permissions.crmGet),
+			crmWrite: await this.parent.__prom(I18NKeys.permissions.crmWrite),
+			crmRun: await this.parent.__prom(I18NKeys.permissions.crmRun),
+			crmContextmenu: await this.parent.__prom(I18NKeys.permissions.crmContextmenu),
+			chrome: await this.parent.__prom(I18NKeys.permissions.chrome),
+			browser: await this.parent.__prom(I18NKeys.permissions.browser),
+			//Taawait mpermonkey APIs
+			GM_addStyle: await this.parent.__prom(I18NKeys.permissions.GMAddStyle),
+			GM_deleteValue: await this.parent.__prom(I18NKeys.permissions.GMDeleteValue),
+			GM_listValues: await this.parent.__prom(I18NKeys.permissions.GMListValues),
+			GM_addValueChangeListener: await this.parent.__prom(I18NKeys.permissions.GMAddValueChangeListener),
+			GM_removeValueChangeListener: await this.parent.__prom(I18NKeys.permissions.GMRemoveValueChangeListener),
+			GM_setValue: await this.parent.__prom(I18NKeys.permissions.GMSetValue),
+			GM_getValue: await this.parent.__prom(I18NKeys.permissions.GMGetValue),
+			GM_log: await this.parent.__prom(I18NKeys.permissions.GMLog),
+			GM_getResourceText: await this.parent.__prom(I18NKeys.permissions.GMGetResourceText),
+			GM_getResourceURL: await this.parent.__prom(I18NKeys.permissions.GMGetResourceURL),
+			GM_registerMenuCommand: await this.parent.__prom(I18NKeys.permissions.GMRegisterMenuCommand),
+			GM_unregisterMenuCommand: await this.parent.__prom(I18NKeys.permissions.GMUnregisterMenuCommand),
+			GM_openInTab: await this.parent.__prom(I18NKeys.permissions.GMOpenInTab),
+			GM_xmlhttpRequest: await this.parent.__prom(I18NKeys.permissions.GMXmlhttpRequest),
+			GM_download: await this.parent.__prom(I18NKeys.permissions.GMDownload),
+			GM_getTab: await this.parent.__prom(I18NKeys.permissions.GMGetTab),
+			GM_saveTab: await this.parent.__prom(I18NKeys.permissions.GMSaveTab),
+			GM_getTabs: await this.parent.__prom(I18NKeys.permissions.GMGetTabs),
+			GM_notification: await this.parent.__prom(I18NKeys.permissions.GMNotification),
+			GM_setClipboard: await this.parent.__prom(I18NKeys.permissions.GMSetClipboard),
+			GM_info: await this.parent.__prom(I18NKeys.permissions.GMInfo),
+			unsafeWindow: await this.parent.__prom(I18NKeys.permissions.unsafeWindow)
 		};
 		return descriptions[permission as keyof typeof descriptions];
 	}

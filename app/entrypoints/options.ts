@@ -123,7 +123,7 @@ namespace ExtensionI18N {
 }
 
 WebComponentI18NManager.initI18N({
-	format: '/_locales/$LANG$/messages.json',
+	urlFormat: '/_locales/$LANG$/messages.json',
 	defaultLang: 'en',
 	returner: directive((promise: Promise<string>, content: string) => (part: Part) => {
 		part.setValue(content);

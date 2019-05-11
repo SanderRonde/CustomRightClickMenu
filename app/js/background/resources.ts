@@ -1,8 +1,9 @@
 import { BackgroundpageWindow } from './sharedTypes';
 import { I18NKeys } from "../../_locales/i18n-keys";
+import { browserAPI } from '../polyfills/browser';
 import { ModuleData } from "./moduleTypes";
+import { WebComponentI18NManager } from '../../modules/wclib/build/es/wclib';
 
-declare const browserAPI: browserAPI;
 declare const window: BackgroundpageWindow;
 
 export namespace Resources.Resource {
@@ -275,7 +276,7 @@ export namespace Resources {
 		scriptId: CRM.NodeId<CRM.ScriptNode>;
 	}) {
 		return async () => {
-			window.info(await window.__(I18NKeys.background.init.resourceUpdate));
+			window.info(await WebComponentI18NManager.__(I18NKeys.background.init.resourceUpdate));
 			compareResource(resourceKey);
 		};
 	}

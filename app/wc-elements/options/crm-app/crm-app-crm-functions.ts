@@ -1,5 +1,9 @@
 import { I18NKeys } from '../../../_locales/i18n-keys.js';
+import { CRMWindow } from '../../defs/crm-window.js';
 import { CrmApp } from './crm-app';
+
+declare const window: CRMWindow;
+
 export class CRMAppCRMFunctions {
 	constructor(private _parent: CrmApp) { }
 	public get parent() {
@@ -8,15 +12,15 @@ export class CRMAppCRMFunctions {
 	getI18NNodeType(nodeType: CRM.NodeType) {
 		switch (nodeType) {
 			case 'link':
-				return this.parent.___(I18NKeys.crm.link);
+				return this.parent.__prom(I18NKeys.crm.link);
 			case 'script':
-				return this.parent.___(I18NKeys.crm.script);
+				return this.parent.__prom(I18NKeys.crm.script);
 			case 'stylesheet':
-				return this.parent.___(I18NKeys.crm.stylesheet);
+				return this.parent.__prom(I18NKeys.crm.stylesheet);
 			case 'menu':
-				return this.parent.___(I18NKeys.crm.menu);
+				return this.parent.__prom(I18NKeys.crm.menu);
 			case 'divider':
-				return this.parent.___(I18NKeys.crm.divider);
+				return this.parent.__prom(I18NKeys.crm.divider);
 		}
 	}
 	lookup(path: number[], returnArray?: boolean): CRM.Node | CRM.Node[];

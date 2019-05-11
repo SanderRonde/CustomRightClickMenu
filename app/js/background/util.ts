@@ -1,8 +1,8 @@
-import { ModuleData } from "./moduleTypes";
 import { BackgroundpageWindow, ContextMenuCreateProperties, ContextMenuUpdateProperties, ContextMenuOverrides } from './sharedTypes';
+import { browserAPI, BrowserAPI } from "../polyfills/browser";
+import { ModuleData } from "./moduleTypes";
+import { onExists } from "../shared";
 
-declare const browserAPI: browserAPI;
-declare const BrowserAPI: BrowserAPI;
 declare const window: BackgroundpageWindow;
 
 export namespace Util {
@@ -442,7 +442,7 @@ export namespace Util {
 		document.body.appendChild(el);
 		_requiredFiles.push(path);
 		if (global) {
-			await window.onExists(global, window);
+			await onExists(global, window);
 		}
 	}
 	export function getScriptNodeJS(script: CRM.ScriptNode|CRM.SafeScriptNode, type: 'background'|'script' = 'script'): string {
