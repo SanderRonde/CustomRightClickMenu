@@ -73,10 +73,10 @@ import { ${capitalize(dashesToUppercase(name))} } from './${name}.js';
 export const ${capitalize(dashesToUppercase(name))}CSS = new TemplateFn<${
 	capitalize(dashesToUppercase(name))
 }>(function (html) {
-		return html\`<style>
-			
-		</style>\`
-	}, CHANGE_TYPE.THEME, render);
+	return html\`<style>
+		
+	</style>\`
+}, CHANGE_TYPE.THEME, render);
 `;
 
 (async () => {
