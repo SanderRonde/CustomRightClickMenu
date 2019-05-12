@@ -245,7 +245,7 @@ export class CRMAppSetup {
 			window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal
 				.CRMOnPage);
 			if (parent.isDemo()) {
-				window.doc.CRMOnPage.toggled = true;
+				window.doc.CRMOnPage.props.toggled = true;
 				window.app.setLocal('CRMOnPage', true);
 				window.doc.CRMOnPage.setCheckboxDisabledValue(true);
 				parent.pageDemo.create();
