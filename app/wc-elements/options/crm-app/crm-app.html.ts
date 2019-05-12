@@ -377,7 +377,6 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 							</span>
 						</div>
 						<paper-checkbox title="${__(change, I18NKeys.crmApp.importing.overwriteTitle)}" checked id="overWriteImport">${__(change, I18NKeys.crmApp.importing.overwrite)}</paper-checkbox>
-						<paper-checkbox title="${__(change, I18NKeys.crmApp.importing.legacyTitle)}" id="oldCRMImport">${__(change, I18NKeys.crmApp.importing.legacy)}</paper-checkbox>
 						<br />
 						<animated-button class="blue" cooldown raised id="importButton" tap="domListener" @click="${this.listeners.importData}" content="${__(change, I18NKeys.crmApp.importing.import)}"></animated-button>
 					</div>
