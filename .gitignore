@@ -301,3 +301,4 @@ app/entrypoints/**/*.js
 app/modules/
 
 app/**/*-querymap.d.ts
+scripts/create-component.js
