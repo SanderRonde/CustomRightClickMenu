@@ -1,4 +1,4 @@
-import logSymbols from 'log-symbols';
+import * as logSymbols from 'log-symbols';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import chalk from 'chalk';
