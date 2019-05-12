@@ -13,7 +13,6 @@ import replace from 'gulp-replace';
 import gulpBabel from 'gulp-babel';
 import ts from 'gulp-typescript';
 import rename from 'gulp-rename';
-// import uglifyCSS from 'uglifycss';
 import banner from 'gulp-banner';
 import * as rollup from 'rollup';
 import uglifyEs from 'uglify-es';
