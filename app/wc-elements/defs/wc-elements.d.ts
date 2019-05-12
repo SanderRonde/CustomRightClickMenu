@@ -1,4 +1,5 @@
 import { CrmApp, AddedPermissionsTabContainerEl, ScriptUpdatesToastEl, CodeSettingsDialogEl, ChooseFileDialogEl } from "../options/crm-app/crm-app";
+import { PaperToggleOption } from '../options/inputs/paper-toggle-option/paper-toggle-option';
 import { WebComponent } from "../../modules/wclib/build/es/wclib";
 
 export type WCTagNameMaps = {
@@ -8,6 +9,7 @@ export type WCTagNameMaps = {
 	'paper-checkbox': any; //TODO:
 	'paper-dropdown-menu': any; //TODO:
 	'paper-array-input': any; //TODO:
+	'paper-toggle-option': PaperToggleOption;
 }
 
 export type TagNameMaps = WCTagNameMaps & 
@@ -117,7 +119,7 @@ declare global {
 	type HTMLPaperLibrariesSelectorElement = any; // PaperLibrariesSelector;
 	type HTMLPaperGetPagePropertiesElement = any; // PaperGetPageProperties;
 	type HTMLCrmEditPageElement = any; // CrmEditPage;
-	type HTMLPaperToggleOptionElement = any; // PaperToggleOption;
+	type HTMLPaperToggleOptionElement = PaperToggleOption;
 	type HTMLEditCrmElement = any; // EditCrm;
 	type HTMLEditCrmItemElement = any; // EditCrmItem;
 	type HTMLCenterElementElement = any; // CenterElement;

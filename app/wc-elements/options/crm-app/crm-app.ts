@@ -1,6 +1,7 @@
 /// <reference path="../../defs/wc-elements.d.ts" />
 
 import { ConfigurableWebComponent, Props, config, bindToClass, ComplexType } from '../../../modules/wclib/build/es/wclib.js';
+import { PaperToggleOption } from '../inputs/paper-toggle-option/paper-toggle-option.js';
 import { BrowserAPI, browserAPI } from '../../../js/polyfills/browser.js';
 import { registerAnimatePolyfill } from './registerAnimatePolyfill.js';
 import { setTransform, onExistsChain } from '../../../js/shared.js';
@@ -83,7 +84,10 @@ export type ChooseFileDialogEl = any; //TODO:
 @config({
 	is: 'crm-app',
 	css: CrmAppCSS,
-	html: CrmAppHTML
+	html: CrmAppHTML,
+	dependencies: [
+		PaperToggleOption
+	]
 })
 export class CrmApp extends ConfigurableWebComponent<{
 	IDS: CrmAppIDMap;
