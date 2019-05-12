@@ -1,4 +1,4 @@
-import { CHANGE_TYPE, WebComponentI18NManager } from "../modules/wclib/build/es/wclib.js";
+import { CHANGE_TYPE, WebComponentI18NManager, Props } from "../modules/wclib/build/es/wclib.js";
 import { Part } from "../modules/lit-html/lib/part.js";
 import { directive, AttributePart, DirectiveFn, isDirective } from "../modules/lit-html/lit-html.js";
 
@@ -110,7 +110,6 @@ export const waitFor = directive(<R>(prom: Promise<R>, placeholder?: any) => (pa
 
 type RenderableType = <R>(resolvable: ResolvablePromise<R>, 
 	handler?: (value: R) => any, placeholder?: any) => (part: Part) => void;
-
 export const renderable = directive((resolvable: ResolvablePromise<any>,
 	handler?: (value: any) => any, placeholder?: any) => (part: Part) => {
 		if (freezeSet.has(part)) return;
@@ -124,6 +123,7 @@ export const renderable = directive((resolvable: ResolvablePromise<any>,
 	}) as RenderableType;
 
 const listeningSet: WeakSet<AttributePart> = new WeakSet();
+type TwoWayType = <V>(value: V, onChange: (newValue: V) => any) => (part: AttributePart) => void;
 export const twoWay = directive(<V>(value: V, onChange: (newValue: V) => any) => (part: AttributePart) => {
 	if (!(part instanceof AttributePart)) {
 		throw new Error('twoWay can only be used on attributes');
@@ -133,10 +133,30 @@ export const twoWay = directive(<V>(value: V, onChange: (newValue: V) => any) =>
 	if (listeningSet.has(part)) return;
 	listeningSet.add(part);
 
-	const originalSet = part.committer.element.setAttribute;
+	const originalSet = part.committer.element.setAttribute.bind(part.committer.element);
 	part.committer.element.setAttribute = (key, value) => {
 		if (key === part.committer.name) {
 			onChange(value as unknown as V);
+		}
+		originalSet(key, value);
+	}
+}) as TwoWayType;
+
+export const twoWayProp = directive(<P extends Props & {
+	[key: string]: any;
+}, K extends keyof P>(props: P, key: K) => (part: AttributePart) => {
+	if (!(part instanceof AttributePart)) {
+		throw new Error('twoWayProp can only be used on attributes');
+	}
+	part.setValue(props[key]);
+
+	if (listeningSet.has(part)) return;
+	listeningSet.add(part);
+
+	const originalSet = part.committer.element.setAttribute.bind(part.committer.element);
+	part.committer.element.setAttribute = (key, value) => {
+		if (key === part.committer.name) {
+			props[key] = value;
 		}
 		originalSet(key, value);
 	}
