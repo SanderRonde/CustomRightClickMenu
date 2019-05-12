@@ -1,7 +1,5 @@
 /// <reference path="../../defs/wc-elements.d.ts" />
 
-//TODO: property is undefined before setting???
-
 import { ConfigurableWebComponent, Props, config, bindToClass, ComplexType } from '../../../modules/wclib/build/es/wclib.js';
 import { BrowserAPI, browserAPI } from '../../../js/polyfills/browser.js';
 import { registerAnimatePolyfill } from './registerAnimatePolyfill.js';

@@ -10619,7 +10619,7 @@ watchpack@^1.5.0:
 
 "wclib@https://github.com/SanderRonde/wc-lib":
   version "1.0.0"
-  resolved "https://github.com/SanderRonde/wc-lib#691245870214c216b74b48d7d93932e2f51a1a5e"
+  resolved "https://github.com/SanderRonde/wc-lib#e3814dce0e045c3c753af3a1b815b8704bc64d27"
   dependencies:
     lit-html "^1.0.0"
     typescript "^3.4.4"
