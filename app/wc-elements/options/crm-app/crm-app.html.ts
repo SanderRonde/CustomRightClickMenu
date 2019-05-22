@@ -43,7 +43,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 					<div id="editorToolsRibbonContainer">
 						<div id="editorToolsRibbon">
 							<div @tap="${this.listeners.launchExternalEditorDialog}" class="ribbonTool" id="externalEditorDialogTrigger">Use External Editor</div>
-							<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool jsTool" .usedlibraries="${props.item && props.item.type === 'script' ?
+							<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool jsTool" usedlibraries="${props.item && props.item.type === 'script' ?
 								props.item.value.libraries : []} "></paper-libraries-selector>
 							<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool jsTool"></paper-get-page-properties>
 							<div @tap="${this.listeners.launchSearchWebsiteToolScript}" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
@@ -97,8 +97,8 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 														<div>
 															<paper-input data-index="${index}" 
 																@keydown="${this.listeners.onKeyBindingKeyDown}" 
-																.label="${keyBinding.name}" 
-																.value="${(this.settings && 
+																label="${keyBinding.name}" 
+																value="${(this.settings && 
 																	this.settings.editor.keyBindings[keyBinding.storageKey]) ||
 																		keyBinding.defaultKey}" 
 																class="keyBindingSettingKeyInput" 
@@ -125,8 +125,8 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 				<app-header slot="header" reveals effects="waterfall">
 					<app-toolbar>
 						<div main-title class="title">
-							<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewbox="10000 5500 9000 10590" width="70px" height="70px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
-								xmlns:xlink="http://www.w3.org/1999/xlink">
+							<svg xmlns="http://www.w3.org/2000/svg" xmlspace="preserve" viewbox="10000 5500 9000 10590" width="70px" height="70px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+								xmlnsxlink="http://www.w3.org/1999/xlink">
 								<defs>
 									<style type="text/css">
 										.fil5 {fill:white}
@@ -185,7 +185,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 									}"  @tap="${this.listeners.iconSwitch}">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
-										<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="80" height="80" viewbox="0 0 24 24">
+										<svg xmlns="http://www.w3.org/2000/svg" xmlnsxlink="http://www.w3.org/1999/xlink" version="1.1" width="80" height="80" viewbox="0 0 24 24">
 											<path d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z" />
 										</svg>
 									</div>
@@ -757,11 +757,11 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 															width="25" height="25" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
 													</div>
 													<paper-toggle-button class="scriptPermissionsToggle" 
-														.checked="${permission.toggled}" ?ischecked="${permission.toggled}"></paper-toggle-button>
+														checked="${permission.toggled}" ?ischecked="${permission.toggled}"></paper-toggle-button>
 												</div>
 												<div class="requestPermissionsPermissionBotCont">
 													<span class="requestPermissionsDescription">
-														<echo-html makelink .html="${permission.description}"></echo-html>
+														<echo-html makelink html="${permission.description}"></echo-html>
 													</span>
 												</div>
 											</div>`;
@@ -802,7 +802,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 																</svg>
 															</div>
 															<paper-toggle-button class="requestPermissionButton required" 
-																.checked="${requestedPermission.toggled}" ?ischecked="${requestedPermission.toggled}"></paper-toggle-button>
+																checked="${requestedPermission.toggled}" ?ischecked="${requestedPermission.toggled}"></paper-toggle-button>
 														</div>
 														<div class="requestPermissionsPermissionBotCont">
 															<span class="requestPermissionsDescription">${requestedPermission.description}</span>
@@ -838,11 +838,11 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 																</svg>
 															</div>
 															<paper-toggle-button class="requestPermissionButton required" 
-																.checked="${otherPermission.toggled}" ?ischecked="${otherPermission.toggled}"></paper-toggle-button>
+																checked="${otherPermission.toggled}" ?ischecked="${otherPermission.toggled}"></paper-toggle-button>
 													</div>
 													<div class="requestPermissionsPermissionBotCont">
 														<span class="requestPermissionsDescription">
-															<echo-html makelink .html="${otherPermission.description}"></echo-html>
+															<echo-html makelink html="${otherPermission.description}"></echo-html>
 														</span>
 													</div>
 												</div>`;
