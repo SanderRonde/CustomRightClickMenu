@@ -45,15 +45,17 @@ const REMOTE_URL = (async () => {
 	console.log('Using browserstack remote');
 	return 'http://hub-cloud.browserstack.com/wd/hub';
 })();
-const REMOTE_PW = (() => {
+const REMOTE_PW = (async () => {
 	if (hasSetting('remote-pw')) {
 		return getSetting('remote-pw');
 	}
-	if (process.env.REMOTE_PW) {
-		console.log('Using custom remote PW');
-		return process.env.REMOTE_PW;
-	}
-	return 'PW';
+	if (process.env.REMOTE_PW && 
+		process.env.REMOTE_URL && 
+		await ping(process.env.REMOTE_URL)) {
+			console.log('Using custom remote PW');
+			return process.env.REMOTE_PW;
+		}
+	return undefined;
 })();
 
 const SKIP_ENTRYPOINTS = hasSetting('skip-entrypoints');
@@ -419,7 +421,6 @@ before('Driver connect', async function() {
 				await tryReadManifest('app/manifest.json') ||
 				await tryReadManifest('app/manifest.chrome.json')
 			).version} - ${await getGitHash()}`,
-			pw: REMOTE_PW,
 			name: (() => {
 				if (process.env.TRAVIS) {
 					// Travis
@@ -433,7 +434,9 @@ before('Driver connect', async function() {
 				}`
 			})(),
 			'browserstack.local': !TEST_EXTENSION
-		}}).merge(additionalCapabilities));
+		}, ...(await REMOTE_PW) ? {
+			pw: await REMOTE_PW,
+		} : {}}).merge(additionalCapabilities));
 	if (TEST_LOCAL) {
 		driver = unBuilt.forBrowser('chrome').build();
 	} else {
