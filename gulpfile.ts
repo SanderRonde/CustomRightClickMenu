@@ -2880,6 +2880,85 @@ class Tasks {
 		return Distribution;
 	})();
 
+	@group('polymerConversion')
+	static PolymerConversion = (() => {
+		/**
+		 * Get a list of polymer components from the
+		 * package.json file. Not all elements in
+		 * node_modules/@polymer should be converted
+		 */
+		async function getComponents() {
+			const file = (await fs.readFile(
+				path.join(__dirname, 'package.json'))).toString();
+			return Object.getOwnPropertyNames(JSON.parse(file).devDependencies)
+				.filter(name => name.startsWith('@polymer/'));
+		}
+
+		/**
+		 * Resolves imports of the type:
+		 * ```js
+		 * import '@polymer/xxx/yyy'
+		 * ```
+		 */
+		async function resolveGlobalImports(file: string, cwd: string) {
+			const imports = file.match(/import ['"](.*)['"]/g);
+			for (const fileImport of imports) {
+				const [ , importPath ] = /import ['"](.*)['"]/.exec(fileImport);
+				console.log(importPath);
+			}
+		}
+
+		/**
+		 * Resolves imports of the type:
+		 * ```js
+		 * import { zzz } from '@polymer/xxx/yyy';
+		 * ```
+		 */
+		async function resolveVarImports(file: string, cwd: string) {
+			const imports = file.match(/import\s+{\s*(.*)\s*}\s*from\s*['"](.*)['"]/g);
+			for (const fileImport of imports) {
+				const [ , importValue, importPath ] = /import\s+{\s*(.*)\s*}\s*from\s*['"](.*)['"]/
+					.exec(fileImport);
+				console.log(importValue, importPath);
+			}
+		}
+
+		function getComponentFile(componentPath: string) {
+			if (componentPath.endsWith('.js')) {
+				return componentPath;
+			}
+			return `${componentPath}/${componentPath.split(/[/\\/]/).pop()}.js`;
+		}
+
+		/**
+		 * Converts component with given name
+		 */
+		async function convertComponent(componentPath: string, cwd: string = 'node_modules/') {
+			// Read the file
+			const file = (await fs.readFile(path.join(
+				cwd, getComponentFile(componentPath)))).toString();
+			cwd = path.join(cwd, path.dirname(getComponentFile(componentPath)));
+
+			// Resolve all imports first
+			await resolveGlobalImports(file, cwd);
+			await resolveVarImports(file, cwd);
+		}
+
+		class PolymerConversion {
+			@rootTask('convertPolymerComponents',
+				'Converts all polymer-style components in ' +
+				'the package.json file to' +
+				'wclib style components')
+			static async convertPolymerComponents() {
+				const components = await getComponents();
+				console.log(components);
+
+				await Promise.all(components.map(c => convertComponent(c)));
+			}
+		}
+		return PolymerConversion;
+	})();
+
 	@group('meta')
 	static Meta = (() => {
 		/**
