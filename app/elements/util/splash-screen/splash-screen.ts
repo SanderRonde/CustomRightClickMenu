@@ -90,10 +90,13 @@ namespace SplashScreenElement {
 			const progress = Math.round((registered / this._settings.max) * 100) / 100;
 			this.setProgress(progress);
 
-			if (registered >= this._settings.max) {
-				this.async(() => {
-					this.finish();
-					resolve(null);
+			if (registered >= this._settings.max && !this.finished) {
+				this.async(async () => {
+					await window.__.ready;
+					this.async(() => {
+						this.finish();
+						resolve(null);
+					}, 250);
 				}, 500);
 			}
 		}
