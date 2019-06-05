@@ -124,6 +124,7 @@ export interface BrowserstackCapabilities {
 	'browserstack.localIdentifier'?: any;	
 	'browserstack.console'?: string;
 	'browserstack.networkLogs'?: boolean;
+	'browserstack.noPipeline'?: string;
 }
 
 export function wait<T>(time: number, resolveParam: T): webdriver.promise.Promise<T>;
