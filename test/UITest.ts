@@ -42,7 +42,9 @@ const REMOTE_URL = (async () => {
 		console.log('Using custom remote URL');
 		return process.env.REMOTE_URL;
 	}
-	console.log('Using browserstack remote');
+	if (!TEST_LOCAL_DEFAULT) {
+		console.log('Using browserstack remote');
+	}
 	return 'http://hub-cloud.browserstack.com/wd/hub';
 })();
 const REMOTE_PW = (async () => {
