@@ -671,4 +671,7 @@ export type LocaleSpec = {
 			"title": I18NMessage
 		}
 	}
+	"splashScreen": {
+		"ready": I18NMessage;
+	}
 }

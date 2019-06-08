@@ -3259,5 +3259,11 @@ export const Messages: LocaleSpec = {
 				}
 			}
 		}
+	},
+	splashScreen: {
+		ready: {
+			message: 'ready',
+			description: 'This should always be "ready" in any language'
+		}
 	}
 }

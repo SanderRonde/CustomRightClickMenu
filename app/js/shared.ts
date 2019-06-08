@@ -495,7 +495,8 @@ export type SharedWindow = Window & {
 	
 			async __(key: string, ...replacements: (string|number)[]): Promise<string> {
 				await this.ready;
-				return this._getMessage(key, ...replacements.map(s => s + ''));
+				const msg = this._getMessage(key, ...replacements.map(s => s + ''));
+				return msg;
 			}
 
 			addLoadListener(fn: I18NElement) {
