@@ -174,8 +174,7 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-			'browserstack.noPipeline' : 'true'
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		} as BrowserstackCapabilities;
 	}
 	if (arrContains<string>(process.argv, str => str.indexOf('--chrome-') > -1)) {
@@ -193,8 +192,7 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-			'browserstack.noPipeline' : 'true'
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
 	if (process.argv.indexOf('--firefox-quantum') > -1) {
@@ -210,8 +208,7 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-			'browserstack.noPipeline' : 'true'
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
 	if (process.argv.indexOf('--firefox-latest') > -1) {
@@ -226,8 +223,7 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-			'browserstack.noPipeline' : 'true'
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
 	if (arrContains<string>(process.argv, str => str.indexOf('--firefox-') > -1)) {
@@ -245,8 +241,7 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-			'browserstack.noPipeline' : 'true'
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
 	if (process.argv.indexOf('--edge-latest') > -1) {
@@ -261,8 +256,7 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-			'browserstack.noPipeline' : 'true'
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
 	if (arrContains<string>(process.argv, str => str.indexOf('--edge-') > -1)) {
@@ -280,8 +274,7 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-			'browserstack.noPipeline' : 'true'
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
 	if (process.argv.indexOf('--opera-latest') > -1) {
@@ -296,8 +289,7 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-			'browserstack.noPipeline' : 'true'
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
 	if (arrContains<string>(process.argv, str => str.indexOf('--opera-') > -1)) {
@@ -315,8 +307,7 @@ function getCapabilities(): BrowserstackCapabilities {
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-			'browserstack.noPipeline' : 'true'
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		}
 	}
 	if (TEST_LOCAL) {
