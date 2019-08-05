@@ -207,11 +207,11 @@ app-header {
 }
 
 paper-dialog {
-	z-index: 10000!important;
+	z-index: auto;
 }
 
 iron-overlay-backdrop {
-	z-index: 9995 !important;
+	z-index: auto;
 }
 
 #addLibraryManualInput textarea {
