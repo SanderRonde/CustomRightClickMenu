@@ -10,6 +10,7 @@ branches:
   - beta
   - reset
   - polymer-2
+  - crm-polymer
 stages:
 - build
 - test

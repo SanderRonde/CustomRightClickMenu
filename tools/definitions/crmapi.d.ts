@@ -3161,6 +3161,24 @@ declare namespace CRM {
 			GM: GM_Fns;
 
 			/**
+			 * Fetches resource at given url. If this keeps failing with
+			 * a CORB error, try crmAPI.fetchBackground
+			 * 
+			 * @param {string} url - The url to fetch the data from
+			 * @returns {Promise<string>} A promise that resolves to the content
+			 */
+			fetch(url: string): Promise<string>;
+
+ 			/**
+			 * Fetches resource at given url through the background-page, bypassing
+			 * any CORS or CORB-like blocking
+			 * 
+			 * @param {string} url - The url to fetch the data from
+			 * @returns {Promise<string>} A promise that resolves to the content
+			 */
+			fetchBackground(url: string): Promise<string>
+
+			/**
 			 * Logs given arguments to the background page and logger page
 			 * 
 			 * @param {any[]} argument - An argument to pass (can be as many as you want)

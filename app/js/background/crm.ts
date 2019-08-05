@@ -2600,7 +2600,7 @@ export namespace CRMNodes {
 			toUpdate
 		});
 	}
-	export async function updateCRMValues() {
+	async function _assertItemIds() {
 		const crmBefore = JSON.stringify(modules.storages.settingsStorage.crm);
 		await modules.Util.crmForEachAsync(modules.storages.settingsStorage.crm, async (node) => {
 			if (!node.id && node.id !== 0) {
@@ -2608,14 +2608,56 @@ export namespace CRMNodes {
 			}
 		});
 
-		const match = crmBefore === JSON.stringify(modules.storages.settingsStorage.crm);
+		return crmBefore !== JSON.stringify(modules.storages.settingsStorage.crm);
+	}
+	function _assertCRMNodeShape(node: CRM.Node): boolean {
+		let changed = false;
+		if (node.type !== 'menu') {
+			return false;
+		}
+		if (!node.children) {
+			node.children = [];
+			changed = true;
+		}
+		for (let i = node.children.length - 1; i >= 0; i--) {
+			if (!node.children[i]) {
+				// Remove dead children
+				node.children.splice(i, 1);
+				changed = true;
+			}
+		}
+		for (const child of node.children) {
+			// Put the function first to make sure it's executed
+			// even when changed is true
+			changed = _assertCRMNodeShape(child) || changed;
+		}
+		return changed;
+	}
+	function _assertCRMShape(crm: CRM.Tree) {
+		let changed = false;
+		for (let i = 0; i < crm.length; i++) {
+			// Put the function first to make sure it's executed
+			// even when changed is true
+			changed = _assertCRMNodeShape(crm[i]) || changed;
+		}
+		return changed;
+	}
+	export async function updateCRMValues() {
+		let changed = await _assertItemIds();
+		changed = _assertCRMShape(modules.storages.settingsStorage.crm) || changed;
+
+		await modules.Util.crmForEachAsync(modules.storages.settingsStorage.crm, async (node) => {
+			if (!node.id && node.id !== 0) {
+				node.id = await modules.Util.generateItemId();
+			}
+		});
 
 		modules.crm.crmTree = modules.storages.settingsStorage.crm;
 		modules.crm.safeTree = buildSafeTree(modules.storages.settingsStorage.crm);
 		buildNodePaths(modules.crm.crmTree);
 		buildByIdObjects();
 
-		if (!match) {
+		if (changed) {
 			await modules.Storages.uploadChanges('settings', [{
 				key: 'crm',
 				newValue: JSON.parse(JSON.stringify(modules.crm.crmTree)),
@@ -2681,10 +2723,15 @@ export namespace CRMNodes {
 		return new Promise<void>((resolve) => {
 			modules.crmValues.nodeTabStatuses = new window.Map();
 			browserAPI.contextMenus.removeAll().then(async () => {
+				const contexts: CRM.ContentTypes[] = [];
+				modules.Util.crmForEach(modules.crm.crmTree, (node) => {
+					contexts.push(node.onContentTypes || [false, false, false, false, false, false]);
+				});
+
 				const done = await modules.Util.lock(modules.Util.LOCK.ROOT_CONTEXTMENU_NODE);
 				modules.crmValues.rootId = await browserAPI.contextMenus.create({
 					title: modules.storages.settingsStorage.rootName || 'Custom Menu',
-					contexts: ['all']
+					contexts: CRMNodes.getJoinedContexts(contexts)
 				});
 				done();
 				modules.toExecuteNodes = {
@@ -2765,6 +2812,24 @@ export namespace CRMNodes {
 			newContexts.push('editable');
 		}
 		return newContexts;
+	}
+	export function getJoinedContexts(contexts: CRM.ContentTypes[]): _browser.contextMenus.ContextType[] {
+		const newContexts: {
+			[key: string]: boolean;
+		} = {};
+		newContexts['browser_action'] = true;
+		const textContexts = modules.constants.contexts;
+		for (const context of contexts) {
+			for (let i = 0; i < 6; i++) {
+				if (context[i]) {
+					newContexts[textContexts[i]] = true;
+				}
+			}
+			if (context[0]) {
+				newContexts['editable'] = true;
+			}
+		}
+		return Object.getOwnPropertyNames(newContexts) as _browser.contextMenus.ContextType[];
 	}
 	export async function converToLegacy(): Promise<{
 		[key: number]: string;

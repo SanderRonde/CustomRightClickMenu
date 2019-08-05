@@ -6,7 +6,6 @@ const fs = require('fs');
 		'resources/buildresources/edge_secrets.json'))) {
 			process.exit(0);
 		} else {
-			console.log('Edge secrets not present, skipping edge packaging');
 			process.exit(1);
 		}
 })();
