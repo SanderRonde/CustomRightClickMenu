@@ -1,4 +1,4 @@
-﻿/// <reference path="../../elements.d.ts" />
+/// <reference path="../../elements.d.ts" />
 
 import { CodeEditBehaviorScriptInstance, CodeEditBehaviorStylesheetInstance, CodeEditBehavior } from "../editpages/code-edit-pages/code-edit-behavior";
 import { DividerEdit } from '../editpages/divider-edit/divider-edit';
@@ -143,6 +143,7 @@ namespace NodeEditBehaviorNamespace {
 			}
 
 			window.app.templates.mergeObjectsWithoutAssignment(resultStorage, newSettings);
+			window.app.templates.mergeObjectsWithoutAssignment(itemInEditPage.item, newSettings);
 
 			if (usesDefaultStorage) {
 				window.app.upload();
