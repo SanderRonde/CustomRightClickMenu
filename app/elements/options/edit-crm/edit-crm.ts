@@ -535,8 +535,9 @@ namespace EditCrmElement {
 						}
 
 						//Get the current column
-						const newColumn = (event.item.parentNode as CRMColumnElement).index;
-						const index = event.newIndex;
+						const parentNode = event.item.parentNode as CRMColumnElement;
+						const newColumn = parentNode.index;
+						const index = Math.min(event.newIndex, parentNode.items.length - 1);
 
 						//Upload changes
 						window.app.crm.move(event.item.item.path, 
