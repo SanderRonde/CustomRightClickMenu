@@ -1,4 +1,4 @@
-﻿declare const browserAPI: browserAPI;
+declare const browserAPI: browserAPI;
 
 (() => {
 	function hacksecuteScript(script: string) {
@@ -117,7 +117,8 @@
 					responseObj.srcElement = contextElementId as Element & number;
 					(lastContextmenuCall.target as HTMLElement).classList.add('crm_element_identifier_' + ++contextElementId);
 					responseObj.target = contextElementId as Element & number;
-					lastContextmenuCall.toElement.classList.add('crm_element_identifier_' + ++contextElementId);
+					lastContextmenuCall.toElement && 
+						lastContextmenuCall.toElement.classList.add('crm_element_identifier_' + ++contextElementId);
 					responseObj.toElement = contextElementId as Element & number;
 					respond(responseObj);
 				}
