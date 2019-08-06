@@ -1,4 +1,4 @@
-declare const browserAPI: browserAPI;
+﻿declare const browserAPI: browserAPI;
 
 (() => {
 	function hacksecuteScript(script: string) {
@@ -104,7 +104,7 @@ declare const browserAPI: browserAPI;
 					if (CONTEXT_MENU_EVENT_KEYS.indexOf(key) !== -1) {
 						const pointerKey = key as keyof MouseEvent;
 						if (pointerKey !== 'button') {
-							responseObj[pointerKey] = lastContextmenuCall[pointerKey];
+							(responseObj as any)[pointerKey] = lastContextmenuCall[pointerKey];
 						}
 					}
 				}

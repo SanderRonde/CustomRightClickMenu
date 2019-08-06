@@ -2257,12 +2257,12 @@ namespace MonacoEditorElement {
 						mainObject[key] !== undefined &&
 						mainObject[key] !== null) {
 						if (Array.isArray(additions[key])) {
-							mainObject[key] = this._mergeArrays(mainObject[key], additions[key]);
+							mainObject[key] = this._mergeArrays(mainObject[key], additions[key] as any);
 						} else {
-							mainObject[key] = this._mergeObjects(mainObject[key], additions[key]);
+							mainObject[key] = this._mergeObjects(mainObject[key], additions[key] as any);
 						}
 					} else {
-						mainObject[key] = (additions[key] as any) as T[keyof T];
+						mainObject[key] = (additions[key] as any) as any;
 					}
 				}
 			}

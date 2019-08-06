@@ -1,4 +1,4 @@
-/// <reference path="../../elements.d.ts" />
+﻿/// <reference path="../../elements.d.ts" />
 
 import { CodeEditBehaviorScriptInstance, CodeEditBehaviorStylesheetInstance, CodeEditBehavior } from "../editpages/code-edit-pages/code-edit-behavior";
 import { DividerEdit } from '../editpages/divider-edit/divider-edit';
@@ -406,7 +406,7 @@ namespace NodeEditBehaviorNamespace {
 				delete item.children;
 			} else {
 				item[prevType + 'Val' as ('menuVal'|'linkVal'|'scriptVal'|'stylesheetVal')] =
-					item.value;
+					item.value as any;
 			}
 			item.type = this.item.type = type;
 			if (type === 'menu') {
@@ -555,6 +555,7 @@ namespace NodeEditBehaviorNamespace {
 
 		static _init(this: NodeEditBehaviorInstance) {
 			this.newSettings = JSON.parse(JSON.stringify(this.item));
+			console.log('Setting new settings to', this.newSettings);
 			window.crmEditPage.nodeInfo = this.newSettings.nodeInfo;
 			this.assignContentTypeSelectedValues();
 			setTimeout(() => {

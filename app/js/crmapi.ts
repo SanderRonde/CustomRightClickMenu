@@ -3787,8 +3787,8 @@ export type CRMAPIMessage = {
 				hold && length--;
 				let dataChild: T|U = data;
 				for (let i = 0; i < length; i++) {
-					if (!(dataChild as T)[path[i]] && (i + 1) !== length) {
-						(dataChild as T)[path[i]] = {} as T|U;
+					if (!(dataChild as T)[path[i] as keyof T] && (i + 1) !== length) {
+						(dataChild as T)[path[i] as any] = {} as T|U;
 					}
 					dataChild = (dataChild as T)[path[i]];
 				}
@@ -3830,12 +3830,12 @@ export type CRMAPIMessage = {
 						if (typeof additions[key] === 'object' &&
 							key in mainObject) {
 							if (Array.isArray(additions[key])) {
-								mainObject[key] = this.mergeArrays(mainObject[key], additions[key]);
+								mainObject[key] = this.mergeArrays(mainObject[key], additions[key] as any);
 							} else {
 								mainObject[key] = this.mergeObjects(mainObject[key], additions[key] as any);
 							}
 						} else {
-							mainObject[key] = additions[key]
+							mainObject[key] = additions[key] as any;
 						}
 					}
 				}
