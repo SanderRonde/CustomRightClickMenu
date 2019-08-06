@@ -303,7 +303,8 @@ export namespace Global {
 												},
 												set: function(value) {
 													tempWrapper[prop] = value;
-												}
+												},
+												configurable: true
 											});
 										}
 									})(prop);
