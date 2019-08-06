@@ -25,6 +25,9 @@ namespace BrowserAPINS {
 		chrome: typeof _chrome;
 		StyleMedia?: any;
 	}
+
+	declare const browser: any;
+
 	// Chrome uses callback-style APIs under the "chrome" global
 	// ^ Same for opera ^
 	// Edge uses callback-style APIs under the "browser" global
@@ -34,8 +37,9 @@ namespace BrowserAPINS {
 	// So if browser is Edge, use "browser", otherwise use "chrome" if available
 	// 	to ensure always always getting callback-style APIs
 	const apisWindow = window as AllBrowserAPIsWindow;
-	const __srcBrowser: typeof _chrome = apisWindow.StyleMedia ?
-		(apisWindow.browser as any) : apisWindow.chrome;
+	const __srcBrowser: typeof _chrome = (apisWindow.StyleMedia ?
+		(apisWindow.browser as any) : apisWindow.chrome) || 
+			(typeof browser !== 'undefined' && browser) || apisWindow.chrome;
 	function checkReject(reject: (err: _chrome.runtime.LastError) => void) {
 		if (__srcBrowser.runtime.lastError) {
 			reject(__srcBrowser.runtime.lastError);
