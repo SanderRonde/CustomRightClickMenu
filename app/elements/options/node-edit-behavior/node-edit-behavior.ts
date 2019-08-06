@@ -555,7 +555,6 @@ namespace NodeEditBehaviorNamespace {
 
 		static _init(this: NodeEditBehaviorInstance) {
 			this.newSettings = JSON.parse(JSON.stringify(this.item));
-			console.log('Setting new settings to', this.newSettings);
 			window.crmEditPage.nodeInfo = this.newSettings.nodeInfo;
 			this.assignContentTypeSelectedValues();
 			setTimeout(() => {
