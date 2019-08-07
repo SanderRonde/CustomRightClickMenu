@@ -1029,21 +1029,23 @@ function readFile(filePath, options) {
 		});
 	}
 
-	async function runCmd(cmd, cwd = __dirname) {
-		return new Promise((resolve, reject) => {
-			// @ts-ignore
-			const proc = childProcess.exec(cmd, {
-				cwd: cwd
-			// @ts-ignore
-			}, (err, stdout, stderr) => {
-				if (err !== null) {
-					reject(err);
-				} else {
-					resolve();
-				}
+	async function runCmd(cmd, cwd = __dirname,
+		allowFailure = false) {
+			return new Promise((resolve, reject) => {
+				// @ts-ignore
+				const proc = childProcess.exec(cmd, {
+					cwd: cwd
+				// @ts-ignore
+				}, (err, stdout, stderr) => {
+					if (err !== null && !allowFailure) {
+						console.log(stdout, stderr);
+						reject(err);
+					} else {
+						resolve();
+					}
+				});
 			});
-		});
-	}
+		}
 
 	// @ts-ignore
 	function promisePipe(pipe) {
@@ -1082,7 +1084,7 @@ function readFile(filePath, options) {
 		await runCmd('npm install', cwd);
 
 		console.log('Running post install hook');
-		await runCmd('grunt default --force', cwd);
+		await runCmd('tsc --project .', cwd, true);
 
 		console.log('Installing this extension\'s typescript version in cloned typedoc');
 		await runCmd(`npm install --save typescript@${tsVersion}`, cwd);
