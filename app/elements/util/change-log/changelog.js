@@ -191,6 +191,15 @@
 		],
 		'2.2.7': [
 			'Fix more dragging issues'
+		],
+		'2.2.8': [
+			'Fix issue with scripts not working in Firefox',
+			'Fix issue with names seemingly not changing',
+			'Fix dragging issues in Firefox',
+			'Fix issue with dialogs popping behind overlay in Firefox',
+			'Hide root node when empty',
+			'Add another CRM API function (crmAPI.fetchBackground) that can do a fetch' +
+				' without running into [CORB](https://www.chromestatus.com/feature/5629709824032768) issues'
 		]
 	};
 
