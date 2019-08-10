@@ -1,0 +1,141 @@
+{
+	"manifest_version": 2,
+
+	"author": "Sander Ronde",
+	"options_page": "html/options.html",
+	"name": "Custom Right-Click Menu for Microsoft Edge",
+	"description": "Create a custom right-click menu and choose the links and scripts you want in it.",
+	"version": "2.2.8",
+	"short_name": "CRM",
+	"default_locale": "en",
+
+	"background": {
+		"page": "html/background.html",
+		"persistent": true
+	},
+
+	"content_scripts": [
+		{
+			"matches": [ "<all_urls>" ],
+			"js": [ "js/polyfills/browser.js", "js/contentscripts/contentscript.js" ]
+		}, {
+			"matches": ["http://userstyles.org/*", "https://userstyles.org/*"],
+			"run_at": "document_start",
+			"all_frames": true,
+			"js": [ "js/polyfills/browser.js", "js/contentscripts/userstyles.js" ]
+		  }, {
+			"matches": ["https://openusercss.org/*", "https://openusercss.com/*"],
+			"run_at": "document_start",
+			"all_frames": false,
+			"js": [ "js/polyfills/browser.js", "js/contentscripts/openusercss.js" ]
+		  }, {
+			"matches": ["<all_urls>"],
+			"include_globs": ["*.user.css", "*.user.style"],
+			"run_at": "document_idle",
+			"all_frames": false,
+			"js": [ "js/polyfills/browser.js", "js/contentscripts/usercss.js" ]
+		  }
+	],
+
+	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
+
+	"permissions": [
+		"<all_urls>",
+		"activeTab",
+		"contextMenus",
+		"storage",
+		"tabs",
+		"management",
+		"unlimitedStorage",
+		"webRequest",
+		"webRequestBlocking"
+	],
+
+	"web_accessible_resources": [
+		"js/jquery-2.0.3.js",
+		"js/crmapi.js",
+		"html/install.html",
+		"html/logging.html"
+	],
+
+	"optional_permissions": [
+		"alarms",
+		"background",
+		"bookmarks",
+		"browsingData",
+		"clipboardRead",
+		"clipboardWrite",
+		"contentSettings",
+		"cookies",
+		"declarativeContent",
+		"desktopCapture",
+		"downloads",
+		"history",
+		"identity",
+		"idle",
+		"notifications",
+		"pageCapture",
+		"power",
+		"printerProvider",
+		"privacy",
+		"sessions",
+		"system.cpu",
+		"system.memory",
+		"system.storage",
+		"topSites",
+		"tabCapture",
+		"tts",
+		"webNavigation"
+	],
+
+	"commands": {
+		"crm_command_01": {
+			"description": "CRM Keyboard Shortcut number 1",
+			"global": true
+		},
+		"crm_command_02": {
+			"description": "CRM Keyboard Shortcut number 2",
+			"global": true
+		},
+		"crm_command_03": {
+			"description": "CRM Keyboard Shortcut number 3",
+			"global": true
+		},
+		"crm_command_04": {
+			"description": "CRM Keyboard Shortcut number 4",
+			"global": true
+		},
+		"crm_command_05": {
+			"description": "CRM Keyboard Shortcut number 5",
+			"global": true
+		},
+		"crm_command_06": {
+			"description": "CRM Keyboard Shortcut number 6",
+			"global": true
+		},
+		"crm_command_07": {
+			"description": "CRM Keyboard Shortcut number 7",
+			"global": true
+		},
+		"crm_command_08": {
+			"description": "CRM Keyboard Shortcut number 8",
+			"global": true
+		},
+		"crm_command_09": {
+			"description": "CRM Keyboard Shortcut number 9",
+			"global": true
+		},
+		"crm_command_10": {
+			"description": "CRM Keyboard Shortcut number 10",
+			"global": true
+		}
+	},
+
+	"incognito": "spanning",
+
+	"icons": {
+		"16": "icon-supersmall.png",
+		"48": "icon-small.png",
+		"128": "icon-large.png"
+	}
+}

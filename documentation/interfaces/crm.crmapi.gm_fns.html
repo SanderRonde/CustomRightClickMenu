@@ -1,0 +1,1615 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>GM_Fns | CRM API</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" href="favicon.ico" type="image/x-icon" />
+	<link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.js" data-base="..">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="../index.html" class="title">CRM API</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="../index.html">CRM</a>
+				</li>
+				<li>
+					<a href="../modules/crm.crmapi.html">CRMAPI</a>
+				</li>
+				<li>
+					<a href="crm.crmapi.gm_fns.html">GM_Fns</a>
+				</li>
+			</ul>
+			<h1>Interface GM_Fns</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>The GM API that fills in any APIs that GreaseMonkey uses and points them to their
+							CRM counterparts
+							Documentation can be found here <a href="http://wiki.greasespot.net/Greasemonkey_Manual:API">http://wiki.greasespot.net/Greasemonkey_Manual:API</a>
+						and here <a href="http://tampermonkey.net/documentation.php">http://tampermonkey.net/documentation.php</a></p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">GM_Fns</span>
+						<ul class="tsd-hierarchy">
+							<li>
+								<a href="" class="tsd-signature-type">Window</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section tsd-is-not-exported">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_gettab" class="tsd-kind-icon">GM_<wbr>get<wbr>Tab</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_gettabs" class="tsd-kind-icon">GM_<wbr>get<wbr>Tabs</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_installscript" class="tsd-kind-icon">GM_<wbr>install<wbr>Script</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_registermenucommand" class="tsd-kind-icon">GM_<wbr>register<wbr>Menu<wbr>Command</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_savetab" class="tsd-kind-icon">GM_<wbr>save<wbr>Tab</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_setclipboard" class="tsd-kind-icon">GM_<wbr>set<wbr>Clipboard</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_unregistermenucommand" class="tsd-kind-icon">GM_<wbr>unregister<wbr>Menu<wbr>Command</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#unsafewindow" class="tsd-kind-icon">unsafe<wbr>Window</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section tsd-is-not-exported">
+							<h3>Methods</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_addstyle" class="tsd-kind-icon">GM_<wbr>add<wbr>Style</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_addvaluechangelistener" class="tsd-kind-icon">GM_<wbr>add<wbr>Value<wbr>Change<wbr>Listener</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_deletevalue" class="tsd-kind-icon">GM_<wbr>delete<wbr>Value</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_download" class="tsd-kind-icon">GM_<wbr>download</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_getresourcestring" class="tsd-kind-icon">GM_<wbr>get<wbr>Resource<wbr>String</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_getresourceurl" class="tsd-kind-icon">GM_<wbr>get<wbr>ResourceURL</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_getvalue" class="tsd-kind-icon">GM_<wbr>get<wbr>Value</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_info" class="tsd-kind-icon">GM_<wbr>info</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_listvalues" class="tsd-kind-icon">GM_<wbr>list<wbr>Values</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_log" class="tsd-kind-icon">GM_<wbr>log</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_notification" class="tsd-kind-icon">GM_<wbr>notification</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_openintab" class="tsd-kind-icon">GM_<wbr>open<wbr>InTab</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_removevaluechangelistener" class="tsd-kind-icon">GM_<wbr>remove<wbr>Value<wbr>Change<wbr>Listener</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_setvalue" class="tsd-kind-icon">GM_<wbr>set<wbr>Value</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported"><a href="crm.crmapi.gm_fns.html#gm_xmlhttprequest" class="tsd-kind-icon">GM_<wbr>xmlhttp<wbr>Request</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group tsd-is-not-exported">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_gettab" class="tsd-anchor"></a>
+					<h3>GM_<wbr>get<wbr>Tab</h3>
+					<div class="tsd-signature tsd-kind-icon">GM_<wbr>get<wbr>Tab<span class="tsd-signature-symbol">:</span> <a href="../modules/crm.crmapi.html#instantcb" class="tsd-signature-type">InstantCB</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1618">tools/definitions/crmapi.d.ts:1618</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Please use the comms API instead of this one</p>
+						</div>
+						<dl class="tsd-comment-tags">
+							<dt>see</dt>
+							<dd><p><a href="https://tampermonkey.net/documentation.php#GM_getTab" class="external">https://tampermonkey.net/documentation.php#GM_getTab</a></p>
+							</dd>
+							<dt>param</dt>
+							<dd><p>A callback that is immediately called</p>
+							</dd>
+						</dl>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_gettabs" class="tsd-anchor"></a>
+					<h3>GM_<wbr>get<wbr>Tabs</h3>
+					<div class="tsd-signature tsd-kind-icon">GM_<wbr>get<wbr>Tabs<span class="tsd-signature-symbol">:</span> <a href="../modules/crm.crmapi.html#instantcb" class="tsd-signature-type">InstantCB</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1626">tools/definitions/crmapi.d.ts:1626</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Please use the comms API instead of this one</p>
+						</div>
+						<dl class="tsd-comment-tags">
+							<dt>see</dt>
+							<dd><p><a href="https://tampermonkey.net/documentation.php#GM_getTabs" class="external">https://tampermonkey.net/documentation.php#GM_getTabs</a></p>
+							</dd>
+							<dt>param</dt>
+							<dd><p>A callback that is immediately called</p>
+							</dd>
+						</dl>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_installscript" class="tsd-anchor"></a>
+					<h3>GM_<wbr>install<wbr>Script</h3>
+					<div class="tsd-signature tsd-kind-icon">GM_<wbr>install<wbr>Script<span class="tsd-signature-symbol">:</span> <a href="../modules/crm.crmapi.html#emptyfn" class="tsd-signature-type">EmptyFn</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1680">tools/definitions/crmapi.d.ts:1680</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>THIS FUNCTION DOES NOT WORK AND IS DEPRECATED</p>
+						</div>
+						<dl class="tsd-comment-tags">
+							<dt>see</dt>
+							<dd><p><a href="https://tampermonkey.net/documentation.php#GM_installScript" class="external">https://tampermonkey.net/documentation.php#GM_installScript</a></p>
+							</dd>
+							<dt>param</dt>
+							<dd><p>An argument that is ignored</p>
+							</dd>
+						</dl>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_registermenucommand" class="tsd-anchor"></a>
+					<h3>GM_<wbr>register<wbr>Menu<wbr>Command</h3>
+					<div class="tsd-signature tsd-kind-icon">GM_<wbr>register<wbr>Menu<wbr>Command<span class="tsd-signature-symbol">:</span> <a href="../modules/crm.crmapi.html#emptyfn" class="tsd-signature-type">EmptyFn</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1436">tools/definitions/crmapi.d.ts:1436</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>This is only here to prevent errors from occurring when calling any of these functions,
+							this function does nothing</p>
+						</div>
+						<dl class="tsd-comment-tags">
+							<dt>see</dt>
+							<dd><p><a href="https://tampermonkey.net/documentation.php#GM_registerMenuCommand" class="external">https://tampermonkey.net/documentation.php#GM_registerMenuCommand</a></p>
+							</dd>
+							<dt>param</dt>
+							<dd><p>An argument that is ignored</p>
+							</dd>
+						</dl>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_savetab" class="tsd-anchor"></a>
+					<h3>GM_<wbr>save<wbr>Tab</h3>
+					<div class="tsd-signature tsd-kind-icon">GM_<wbr>save<wbr>Tab<span class="tsd-signature-symbol">:</span> <a href="../modules/crm.crmapi.html#instantcb" class="tsd-signature-type">InstantCB</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1634">tools/definitions/crmapi.d.ts:1634</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Please use the comms API instead of this one, this one does nothing</p>
+						</div>
+						<dl class="tsd-comment-tags">
+							<dt>see</dt>
+							<dd><p><a href="https://tampermonkey.net/documentation.php#GM_saveTab" class="external">https://tampermonkey.net/documentation.php#GM_saveTab</a></p>
+							</dd>
+							<dt>param</dt>
+							<dd><p>A callback that is immediately called</p>
+							</dd>
+						</dl>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_setclipboard" class="tsd-anchor"></a>
+					<h3>GM_<wbr>set<wbr>Clipboard</h3>
+					<div class="tsd-signature tsd-kind-icon">GM_<wbr>set<wbr>Clipboard<span class="tsd-signature-symbol">:</span> <a href="../modules/crm.crmapi.html#emptyfn" class="tsd-signature-type">EmptyFn</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1454">tools/definitions/crmapi.d.ts:1454</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>This is only here to prevent errors from occurring when calling any of these functions,
+							this function does nothing</p>
+						</div>
+						<dl class="tsd-comment-tags">
+							<dt>see</dt>
+							<dd><p><a href="https://tampermonkey.net/documentation.php#GM_setClipboard" class="external">https://tampermonkey.net/documentation.php#GM_setClipboard</a></p>
+							</dd>
+							<dt>param</dt>
+							<dd><p>An argument that is ignored</p>
+							</dd>
+						</dl>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_unregistermenucommand" class="tsd-anchor"></a>
+					<h3>GM_<wbr>unregister<wbr>Menu<wbr>Command</h3>
+					<div class="tsd-signature tsd-kind-icon">GM_<wbr>unregister<wbr>Menu<wbr>Command<span class="tsd-signature-symbol">:</span> <a href="../modules/crm.crmapi.html#emptyfn" class="tsd-signature-type">EmptyFn</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1445">tools/definitions/crmapi.d.ts:1445</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>This is only here to prevent errors from occurring when calling any of these functions,
+							this function does nothing</p>
+						</div>
+						<dl class="tsd-comment-tags">
+							<dt>see</dt>
+							<dd><p><a href="https://tampermonkey.net/documentation.php#GM_unregisterMenuCommand" class="external">https://tampermonkey.net/documentation.php#GM_unregisterMenuCommand</a></p>
+							</dd>
+							<dt>param</dt>
+							<dd><p>An argument that is ignored</p>
+							</dd>
+						</dl>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="unsafewindow" class="tsd-anchor"></a>
+					<h3>unsafe<wbr>Window</h3>
+					<div class="tsd-signature tsd-kind-icon">unsafe<wbr>Window<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Window</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1642">tools/definitions/crmapi.d.ts:1642</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The unsafeWindow object provides full access to the pages javascript functions and variables.</p>
+						</div>
+						<dl class="tsd-comment-tags">
+							<dt>see</dt>
+							<dd><p><a href="https://tampermonkey.net/documentation.php#unsafeWindow" class="external">https://tampermonkey.net/documentation.php#unsafeWindow</a></p>
+							</dd>
+							<dt>type</dt>
+							<dd><p>Window</p>
+							</dd>
+						</dl>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group tsd-is-not-exported">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_addstyle" class="tsd-anchor"></a>
+					<h3>GM_<wbr>add<wbr>Style</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>add<wbr>Style<span class="tsd-signature-symbol">(</span>css<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1410">tools/definitions/crmapi.d.ts:1410</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This method adds a string of CSS to the document. It creates a new <code>style</code> element,
+									adds the given CSS to it, and inserts it into the <code>head</code>.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_addStyle" class="external">https://tampermonkey.net/documentation.php#GM_addStyle</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>css: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The CSS to put on the page</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_addvaluechangelistener" class="tsd-anchor"></a>
+					<h3>GM_<wbr>add<wbr>Value<wbr>Change<wbr>Listener</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>add<wbr>Value<wbr>Change<wbr>Listener<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, callback<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1577">tools/definitions/crmapi.d.ts:1577</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Adds a change listener to the storage and returns the listener ID.
+										&#39;name&#39; is the name of the observed variable. The &#39;remote&#39; argument
+										of the callback function shows whether this value was modified
+										from the instance of another tab (true) or within this script
+										instance (false). Therefore this functionality can be used by
+									scripts of different browser tabs to communicate with each other.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_addValueChangeListener" class="external">https://tampermonkey.net/documentation.php#GM_addValueChangeListener</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The name of the observed variable</p>
+									</div>
+								</li>
+								<li>
+									<h5>callback: <span class="tsd-signature-type">function</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>A callback in which the first argument is
+											the name of the observed, variable, the second one is the old value,
+											the third one is the new value and the fourth one is a boolean that
+										indicates whether the change was from a remote tab</p>
+									</div>
+									<ul class="tsd-parameters">
+										<li class="tsd-parameter-siganture">
+											<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, oldValue<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, newValue<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, remote<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+											</ul>
+											<ul class="tsd-descriptions">
+												<li class="tsd-description">
+													<h4 class="tsd-parameters-title">Parameters</h4>
+													<ul class="tsd-parameters">
+														<li>
+															<h5>key: <span class="tsd-signature-type">string</span></h5>
+														</li>
+														<li>
+															<h5>oldValue: <span class="tsd-signature-type">any</span></h5>
+														</li>
+														<li>
+															<h5>newValue: <span class="tsd-signature-type">any</span></h5>
+														</li>
+														<li>
+															<h5>remote: <span class="tsd-signature-type">boolean</span></h5>
+														</li>
+													</ul>
+													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+												</li>
+											</ul>
+										</li>
+									</ul>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+							<ul>
+								<li>The id of the listener, used for removing it</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_deletevalue" class="tsd-anchor"></a>
+					<h3>GM_<wbr>delete<wbr>Value</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>delete<wbr>Value<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1375">tools/definitions/crmapi.d.ts:1375</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This method deletes an existing name / value pair from storage.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_deleteValue" class="external">https://tampermonkey.net/documentation.php#GM_deleteValue</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Property name to delete.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_download" class="tsd-anchor"></a>
+					<h3>GM_<wbr>download</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>download<span class="tsd-signature-symbol">(</span>details<span class="tsd-signature-symbol">: </span><a href="crm.crmapi.downloadsettings.html" class="tsd-signature-type">DownloadSettings</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>download<span class="tsd-signature-symbol">(</span>url<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1602">tools/definitions/crmapi.d.ts:1602</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Downloads the file at given URL</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_GM_download" class="external">https://tampermonkey.net/documentation.php#GM_GM_download</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>details: <a href="crm.crmapi.downloadsettings.html" class="tsd-signature-type">DownloadSettings</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>A details object containing any data</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1610">tools/definitions/crmapi.d.ts:1610</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Downloads the file at given URL</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_GM_download" class="external">https://tampermonkey.net/documentation.php#GM_GM_download</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>url: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The URL</p>
+									</div>
+								</li>
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The name of the file after download</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_getresourcestring" class="tsd-anchor"></a>
+					<h3>GM_<wbr>get<wbr>Resource<wbr>String</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>get<wbr>Resource<wbr>String<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1401">tools/definitions/crmapi.d.ts:1401</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Gets the resource string for given resource name</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_getResourceString" class="external">https://tampermonkey.net/documentation.php#GM_getResourceString</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The name of the resource</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+							<ul>
+								<li>The resource value</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_getresourceurl" class="tsd-anchor"></a>
+					<h3>GM_<wbr>get<wbr>ResourceURL</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>get<wbr>ResourceURL<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1392">tools/definitions/crmapi.d.ts:1392</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Gets the resource URL for given resource name</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_getResourceURL" class="external">https://tampermonkey.net/documentation.php#GM_getResourceURL</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The name of the resource</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+							<ul>
+								<li>A URL that can be used to get the resource value</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter tsd-is-not-exported">
+					<a name="gm_getvalue" class="tsd-anchor"></a>
+					<h3>GM_<wbr>get<wbr>Value</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>get<wbr>Value&lt;T&gt;<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, defaultValue<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">T</span></li>
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>get<wbr>Value&lt;T&gt;<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, defaultValue<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>get<wbr>Value&lt;T&gt;<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, defaultValue<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1336">tools/definitions/crmapi.d.ts:1336</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This method retrieves a value that was set with GM_setValue. See GM_setValue
+									for details on the storage of these values.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_getValue" class="external">https://tampermonkey.net/documentation.php#GM_getValue</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>T</h4>
+								</li>
+							</ul>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The property name to get</p>
+									</div>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> defaultValue: <span class="tsd-signature-type">T</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">T</span></h4>
+							<ul>
+								<li>Returns the value if the value is defined, if it&#39;s undefined, returns defaultValue<pre><code>  <span class="hljs-keyword">when</span> defaultValue <span class="hljs-keyword">is</span> also <span class="hljs-literal">undefined</span>, returns <span class="hljs-literal">undefined</span></code></pre></li>
+							</ul>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1347">tools/definitions/crmapi.d.ts:1347</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This method retrieves a value that was set with GM_setValue. See GM_setValue
+									for details on the storage of these values.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_getValue" class="external">https://tampermonkey.net/documentation.php#GM_getValue</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>T</h4>
+								</li>
+							</ul>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The property name to get</p>
+									</div>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> defaultValue: <span class="tsd-signature-type">T</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+							<ul>
+								<li>Returns the value if the value is defined, if it&#39;s undefined, returns defaultValue<pre><code>  <span class="hljs-keyword">when</span> defaultValue <span class="hljs-keyword">is</span> also <span class="hljs-literal">undefined</span>, returns <span class="hljs-literal">undefined</span></code></pre></li>
+							</ul>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1358">tools/definitions/crmapi.d.ts:1358</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This method retrieves a value that was set with GM_setValue. See GM_setValue
+									for details on the storage of these values.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_getValue" class="external">https://tampermonkey.net/documentation.php#GM_getValue</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>T</h4>
+								</li>
+							</ul>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The property name to get</p>
+									</div>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> defaultValue: <span class="tsd-signature-type">T</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+							<ul>
+								<li>Returns the value if the value is defined, if it&#39;s undefined, returns defaultValue<pre><code>  <span class="hljs-keyword">when</span> defaultValue <span class="hljs-keyword">is</span> also <span class="hljs-literal">undefined</span>, returns <span class="hljs-literal">undefined</span></code></pre></li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_info" class="tsd-anchor"></a>
+					<h3>GM_<wbr>info</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>info<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="crm.crmapi.greasemonkeydatainfo.html" class="tsd-signature-type">GreaseMonkeyDataInfo</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1324">tools/definitions/crmapi.d.ts:1324</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns any info about the script</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_info" class="external">https://tampermonkey.net/documentation.php#GM_info</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-returns-title">Returns <a href="crm.crmapi.greasemonkeydatainfo.html" class="tsd-signature-type">GreaseMonkeyDataInfo</a></h4>
+							<ul>
+								<li>Data about the script</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_listvalues" class="tsd-anchor"></a>
+					<h3>GM_<wbr>list<wbr>Values</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>list<wbr>Values<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1383">tools/definitions/crmapi.d.ts:1383</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This method retrieves an array of storage keys that this script has stored.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_listValues" class="external">https://tampermonkey.net/documentation.php#GM_listValues</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string[]</span></h4>
+							<p>All keys of the storage</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_log" class="tsd-anchor"></a>
+					<h3>GM_<wbr>log</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>log<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1418">tools/definitions/crmapi.d.ts:1418</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Logs to the console</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_log" class="external">https://tampermonkey.net/documentation.php#GM_log</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>params: <span class="tsd-signature-type">any[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_notification" class="tsd-anchor"></a>
+					<h3>GM_<wbr>notification</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>notification<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><a href="crm.crmapi.notificationoptions.html" class="tsd-signature-type">NotificationOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>notification<span class="tsd-signature-symbol">(</span>text<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, title<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span>, image<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span>, onclick<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">Function</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1660">tools/definitions/crmapi.d.ts:1660</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Shows a HTML5 Desktop notification and/or highlight the current tab.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_notification" class="external">https://tampermonkey.net/documentation.php#GM_notification</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>options: <a href="crm.crmapi.notificationoptions.html" class="tsd-signature-type">NotificationOptions</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The message of the notification</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1670">tools/definitions/crmapi.d.ts:1670</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Shows a HTML5 Desktop notification and/or highlight the current tab.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_notification" class="external">https://tampermonkey.net/documentation.php#GM_notification</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>text: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The message of the notification</p>
+									</div>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> title: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> image: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> onclick: <a href="" class="tsd-signature-type">Function</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_openintab" class="tsd-anchor"></a>
+					<h3>GM_<wbr>open<wbr>InTab</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>open<wbr>InTab<span class="tsd-signature-symbol">(</span>url<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1427">tools/definitions/crmapi.d.ts:1427</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Open specified URL in a new tab, open_in_background is not available here since that
+									not possible in chrome</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_openInTab" class="external">https://tampermonkey.net/documentation.php#GM_openInTab</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>url: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The url to open</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_removevaluechangelistener" class="tsd-anchor"></a>
+					<h3>GM_<wbr>remove<wbr>Value<wbr>Change<wbr>Listener</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>remove<wbr>Value<wbr>Change<wbr>Listener<span class="tsd-signature-symbol">(</span>listenerId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1586">tools/definitions/crmapi.d.ts:1586</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Removes a change listener by its ID.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_removeValueChangeListener" class="external">https://tampermonkey.net/documentation.php#GM_removeValueChangeListener</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>listenerId: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The id of the listener</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_setvalue" class="tsd-anchor"></a>
+					<h3>GM_<wbr>set<wbr>Value</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>set<wbr>Value<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1367">tools/definitions/crmapi.d.ts:1367</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This method allows user script authors to persist simple values across page-loads.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_setValue" class="external">https://tampermonkey.net/documentation.php#GM_setValue</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The unique (within this script) name for this value. Should be restricted to valid Javascript identifier characters.</p>
+									</div>
+								</li>
+								<li>
+									<h5>value: <span class="tsd-signature-type">any</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The value to store</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+					<a name="gm_xmlhttprequest" class="tsd-anchor"></a>
+					<h3>GM_<wbr>xmlhttp<wbr>Request</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">GM_<wbr>xmlhttp<wbr>Request<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="" class="tsd-signature-type">XMLHttpRequest</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/SanderRonde/CustomRightClickMenu/blob/fbdfaf9/tools/definitions/crmapi.d.ts#L1482">tools/definitions/crmapi.d.ts:1482</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Sends an xmlhttpRequest with given parameters</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="https://tampermonkey.net/documentation.php#GM_xmlhttpRequest" class="external">https://tampermonkey.net/documentation.php#GM_xmlhttpRequest</a></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>options: <span class="tsd-signature-type">object</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The options</p>
+									</div>
+									<ul class="tsd-parameters">
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> anonymous<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>If true, sends no cookies along with the request</p>
+												</div>
+											</div>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> binary<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>Whether the data should be sent in binary mode</p>
+												</div>
+											</div>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> context<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>A property which will be applied to the response object</p>
+												</div>
+											</div>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> data<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>The data to send along</p>
+												</div>
+											</div>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> fetch<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>Use a fetch instead of an xhr</p>
+												</div>
+											</div>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> headers<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">object</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>The headers for the request</p>
+												</div>
+											</div>
+											<ul class="tsd-parameters">
+												<li class="tsd-parameter-index-signature">
+													<h5><span class="tsd-signature-symbol">[</span>headerKey: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">string</span></h5>
+												</li>
+											</ul>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> method<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>The method to use (GET, HEAD or POST)</p>
+												</div>
+											</div>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> onerror<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">function</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>A callback on that event</p>
+												</div>
+											</div>
+											<ul class="tsd-parameters">
+												<li class="tsd-parameter-siganture">
+													<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-variable tsd-is-not-exported">
+														<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>e<span class="tsd-signature-symbol">: </span><a href="" class="tsd-signature-type">Event</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+													</ul>
+													<ul class="tsd-descriptions">
+														<li class="tsd-description">
+															<h4 class="tsd-parameters-title">Parameters</h4>
+															<ul class="tsd-parameters">
+																<li>
+																	<h5>e: <a href="" class="tsd-signature-type">Event</a></h5>
+																</li>
+															</ul>
+															<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+														</li>
+													</ul>
+												</li>
+											</ul>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> onload<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">function</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>A callback on that event</p>
+												</div>
+											</div>
+											<ul class="tsd-parameters">
+												<li class="tsd-parameter-siganture">
+													<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-variable tsd-is-not-exported">
+														<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>e<span class="tsd-signature-symbol">: </span><a href="" class="tsd-signature-type">Event</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+													</ul>
+													<ul class="tsd-descriptions">
+														<li class="tsd-description">
+															<h4 class="tsd-parameters-title">Parameters</h4>
+															<ul class="tsd-parameters">
+																<li>
+																	<h5>e: <a href="" class="tsd-signature-type">Event</a></h5>
+																</li>
+															</ul>
+															<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+														</li>
+													</ul>
+												</li>
+											</ul>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> onloadstart<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">function</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>A callback on that event</p>
+												</div>
+											</div>
+											<ul class="tsd-parameters">
+												<li class="tsd-parameter-siganture">
+													<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-variable tsd-is-not-exported">
+														<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>e<span class="tsd-signature-symbol">: </span><a href="" class="tsd-signature-type">Event</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+													</ul>
+													<ul class="tsd-descriptions">
+														<li class="tsd-description">
+															<h4 class="tsd-parameters-title">Parameters</h4>
+															<ul class="tsd-parameters">
+																<li>
+																	<h5>e: <a href="" class="tsd-signature-type">Event</a></h5>
+																</li>
+															</ul>
+															<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+														</li>
+													</ul>
+												</li>
+											</ul>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> onprogress<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">function</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>A callback on that event</p>
+												</div>
+											</div>
+											<ul class="tsd-parameters">
+												<li class="tsd-parameter-siganture">
+													<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-variable tsd-is-not-exported">
+														<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>e<span class="tsd-signature-symbol">: </span><a href="" class="tsd-signature-type">Event</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+													</ul>
+													<ul class="tsd-descriptions">
+														<li class="tsd-description">
+															<h4 class="tsd-parameters-title">Parameters</h4>
+															<ul class="tsd-parameters">
+																<li>
+																	<h5>e: <a href="" class="tsd-signature-type">Event</a></h5>
+																</li>
+															</ul>
+															<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+														</li>
+													</ul>
+												</li>
+											</ul>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> onreadystatechange<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">function</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>A callback on that event</p>
+												</div>
+											</div>
+											<ul class="tsd-parameters">
+												<li class="tsd-parameter-siganture">
+													<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-variable tsd-is-not-exported">
+														<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>e<span class="tsd-signature-symbol">: </span><a href="" class="tsd-signature-type">Event</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+													</ul>
+													<ul class="tsd-descriptions">
+														<li class="tsd-description">
+															<h4 class="tsd-parameters-title">Parameters</h4>
+															<ul class="tsd-parameters">
+																<li>
+																	<h5>e: <a href="" class="tsd-signature-type">Event</a></h5>
+																</li>
+															</ul>
+															<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+														</li>
+													</ul>
+												</li>
+											</ul>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> ontimeout<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">function</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>A callback on that event</p>
+												</div>
+											</div>
+											<ul class="tsd-parameters">
+												<li class="tsd-parameter-siganture">
+													<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-variable tsd-is-not-exported">
+														<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>e<span class="tsd-signature-symbol">: </span><a href="" class="tsd-signature-type">Event</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+													</ul>
+													<ul class="tsd-descriptions">
+														<li class="tsd-description">
+															<h4 class="tsd-parameters-title">Parameters</h4>
+															<ul class="tsd-parameters">
+																<li>
+																	<h5>e: <a href="" class="tsd-signature-type">Event</a></h5>
+																</li>
+															</ul>
+															<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+														</li>
+													</ul>
+												</li>
+											</ul>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> override<wbr>Mime<wbr>Type<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>The MIME type to use</p>
+												</div>
+											</div>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> password<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>A password for authentication</p>
+												</div>
+											</div>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> response<wbr>Type<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>The type of response, arraybuffer, blob or json</p>
+												</div>
+											</div>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> timeout<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>The time to wait in ms</p>
+												</div>
+											</div>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> url<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>The url to request</p>
+												</div>
+											</div>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> username<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<div class="lead">
+													<p>A username for authentication</p>
+												</div>
+											</div>
+										</li>
+									</ul>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type">XMLHttpRequest</a></h4>
+							<p>The XHR</p>
+						</li>
+					</ul>
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="label tsd-is-external">
+						<span>Internals</span>
+					</li>
+					<li class="current tsd-kind-module tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../modules/crm.crmapi.html">CRM.CRMAPI</a>
+					</li>
+					<li class=" tsd-kind-module tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../modules/crm.scriptoptionsschema.html">CRM.<wbr>Script<wbr>Options<wbr>Schema</a>
+					</li>
+					<li class="label tsd-is-external">
+						<span>Externals</span>
+					</li>
+					<li class=" tsd-kind-module tsd-is-external tsd-is-not-exported">
+						<a href="../index.html">CRM</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="../classes/crm.crmapi.instance.html" class="tsd-kind-icon">Instance</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.browserrequest.html" class="tsd-kind-icon">Browser<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.browserrequestevent.html" class="tsd-kind-icon">Browser<wbr>Request<wbr>Event</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.browserrequestobj.html" class="tsd-kind-icon">Browser<wbr>Request<wbr>Obj</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.browserrequestreturn.html" class="tsd-kind-icon">Browser<wbr>Request<wbr>Return</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.crmquery.html" class="tsd-kind-icon">CRMQuery</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.chromerequestreturn.html" class="tsd-kind-icon">Chrome<wbr>Request<wbr>Return</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.clickdata.html" class="tsd-kind-icon">Click<wbr>Data</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.comminstance.html" class="tsd-kind-icon">Comm<wbr>Instance</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.contextdata.html" class="tsd-kind-icon">Context<wbr>Data</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.downloadsettings.html" class="tsd-kind-icon">Download<wbr>Settings</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.gmheaders.html" class="tsd-kind-icon">GMHeaders</a>
+					</li>
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.gm_fns.html" class="tsd-kind-icon">GM_<wbr><wbr>Fns</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_gettab" class="tsd-kind-icon">GM_<wbr>get<wbr>Tab</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_gettabs" class="tsd-kind-icon">GM_<wbr>get<wbr>Tabs</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_installscript" class="tsd-kind-icon">GM_<wbr>install<wbr>Script</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_registermenucommand" class="tsd-kind-icon">GM_<wbr>register<wbr>Menu<wbr>Command</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_savetab" class="tsd-kind-icon">GM_<wbr>save<wbr>Tab</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_setclipboard" class="tsd-kind-icon">GM_<wbr>set<wbr>Clipboard</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_unregistermenucommand" class="tsd-kind-icon">GM_<wbr>unregister<wbr>Menu<wbr>Command</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#unsafewindow" class="tsd-kind-icon">unsafe<wbr>Window</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_addstyle" class="tsd-kind-icon">GM_<wbr>add<wbr>Style</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_addvaluechangelistener" class="tsd-kind-icon">GM_<wbr>add<wbr>Value<wbr>Change<wbr>Listener</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_deletevalue" class="tsd-kind-icon">GM_<wbr>delete<wbr>Value</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_download" class="tsd-kind-icon">GM_<wbr>download</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_getresourcestring" class="tsd-kind-icon">GM_<wbr>get<wbr>Resource<wbr>String</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_getresourceurl" class="tsd-kind-icon">GM_<wbr>get<wbr>ResourceURL</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_getvalue" class="tsd-kind-icon">GM_<wbr>get<wbr>Value</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_info" class="tsd-kind-icon">GM_<wbr>info</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_listvalues" class="tsd-kind-icon">GM_<wbr>list<wbr>Values</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_log" class="tsd-kind-icon">GM_<wbr>log</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_notification" class="tsd-kind-icon">GM_<wbr>notification</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_openintab" class="tsd-kind-icon">GM_<wbr>open<wbr>InTab</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_removevaluechangelistener" class="tsd-kind-icon">GM_<wbr>remove<wbr>Value<wbr>Change<wbr>Listener</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_setvalue" class="tsd-kind-icon">GM_<wbr>set<wbr>Value</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-not-exported">
+								<a href="crm.crmapi.gm_fns.html#gm_xmlhttprequest" class="tsd-kind-icon">GM_<wbr>xmlhttp<wbr>Request</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.greasemonkeydata.html" class="tsd-kind-icon">Grease<wbr>Monkey<wbr>Data</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.greasemonkeydatainfo.html" class="tsd-kind-icon">Grease<wbr>Monkey<wbr>Data<wbr>Info</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.greasemonkeyoptions.html" class="tsd-kind-icon">Grease<wbr>Monkey<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.greasemonkeyscriptdata.html" class="tsd-kind-icon">Grease<wbr>Monkey<wbr>Script<wbr>Data</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.keypath.html" class="tsd-kind-icon">Key<wbr>Path</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.mutedinfo.html" class="tsd-kind-icon">Muted<wbr>Info</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.notificationoptions.html" class="tsd-kind-icon">Notification<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.relation.html" class="tsd-kind-icon">Relation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.resource.html" class="tsd-kind-icon">Resource</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+						<a href="crm.crmapi.tabdata.html" class="tsd-kind-icon">Tab<wbr>Data</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../modules/crm.crmapi.html#emptyfn" class="tsd-kind-icon">Empty<wbr>Fn</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../modules/crm.crmapi.html#instancecallback" class="tsd-kind-icon">Instance<wbr>Callback</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../modules/crm.crmapi.html#instancelistener" class="tsd-kind-icon">Instance<wbr>Listener</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../modules/crm.crmapi.html#instantcb" class="tsd-kind-icon">InstantCB</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../modules/crm.crmapi.html#messagehandler" class="tsd-kind-icon">Message<wbr>Handler</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../modules/crm.crmapi.html#nodeidassignable" class="tsd-kind-icon">Node<wbr>IdAssignable</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../modules/crm.crmapi.html#nodestorage" class="tsd-kind-icon">Node<wbr>Storage</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../modules/crm.crmapi.html#resources" class="tsd-kind-icon">Resources</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../modules/crm.crmapi.html#respondableinstancelistener" class="tsd-kind-icon">Respondable<wbr>Instance<wbr>Listener</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../modules/crm.crmapi.html#successfulinstancecallback" class="tsd-kind-icon">Successful<wbr>Instance<wbr>Callback</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../modules/crm.crmapi.html#unsuccessfulinstancecallback" class="tsd-kind-icon">Unsuccessful<wbr>Instance<wbr>Callback</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="http://typedoc.io" rel="noopener" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="../assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="../assets/js/search.js"><' + '/script>');</script>
+</body>
+</html>

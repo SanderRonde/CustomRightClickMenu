@@ -1,0 +1,120 @@
+{
+	"manifest_version": 2,
+
+	"options_ui": {
+		"page": "html/options.html",
+		"browser_style": true,
+		"open_in_tab": true
+	},
+	"name": "Custom Right-Click Menu",
+	"description": "Create a custom right-click menu and choose the links and scripts you want in it.",
+	"version": "2.2.8",
+	"short_name": "CRM",
+	"applications": {
+		"gecko": {
+			"strict_min_version": "57.0"
+		}
+	},
+	"default_locale": "en",
+
+	"background": {
+		"page": "html/background.html"
+	},
+
+	"content_scripts": [
+		{
+			"matches": [ "<all_urls>" ],
+			"js": [ "js/polyfills/browser.js", "js/contentscripts/contentscript.js" ]
+		}, {
+			"matches": ["http://userstyles.org/*", "https://userstyles.org/*"],
+			"run_at": "document_start",
+			"all_frames": true,
+			"js": [ "js/polyfills/browser.js", "js/contentscripts/userstyles.js" ]
+		  }, {
+			"matches": ["https://openusercss.org/*", "https://openusercss.com/*"],
+			"run_at": "document_start",
+			"all_frames": false,
+			"js": [ "js/polyfills/browser.js", "js/contentscripts/openusercss.js" ]
+		  }, {
+			"matches": ["<all_urls>"],
+			"include_globs": ["*.user.css", "*.user.style"],
+			"run_at": "document_idle",
+			"all_frames": false,
+			"js": [ "js/polyfills/browser.js", "js/contentscripts/usercss.js" ]
+		  }
+	],
+
+	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
+
+	"permissions": [
+		"<all_urls>",
+		"activeTab",
+		"contextMenus",
+		"storage",
+		"tabs",
+		"management",
+		"unlimitedStorage",
+		"webRequest",
+		"webRequestBlocking"
+	],
+
+	"web_accessible_resources": [
+		"js/jquery-2.0.3.js",
+		"js/crmapi.js",
+		"html/install.html",
+		"html/logging.html"
+	],
+
+	"optional_permissions": [
+		"bookmarks",
+		"clipboardRead",
+		"clipboardWrite",
+		"cookies",
+		"history",
+		"idle",
+		"notifications",
+		"topSites",
+		"webNavigation"
+	],
+
+	"commands": {
+		"crm_command_01": {
+			"description": "CRM Keyboard Shortcut number 1"
+		},
+		"crm_command_02": {
+			"description": "CRM Keyboard Shortcut number 2"
+		},
+		"crm_command_03": {
+			"description": "CRM Keyboard Shortcut number 3"
+		},
+		"crm_command_04": {
+			"description": "CRM Keyboard Shortcut number 4"
+		},
+		"crm_command_05": {
+			"description": "CRM Keyboard Shortcut number 5"
+		},
+		"crm_command_06": {
+			"description": "CRM Keyboard Shortcut number 6"
+		},
+		"crm_command_07": {
+			"description": "CRM Keyboard Shortcut number 7"
+		},
+		"crm_command_08": {
+			"description": "CRM Keyboard Shortcut number 8"
+		},
+		"crm_command_09": {
+			"description": "CRM Keyboard Shortcut number 9"
+		},
+		"crm_command_10": {
+			"description": "CRM Keyboard Shortcut number 10"
+		}
+	},
+
+	"incognito": "spanning",
+
+	"icons": {
+		"16": "icon-supersmall.png",
+		"48": "icon-small.png",
+		"128": "icon-large.png"
+	}
+}

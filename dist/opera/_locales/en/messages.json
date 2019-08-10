@@ -1,0 +1,1925 @@
+{
+	"generic_appTitle": {
+		"message": "Custom Right-Click Menu"
+	},
+	"generic_add": {
+		"message": "add"
+	},
+	"generic_dismiss": {
+		"message": "DISMISS"
+	},
+	"generic_undo": {
+		"message": "UNDO"
+	},
+	"generic_next": {
+		"message": "NEXT"
+	},
+	"generic_back": {
+		"message": "BACK"
+	},
+	"generic_confirm": {
+		"message": "Confirm"
+	},
+	"generic_previous": {
+		"message": "previous"
+	},
+	"generic_cancel": {
+		"message": "cancel"
+	},
+	"generic_save": {
+		"message": "save"
+	},
+	"generic_discard": {
+		"message": "discard"
+	},
+	"generic_no": {
+		"message": "no"
+	},
+	"generic_yes": {
+		"message": "yes"
+	},
+	"generic_close": {
+		"message": "close"
+	},
+	"generic_apply": {
+		"message": "apply"
+	},
+	"generic_all_capital": {
+		"message": "ALL"
+	},
+	"generic_tab": {
+		"message": "Tab"
+	},
+	"generic_tabIndex": {
+		"message": "TabIndex"
+	},
+	"generic_url": {
+		"message": "url"
+	},
+	"crmTypes_webpages": {
+		"message": "Webpages"
+	},
+	"crmTypes_weblinks": {
+		"message": "weblinks"
+	},
+	"crmTypes_selection": {
+		"message": "selection"
+	},
+	"crmTypes_images": {
+		"message": "images"
+	},
+	"crmTypes_videos": {
+		"message": "videos"
+	},
+	"crmTypes_audio": {
+		"message": "audio"
+	},
+	"crm_link": {
+		"message": "Link"
+	},
+	"crm_script": {
+		"message": "Script"
+	},
+	"crm_stylesheet": {
+		"message": "Stylesheet"
+	},
+	"crm_menu": {
+		"message": "Menu"
+	},
+	"crm_divider": {
+		"message": "Divider"
+	},
+	"crm_exampleLinkName": {
+		"message": "My Link"
+	},
+	"crm_exampleStylesheetName": {
+		"message": "My Stylesheet"
+	},
+	"crm_exampleScriptName": {
+		"message": "My Script"
+	},
+	"crm_exampleDividerName": {
+		"message": "My Divider"
+	},
+	"crm_exampleMenuName": {
+		"message": "My Menu"
+	},
+	"crm_node": {
+		"message": "node"
+	},
+	"crm_id": {
+		"message": "id"
+	},
+	"crm_idCapital": {
+		"message": "ID"
+	},
+	"permissions_alarms": {
+		"message": "Makes it possible to create, view and remove alarms."
+	},
+	"permissions_activeTab": {
+		"message": "Gives temporary access to the tab on which browserActions or contextmenu items are clicked"
+	},
+	"permissions_background": {
+		"message": "Runs the extension in the background even while chrome is closed."
+	},
+	"permissions_bookmarks": {
+		"message": "Makes it possible to create, edit, remove and view all your bookmarks."
+	},
+	"permissions_browsingData": {
+		"message": "Makes it possible to remove any saved data on your browser at specified time allowing the user to delete any history, saved passwords, cookies, cache and basically anything that is not saved in incognito mode but is in regular mode. This is editable so it is possible to delete ONLY your history and not the rest for example. (https://developer.chrome.com/extensions/bookmarks)"
+	},
+	"permissions_clipboardRead": {
+		"message": "Allows reading of the users' clipboard"
+	},
+	"permissions_clipboardWrite": {
+		"message": "Allows writing data to the users' clipboard"
+	},
+	"permissions_cookies": {
+		"message": "Allows for the setting, getting and listening for changes of cookies on any website. (https://developer.chrome.com/extensions/cookies)"
+	},
+	"permissions_contentSettings": {
+		"message": "Allows changing or reading your browser settings to allow or deny things like javascript, plugins, popups, notifications or other things you can choose to accept or deny on a per-site basis. (https://developer.chrome.com/extensions/contentSettings)"
+	},
+	"permissions_contextMenus": {
+		"message": "Allows for the changing of the chrome contextmenu"
+	},
+	"permissions_declarativeContent": {
+		"message": "Allows for the running of scripts on pages based on their url and CSS contents. (https://developer.chrome.com/extensions/declarativeContent)"
+	},
+	"permissions_desktopCapture": {
+		"message": "Makes it possible to capture your screen, current tab or chrome window (https://developer.chrome.com/extensions/desktopCapture)"
+	},
+	"permissions_downloads": {
+		"message": "Allows for the creating, pausing, searching and removing of downloads and listening for any downloads happening. (https://developer.chrome.com/extensions/downloads)"
+	},
+	"permissions_history": {
+		"message": "Makes it possible to read your history and remove/add specific urls. This can also be used to search your history and to see how many times you visited given website. (https://developer.chrome.com/extensions/history)"
+	},
+	"permissions_identity": {
+		"message": "Allows for the API to ask you to provide your (google) identity to the script using oauth2, allowing you to pull data from lots of google APIs: calendar, contacts, custom search, drive, gmail, google maps, google+, url shortener (https://developer.chrome.com/extensions/identity)"
+	},
+	"permissions_idle": {
+		"message": "Allows a script to detect whether your pc is in a locked, idle or active state. (https://developer.chrome.com/extensions/idle)"
+	},
+	"permissions_management": {
+		"message": "Allows for a script to uninstall or get information about an extension you installed, this does not however give permission to install other extensions. (https://developer.chrome.com/extensions/management)"
+	},
+	"permissions_notifications": {
+		"message": "Allows for the creating of notifications. (https://developer.chrome.com/extensions/notifications)"
+	},
+	"permissions_pageCapture": {
+		"message": "Allows for the saving of any page in MHTML. (https://developer.chrome.com/extensions/pageCapture)"
+	},
+	"permissions_power": {
+		"message": "Allows for a script to keep either your screen or your system altogether from sleeping. (https://developer.chrome.com/extensions/power)"
+	},
+	"permissions_privacy": {
+		"message": "Allows for a script to query what privacy features are on/off, for example autoFill, password saving, the translation feature. (https://developer.chrome.com/extensions/privacy)"
+	},
+	"permissions_printerProvider": {
+		"message": "Allows for a script to capture your print jobs' content and the printer used. (https://developer.chrome.com/extensions/printerProvider)"
+	},
+	"permissions_sessions": {
+		"message": "Makes it possible for a script to get all recently closed pages and devices connected to sync, also allows it to re-open those closed pages. (https://developer.chrome.com/extensions/sessions)"
+	},
+	"permissions_systemcpu": {
+		"message": "Allows a script to get info about the CPU. (https://developer.chrome.com/extensions/system_cpu)"
+	},
+	"permissions_systemmemory": {
+		"message": "Allows a script to get info about the amount of RAM memory on your computer. (https://developer.chrome.com/extensions/system_memory)"
+	},
+	"permissions_systemstorage": {
+		"message": "Allows a script to get info about the amount of storage on your computer and be notified when external storage is attached or detached. (https://developer.chrome.com/extensions/system_storage)"
+	},
+	"permissions_topSites": {
+		"message": "Allows a script to your top sites, which are the sites on your new tab screen. (https://developer.chrome.com/extensions/topSites)"
+	},
+	"permissions_tabCapture": {
+		"message": "Allows the capturing of the CURRENT tab and only the tab. (https://developer.chrome.com/extensions/tabCapture)"
+	},
+	"permissions_tabs": {
+		"message": "Allows for the opening, closing and getting of tabs"
+	},
+	"permissions_tts": {
+		"message": "Allows a script to use chrome's text so speech engine. (https://developer.chrome.com/extensions/tts)"
+	},
+	"permissions_webNavigation": {
+		"message": "Allows a script info about newly created pages and allows it to get info about what website visit at that time. (https://developer.chrome.com/extensions/webNavigation)"
+	},
+	"permissions_webRequest": {
+		"message": "Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded on the side, and can basically track the entire process of opening a new website. (https://developer.chrome.com/extensions/webRequest)"
+	},
+	"permissions_webRequestBlocking": {
+		"message": "Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded on the side, and can basically track the entire process of opening a new website. This also allows the script to block certain requests for example for blocking ads or bad sites. (https://developer.chrome.com/extensions/webRequest)"
+	},
+	"permissions_crmGet": {
+		"message": "Allows the reading of your Custom Right-Click Menu, including names, contents of all nodes, what they do and some metadata for the nodes"
+	},
+	"permissions_crmWrite": {
+		"message": "Allows the writing of data and nodes to your Custom Right-Click Menu. This includes <b>creating</b>, <b>copying</b> and <b>deleting</b> nodes. Be very careful with this permission as it can be used to just copy nodes until your CRM is full and delete any nodes you had. It also allows changing current values in the CRM such as names, actual scripts in script-nodes etc."
+	},
+	"permissions_crmRun": {
+		"message": "Allows the running of arbitrary scripts from the background-page"
+	},
+	"permissions_crmContextmenu": {
+		"message": "Allows the editing of this item's name in the contextmenu at runtime"
+	},
+	"permissions_chrome": {
+		"message": "Allows the use of chrome API's"
+	},
+	"permissions_browser": {
+		"message": "Allows the use of browser API's"
+	},
+	"permissions_GMAddStyle": {
+		"message": "Allows the adding of certain styles to the document through this API"
+	},
+	"permissions_GMDeleteValue": {
+		"message": "Allows the deletion of storage items"
+	},
+	"permissions_GMListValues": {
+		"message": "Allows the listing of all storage data"
+	},
+	"permissions_GMAddValueChangeListener": {
+		"message": "Allows for the listening of changes to the storage area"
+	},
+	"permissions_GMRemoveValueChangeListener": {
+		"message": "Allows for the removing of listeners"
+	},
+	"permissions_GMSetValue": {
+		"message": "Allows for the setting of storage data values"
+	},
+	"permissions_GMGetValue": {
+		"message": "Allows the reading of values from the storage"
+	},
+	"permissions_GMLog": {
+		"message": "Allows for the logging of values to the console (same as normal console.log)"
+	},
+	"permissions_GMGetResourceText": {
+		"message": "Allows the reading of the content of resources defined in the header"
+	},
+	"permissions_GMGetResourceURL": {
+		"message": "Allows the reading of the URL of the pre-declared resource"
+	},
+	"permissions_GMRegisterMenuCommand": {
+		"message": "Allows the adding of a button to the extension menu - not implemented"
+	},
+	"permissions_GMUnregisterMenuCommand": {
+		"message": "Allows the removing of an added button - not implemented"
+	},
+	"permissions_GMOpenInTab": {
+		"message": "Allows the opening of a tab with given URL"
+	},
+	"permissions_GMXmlhttpRequest": {
+		"message": "Allows you to make an XHR to any site you want"
+	},
+	"permissions_GMDownload": {
+		"message": "Allows the downloading of data to the hard disk"
+	},
+	"permissions_GMGetTab": {
+		"message": "Allows the reading of an object that's persistent while the tab is open - not implemented"
+	},
+	"permissions_GMSaveTab": {
+		"message": "Allows the saving of the tab object to reopen after a page unload - not implemented"
+	},
+	"permissions_GMGetTabs": {
+		"message": "Allows the reading of all tab object - not implemented"
+	},
+	"permissions_GMNotification": {
+		"message": "Allows sending desktop notifications"
+	},
+	"permissions_GMSetClipboard": {
+		"message": "Allows copying data to the clipboard - not implemented"
+	},
+	"permissions_GMInfo": {
+		"message": "Allows the reading of some script info"
+	},
+	"permissions_unsafeWindow": {
+		"message": "Allows the running on an unsafe window object - available by default"
+	},
+	"langs_languages_en": {
+		"message": "English"
+	},
+	"langs_selector_current": {
+		"message": "current"
+	},
+	"langs_selector_clickToChangeLanguage": {
+		"message": "Click here to change your language"
+	},
+	"langs_selector_requestLanguage": {
+		"message": "Request a language or consider translating into yours"
+	},
+	"crmApp_editcrm_editingCrm": {
+		"message": "Editing the CRM"
+	},
+	"crmApp_ribbons_ts": {
+		"message": "TS"
+	},
+	"crmApp_ribbons_tslint": {
+		"message": "Run TSLint"
+	},
+	"crmApp_ribbons_jslint": {
+		"message": "Run JSLint"
+	},
+	"crmApp_ribbons_info": {
+		"message": "Info"
+	},
+	"crmApp_editor_settings_header": {
+		"message": "Editor Settings"
+	},
+	"crmApp_editor_settings_theme": {
+		"message": "Theme"
+	},
+	"crmApp_editor_settings_fontsizePercentage": {
+		"message": "Font size %"
+	},
+	"crmApp_editor_settings_jslintGlobals": {
+		"message": "Comma separated list of JSLint globals"
+	},
+	"crmApp_editor_settings_keybindings": {
+		"message": "Key Bindings"
+	},
+	"crmApp_header_oldChrome": {
+		"message": "You are using a very old version of Chrome ($VERSION$ years old). Some features may perform worse or not at all. Please consider updating your chrome",
+		"placeholders": {
+			"version": {
+				"content": "$1"
+			}
+		}
+	},
+	"crmApp_crmtype_toggle": {
+		"message": "Toggle showing items that are visible when right-clicking on $CONTENTTYPE$",
+		"placeholders": {
+			"contentType": {
+				"content": "$1"
+			}
+		}
+	},
+	"crmApp_crmtype_regularWebpages": {
+		"message": "regular webpages"
+	},
+	"crmApp_crmtype_selectedText": {
+		"message": "selected text"
+	},
+	"crmApp_options_header": {
+		"message": "Options"
+	},
+	"crmApp_options_catchErrors": {
+		"message": "Catch errors in scripts and log them. If off, allows for easier debugging using your browser's \"pause on exceptions\", if on, allows for custom handling."
+	},
+	"crmApp_options_showoptions": {
+		"message": "Show options link in right-click menu"
+	},
+	"crmApp_options_recoverUnsavedData": {
+		"message": "Prompt you with an option to recover your unsaved script after you close a script/stylesheet without hitting the \"save\" or \"exit\" button."
+	},
+	"crmApp_options_CRMOnPageDisabled": {
+		"message": "Can't disable demo contextmenu in demo mode"
+	},
+	"crmApp_options_CRMOnPageOption": {
+		"message": "Use your custom right-click menu on this page as a preview instead of your browser's regular one."
+	},
+	"crmApp_options_chromeLow": {
+		"message": "Your chrome version is too low for this to be possible (min is chrome 34, you have $VERSION$)",
+		"placeholders": {
+			"version": {
+				"content": "$1"
+			}
+		}
+	},
+	"crmApp_options_notChrome": {
+		"message": "not chrome"
+	},
+	"crmApp_options_useStorageSyncDisabledUnavailable": {
+		"message": "Syncing is not available in your browser"
+	},
+	"crmApp_options_useStorageSyncDisabledTooBig": {
+		"message": "Amount of data is too big to sync"
+	},
+	"crmApp_options_useStorageSyncOption": {
+		"message": "Sync your storage across all browser instances signed in to this account using browser storage sync. Turning this on will limit your total CRM size (including scripts, excluding libraries) to a total of 102,400 bytes. Currently using"
+	},
+	"crmApp_options_editCRMInRM": {
+		"message": "Edit the custom right-click Menu by clicking on the respective elements when right-clicking on this page"
+	},
+	"crmApp_options_bytes": {
+		"message": "bytes"
+	},
+	"crmApp_options_managePermissions": {
+		"message": "Manage Permissions"
+	},
+	"crmApp_defaultLinks_header": {
+		"message": "Commonly Used Links"
+	},
+	"crmApp_defaultLinks_description": {
+		"message": "Here are some commonly used links to get you started. Click the \"ADD\" button to add the link to your custom right-click menu. It will be added at the end of the list but you can always change the order later if you want."
+	},
+	"crmApp_searchEngines_header": {
+		"message": "Search Engines"
+	},
+	"crmApp_searchEngines_description": {
+		"message": "These are some commonly used search-engines.Click \"ADD\" to add the search-engine to your CRM. You can then drag the link anywhere you want it to be. You can also change the name you want it to have below or do it when it's already in your CRM. The $REPLACE_VAL$ is replaced with whatever text you've selected (if any).",
+		"placeholders": {
+			"replace_val": {
+				"content": "<code class=\"codeSyntax\">%s</code>"
+			}
+		}
+	},
+	"crmApp_uriScheme_header": {
+		"message": "Launching programs instead of links"
+	},
+	"crmApp_uriScheme_description": {
+		"message": "You may want to launch programs on your computer as well, instead of only using links.This is possible, but requires a bit of extra effort because of browsers' security restrictions.Directly linking to files on your computer to open them is not possible (at least not for executable programs),this is why you'll need to set up a custom (local only) URI that launches the program you want to launch.If you want to read up about it some more check out $CUSTOM_URI_INFO$ page.To make this possible you'll need to add a key/value pair in your registry. After doing this, instead of http:// use yourscheme:// as a link.<br>If you are on a mac you can use$CUSTOM_URI_MAC$method. If you are on a windows computer you can do this yourself if youwant to (follow $CUSTOM_URI_WINDOWS$ instructions),or you can generate a file you can download that will write the key/value pair for you by hitting the button below.The second method is a lot easier and faster but it's understandable if you don't trust this extension in which case you can do it manually.",
+		"placeholders": {
+			"custom_uri_info": {
+				"content": "<a href=\"https://msdn.microsoft.com/en-us/library/aa767914(VS.85).aspx\" rel=\"noopener\" target=\"_blank\">this</a>"
+			},
+			"custom_uri_mac": {
+				"content": "<a rel=\"noopener\" href=\"https://support.shotgunsoftware.com/hc/en-us/community/posts/209485898-Launching-External-Applications-using-Custom-Protocols-under-OSX\" target=\"_blank\">this</a>"
+			},
+			"custom_uri_windows": {
+				"content": "<a href=\"https://support.microsoft.com/nl-nl/kb/310516\" rel=\"noopener\" target=\"_blank\">these</a>"
+			}
+		}
+	},
+	"crmApp_uriScheme_filePathLabel": {
+		"message": "File path including name"
+	},
+	"crmApp_uriScheme_invalidScheme": {
+		"message": "This is not a valid scheme"
+	},
+	"crmApp_uriScheme_schemeNameLabel": {
+		"message": "URI scheme name"
+	},
+	"crmApp_uriScheme_example": {
+		"message": "myscheme"
+	},
+	"crmApp_uriScheme_generate": {
+		"message": "GENERATE"
+	},
+	"crmApp_importing_header": {
+		"message": "Importing your settings"
+	},
+	"crmApp_importing_description": {
+		"message": "Here you can import your settings or CRM nodes from somewhere else. Simply copy the code into the box below and hit \"import\". Checking \"overwrite\" will overwrite your current settings and/or CRM with the settings you imported."
+	},
+	"crmApp_importing_error": {
+		"message": "Something went wrong processing the data, please check the data"
+	},
+	"crmApp_importing_overwrite": {
+		"message": "Overwrite"
+	},
+	"crmApp_importing_overwriteTitle": {
+		"message": "Check this if you want to overwrite your CRM. If not checked, imported CRM is appended to the current one"
+	},
+	"crmApp_importing_legacy": {
+		"message": "CRM legacy"
+	},
+	"crmApp_importing_legacyTitle": {
+		"message": "Check this if you're importing from the old version of the extension (pre-2016)"
+	},
+	"crmApp_importing_import": {
+		"message": "Import"
+	},
+	"crmApp_exporting_header": {
+		"message": "Exporting your settings"
+	},
+	"crmApp_exporting_description": {
+		"message": "Here you can export your settings and/or CRM. To export select CRM nodes hit the \"select\" button below the editor above and hit export. Paste the generated data into a different instance's \"import\" field to import the data."
+	},
+	"crmApp_exporting_waiting": {
+		"message": "Waiting for text field... This may take some time"
+	},
+	"crmApp_exporting_exportCRM": {
+		"message": "Export your Custom Right-Click Menu"
+	},
+	"crmApp_exporting_exportSettings": {
+		"message": "Export your Settings"
+	},
+	"crmApp_exporting_export": {
+		"message": "Export"
+	},
+	"crmApp_help_header": {
+		"message": "Help/Tutorials"
+	},
+	"crmApp_help_description": {
+		"message": "If you need help with anything or you would simply like a step by step plan of how to do something, please checkout the $WIKI_LINK$. If you feel like there's a missing tutorial, please$CREATE_LINK$.",
+		"placeholders": {
+			"wiki_link": {
+				"content": "<a rel=\"noopener\" href=\"https://github.com/SanderRonde/CustomRightClickMenu/wiki\" target=\"_blank\">wiki</a>"
+			},
+			"create_link": {
+				"content": "<a rel=\"noopener\" href=\"https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=[wiki]\" target=\"_blank\">create an issue</a>"
+			}
+		}
+	},
+	"crmApp_contact_header": {
+		"message": "Contact"
+	},
+	"crmApp_contact_description": {
+		"message": "If you have found any bugs, thought of any suggestions or have any other reason to contact me you can do so at $SEND_EMAIL$. To find out more about me, check out $GITHUB$. You can also check out the github repository over $GITHUB_REPO$ if you want to report an issue, create a pull request, or just want to check out the code.I'm currently looking for beta testers for the extension.If you'd like to help by testing new releases and want to get new features early pleasesend me an email using the address above and I'll add you to the list.",
+		"placeholders": {
+			"send_email": {
+				"content": "<a rel=\"noopener\" href=\"mailto:awsdfgvhbjn@gmail.com\" target=\"_blank\">awsdfgvhbjn@gmail.com</a>"
+			},
+			"github": {
+				"content": "<a href=\"https://github.com/SanderRonde/\" rel=\"noopener\" target=\"_blank\">my github page</a>"
+			},
+			"github_repo": {
+				"content": "<a href=\"https://github.com/SanderRonde/CustomRightClickMenu\" rel=\"noopener\" target=\"_blank\">here</a>"
+			}
+		}
+	},
+	"crmApp_bugs_header": {
+		"message": "Bugs"
+	},
+	"crmApp_bugs_description": {
+		"message": "If you would like to report any bugs, you can do so by using the bug reporting tool.This is a screen overlay that will be visible when you toggle it. It is overlaidon top of every other dialog so you can always use it. To toggle it on/off usethe button below or hit $CTRL$ 3 times in a row quickly.",
+		"placeholders": {
+			"ctrl": {
+				"content": "<code class=\"codeSyntax\">ctrl</code>"
+			}
+		}
+	},
+	"crmApp_bugs_toggle": {
+		"message": "toggle"
+	},
+	"crmApp_globalExcludes_header": {
+		"message": "Global Excludes"
+	},
+	"crmApp_globalExcludes_description": {
+		"message": "There are some sites on which you don't want any script to run on such as paypal and your bank's website, below you can enter these sites to make sure that no CRM script is ever ran on that page unless you specifically clicked on it. URLs must be specified as follows "
+	},
+	"crmApp_globalExcludes_patternLabel": {
+		"message": "URL match pattern to exclude"
+	},
+	"crmApp_globalExcludes_patternInvalid": {
+		"message": "This is not a valid URL pattern!"
+	},
+	"crmApp_logging_header": {
+		"message": "Checking your scripts' logs"
+	},
+	"crmApp_logging_description": {
+		"message": "Clicking on this button will take you to a page where you can monitor your scripts' logsfrom one central place. Think of it as a dev tools for all your scripts and withonly your logs. $BR$To make your logs show up there, use $CODE$ in your code.",
+		"placeholders": {
+			"code": {
+				"content": "<code class=\"codeSyntax\">crmAPI.log</code>"
+			},
+			"br": {
+				"content": "<br />"
+			}
+		}
+	},
+	"crmApp_logging_logging": {
+		"message": "Logging"
+	},
+	"crmApp_privacyPolicy_header": {
+		"message": "Privacy Policy"
+	},
+	"crmApp_privacyPolicy_description": {
+		"message": "This extension does not store any personally identifiable information.This extension uses your browser's $DOCUMENTATION_LINK$ to sync your data across devices. This data only consists of your custom right-click menu and its settings.This means that these settings are stored on your browser manufacturer's servers.To turn off this feature, disable the \"use storage sync\" checkbox at the top of this page.",
+		"placeholders": {
+			"documentation_link": {
+				"content": "<a href=\"https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/storage/sync\" rel=\"noopener\" target=\"_blank\">browser.storage.sync</a>"
+			}
+		}
+	},
+	"crmApp_changelog_changelog": {
+		"message": "Changelog"
+	},
+	"crmApp_toasts_revert": {
+		"message": "Revert last action"
+	},
+	"crmApp_toasts_contentType": {
+		"message": "You need to select at least one content type to show this node on, otherwise it will never be shown. To hide it change the triggers."
+	},
+	"crmApp_toasts_storageExceeded": {
+		"message": "Storage sync has ran out of space, switched to local storage for the moment, remove CRM nodes or code and switch back to sync later"
+	},
+	"crmApp_toasts_noErrors": {
+		"message": "No more errors found"
+	},
+	"crmApp_toasts_acceptDownload": {
+		"message": "Please accept the permission request to report a bug or suggest a feature"
+	},
+	"crmApp_dialogs_codeSettings_changingOptions": {
+		"message": "Changing the options for"
+	},
+	"crmApp_dialogs_codeSettings_noOptions": {
+		"message": "Looks like there's no options. Go to the options tab in the editor to make them.Also be sure to check whether no errors show up, if they do this won't work."
+	},
+	"crmApp_dialogs_codeSettings_numberInput": {
+		"message": "Number input"
+	},
+	"crmApp_dialogs_codeSettings_booleanInput": {
+		"message": "True/False value"
+	},
+	"crmApp_dialogs_codeSettings_textInput": {
+		"message": "Text input"
+	},
+	"crmApp_dialogs_codeSettings_colorInput": {
+		"message": "Color picker"
+	},
+	"crmApp_dialogs_recoverUnsaved_header": {
+		"message": "Recovering unsaved code"
+	},
+	"crmApp_dialogs_recoverUnsaved_description": {
+		"message": "You closed an editing instance without saving or discarding it, are you sure you wanted to do this?"
+	},
+	"crmApp_dialogs_recoverUnsaved_whatNode": {
+		"message": "What node?"
+	},
+	"crmApp_dialogs_recoverUnsaved_oldCode": {
+		"message": "Old Code"
+	},
+	"crmApp_dialogs_recoverUnsaved_unsavedCode": {
+		"message": "Unsaved code"
+	},
+	"crmApp_dialogs_recoverUnsaved_keepOld": {
+		"message": "Keep Old"
+	},
+	"crmApp_dialogs_addLibrary_header": {
+		"message": "Add your own library"
+	},
+	"crmApp_dialogs_addLibrary_noNameError": {
+		"message": "please enter a name"
+	},
+	"crmApp_dialogs_addLibrary_urlInput": {
+		"message": "Input a url"
+	},
+	"crmApp_dialogs_addLibrary_codeInput": {
+		"message": "Input the code"
+	},
+	"crmApp_dialogs_addLibrary_code": {
+		"message": "code"
+	},
+	"crmApp_dialogs_addLibrary_urlError": {
+		"message": "url does not host anything"
+	},
+	"crmApp_dialogs_addLibrary_usesTypescript": {
+		"message": "Check if library uses typescript"
+	},
+	"crmApp_dialogs_addLibrary_isThisOkay": {
+		"message": "Does this look okay to you?"
+	},
+	"crmApp_dialogs_addLibrary_added": {
+		"message": "Added!"
+	},
+	"crmApp_dialogs_cssEditorInfo_header": {
+		"message": "CSS Editor Info"
+	},
+	"crmApp_dialogs_cssEditorInfo_description": {
+		"message": "- Use $URL_REFERENCE$ to run certain CSS only on specified url for any code following this statement.Calling $URL_END$ will stop this from applying to the code below it.You can combine multiple $URL$ statements to run on multiple sites, so calling $URL_EXAMPLE_GOOGLE$ runs the code below on both sites.If for example you want any page's background-color to be black except for one website, you can use $URL$ to give that page a different background color.You can use regular expressions as long as you wrap them in brackets.$BR$ $BR$- Use the dev tools to find the CSS id/class of elements. Press F12 to open the dev tools, click the magnifying glass and click element you want to style.If you want only that element to be styled, right-click it in the developer tools and click \"copy CSS path\" and use that as the selector.If you want all elements with some class to be styled, simply use the class on it.",
+		"placeholders": {
+			"url_reference": {
+				"content": "<pre class=\"inlineCodePre\">@url 'http://example.com';</pre>"
+			},
+			"url_end": {
+				"content": "<pre class=\"inlineCodePre\">@urlend;</pre>"
+			},
+			"url": {
+				"content": "<pre class=\"inlineCodePre\">@url</pre>"
+			},
+			"url_example_google": {
+				"content": "<pre class=\"inlineCodePre\">@url 'example.com'; @url 'google.com';</pre>"
+			},
+			"br": {
+				"content": "<br />"
+			}
+		}
+	},
+	"crmApp_dialogs_exporting_header": {
+		"message": "Exporting selected nodes"
+	},
+	"crmApp_dialogs_exporting_description": {
+		"message": "You can copy the data below and paste it in a different instance's \"import\" section to import those nodes. Enter an author's name below to export the nodes under that name. You can also leave it to \"anonymous\" to stay anonymous."
+	},
+	"crmApp_dialogs_exporting_copyToClipboard": {
+		"message": "copy to clipboard"
+	},
+	"crmApp_dialogs_exporting_authorName": {
+		"message": "author's name"
+	},
+	"crmApp_dialogs_permissions_description": {
+		"message": "Here you can allow or disallow permissions for the current script, marked permissions are asked for in the script and will probably be needed for script execution. You should however be careful not to just turn on everything since that might enable malicious scripts to do bad things. Permissions starting with \"GM_\" are greasemonkey permissions, these can also be used if you want to also share this script with greasemonkey/tampermonkey users. You don't actually need to turn them on to use those APIs in this extension except the GM_download API and the GM_notification API since all the others are fairly harmless. However they will be required as metaTags if you run this script in greasemonkey/tampermonkey."
+	},
+	"crmApp_dialogs_permissions_usedPermissions": {
+		"message": "Used permissions:"
+	},
+	"crmApp_dialogs_requestPermissions_header": {
+		"message": "Allow permissions"
+	},
+	"crmApp_dialogs_requestPermissions_description": {
+		"message": "A script that you presumably wrote or added has asked to use one or more browser permissions that you have not yet allowed for this extension, please allow these permissions as you see fit.Remember that this will only allow YOU to write scripts that access these permissions and not downloaded and installed scripts.Other scripts can only access these permissions if you give those scripts specifically that permission on installing them.You can basically allow any permission, they will only be used if you write them into one of your own scripts (or a downloaded one requests it) so allowing permissions that are not used yet simply saves you the hassle of doing it later during script installation or execution."
+	},
+	"crmApp_dialogs_requestPermissions_required": {
+		"message": "Required"
+	},
+	"crmApp_dialogs_requestPermissions_others": {
+		"message": "Others"
+	},
+	"crmApp_dialogs_requestPermissions_acceptAll": {
+		"message": "Accept all required"
+	},
+	"crmApp_dialogs_addedPermissions_header": {
+		"message": "The script $NODENAME$has been updated to version $NODEVERSION$and some new permissions have been requested",
+		"placeholders": {
+			"nodeName": {
+				"content": "$1"
+			},
+			"nodeVersion": {
+				"content": "$2"
+			}
+		}
+	},
+	"crmApp_code_nodeUpdated": {
+		"message": "Node $NAME$ was updated from version $OLDVERSION to version $NEWVERSION",
+		"placeholders": {
+			"name": {
+				"content": "$1"
+			},
+			"oldVersion": {
+				"content": "$2"
+			},
+			"newVersion": {
+				"content": "$3"
+			}
+		}
+	},
+	"crmApp_code_extensionUpdated": {
+		"message": "Extension has been updated to version $VERSION$",
+		"placeholders": {
+			"version": {
+				"content": "$1"
+			}
+		}
+	},
+	"crmApp_code_settingsUpdated": {
+		"message": "Settings were updated to those on $DATE$",
+		"placeholders": {
+			"date": {
+				"content": "$1"
+			}
+		}
+	},
+	"crmApp_code_hiMessage": {
+		"message": "Hey there, if you're interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu"
+	},
+	"crmApp_code_consoleInfo": {
+		"message": "To get information about how to edit settings from the console call the window.consoleInfo() function"
+	},
+	"crmApp_code_permissionsNotSupported": {
+		"message": "Your browser does not support requesting permissions"
+	},
+	"crmApp_code_downloadNotSupported": {
+		"message": "Your browser does not support asking for the download permission"
+	},
+	"crmApp_code_importSuccess": {
+		"message": "Successfully imported your data"
+	},
+	"crmApp_code_alreadyEditingNode": {
+		"message": "Please close the current dialog first"
+	},
+	"crmApp_code_wouldExecuteScript": {
+		"message": "This would execute a script"
+	},
+	"crmApp_code_wouldExecuteStylesheet": {
+		"message": "This would execute a stylesheet"
+	},
+	"background_crm_invalidRunat": {
+		"message": "Script with id $ID$runAt value was changed to default, $RUNAT$is not a valid value (use document_start, document_end or document_idle)",
+		"placeholders": {
+			"id": {
+				"content": "$1"
+			},
+			"runat": {
+				"content": "$2"
+			}
+		}
+	},
+	"background_crm_executionFailed": {
+		"message": "Couldn't execute on tab with id $TABID$for node $NODEID$",
+		"placeholders": {
+			"tabid": {
+				"content": "$1"
+			},
+			"nodeid": {
+				"content": "$2"
+			}
+		}
+	},
+	"background_crm_setupError": {
+		"message": "An error occurred while setting up the script for node $NODEID$",
+		"placeholders": {
+			"nodeid": {
+				"content": "$1"
+			}
+		}
+	},
+	"background_crm_updateDownload404": {
+		"message": "Tried to update $NODETYPE$ $NODEID$ $NODENAME$ but could not reach download URL",
+		"placeholders": {
+			"nodeType": {
+				"content": "$1"
+			},
+			"nodeId": {
+				"content": "$2"
+			},
+			"nodeName": {
+				"content": "$3"
+			}
+		}
+	},
+	"background_crm_optionNotFound": {
+		"message": "Could not find option $NODENAME$ for stylesheet $NODEID$",
+		"placeholders": {
+			"nodeName": {
+				"content": "$1"
+			},
+			"nodeId": {
+				"content": "$2"
+			}
+		}
+	},
+	"background_crm_cssCompileError": {
+		"message": "An error occurred while compiling $TYPE$ CSS for node $NODEID$",
+		"placeholders": {
+			"type": {
+				"content": "$1"
+			},
+			"nodeId": {
+				"content": "$2"
+			}
+		}
+	},
+	"background_crm_contextmenuErrorRetry": {
+		"message": "An error occurred with your context menu, attempting again with no url matching."
+	},
+	"background_crm_contextmenuError": {
+		"message": "An error occurred with your context menu!"
+	},
+	"background_crm_userContextmenuError": {
+		"message": "Error recreating user contextmenu"
+	},
+	"background_crm_createdBackgroundPage": {
+		"message": "Creating backgroundpage for node $NODEID$",
+		"placeholders": {
+			"nodeId": {
+				"content": "$1"
+			}
+		}
+	},
+	"background_crm_restartingBackgroundPage": {
+		"message": "Restarting background page..."
+	},
+	"background_crm_terminatedBackgroundPage": {
+		"message": "Terminated background page..."
+	},
+	"background_globalDeclarations_getID_noMatches": {
+		"message": "Unfortunately no matches were found, please try again"
+	},
+	"background_globalDeclarations_getID_oneMatch": {
+		"message": "One match was found, the id is $MATCHID$ and the script is",
+		"placeholders": {
+			"matchId": {
+				"content": "$1"
+			}
+		}
+	},
+	"background_globalDeclarations_getID_multipleMatches": {
+		"message": "Found multiple matches, here they are:"
+	},
+	"background_globalDeclarations_tabRestore_success": {
+		"message": "Restored tab with id $TABID$",
+		"placeholders": {
+			"tabId": {
+				"content": "$1"
+			}
+		}
+	},
+	"background_globalDeclarations_tabRestore_unknownError": {
+		"message": "Failed to restore tab with id $TABID$",
+		"placeholders": {
+			"tabId": {
+				"content": "$1"
+			}
+		}
+	},
+	"background_globalDeclarations_tabRestore_ignored": {
+		"message": "Ignoring tab with id $TABID$ (chrome or file url)$",
+		"placeholders": {
+			"tabId": {
+				"content": "$1"
+			}
+		}
+	},
+	"background_globalDeclarations_tabRestore_frozen": {
+		"message": "Skipping restoration of tab with id $TABID$Tab is frozen, most likely due to user debugging",
+		"placeholders": {
+			"tabId": {
+				"content": "$1"
+			}
+		}
+	},
+	"background_globalDeclarations_proxy_redirecting": {
+		"message": "Redirecting"
+	},
+	"background_init_loggingExplanation": {
+		"message": "If you're here to check out your background script, get its ID (you can type getID(\"name\") to find the ID), and type filter(id, [optional tabId]) to show only those messages. You can also visit the logging page for even better logging over at $LOGGINGURL$",
+		"placeholders": {
+			"loggingUrl": {
+				"content": "$1"
+			}
+		}
+	},
+	"background_init_debugExplanation": {
+		"message": "You can also use the debugger for scripts by calling window.debugNextScriptCall(id) and window.debugBackgroundScript(id) for scripts and backgroundscripts respectively. You can get the id by using the getID(\"name\") function."
+	},
+	"background_init_registeringPermissionListeners": {
+		"message": "Registering permission listeners"
+	},
+	"background_init_registeringHandler": {
+		"message": "Setting CRMAPI message handler"
+	},
+	"background_init_buildingCrm": {
+		"message": "Building Custom Right-Click Menu"
+	},
+	"background_init_compilingTs": {
+		"message": "Compiling typescript"
+	},
+	"background_init_registeringHandlers": {
+		"message": "Registering global handlers"
+	},
+	"background_init_updatingResources": {
+		"message": "Updating resources"
+	},
+	"background_init_updatingNodes": {
+		"message": "Updating scripts and stylesheets"
+	},
+	"background_init_debugInfo": {
+		"message": "For all of these arrays goes, close and re-expand them to \"refresh\" their contents"
+	},
+	"background_init_invalidatedTabs": {
+		"message": "Invalidated tabs:"
+	},
+	"background_init_insufficientPermissions": {
+		"message": "Insufficient permissions:"
+	},
+	"background_init_registeringConsoleInterface": {
+		"message": "Registering console user interface"
+	},
+	"background_init_done": {
+		"message": "Done!"
+	},
+	"background_init_resourceUpdate": {
+		"message": "Attempting resource update"
+	},
+	"background_init_initialization": {
+		"message": "Initialization"
+	},
+	"background_init_storage": {
+		"message": "Loading storage data"
+	},
+	"background_init_resources": {
+		"message": "Checking resources"
+	},
+	"background_init_previousOpenTabs": {
+		"message": "Restoring previous open tabs"
+	},
+	"background_init_backgroundpages": {
+		"message": "Creating backgroundpages"
+	},
+	"background_init_debugging": {
+		"message": "Debugging"
+	},
+	"background_storages_syncUploadError": {
+		"message": "Error on uploading to storage.sync, uploading to storage.local instead"
+	},
+	"background_storages_localUploadError": {
+		"message": "Error on uploading to browser.storage.local"
+	},
+	"background_storages_upgrading": {
+		"message": "Upgrading minor version from $FROM$ to $TO$",
+		"placeholders": {
+			"from": {
+				"content": "$1"
+			},
+			"to": {
+				"content": "$2"
+			}
+		}
+	},
+	"background_storages_settingGlobalData": {
+		"message": "Setting global data stores"
+	},
+	"background_storages_buildingCrm": {
+		"message": "Building CRM representation"
+	},
+	"background_storages_loadingSync": {
+		"message": "Loading sync storage data"
+	},
+	"background_storages_loadingLocal": {
+		"message": "Loading local storage data"
+	},
+	"background_storages_checkingFirst": {
+		"message": "Checking if this is the first run"
+	},
+	"background_storages_parsingData": {
+		"message": "Parsing data encoding"
+	},
+	"background_storages_checkingUpdates": {
+		"message": "Checking for data updates"
+	},
+	"background_storages_initializingFirst": {
+		"message": "Initializing for first run"
+	},
+	"background_logging_background": {
+		"message": "background"
+	},
+	"background_logging_backgroundPage": {
+		"message": "Background page"
+	},
+	"install_confirm_installed": {
+		"message": "Installed!"
+	},
+	"install_confirm_description": {
+		"message": "Description"
+	},
+	"install_confirm_author": {
+		"message": "Author"
+	},
+	"install_confirm_source": {
+		"message": "Source"
+	},
+	"install_confirm_permissions": {
+		"message": "Permissions"
+	},
+	"install_confirm_permissionInfo": {
+		"message": "Not accepting a permission might lead to scripts silently failing.You can re-enable them at any time by going to the options page, editingthe node and clicking the \"manager permissions\" button."
+	},
+	"install_confirm_allow": {
+		"message": "Allow"
+	},
+	"install_confirm_noneRequired": {
+		"message": "No permissions required"
+	},
+	"install_confirm_none": {
+		"message": "none"
+	},
+	"install_confirm_toggleAll": {
+		"message": "Toggle All"
+	},
+	"install_confirm_allowAccept": {
+		"message": "Allow all and install"
+	},
+	"install_confirm_install": {
+		"message": "install"
+	},
+	"install_confirm_notAsking": {
+		"message": "Not asking for permission $PERMISSION$ as your browser does not support asking for permissions",
+		"placeholders": {
+			"permission": {
+				"content": "$1"
+			}
+		}
+	},
+	"install_error_notFound1": {
+		"message": "Userscript"
+	},
+	"install_error_notFound2": {
+		"message": "Not Found"
+	},
+	"install_page_fetching": {
+		"message": "Fetching Userscript"
+	},
+	"install_page_failedXhr": {
+		"message": "Failed XHR"
+	},
+	"install_page_installing": {
+		"message": "Installing userscript from $SOURCE$",
+		"placeholders": {
+			"source": {
+				"content": "$1"
+			}
+		}
+	},
+	"logging_filter": {
+		"message": "filter"
+	},
+	"logging_description": {
+		"message": "This page serves as a sort of devTools for specific instances of scripts on tabs.You can choose to view logs for all instances, specific nodes, specific tabs, or a combinationof both. You can access a specific instance's variables and get/set them just as you wouldin the chrome dev tools, to do this simply select an ID and a tab ID"
+	},
+	"logging_lines": {
+		"message": "lines"
+	},
+	"logging_runningCodeNotPossible": {
+		"message": "Running code is not possible in the current context (select both an ID and a tab)"
+	},
+	"logging_storeAsLocal": {
+		"message": "Store as local variable"
+	},
+	"logging_logThis": {
+		"message": "Logthis"
+	},
+	"logging_copyAsJson": {
+		"message": "Copy as JSON"
+	},
+	"logging_copyPath": {
+		"message": "Copy path"
+	},
+	"logging_clearConsole": {
+		"message": "Clear console"
+	},
+	"logging_tabClosed": {
+		"message": "Tab has been closed"
+	},
+	"logging_somethingWentWrong": {
+		"message": "Something went wrong highlighting the tab"
+	},
+	"logging_logs": {
+		"message": "Logs"
+	},
+	"util_errorReportingTool_finish": {
+		"message": "Finish"
+	},
+	"util_errorReportingTool_title": {
+		"message": "Reporting a bug or suggesting a feature"
+	},
+	"util_errorReportingTool_description": {
+		"message": "You can report a bug that happened or a feature you would like to see in this extension. If you want you can also highlight a section of the page and send it along. When clicking the submit button you will be taken to the github website where you can file an issue. All necessary files (the image and if you want to your settings) will be downloaded, after which you can drop them on the report issue page. For this to be possible you need to accept the downloads permission window that will pop up."
+	},
+	"util_errorReportingTool_bugreportInfo": {
+		"message": "Your CRM and settings will be included in the report that will be publicly visible, if you do not wish this you can report a bug or suggest a feature by sending an email to $EMAIL$",
+		"placeholders": {
+			"email": {
+				"content": "<a rel=\"noopener\" target=\"_blank\" href=\"mailto:awsdfgvhbjn@gmail.com\">this address.</a></span>"
+			}
+		}
+	},
+	"util_errorReportingTool_pageCapture": {
+		"message": "Page Capture"
+	},
+	"util_errorReportingTool_reportingBug": {
+		"message": "Reporting a bug"
+	},
+	"util_errorReportingTool_suggestingFeature": {
+		"message": "Suggesting a feature"
+	},
+	"util_errorReportingTool_submit": {
+		"message": "submit"
+	},
+	"util_errorReportingTool_messagePlaceholder": {
+		"message": "WRITE MESSAGE HERE"
+	},
+	"util_errorReportingTool_titlePlaceholder": {
+		"message": "TITLE HERE"
+	},
+	"options_nodeEditBehavior_globPattern": {
+		"message": "Globbing pattern or regex"
+	},
+	"options_nodeEditBehavior_matchPattern": {
+		"message": "URL match pattern"
+	},
+	"options_crmEditPage_createdBy": {
+		"message": "Created by $AUTHOR$",
+		"placeholders": {
+			"author": {
+				"content": "<b title=\"$1\" id=\"nodeInfoAuthorCont\">$1</b>"
+			}
+		}
+	},
+	"options_crmEditPage_installedFrom": {
+		"message": "installed from ($SOURCEURL$)",
+		"placeholders": {
+			"sourceURL": {
+				"content": "<span id=\"nodeInfoFrom\"><b><a id=\"nodeInfoUrl\" title=\"$1\" target=\"_blank\" rel=\"noopener\"href=\"$1\">url</a></b></span>"
+			}
+		}
+	},
+	"options_crmEditPage_createdByYou": {
+		"message": "Created by $AUTHOR$",
+		"placeholders": {
+			"author": {
+				"content": "$1"
+			}
+		}
+	},
+	"options_crmEditPage_hasAllPermissions": {
+		"message": "This means it has access to all permissions without having to enable them"
+	},
+	"options_crmEditPage_createdOn": {
+		"message": "Created on $DATE$",
+		"placeholders": {
+			"date": {
+				"content": "$1"
+			}
+		}
+	},
+	"options_crmEditPage_installedOn": {
+		"message": "Installed on $DATE$",
+		"placeholders": {
+			"date": {
+				"content": "$1"
+			}
+		}
+	},
+	"options_defaultLink_name": {
+		"message": "Name"
+	},
+	"options_editCrm_empty": {
+		"message": "It seems like there is no right-click menu for this content type, try something else or add a new node!"
+	},
+	"options_editCrm_addHere": {
+		"message": "Add Here"
+	},
+	"options_editCrm_addNodeType": {
+		"message": "Add $NODETYPE$",
+		"placeholders": {
+			"nodeType": {
+				"content": "$1"
+			}
+		}
+	},
+	"options_editCrm_select": {
+		"message": "Select"
+	},
+	"options_editCrm_exportSelected": {
+		"message": "Export Selected"
+	},
+	"options_editCrm_removeSelected": {
+		"message": "Remove Selected"
+	},
+	"options_editCrm_menuRemoveWarning": {
+		"message": "Warning: Children of a removed menu will also be removed recursively!"
+	},
+	"options_editCrm_dragInfo": {
+		"message": "Click and hold the three dashes ($HANDLE$) to drag the nodes.",
+		"placeholders": {
+			"handle": {
+				"content": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"infoSvg\" viewbox=\"0 0 32 48\" height=\"30\" width=\"20\"><path d=\"M4 31v4h40v-4H4zm0-10v4h40v-4H4zm0-10v4h40v-4H4z\"/> </svg>"
+			}
+		}
+	},
+	"options_editCrm_typeInfo": {
+		"message": "Hover over and click the colored areas to change types."
+	},
+	"options_editCrm_editInfo": {
+		"message": "Click the nodes to edit them."
+	},
+	"options_editCrm_menuInfo": {
+		"message": "Click the arrows ($ARROW$) to show a menu's contents.",
+		"placeholders": {
+			"arrow": {
+				"content": "<svg class=\"infoSvg triangleInfoSvg\" xmlns=\"http://www.w3.org/2000/svg\" width=\"48\" height=\"48\" viewbox=\"0 0 48 48\"><path d=\"M16 10v28l22-14z\"/></svg>"
+			}
+		}
+	},
+	"options_editCrm_editItem": {
+		"message": "Edit item \"$NAME$\"",
+		"placeholders": {
+			"name": {
+				"content": "$1"
+			}
+		}
+	},
+	"options_editCrm_addFail": {
+		"message": "Failed to add $NODETYPE$",
+		"placeholders": {
+			"nodeType": {
+				"content": "$1"
+			}
+		}
+	},
+	"options_editCrmItem_changeType": {
+		"message": "Click to change type"
+	},
+	"options_editCrmItem_dragNode": {
+		"message": "Click and hold to drag node around"
+	},
+	"options_editCrmItem_clickToShowChildren": {
+		"message": "Click to show children"
+	},
+	"options_editCrmItem_clickToShowXChildren": {
+		"message": "Click to show $NUMBER$ children",
+		"placeholders": {
+			"number": {
+				"content": "$1"
+			}
+		}
+	},
+	"options_editCrmItem_clickToShowChild": {
+		"message": "Click to show 1 child"
+	},
+	"options_editCrmItem_rootName": {
+		"message": "Custom Menu"
+	},
+	"options_editCrmItem_clickToEditRoot": {
+		"message": "Click to edit root node name"
+	},
+	"options_editCrmItem_nodeHidden": {
+		"message": "This node won't be visible on this content type (select a different one in the top-right corner)"
+	},
+	"options_editCrmItem_clickToEdit": {
+		"message": "Click to edit node"
+	},
+	"options_tools_paperGetPageProperties_selection": {
+		"message": "Selection"
+	},
+	"options_tools_paperGetPageProperties_host": {
+		"message": "Host"
+	},
+	"options_tools_paperGetPageProperties_path": {
+		"message": "Path"
+	},
+	"options_tools_paperGetPageProperties_protocol": {
+		"message": "Protocol"
+	},
+	"options_tools_paperGetPageProperties_width": {
+		"message": "Width"
+	},
+	"options_tools_paperGetPageProperties_height": {
+		"message": "Height"
+	},
+	"options_tools_paperGetPageProperties_scrolled": {
+		"message": "Pixels Scrolled"
+	},
+	"options_tools_paperGetPageProperties_title": {
+		"message": "Title"
+	},
+	"options_tools_paperGetPageProperties_clickedElement": {
+		"message": "Clicked Element"
+	},
+	"options_tools_paperLibrariesSelector_libraryInfo": {
+		"message": "Try to refrain from using unnecessary libraries, libraries load on every single page and load sepaerately for all scripts. This can easily take 100ms for libraries like jQuery. For a jQuery alternative consider using crmAPI.$ or simply $ (without loading jQuery) which features the selector function only."
+	},
+	"options_tools_paperLibrariesSelector_libraries": {
+		"message": "Libraries"
+	},
+	"options_tools_paperLibrariesSelector_anonymous": {
+		"message": "anonymous"
+	},
+	"options_tools_paperLibrariesSelector_addOwn": {
+		"message": "Add your own"
+	},
+	"options_tools_paperLibrariesSelector_xhrFailedMsg": {
+		"message": "Failed with status code $STATUSCODE$ \"$STATUSMSG$\"",
+		"placeholders": {
+			"statusCode": {
+				"content": "$1"
+			},
+			"statusMsg": {
+				"content": "$2"
+			}
+		}
+	},
+	"options_tools_paperLibrariesSelector_xhrFailed": {
+		"message": "Failed with status code $STATUSCODE$",
+		"placeholders": {
+			"statusCode": {
+				"content": "$1"
+			}
+		}
+	},
+	"options_tools_paperLibrariesSelector_nameTaken": {
+		"message": "That name is already taken"
+	},
+	"options_tools_paperLibrariesSelector_nameMissing": {
+		"message": "Please enter a name"
+	},
+	"options_tools_paperLibrariesSelector_editing": {
+		"message": "Editing library $NAME$",
+		"placeholders": {
+			"name": {
+				"content": "$1"
+			}
+		}
+	},
+	"options_tools_paperLibrariesSelector_pleaseUpdate": {
+		"message": "Please update your chrome (at least chrome 30) to use this feature"
+	},
+	"options_tools_paperSearchWebsiteDialog_title": {
+		"message": "Add a search engine for a website"
+	},
+	"options_tools_paperSearchWebsiteDialog_description": {
+		"message": "This code will search given website for any text you highlight, or if nothing is highlighted will prompt you for a query."
+	},
+	"options_tools_paperSearchWebsiteDialog_inputOne": {
+		"message": "Input one yourself"
+	},
+	"options_tools_paperSearchWebsiteDialog_inputDefault": {
+		"message": "Choose one of the defaults"
+	},
+	"options_tools_paperSearchWebsiteDialog_chooseDefault": {
+		"message": "Choose a default search engine"
+	},
+	"options_tools_paperSearchWebsiteDialog_try": {
+		"message": "Try"
+	},
+	"options_tools_paperSearchWebsiteDialog_manualInput": {
+		"message": "Manually input your search website"
+	},
+	"options_tools_paperSearchWebsiteDialog_findingSearchURL": {
+		"message": "By finding out the search URL"
+	},
+	"options_tools_paperSearchWebsiteDialog_chooseFromList": {
+		"message": "By choosing from a list of your visited websites (chrome only)"
+	},
+	"options_tools_paperSearchWebsiteDialog_goToWebsite": {
+		"message": "Please go to the website you want to search. Search for \"customRightClickMenu\" without quotes and then paste the URL in the input below."
+	},
+	"options_tools_paperSearchWebsiteDialog_clickOmnibar": {
+		"message": "Please right-click the omnibar (the white bar above any page) and go to \"edit search engines\", press F12, paste the following code in the \"console\" tab and paste the contents into the box below."
+	},
+	"options_tools_paperSearchWebsiteDialog_pasteHere": {
+		"message": "paste here"
+	},
+	"options_tools_paperSearchWebsiteDialog_invalidInput": {
+		"message": "invalid input"
+	},
+	"options_tools_paperSearchWebsiteDialog_process": {
+		"message": "Process"
+	},
+	"options_tools_paperSearchWebsiteDialog_processedTitle": {
+		"message": "Choose the binding you want from this list"
+	},
+	"options_tools_paperSearchWebsiteDialog_choose": {
+		"message": "Choose"
+	},
+	"options_tools_paperSearchWebsiteDialog_confirmTitle": {
+		"message": "Here you can test whether the given URL gives the expected results"
+	},
+	"options_tools_paperSearchWebsiteDialog_searchQuery": {
+		"message": "Search query"
+	},
+	"options_tools_paperSearchWebsiteDialog_query": {
+		"message": "query"
+	},
+	"options_tools_paperSearchWebsiteDialog_testURL": {
+		"message": "Test URL:"
+	},
+	"options_tools_paperSearchWebsiteDialog_howOpenTitle": {
+		"message": "How do you want the link to open?"
+	},
+	"options_tools_paperSearchWebsiteDialog_newTab": {
+		"message": "A new tab"
+	},
+	"options_tools_paperSearchWebsiteDialog_currentTab": {
+		"message": "The current tab"
+	},
+	"options_tools_paperSearchWebsiteDialog_added": {
+		"message": "Added!"
+	},
+	"options_tools_paperSearchWebsiteDialog_enterSearchQuery": {
+		"message": "Please enter a search query"
+	},
+	"options_tools_paperSearchWebsiteDialog_selectSomething": {
+		"message": "Please select something"
+	},
+	"options_editPages_generic_name": {
+		"message": "Name"
+	},
+	"options_editPages_generic_contentType": {
+		"message": "Show on content type"
+	},
+	"options_editPages_generic_contentTypeTitle": {
+		"message": "Toggle showing this item when right-clicking $CONTENTTYPE$",
+		"placeholders": {
+			"contentType": {
+				"content": "$1"
+			}
+		}
+	},
+	"options_editPages_generic_showOnSpecified": {
+		"message": "Show only on specified sites"
+	},
+	"options_editPages_generic_showOn": {
+		"message": "Show on:"
+	},
+	"options_editPages_generic_regexDescr": {
+		"message": "Regex is available, check the syntax $PREHTML$here$POSTHTML$.",
+		"placeholders": {
+			"prehtml": {
+				"content": "<a href=\"https://developer.chrome.com/extensions/match_patterns\" rel=\"noopener\" target=\"_blank\">"
+			},
+			"posthtml": {
+				"content": "</a>"
+			}
+		}
+	},
+	"options_editPages_generic_not": {
+		"message": "NOT"
+	},
+	"options_editPages_generic_matchPattern": {
+		"message": "URL match pattern"
+	},
+	"options_editPages_generic_invalidURLPattern": {
+		"message": "This is not a valid URL pattern!"
+	},
+	"options_editPages_generic_changeType": {
+		"message": "CHANGE TYPE"
+	},
+	"options_editPages_link_linkLabel": {
+		"message": "Link(s)"
+	},
+	"options_editPages_link_currentTab": {
+		"message": "Open in current tab"
+	},
+	"options_editPages_metadata_name": {
+		"message": "The name of this script"
+	},
+	"options_editPages_metadata_namespace": {
+		"message": "The namespace of the script"
+	},
+	"options_editPages_metadata_version": {
+		"message": "The script version. This is used for the update check."
+	},
+	"options_editPages_metadata_author": {
+		"message": "The scripts author"
+	},
+	"options_editPages_metadata_description": {
+		"message": "A short description."
+	},
+	"options_editPages_metadata_homepage": {
+		"message": "The author's homepage"
+	},
+	"options_editPages_metadata_homepageURL": {
+		"message": "The author's homepage"
+	},
+	"options_editPages_metadata_website": {
+		"message": "The author's homepage"
+	},
+	"options_editPages_metadata_source": {
+		"message": "The author's homepage"
+	},
+	"options_editPages_metadata_icon": {
+		"message": "The script's icon in low res"
+	},
+	"options_editPages_metadata_iconURL": {
+		"message": "The script's icon in low res"
+	},
+	"options_editPages_metadata_defaulticon": {
+		"message": "The script's icon in low res"
+	},
+	"options_editPages_metadata_icon64": {
+		"message": "This scripts icon in 64x64 pixels."
+	},
+	"options_editPages_metadata_icon64URL": {
+		"message": "This scripts icon in 64x64 pixels."
+	},
+	"options_editPages_metadata_updateURL": {
+		"message": "An update URL for the userscript"
+	},
+	"options_editPages_metadata_downloadURL": {
+		"message": "Defines the URL where the script will be downloaded from when an update was detected"
+	},
+	"options_editPages_metadata_supportURL": {
+		"message": "Defines the URL where the user can report issues and get personal support"
+	},
+	"options_editPages_metadata_include": {
+		"message": "The pages on which the script should run"
+	},
+	"options_editPages_metadata_match": {
+		"message": "The pages on which the script should run"
+	},
+	"options_editPages_metadata_exclude": {
+		"message": "Exclude URLs even if they are included by **@include** or **@match**"
+	},
+	"options_editPages_metadata_require": {
+		"message": "Points to a javascript file that is loaded and executed before the script itself"
+	},
+	"options_editPages_metadata_resource": {
+		"message": "The Preloads resources that can be accessed by `GM_getResourceURL` and `GM_getResourceText` by the script of this script"
+	},
+	"options_editPages_metadata_connect": {
+		"message": "Domains which are allowed to be retrieved by `GM_xmlhttpRequest`"
+	},
+	"options_editPages_metadata_runAt": {
+		"message": "The moment the script is injected (document-start, document-body, document-end, document-idle or document-menu)"
+	},
+	"options_editPages_metadata_grant": {
+		"message": "Whitelists given `GM_*` functions"
+	},
+	"options_editPages_metadata_noframes": {
+		"message": "Makes the script run on the main page but not in iframes"
+	},
+	"options_editPages_metadata_CRMContentTypes": {
+		"message": "The content types on which to run this script as a 6 items long boolean array (e.g. [true, false, true, false, true, false]) (CRM ONLY)"
+	},
+	"options_editPages_metadata_CRMLaunchMode": {
+		"message": "When to run this script. 0 = Run on clicking, 1 = always run, 2 = run on specified, 3 = show on specified, 4 = disabled. (CRM ONLY)"
+	},
+	"options_editPages_metadata_CRMStylesheet": {
+		"message": "Interpret this as a stylesheet (userstyle) instead of a script (userscript). (CRM ONLY)"
+	},
+	"options_editPages_metadata_CRMToggle": {
+		"message": "A boolean value (true/false) indicating whether to allow toggling this stylesheet on or off. Only used when @CRM_stylesheet is present. (CRM ONLY)"
+	},
+	"options_editPages_metadata_CRMDefaultOn": {
+		"message": "A boolean value (true/false) indicating whether this stylesheet is toggled on by default. Only used when @CRM_stylesheet and @CRM_toggle are present. (CRM ONLY)"
+	},
+	"options_editPages_metadata_CRMLibraries": {
+		"message": "An array containing stringified objects with a \"url\" and a \"name\" key, pointing to external libraries used in this script."
+	},
+	"options_editPages_metadata_license": {
+		"message": "The license for this script. If none is supplied, it's under exclusive copyright by default"
+	},
+	"options_editPages_metadata_preprocessor": {
+		"message": "The css preprocessor to use, choose from 'less', 'stylus', 'uso' or 'default'. For more info check out https://github.com/openstyles/stylus/wiki/Usercss#preprocessor"
+	},
+	"options_editPages_metadata_var": {
+		"message": "A variable that can be changed by the user and is replaced when compiling the stylesheet"
+	},
+	"options_editPages_monaco_startTagUserscript": {
+		"message": "The start tag for a UserScript metadata block"
+	},
+	"options_editPages_monaco_endTagUserscript": {
+		"message": "The end tag for a UserScript metadata block"
+	},
+	"options_editPages_monaco_startTagUserstyle": {
+		"message": "The start tag for a UserStyle metadata block"
+	},
+	"options_editPages_monaco_endTagUserstyle": {
+		"message": "The end tag for a UserStyle metadata block"
+	},
+	"options_editPages_monaco_scriptStart": {
+		"message": "UserScript start tag"
+	},
+	"options_editPages_monaco_scriptEnd": {
+		"message": "UserScript end tag"
+	},
+	"options_editPages_monaco_styleStart": {
+		"message": "Userstyle start tag"
+	},
+	"options_editPages_monaco_styleEnd": {
+		"message": "Userstyle end tag"
+	},
+	"options_editPages_monaco_metaKey": {
+		"message": "Metadata key"
+	},
+	"options_editPages_monaco_disableMeta": {
+		"message": "Disable Metadata Highlight"
+	},
+	"options_editPages_monaco_enableMeta": {
+		"message": "Enable Metadata Highlight"
+	},
+	"options_editPages_monaco_keyDescription": {
+		"message": "Metadata key $METAKEY$: $METADESCRIPTION$",
+		"placeholders": {
+			"metaKey": {
+				"content": "$1"
+			},
+			"metaDescription": {
+				"content": "$2"
+			}
+		}
+	},
+	"options_editPages_monaco_keyDescriptionUnknown": {
+		"message": "Metadata key $METAKEY$, unknown key",
+		"placeholders": {
+			"metaKey": {
+				"content": "$1"
+			}
+		}
+	},
+	"options_editPages_monaco_valueForKey": {
+		"message": "Value $VALUE$ for key $KEY$",
+		"placeholders": {
+			"value": {
+				"content": "$1"
+			},
+			"key": {
+				"content": "$2"
+			}
+		}
+	},
+	"options_editPages_monaco_disableUnderline": {
+		"message": "Disable CSS underline"
+	},
+	"options_editPages_monaco_enableUnderline": {
+		"message": "Enable CSS underline"
+	},
+	"options_editPages_monaco_optionName": {
+		"message": "The name of the option"
+	},
+	"options_editPages_monaco_numberOption": {
+		"message": "A number type option"
+	},
+	"options_editPages_monaco_minValue": {
+		"message": "The minimum value of the number"
+	},
+	"options_editPages_monaco_maxValue": {
+		"message": "The maximum value of the number"
+	},
+	"options_editPages_monaco_descr": {
+		"message": "A description for this option"
+	},
+	"options_editPages_monaco_defaultValue": {
+		"message": "The default value for this option"
+	},
+	"options_editPages_monaco_value": {
+		"message": "The value of this option (set to null to unset)"
+	},
+	"options_editPages_monaco_valueExpanded": {
+		"message": "The value of this option, changing it here will have the same effect as changing it in the options dialog"
+	},
+	"options_editPages_monaco_stringOption": {
+		"message": "A string type option"
+	},
+	"options_editPages_monaco_maxLength": {
+		"message": "The maximum length of the string"
+	},
+	"options_editPages_monaco_format": {
+		"message": "A regex format that the string has to follow"
+	},
+	"options_editPages_monaco_choiceOption": {
+		"message": "A choice type option"
+	},
+	"options_editPages_monaco_selected": {
+		"message": "The selected value's index"
+	},
+	"options_editPages_monaco_values": {
+		"message": "The possible values of this option"
+	},
+	"options_editPages_monaco_colorOption": {
+		"message": "A color type option"
+	},
+	"options_editPages_monaco_booleanOption": {
+		"message": "A boolean type option"
+	},
+	"options_editPages_monaco_arrayOption": {
+		"message": "An array type option"
+	},
+	"options_editPages_monaco_maxItems": {
+		"message": "The maximum number of array items"
+	},
+	"options_editPages_monaco_items": {
+		"message": "The type of items this array contains (number or string)"
+	},
+	"options_editPages_monaco_lintingDisabled": {
+		"message": "No linting possible in $MODE$ mode",
+		"placeholders": {
+			"mode": {
+				"content": "$1"
+			}
+		}
+	},
+	"options_editPages_monaco_monacoError": {
+		"message": "Caught monaco editor error (ignore these)"
+	},
+	"options_editPages_script_autoUpdate": {
+		"message": "toggle auto-update"
+	},
+	"options_editPages_script_permissions": {
+		"message": "Used Permissions(s)"
+	},
+	"options_editPages_script_manage": {
+		"message": "Manage"
+	},
+	"options_editPages_script_script": {
+		"message": "Script"
+	},
+	"options_editPages_script_docs": {
+		"message": "docs"
+	},
+	"options_editPages_script_scriptMain": {
+		"message": "Main"
+	},
+	"options_editPages_script_scriptBackground": {
+		"message": "Background"
+	},
+	"options_editPages_script_scriptOptions": {
+		"message": "Options"
+	},
+	"options_editPages_script_scriptLibraries": {
+		"message": "Libraries"
+	},
+	"options_editPages_script_showBackgroundLibs": {
+		"message": "Show backgroundscript libraries"
+	},
+	"options_editPages_script_crmNode": {
+		"message": "CRM Node"
+	},
+	"options_editPages_script_userScript": {
+		"message": "Userscript"
+	},
+	"options_editPages_code_triggers": {
+		"message": "Trigger(s)"
+	},
+	"options_editPages_code_triggerOnClick": {
+		"message": "Execute on clicking"
+	},
+	"options_editPages_code_triggerAlways": {
+		"message": "Always execute"
+	},
+	"options_editPages_code_triggerSpecified": {
+		"message": "Execute when visiting specified sites"
+	},
+	"options_editPages_code_triggerShowOnSpecified": {
+		"message": "Show only on specified sites"
+	},
+	"options_editPages_code_triggerDisabled": {
+		"message": "Disabled"
+	},
+	"options_editPages_code_showOn": {
+		"message": "Show on:"
+	},
+	"options_editPages_code_executeOn": {
+		"message": "Execute on:"
+	},
+	"options_editPages_code_triggerInfo": {
+		"message": "For trigger mode \"execute when visiting sides\" urls need to match $EXECUTEPREHTML$the following pattern$POSTHTML$ and for trigger mode \"show when visiting specified sites\" they need to match $MATCHPREHTML$this pattern$POSTHTML$. Regular URLs without wildcards (*) will match just that URL.",
+		"placeholders": {
+			"executePreHtml": {
+				"content": "<a href=\"https://wiki.greasespot.net/Include_and_exclude_rules\" rel=\"noopener\" target=\"_blank\">"
+			},
+			"matchPreHTML": {
+				"content": "<a href=\"https://developer.chrome.com/extensions/match_patterns\" rel=\"noopener\" target=\"_blank\">"
+			},
+			"postHTML": {
+				"content": "</a>"
+			}
+		}
+	},
+	"options_editPages_code_backgroundInfo": {
+		"message": "The background page will always be running. It's possible to communicate with it using the $COMMAPI$. The scripts only share their permissions.",
+		"placeholders": {
+			"commAPI": {
+				"content": "<a href=\"http://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.instance.html#comm\"target=\"_blank\" rel=\"noopener\">crmAPI.comm API</a>"
+			}
+		}
+	},
+	"options_editPages_code_optionsInfo": {
+		"message": "Create a key and press Ctrl+Space for format hints in the option object. Check out $PREHTML$this page$POSTHTML$ to see the format of the options. Keep the $schema line to enable format hints on pressing Ctrl+Space",
+		"placeholders": {
+			"preHTML": {
+				"content": "<a href=\"http://sanderronde.github.io/CustomRightClickMenu/documentation/modules/crm.scriptoptionsschema.html#options\" target=\"_blank\" rel=\"noopener\">"
+			},
+			"postHTML": {
+				"content": "</a>"
+			}
+		}
+	},
+	"options_editPages_code_settings": {
+		"message": "Editor Settings"
+	},
+	"options_editPages_code_theme": {
+		"message": "Theme"
+	},
+	"options_editPages_code_fontSize": {
+		"message": "font size %"
+	},
+	"options_editPages_code_globals": {
+		"message": "Comma separated list of JSLint globals"
+	},
+	"options_editPages_code_keyBindings": {
+		"message": "Key Bindings"
+	},
+	"options_editPages_code_goToDef": {
+		"message": "Go To Type Definition"
+	},
+	"options_editPages_code_rename": {
+		"message": "Rename Symbol"
+	},
+	"options_editPages_code_exportAs": {
+		"message": "EXPORT AS"
+	},
+	"options_editPages_stylesheet_togglable": {
+		"message": "Is Togglable"
+	},
+	"options_editPages_stylesheet_onByDefault": {
+		"message": "On by default"
+	},
+	"options_editPages_stylesheet_toggleInfo": {
+		"message": "Non-togglable CSS is not in the right-click menu but always active instead."
+	},
+	"options_editPages_stylesheet_stylesheet": {
+		"message": "Stylesheet"
+	},
+	"options_editPages_stylesheet_optionsInfo": {
+		"message": "See $PRESTYLUSHTML$this page$POSTHTML$ for more info about code options (vars) and preprocessors and see $PREUSERCSSHTML$this section$POSTHTML$ for examples (ignore the @-moz-document part).",
+		"placeholders": {
+			"preStylusHTML": {
+				"content": "<a href=\"https://github.com/openstyles/stylus/wiki/Usercss#var\" rel=\"noopener\" target=\"_blank\">"
+			},
+			"preUserCSSHTML": {
+				"content": "<a href=\"https://github.com/openstyles/stylus/wiki/Usercss#more-examples\" rel=\"noopener\" target=\"_blank\">"
+			},
+			"postHTML": {
+				"content": "</a"
+			}
+		}
+	},
+	"options_editPages_stylesheet_stylusInfo": {
+		"message": "Unfortunately there's no syntax highlighting support for Stylus (yet). The editor will use LESS syntax highlighting instead as it's somewhat close to Stylus."
+	},
+	"options_typeSwitcher_title": {
+		"message": "Change type to $TYPE$",
+		"placeholders": {
+			"type": {
+				"content": "$1"
+			}
+		}
+	},
+	"splashScreen_ready": {
+		"message": "ready"
+	}
+}
