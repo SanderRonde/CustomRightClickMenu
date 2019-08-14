@@ -995,13 +995,19 @@ class Tasks {
 				classes, ids, selectors, tags
 			} = queryObj;
 			const prefix = capitalize(dashesToUppercase(name));
-			return `export type ${prefix}SelectorMap = ${formatTypings(selectors)}
+			return `export type ${prefix}FlatSelectorMap = ${formatTypings(selectors)}
 
 	export type ${prefix}IDMap = ${formatTypings(ids)}
 
 	export type ${prefix}ClassMap = ${formatTypings(classes)}
 
-	export type ${prefix}TagMap = ${formatTypings(tags)}`
+	export type ${prefix}TagMap = ${formatTypings(tags)}
+	
+	export type ${prefix}SelectorMap = {
+		IDS: ${formatTypings(ids)}
+		CLASSES: ${formatTypings(classes)}
+		TAGS: ${formatTypings(tags)}
+	}`
 		}
 		
 		/**
@@ -2900,7 +2906,7 @@ class Tasks {
 		 * import '@polymer/xxx/yyy'
 		 * ```
 		 */
-		async function resolveGlobalImports(file: string, cwd: string) {
+		async function resolveGlobalImports(file: string) {
 			const imports = file.match(/import ['"](.*)['"]/g);
 			for (const fileImport of imports) {
 				const [ , importPath ] = /import ['"](.*)['"]/.exec(fileImport);
@@ -2914,7 +2920,7 @@ class Tasks {
 		 * import { zzz } from '@polymer/xxx/yyy';
 		 * ```
 		 */
-		async function resolveVarImports(file: string, cwd: string) {
+		async function resolveVarImports(file: string) {
 			const imports = file.match(/import\s+{\s*(.*)\s*}\s*from\s*['"](.*)['"]/g);
 			for (const fileImport of imports) {
 				const [ , importValue, importPath ] = /import\s+{\s*(.*)\s*}\s*from\s*['"](.*)['"]/
@@ -2940,8 +2946,8 @@ class Tasks {
 			cwd = path.join(cwd, path.dirname(getComponentFile(componentPath)));
 
 			// Resolve all imports first
-			await resolveGlobalImports(file, cwd);
-			await resolveVarImports(file, cwd);
+			await resolveGlobalImports(file);
+			await resolveVarImports(file);
 		}
 
 		class PolymerConversion {

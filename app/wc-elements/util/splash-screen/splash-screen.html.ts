@@ -1,4 +1,4 @@
-import { TemplateFn, CHANGE_TYPE } from "../../../modules/wclib/build/es/wclib.js";
+import { TemplateFn, CHANGE_TYPE } from "../../../modules/wc-lib/build/es/wc-lib.js";
 import { render } from '../../../modules/lit-html/lit-html.js'
 import { SplashScreen } from "./splash-screen.js";
 

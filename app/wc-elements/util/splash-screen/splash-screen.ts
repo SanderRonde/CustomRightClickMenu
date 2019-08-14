@@ -1,5 +1,5 @@
-import { ConfigurableWebComponent, Props, PROP_TYPE, config, DefineMetadata } from '../../../modules/wclib/build/es/wclib.js';
-import { SplashScreenIDMap, SplashScreenClassMap } from './splash-screen-querymap';
+import { ConfigurableWebComponent, Props, PROP_TYPE, config, DefineMetadata } from '../../../modules/wc-lib/build/es/wc-lib.js';
+import { SplashScreenSelectorMap } from './splash-screen-querymap';
 import { SplashScreenHTML } from './splash-screen.html.js';
 import { SplashScreenCSS } from './splash-screen.css.js';
 import { setTransform } from '../../../js/shared.js';
@@ -10,8 +10,7 @@ import { setTransform } from '../../../js/shared.js';
 	html: SplashScreenHTML
 })
 export class SplashScreen extends ConfigurableWebComponent<{
-	IDS: SplashScreenIDMap;
-	CLASSES: SplashScreenClassMap;
+	selectors: SplashScreenSelectorMap;
 }> {
 	private _settings: {
 		lastReachedProgress: number;

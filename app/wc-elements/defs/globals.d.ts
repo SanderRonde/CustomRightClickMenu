@@ -1,4 +1,4 @@
-import { WebComponent } from "../../modules/wclib/build/es/wclib";
+import { WebComponent } from "../../modules/wc-lib/build/es/wc-lib";
 import { TagNameMaps, WCTagNameMaps } from "./wc-elements";
 
 export type EncodedString<T> = string & {
@@ -56,11 +56,5 @@ declare global {
 
 	interface MouseEvent {
 		path: (HTMLElement|WebComponent)[];
-	}
-
-	interface HTMLElement {
-		__isAnimationJqueryPolyfill?: boolean;
-		disabled: boolean;
-		getRootNode(): ShadowRoot;
 	}
 }
