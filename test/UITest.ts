@@ -4,14 +4,24 @@
 /// <reference path="../tools/definitions/chrome.d.ts" />
 
 import * as http from 'http';
-
 declare const browserAPI: browserAPI;
 
 const PORT: number = 1250;
 //Set to false to test remotely even when running it locally
 const TEST_LOCAL_DEFAULT = true;
-const TEST_LOCAL: boolean = hasSetting('remote') || !!process.env.TRAVIS ? 
-	false : TEST_LOCAL_DEFAULT;
+const TEST_LOCAL: boolean = (() => {
+	if (hasSetting('remote')) {
+		console.log('Testing remotely');
+		return false;
+	}
+	if (!!process.env.TRAVIS) {
+		console.log('Testing remotely');
+		return false;
+	}
+	console.log(TEST_LOCAL_DEFAULT ?
+		'Testing locally' : 'Testing remotely');
+	return TEST_LOCAL_DEFAULT;
+})();
 const TEST_EXTENSION = hasSetting('test-extension');
 const TIME_MODIFIER = 1.2;
 const LOCAL_URL = 'http://localhost:9515';
@@ -32,17 +42,22 @@ const REMOTE_URL = (async () => {
 		console.log('Using custom remote URL');
 		return process.env.REMOTE_URL;
 	}
+	if (!TEST_LOCAL_DEFAULT) {
+		console.log('Using browserstack remote');
+	}
 	return 'http://hub-cloud.browserstack.com/wd/hub';
 })();
-const REMOTE_PW = (() => {
+const REMOTE_PW = (async () => {
 	if (hasSetting('remote-pw')) {
 		return getSetting('remote-pw');
 	}
-	if (process.env.REMOTE_PW) {
-		console.log('Using custom remote PW');
-		return process.env.REMOTE_PW;
-	}
-	return 'PW';
+	if (process.env.REMOTE_PW && 
+		process.env.REMOTE_URL && 
+		await ping(process.env.REMOTE_URL)) {
+			console.log('Using custom remote PW');
+			return process.env.REMOTE_PW;
+		}
+	return undefined;
 })();
 
 const SKIP_ENTRYPOINTS = hasSetting('skip-entrypoints');
@@ -408,7 +423,6 @@ before('Driver connect', async function() {
 				await tryReadManifest('app/manifest.json') ||
 				await tryReadManifest('app/manifest.chrome.json')
 			).version} - ${await getGitHash()}`,
-			pw: REMOTE_PW,
 			name: (() => {
 				if (process.env.TRAVIS) {
 					// Travis
@@ -422,7 +436,9 @@ before('Driver connect', async function() {
 				}`
 			})(),
 			'browserstack.local': !TEST_EXTENSION
-		}}).merge(additionalCapabilities));
+		}, ...(await REMOTE_PW) ? {
+			pw: await REMOTE_PW,
+		} : {}}).merge(additionalCapabilities));
 	if (TEST_LOCAL) {
 		driver = unBuilt.forBrowser('chrome').build();
 	} else {

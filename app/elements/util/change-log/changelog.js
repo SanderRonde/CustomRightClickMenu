@@ -191,6 +191,11 @@
 		],
 		'2.2.7': [
 			'Fix more dragging issues'
+		],
+		'2.2.8': [
+			'Add I18N support (currently only english, please contact me if you want to add your language)',
+			'Hide root node when contextmenu is empty',
+			'Added crmAPI.fetch and crmAPI.fetchBackground functions to re-enable XHRs (see [link](https://www.chromestatus.com/feature/5629709824032768))'
 		]
 	};
 

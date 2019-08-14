@@ -6041,7 +6041,7 @@ describe('CRMAPI', () => {
 			this.timeout(5000);
 			this.slow(2500);
 
- 			assert.isFunction(crmAPI.fetch);
+			assert.isFunction(crmAPI.fetch);
 			await asyncDoesNotThrow(() => {
 				return new Promise(async (resolve) => {
 					const result = await crmAPI.fetch('https://www.example.com');
@@ -6057,7 +6057,7 @@ describe('CRMAPI', () => {
 			this.timeout(5000);
 			this.slow(2500);
 
- 			assert.isFunction(crmAPI.fetchBackground);
+			assert.isFunction(crmAPI.fetchBackground);
 			await asyncDoesNotThrow(() => {
 				return new Promise(async (resolve) => {
 					debugger;

@@ -87,8 +87,22 @@ namespace SplashScreenElement {
 			this._onFinish();
 		}
 
+		private static _awaitLangReady(this: SplashScreen) {
+			if (this.$.langReadyDetector.innerText === 'ready') {
+				return Promise.resolve();
+			}
+			return new Promise<void>((resolve) => {
+				const interval = window.setInterval(() => {
+					if (this.$.langReadyDetector.innerText === 'ready') {
+						window.clearInterval(interval);
+						resolve();
+					}
+				}, 50);
+			});
+		}
+
 		private static _onRegistration(this: SplashScreen, registered: number, resolve: (res: void) => void) {
-			const progress = Math.round((registered / this._settings.max) * 100) / 100;
+			const progress = Math.round((registered / this._settings.max + 1) * 100) / 100;
 			this.setProgress(progress);
 
 			if (registered >= this._settings.max) {

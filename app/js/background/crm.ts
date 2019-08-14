@@ -2830,6 +2830,24 @@ export namespace CRMNodes {
 		}
 		return newContexts;
 	}
+	export function getJoinedContexts(contexts: CRM.ContentTypes[]): _browser.contextMenus.ContextType[] {
+		const newContexts: {
+			[key: string]: boolean;
+		} = {};
+		newContexts['browser_action'] = true;
+		const textContexts = modules.constants.contexts;
+		for (const context of contexts) {
+			for (let i = 0; i < 6; i++) {
+				if (context[i]) {
+					newContexts[textContexts[i]] = true;
+				}
+			}
+			if (context[0]) {
+				newContexts['editable'] = true;
+			}
+		}
+		return Object.getOwnPropertyNames(newContexts) as _browser.contextMenus.ContextType[];
+	}
 	export async function converToLegacy(): Promise<{
 		[key: number]: string;
 		[key: string]: string;

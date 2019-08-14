@@ -157,6 +157,44 @@ export namespace MessageHandling {
 			return fetch(url).then(r => r.text()) as unknown as Promise<string>;
 		}
 
+		return new Promise<string>((resolve, reject) => {
+			const xhr = new window.XMLHttpRequest();
+			xhr.open('GET', url);
+			xhr.onreadystatechange = () => {
+				if (xhr.readyState === 4) {
+					if (xhr.status >= 200 && xhr.status < 300) {
+						resolve(xhr.responseText);
+					} else {
+						reject(xhr.status);
+					}
+				}
+			}
+			xhr.send();
+		});
+	}
+	export function backgroundFetch(message: CRMAPIMessageInstance<string, {
+		url: string;
+		onFinish: number;
+	}>) {
+		const url = message.data.url;
+		doFetch(url).then((responseText) => {
+			modules.globalObject.globals.sendCallbackMessage(message.tabId,
+				message.tabIndex, message.id, {
+					err: false,
+					args: [false, responseText],
+					callbackId: message.data.onFinish
+				});
+		}).catch((err) => {
+			modules.globalObject.globals.sendCallbackMessage(message.tabId,
+				message.tabIndex, message.id, {
+					// Don't signify an error so the promise can be handled
+					err: false,
+					args: [true, `Failed with status ${err}`],
+					callbackId: message.data.onFinish
+				});
+		});
+	}
+
  		return new Promise<string>((resolve, reject) => {
 			const xhr = new window.XMLHttpRequest();
 			xhr.open('GET', url);
@@ -287,7 +325,7 @@ export namespace MessageHandling {
 					break;
 				case 'fetch':
 					await backgroundFetch(message);
-					break;
+					
 			}
 			respond && respond(response);
 		}

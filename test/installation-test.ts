@@ -674,11 +674,18 @@ function doOpenUserCssTest(prefix: () => string|void) {
 					await tryReadManifest('app/manifest.json') ||
 					await tryReadManifest('app/manifest.chrome.json')
 				).version} - ${await getGitHash()}`,
-				name: `${
-					browserCapabilities.browserName
-				} ${
-					browserCapabilities.browser_version || 'latest'
-				}`,
+				name: (() => {
+					if (process.env.TRAVIS) {
+						// Travis
+						return `${process.env.TEST} attempt ${process.env.ATTEMPTS}`;
+					}
+					// Local
+					return `local:${
+						browserCapabilities.browserName
+					} ${
+						browserCapabilities.browser_version || 'latest'
+					}`
+				})(),
 				'browserstack.local': false
 			}}).merge(additionalCapabilities));
 		if (TEST_LOCAL) {
