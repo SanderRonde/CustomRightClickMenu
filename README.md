@@ -55,9 +55,9 @@ you clicked on (page, link, selection, image, video or audio).
 
 > [2.2.8](https://github.com/SanderRonde/CustomRightClickMenu/releases/tag/2.2.8.2) is the current latest version
 
-* [Chrome Webstore](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj) - On version 2.2.7
-* [Firefox Add-on](https://addons.mozilla.org/nl/firefox/addon/custom-right-click-menu/) - On 2.2.7
-* [Edge Extension](https://www.microsoft.com/store/apps/9P6T9NZ0QML9) - On 2.2.7
+* [Chrome Webstore](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj) - On version 2.2.8
+* [Firefox Add-on](https://addons.mozilla.org/nl/firefox/addon/custom-right-click-menu/) - On 2.2.8
+* [Edge Extension](https://www.microsoft.com/store/apps/9P6T9NZ0QML9) - On 2.2.7, 2.2.8 certification in progress
 * Opera extension - Under certification for initial release (no changes in review status since submission in may 2018)
 
 ### Installing from repo
