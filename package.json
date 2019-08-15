@@ -233,10 +233,8 @@
     "genAppx": "node scripts/has-edge-secrets.js && (yarn genAppx:create && yarn genAppx:finish) || echo \"Edge secrets not present, skipping edge packaging\"",
     "package": "gulp genCRX && gulp genXPI && yarn genAppx",
     "postinstall.bower": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'app/bower_components', 'junction') } catch (e) { }\"",
-    "postinstall.symlinkdir": "node -e \"try { !require('fs').existsSync(require('path').join(__dirname, 'app/modules') && require('fs').mkdirSync(require('path').join(__dirname, 'app/modules'))) } catch (e) { }\"",
-    "postinstall.wclib": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/wc-lib'), 'app/modules/wc-lib', 'junction'); } catch (e) { }\"",
-    "postinstall.lithtml": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/lit-html'), 'app/modules/lit-html', 'junction'); } catch (e) { }\"",
-    "postinstall": "yarn postinstall.bower && yarn postinstall.symlinkdir && yarn postinstall.wclib && yarn postinstall.lithtml"
+    "postinstall.modules": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules'), 'app/modules', 'junction'); } catch (e) { }\"",
+    "postinstall": "yarn postinstall.bower && yarn postinstall.modules"
   },
   "version": "2.2.7"
 }
