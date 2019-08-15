@@ -1,7 +1,7 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
 import { BackgroundpageWindow, TabData, LogListenerLine, LogListenerObject, LogListener, CRMAPIMessageInstance, ContextMenuItemTreeItem, ContextMenuOverrides } from './sharedTypes.js';
 import { WebComponentI18NManager } from '../../modules/wclib/build/es/wclib.js';
-import { I18NKeys } from "../../_locales/i18n-keys.js";
+import { I18NKeys } from "../../localestemp/i18n-keys.js.js.js";
 import { MessageHandling } from "./messagehandling.js";
 import { BrowserHandler } from "./browserhandler.js";
 import { browserAPI } from '../polyfills/browser.js';

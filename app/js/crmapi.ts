@@ -5952,11 +5952,7 @@ export type CRMAPIMessage = {
 				return fetch(url).then(r => r.text()) as unknown as Promise<string>;
 			}
 
-<<<<<<< HEAD
- 			return new Promise<string>((resolve, reject) => {
-=======
 			return new Promise<string>((resolve, reject) => {
->>>>>>> master
 				const xhr = new window.XMLHttpRequest();
 				xhr.open('GET', url);
 				xhr.onreadystatechange = () => {

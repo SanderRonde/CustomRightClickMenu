@@ -1,5 +1,5 @@
 import { browserAPI, BrowserAPI } from '../../../js/polyfills/browser.js';
-import { I18NKeys } from '../../../_locales/i18n-keys.js';
+import { I18NKeys } from '../../../localestemp/i18n-keys.js.js.js';
 import { CrmApp, JQueryContextMenu } from './crm-app';
 import { CRMWindow } from '../../defs/crm-window.js';
 import { EncodedString } from '../../defs/globals.js';

@@ -2,7 +2,7 @@ import { BackgroundpageWindow, UpgradeErrorHandler, SCRIPT_CONVERSION_TYPE, Matc
 import { WebComponentI18NManager } from '../../modules/wclib/build/es/wclib';
 import { EncodedString } from '../../wc-elements/defs/globals';
 import { browserAPI, BrowserAPI } from '../polyfills/browser';
-import { I18NKeys } from "../../_locales/i18n-keys";
+import { I18NKeys } from "../../localestemp/i18n-keys";
 import { ModuleData } from "./moduleTypes";
 
 declare const window: BackgroundpageWindow;

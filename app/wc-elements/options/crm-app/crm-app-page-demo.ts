@@ -1,4 +1,4 @@
-import { I18NKeys } from '../../../_locales/i18n-keys.js';
+import { I18NKeys } from '../../../localestemp/i18n-keys.js.js.js';
 import { CRMWindow } from '../../defs/crm-window.js';
 import { CrmApp } from './crm-app';
 import { onExistsChain } from '../../../js/shared.js';

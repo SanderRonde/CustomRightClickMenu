@@ -3,7 +3,9 @@
 import { ContextMenuCreateProperties, BrowserTabsQueryInfo } from "../background/sharedTypes";
 import { CRMWindow } from "../../wc-elements/defs/crm-window";
 
-declare const window: CRMWindow;
+declare const window: CRMWindow & {
+	browser: browserAPIType;
+};
 
 declare global {
 	namespace _browser.runtime {
@@ -37,7 +39,9 @@ namespace BrowserAPINS {
 	// So if browser is Edge, use "browser", otherwise use "chrome" if available
 	// 	to ensure always always getting callback-style APIs
 	const apisWindow = window as AllBrowserAPIsWindow;
-	const __srcBrowser: typeof _chrome = apisWindow.StyleMedia ?
+	const __srcBrowser: (typeof _chrome & {
+		debugger: typeof _chrome._debugger
+	}) = apisWindow.StyleMedia ?
 		(apisWindow.browser as any) : apisWindow.chrome;
 	function checkReject(reject: (err: _chrome.runtime.LastError) => void) {
 		if (__srcBrowser.runtime.lastError) {
@@ -449,6 +453,36 @@ namespace BrowserAPINS {
 				});
 			}
 		} : void 0,
+		debugger: __srcBrowser.debugger ? {
+			attach(target: _chrome._debugger.Debuggee, requiredVersion: string): Promise<void> {
+				return createPromise<void>((handler) => {
+					__srcBrowser.debugger.attach(target, requiredVersion, handler);
+				});	
+			},
+			detach(target: _chrome._debugger.Debuggee): Promise<void> {
+				return createPromise<void>((handler) => {
+					__srcBrowser.debugger.detach(target, handler);
+				});	
+			},
+			sendCommand(target: _chrome._debugger.Debuggee, 
+				method: string, commandParams?: Object): Promise<Object> {
+					return createPromise<Object>((handler) => {
+						if (commandParams) {
+							__srcBrowser.debugger.sendCommand(target, method, commandParams, handler);
+						} else {
+							__srcBrowser.debugger.sendCommand(target, method, handler);
+						}
+					});
+				},
+			getTargets(): Promise<_chrome._debugger.TargetInfo[]> {
+				return createPromise<_chrome._debugger.TargetInfo[]>((handler) => {
+					__srcBrowser.debugger.getTargets(handler);
+				});
+			},
+			onEvent: (__srcBrowser.debugger.onEvent as any) as EvListener<(
+				debuggee: _chrome._debugger.Debuggee, method: string, params?: Object
+			) => void>
+		} : void 0,
 		downloads: getDownloadAPI(),
 		extension: __srcBrowser.extension ? {
 			isAllowedFileSchemeAccess(): Promise<boolean> {
@@ -822,3 +856,4 @@ export const browserAPI = (() => {
 
 export type BrowserAPIType = typeof BrowserAPI;
 export type browserAPIType = typeof browserAPI;
+window.browserAPI = browserAPI as any;

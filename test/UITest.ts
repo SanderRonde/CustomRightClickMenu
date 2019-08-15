@@ -126,7 +126,7 @@ import {
 	forEachPromise, FoundElementPromise, 
 	BrowserstackCapabilities, waitForCRM, resetSettings, ContextMenu, ContextMenuItem, ActiveTabs, ExecutedScript
 } from './imports';
-import { I18NKeys } from '../app/_locales/i18n-keys';
+import { I18NKeys } from '../app/localestemp/i18n-keys';
 import { EncodedString } from '../app/elements/elements';
 import { GlobalObject } from '../app/js/background/sharedTypes';
 import { EditCrmItem } from '../app/elements/options/edit-crm-item/edit-crm-item';

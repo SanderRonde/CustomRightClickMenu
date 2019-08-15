@@ -4,7 +4,7 @@ import { GlobalDeclarations } from "./global-declarations.js";
 import { MessageHandling } from "./messagehandling.js";
 import { CRMAPIFunctions } from "./crmapifunctions.js";
 import { BrowserHandler } from "./browserhandler.js";
-import { I18NKeys } from "../../_locales/i18n-keys";
+import { I18NKeys } from "../../localestemp/i18n-keys";
 import { APIMessaging } from "./api-messaging.js";
 import { browserAPI } from "../polyfills/browser";
 import { CRMAPICall } from "./crmapicall.js";

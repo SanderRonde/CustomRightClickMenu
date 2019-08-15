@@ -3,12 +3,13 @@ import {
 	BooleanAttributePart, AttributeCommitter, 
 	NodePart, isDirective, noChange, directive, Part, DirectiveFn 
 } from '../modules/lit-html/lit-html.js';
-import { WebComponentTemplateManager, WebComponentI18NManager } from "../modules/wclib/build/es/wclib.js";
+import { WebComponent } from "../modules/wc-lib/build/es/wc-lib.js";
 import { SplashScreen } from "../wc-elements/util/splash-screen/splash-screen.js";
-import { CrmApp } from '../wc-elements/options/crm-app/crm-app.js';
-import { I18NMessage } from '../_locales/i18n';
+// import { CrmApp } from '../wc-elements/options/crm-app/crm-app.js';
+import { I18NMessage } from '../localestemp/i18n';
+import '@polymer/paper-button/paper-button.js';
 
-WebComponentTemplateManager.initComplexTemplateProvider({
+WebComponent.initComplexTemplateProvider({
 	TemplateResult, PropertyCommitter, EventPart,BooleanAttributePart,
 	AttributeCommitter, NodePart, isDirective, noChange
 });
@@ -122,7 +123,7 @@ namespace ExtensionI18N {
 	}
 }
 
-WebComponentI18NManager.initI18N({
+WebComponent.initI18N({
 	urlFormat: '/_locales/$LANG$/messages.json',
 	defaultLang: 'en',
 	returner: directive((promise: Promise<string>, content: string) => (part: Part) => {
@@ -137,4 +138,4 @@ WebComponentI18NManager.initI18N({
 	getMessage: ExtensionI18N.getMessage
 });
 SplashScreen.define();
-CrmApp.define();
+// CrmApp.define();

@@ -1,5 +1,7 @@
 # Custom Right-Click Menu - Create your own context menu
 
+<!-- TODO: remove debugger permission in build -->
+
 <img align="right" height="200" src="https://github.com/SanderRonde/CustomRightClickMenu/blob/master/resources/logo/source/png/1.transparent.png">
 
 Create your own entry in the right-click menu. Add custom scripts, links, sub-menus or custom CSS in your right-click menu and

@@ -1,4 +1,4 @@
-import { I18NKeys } from '../../../_locales/i18n-keys.js';
+import { I18NKeys } from '../../../localestemp/i18n-keys.js.js.js';
 import { CrmApp } from './crm-app';
 export class CRMAppTemplates {
 	constructor(private _parent: CrmApp) { }

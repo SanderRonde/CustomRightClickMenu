@@ -194,8 +194,12 @@ export namespace MessageHandling {
 				});
 		});
 	}
+	export function doFetch(url: string): Promise<string> {
+		if ('fetch' in window && window.fetch !== undefined) {
+			return fetch(url).then(r => r.text()) as unknown as Promise<string>;
+		}
 
- 		return new Promise<string>((resolve, reject) => {
+		return new Promise<string>((resolve, reject) => {
 			const xhr = new window.XMLHttpRequest();
 			xhr.open('GET', url);
 			xhr.onreadystatechange = () => {

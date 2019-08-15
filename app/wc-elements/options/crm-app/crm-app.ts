@@ -8,7 +8,7 @@ import { setTransform, onExistsChain } from '../../../js/shared.js';
 import { CrmAppIDMap, CrmAppClassMap } from './crm-app-querymap';
 import { CRMAppCRMFunctions } from './crm-app-crm-functions.js';
 import { ResolvablePromise, waitFor } from '../../utils.js';
-import { I18NKeys } from '../../../_locales/i18n-keys.js';
+import { I18NKeys } from '../../../localestemp/i18n-keys.js.js.js';
 import { CRMAppListeners } from './crm-app-listeners.js';
 import { CRMAppTemplates } from './crm-app-templates.js';
 import { CRMAppUploading } from './crm-app-uploading.js';

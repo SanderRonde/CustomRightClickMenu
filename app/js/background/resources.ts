@@ -1,5 +1,5 @@
 import { BackgroundpageWindow } from './sharedTypes';
-import { I18NKeys } from "../../_locales/i18n-keys";
+import { I18NKeys } from "../../localestemp/i18n-keys";
 import { browserAPI } from '../polyfills/browser';
 import { ModuleData } from "./moduleTypes";
 import { WebComponentI18NManager } from '../../modules/wclib/build/es/wclib';

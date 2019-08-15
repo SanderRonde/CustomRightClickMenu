@@ -1,7 +1,7 @@
 import { printIfTrue, onTypeChange, freeze, __, renderable, twoWay } from '../../utils.js';
 import { TemplateFn, CHANGE_TYPE } from '../../../modules/wclib/build/es/wclib.js';
 import { render } from '../../../modules/lit-html/lit-html.js';
-import { I18NKeys } from '../../../_locales/i18n-keys.js';
+import { I18NKeys } from '../../../localestemp/i18n-keys.js.js.js';
 import { CrmApp } from './crm-app.js';
 
 export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, change) {

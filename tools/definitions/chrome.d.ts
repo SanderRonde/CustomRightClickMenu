@@ -19,6 +19,7 @@ interface Chrome {
 	contentSettings: typeof _chrome.contentSettings;
 	contextMenus: typeof _chrome.contextMenus;
 	cookies: typeof _chrome.cookies;
+	debugger: typeof _chrome._debugger;
 	declarativeContent: {
 		PageStateUrlDetails: _chrome.declarativeContent.PageStateUrlDetails;
 		PageStateMatcher: _chrome.declarativeContent.PageStateMatcher;
@@ -1334,7 +1335,7 @@ declare namespace _chrome.cookies {
  * Availability: Since Chrome 18.
  * Permissions:  "debugger"
  */
-declare module "_chrome.debugger" {
+declare namespace _chrome._debugger {
 	/** Debuggee identifier. Either tabId or extensionId must be specified */
     interface Debuggee {
 		/** Optional. The id of the tab which you intend to debug.  */

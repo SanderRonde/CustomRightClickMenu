@@ -6,8 +6,14 @@
 /// <reference path="../js/shared.ts" />
 /// <reference path="crmapi.ts" />
 
-import { Init } from "./background/init.js";
+// import { Init } from "./background/init.js";
+import { DevServer } from "./background/dev-server.js";
 
-(() => {
-	Init.init();
+const DEVELOPMENT = true;
+(async () => {
+	// await Init.init();
+
+	if (DEVELOPMENT) {
+		DevServer.init();
+	}
 })();

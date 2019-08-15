@@ -4,7 +4,7 @@ import { BackgroundpageWindow, GreaseMonkeyData, EncodedContextData, MatchPatter
 import { WebComponentI18NManager } from '../../modules/wclib/build/es/wclib';
 import { EncodedString } from '../../wc-elements/defs/globals';
 import { BrowserAPI, browserAPI } from '../polyfills/browser';
-import { I18NKeys } from "../../_locales/i18n-keys";
+import { I18NKeys } from "../../localestemp/i18n-keys";
 import { ModuleData } from "./moduleTypes";
 import { withAsync } from '../shared';
 

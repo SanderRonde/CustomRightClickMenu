@@ -2,7 +2,7 @@
 
 import { EditCrmItem } from '../edit-crm-item/edit-crm-item';
 import { Polymer } from '../../../../tools/definitions/polymer';
-import { I18NKeys } from '../../../_locales/i18n-keys';
+import { I18NKeys } from '../../../localestemp/i18n-keys';
 
 namespace TypeSwitcherElement {
 	export class TS {

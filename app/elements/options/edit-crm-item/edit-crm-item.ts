@@ -2,7 +2,7 @@
 
 import { CRMColumnElement } from '../edit-crm/edit-crm';
 import { Polymer } from '../../../../tools/definitions/polymer';
-import { I18NKeys } from '../../../_locales/i18n-keys';
+import { I18NKeys } from '../../../localestemp/i18n-keys';
 
 namespace EditCrmItemElement {
 	export const editCrmItemProperties: {
