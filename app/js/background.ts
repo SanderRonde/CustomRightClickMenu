@@ -6,14 +6,21 @@
 /// <reference path="../js/shared.ts" />
 /// <reference path="crmapi.ts" />
 
-// import { Init } from "./background/init.js";
 import { DevServer } from "./background/dev-server.js";
+import { browserAPI } from "./polyfills/browser.js";
+import { Init } from "./background/init.js";
 
-const DEVELOPMENT = true;
 (async () => {
-	// await Init.init();
-
-	if (DEVELOPMENT) {
-		DevServer.init();
-	}
+	await Promise.all([
+		(async () => {
+			await Init.init();
+		})(),
+		(async () => {
+			const { short_name } = await browserAPI.runtime.getManifest();
+			const DEVELOPMENT = short_name.indexOf('dev') > -1;
+			if (DEVELOPMENT) {
+				await DevServer.init();
+			}
+		})()
+	]);
 })();

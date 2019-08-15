@@ -2,12 +2,12 @@ import {
 	TemplateResult, PropertyCommitter, EventPart, 
 	BooleanAttributePart, AttributeCommitter, 
 	NodePart, isDirective, noChange, directive, Part
-} from '../modules/lit-html/lit-html.js';
-import { WebComponent } from "../modules/wc-lib/build/es/wc-lib.js";
+} from 'lit-html';
 import { SplashScreen } from "../wc-elements/util/splash-screen/splash-screen.js";
 // import { CrmApp } from '../wc-elements/options/crm-app/crm-app.js';
-import '@polymer/paper-button/paper-button.js';
 import { ExtensionI18N } from '../js/shared.js';
+import '@polymer/paper-button/paper-button.js';
+import { WebComponent } from "wc-lib";
 
 WebComponent.initComplexTemplateProvider({
 	TemplateResult, PropertyCommitter, EventPart,BooleanAttributePart,

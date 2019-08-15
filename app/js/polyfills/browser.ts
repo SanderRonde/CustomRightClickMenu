@@ -475,7 +475,7 @@ namespace BrowserAPINS {
 				});
 			},
 			onEvent: (__srcBrowser.debugger.onEvent as any) as EvListener<(
-				debuggee: _chrome._debugger.Debuggee, method: string, params?: Object
+				debuggee: _chrome._debugger.Debuggee, method: string, params?: any
 			) => void>
 		} : void 0,
 		downloads: getDownloadAPI(),
