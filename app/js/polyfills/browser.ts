@@ -56,13 +56,6 @@ namespace BrowserAPINS {
 		__reject(err: any): void;
 		__stack: Error;
 	};
-	class CustomError extends Error {
-		constructor({ message }: _chrome.runtime.LastError, { stack }: Error) {
-			super(message);
-			this.stack = stack;
-			this.message = message;
-		}
-	}
 	function createCallback<T>(stackSrc: Error, prom: {
 		resolve: (result: T) => void;
 		reject: (reason: any) => void;
@@ -70,7 +63,8 @@ namespace BrowserAPINS {
 		const { resolve, reject } = prom;
 		const fn = ((...args: any[]) => {
 			if (__srcBrowser.runtime.lastError) {
-				reject(new CustomError(__srcBrowser.runtime.lastError, stackSrc));
+				stackSrc.message = __srcBrowser.runtime.lastError.message;
+				reject(stackSrc);
 			}
 			else {
 				resolve(args[0]);
@@ -440,7 +434,8 @@ namespace BrowserAPINS {
 							handler.__resolve(undefined);
 						}
 						if (__srcBrowser.runtime.lastError) {
-							handler.__reject(new CustomError(__srcBrowser.runtime.lastError, handler.__stack));
+							handler.__stack.message = __srcBrowser.runtime.lastError.message;
+							handler.__reject(handler.__stack);
 						}
 						else {
 							handler.__resolve(undefined);
