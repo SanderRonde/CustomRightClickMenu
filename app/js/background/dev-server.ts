@@ -3,7 +3,7 @@ import { browserAPI } from '../polyfills/browser.js';
 export namespace DevServer {
 	export namespace Imports {
 		const IMPORT_REGEX = 
-			/import([\n\s])*(\{([^\}]|[\n\s])*?\}[\n\s]*from)?([\n\s]*)((['"])([^\.].*)\6)/g;
+			/import([\n\s])*(\{(([^\}]|[\n\s])*?)\}[\n\s]*from)?([\n\s]*)((['"])([^\.].*)\7)/g;
 
 		function repeat(text: string, amount: number) {
 			let str = '';
@@ -13,10 +13,10 @@ export namespace DevServer {
 			return str;
 		}
 
-		function resolveRelativePathToModules({ url }: Request) {
+		function resolveBasePath({ url }: Request) {
 			const fromRoot = url.split('://')[1].split('/').slice(1).join('/');
 			const subdirs = fromRoot.split('/').length - 1;
-			return `${repeat('../', subdirs)}modules/`;
+			return repeat('../', subdirs);
 		}
 
 		function resolveModuleImportFile(importName: string) {
@@ -40,19 +40,51 @@ export namespace DevServer {
 			return importName;
 		}
 
-		export function replace(request: Request, script: string): string {
-			const replaced = script.replace(IMPORT_REGEX, 
-				(_full, space1, contents, _innerSpacing, space2,
+		function insertPolymerCompat(request: Request, importName: string|undefined, source: string|undefined,
+			space1: string, space2: string, contents: string, quote: string): string|null {
+				if (request.url.indexOf('polymer-compat') > -1) return null;
+				if (!importName || !source) return null;
+
+				if (importName.trim() === 'html') {
+					if (source.indexOf('@polymer/polymer/polymer-legacy') === -1 &&
+						source.indexOf('@polymer/polymer/lib/utils/html-tag') === -1) {
+							return null;
+						}
+				} else if (importName.trim() === 'Polymer') {
+					if (source.indexOf('@polymer/polymer/lib/legacy/polymer-fn') === -1) {
+						return null;
+					}
+				} else {
+					return null;
+				}
+
+				return `import${space1}${contents || ''}${
+						space2 || ''
+					}${quote}${
+						resolveBasePath(request)
+					}js/polyfills/polymer-compat.js${quote}`;
+			}
+
+		function replaceImports(request: Request, script: string) {
+			return script.replace(IMPORT_REGEX, 
+				(_full, space1, contents, importName, _innerSpacing, space2,
 					_fullSource, quote, source) => {
+						const polymerReplacedValue = insertPolymerCompat(request, importName,
+							source, space1, space2, contents, quote);
+						if (polymerReplacedValue) return polymerReplacedValue;
+
 						return `import${space1}${contents || ''}${
 							space2 || ''
 						}${quote}${
-							resolveRelativePathToModules(request)
-						}${
+							resolveBasePath(request)
+						}modules/${
 							resolveModuleImportFile(source)
 						}${quote}`;
 					});
-			return replaced;
+		}
+
+		export function replace(request: Request, script: string): string {
+			return replaceImports(request, script);
 		}
 	}
 
