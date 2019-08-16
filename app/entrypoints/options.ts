@@ -7,7 +7,7 @@ import { SplashScreen } from "../wc-elements/util/splash-screen/splash-screen.js
 // import { CrmApp } from '../wc-elements/options/crm-app/crm-app.js';
 import { ExtensionI18N } from '../js/shared.js';
 import '@polymer/paper-button/paper-button.js';
-import { WebComponent } from "wc-lib";
+import { WebComponent, Mounting } from "wc-lib";
 
 WebComponent.initComplexTemplateProvider({
 	TemplateResult, PropertyCommitter, EventPart,BooleanAttributePart,
@@ -28,5 +28,10 @@ WebComponent.initI18N({
 	}),
 	getMessage: ExtensionI18N.getMessage
 });
-SplashScreen.define();
-// CrmApp.define();
+
+(async () => {
+	SplashScreen.define();
+	await Mounting.awaitMounted(
+		document.getElementById('splashScreen') as SplashScreen);
+	// CrmApp.define();
+})();
