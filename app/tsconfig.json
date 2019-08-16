@@ -19,6 +19,10 @@
         "strictBindCallApply": true,
         "noUnusedParameters": true,
         "experimentalDecorators": true,
+
+        "strictPropertyInitialization": true,
+        "strictNullChecks": true,
+
         "paths": {
             "*": [
                 "../app/modules/*"
