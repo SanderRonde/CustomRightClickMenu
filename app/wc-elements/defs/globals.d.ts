@@ -57,4 +57,8 @@ declare global {
 	interface MouseEvent {
 		path: (HTMLElement|WebComponent)[];
 	}
+
+	interface HTMLElement {
+		__isAnimationJqueryPolyfill?: boolean;
+	}
 }

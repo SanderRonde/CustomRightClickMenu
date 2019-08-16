@@ -2775,10 +2775,10 @@ namespace MonacoEditorElement {
 				await MonacoEditorHookManager.Libraries.runFile('js/libraries/jslint.js');
 				this._showLintResults('jslint', this._runJsLint());
 			} else if (this._typeIsTS(type)) {
-				alert(await window.__(I18NKeys.options.editPages.monaco.lintingDisabled,
+				alert(await window.__prom(I18NKeys.options.editPages.monaco.lintingDisabled,
 					'typescript'));
 			} else if (this._typeIsLESS(type)) {
-				alert(await window.__(I18NKeys.options.editPages.monaco.lintingDisabled,
+				alert(await window.__prom(I18NKeys.options.editPages.monaco.lintingDisabled,
 					'LESS/stylus'));
 			} else if (this._typeIsCss(type)) {
 				await MonacoEditorHookManager.Libraries.runFile('js/libraries/csslint.js');

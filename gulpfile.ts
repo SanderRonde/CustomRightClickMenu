@@ -34,6 +34,7 @@ import del from 'del';
 // the -T screen is just being spammed
 const REGISTER_SUBTASKS = process.argv.indexOf('-T') === -1 &&
 	process.argv.indexOf('--tasks') === -1;
+const LOCALES_DIR = 'localestemp';
 
 const BANNERS = {
 	html: '<!--Original can be found at https://www.github.com/SanderRonde' +
@@ -477,7 +478,7 @@ class Tasks {
 
 			private static getMessageFiles(): Promise<[any, string][]> {
 				return new Promise<[any, string][]>((resolve, reject) => {
-					glob('./app/_locales/*/messages.js', async (err, matches) => {
+					glob(`./app/${LOCALES_DIR}/*/messages.js`, async (err, matches) => {
 						if (err) {
 							reject();
 							return;
@@ -506,7 +507,7 @@ class Tasks {
 			static compileTS() {
 				return new Promise(async (resolve, reject) => {
 					const files = await new Promise<string[]>((resolve, reject) => {
-						glob('app/_locales/**/*.ts', (err, matches) => {
+						glob(`app/${LOCALES_DIR}/**/*.ts`, (err, matches) => {
 							if (err) { 
 								reject(err);
 							} else {
@@ -518,12 +519,12 @@ class Tasks {
 					});
 					const dest = (() => {
 						if (files.length > 1) {
-							return './app/_locales';
+							return `./app/${LOCALES_DIR}`;
 						}
 						return files[0].split('messages.ts')[0];
 					})();
 
-					const project = ts.createProject('app/_locales/tsconfig.json');
+					const project = ts.createProject(`app/${LOCALES_DIR}/tsconfig.json`);
 					const proj = project.src().pipe(project());
 					proj.once('error', () => {
 						reject('Error(s) thrown during compilation');
@@ -594,7 +595,7 @@ class Tasks {
 
 					@describe('Watches for file changes and compiles on change')
 					static async watcher() {
-						const watcher = gulp.watch('./app/_locales/*/messages.js', 
+						const watcher = gulp.watch(`./app/${LOCALES_DIR}/*/messages.js`, 
 							Compile.watchFileChange);
 						watcher.on('change', (fileName) => {
 							Compile._activeTask = (async () => {
@@ -673,7 +674,7 @@ class Tasks {
 						const spec = JSON.stringify(typed, null, '\t').replace(
 							readonlyExpr, 'I18NMessage');
 						const specFile = `${I18NMessage}\nexport type LocaleSpec = ${spec}`;
-						await writeFile(path.join(__dirname, 'app/_locales/i18n.d.ts'),
+						await writeFile(path.join(__dirname, `app/${LOCALES_DIR}/i18n.d.ts`),
 							specFile);
 					}
 
@@ -784,7 +785,7 @@ class Tasks {
 							return;
 						}
 						const enums = await Defs.genEnumMessages(files[0][0]);
-						await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
+						await writeFile(path.join(__dirname, `app/${LOCALES_DIR}/i18n-keys.ts`),
 							enums);
 					}
 
@@ -816,12 +817,12 @@ class Tasks {
 
 					@describe('Watches for file changes and updates enums on change')
 					static async watcher() {
-						const watcher = gulp.watch('./app/_locales/*/messages.js', Defs.watchFileChange);
+						const watcher = gulp.watch(`./app/${LOCALES_DIR}/*/messages.js`, Defs.watchFileChange);
 						watcher.on('change', (fileName) => {
 							Defs._activeTask = (async () => {
 								const fileData = I18N._getFreshFileExport(fileName);
 								const enums = await I18N.Defs.genEnumMessages(fileData)
-								await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
+								await writeFile(path.join(__dirname, `app/${LOCALES_DIR}/i18n-keys.ts`),
 									enums);
 							})();
 						});
@@ -829,7 +830,7 @@ class Tasks {
 							Defs._activeTask = (async () => {
 								const fileData = I18N._getFreshFileExport(fileName);
 								const enums = await I18N.Defs.genEnumMessages(fileData)
-								await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
+								await writeFile(path.join(__dirname, `app/${LOCALES_DIR}/i18n-keys.ts`),
 									enums);
 							})();
 						});
@@ -863,7 +864,7 @@ class Tasks {
 			
 			@describe('Turns I18N TS files into messages.json files whenever they change')
 			static watcher() {
-				const watcher = gulp.watch('./app/_locales/*/messages.js', I18N.watchFileChange);
+				const watcher = gulp.watch(`./app/${LOCALES_DIR}/*/messages.js`, I18N.watchFileChange);
 				watcher.on('change', (fileName) => {
 					I18N._activeTask = (async () => {
 						const fileData = I18N._getFreshFileExport(fileName);
@@ -871,7 +872,7 @@ class Tasks {
 							I18N.Compile._compileI18NFile(fileName, fileData),
 							I18N.Defs.genEnumMessages(fileData)
 						]);
-						await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
+						await writeFile(path.join(__dirname, `app/${LOCALES_DIR}/i18n-keys.ts`),
 							enums);
 					})();
 				});
@@ -882,7 +883,7 @@ class Tasks {
 							I18N.Compile._compileI18NFile(fileName, fileData),
 							I18N.Defs.genEnumMessages(fileData)
 						]);
-						await writeFile(path.join(__dirname, 'app/_locales/i18n-keys.ts'),
+						await writeFile(path.join(__dirname, `app/${LOCALES_DIR}/i18n-keys.ts`),
 							enums);
 					})();
 				});
@@ -1312,7 +1313,7 @@ class Tasks {
 										'images/stylesheet.gif',
 										'images/whitearrow.png',
 										'images/country_flags/**/*',
-										'_locales/**/*',
+										`${LOCALES_DIR}/**/*`,
 										'js/libraries/jsonfn.js',
 										'js/libraries/md5.js',
 										'js/libraries/jquery/jquery-3.3.1.js',
@@ -1919,7 +1920,7 @@ class Tasks {
 										extraDependencies: [
 											"entrypoints/background.html",
 											"fonts/**/*",
-											'_locales/**/*',
+											`${LOCALES_DIR}/**/*`,
 											"images/**/*",
 											"js/libraries/csslint.js",
 											"js/libraries/jslint.js",
@@ -2002,7 +2003,7 @@ class Tasks {
 											"entrypoints/background.html",
 											"fonts/**/*",
 											"images/**/*",
-											'_locales/**/*',
+											`${LOCALES_DIR}/**/*`,
 											"js/libraries/csslint.js",
 											"js/libraries/jslint.js",
 											"js/libraries/crmapi.d.ts",
@@ -2172,7 +2173,7 @@ class Tasks {
 					static copyFromApp() {
 						return gulp
 							.src([
-								'_locales/**/*.json',
+								`${LOCALES_DIR}/**/*.json`,
 								"fonts/**/*",
 								"images/**/*",
 								"js/libraries/csslint.js",
@@ -2954,7 +2955,7 @@ class Tasks {
 			@rootTask('convertPolymerComponents',
 				'Converts all polymer-style components in ' +
 				'the package.json file to' +
-				'wclib style components')
+				'wc-lib style components')
 			static async convertPolymerComponents() {
 				const components = await getComponents();
 				console.log(components);

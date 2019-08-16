@@ -1,5 +1,5 @@
 import { printIfTrue, onTypeChange, freeze, __, renderable, twoWay } from '../../utils.js';
-import { TemplateFn, CHANGE_TYPE } from '../../../modules/wclib/build/es/wclib.js';
+import { TemplateFn, CHANGE_TYPE } from '../../../modules/wc-lib/build/es/wc-lib.js';
 import { render } from '../../../modules/lit-html/lit-html.js';
 import { I18NKeys } from '../../../localestemp/i18n-keys.js.js.js';
 import { CrmApp } from './crm-app.js';
@@ -21,7 +21,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 					<div id="titleRibbonEnd">
 						<div id="fullscreenEditorButtons">
 							<div hidden="${props.item && props.item.type === 'stylesheet'}" title="Toggle typescript" id="editorTypescript" @tap="${this.listeners.toggleTypescript}">
-								${__(change, I18NKeys.crmApp.ribbons.ts)}
+								${__prom(change, I18NKeys.crmApp.ribbons.ts)}
 							</div>
 							<div title="Exit fullscreen" id="fullscreenEditorToggle" @tap="${this.listeners.exitFullscreen}">
 								<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
@@ -49,14 +49,14 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 							<div @tap="${this.listeners.launchSearchWebsiteToolScript}" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
 							<div @tap="${this.listeners.runLint}" class="ribbonTool" id="runCssLintButton">
 								<span class="cssTool">
-									${__(change, I18NKeys.crmApp.ribbons.tslint)}
+									${__prom(change, I18NKeys.crmApp.ribbons.tslint)}
 								</span>
 								<span class="jsTool">
-									${__(change, I18NKeys.crmApp.ribbons.jslint)}
+									${__prom(change, I18NKeys.crmApp.ribbons.jslint)}
 								</span>
 							</div>
 							<div @tap="${this.listeners.showCssTips}" class="ribbonTool cssTool" id="showCssTipsButton">
-								${__(change, I18NKeys.crmApp.ribbons.info)}
+								${__prom(change, I18NKeys.crmApp.ribbons.info)}
 							</div>
 						</div>
 					</div>
@@ -64,10 +64,10 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 						<div id="editorOptions">
 							<div id="settingsPadding">
 								<div class="editorSettingsTxt">
-									${__(change, I18NKeys.crmApp.editor.settings.header)}
+									${__prom(change, I18NKeys.crmApp.editor.settings.header)}
 								</div>
 								<div id="editorThemeSettingCont">
-									<div id="editorThemeSettingTxt">${__(change, I18NKeys.crmApp.editor.settings.theme)}:</div>
+									<div id="editorThemeSettingTxt">${__prom(change, I18NKeys.crmApp.editor.settings.theme)}:</div>
 									<div id="editorThemeSettingChoicesCont">
 										<div id="editorThemeSettingWhite" @tap="${this.listeners.setThemeWhite}" class="editorThemeSetting"></div>
 										<div id="editorThemeSettingDark" @tap="${this.listeners.setThemeDark}" class="editorThemeSetting"></div>
@@ -75,19 +75,19 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 								</div>
 								<br />
 								<div id="editorThemeFontSize">
-									<paper-input on-change="domListener" @change="${this.listeners.fontSizeChange}" id="editorThemeFontSizeInput" type="number" always-float-label label="${__(change, I18NKeys.crmApp.editor.settings.fontsizePercentage)}">
+									<paper-input on-change="domListener" @change="${this.listeners.fontSizeChange}" id="editorThemeFontSizeInput" type="number" always-float-label label="${__prom(change, I18NKeys.crmApp.editor.settings.fontsizePercentage)}">
 										<div suffix>%</div>
 									</paper-input>
 								</div>
 								<br />
 								<div id="editorJSLintGlobals">
 									<div id="editorJSLintGlobalsFlexCont">
-										<paper-input on-keypress="domListener" @keypress="${this.listeners.jsLintGlobalsChange}" id="editorJSLintGlobalsInput" label="${__(change, I18NKeys.crmApp.editor.settings.jslintGlobals)}"  always-float-label></paper-input>
+										<paper-input on-keypress="domListener" @keypress="${this.listeners.jsLintGlobalsChange}" id="editorJSLintGlobalsInput" label="${__prom(change, I18NKeys.crmApp.editor.settings.jslintGlobals)}"  always-float-label></paper-input>
 									</div>
 								</div>
 								<br />
 								<br />
-								<div id="keyBindingsText" class="editorSettingsTxt">${__(change, I18NKeys.crmApp.editor.settings.keybindings)}</div>
+								<div id="keyBindingsText" class="editorSettingsTxt">${__prom(change, I18NKeys.crmApp.editor.settings.keybindings)}</div>
 								<div id="keyBindingsContainer">
 									<div id="keyBindingsTemplate">
 										${renderable(this.keyBindingsSettings, (keyBindings) => {
@@ -166,7 +166,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 					${freeze(() => printIfTrue(
 						this.getChromeVersion() < 30, html`
 							<div class="badBrowserBanner">
-								${__(change, I18NKeys.crmApp.header.oldChrome, new Date().getUTCFullYear() - 2013)}
+								${__prom(change, I18NKeys.crmApp.header.oldChrome, new Date().getUTCFullYear() - 2013)}
 							</div>`
 						))}
 				</app-header>
@@ -176,12 +176,12 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 					<div class="customRightClickMenuConfig">
 						<div id="crmEditPageTopTextContainer">
 							<div class="bigTxt">
-								${__(change, I18NKeys.crmApp.editcrm.editingCrm)}
+								${__prom(change, I18NKeys.crmApp.editcrm.editingCrm)}
 							</div>
 							<div id="crmTypeSelector">
 								<div class="crmType pageType" title="${
-										__(change, I18NKeys.crmApp.crmtype.toggle, 
-											this.__(I18NKeys.crmApp.crmtype.regularWebpages))
+										__prom(change, I18NKeys.crmApp.crmtype.toggle, 
+											this.__prom(I18NKeys.crmApp.crmtype.regularWebpages))
 									}"  @tap="${this.listeners.iconSwitch}">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
@@ -190,12 +190,12 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 										</svg>
 									</div>
 									<div class="crmTypeTxt">
-										${__(change, I18NKeys.crmTypes.webpages)}
+										${__prom(change, I18NKeys.crmTypes.webpages)}
 									</div>
 								</div>
 								<div class="crmType linkType" title="${
-									__(change, I18NKeys.crmApp.crmtype.toggle, 
-										this.__(I18NKeys.crmTypes.weblinks))
+									__prom(change, I18NKeys.crmApp.crmtype.toggle, 
+										this.__prom(I18NKeys.crmTypes.weblinks))
 								}" @tap="${this.listeners.iconSwitch}">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
@@ -205,12 +205,12 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 										</svg>
 									</div>
 									<div class="crmTypeTxt">
-									${__(change, I18NKeys.crmTypes.weblinks)}
+									${__prom(change, I18NKeys.crmTypes.weblinks)}
 									</div>
 								</div>
 								<div class="crmType selectionType" title="${
-									__(change, I18NKeys.crmApp.crmtype.toggle, 
-										this.__(I18NKeys.crmApp.crmtype.selectedText))
+									__prom(change, I18NKeys.crmApp.crmtype.toggle, 
+										this.__prom(I18NKeys.crmApp.crmtype.selectedText))
 								}" @tap="${this.listeners.iconSwitch}">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
@@ -220,12 +220,12 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 										</svg>
 									</div>
 									<div class="crmTypeTxt">
-									${__(change, I18NKeys.crmTypes.selection)}
+									${__prom(change, I18NKeys.crmTypes.selection)}
 									</div>
 								</div>
 								<div class="crmType imageType" title="${
-									__(change, I18NKeys.crmApp.crmtype.toggle, 
-										this.__(I18NKeys.crmTypes.images))
+									__prom(change, I18NKeys.crmApp.crmtype.toggle, 
+										this.__prom(I18NKeys.crmTypes.images))
 								}" @tap="${this.listeners.iconSwitch}">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
@@ -235,12 +235,12 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 										</svg>
 									</div>
 									<div class="crmTypeTxt">
-									${__(change, I18NKeys.crmTypes.images)}
+									${__prom(change, I18NKeys.crmTypes.images)}
 									</div>
 								</div>
 								<div class="crmType videoType" title="${
-									__(change, I18NKeys.crmApp.crmtype.toggle, 
-										this.__(I18NKeys.crmTypes.videos))
+									__prom(change, I18NKeys.crmApp.crmtype.toggle, 
+										this.__prom(I18NKeys.crmTypes.videos))
 								}" @tap="${this.listeners.iconSwitch}">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
@@ -250,12 +250,12 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 										</svg>
 									</div>
 									<div class="crmTypeTxt">
-									${__(change, I18NKeys.crmTypes.videos)}
+									${__prom(change, I18NKeys.crmTypes.videos)}
 									</div>
 								</div>
 								<div class="crmType audioType" title="${
-									__(change, I18NKeys.crmApp.crmtype.toggle, 
-										this.__(I18NKeys.crmTypes.audio))
+									__prom(change, I18NKeys.crmApp.crmtype.toggle, 
+										this.__prom(I18NKeys.crmTypes.audio))
 								}" @tap="${this.listeners.iconSwitch}">
 									<paper-ripple></paper-ripple>
 									<div class="crmTypeIcon">
@@ -265,7 +265,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 										</svg>
 									</div>
 									<div class="crmTypeTxt">
-									${__(change, I18NKeys.crmTypes.audio)}
+									${__prom(change, I18NKeys.crmTypes.audio)}
 									</div>
 								</div>
 							</div>
@@ -277,47 +277,47 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 					<br /><br />
 					<div class="optionsCont">
 						<div class="bigTxt">
-							${__(change, I18NKeys.crmApp.options.header)}
+							${__prom(change, I18NKeys.crmApp.options.header)}
 						</div>
 						<div class="options">
 							<paper-toggle-option id="catchErrors">
-								${__(change, I18NKeys.crmApp.options.catchErrors)}
+								${__prom(change, I18NKeys.crmApp.options.catchErrors)}
 							</paper-toggle-option>
 							<paper-toggle-option id="showOptions">
-								${__(change, I18NKeys.crmApp.options.showoptions)}
+								${__prom(change, I18NKeys.crmApp.options.showoptions)}
 							</paper-toggle-option>
 							<paper-toggle-option id="recoverUnsavedData">
-								${__(change, I18NKeys.crmApp.options.recoverUnsavedData)}
+								${__prom(change, I18NKeys.crmApp.options.recoverUnsavedData)}
 							</paper-toggle-option>
 							<paper-toggle-option id="CRMOnPage" showmessage disabledreason="${
-								__(change, I18NKeys.crmApp.options.chromeLow,
+								__prom(change, I18NKeys.crmApp.options.chromeLow,
 									~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent) ? 
 										(~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] + '') : 
-											this.__(I18NKeys.crmApp.options.notChrome))
+											this.__prom(I18NKeys.crmApp.options.notChrome))
 							}">
-								${__(change, I18NKeys.crmApp.options.CRMOnPageOption)}
+								${__prom(change, I18NKeys.crmApp.options.CRMOnPageOption)}
 							</paper-toggle-option>
-							<paper-toggle-option id="editCRMInRM" disabledreason="${__(change, I18NKeys.crmApp.options.chromeLow)}">
-								${__(change, I18NKeys.crmApp.options.editCRMInRM)}
+							<paper-toggle-option id="editCRMInRM" disabledreason="${__prom(change, I18NKeys.crmApp.options.chromeLow)}">
+								${__prom(change, I18NKeys.crmApp.options.editCRMInRM)}
 							</paper-toggle-option>
 							<paper-toggle-option id="useStorageSync" disabledreason="${
 								onTypeChange(change, CHANGE_TYPE.LANG, this._getStorageSyncDisabledReason)
 							}">
-								${__(change, I18NKeys.crmApp.options.useStorageSyncOption)}
+								${__prom(change, I18NKeys.crmApp.options.useStorageSyncOption)}
 								<span style="${renderable(this.settingsJsonLength, this._getSettingsJsonLengthColor)}">${
 									renderable(this.settingsJsonLength, this._formatJSONLength)
 								}</span>/102,400 bytes
 							</paper-toggle-option>
-							<paper-button @tap="${this.listeners.showManagePermissions}" raised class="blue">${__(change, I18NKeys.crmApp.options.managePermissions)}</paper-button>
+							<paper-button @tap="${this.listeners.showManagePermissions}" raised class="blue">${__prom(change, I18NKeys.crmApp.options.managePermissions)}</paper-button>
 						</div>
 					</div>
 					<br /><br />
 					<div class="defaultCRMLinks">
 						<div class="bigTxt">
-							${__(change, I18NKeys.crmApp.defaultLinks.header)}
+							${__prom(change, I18NKeys.crmApp.defaultLinks.header)}
 						</div>
 						<div class="defaultsDescr">
-							${__(change, I18NKeys.crmApp.defaultLinks.description)}
+							${__prom(change, I18NKeys.crmApp.defaultLinks.description)}
 						</div>
 						<br />
 						<div class="defaultLinks">
@@ -335,10 +335,10 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 					<br /><br />
 					<div class="defaultCRMSearchEngines">
 						<div class="bigTxt">
-							${__(change, I18NKeys.crmApp.searchEngines.header)}
+							${__prom(change, I18NKeys.crmApp.searchEngines.header)}
 						</div>
 						<div class="defaultsDescr">
-							<echo-html html="${__(change, I18NKeys.crmApp.searchEngines.description)}"></echo-html>
+							<echo-html html="${__prom(change, I18NKeys.crmApp.searchEngines.description)}"></echo-html>
 						</div>
 						<div class="defaultSearchEngines">
 							<default-link search-engine href="https://www.google.com/search?q=%s" default-name="Search Google for %s"></default-link>
@@ -351,42 +351,42 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 					<br /><br />
 					<div class="URIScheme">
 						<div class="bigTxt">
-							${__(change, I18NKeys.crmApp.uriScheme.header)}
+							${__prom(change, I18NKeys.crmApp.uriScheme.header)}
 						</div>
 						<div class="URISchemeDescr">
-							<echo-html html="${__(change, I18NKeys.crmApp.uriScheme.description)}"></echo-html>
+							<echo-html html="${__prom(change, I18NKeys.crmApp.uriScheme.description)}"></echo-html>
 						</div>
 						<div class="URISchemeGenerator">
-							<paper-input id="URISchemeFilePath" label="${__(change, I18NKeys.crmApp.uriScheme.filePathLabel)}" value="C:\files\file.exe"></paper-input>
-							<paper-input id="URISchemeSchemeName" pattern="(\w|\d|_|\.|-)*" auto-validate="true" error-message="${__(change, I18NKeys.crmApp.uriScheme.invalidScheme)}" label="${__(change, I18NKeys.crmApp.uriScheme.schemeNameLabel)}" value="${__(change, I18NKeys.crmApp.uriScheme.example)}"></paper-input>
-							<animated-button cooldown raised class="blue topoffset" tap="domListener" @click="${this.listeners._generateRegexFile}" content="${__(change, I18NKeys.crmApp.uriScheme.generate)}"></animated-button>
+							<paper-input id="URISchemeFilePath" label="${__prom(change, I18NKeys.crmApp.uriScheme.filePathLabel)}" value="C:\files\file.exe"></paper-input>
+							<paper-input id="URISchemeSchemeName" pattern="(\w|\d|_|\.|-)*" auto-validate="true" error-message="${__prom(change, I18NKeys.crmApp.uriScheme.invalidScheme)}" label="${__prom(change, I18NKeys.crmApp.uriScheme.schemeNameLabel)}" value="${__prom(change, I18NKeys.crmApp.uriScheme.example)}"></paper-input>
+							<animated-button cooldown raised class="blue topoffset" tap="domListener" @click="${this.listeners._generateRegexFile}" content="${__prom(change, I18NKeys.crmApp.uriScheme.generate)}"></animated-button>
 						</div>
 					</div>
 					<br /><br />
 					<div class="importSettingsCont">
 						<div class="bigTxt">
-							${__(change, I18NKeys.crmApp.importing.header)}
+							${__prom(change, I18NKeys.crmApp.importing.header)}
 						</div>
 						<div class="importDescr">
-							${__(change, I18NKeys.crmApp.importing.description)}
+							${__prom(change, I18NKeys.crmApp.importing.description)}
 						</div>
 						<div class="importSettings">
 							<textarea rows="10" id="importSettingsInput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
 							<span id="importSettingsError">
-								${__(change, I18NKeys.crmApp.importing.error)}
+								${__prom(change, I18NKeys.crmApp.importing.error)}
 							</span>
 						</div>
-						<paper-checkbox title="${__(change, I18NKeys.crmApp.importing.overwriteTitle)}" checked id="overWriteImport">${__(change, I18NKeys.crmApp.importing.overwrite)}</paper-checkbox>
+						<paper-checkbox title="${__prom(change, I18NKeys.crmApp.importing.overwriteTitle)}" checked id="overWriteImport">${__prom(change, I18NKeys.crmApp.importing.overwrite)}</paper-checkbox>
 						<br />
-						<animated-button class="blue" cooldown raised id="importButton" tap="domListener" @click="${this.listeners.importData}" content="${__(change, I18NKeys.crmApp.importing.import)}"></animated-button>
+						<animated-button class="blue" cooldown raised id="importButton" tap="domListener" @click="${this.listeners.importData}" content="${__prom(change, I18NKeys.crmApp.importing.import)}"></animated-button>
 					</div>
 					<br /><br />
 					<div class="exportSettingsCont">
 						<div class="bigTxt">
-							${__(change, I18NKeys.crmApp.exporting.header)}
+							${__prom(change, I18NKeys.crmApp.exporting.header)}
 						</div>
 						<div class="exportDescr">
-							${__(change, I18NKeys.crmApp.exporting.description)}
+							${__prom(change, I18NKeys.crmApp.exporting.description)}
 						</div>
 						<div class="exportSettings">
 							<center-element id="exportSettingsSpinner" nostyle hide>
@@ -395,53 +395,53 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 										<paper-spinner active></paper-spinner>
 									</div>
 									<div>
-										${__(change, I18NKeys.crmApp.exporting.waiting)}
+										${__prom(change, I18NKeys.crmApp.exporting.waiting)}
 									</div>
 								</div>
 							</center-element>
 							<textarea rows="10" id="exportSettingsOutput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
 						</div>
-						<paper-checkbox checked id="exportCRM">${__(change, I18NKeys.crmApp.exporting.exportCRM)}</paper-checkbox>
-						<paper-checkbox checked id="exportSettings">${__(change, I18NKeys.crmApp.exporting.exportSettings)}</paper-checkbox>
+						<paper-checkbox checked id="exportCRM">${__prom(change, I18NKeys.crmApp.exporting.exportCRM)}</paper-checkbox>
+						<paper-checkbox checked id="exportSettings">${__prom(change, I18NKeys.crmApp.exporting.exportSettings)}</paper-checkbox>
 						<paper-icon-button id="exportCopyButton" icon="content-copy" title="copy to clipboard" @tap="${this.listeners.copyExportToClipboard}"></paper-icon-button>
 						<br/>
-						<animated-button cooldown class="blue" raised id="exportButton" tap="domListener" @click="${this.listeners.exportData}" content="${__(change, I18NKeys.crmApp.exporting.export)}"></animated-button>
+						<animated-button cooldown class="blue" raised id="exportButton" tap="domListener" @click="${this.listeners.exportData}" content="${__prom(change, I18NKeys.crmApp.exporting.export)}"></animated-button>
 					</div>
 					<br/><br/>
 					<div class="helpCont">
 						<div class="bigTxt">
-							${__(change, I18NKeys.crmApp.help.header)}
+							${__prom(change, I18NKeys.crmApp.help.header)}
 						</div>
 						<div class="helpDescr">
-							<echo-html html="${__(change, I18NKeys.crmApp.help.description)}"></echo-html>
+							<echo-html html="${__prom(change, I18NKeys.crmApp.help.description)}"></echo-html>
 						</div>
 					</div>
 					<br /><br />
 					<div class="contactCont">
 						<div class="bigTxt">
-							${__(change, I18NKeys.crmApp.contact.header)}
+							${__prom(change, I18NKeys.crmApp.contact.header)}
 						</div>
 						<div class="contactDescr">
-							<echo-html html="${__(change, I18NKeys.crmApp.contact.description)}"></echo-html>
+							<echo-html html="${__prom(change, I18NKeys.crmApp.contact.description)}"></echo-html>
 						</div>
 					</div>
 					<br /><br />
 					<div class="bugReportingCont">
 						<div class="bigTxt">
-							${__(change, I18NKeys.crmApp.bugs.header)}
+							${__prom(change, I18NKeys.crmApp.bugs.header)}
 						</div>
 						<div class="bugReportingDescr">
-							${__(change, I18NKeys.crmApp.bugs.description)}
+							${__prom(change, I18NKeys.crmApp.bugs.description)}
 						</div>
-						<paper-button raised class="blue topoffset" @tap="${this.listeners._toggleBugReportingTool}">${__(change, I18NKeys.crmApp.bugs.toggle)}</paper-button>
+						<paper-button raised class="blue topoffset" @tap="${this.listeners._toggleBugReportingTool}">${__prom(change, I18NKeys.crmApp.bugs.toggle)}</paper-button>
 					</div>
 					<br /><br />
 					<div class="globalExcludes">
 						<div class="bigTxt">
-							${__(change, I18NKeys.crmApp.globalExcludes.header)}
+							${__prom(change, I18NKeys.crmApp.globalExcludes.header)}
 						</div>
 						<div class="globalExcludesDescr">
-							${__(change, I18NKeys.crmApp.globalExcludes.description)}
+							${__prom(change, I18NKeys.crmApp.globalExcludes.description)}
 							<a href="https://developer.chrome.com/extensions/match_patterns" rel="noopener" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
 						</div>
 						<div class="globalExcludesItems">
@@ -452,8 +452,8 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 											<paper-input on-change="domListener" @change="${this.listeners.globalExcludeChange}" 
 												pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" 
 												auto-validate="true" 
-												label="${__(change, I18NKeys.crmApp.globalExcludes.patternLabel)}" 
-												error-message="${__(change, I18NKeys.crmApp.globalExcludes.patternInvalid)}" 
+												label="${__prom(change, I18NKeys.crmApp.globalExcludes.patternLabel)}" 
+												error-message="${__prom(change, I18NKeys.crmApp.globalExcludes.patternInvalid)}" 
 												class="globalExcludeInput" value="${globalExclude}"></paper-input>
 											<paper-icon-button ?hidden="${globalExcludes.length > 1}" 
 												icon="clear" @tap="${this.listeners.removeGlobalExclude}"
@@ -463,33 +463,33 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 								});
 							})}
 							<paper-button raised class="blue topoffset" @tap="${this.listeners.addGlobalExcludeField}">
-								${__(change, I18NKeys.generic.add)}
+								${__prom(change, I18NKeys.generic.add)}
 							</paper-button>
 						</div>
 					</div>
 					<br /><br />
 					<div class="loggingButtonCont">
 						<div class="bigTxt">
-							${__(change, I18NKeys.crmApp.logging.header)}
+							${__prom(change, I18NKeys.crmApp.logging.header)}
 						</div>
 						<div class="loggingDescr">
-							<echo-html html="${__(change, I18NKeys.crmApp.logging.description)}"></echo-html>
+							<echo-html html="${__prom(change, I18NKeys.crmApp.logging.description)}"></echo-html>
 						</div>
-						<paper-button class="blue topoffset" raised @tap="${this.listeners._openLogging}">${__(change, I18NKeys.crmApp.logging.logging)}</paper-button>
+						<paper-button class="blue topoffset" raised @tap="${this.listeners._openLogging}">${__prom(change, I18NKeys.crmApp.logging.logging)}</paper-button>
 					</div>
 					<br /><br />
 					<div class="privacyPolicyCont">
 						<div class="bigTxt">
-							${__(change, I18NKeys.crmApp.privacyPolicy.header)}
+							${__prom(change, I18NKeys.crmApp.privacyPolicy.header)}
 						</div>
 						<div class="privacyPolicyDescr">
-							<echo-html html="${__(change, I18NKeys.crmApp.privacyPolicy.description)}"></echo-html>
+							<echo-html html="${__prom(change, I18NKeys.crmApp.privacyPolicy.description)}"></echo-html>
 						</div>
 					</div>
 					<br/><br/>
 					<div class="changelogCont">
 						<div class="bigTxt">
-							${__(change, I18NKeys.crmApp.changelog.changelog)}
+							${__prom(change, I18NKeys.crmApp.changelog.changelog)}
 						</div>
 						<change-log></change-log>
 					</div>
@@ -501,16 +501,16 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 			<div id="dialogs">
 				<!--Toasts-->
 				<paper-toast id="messageToast" text="Please ignore this" duration="5000">
-					<span class="toastLink" @tap="${this.listeners.hideGenericToast}" role="button">${__(change, I18NKeys.generic.dismiss)}</span>
+					<span class="toastLink" @tap="${this.listeners.hideGenericToast}" role="button">${__prom(change, I18NKeys.generic.dismiss)}</span>
 				</paper-toast>
-				<paper-toast id="undoToast" text="${__(change, I18NKeys.crmApp.toasts.revert)}">
-					<span class="toastLink" @tap="${this.listeners.undo}" role="button">${__(change, I18NKeys.generic.undo)}</span>
+				<paper-toast id="undoToast" text="${__prom(change, I18NKeys.crmApp.toasts.revert)}">
+					<span class="toastLink" @tap="${this.listeners.undo}" role="button">${__prom(change, I18NKeys.generic.undo)}</span>
 				</paper-toast>
 				<paper-toast data-element-type="ScriptUpdatesToast" id="scriptUpdatesToast" text="Please ignore this" duration="10000">
-					<span id="nextScriptUpdateButton" class="toastLink" @tap="${this.listeners.nextUpdatedScript}" role="button">${__(change, I18NKeys.generic.next)}</span>
-					<span class="toastLink" @tap="${this.listeners.hideScriptUpdatesToast}" role="button">${__(change, I18NKeys.generic.dismiss)}</span>
+					<span id="nextScriptUpdateButton" class="toastLink" @tap="${this.listeners.nextUpdatedScript}" role="button">${__prom(change, I18NKeys.generic.next)}</span>
+					<span class="toastLink" @tap="${this.listeners.hideScriptUpdatesToast}" role="button">${__prom(change, I18NKeys.generic.dismiss)}</span>
 				</paper-toast>
-				<paper-toast id="contentTypeToast" text="${__(change, I18NKeys.crmApp.toasts.contentType)}" duration="5000"></paper-toast>
+				<paper-toast id="contentTypeToast" text="${__prom(change, I18NKeys.crmApp.toasts.contentType)}" duration="5000"></paper-toast>
 				<paper-toast id="externalEditorErrorToast" text="Something went wrong connecting to the CRM App, make sure you have the app installed" duration="10000">
 					<a class="toastLink" href="https://chrome.google.com/webstore/detail/crm-external-editor-app/hkjjmhkhhlmkflpihbikfpcojeofbjgn" rel="noopener" target="_blank">INSTALL</a>
 					<span id="externalEditorTryAgainButton" role="button">RETRY</span>
@@ -518,16 +518,16 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 				<paper-toast id="externalEditorLocationToast" text="The file is located at...." duration="10000">
 					<a href="file:///C:/" rel="noopener" target="_blank" id="externalEditoOpenLocationInBrowser" role="button">OPEN IN BROWSER</a>
 				</paper-toast>
-				<paper-toast id="storageExceededToast" text="${__(change, I18NKeys.crmApp.toasts.storageExceeded)}" duration="10000"></paper-toast>
-				<paper-toast id="noErrorsFound" text="${__(change, I18NKeys.crmApp.toasts.noErrors)}" duration="3500"></paper-toast>
-				<paper-toast id="acceptDownloadToast" text="${__(change, I18NKeys.crmApp.toasts.acceptDownload)}" duration="3500"></paper-toast>
+				<paper-toast id="storageExceededToast" text="${__prom(change, I18NKeys.crmApp.toasts.storageExceeded)}" duration="10000"></paper-toast>
+				<paper-toast id="noErrorsFound" text="${__prom(change, I18NKeys.crmApp.toasts.noErrors)}" duration="3500"></paper-toast>
+				<paper-toast id="acceptDownloadToast" text="${__prom(change, I18NKeys.crmApp.toasts.acceptDownload)}" duration="3500"></paper-toast>
 				<paper-toast id="updatedSettingsToast" text="Settings were updated to those on xx-xx-xxxx" duration="5000"></paper-toast>
 				<!--Dialogs-->
 				<paper-dialog id="codeSettingsDialog" no-cancel-on-outside-click no-cancel-on-esc-key data-element-type="CodeSettingsDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-					<h2 id="codeSettingsTitle">${__(change, I18NKeys.crmApp.dialogs.codeSettings.changingOptions)} <span class="bold" id="codeSettingsNodeName"></span></h2>
+					<h2 id="codeSettingsTitle">${__prom(change, I18NKeys.crmApp.dialogs.codeSettings.changingOptions)} <span class="bold" id="codeSettingsNodeName"></span></h2>
 					<div id="codeSettingsOptions">
 						${renderable(this.codeSettingsNoItems, (isEmpty: boolean) => {
-							return printIfTrue(isEmpty, html`<div>${__(change, I18NKeys.crmApp.dialogs.codeSettings.noOptions)}</div>`);
+							return printIfTrue(isEmpty, html`<div>${__prom(change, I18NKeys.crmApp.dialogs.codeSettings.noOptions)}</div>`);
 						})}
 						${renderable(this.codeSettings, (codeSettings: {
 							key: keyof CRM.Options;
@@ -539,7 +539,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 										${printIfTrue(codeSetting.value.type === 'number', () => {
 											const value = codeSetting.value as CRM.OptionNumber;
 											return html`
-												<span class="optionMetaDescr">${__(change, I18NKeys.crmApp.dialogs.codeSettings.numberInput)}</span>
+												<span class="optionMetaDescr">${__prom(change, I18NKeys.crmApp.dialogs.codeSettings.numberInput)}</span>
 												<paper-input type="number" placeholder="${value.descr || ''}"
 													value="${twoWay(value.value, (newValue) => {
 														value.value = newValue;
@@ -551,7 +551,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 										${printIfTrue(codeSetting.value.type === 'boolean', () => {
 											const value = codeSetting.value as CRM.OptionCheckbox;
 											return html`
-												<span class="optionMetaDescr">${__(change, I18NKeys.crmApp.dialogs.codeSettings.booleanInput)}</span>
+												<span class="optionMetaDescr">${__prom(change, I18NKeys.crmApp.dialogs.codeSettings.booleanInput)}</span>
 												<br><div class="optionPading"></div>
 												<paper-checkbox checked="${twoWay(value.value, (newValue) => {
 														value.value = newValue;
@@ -565,7 +565,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 										${printIfTrue(codeSetting.value.type === 'string', () => {
 											const value = codeSetting.value as CRM.OptionString;
 											return html`
-												<span class="optionMetaDescr">${__(change, I18NKeys.crmApp.dialogs.codeSettings.textInput)}</span>
+												<span class="optionMetaDescr">${__prom(change, I18NKeys.crmApp.dialogs.codeSettings.textInput)}</span>
 												<paper-input type="text" placeholder="${value.descr || ''}"
 													value="${twoWay(value.value, (newValue) => {
 														value.value = newValue;
@@ -579,7 +579,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 										${printIfTrue(codeSetting.value.type === 'color', () => {
 											const value = codeSetting.value as CRM.OptionColorPicker;
 											return html`
-												<span class="optionMetaDescr">${__(change, I18NKeys.crmApp.dialogs.codeSettings.colorInput)}</span>
+												<span class="optionMetaDescr">${__prom(change, I18NKeys.crmApp.dialogs.codeSettings.colorInput)}</span>
 												<input type="color" placeholder="${value.descr || ''}"
 													value="${twoWay(value.value, (newValue) => {
 														value.value = newValue;
@@ -636,30 +636,30 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 						})}
 					</div>
 					<div class="buttons">
-						<paper-button dialog-dismiss>${__(change, I18NKeys.generic.cancel)}</paper-button>
-						<paper-button dialog-confirm @tap="${this.listeners.confirmCodeSettings}">${__(change, I18NKeys.generic.save)}</paper-button>
+						<paper-button dialog-dismiss>${__prom(change, I18NKeys.generic.cancel)}</paper-button>
+						<paper-button dialog-confirm @tap="${this.listeners.confirmCodeSettings}">${__prom(change, I18NKeys.generic.save)}</paper-button>
 					</div>
 				</paper-dialog>
 				<paper-dialog no-cancel-on-outside-click no-cancel-on-esc-key id="restoreChangesDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 					<div id="restoreChangesMain">
-						<h2>${__(change, I18NKeys.crmApp.dialogs.recoverUnsaved.header)}</h2>
-						<span>${__(change, I18NKeys.crmApp.dialogs.recoverUnsaved.description)}</span>
-						<div id="highlightChangedScript" class="restoreChangesOption">${__(change, I18NKeys.crmApp.dialogs.recoverUnsaved.whatNode)}</div>
+						<h2>${__prom(change, I18NKeys.crmApp.dialogs.recoverUnsaved.header)}</h2>
+						<span>${__prom(change, I18NKeys.crmApp.dialogs.recoverUnsaved.description)}</span>
+						<div id="highlightChangedScript" class="restoreChangesOption">${__prom(change, I18NKeys.crmApp.dialogs.recoverUnsaved.whatNode)}</div>
 					</div>
 					<div id="restoreChangesHeader">
 						<div class="halfDivider">
 							<div class="half">
-								<h2>${__(change, I18NKeys.crmApp.dialogs.recoverUnsaved.oldCode)}</h2>
+								<h2>${__prom(change, I18NKeys.crmApp.dialogs.recoverUnsaved.oldCode)}</h2>
 							</div>
 							<div class="half">
-								<h2>${__(change, I18NKeys.crmApp.dialogs.recoverUnsaved.unsavedCode)}</h2>
+								<h2>${__prom(change, I18NKeys.crmApp.dialogs.recoverUnsaved.unsavedCode)}</h2>
 							</div>
 						</div>
 					</div>
 					<monaco-editor id="restoreChangesEditor"></monaco-editor>
 					<div class="buttons">
-						<paper-button id="discardButton" dialog-dismiss>${__(change, I18NKeys.generic.discard)}</paper-button>
-						<paper-button id="keepChangesButton" dialog-confirm>${__(change, I18NKeys.crmApp.dialogs.recoverUnsaved.keepOld)}</paper-button>
+						<paper-button id="discardButton" dialog-dismiss>${__prom(change, I18NKeys.generic.discard)}</paper-button>
+						<paper-button id="keepChangesButton" dialog-confirm>${__prom(change, I18NKeys.crmApp.dialogs.recoverUnsaved.keepOld)}</paper-button>
 					</div>
 				</paper-dialog>
 				<paper-dialog data-element-type="ChooseFileDialog" no-cancel-on-outside-click no-cancel-on-esc-key id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
@@ -667,7 +667,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 						<h2>Choose the file you want to keep</h2>
 						<monaco-editor id="chooseFileMerger"></monaco-editor>
 						<div class="buttons">
-							<paper-button class="closeChooseFileDialog">${__(change, I18NKeys.generic.cancel)}</paper-button>
+							<paper-button class="closeChooseFileDialog">${__prom(change, I18NKeys.generic.cancel)}</paper-button>
 							<paper-button id="chooseFileChooseCRM" dialog-confirm>Choose extension code</paper-button>
 							<paper-button id="chooseFileChooseDisk" dialog-confirm>Choose code on disk</paper-button>
 						</div>	
@@ -680,55 +680,55 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 						</div>
 					</div>
 					<div id="addLibraryProcessContainer">
-						<h2>${__(change, I18NKeys.crmApp.dialogs.addLibrary.header)}</h2>
-						<paper-input error-message="${__(change, I18NKeys.crmApp.dialogs.addLibrary.noNameError)}" id="addedLibraryName" label="name"></paper-input>
+						<h2>${__prom(change, I18NKeys.crmApp.dialogs.addLibrary.header)}</h2>
+						<paper-input error-message="${__prom(change, I18NKeys.crmApp.dialogs.addLibrary.noNameError)}" id="addedLibraryName" label="name"></paper-input>
 						<paper-radio-group id="addLibraryRadios" selected="url">
-							<paper-radio-button id="addLibraryUrlOption" name="url">${__(change, I18NKeys.crmApp.dialogs.addLibrary.urlInput)}</paper-radio-button>
-							<paper-radio-button id="addLibraryManualOption" name="manual">${__(change, I18NKeys.crmApp.dialogs.addLibrary.codeInput)}</paper-radio-button>
+							<paper-radio-button id="addLibraryUrlOption" name="url">${__prom(change, I18NKeys.crmApp.dialogs.addLibrary.urlInput)}</paper-radio-button>
+							<paper-radio-button id="addLibraryManualOption" name="manual">${__prom(change, I18NKeys.crmApp.dialogs.addLibrary.codeInput)}</paper-radio-button>
 						</paper-radio-group>
-						<paper-input pattern="$a" id="addLibraryUrlInput" label="${__(change, I18NKeys.generic.url)}" error-message="${__(change, I18NKeys.crmApp.dialogs.addLibrary.urlError)}"></paper-input>
-						<paper-textarea id="addLibraryManualInput" label="${__(change, I18NKeys.crmApp.dialogs.addLibrary.code)}"></paper-textarea>
+						<paper-input pattern="$a" id="addLibraryUrlInput" label="${__prom(change, I18NKeys.generic.url)}" error-message="${__prom(change, I18NKeys.crmApp.dialogs.addLibrary.urlError)}"></paper-input>
+						<paper-textarea id="addLibraryManualInput" label="${__prom(change, I18NKeys.crmApp.dialogs.addLibrary.code)}"></paper-textarea>
 						<br><br>
-						<paper-checkbox id="addLibraryIsTS">${__(change, I18NKeys.crmApp.dialogs.addLibrary.usesTypescript)} <a rel="noopener" href="https://www.typescriptlang.org/" target="_blank">typescript</a></paper-checkbox>
+						<paper-checkbox id="addLibraryIsTS">${__prom(change, I18NKeys.crmApp.dialogs.addLibrary.usesTypescript)} <a rel="noopener" href="https://www.typescriptlang.org/" target="_blank">typescript</a></paper-checkbox>
 						<div class="buttons">
-							<paper-button dialog-dismiss>${__(change, I18NKeys.generic.cancel)}</paper-button>
-							<paper-button id="addLibraryButton">${__(change, I18NKeys.generic.add)}</paper-button>
+							<paper-button dialog-dismiss>${__prom(change, I18NKeys.generic.cancel)}</paper-button>
+							<paper-button id="addLibraryButton">${__prom(change, I18NKeys.generic.add)}</paper-button>
 						</div>
 					</div>
 					<div id="addLibraryConfirmationContainer">
-						<h2>${__(change, I18NKeys.crmApp.dialogs.addLibrary.isThisOkay)}</h2>
+						<h2>${__prom(change, I18NKeys.crmApp.dialogs.addLibrary.isThisOkay)}</h2>
 						<textarea id="addLibraryConfirmationInput"></textarea>
 						<div class="buttons">
-							<paper-button id="addLibraryDenyConfirmation">${__(change, I18NKeys.generic.no)}</paper-button>
-							<paper-button id="addLibraryConfirmAddition">${__(change, I18NKeys.generic.yes)}</paper-button>
+							<paper-button id="addLibraryDenyConfirmation">${__prom(change, I18NKeys.generic.no)}</paper-button>
+							<paper-button id="addLibraryConfirmAddition">${__prom(change, I18NKeys.generic.yes)}</paper-button>
 						</div>
 					</div>
 					<div id="addLibraryDialogSucces">
 						<div id="addLibraryDialogSuccesCheckmark" class="checkmark"></div>
-						<div id="addLibraryDialogSuccesText">${__(change, I18NKeys.crmApp.dialogs.addLibrary.added)}</div>
+						<div id="addLibraryDialogSuccesText">${__prom(change, I18NKeys.crmApp.dialogs.addLibrary.added)}</div>
 					</div>
 				</paper-dialog>
 				<paper-dialog with-backdrop id="cssEditorInfoDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-					<h2>${__(change, I18NKeys.crmApp.dialogs.cssEditorInfo.header)}</h2>
+					<h2>${__prom(change, I18NKeys.crmApp.dialogs.cssEditorInfo.header)}</h2>
 					<br />
-					${__(change, I18NKeys.crmApp.dialogs.cssEditorInfo.description)}
+					${__prom(change, I18NKeys.crmApp.dialogs.cssEditorInfo.description)}
 					<div class="buttons">
-						<paper-button dialog-dismiss>${__(change, I18NKeys.generic.close)}</paper-button>
+						<paper-button dialog-dismiss>${__prom(change, I18NKeys.generic.close)}</paper-button>
 					</div>
 				</paper-dialog>
 				<center-element fullscreenoverlay id="exportCenterer">
 					<paper-dialog with-backdrop id="exportDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-						<h2>${__(change, I18NKeys.crmApp.dialogs.cssEditorInfo.header)}</h2>
+						<h2>${__prom(change, I18NKeys.crmApp.dialogs.cssEditorInfo.header)}</h2>
 						<div>
-							${__(change, I18NKeys.crmApp.dialogs.cssEditorInfo.description)}
+							${__prom(change, I18NKeys.crmApp.dialogs.cssEditorInfo.description)}
 						</div>
 						<div id="exportInputLine">
-							<paper-input always-float-label id="exportAuthorName" label="${__(change, I18NKeys.crmApp.dialogs.exporting.authorName)}" placeholder="anonymous"></paper-input>
-							<paper-icon-button id="dialogCopyButton" icon="content-copy" title="${__(change, I18NKeys.crmApp.dialogs.exporting.copyToClipboard)}" @tap="${this.listeners.copyExportDialogToClipboard}"></paper-icon-button>
+							<paper-input always-float-label id="exportAuthorName" label="${__prom(change, I18NKeys.crmApp.dialogs.exporting.authorName)}" placeholder="anonymous"></paper-input>
+							<paper-icon-button id="dialogCopyButton" icon="content-copy" title="${__prom(change, I18NKeys.crmApp.dialogs.exporting.copyToClipboard)}" @tap="${this.listeners.copyExportDialogToClipboard}"></paper-icon-button>
 						</div>
 						<textarea class="paperTextArea" id="exportJSONData" rows="20" spellcheck="false" autocomplete="off"></textarea>
 						<div class="buttons">
-							<paper-button dialog-dismiss>${__(change, I18NKeys.generic.close)}</paper-button>
+							<paper-button dialog-dismiss>${__prom(change, I18NKeys.generic.close)}</paper-button>
 						</div>
 					</paper-dialog>
 				</center-element>
@@ -739,11 +739,11 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 							Managing permisions for script "${props.item && props.item.name}"
 						</h2>
 						<div>
-							${__(change, I18NKeys.crmApp.dialogs.permissions.description)}
+							${__prom(change, I18NKeys.crmApp.dialogs.permissions.description)}
 						</div>
 						<div class="scriptPermissionsContainer">
 							<div class="scriptPermissionsUsedPermissionsTxt">
-								${__(change, I18NKeys.crmApp.dialogs.permissions.usedPermissions)}
+								${__prom(change, I18NKeys.crmApp.dialogs.permissions.usedPermissions)}
 							</div>
 							<div class="requestPermissionsPermissions">
 								${renderable(this.scriptPermissions, (permissions) => {
@@ -770,22 +770,22 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 							</div>
 						</div>
 						<div class="buttons">
-							<paper-button dialog-dismiss>${__(change, I18NKeys.generic.close)}</paper-button>
+							<paper-button dialog-dismiss>${__prom(change, I18NKeys.generic.close)}</paper-button>
 						</div>
 					</paper-dialog>
 				</center-element>
 				<center-element fullscreenoverlay id="requestPermissionsCenterer">
 					<paper-dialog no-cancel-on-outside-click no-cancel-on-esc-key with-backdrop id="requestPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 						<div>
-							<h2 id="requestPermissionsHeader">${__(change, I18NKeys.crmApp.dialogs.requestPermissions.header)}</h2>
+							<h2 id="requestPermissionsHeader">${__prom(change, I18NKeys.crmApp.dialogs.requestPermissions.header)}</h2>
 							<div id="requestPermissionsTxt">
-								${__(change, I18NKeys.crmApp.dialogs.requestPermissions.description)}
+								${__prom(change, I18NKeys.crmApp.dialogs.requestPermissions.description)}
 							<br />
 							<div class="requestPermissionsPermissions">
 								<div id="requestedPermissionsCont">
 									<div id="requestPermissionsAsked">
 										<div class="requestPermissionsType">
-											${__(change, I18NKeys.crmApp.dialogs.requestPermissions.required)} :
+											${__prom(change, I18NKeys.crmApp.dialogs.requestPermissions.required)} :
 										</div>
 										${renderable(this.requestedPermissions, (requestedPermissions) => {
 											return requestedPermissions.map((requestedPermission) => {
@@ -821,7 +821,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 								</div>
 								<div id="requestPermissionsOther">
 									<div class="requestPermissionsType">
-										${__(change, I18NKeys.crmApp.dialogs.requestPermissions.others)} :
+										${__prom(change, I18NKeys.crmApp.dialogs.requestPermissions.others)} :
 									</div>
 									${renderable(this.requestedPermissionsOther, (otherPermissions) => {
 										return otherPermissions.map((otherPermission) => {
@@ -851,8 +851,8 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 								</div>
 							</div>
 							<div class="buttons">
-								<paper-button dialog-dismiss>${__(change, I18NKeys.generic.close)}</paper-button>
-								<paper-button id="requestPermissionsAcceptAll">${__(change, I18NKeys.crmApp.dialogs.requestPermissions.acceptAll)}</paper-button>
+								<paper-button dialog-dismiss>${__prom(change, I18NKeys.generic.close)}</paper-button>
+								<paper-button id="requestPermissionsAcceptAll">${__prom(change, I18NKeys.crmApp.dialogs.requestPermissions.acceptAll)}</paper-button>
 							</div>
 						</div>
 					</paper-dialog>
@@ -866,7 +866,7 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 									return html`
 										<div class="nodeAddedPermissionsCont" data-id="${addedPermission.node}">
 											<h2 class="nodeAddedHeader">
-												${__(change, I18NKeys.crmApp.dialogs.addedPermissions.header, 
+												${__prom(change, I18NKeys.crmApp.dialogs.addedPermissions.header, 
 													this.nodesById.get(addedPermission.node as CRM.GenericNodeId).name,
 													(this.nodesById.get(addedPermission.node as CRM.GenericNodeId).nodeInfo &&
 														this.nodesById.get(addedPermission.node as CRM.GenericNodeId).nodeInfo.version)) || '1.0'}
@@ -896,10 +896,10 @@ export const CrmAppHTML = new TemplateFn<CrmApp>(function (html, props, _theme, 
 						<div class="buttons">
 							<paper-button
 								id="addedPermissionPrevButton"
-								@tap="${this.listeners.addedPermissionPrev}">${__(change, I18NKeys.generic.previous)}</paper-button>
+								@tap="${this.listeners.addedPermissionPrev}">${__prom(change, I18NKeys.generic.previous)}</paper-button>
 							<paper-button id="addedPermissionNextButton" @tap="${this.listeners.addedPermissionNext}">
-								<span class="close">${__(change, I18NKeys.generic.apply)}</span>
-								<span class="next">${__(change, I18NKeys.generic.next)}</span>
+								<span class="close">${__prom(change, I18NKeys.generic.apply)}</span>
+								<span class="next">${__prom(change, I18NKeys.generic.next)}</span>
 							</paper-button>
 						</div>
 					</paper-dialog>

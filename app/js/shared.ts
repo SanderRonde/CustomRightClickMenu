@@ -1,5 +1,8 @@
 /// <reference path="promiseType.ts" />
 
+import { Part, DirectiveFn, isDirective } from "../modules/lit-html/lit-html.js";
+import { I18NMessage } from "../localestemp/i18n";
+
 // import { Polymer } from '../../tools/definitions/polymer';
 
 let _supportsTransformUnprefixed: boolean = 
@@ -337,5 +340,114 @@ export function animateTransform(el: HTMLElement, properties: {
 				}
 			}
 		});
+	}
+}
+
+export namespace ExtensionI18N {
+	type I18NMap = {
+		[key: string]: I18NMessage;
+	}
+	type ParsedI18NMap = {
+		[key: string]: {
+			message: string;
+			placeholders: {
+				content: string;
+				expr: RegExp;
+			}[];
+		}
+	};
+
+	const INDEX_REGEXPS = [
+		new RegExp(/\$1/g),
+		new RegExp(/\$2/g),
+		new RegExp(/\$3/g),
+		new RegExp(/\$4/g),
+		new RegExp(/\$5/g),
+		new RegExp(/\$6/g),
+		new RegExp(/\$7/g),
+		new RegExp(/\$8/g),
+		new RegExp(/\$9/g)
+	];
+
+	const langFiles: WeakMap<I18NMap, ParsedI18NMap> = new WeakMap();
+	function parseLangFile(file: I18NMap) {
+		const parsed: ParsedI18NMap = {};
+		for (const key in file) {
+			if (key === '$schema' || key === 'comments') continue;
+			const item = file[key];
+
+			const placeholders: {
+				content: string;
+				expr: RegExp;
+			}[] = [];
+			for (const key in item.placeholders || {}) {
+				const { content } = item.placeholders[key];
+				placeholders.push({
+					content,
+					expr: new RegExp(`\\$${key}\\$`, 'gi')
+				});
+			}
+			parsed[key] = {
+				message: item.message || `{{${key}}}`,
+				placeholders: placeholders
+			};
+		}
+		return parsed;
+	}
+	function getLangFile(file: I18NMap) {
+		if (!langFiles.has(file)) {
+			langFiles.set(file, parseLangFile(file));
+		}
+		return langFiles.get(file)!;
+	}
+
+	class DummyPart<R> implements Part {
+		public promise: Promise<R>;
+		private _resolve: (value: R) => any;
+
+		constructor(fn: DirectiveFn) {
+			this.promise = new Promise((resolve) => {
+				this._resolve = resolve;
+			});
+			fn(this);
+		}
+
+		public value: R = undefined;
+
+		public setValue(value: R) {
+			this.value = value;
+		}
+
+		public commit() {
+			this._resolve(this.value);
+		}
+	}
+
+	export async function getMessage(rawLangFile: I18NMap, key: string, values: any[]) {
+		const langFile = getLangFile(rawLangFile);
+		const entryData = langFile[key];
+		if (!entryData) return `{{${key}}}`;
+
+		let { message, placeholders } = entryData;
+		if (!message) return `{{${key}}}`;
+		if (!placeholders) return message;
+
+		for (let i = 0; i < values.length; i++) {
+			while (isDirective(values[i])) {
+				values[i] = await new DummyPart(values[i]).promise;
+			}
+		}
+		
+		for (let i = 0; i < values.length; i++) {
+			const expr = INDEX_REGEXPS[i];
+			message = message.replace(expr, values[i]);
+			placeholders.forEach((placeholder) => {
+				placeholder.content = placeholder.content.replace(expr, values[i]);
+			});
+		}
+		for (const { expr, content } of placeholders) {
+			message = message.replace(expr, content);
+		}
+		return message;
 	}
 }

@@ -1,6 +1,6 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
 import { CRMAPIMessageInstance, UserAddedContextMenu } from './sharedTypes';
-import { browserAPI } from "../polyfills/browser";
+import { browserAPI } from "../polyfills/browser.js";
 import { ModuleData } from "./moduleTypes";
 
 export namespace BrowserHandler.ChromeAPIs {

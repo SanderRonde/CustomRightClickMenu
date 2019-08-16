@@ -1,8 +1,8 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
 import { BackgroundpageWindow, LogListenerObject, CRMAPIMessageInstance, TabData, LogListenerLine } from './sharedTypes';
-import { WebComponentI18NManager } from '../../modules/wclib/build/es/wclib';
-import { I18NKeys } from "../../localestemp/i18n-keys.js.js.js";
-import { browserAPI } from '../polyfills/browser';
+import { WebComponent } from '../../modules/wc-lib/build/es/wc-lib.js';
+import { I18NKeys } from "../../localestemp/i18n-keys";
+import { browserAPI } from '../polyfills/browser.js';
 import { ModuleData } from "./moduleTypes";
 
 declare const window: BackgroundpageWindow;
@@ -153,9 +153,9 @@ export namespace Logging {
 			sourceData = sourceData || [undefined, undefined];
 
 			const srcObjDetails = {
-				tabId: await WebComponentI18NManager.__(I18NKeys.background.logging.background),
+				tabId: await WebComponent.__prom(I18NKeys.background.logging.background),
 				nodeTitle: modules.crm.crmById.get(id).name,
-				tabTitle: await WebComponentI18NManager.__(I18NKeys.background.logging.backgroundPage),
+				tabTitle: await WebComponent.__prom(I18NKeys.background.logging.backgroundPage),
 				data: args,
 				lineNumber: sourceData[0],
 				logId: sourceData[1],
@@ -166,12 +166,12 @@ export namespace Logging {
 				id: id
 			} as any;
 			const logArgs = [
-				`${await WebComponentI18NManager.__(I18NKeys.background.logging.backgroundPage)} [`, 
+				`${await WebComponent.__prom(I18NKeys.background.logging.backgroundPage)} [`, 
 					srcObj, ']: '
 			].concat(args);
 
 			Logging.log.bind(modules.globalObject, id, 
-				await WebComponentI18NManager.__(I18NKeys.background.logging.background))
+				await WebComponent.__prom(I18NKeys.background.logging.background))
 					.apply(modules.globalObject, logArgs);
 
 			for (let key in srcObjDetails) {

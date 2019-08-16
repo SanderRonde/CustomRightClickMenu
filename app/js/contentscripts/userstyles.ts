@@ -1,4 +1,4 @@
-import { browserAPI, BrowserAPI } from "../polyfills/browser";
+import { browserAPI, BrowserAPI } from "../polyfills/browser.js";
 
 /**
  * Copied from https://github.com/openstyles/stylus. For this file the following

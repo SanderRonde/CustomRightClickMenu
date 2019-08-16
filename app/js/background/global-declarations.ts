@@ -1,7 +1,7 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
 import { BackgroundpageWindow, TabData, LogListenerLine, LogListenerObject, LogListener, CRMAPIMessageInstance, ContextMenuItemTreeItem, ContextMenuOverrides } from './sharedTypes.js';
-import { WebComponentI18NManager } from '../../modules/wclib/build/es/wclib.js';
-import { I18NKeys } from "../../localestemp/i18n-keys.js.js.js";
+import { WebComponent } from '../../modules/wc-lib/build/es/wc-lib.js';
+import { I18NKeys } from "../../localestemp/i18n-keys";
 import { MessageHandling } from "./messagehandling.js";
 import { BrowserHandler } from "./browserhandler.js";
 import { browserAPI } from '../polyfills/browser.js';
@@ -79,15 +79,15 @@ export namespace GlobalDeclarations {
 			});
 
 			if (matches.length === 0) {
-				window.logAsync(WebComponentI18NManager.__(I18NKeys.background.globalDeclarations.getID.noMatches));
+				window.logAsync(WebComponent.__prom(I18NKeys.background.globalDeclarations.getID.noMatches));
 			} else if (matches.length === 1) {
-				window.logAsync(WebComponentI18NManager.__(I18NKeys.background.globalDeclarations.getID.oneMatch,
+				window.logAsync(WebComponent.__prom(I18NKeys.background.globalDeclarations.getID.oneMatch,
 					matches[0].id), matches[0].node);
 			} else {
-				window.logAsync(WebComponentI18NManager.__(I18NKeys.background.globalDeclarations.getID.multipleMatches));
+				window.logAsync(WebComponent.__prom(I18NKeys.background.globalDeclarations.getID.multipleMatches));
 				matches.forEach((match) => {
-					window.logAsync(`${WebComponentI18NManager.__(I18NKeys.crm.id)}:`, match.id, 
-						`, ${WebComponentI18NManager.__(I18NKeys.crm.node)}:`, match.node);
+					window.logAsync(`${WebComponent.__prom(I18NKeys.crm.id)}:`, match.id, 
+						`, ${WebComponent.__prom(I18NKeys.crm.node)}:`, match.node);
 				});
 			}
 		};
@@ -672,7 +672,7 @@ export namespace GlobalDeclarations {
 
 		function setupResourceProxy() {
 			browserAPI.webRequest.onBeforeRequest.addListener((details) => {
-				window.infoAsync(WebComponentI18NManager.__(
+				window.infoAsync(WebComponent.__prom(
 					I18NKeys.background.globalDeclarations.proxy.redirecting), details);
 				return {
 					redirectUrl: `${location.protocol}//${browserAPI.runtime.id}/fonts/fonts.css`
@@ -913,22 +913,22 @@ export namespace GlobalDeclarations {
 			switch (state) {
 				case RestoreTabStatus.SUCCESS:
 					window.logAsync(
-						WebComponentI18NManager.__(I18NKeys.background.globalDeclarations.tabRestore.success,
+						WebComponent.__prom(I18NKeys.background.globalDeclarations.tabRestore.success,
 						tab.id));
 					break;
 				case RestoreTabStatus.UNKNOWN_ERROR:
 					window.logAsync(
-						WebComponentI18NManager.__(I18NKeys.background.globalDeclarations.tabRestore.unknownError,
+						WebComponent.__prom(I18NKeys.background.globalDeclarations.tabRestore.unknownError,
 						tab.id));
 					break;
 				case RestoreTabStatus.IGNORED:
 					window.logAsync(
-						WebComponentI18NManager.__(I18NKeys.background.globalDeclarations.tabRestore.ignored,
+						WebComponent.__prom(I18NKeys.background.globalDeclarations.tabRestore.ignored,
 						tab.id));
 					break;
 				case RestoreTabStatus.FROZEN:
 					window.logAsync(
-						WebComponentI18NManager.__(I18NKeys.background.globalDeclarations.tabRestore.frozen,
+						WebComponent.__prom(I18NKeys.background.globalDeclarations.tabRestore.frozen,
 						tab.id));
 					break;
 			};

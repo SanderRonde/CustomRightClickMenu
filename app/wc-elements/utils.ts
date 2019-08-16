@@ -1,4 +1,4 @@
-import { CHANGE_TYPE, WebComponentI18NManager, Props } from "../modules/wclib/build/es/wclib.js";
+import { CHANGE_TYPE, WebComponent, Props } from "../modules/wc-lib/build/es/wc-lib.js";
 import { Part } from "../modules/lit-html/lib/part.js";
 import { directive, AttributePart, DirectiveFn, isDirective } from "../modules/lit-html/lit-html.js";
 
@@ -47,7 +47,7 @@ export const onTypeChange = directive((actual: CHANGE_TYPE, expected: CHANGE_TYP
 export const __ = directive((actual: CHANGE_TYPE, 
 	key: string, ...values: (DirectiveFn|string|number|(() => string|number))[]) => (part: Part) => {
 		if (actual & CHANGE_TYPE.LANG) {
-			const prom = WebComponentI18NManager.__prom(key, ...values.map((value) => {
+			const prom = WebComponent.__prom(key, ...values.map((value) => {
 				if (typeof value === 'function' && !isDirective(value)) {
 					return (value as () => string|number)();
 				}

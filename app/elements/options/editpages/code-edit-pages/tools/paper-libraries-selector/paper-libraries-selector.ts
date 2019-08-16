@@ -173,7 +173,7 @@ namespace PaperLibrariesSelectorElement {
 					const itemCopy: LibrarySelectorLibrary = {
 						isLibrary: true,
 						name: `${item.url} (${
-							this.___(I18NKeys.options.tools.paperLibrariesSelector.anonymous)
+							this.___prom(I18NKeys.options.tools.paperLibrariesSelector.anonymous)
 						})`,
 						classes: 'library iron-selected anonymous',
 						selected: 'true'
@@ -185,7 +185,7 @@ namespace PaperLibrariesSelectorElement {
 				libraries = libraries.concat(anonymousLibraries);
 
 				libraries.push({
-					name: this.___(I18NKeys.options.tools.paperLibrariesSelector.addOwn),
+					name: this.___prom(I18NKeys.options.tools.paperLibrariesSelector.addOwn),
 					classes: 'library addLibrary',
 					selected: 'false',
 					isLibrary: false
@@ -586,9 +586,9 @@ namespace PaperLibrariesSelectorElement {
 			container.style.padding = '10px';
 			window.setDisplayFlex(container);
 			const cancelButton = document.createElement('paper-button');
-			cancelButton.innerText = await this.___(I18NKeys.generic.cancel);
+			cancelButton.innerText = await this.___prom(I18NKeys.generic.cancel);
 			const saveButton = document.createElement('paper-button');
-			saveButton.innerText = await this.___(I18NKeys.generic.save);
+			saveButton.innerText = await this.___prom(I18NKeys.generic.save);
 			saveButton.style.marginLeft = '15px';
 
 			cancelButton.addEventListener('click', () => {
@@ -628,7 +628,7 @@ namespace PaperLibrariesSelectorElement {
 				library
 			}
 
-			window.app.$.ribbonScriptName.innerText = await this.___(
+			window.app.$.ribbonScriptName.innerText = await this.___prom(
 				I18NKeys.options.tools.paperLibrariesSelector.editing,
 					library.name);
 
@@ -648,7 +648,7 @@ namespace PaperLibrariesSelectorElement {
 			const manager = window.codeEditBehavior.getEditor();
 			if (manager.isTextarea(manager.getEditorAsMonaco())) {
 				window.app.util.showToast(
-					this.___(I18NKeys.options.tools.paperLibrariesSelector.pleaseUpdate));
+					this.___prom(I18NKeys.options.tools.paperLibrariesSelector.pleaseUpdate));
 				return;
 			}
 

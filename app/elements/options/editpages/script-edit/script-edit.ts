@@ -560,12 +560,12 @@ namespace ScriptEditElement {
 			storageKey: keyof CRM.KeyBindings;
 		}[] {
 			return [{
-				name: this.___(I18NKeys.options.editPages.code.goToDef),
+				name: this.___prom(I18NKeys.options.editPages.code.goToDef),
 				defaultKey: 'Ctrl-F12',
 				monacoKey: 'editor.action.goToTypeDefinition',
 				storageKey: 'goToDef'
 			}, {
-				name: this.___(I18NKeys.options.editPages.code.rename),
+				name: this.___prom(I18NKeys.options.editPages.code.rename),
 				defaultKey: 'Ctrl-F2',
 				monacoKey: 'editor.action.rename',
 				storageKey: 'rename'

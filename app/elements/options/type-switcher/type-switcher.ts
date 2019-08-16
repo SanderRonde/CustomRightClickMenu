@@ -59,7 +59,7 @@ namespace TypeSwitcherElement {
 		}
 
 		static getTitle(this: TypeSwitcher, type: CRM.NodeType) {
-			return this.___(I18NKeys.options.typeSwitcher.title, type);
+			return this.___prom(I18NKeys.options.typeSwitcher.title, type);
 		}
 
 		static onReady(this: TypeSwitcher) {

@@ -1,4 +1,4 @@
-import { WebComponent } from '../../../modules/wclib/build/es/wclib.js';
+import { WebComponent } from '../../../modules/wc-lib/build/es/wc-lib.js';
 import { browserAPI } from '../../../js/polyfills/browser.js';
 import { TagNameMaps } from '../../defs/wc-elements.js';
 import { CRMWindow } from '../../defs/crm-window.js';

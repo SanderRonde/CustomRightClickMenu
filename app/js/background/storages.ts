@@ -1,7 +1,7 @@
 import { BackgroundpageWindow, UpgradeErrorHandler, SCRIPT_CONVERSION_TYPE, MatchPattern } from './sharedTypes';
-import { WebComponentI18NManager } from '../../modules/wclib/build/es/wclib';
+import { WebComponent } from '../../modules/wc-lib/build/es/wc-lib.js';
+import { browserAPI, BrowserAPI } from '../polyfills/browser.js';
 import { EncodedString } from '../../wc-elements/defs/globals';
-import { browserAPI, BrowserAPI } from '../polyfills/browser';
 import { I18NKeys } from "../../localestemp/i18n-keys";
 import { ModuleData } from "./moduleTypes";
 
@@ -1213,7 +1213,7 @@ export namespace Storages.SetupHandling {
 				});
 			}).catch(async (err) => {
 				//Switch to local storage
-				window.logAsync(WebComponentI18NManager.__(I18NKeys.background.storages.syncUploadError), err);
+				window.logAsync(WebComponent.__prom(I18NKeys.background.storages.syncUploadError), err);
 				modules.storages.storageLocal.useStorageSync = false;
 				await browserAPI.storage.local.set({
 					useStorageSync: false
@@ -1416,7 +1416,7 @@ export namespace Storages {
 					});
 				}
 			}).catch((e) => {
-				window.logAsync(WebComponentI18NManager.__(I18NKeys.background.storages.localUploadError), e);
+				window.logAsync(WebComponent.__prom(I18NKeys.background.storages.localUploadError), e);
 				
 				if (e.message.indexOf('MAX_WRITE_OPERATIONS_PER_MINUTE') > -1 ||
 					e.message.indexOf('MAX_WRITE_OPERATIONS_PER_HOUR') > -1) {
@@ -1451,7 +1451,7 @@ export namespace Storages {
 						settings: null
 					});
 				}).catch(async (err) => {
-					window.logAsync(WebComponentI18NManager.__(I18NKeys.background.storages.syncUploadError), err);
+					window.logAsync(WebComponent.__prom(I18NKeys.background.storages.syncUploadError), err);
 					modules.storages.storageLocal.useStorageSync = false;
 					await browserAPI.storage.local.set({
 						useStorageSync: false
@@ -1557,7 +1557,7 @@ export namespace Storages {
 
 	export async function setStorages(storageLocalCopy: CRM.StorageLocal, settingsStorage: CRM.SettingsStorage,
 		chromeStorageLocal: CRM.StorageLocal, callback?: () => void) {
-			window.info(await WebComponentI18NManager.__(I18NKeys.background.storages.settingGlobalData));
+			window.info(await WebComponent.__prom(I18NKeys.background.storages.settingGlobalData));
 			modules.storages.storageLocal = storageLocalCopy;
 			modules.storages.settingsStorage = settingsStorage;
 
@@ -1602,7 +1602,7 @@ export namespace Storages {
 					}
 				});
 
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.storages.buildingCrm));
+				window.info(await WebComponent.__prom(I18NKeys.background.storages.buildingCrm));
 			await modules.CRMNodes.updateCRMValues();
 
 			callback && callback();
@@ -1654,17 +1654,17 @@ export namespace Storages {
 	}
 	export function loadStorages() {
 		return new Promise<void>(async (resolve) => {
-			window.info(await WebComponentI18NManager.__(I18NKeys.background.storages.loadingSync));
+			window.info(await WebComponent.__prom(I18NKeys.background.storages.loadingSync));
 			const storageSync: {
 				[key: string]: string
 			} & {
 				indexes: number|string[];
 			} = supportsStorageSync() ? await browserAPI.storage.sync.get() as any : {};
-			window.info(await WebComponentI18NManager.__(I18NKeys.background.storages.loadingLocal));
+			window.info(await WebComponent.__prom(I18NKeys.background.storages.loadingLocal));
 			let storageLocal: CRM.StorageLocal & {
 				settings?: CRM.SettingsStorage;
 			} = await browserAPI.storage.local.get() as any;
-			window.info(await WebComponentI18NManager.__(I18NKeys.background.storages.checkingFirst));
+			window.info(await WebComponent.__prom(I18NKeys.background.storages.checkingFirst));
 			const result = await isFirstTime(storageLocal);
 			if (result.type === 'firstTimeCallback') {
 				const data = await result.fn;
@@ -1676,7 +1676,7 @@ export namespace Storages {
 				if (result.type === 'upgradeVersion') {
 					storageLocal = result.storageLocal;
 				}
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.storages.parsingData));
+				window.info(await WebComponent.__prom(I18NKeys.background.storages.parsingData));
 				const storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 				delete storageLocalCopy.globalExcludes;
 
@@ -1711,7 +1711,7 @@ export namespace Storages {
 					}
 				}
 
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.storages.checkingUpdates));
+				window.info(await WebComponent.__prom(I18NKeys.background.storages.checkingUpdates));
 				checkForStorageSyncUpdates(settingsStorage, storageLocal);
 
 				await setStorages(storageLocalCopy, settingsStorage,
@@ -2044,7 +2044,7 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 			}
 		} else {
 			if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt) {
-				window.logAsync(WebComponentI18NManager.__(I18NKeys.background.storages.upgrading, 
+				window.logAsync(WebComponent.__prom(I18NKeys.background.storages.upgrading, 
 					storageLocal.lastUpdatedAt, currentVersion));
 				const fns = await upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
 				fns.beforeSyncLoad.forEach((fn) => {
@@ -2067,7 +2067,7 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 					fn: SetupHandling.handleTransfer()
 				}
 			} else {
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.storages.initializingFirst));
+				window.info(await WebComponent.__prom(I18NKeys.background.storages.initializingFirst));
 				return {
 					type: 'firstTimeCallback',
 					fn: SetupHandling.handleFirstRun()

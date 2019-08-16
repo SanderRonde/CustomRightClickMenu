@@ -14,7 +14,7 @@ import {PaperCheckedElementBehavior} from '@polymer/paper-behaviors/paper-checke
 import {PaperInkyFocusBehaviorImpl} from '@polymer/paper-behaviors/paper-inky-focus-behavior.js';
 import {Polymer} from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import {afterNextRender} from '@polymer/polymer/lib/utils/render-status.js';
-import { ConfigurableWebComponent, config, Props, PROP_TYPE } from '../../../modules/wclib/build/es/wclib';
+import { ConfigurableWebComponent, config, Props, PROP_TYPE } from '../../../modules/wc-lib/build/es/wc-lib';
 import { PaperCheckboxCSS } from './paper-checkbox.css';
 import { PaperCheckboxHTML } from './paper-checkbox.html';
 

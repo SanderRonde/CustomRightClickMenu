@@ -356,7 +356,7 @@ export namespace Global {
 					return JSON.stringify(data);
 				},
 				_fnRegex: /^(.|\s)*\(((\w+((\s*),?(\s*)))*)\)(\s*)(=>)?(\s*)\{((.|\n|\r)+)\}$/,
-				_specialStringRegex: /^__(fn|regexp|date)\$((.|\n)+)\$\1__$/,
+				_specialStringRegex: /^__prom(fn|regexp|date)\$((.|\n)+)\$\1__$/,
 				_fnCommRegex: /^\(((\w+((\s*),?(\s*)))*)\)\{((.|\n|\r)+)\}$/,
 				_parseNonObject(this: SpecialJSON, data: string): string | number | Function | RegExp | Date | boolean {
 					const dataParsed = JSON.parse(data);

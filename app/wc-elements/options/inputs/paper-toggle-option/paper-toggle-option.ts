@@ -1,4 +1,4 @@
-import { ConfigurableWebComponent, Props, PROP_TYPE, config } from '../../../../modules/wclib/build/es/wclib.js';
+import { ConfigurableWebComponent, Props, PROP_TYPE, config } from '../../../../modules/wc-lib/build/es/wc-lib.js';
 import { PaperToggleOptionIDMap, PaperToggleOptionClassMap } from './paper-toggle-option-querymap';
 import { PaperToggleOptionHTML } from './paper-toggle-option.html.js';
 import { PaperToggleOptionCSS } from './paper-toggle-option.css.js';

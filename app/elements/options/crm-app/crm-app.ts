@@ -515,7 +515,7 @@ namespace CRMAppElement {
 		static _getPageTitle(this: CrmApp): string {
 			return this._isDemo() ?
 				'Demo, actual right-click menu does NOT work in demo' :
-				this.___(I18NKeys.generic.appTitle);
+				this.___prom(I18NKeys.generic.appTitle);
 		}
 
 		static _isOldChrome() {
@@ -591,7 +591,7 @@ namespace CRMAppElement {
 			if (!updatedScript) {
 				return 'Please ignore';
 			}
-			return this.___(I18NKeys.crmApp.code.nodeUpdated, 
+			return this.___prom(I18NKeys.crmApp.code.nodeUpdated, 
 				updatedScript.name, updatedScript.oldVersion,
 				updatedScript.newVersion);
 		};
@@ -621,17 +621,17 @@ namespace CRMAppElement {
 		}
 
 		static _getCRMInRMDisabledReason(this: CrmApp) {
-			return this.___(I18NKeys.crmApp.options.chromeLow, 
+			return this.___prom(I18NKeys.crmApp.options.chromeLow, 
 				~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent) ? 
 					(~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] + '') : 
-					this.___(I18NKeys.crmApp.options.notChrome));
+					this.___prom(I18NKeys.crmApp.options.notChrome));
 		}
 
 		static _getStorageSyncDisabledReason(this: CrmApp) {
 			if (!this._supportsStorageSync()) {
-				return this.___(I18NKeys.crmApp.options.useStorageSyncDisabledUnavailable);
+				return this.___prom(I18NKeys.crmApp.options.useStorageSyncDisabledUnavailable);
 			} else {
-				return this.___(I18NKeys.crmApp.options.useStorageSyncDisabledTooBig);
+				return this.___prom(I18NKeys.crmApp.options.useStorageSyncDisabledTooBig);
 			}
 		}
 
@@ -1681,7 +1681,7 @@ namespace CRMAppElement {
 			browserAPI.runtime.onInstalled.addListener(async (details) => {
 				if (details.reason === 'update') {
 					//Show a little message
-					this.$.messageToast.text = this.___(I18NKeys.crmApp.code.extensionUpdated,
+					this.$.messageToast.text = this.___prom(I18NKeys.crmApp.code.extensionUpdated,
 						(await browserAPI.runtime.getManifest()).version);
 					this.$.messageToast.show();
 				}
@@ -2297,7 +2297,7 @@ namespace CRMAppElement {
 					});
 
 					const toast = window.doc.updatedSettingsToast;
-					toast.text = this.parent().___(I18NKeys.crmApp.code.settingsUpdated,
+					toast.text = this.parent().___prom(I18NKeys.crmApp.code.settingsUpdated,
 						new Date(versionData.latest.date).toLocaleDateString());
 					toast.show();
 				}
@@ -2395,11 +2395,11 @@ namespace CRMAppElement {
 								}, 500);
 
 								if (BrowserAPI.getBrowser() === 'edge') {
-									console.log(this.parent().___(I18NKeys.crmApp.code.hiMessage));
+									console.log(this.parent().___prom(I18NKeys.crmApp.code.hiMessage));
 								} else {
-									console.log(`%c${this.parent().___(I18NKeys.crmApp.code.hiMessage)}`, 'font-size:120%;font-weight:bold;');
+									console.log(`%c${this.parent().___prom(I18NKeys.crmApp.code.hiMessage)}`, 'font-size:120%;font-weight:bold;');
 								}
-								console.log(this.parent().___(I18NKeys.crmApp.code.consoleInfo));
+								console.log(this.parent().___prom(I18NKeys.crmApp.code.consoleInfo));
 							}, 200);
 
 							window.CRMLoaded = window.CRMLoaded || {
@@ -3553,7 +3553,7 @@ namespace CRMAppElement {
 				if (browserAPI.permissions) {
 					await this.parent()._requestPermissions([], true);
 				} else {
-					window.app.util.showToast(this.parent().___(I18NKeys.crmApp.code.permissionsNotSupported));
+					window.app.util.showToast(this.parent().___prom(I18NKeys.crmApp.code.permissionsNotSupported));
 				}
 			};
 
@@ -3616,7 +3616,7 @@ namespace CRMAppElement {
 				}
 
 				if (!(BrowserAPI.getSrc().permissions)) {
-					window.app.util.showToast(this.parent().___(I18NKeys.crmApp.code.downloadNotSupported));
+					window.app.util.showToast(this.parent().___prom(I18NKeys.crmApp.code.downloadNotSupported));
 					callback(false);
 					return;
 				}
@@ -3664,7 +3664,7 @@ namespace CRMAppElement {
 								filename: schemeName + '.reg'
 							});
 						} else {
-							window.app.util.showToast(this.parent().___(I18NKeys.crmApp.code.downloadNotSupported));
+							window.app.util.showToast(this.parent().___prom(I18NKeys.crmApp.code.downloadNotSupported));
 						}
 					}
 				});
@@ -3783,7 +3783,7 @@ namespace CRMAppElement {
 						return;
 					}
 				}
-				this.parent().util.showToast(this.parent().___(I18NKeys.crmApp.code.importSuccess));
+				this.parent().util.showToast(this.parent().___prom(I18NKeys.crmApp.code.importSuccess));
 			};
 
 			static exportData() {
@@ -4247,7 +4247,7 @@ namespace CRMAppElement {
 			 */
 			static getDefaultLinkNode(options: Partial<CRM.LinkNode> = {}): CRM.LinkNode {
 				const defaultNode: Partial<CRM.LinkNode> = {
-					name: this.parent().___(I18NKeys.crm.exampleLinkName),
+					name: this.parent().___prom(I18NKeys.crm.exampleLinkName),
 					onContentTypes: [true, true, true, false, false, false],
 					type: 'link',
 					showOnSpecified: false,
@@ -4311,7 +4311,7 @@ namespace CRMAppElement {
 			 */
 			static getDefaultScriptNode(options: CRM.PartialScriptNode = {}): CRM.ScriptNode {
 				const defaultNode: CRM.PartialScriptNode = {
-					name: this.parent().___(I18NKeys.crm.exampleScriptName),
+					name: this.parent().___prom(I18NKeys.crm.exampleScriptName),
 					onContentTypes: [true, true, true, false, false, false],
 					type: 'script',
 					isLocal: true,
@@ -4333,7 +4333,7 @@ namespace CRMAppElement {
 			 */
 			static getDefaultStylesheetNode(options: CRM.PartialStylesheetNode = {}): CRM.StylesheetNode {
 				const defaultNode: CRM.PartialStylesheetNode = {
-					name: this.parent().___(I18NKeys.crm.exampleStylesheetName),
+					name: this.parent().___prom(I18NKeys.crm.exampleStylesheetName),
 					onContentTypes: [true, true, true, false, false, false],
 					type: 'stylesheet',
 					isLocal: true,
@@ -4361,8 +4361,8 @@ namespace CRMAppElement {
 				CRM.DividerNode | CRM.MenuNode {
 				const defaultNode: Partial<CRM.PassiveNode> = {
 					name: type === 'menu' ? 
-						this.parent().___(I18NKeys.crm.exampleMenuName) : 
-						this.parent().___(I18NKeys.crm.exampleDividerName),
+						this.parent().___prom(I18NKeys.crm.exampleMenuName) : 
+						this.parent().___prom(I18NKeys.crm.exampleDividerName),
 					type: type,
 					nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 					onContentTypes: [true, true, true, false, false, false],
@@ -4517,72 +4517,72 @@ namespace CRMAppElement {
 			 */
 			static getPermissionDescription(permission: CRM.Permission): string {
 				const descriptions = {
-					alarms: this.parent().___(I18NKeys.permissions.alarms),
-					activeTab: this.parent().___(I18NKeys.permissions.activeTab),
-					background: this.parent().___(I18NKeys.permissions.background),
-					bookmarks: this.parent().___(I18NKeys.permissions.bookmarks),
-					browsingData: this.parent().___(I18NKeys.permissions.browsingData),
-					clipboardRead: this.parent().___(I18NKeys.permissions.clipboardRead),
-					clipboardWrite: this.parent().___(I18NKeys.permissions.clipboardWrite),
-					cookies: this.parent().___(I18NKeys.permissions.cookies),
-					contentSettings: this.parent().___(I18NKeys.permissions.contentSettings),
-					contextMenus: this.parent().___(I18NKeys.permissions.contextMenus),
-					declarativeContent: this.parent().___(I18NKeys.permissions.declarativeContent),
-					desktopCapture: this.parent().___(I18NKeys.permissions.desktopCapture),
-					downloads: this.parent().___(I18NKeys.permissions.downloads),
-					history: this.parent().___(I18NKeys.permissions.history),
-					identity: this.parent().___(I18NKeys.permissions.identity),
-					idle: this.parent().___(I18NKeys.permissions.idle),
-					management: this.parent().___(I18NKeys.permissions.management),
-					notifications: this.parent().___(I18NKeys.permissions.notifications),
-					pageCapture: this.parent().___(I18NKeys.permissions.pageCapture),
-					power: this.parent().___(I18NKeys.permissions.power),
-					privacy: this.parent().___(I18NKeys.permissions.privacy),
-					printerProvider: this.parent().___(I18NKeys.permissions.printerProvider),
-					sessions: this.parent().___(I18NKeys.permissions.sessions),
-					"system.cpu": this.parent().___(I18NKeys.permissions.systemcpu),
-					"system.memory": this.parent().___(I18NKeys.permissions.systemmemory),
-					"system.storage": this.parent().___(I18NKeys.permissions.systemstorage),
-					topSites: this.parent().___(I18NKeys.permissions.topSites),
-					tabCapture: this.parent().___(I18NKeys.permissions.tabCapture),
-					tabs: this.parent().___(I18NKeys.permissions.tabs),
-					tts: this.parent().___(I18NKeys.permissions.tts),
-					webNavigation: this.parent().___(I18NKeys.permissions.webNavigation) +
+					alarms: this.parent().___prom(I18NKeys.permissions.alarms),
+					activeTab: this.parent().___prom(I18NKeys.permissions.activeTab),
+					background: this.parent().___prom(I18NKeys.permissions.background),
+					bookmarks: this.parent().___prom(I18NKeys.permissions.bookmarks),
+					browsingData: this.parent().___prom(I18NKeys.permissions.browsingData),
+					clipboardRead: this.parent().___prom(I18NKeys.permissions.clipboardRead),
+					clipboardWrite: this.parent().___prom(I18NKeys.permissions.clipboardWrite),
+					cookies: this.parent().___prom(I18NKeys.permissions.cookies),
+					contentSettings: this.parent().___prom(I18NKeys.permissions.contentSettings),
+					contextMenus: this.parent().___prom(I18NKeys.permissions.contextMenus),
+					declarativeContent: this.parent().___prom(I18NKeys.permissions.declarativeContent),
+					desktopCapture: this.parent().___prom(I18NKeys.permissions.desktopCapture),
+					downloads: this.parent().___prom(I18NKeys.permissions.downloads),
+					history: this.parent().___prom(I18NKeys.permissions.history),
+					identity: this.parent().___prom(I18NKeys.permissions.identity),
+					idle: this.parent().___prom(I18NKeys.permissions.idle),
+					management: this.parent().___prom(I18NKeys.permissions.management),
+					notifications: this.parent().___prom(I18NKeys.permissions.notifications),
+					pageCapture: this.parent().___prom(I18NKeys.permissions.pageCapture),
+					power: this.parent().___prom(I18NKeys.permissions.power),
+					privacy: this.parent().___prom(I18NKeys.permissions.privacy),
+					printerProvider: this.parent().___prom(I18NKeys.permissions.printerProvider),
+					sessions: this.parent().___prom(I18NKeys.permissions.sessions),
+					"system.cpu": this.parent().___prom(I18NKeys.permissions.systemcpu),
+					"system.memory": this.parent().___prom(I18NKeys.permissions.systemmemory),
+					"system.storage": this.parent().___prom(I18NKeys.permissions.systemstorage),
+					topSites: this.parent().___prom(I18NKeys.permissions.topSites),
+					tabCapture: this.parent().___prom(I18NKeys.permissions.tabCapture),
+					tabs: this.parent().___prom(I18NKeys.permissions.tabs),
+					tts: this.parent().___prom(I18NKeys.permissions.tts),
+					webNavigation: this.parent().___prom(I18NKeys.permissions.webNavigation) +
 					' (https://developer.chrome.com/extensions/webNavigation)',
-					webRequest: this.parent().___(I18NKeys.permissions.webRequest),
-					webRequestBlocking: this.parent().___(I18NKeys.permissions.webRequestBlocking),
+					webRequest: this.parent().___prom(I18NKeys.permissions.webRequest),
+					webRequestBlocking: this.parent().___prom(I18NKeys.permissions.webRequestBlocking),
 
 					//Script-specific descriptions
-					crmGet: this.parent().___(I18NKeys.permissions.crmGet),
-					crmWrite: this.parent().___(I18NKeys.permissions.crmWrite),
-					crmRun: this.parent().___(I18NKeys.permissions.crmRun),
-					crmContextmenu: this.parent().___(I18NKeys.permissions.crmContextmenu),
-					chrome: this.parent().___(I18NKeys.permissions.chrome),
-					browser: this.parent().___(I18NKeys.permissions.browser),
+					crmGet: this.parent().___prom(I18NKeys.permissions.crmGet),
+					crmWrite: this.parent().___prom(I18NKeys.permissions.crmWrite),
+					crmRun: this.parent().___prom(I18NKeys.permissions.crmRun),
+					crmContextmenu: this.parent().___prom(I18NKeys.permissions.crmContextmenu),
+					chrome: this.parent().___prom(I18NKeys.permissions.chrome),
+					browser: this.parent().___prom(I18NKeys.permissions.browser),
 
 					//Tampermonkey APIs
-					GM_addStyle: this.parent().___(I18NKeys.permissions.GMAddStyle),
-					GM_deleteValue: this.parent().___(I18NKeys.permissions.GMDeleteValue),
-					GM_listValues: this.parent().___(I18NKeys.permissions.GMListValues),
-					GM_addValueChangeListener: this.parent().___(I18NKeys.permissions.GMAddValueChangeListener),
-					GM_removeValueChangeListener: this.parent().___(I18NKeys.permissions.GMRemoveValueChangeListener),
-					GM_setValue: this.parent().___(I18NKeys.permissions.GMSetValue),
-					GM_getValue: this.parent().___(I18NKeys.permissions.GMGetValue),
-					GM_log: this.parent().___(I18NKeys.permissions.GMLog),
-					GM_getResourceText: this.parent().___(I18NKeys.permissions.GMGetResourceText),
-					GM_getResourceURL: this.parent().___(I18NKeys.permissions.GMGetResourceURL),
-					GM_registerMenuCommand: this.parent().___(I18NKeys.permissions.GMRegisterMenuCommand),
-					GM_unregisterMenuCommand: this.parent().___(I18NKeys.permissions.GMUnregisterMenuCommand),
-					GM_openInTab: this.parent().___(I18NKeys.permissions.GMOpenInTab),
-					GM_xmlhttpRequest: this.parent().___(I18NKeys.permissions.GMXmlhttpRequest),
-					GM_download: this.parent().___(I18NKeys.permissions.GMDownload),
-					GM_getTab: this.parent().___(I18NKeys.permissions.GMGetTab),
-					GM_saveTab: this.parent().___(I18NKeys.permissions.GMSaveTab),
-					GM_getTabs: this.parent().___(I18NKeys.permissions.GMGetTabs),
-					GM_notification: this.parent().___(I18NKeys.permissions.GMNotification),
-					GM_setClipboard: this.parent().___(I18NKeys.permissions.GMSetClipboard),
-					GM_info: this.parent().___(I18NKeys.permissions.GMInfo),
-					unsafeWindow: this.parent().___(I18NKeys.permissions.unsafeWindow)
+					GM_addStyle: this.parent().___prom(I18NKeys.permissions.GMAddStyle),
+					GM_deleteValue: this.parent().___prom(I18NKeys.permissions.GMDeleteValue),
+					GM_listValues: this.parent().___prom(I18NKeys.permissions.GMListValues),
+					GM_addValueChangeListener: this.parent().___prom(I18NKeys.permissions.GMAddValueChangeListener),
+					GM_removeValueChangeListener: this.parent().___prom(I18NKeys.permissions.GMRemoveValueChangeListener),
+					GM_setValue: this.parent().___prom(I18NKeys.permissions.GMSetValue),
+					GM_getValue: this.parent().___prom(I18NKeys.permissions.GMGetValue),
+					GM_log: this.parent().___prom(I18NKeys.permissions.GMLog),
+					GM_getResourceText: this.parent().___prom(I18NKeys.permissions.GMGetResourceText),
+					GM_getResourceURL: this.parent().___prom(I18NKeys.permissions.GMGetResourceURL),
+					GM_registerMenuCommand: this.parent().___prom(I18NKeys.permissions.GMRegisterMenuCommand),
+					GM_unregisterMenuCommand: this.parent().___prom(I18NKeys.permissions.GMUnregisterMenuCommand),
+					GM_openInTab: this.parent().___prom(I18NKeys.permissions.GMOpenInTab),
+					GM_xmlhttpRequest: this.parent().___prom(I18NKeys.permissions.GMXmlhttpRequest),
+					GM_download: this.parent().___prom(I18NKeys.permissions.GMDownload),
+					GM_getTab: this.parent().___prom(I18NKeys.permissions.GMGetTab),
+					GM_saveTab: this.parent().___prom(I18NKeys.permissions.GMSaveTab),
+					GM_getTabs: this.parent().___prom(I18NKeys.permissions.GMGetTabs),
+					GM_notification: this.parent().___prom(I18NKeys.permissions.GMNotification),
+					GM_setClipboard: this.parent().___prom(I18NKeys.permissions.GMSetClipboard),
+					GM_info: this.parent().___prom(I18NKeys.permissions.GMInfo),
+					unsafeWindow: this.parent().___prom(I18NKeys.permissions.unsafeWindow)
 				};
 
 				return descriptions[permission as keyof typeof descriptions];
@@ -4600,15 +4600,15 @@ namespace CRMAppElement {
 			static getI18NNodeType(nodeType: CRM.NodeType) {
 				switch (nodeType) {
 					case 'link':
-						return this._parent().___(I18NKeys.crm.link);
+						return this._parent().___prom(I18NKeys.crm.link);
 					case 'script':
-						return this._parent().___(I18NKeys.crm.script);
+						return this._parent().___prom(I18NKeys.crm.script);
 					case 'stylesheet':
-						return this._parent().___(I18NKeys.crm.stylesheet);
+						return this._parent().___prom(I18NKeys.crm.stylesheet);
 					case 'menu':
-						return this._parent().___(I18NKeys.crm.menu);
+						return this._parent().___prom(I18NKeys.crm.menu);
 					case 'divider':
-						return this._parent().___(I18NKeys.crm.divider);
+						return this._parent().___prom(I18NKeys.crm.divider);
 				}
 			}
 
@@ -5123,7 +5123,7 @@ namespace CRMAppElement {
 
 			private static _editNodeFromClick(node: CRM.Node) {
 				if (window.app.item) {
-					window.app.$.messageToast.text = this.parent().___(I18NKeys.crmApp.code.alreadyEditingNode);
+					window.app.$.messageToast.text = this.parent().___prom(I18NKeys.crmApp.code.alreadyEditingNode);
 					window.app.$.messageToast.show();
 				} else {
 					const elements = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item');
@@ -5180,7 +5180,7 @@ namespace CRMAppElement {
 						if (window.app.storageLocal.editCRMInRM) {
 							this._editNodeFromClick(node);
 						} else {
-							window.app.$.messageToast.text = this.parent().___(I18NKeys.crmApp.code.wouldExecuteScript);
+							window.app.$.messageToast.text = this.parent().___prom(I18NKeys.crmApp.code.wouldExecuteScript);
 							window.app.$.messageToast.show();
 						}
 					},
@@ -5201,7 +5201,7 @@ namespace CRMAppElement {
 						if (window.app.storageLocal.editCRMInRM) {
 							this._editNodeFromClick(node);
 						} else {
-							window.app.$.messageToast.text = this.parent().___(I18NKeys.crmApp.code.wouldExecuteStylesheet);
+							window.app.$.messageToast.text = this.parent().___prom(I18NKeys.crmApp.code.wouldExecuteStylesheet);
 							window.app.$.messageToast.show();
 						}
 					},
@@ -5229,7 +5229,7 @@ namespace CRMAppElement {
 						if (window.app.storageLocal.editCRMInRM) {
 							this._editNodeFromClick(node);
 						} else {
-							window.app.$.messageToast.text = this.parent().___(I18NKeys.crmApp.code.wouldExecuteStylesheet);
+							window.app.$.messageToast.text = this.parent().___prom(I18NKeys.crmApp.code.wouldExecuteStylesheet);
 							thisEl.parentElement.classList.add('forcedVisible');
 							
 							timer && window.clearTimeout(timer);

@@ -1,6 +1,6 @@
 import { CrmApp, AddedPermissionsTabContainerEl, ScriptUpdatesToastEl, CodeSettingsDialogEl, ChooseFileDialogEl } from "../options/crm-app/crm-app";
 import { PaperToggleOption } from '../options/inputs/paper-toggle-option/paper-toggle-option';
-import { WebComponent } from "../../modules/wclib/build/es/wclib";
+import { WebComponent } from "../../modules/wc-lib/build/es/wc-lib";
 
 export type WCTagNameMaps = {
 	'crm-app': CrmApp;

@@ -1,22 +1,27 @@
 import { browserAPI } from '../polyfills/browser.js';
 
 export namespace DevServer {
-	async function onOptionsTabCreated(tab: _chrome.tabs.Tab) {
-		const debuggee = {
-			tabId: tab.id
-		};
+	async function onWatchedTabCreated(debuggee: _chrome._debugger.Debuggee) {
 		await browserAPI.debugger.attach(debuggee, '1.2');
+		browserAPI.debugger.onEvent.addListener((source, method, params) => {
+			if (method === 'Network.requestIntercepted') {
+				console.log('Intercepted', source, method, params);
+			} else {
+				console.log('?', method, params);
+			}
+		});
+		await browserAPI.debugger.sendCommand(debuggee, 
+			'Network.setRequestInterception', {
+				patterns: [{
+					urlPattern: '*',
+					interceptionStage: 'HeadersReceived'
+				}]
+			}).catch(console.log);
 		await browserAPI.debugger.sendCommand(debuggee, 
 			'Network.enable', {
 				enabled: true
 			}).catch(console.log);
-		browserAPI.debugger.onEvent.addListener((source, method, params) => {
-			console.log('yo', method, params);
-			if (source.tabId === debuggee.tabId && 
-				method === 'Network.requestIntercepted') {
-					console.log(params);
-				}
-		});
+		console.log('Added listeners');
 	}
 
 	function attachListeners() {
@@ -26,12 +31,21 @@ export namespace DevServer {
 				changeInfo.url && changeInfo.url.indexOf('chrome-extension://') === 0 &&
 				changeInfo.url.indexOf('entrypoints/options.html') > -1) {
 					console.log('listening for', tab);
-					onOptionsTabCreated(tab);	
+					onWatchedTabCreated({
+						tabId: tab.id
+					});	
 				}
 		});
 	}
 
 	export function init() {
-		attachListeners();		
+		attachListeners();
+		console.log('Ready');
+	}
+
+	export async function listenSelf() {
+		// await onWatchedTabCreated({
+		// 	extensionId: browserAPI.runtime.id
+		// });
 	}
 }

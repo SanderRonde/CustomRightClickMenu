@@ -37,7 +37,8 @@
         "./tools/definitions/polymer.d.ts",
         "./js/libraries/crmapi.d.ts",
         "./bower_components",
-        "__locales",
+        "_locales",
+        "localestemp",
         "./modules/"
     ]
 }

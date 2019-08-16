@@ -3,7 +3,7 @@
 
 import { EncodedContextData, GreaseMonkeyData, BrowserTabsQueryInfo, GreaseMonkeyDataInfo } from './background/sharedTypes';
 import { EncodedString } from '../wc-elements/defs/globals';
-import { browserAPI } from "./polyfills/browser";
+import { browserAPI } from "./polyfills/browser.js";
 import { CRMWindow } from '../wc-elements/defs/crm-window';
 
 declare const window: CRMWindow & {
@@ -3463,7 +3463,7 @@ export type CRMAPIMessage = {
 					return JSON.stringify(data);
 				},
 				_fnRegex: /^(.|\s)*\(((\w+((\s*),?(\s*)))*)\)(\s*)(=>)?(\s*)\{((.|\n|\r)+)\}$/,
-				_specialStringRegex: /^__(fn|regexp|date)\$((.|\n)+)\$\1__$/,
+				_specialStringRegex: /^__prom(fn|regexp|date)\$((.|\n)+)\$\1__$/,
 				_fnCommRegex: /^\(((\w+((\s*),?(\s*)))*)\)\{((.|\n|\r)+)\}$/,
 				_parseNonObject(this: SpecialJSON, data: string): string | number | Function | RegExp | Date | boolean {
 					const dataParsed = JSON.parse(data);

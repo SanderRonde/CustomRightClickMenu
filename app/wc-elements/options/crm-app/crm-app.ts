@@ -1,6 +1,6 @@
 /// <reference path="../../defs/wc-elements.d.ts" />
 
-import { ConfigurableWebComponent, Props, config, bindToClass, ComplexType } from '../../../modules/wclib/build/es/wclib.js';
+import { ConfigurableWebComponent, Props, config, bindToClass, ComplexType } from '../../../modules/wc-lib/build/es/wc-lib.js';
 import { PaperToggleOption } from '../inputs/paper-toggle-option/paper-toggle-option.js';
 import { BrowserAPI, browserAPI } from '../../../js/polyfills/browser.js';
 import { registerAnimatePolyfill } from './registerAnimatePolyfill.js';
@@ -273,7 +273,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 	_getPageTitle(): string {
 		return this.isDemo() ?
 			'Demo, actual right-click menu does NOT work in demo' :
-			this.__(I18NKeys.generic.appTitle);
+			this.__prom(I18NKeys.generic.appTitle);
 	}
 	
 	getChromeVersion() {
@@ -340,9 +340,9 @@ export class CrmApp extends ConfigurableWebComponent<{
 	@bindToClass
 	_getStorageSyncDisabledReason() {
 		if (!this._supportsStorageSync()) {
-			return this.__(I18NKeys.crmApp.options.useStorageSyncDisabledUnavailable);
+			return this.__prom(I18NKeys.crmApp.options.useStorageSyncDisabledUnavailable);
 		} else {
-			return this.__(I18NKeys.crmApp.options.useStorageSyncDisabledTooBig);
+			return this.__prom(I18NKeys.crmApp.options.useStorageSyncDisabledTooBig);
 		}
 	}
 
@@ -1384,7 +1384,7 @@ export class CrmApp extends ConfigurableWebComponent<{
 		browserAPI.runtime.onInstalled.addListener(async (details) => {
 			if (details.reason === 'update') {
 				//Show a little message
-				this.$.messageToast.text = this.__(I18NKeys.crmApp.code.extensionUpdated,
+				this.$.messageToast.text = this.__prom(I18NKeys.crmApp.code.extensionUpdated,
 					(await browserAPI.runtime.getManifest()).version);
 				this.$.messageToast.show();
 			}

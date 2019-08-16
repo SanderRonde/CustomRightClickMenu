@@ -296,9 +296,17 @@ app/_locales/*/*.js
 app/_locales/i18n-keys.ts
 app/_locales/i18n-keys.js
 
+app/localestemp/*/*.es.js
+app/localestemp/*/messages.json
+app/localestemp/*/messages.js
+app/localestemp/*/*.js
+app/localestemp/i18n-keys.ts
+app/localestemp/i18n-keys.js
+
 app/wc-elements/**/*.js
 app/entrypoints/**/*.js
-app/modules/
+app/modules
+
 
 app/**/*-querymap.d.ts
 scripts/create-component.js

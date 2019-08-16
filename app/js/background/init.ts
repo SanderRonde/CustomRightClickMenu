@@ -1,12 +1,14 @@
+import { WebComponent } from "../../modules/wc-lib/build/es/wc-lib.js";
 import {ModuleData, StorageModules, Modules } from "./moduleTypes";
 import { BackgroundpageWindow, GlobalObject } from './sharedTypes';
 import { GlobalDeclarations } from "./global-declarations.js";
+import { I18NKeys } from "../../localestemp/i18n-keys";
 import { MessageHandling } from "./messagehandling.js";
 import { CRMAPIFunctions } from "./crmapifunctions.js";
 import { BrowserHandler } from "./browserhandler.js";
-import { I18NKeys } from "../../localestemp/i18n-keys";
+import { browserAPI } from "../polyfills/browser.js";
 import { APIMessaging } from "./api-messaging.js";
-import { browserAPI } from "../polyfills/browser";
+import { ExtensionI18N } from "../shared.js";
 import { CRMAPICall } from "./crmapicall.js";
 import { URLParsing } from "./urlparsing.js";
 import { Resources } from "./resources.js";
@@ -18,7 +20,6 @@ import { CRMNodes } from "./crm.js";
 import { Caches } from "./cache.js";
 import { Info } from "./info.js";
 import { Util } from "./util.js";
-import { WebComponentI18NManager } from "../../modules/wclib/build/es/wclib";
 
 declare const window: BackgroundpageWindow;
 
@@ -105,45 +106,54 @@ export namespace Init {
 		initModule(moduleData);
 	}
 
+	function initI18N() {
+		WebComponent.initI18N({
+			urlFormat: '/localestemp/$LANG$/messages.json',
+			defaultLang: 'en',
+			getMessage: ExtensionI18N.getMessage
+		});
+	}
+
 	async function initRoutine() {
 		Info.init();
+		initI18N();
 
-		window.console.group(await WebComponentI18NManager.__(I18NKeys.background.init.initialization));
-		window.console.group(await WebComponentI18NManager.__(I18NKeys.background.init.storage));
+		window.console.group(await WebComponent.__prom(I18NKeys.background.init.initialization));
+		window.console.group(await WebComponent.__prom(I18NKeys.background.init.storage));
 		await Util.iipe(async () => {
 			await Storages.loadStorages();
 			window.console.groupEnd();
 			try {
 				modules.globalObject.globals.latestId = 
 					modules.storages.settingsStorage.latestId;
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.init.registeringPermissionListeners));
+				window.info(await WebComponent.__prom(I18NKeys.background.init.registeringPermissionListeners));
 				await GlobalDeclarations.refreshPermissions();
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.init.registeringHandler));
+				window.info(await WebComponent.__prom(I18NKeys.background.init.registeringHandler));
 				GlobalDeclarations.setHandlerFunction();
 				browserAPI.runtime.onConnect.addListener((port) => {
 					port.onMessage.addListener(window.createHandlerFunction(port));
 				});
 				browserAPI.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessageInitial);
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.init.buildingCrm));
+				window.info(await WebComponent.__prom(I18NKeys.background.init.buildingCrm));
 				await CRMNodes.buildPageCRM();
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.init.compilingTs));
+				window.info(await WebComponent.__prom(I18NKeys.background.init.compilingTs));
 				await CRMNodes.TS.compileAllInTree();
 				window.console.groupCollapsed(
-					await WebComponentI18NManager.__(I18NKeys.background.init.previousOpenTabs));
+					await WebComponent.__prom(I18NKeys.background.init.previousOpenTabs));
 				await GlobalDeclarations.restoreOpenTabs();
 				window.console.groupEnd();
 				window.console.groupCollapsed(
-					await WebComponentI18NManager.__(I18NKeys.background.init.backgroundpages));
+					await WebComponent.__prom(I18NKeys.background.init.backgroundpages));
 				await CRMNodes.Script.Background.createBackgroundPages();
 				window.console.groupEnd();
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.init.registeringHandlers));
+				window.info(await WebComponent.__prom(I18NKeys.background.init.registeringHandlers));
 				GlobalDeclarations.init();
 
 				//Checks if all values are still correct
-				window.console.group(await WebComponentI18NManager.__(I18NKeys.background.init.resources));
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.init.updatingResources));
+				window.console.group(await WebComponent.__prom(I18NKeys.background.init.resources));
+				window.info(await WebComponent.__prom(I18NKeys.background.init.updatingResources));
 				Resources.updateResourceValues();
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.init.updatingNodes));
+				window.info(await WebComponent.__prom(I18NKeys.background.init.updatingNodes));
 				//Dont' wait for them but do them in order
 				(async () => {
 					await CRMNodes.Script.Updating.updateScripts()
@@ -151,7 +161,7 @@ export namespace Init {
 				})();
 				window.setInterval(() => {
 					(async () => {
-						window.info(await WebComponentI18NManager.__(I18NKeys.background.init.updatingNodes));
+						window.info(await WebComponent.__prom(I18NKeys.background.init.updatingNodes));
 						await CRMNodes.Script.Updating.updateScripts()
 						await CRMNodes.Stylesheet.Updating.updateStylesheets();
 					})();
@@ -160,15 +170,15 @@ export namespace Init {
 
 				//Debugging data
 				window.console.groupCollapsed(
-					await WebComponentI18NManager.__(I18NKeys.background.init.debugging));
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.init.debugInfo));
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.init.invalidatedTabs),
+					await WebComponent.__prom(I18NKeys.background.init.debugging));
+				window.info(await WebComponent.__prom(I18NKeys.background.init.debugInfo));
+				window.info(await WebComponent.__prom(I18NKeys.background.init.invalidatedTabs),
 					modules.storages.failedLookups);
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.init.insufficientPermissions),
+				window.info(await WebComponent.__prom(I18NKeys.background.init.insufficientPermissions),
 					modules.storages.insufficientPermissions);
 				window.console.groupEnd();
 
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.init.registeringConsoleInterface));
+				window.info(await WebComponent.__prom(I18NKeys.background.init.registeringConsoleInterface));
 				GlobalDeclarations.initGlobalFunctions();
 
 				if (location.href.indexOf('test') > -1) {
@@ -183,12 +193,12 @@ export namespace Init {
 					window.console.groupEnd();
 				}
 
-				window.info(await WebComponentI18NManager.__(I18NKeys.background.init.done));
+				window.info(await WebComponent.__prom(I18NKeys.background.init.done));
 				if (!isNode()) {
 					window.log('');
-					window.logAsync(WebComponentI18NManager.__(I18NKeys.background.init.loggingExplanation,
+					window.logAsync(WebComponent.__prom(I18NKeys.background.init.loggingExplanation,
 						browserAPI.runtime.getURL('entrypoints/logging.html')));
-					window.logAsync(WebComponentI18NManager.__(I18NKeys.background.init.debugExplanation));
+					window.logAsync(WebComponent.__prom(I18NKeys.background.init.debugExplanation));
 				}
 			} catch (e) {
 				for (let i = 0; i < 10; i++) {

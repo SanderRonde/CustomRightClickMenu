@@ -89,37 +89,37 @@ namespace PaperGetPagePropertiesElement {
 		private static async _setOptions(this: PaperGetPageProperties) {
 			this.options = [
 				{
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.selection),
+					name: this.___prom(I18NKeys.options.tools.paperGetPageProperties.selection),
 					id: 'paperGetPropertySelection'
 				}, {
 					name: (() => {
-						const str = this.___(I18NKeys.generic.url);
+						const str = this.___prom(I18NKeys.generic.url);
 						return str[0].toLocaleUpperCase() + str.slice(1);
 					})(),
 					id: 'paperGetPropertyUrl'
 				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.host),
+					name: this.___prom(I18NKeys.options.tools.paperGetPageProperties.host),
 					id: 'paperGetPropertyHost'
 				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.path),
+					name: this.___prom(I18NKeys.options.tools.paperGetPageProperties.path),
 					id: 'paperGetPropertyPath'
 				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.protocol),
+					name: this.___prom(I18NKeys.options.tools.paperGetPageProperties.protocol),
 					id: 'paperGetPropertyProtocol'
 				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.width),
+					name: this.___prom(I18NKeys.options.tools.paperGetPageProperties.width),
 					id: 'paperGetPropertyWidth'
 				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.height),
+					name: this.___prom(I18NKeys.options.tools.paperGetPageProperties.height),
 					id: 'paperGetPropertyHeight'
 				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.scrolled),
+					name: this.___prom(I18NKeys.options.tools.paperGetPageProperties.scrolled),
 					id: 'paperGetPropertyPixels'
 				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.title),
+					name: this.___prom(I18NKeys.options.tools.paperGetPageProperties.title),
 					id: 'paperGetPropertyTitle'
 				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.clickedElement),
+					name: this.___prom(I18NKeys.options.tools.paperGetPageProperties.clickedElement),
 					id: 'paperGetPropertyClicked'
 				}
 			];

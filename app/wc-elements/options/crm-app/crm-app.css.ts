@@ -1,4 +1,4 @@
-import { TemplateFn, CHANGE_TYPE } from '../../../modules/wclib/build/es/wclib.js';
+import { TemplateFn, CHANGE_TYPE } from '../../../modules/wc-lib/build/es/wc-lib.js';
 import { render } from '../../../modules/lit-html/lit-html.js';
 import { calc } from '../../lib/polyfills/calc.js';
 import { CrmApp } from './crm-app.js';

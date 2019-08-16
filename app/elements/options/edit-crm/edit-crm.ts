@@ -254,7 +254,7 @@ namespace EditCrmElement {
 
 		static _addNodeType(this: EditCrm, nodeType: CRM.NodeType) {
 			//TODO: this returns a promise now
-			return this.___(I18NKeys.options.editCrm.addNodeType,
+			return this.___prom(I18NKeys.options.editCrm.addNodeType,
 				window.app ?
 					window.app.crm.getI18NNodeType(nodeType) :
 					`{{${nodeType}}}`
@@ -270,7 +270,7 @@ namespace EditCrmElement {
 		};
 
 		static _getAriaLabel(this: EditCrm, item: CRM.Node): string {
-			return this.___(I18NKeys.options.editCrm.editItem, item.name);
+			return this.___prom(I18NKeys.options.editCrm.editItem, item.name);
 		};
 
 		static _isAddingOrSelecting(this: EditCrm) {

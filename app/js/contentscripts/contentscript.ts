@@ -1,4 +1,4 @@
-﻿import { browserAPI } from "../polyfills/browser";
+﻿import { browserAPI } from "../polyfills/browser.js";
 
 (() => {
 	function hacksecuteScript(script: string) {

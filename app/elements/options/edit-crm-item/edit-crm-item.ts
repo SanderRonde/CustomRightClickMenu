@@ -99,12 +99,12 @@ namespace EditCrmItemElement {
 
 		static getMenuExpandMessage(this: EditCrmItem) {
 			if (!this.item.children) {
-				return this.___(I18NKeys.options.editCrmItem.clickToShowChildren);
+				return this.___prom(I18NKeys.options.editCrmItem.clickToShowChildren);
 			}
 			if ((this.item as CRM.MenuNode).children.length === 1) {
-				return this.___(I18NKeys.options.editCrmItem.clickToShowChild);
+				return this.___prom(I18NKeys.options.editCrmItem.clickToShowChild);
 			}
-			return this.___(I18NKeys.options.editCrmItem.clickToShowXChildren,
+			return this.___prom(I18NKeys.options.editCrmItem.clickToShowXChildren,
 				(this.item as CRM.MenuNode).children.length + '');
 		};
 
@@ -276,11 +276,11 @@ namespace EditCrmItemElement {
 
 		static getTitle(this: EditCrmItem): string {
 			if (this.rootNode) {
-				return this.___(I18NKeys.options.editCrmItem.clickToEditRoot);
+				return this.___prom(I18NKeys.options.editCrmItem.clickToEditRoot);
 			} else if (this.hasAttribute('crm-type-hidden')) {
-				return this.___(I18NKeys.options.editCrmItem.nodeHidden);
+				return this.___prom(I18NKeys.options.editCrmItem.nodeHidden);
 			} else {
-				return this.___(I18NKeys.options.editCrmItem.clickToEdit);
+				return this.___prom(I18NKeys.options.editCrmItem.clickToEdit);
 			}
 		}
 

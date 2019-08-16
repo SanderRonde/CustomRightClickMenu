@@ -1,7 +1,7 @@
 import { BackgroundpageWindow, ContextMenuCreateProperties, ContextMenuUpdateProperties, ContextMenuOverrides } from './sharedTypes';
-import { browserAPI, BrowserAPI } from "../polyfills/browser";
+import { browserAPI, BrowserAPI } from "../polyfills/browser.js";
 import { ModuleData } from "./moduleTypes";
-import { onExists } from "../shared";
+import { onExists } from "../shared.js";
 
 declare const window: BackgroundpageWindow;
 

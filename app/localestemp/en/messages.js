@@ -1,4 +1,6 @@
-export const Messages = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Messages = {
     generic: {
         appTitle: {
             message: 'Custom Right-Click Menu',

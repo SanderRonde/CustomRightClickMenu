@@ -20,11 +20,11 @@ function capitalize(name: string) {
 	return name[0].toUpperCase() + name.slice(1);
 }
 
-const wclibPath = 'wclib/build/es/wclib.js';
+const wc-libPath = 'wc-lib/build/es/wc-lib.js';
 const litHtmlPath = 'lit-html/lit-html.js';
 
 const indexTemplate = (name: string, modulePath: string) => 
-`import { ConfigurableWebComponent, Props, PROP_TYPE, config } from '${modulePath}/${wclibPath}';
+`import { ConfigurableWebComponent, Props, PROP_TYPE, config } from '${modulePath}/${wc-libPath}';
 import { ${capitalize(dashesToUppercase(name))}IDMap, ${capitalize(dashesToUppercase(name))}ClassMap } from './${name}-querymap';
 import { ${capitalize(dashesToUppercase(name))}HTML } from './${name}.html.js';
 import { ${capitalize(dashesToUppercase(name))}CSS } from './${name}.css.js';
@@ -52,7 +52,7 @@ export class ${capitalize(dashesToUppercase(name))} extends ConfigurableWebCompo
 }`;
 
 const htmlTemplate = (name: string, modulePath: string) => 
-`import { TemplateFn, CHANGE_TYPE } from '${modulePath}/${wclibPath}';
+`import { TemplateFn, CHANGE_TYPE } from '${modulePath}/${wc-libPath}';
 import { render } from '${modulePath}/${litHtmlPath}';
 import { ${capitalize(dashesToUppercase(name))} } from './${name}.js';
 
@@ -66,7 +66,7 @@ export const ${capitalize(dashesToUppercase(name))}HTML = new TemplateFn<${
 `;
 
 const cssTemplate = (name: string, modulePath: string) => 
-`import { TemplateFn, CHANGE_TYPE } from '${modulePath}/${wclibPath}';
+`import { TemplateFn, CHANGE_TYPE } from '${modulePath}/${wc-libPath}';
 import { render } from '${modulePath}/${litHtmlPath}';
 import { ${capitalize(dashesToUppercase(name))} } from './${name}.js';
 

@@ -264,9 +264,9 @@ namespace NodeEditBehaviorNamespace {
 		static _getLabel(this: NodeEditBehaviorScriptInstance|NodeEditBehaviorStylesheetInstance,
 			lang: string, langReady: boolean) {
 				if (this.newSettings.value.launchMode === 2) {
-					return this.__(lang, langReady, I18NKeys.options.nodeEditBehavior.globPattern);
+					return this.__prom(lang, langReady, I18NKeys.options.nodeEditBehavior.globPattern);
 				} else {
-					return this.__(lang, langReady, I18NKeys.options.nodeEditBehavior.matchPattern);
+					return this.__prom(lang, langReady, I18NKeys.options.nodeEditBehavior.matchPattern);
 				}
 		};
 
@@ -362,8 +362,8 @@ namespace NodeEditBehaviorNamespace {
 			if (newStates.showInsteadOfExecute !== oldStates.showInsteadOfExecute) {
 				((this.$ as any)['showOrExecutetxt'] as HTMLSpanElement).innerText = 
 					(newStates.showInsteadOfExecute ? 
-						await this.___(I18NKeys.options.editPages.code.showOn) : 
-						await this.___(I18NKeys.options.editPages.code.executeOn));
+						await this.___prom(I18NKeys.options.editPages.code.showOn) : 
+						await this.___prom(I18NKeys.options.editPages.code.executeOn));
 			}
 			this.async(() => {
 				if (this.editorManager) {

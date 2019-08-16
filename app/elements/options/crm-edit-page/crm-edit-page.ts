@@ -103,14 +103,14 @@ namespace CrmEditPageElement {
 		};
 
 		static getCreatedBy(this: CrmEditPage) {
-			return this.___(I18NKeys.options.crmEditPage.createdByYou, 
+			return this.___prom(I18NKeys.options.crmEditPage.createdByYou, 
 				`<b id="nodeInfoByYou" title="${
-					this.___(I18NKeys.options.crmEditPage.hasAllPermissions)
+					this.___prom(I18NKeys.options.crmEditPage.hasAllPermissions)
 				}">You</b>`)
 		}
 
 		static nodeInfoSource(this: CrmEditPage) {
-			return this.___(this.isLocal(this.nodeInfo.source) ? 
+			return this.___prom(this.isLocal(this.nodeInfo.source) ? 
 					I18NKeys.options.crmEditPage.createdOn : 
 					I18NKeys.options.crmEditPage.installedOn,
 				`<b title="${

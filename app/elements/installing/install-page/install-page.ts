@@ -206,7 +206,7 @@ namespace InstallPageElement {
 		}
 
 		static onLangChanged(this: InstallPage) {
-			this.$.title.innerHTML = this.___(I18NKeys.install.page.installing, 
+			this.$.title.innerHTML = this.___prom(I18NKeys.install.page.installing, 
 				this.userscriptUrl);
 		}
 
