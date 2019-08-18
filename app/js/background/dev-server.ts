@@ -34,7 +34,7 @@ export namespace DevServer {
 			}
 
 			// If import has no extension, add .js
-			if (importName.split('/').pop().indexOf('.') === -1) {
+			if (importName.split('/').pop()!.indexOf('.') === -1) {
 				return `${importName}.js`;
 			}
 			return importName;
@@ -104,7 +104,7 @@ export namespace DevServer {
 
 	async function resumeRequest(source: _chrome._debugger.Debuggee, data: InterceptedRequest) {
 		console.log('Cancelling', data.requestId);
-		await browserAPI.debugger.sendCommand(source, 
+		await browserAPI.debugger!.sendCommand(source, 
 			'Fetch.continueRequest', {
 				requestId: data.requestId
 			});
@@ -113,7 +113,7 @@ export namespace DevServer {
 	async function respondModifiedRequest(source: _chrome._debugger.Debuggee, data: InterceptedRequest,
 		newBody: string) {
 			const encoded = btoa(newBody);
-			await browserAPI.debugger.sendCommand(source, 
+			await browserAPI.debugger!.sendCommand(source, 
 				'Fetch.fulfillRequest', {
 					requestId: data.requestId,
 					responseCode: 200,
@@ -137,7 +137,7 @@ export namespace DevServer {
 		}
 
 		// Get response data
-		const response = await browserAPI.debugger.sendCommand(source, 
+		const response = await browserAPI.debugger!.sendCommand(source, 
 			'Fetch.getResponseBody', {
 				requestId: data.requestId
 			}) as {
@@ -151,8 +151,8 @@ export namespace DevServer {
 	}
 
 	async function onWatchedTabCreated(debuggee: _chrome._debugger.Debuggee) {
-		await browserAPI.debugger.attach(debuggee, '1.2');
-		browserAPI.debugger.onEvent.addListener(async (source, method, params) => {
+		await browserAPI.debugger!.attach(debuggee, '1.2');
+		browserAPI.debugger!.onEvent.addListener(async (source, method, params) => {
 			switch (method) {
 				case 'Fetch.requestPaused':
 					await onRequestPaused(source, params);
@@ -162,7 +162,7 @@ export namespace DevServer {
 					break;
 			}
 		});
-		await browserAPI.debugger.sendCommand(debuggee, 
+		await browserAPI.debugger!.sendCommand(debuggee, 
 			'Fetch.enable', {
 				patterns: [{
 					urlPattern: 'chrome-extension://*',
@@ -173,7 +173,7 @@ export namespace DevServer {
 	}
 
 	function attachListeners() {
-		browserAPI.tabs.onUpdated.addListener((_id, changeInfo, tab) => {
+		browserAPI.tabs!.onUpdated.addListener((_id, changeInfo, tab) => {
 			if (changeInfo.status && changeInfo.status === 'loading' &&
 				changeInfo.url && changeInfo.url.indexOf('chrome-extension://') === 0 &&
 				changeInfo.url.indexOf('entrypoints/options.html') > -1) {
