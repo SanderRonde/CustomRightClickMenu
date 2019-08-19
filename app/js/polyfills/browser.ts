@@ -14,12 +14,9 @@ declare global {
 
 	namespace _browser.storage {
 		interface Get {
-			<S extends CRM.StorageLocal|CRM.SettingsStorage = 
-				CRM.StorageLocal|CRM.SettingsStorage>(): Promise<S>;
-			<S extends CRM.StorageLocal|CRM.SettingsStorage,
-				K extends keyof S>(keys: K): Promise<S>;
-			<S extends CRM.StorageLocal|CRM.SettingsStorage,
-				K extends keyof S>(keys: K[]): Promise<S>;
+			<S extends CRM.StorageLocal|CRM.SettingsStorage = CRM.StorageLocal|CRM.SettingsStorage>(): Promise<S>;
+			<S extends CRM.StorageLocal|CRM.SettingsStorage, K extends keyof S>(keys: K): Promise<S>;
+			<S extends CRM.StorageLocal|CRM.SettingsStorage, K extends keyof S>(keys: K[]): Promise<S>;
 		}
 	}
 }
@@ -38,7 +35,7 @@ namespace BrowserAPINS {
 	// 	and callback-style APIs under the (probably temporary) "chrome" global
 	// So if browser is Edge, use "browser", otherwise use "chrome" if available
 	// 	to ensure always always getting callback-style APIs
-	const apisWindow = window as AllBrowserAPIsWindow;
+	const apisWindow = window as unknown as AllBrowserAPIsWindow;
 	const __srcBrowser: (typeof _chrome & {
 		debugger: typeof _chrome._debugger
 	}) = apisWindow.StyleMedia ?
@@ -63,7 +60,7 @@ namespace BrowserAPINS {
 		const { resolve, reject } = prom;
 		const fn = ((...args: any[]) => {
 			if (__srcBrowser.runtime.lastError) {
-				stackSrc.message = __srcBrowser.runtime.lastError.message;
+				stackSrc.message = __srcBrowser.runtime.lastError.message!;
 				reject(stackSrc);
 			}
 			else {
@@ -136,7 +133,7 @@ namespace BrowserAPINS {
 		InstallTrigger?: any;
 		StyleMedia?: any;
 	}
-	let _browserUserAgent: 'chrome' | 'firefox' | 'edge' | 'opera' | 'node' = null;
+	let _browserUserAgent: 'chrome' | 'firefox' | 'edge' | 'opera' | 'node' | null = null;
 	function getBrowserUserAgent() {
 		const win = window as MultiBrowserWindow;
 		const isOpera = (!!win.opr && !!win.opr.addons) || !!win.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
@@ -170,7 +167,7 @@ namespace BrowserAPINS {
 		return location.href.indexOf('backgroun') === -1;
 	}
 	function isDevBackgroundPage() {
-		return __srcBrowser.runtime.getManifest().short_name.indexOf('dev') > -1;
+		return __srcBrowser.runtime.getManifest().short_name!.indexOf('dev') > -1;
 	}
 	function areStringsEqual(a: string | number, b: string | number): boolean {
 		return (a + '') === (b + '');
@@ -215,7 +212,7 @@ namespace BrowserAPINS {
 	type ExecutedScripts = ExecutedScript[];
 	let loggingEnabled: boolean = false;
 	export function resetLogData() {
-		testData._lastSpecialCall = null;
+		testData._lastSpecialCall = null!;
 		testData._currentContextMenu = [];
 		testData._activeTabs = [];
 		testData._executedScripts = [];
@@ -234,13 +231,13 @@ namespace BrowserAPINS {
 	}
 	export function disableLogging() {
 		loggingEnabled = false;
-		testData._lastSpecialCall = null;
-		testData._currentContextMenu = null;
-		testData._activeTabs = null;
-		testData._executedScripts = null;
-		testData._fakeTabs = null;
-		testData._activatedBackgroundPages = null;
-		testData._tabUpdateListeners = null;
+		testData._lastSpecialCall = null!;
+		testData._currentContextMenu = null!;
+		testData._activeTabs = null!;
+		testData._executedScripts = null!;
+		testData._fakeTabs = null!;
+		testData._activatedBackgroundPages = null!;
+		testData._tabUpdateListeners = null!;
 	}
 	const testData: {
 		_lastSpecialCall: ChromeLastCall;
@@ -273,13 +270,13 @@ namespace BrowserAPINS {
 			};
 		};
 	} = {
-		_lastSpecialCall: null,
-		_currentContextMenu: null,
-		_activeTabs: null,
-		_executedScripts: null,
-		_fakeTabs: null,
-		_activatedBackgroundPages: null,
-		_tabUpdateListeners: null,
+		_lastSpecialCall: null!,
+		_currentContextMenu: null!,
+		_activeTabs: null!,
+		_executedScripts: null!,
+		_fakeTabs: null!,
+		_activatedBackgroundPages: null!,
+		_tabUpdateListeners: null!,
 		_clearExecutedScripts: function () {
 			while (testData._executedScripts.pop()) { }
 		}
@@ -291,7 +288,7 @@ namespace BrowserAPINS {
 		return testData;
 	}
 	export function getDownloadAPI() {
-		return __srcBrowser.downloads ? {
+		return (__srcBrowser.downloads ? {
 			download(options: {
 				url: string;
 				filename?: string;
@@ -313,18 +310,18 @@ namespace BrowserAPINS {
 					__srcBrowser.downloads.download(options as any, handler);
 				});
 			}
-		} : void 0
+		} : void 0)!
 	}
-	export const polyfill = !__srcBrowser ? {} : {
-		commands: __srcBrowser.commands ? {
+	export const polyfill = (!__srcBrowser ? {} as unknown as null : {
+		commands: (__srcBrowser.commands ? {
 			getAll() {
 				return createPromise<_browser.commands.Command[]>((handler) => {
 					__srcBrowser.commands.getAll(handler);
 				});
 			},
 			onCommand: __srcBrowser.commands.onCommand as Listener<string>
-		} : void 0,
-		contextMenus: __srcBrowser.contextMenus ? {
+		} : void 0)!,
+		contextMenus: (__srcBrowser.contextMenus ? {
 			create(createProperties: {
 				type?: _browser.contextMenus.ItemType;
 				id?: string;
@@ -343,9 +340,9 @@ namespace BrowserAPINS {
 						return;
 					}
 					if (__srcBrowser.runtime.lastError) {
-						polyfill.runtime.lastError = __srcBrowser.runtime.lastError.message;
+						polyfill.runtime!.lastError = __srcBrowser.runtime.lastError.message!;
 						callback();
-						polyfill.runtime.lastError = null;
+						polyfill.runtime!.lastError = null;
 					}
 					else {
 						callback();
@@ -434,7 +431,7 @@ namespace BrowserAPINS {
 							handler.__resolve(undefined);
 						}
 						if (__srcBrowser.runtime.lastError) {
-							handler.__stack.message = __srcBrowser.runtime.lastError.message;
+							handler.__stack.message = __srcBrowser.runtime.lastError.message!;
 							handler.__reject(handler.__stack);
 						}
 						else {
@@ -447,8 +444,8 @@ namespace BrowserAPINS {
 					}
 				});
 			}
-		} : void 0,
-		debugger: __srcBrowser.debugger ? {
+		} : void 0)!,
+		debugger: (__srcBrowser.debugger ? {
 			attach(target: _chrome._debugger.Debuggee, requiredVersion: string): Promise<void> {
 				return createPromise<void>((handler) => {
 					__srcBrowser.debugger.attach(target, requiredVersion, handler);
@@ -477,16 +474,16 @@ namespace BrowserAPINS {
 			onEvent: (__srcBrowser.debugger.onEvent as any) as EvListener<(
 				debuggee: _chrome._debugger.Debuggee, method: string, params?: any
 			) => void>
-		} : void 0,
+		} : void 0)!,
 		downloads: getDownloadAPI(),
-		extension: __srcBrowser.extension ? {
+		extension: (__srcBrowser.extension ? {
 			isAllowedFileSchemeAccess(): Promise<boolean> {
 				return createPromise<boolean>((handler) => {
 					__srcBrowser.extension.isAllowedFileSchemeAccess(handler);
 				});
 			}
-		} : void 0,
-		i18n: __srcBrowser.i18n ? {
+		} : void 0)!,
+		i18n: (__srcBrowser.i18n ? {
 			getAcceptLanguages(): Promise<string[]> {
 				return createPromise<string[]>((handler) => {
 					__srcBrowser.i18n.getAcceptLanguages(handler);
@@ -498,12 +495,12 @@ namespace BrowserAPINS {
 			getUILanguage(): string {
 				return __srcBrowser.i18n.getUILanguage();
 			}
-		} : void 0,
-		notifications: __srcBrowser.notifications ? {
+		} : void 0)!,
+		notifications: (__srcBrowser.notifications ? {
 			onClicked: __srcBrowser.notifications.onClicked as Listener<string>,
 			onClosed: __srcBrowser.notifications.onClosed as Listener<string>
-		} : void 0,
-		permissions: __srcBrowser.permissions ? {
+		} : void 0)!,
+		permissions: (__srcBrowser.permissions ? {
 			contains(permissions: _browser.permissions.Permissions) {
 				return createPromise<boolean>((handler) => {
 					__srcBrowser.permissions.contains(permissions, handler);
@@ -524,22 +521,20 @@ namespace BrowserAPINS {
 					__srcBrowser.permissions.remove(permissions, handler);
 				});
 			}
-		} : void 0,
-		runtime: __srcBrowser.runtime ? {
-			connect(extensionIdOrConnectInfo?: string, connectInfo?: {
-				name?: string;
-				includeTlsChannelId?: boolean;
-			}): _browser.runtime.Port {
-				if (connectInfo) {
-					return __srcBrowser.runtime.connect(extensionIdOrConnectInfo, connectInfo) as any;
-				}
-				else if (extensionIdOrConnectInfo) {
-					return __srcBrowser.runtime.connect(extensionIdOrConnectInfo) as any;
-				}
-				else {
-					return __srcBrowser.runtime.connect() as any;
-				}
-			},
+		} : void 0)!,
+		runtime: (__srcBrowser.runtime ? {
+			connect(extensionIdOrConnectInfo?: string|_chrome.runtime.ConnectInfo, 
+				connectInfo?: _chrome.runtime.ConnectInfo): _browser.runtime.Port {
+					if (connectInfo) {
+						return __srcBrowser.runtime.connect(extensionIdOrConnectInfo as string, connectInfo) as any;
+					}
+					else if (extensionIdOrConnectInfo) {
+						return __srcBrowser.runtime.connect(extensionIdOrConnectInfo as _chrome.runtime.ConnectInfo) as any;
+					}
+					else {
+						return __srcBrowser.runtime.connect() as any;
+					}
+				},
 			getBackgroundPage() {
 				return createPromise<Window>((handler) => {
 					__srcBrowser.runtime.getBackgroundPage(handler);
@@ -559,8 +554,8 @@ namespace BrowserAPINS {
 			openOptionsPage() {
 				return createPromise<void>((handler) => {
 					if (BrowserAPINS.getBrowser() === 'edge') {
-						polyfill.tabs.create({
-							url: polyfill.runtime.getURL('entrypoints/options.html')
+						polyfill.tabs!.create({
+							url: polyfill.runtime!.getURL('entrypoints/options.html')
 						}).then(() => {
 							handler();
 						});
@@ -609,8 +604,8 @@ namespace BrowserAPINS {
 			onMessage: (__srcBrowser.runtime.onMessage as any) as EvListener<_browser.runtime.onMessageEvent>,
 			lastError: null as string | null,
 			id: __srcBrowser.runtime.id
-		} : void 0,
-		storage: __srcBrowser.storage ? {
+		} : void 0)!,
+		storage: (__srcBrowser.storage ? {
 			local: {
 			...genStoragePolyfill('local'), ...{
 				get<T = CRM.StorageLocal>(keys?: string | string[] | null): Promise<T> {
@@ -640,8 +635,8 @@ namespace BrowserAPINS {
 			}
 			},
 			onChanged: __srcBrowser.storage.onChanged as EvListener<(changes: _browser.storage.ChangeDict, areaName: _browser.storage.StorageName) => void>
-		} : void 0,
-		tabs: __srcBrowser.tabs ? {
+		} : void 0)!,
+		tabs: (__srcBrowser.tabs ? {
 			create(createProperties: {
 				active?: boolean;
 				cookieStoreId?: string;
@@ -753,20 +748,22 @@ namespace BrowserAPINS {
 					}
 					const settings = typeof tabIdOrDetails === 'number' ?
 						details : tabIdOrDetails;
-					if (settings.code) {
-						let id: TabId = undefined;
-						if (typeof tabIdOrDetails === 'number') {
-							id = tabIdOrDetails;
-						}
-						else {
-							const currentTab = await browserAPI.tabs.getCurrent();
-							if (currentTab) {
-								id = currentTab.id;
+					if (settings && settings.code) {
+						const id: TabId|undefined = await (async () => {
+							if (typeof tabIdOrDetails === 'number') {
+								return tabIdOrDetails;
 							}
-						}
+							else {
+								const currentTab = await browserAPI.tabs.getCurrent();
+								if (currentTab) {
+									return currentTab.id;
+								}
+							}
+							return undefined;
+						})();
 						if (loggingEnabled) {
 							testData._executedScripts.push({
-								id,
+								id: id!,
 								code: settings.code
 							});
 						}
@@ -800,8 +797,8 @@ namespace BrowserAPINS {
 				windowId: number;
 				tabIds: number[];
 			}>
-		} : void 0,
-		webRequest: __srcBrowser.webRequest ? {
+		} : void 0)!,
+		webRequest: (__srcBrowser.webRequest ? {
 			onBeforeRequest: (__srcBrowser.webRequest.onBeforeRequest as any) as _browser.webRequest.ReqListener<{
 				requestId: string;
 				url: string;
@@ -820,8 +817,8 @@ namespace BrowserAPINS {
 				timeStamp: number;
 				originUrl: string;
 			}, "blocking" | "requestBody">
-		} : void 0
-	};
+		} : void 0)!
+	})!;
 }
 
 declare global {
