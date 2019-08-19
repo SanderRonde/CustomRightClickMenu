@@ -45,24 +45,17 @@ export namespace DevServer {
 				if (request.url.indexOf('polymer-compat') > -1) return null;
 				if (!importName || !source) return null;
 
-				if (importName.trim() === 'html') {
-					if (source.indexOf('@polymer/polymer/polymer-legacy') === -1 &&
-						source.indexOf('@polymer/polymer/lib/utils/html-tag') === -1) {
-							return null;
-						}
-				} else if (importName.trim() === 'Polymer') {
-					if (source.indexOf('@polymer/polymer/lib/legacy/polymer-fn') === -1) {
-						return null;
+				if (source.indexOf('@polymer/polymer') !== -1 &&
+					(importName.trim() === 'html' ||
+					importName.trim() === 'Polymer' ||
+					importName.trim() === 'PolymerElement')) {
+						return `import${space1}${contents || ''}${
+							space2 || ''
+						}${quote}${
+							resolveBasePath(request)
+						}js/polyfills/polymer-compat.js${quote}`;
 					}
-				} else {
-					return null;
-				}
-
-				return `import${space1}${contents || ''}${
-						space2 || ''
-					}${quote}${
-						resolveBasePath(request)
-					}js/polyfills/polymer-compat.js${quote}`;
+				return null;
 			}
 
 		function replaceImports(request: Request, script: string) {

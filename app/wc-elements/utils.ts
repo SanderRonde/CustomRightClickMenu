@@ -1,6 +1,5 @@
-import { CHANGE_TYPE, WebComponent, Props } from "../modules/wc-lib/build/es/wc-lib.js";
-import { Part } from "../modules/lit-html/lib/part.js";
-import { directive, AttributePart, DirectiveFn, isDirective } from "../modules/lit-html/lit-html.js";
+import { Part, directive, DirectiveFn, isDirective, AttributePart } from "lit-html";
+import { Props, CHANGE_TYPE, WebComponent } from "wc-lib";
 
 export function printIfTrue(condition: any, ifTrue: any) {
 	if (condition) {
@@ -69,16 +68,16 @@ export const freeze = directive((content: () => any) => (part: Part) => {
 });
 
 export class ResolvablePromise<R> {
-	public part: Part|null;
+	public part: Part|null = null;
 	public handler: (value: R) => any = r => r;
 	private _set: boolean = false;
-	private _lastValue: R;
+	private _lastValue: R|undefined = undefined;
 
 	setConfig(part: Part, handler: (value: R) => any) {
 		this.part = part;
 		this.handler = handler;
 		if (this._set) {
-			this.setValue(this._lastValue);
+			this.setValue(this._lastValue!);
 		}
 	}
 
@@ -115,7 +114,9 @@ export const renderable = directive((resolvable: ResolvablePromise<any>,
 		if (freezeSet.has(part)) return;
 		freezeSet.add(part);
 
-		resolvable.setConfig(part, handler);
+		if (handler) {
+			resolvable.setConfig(part, handler);
+		}
 
 		if (placeholder) {
 			part.setValue(placeholder);
@@ -142,22 +143,21 @@ export const twoWay = directive(<V>(value: V, onChange: (newValue: V) => any) =>
 	}
 }) as TwoWayType;
 
-export const twoWayProp = directive(<P extends Props & {
-	[key: string]: any;
-}, K extends keyof P>(props: P, key: K) => (part: AttributePart) => {
-	if (!(part instanceof AttributePart)) {
-		throw new Error('twoWayProp can only be used on attributes');
-	}
-	part.setValue(props[key]);
-
-	if (listeningSet.has(part)) return;
-	listeningSet.add(part);
-
-	const originalSet = part.committer.element.setAttribute.bind(part.committer.element);
-	part.committer.element.setAttribute = (key, value) => {
-		if (key === part.committer.name) {
-			props[key] = value;
+export const twoWayProp = directive(<P extends Props & { [key: string]: any; }, K extends keyof P>(
+	props: P, key: K) => (part: AttributePart) => {
+		if (!(part instanceof AttributePart)) {
+			throw new Error('twoWayProp can only be used on attributes');
 		}
-		originalSet(key, value);
-	}
-});
+		part.setValue(props[key]);
+
+		if (listeningSet.has(part)) return;
+		listeningSet.add(part);
+
+		const originalSet = part.committer.element.setAttribute.bind(part.committer.element);
+		part.committer.element.setAttribute = (attr, value) => {
+			if (attr === part.committer.name) {
+				props[key] = value as any;
+			}
+			originalSet(attr, value);
+		}
+	});

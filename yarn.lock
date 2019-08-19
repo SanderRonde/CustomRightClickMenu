@@ -10733,7 +10733,7 @@ watchpack@^1.5.0:
 
 "wc-lib@https://github.com/SanderRonde/wc-lib":
   version "1.0.0"
-  resolved "https://github.com/SanderRonde/wc-lib#f7a5502b917bee761415b15ccaabf18eb90e69c4"
+  resolved "https://github.com/SanderRonde/wc-lib#cd3b70ecbc5558aaf0cb974bf02fd4502c7342c8"
   dependencies:
     typescript "^3.5.3"
 
