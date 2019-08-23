@@ -601,7 +601,11 @@ namespace PolymerCompat {
 					} = {};
 					for (const propSet of props) {
 						for (const key in propSet) {
-							joined[key] = propSet[key];
+							if (key in joined) {
+								joined[key] = { ...joined[key], ...propSet[key] };
+							} else {
+								joined[key] = propSet[key];
+							}
 						}
 					}
 					return joined;
@@ -699,11 +703,13 @@ namespace PolymerCompat {
 										return PROP_TYPE.NUMBER;
 									case String:
 										return PROP_TYPE.STRING;
+									case Array:
+										return ComplexType<any[]>();
 									default:
 										return ComplexType<any>()
 								}
 							})() as any,
-							watch: config.notify === false ? false : true,
+							watch: config.notify === true ? true : false,
 							value: config.value,
 							reflectToSelf: true
 						}	
@@ -813,18 +819,38 @@ namespace PolymerCompat {
 				}
 		}
 
-		export function polymerConstructor(init: PolymerInit, __this: PolymerInit & WebComponent) {
+		export function polymerConstructor(init: PolymerInit, __this: PolymerInit & PolymerElement) {
 			const { joinedInit, joinedProps } = Config.Props.getPolymerElConfig(init);
 
 			const propValues = Config.Props.getPropValues(__this, joinedProps);
 			__this._joinedInit = joinedInit;
-			__this.props = Props.define(__this, 
-				Config.Props.createPropsConfig(propValues))
+			__this._propValues = propValues;
+			__this._proxyObj = new Proxy(__this, {
+				get(_, key) {
+					if (key === 'fire') {
+						return __this.wcFire;
+					} else {
+						const value = (__this as any)[key];
+						if (typeof value === 'function') {
+							return value.bind(__this);
+						} 
+						return value;
+					}
+				}
+			}) as PolymerInit & PolymerElement & {
+				fire(...args: any[]): any;
+			};
+			__this.props = Props.define(__this._proxyObj, 
+				Config.Props.createPropsConfig(propValues));
 
 			for (const [ propName, config ] of propValues.entries()) {
 				if (config.readOnly) {
 					__this['_set' + propName[0].toUpperCase() + propName.slice(1)] = (value: any) => {
-						__this.props[propName] = value;
+						if (propName in __this.props) {
+							__this.props[propName] = value;
+						} else {
+							__this[propName] = value;
+						}
 					}
 				}
 			}
@@ -837,24 +863,11 @@ namespace PolymerCompat {
 				__this.setAttribute(key, value);
 			}
 			for (const event in joinedInit.listeners) {
-				const listeners = joinedInit.listeners[event];
-				const handler = (...args: any[]) =>  {
-					for (const listener of listeners) {
-						if (listener in __this && typeof (__this as any)[listener] === 'function') {
-							(__this as any)[listener].apply(__this, args);
-						} else {
-							console.warn(`No method with name ${listener} exists on class`, __this);
-						}
-					}
+				for (const listener of joinedInit.listeners[event]) {
+					__this.listen(__this, event, listener);
 				}
-				__this.addEventListener(event, (e) => {
-					handler(e, e ? (e as any).detail : undefined);
-				});
-				__this.listen(event, (...args: any[]) => {
-					handler(...args);
-				});
 			}
-			__this.listen('propChange', (name: string, newVal: any, oldVal: any) => {
+			__this.wcListen('propChange', (name: string, newVal: any, oldVal: any) => {
 				const observers = joinedInit.observers.get(name);
 				const propObservers = joinedInit.propObservers.get(name);
 				const computed = joinedInit.computed.get(name);
@@ -938,7 +951,11 @@ export class PolymerElement extends WebComponent {
 	static css = null;
 	static dependencies = [];
 	static mixins = [];
-	protected _joinedInit!: ReturnType<typeof PolymerCompat.PolymerClass.Config.getJoinedInit>;
+	public _joinedInit!: ReturnType<typeof PolymerCompat.PolymerClass.Config.getJoinedInit>;
+	public _propValues!: Map<string, PolymerElementPropertiesMeta>;
+	public _proxyObj!: PolymerInit & PolymerElement & {
+		fire(...args: any[]): any;
+	};
 
 	constructor(...args: any[]) {
 		super(...args);
@@ -955,7 +972,15 @@ export class PolymerElement extends WebComponent {
 	}
 
 	connectedCallback() {
-		super.connectedCallback();
+		super.connectedCallback.call(this._proxyObj);
+
+		// All properties with default values will have a value at this point,
+		// run the observers
+		for (const [ prop, config ] of this._propValues.entries()) {
+			if (config.value === undefined) continue;
+			this.wcFire('propChange', prop, this.props[prop], undefined);
+		}
+
 		this._joinedInit.attached.forEach(f => f.call(this));
 	}
 
@@ -984,13 +1009,13 @@ export class PolymerElement extends WebComponent {
 	fire = (type: string, detail?: any, { node = this }: {
 		node?: any;
 	} = { }) => {
-		node.fire(type as never, detail);
+		node.wcFire(type as never, detail);
 	}
 
 	private ___listenedTo: Set<string> = new Set();
 	// @ts-ignore
 	listen = (node: any, event: string, method: string) => {
-		const wcNode = node as WebComponent;
+		const wcNode = node;
 		const onCall = (...args: any[]) => {
 			const fn = PolymerCompat.PolymerClass.Config.Methods.resolveMethod(this, {
 				methodName: method,
@@ -1000,11 +1025,114 @@ export class PolymerElement extends WebComponent {
 
 			fn.apply(this, args);
 		};
-		wcNode.listen(event as never, onCall);
+		if (node.wcListen) {
+			wcNode.wcListen(event as never, onCall);
+		}
 
 		if (this.___listenedTo.has(`${event}${method}`)) return;
 		addListener(wcNode, event, onCall);
 		this.___listenedTo.add(`${event}${method}`);
+	}
+
+	wcListen(event: string, fn: (...args: any[]) => void) {
+		return super.listen(event, fn);
+	}
+
+	wcFire(event: string, ...params: any[]): any[] {
+		return super.fire(event as never, ...params);
+	}
+
+	private __notImplemented() {
+		debugger;
+		throw new Error('Not implemented');
+	}
+
+	createPropertiesForAttribute() {
+		this.__notImplemented();
+	}
+
+	finalize() {
+		this.__notImplemented();
+	}
+
+	get() {
+		this.__notImplemented();
+	}
+
+	linkPaths() {
+		this.__notImplemented();
+	}
+
+	notifyPath() {
+		this.__notImplemented();
+	}
+
+	notifySplices() {
+		this.__notImplemented();
+	}
+
+	pop() {
+		this.__notImplemented();
+	}
+
+	push() {
+		this.__notImplemented();
+	}
+
+	resolveUrl() {
+		this.__notImplemented();
+	}
+
+	set() {
+		this.__notImplemented();
+	}
+
+	setProperties() {
+		this.__notImplemented();
+	}
+
+	shift() {
+		this.__notImplemented();
+	}
+
+	splice() {
+		this.__notImplemented();
+	}
+
+	unlinkPaths() {
+		this.__notImplemented();
+	}
+
+	unshift() {
+		this.__notImplemented();
+	}
+
+	updateStyles() {
+		this.__notImplemented();
+	}
+
+	async() {
+		this.__notImplemented();
+	}
+
+	cancelAsync() {
+		this.__notImplemented();
+	}
+
+	cancelDebouncer() {
+		this.__notImplemented();
+	}
+
+	chainObject() {
+		this.__notImplemented();
+	}
+
+	create() {
+		this.__notImplemented();
+	}
+
+	debounce() {
+		this.__notImplemented();
 	}
 
 	get self() {
