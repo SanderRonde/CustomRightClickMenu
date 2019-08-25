@@ -62,6 +62,7 @@
     "@octokit/rest": "^15.2.6",
     "@polymer/paper-button": "^3.0.1",
     "@polymer/paper-checkbox": "^3.1.0",
+    "@polymer/paper-input": "^3.0.2",
     "@types/babel-core": "^6.25.6",
     "@types/chai": "^4.1.2",
     "@types/del": "^4.0.0",

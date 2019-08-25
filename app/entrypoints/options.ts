@@ -5,9 +5,11 @@ import {
 } from 'lit-html';
 import { SplashScreen } from "../wc-elements/util/splash-screen/splash-screen.js";
 // import { CrmApp } from '../wc-elements/options/crm-app/crm-app.js';
+import '@polymer/paper-checkbox/paper-checkbox.js';
+import { WebComponent, Mounting } from "wc-lib";
 import { ExtensionI18N } from '../js/shared.js';
 import '@polymer/paper-button/paper-button.js';
-import { WebComponent, Mounting } from "wc-lib";
+import '@polymer/paper-input/paper-input.js'
 
 WebComponent.initComplexTemplateProvider({
 	TemplateResult, PropertyCommitter, EventPart,BooleanAttributePart,
