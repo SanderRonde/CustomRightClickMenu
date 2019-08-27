@@ -1,16 +1,18 @@
-import { render, directive, AttributePart, Part, TemplateResult, TemplateProcessor, NodePart, RenderOptions, noChange, isDirective, AttributeCommitter, isPrimitive, isIterable, EventPart } from 'lit-html';
+import { render, Part, TemplateResult, TemplateProcessor, NodePart, RenderOptions, noChange, isDirective, isPrimitive } from 'lit-html';
 import { PolymerInit, PolymerElementProperties, PolymerElementPropertiesMeta } from '@polymer/polymer/interfaces';
 import { WebComponent, Props, PROP_TYPE, ComplexType, TemplateFn, CHANGE_TYPE } from 'wc-lib';
 import { html as srcHTML } from '@polymer/polymer/lib/utils/html-tag.js';
-import { root, isPath, get } from '@polymer/polymer/lib/utils/path.js';
+import { root, isPath } from '@polymer/polymer/lib/utils/path.js';
 import { DomModule } from '@polymer/polymer/lib/elements/dom-module';
 import { addListener } from '@polymer/polymer/lib/utils/gestures';
-import { PropConfigObject } from 'wc-lib/src/wc-lib.all';
-import { twoWayProp } from '../../wc-elements/utils.js';
+import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
+import { PropConfigObject, IDMapFn } from 'wc-lib/src/wc-lib.all';
 
 interface ShadyWindow extends Window {
 	ShadyCSS: {
 		flushCustomStyles(): void;
+		getComputedStyleValue(element: Element, name: string): string;
+		styleDocument(props: { [key: string]: string|number }): void;
 		ApplyShim: {
 			transformCssText(text: string, rule?: any): string;
 		}
@@ -68,7 +70,7 @@ namespace PolymerCompat {
 			const CLOSE_BRACKET = '(?:]]|}})';
 			const NEGATE = '(?:(!)\\s*)?'; // Group 2
 			const EXPRESSION = OPEN_BRACKET + NEGATE + BINDING + CLOSE_BRACKET;
-			const bindingRegex = new RegExp(EXPRESSION, "g");
+			const bindingRegex = new RegExp(EXPRESSION);
 
 			const cachedTemplates: WeakMap<any, Set<[{
 				strings: TemplateStringsArray;
@@ -107,178 +109,7 @@ namespace PolymerCompat {
 					}
 				}
 				return null;
-			}
-
-			function convertBindings(component: any, template: {
-				strings: string[];
-				values: any[];
-			}) {
-				const newTemplate: {
-					strings: string[];
-					values: any[];
-				} = {
-					strings: [],
-					values: []
-				};
-
-				for (let i = 0; i < template.strings.length; i++) {
-					const string = template.strings[i];
-
-					const bindings = null;
-					if (bindings) {
-						// for (const binding of bindings) {
-						// 	if ('literal' in binding) {
-						// 		newTemplate.strings.push(binding.literal);
-						// 	} else {
-						// 		const value = (() => {
-						// 			const sig = binding.signature as Config.Methods.MethodSignature|null;
-						// 			if (sig) {
-						// 				const method = Config.Methods.resolveMethod(component, sig);
-						// 				if (!method) return undefined;
-					
-						// 				return method.apply(component, Config.Methods.getMethodArgs(sig, component.props));
-						// 			} else {
-						// 				// Property
-						// 				const arg = Config.Methods.parseArg(binding.source);
-						// 				if (arg.literal) {
-						// 					return arg.value;
-						// 				}
-						// 				if (arg.structured && arg.wildcard) {
-						// 					return get(component.prop, arg.name);
-						// 				} else if (arg.structured) {
-						// 					return get(component.props, arg.value);
-						// 				} else {
-						// 					if (binding.mode === '{') {
-						// 						return twoWayProp(component.props, arg.rootProperty);
-						// 					} else {
-						// 						return component.props[arg.rootProperty];
-						// 					}
-						// 				}
-						// 			}
-						// 		})();
-						// 		if (binding.negate) {
-						// 			newTemplate.values.push(!value);	
-						// 		} else {
-						// 			newTemplate.values.push(value);
-						// 		}
-						// 	}
-						// }
-					} else {
-						newTemplate.strings.push(template.strings[i]);
-					}
-					if (i < template.values.length - 1) {
-						newTemplate.values.push(template.values[i]);
-					}
-				}
-
-				return newTemplate;
-			}
-
-			// const CONDITIONAL_PROP_REGEX = / ([\w-]+)\$=(['"])(.*?)\2/g;
-			function convertConditionalProps(template: {
-				strings: TemplateStringsArray;
-				values: any[];
-			}) {
-				const newTemplate: {
-					strings: string[];
-					values: any[];
-				} = {
-					strings: [],
-					values: template.values
-				};
-
-				// Let lit-html handle this one
-				for (let i = 0; i < template.strings.length; i++) {
-					const string = template.strings[i];
-					if (!CONDITIONAL_PROP_REGEX.test(string)) {
-						newTemplate.strings.push(string);
-					} else {
-						newTemplate.strings.push(string.replace(CONDITIONAL_PROP_REGEX, 
-							(_match: string, attr: string, quote: string, condition: string) => {
-								return ` ?${attr}=${quote}${condition}${quote}`;
-							}));
-					}
-
-					if (i < template.values.length - 1) {
-						newTemplate.values.push(template.values[i]);
-					}
-				}
-
-				return newTemplate;
-			}
-
-			const elementListeners: WeakMap<any, WeakMap<HTMLElement, Map<string, string>>> = new WeakMap();
-			const listenDirective = directive((event: string, methodName: string, component: any) => (part: Part) => {
-				if (!(part instanceof AttributePart)) {
-					throw new Error('listeners can only be added through attributes');
-				}
-
-				if (!elementListeners.has(component)) {
-					elementListeners.set(component, new WeakMap());
-				}
-				const componentListeners = elementListeners.get(component)!;
-				if (!componentListeners.has(part.committer.element as HTMLElement)) {
-					componentListeners.set(part.committer.element as HTMLElement, new Map());
-				}
-				const eventMap = componentListeners.get(part.committer.element as HTMLElement)!
-				if (eventMap.get(event) === methodName) return;
-
-				part.committer.element.addEventListener(event, (e) => {
-					const method = Config.Methods.resolveMethod(component, {
-						methodName,
-						str: methodName
-					});
-					if (!method) return;
-
-					method(e, e ? (e as any).detail : undefined);
-				});
-				eventMap.set(event, methodName);
-			});
-
-			// const EVENT_ATTR_REGEX = /on-(\w+)=(['"])(\w+)\2/g;
-			function addEventHandlers(component: any, template: {
-				strings: string[];
-				values: any[];
-			}) {
-				const newTemplate: {
-					strings: string[];
-					values: any[];
-				} = {
-					strings: [],
-					values: []
-				};
-
-				for (let i = 0; i < template.strings.length; i++) {
-					const string = template.strings[i];
-
-					if (!EVENT_ATTR_REGEX.test(string)) {
-						newTemplate.strings.push(string);
-					} else {
-						//TODO: check if this works
-						// let lastIndex: number = 0;
-						// Basically a way to use string.matchAll
-						string.replace(EVENT_ATTR_REGEX, (_match, _event, _quote, _methodName, _index) => {
-							return _match;
-							//TODO: maybe this works as well
-							// return `@${event}=${quote}${methodName}${quote}`;
-
-							//TODO: old version
-							// newTemplate.strings.push(string.slice(lastIndex, index));
-							// lastIndex = index + match.length;
-
-							// // Add the listener
-							// newTemplate.values.push(listenDirective(event, methodName, component));
-							// return '';
-						});
-					}
-
-					if (i < template.values.length - 1) {
-						newTemplate.values.push(template.values[i]);
-					}
-				}
-
-				return newTemplate;
-			}
+			}			
 
 			const CUSTOM_STYLE_REGEX = /\<style(.*?)(include=(['"])([\w-]*)\3)(.*?)\>/g;
 			function addCustomStyles(template: {
@@ -347,8 +178,6 @@ namespace PolymerCompat {
 				}
 				return matches;
 			}
-
-			const CONDITIONAL_PROP_REGEX = / ([\w-]+)\$=(['"])(.*?)\2/g;
 
 			const EVENT_ATTR_REGEX = /on-(\w+)=(['"])(\w+)\2/g;
 			const BINDING_REGEX = /(\[\[|\{\{)(.*?)(\]\]|\}\})/g;
@@ -438,6 +267,7 @@ namespace PolymerCompat {
 					private _listenProps: string[] = [];
 					private _valueSignature: {
 						type: 'prop';
+						binding: '['|'{';
 						negate: boolean;
 						prop: string;
 					}|{
@@ -445,23 +275,53 @@ namespace PolymerCompat {
 						negate: boolean;
 						signature: Config.Methods.MethodSignature;
 					}|null = null;
+					private _ignore: boolean = false;
 
 					constructor(private _commit: () => void, 
 						private _getPending: () => unknown, 
-						private _self: PolymerElement) {
-						this._addListeners();
-					}
+						private _self: PolymerElement,
+						private _element?: Element,
+						private _name?: string) {
+							this._addListeners();
+						}
 
 					private _addListeners() {
-						this._self.wcListen('propchange', (name: string) => {
-							if (this._listenProps.indexOf(name) > -1) {
-								this._commit();
+						this._self.wcListen('propChange', (name: string) => {
+							if (!this._ignore) {
+								if (this._listenProps.indexOf(name) > -1) {
+									this._commit();
+								}
 							}
+							this._ignore = false;
 						});
+						if (this._element && this._name) {
+							const originalSet = this._element.setAttribute;
+							const originalRemove = this._element.removeAttribute;
+							this._element.setAttribute = (name: string, value: string) => {
+								originalSet.call(this._element, name, value);
+								if (name === this._name) {
+									this._onAttrChange(value);
+								}
+							}
+							this._element.removeAttribute = (name: string) => {
+								originalRemove.call(this._element, name);
+									if (name === this._name) {
+										this._onAttrChange(undefined);
+									}
+							}
+						}
 					}
 
-					//TODO: on-...
-					//TODO: {{xxx}}
+					private _onAttrChange(newValue: any) {
+						if (!this._valueSignature) return;
+						if (this._valueSignature.type !== 'prop') return;
+						if (this._valueSignature.binding !== '{') return;
+
+						this._ignore = true;
+						this._self.props[this._valueSignature.prop] = 
+							this._valueSignature.negate ? !newValue : newValue;
+					}
+
 					//TODO: dom-if if not already done
 					public updateListeners() {
 						const value = this._getPending();
@@ -476,9 +336,9 @@ namespace PolymerCompat {
 						}
 
 						const match = bindingRegex.exec(value)!;
-						const binding = match[0];
-						const isNegate = !!match[1];
-						const source = match[2];
+						const binding = match[1] as '['|'{';
+						const isNegate = !!match[2];
+						const source = match[3];
 						if (binding === '{' && source.indexOf('::') > 0) {
 							console.log('Got an event listener');
 						}
@@ -489,6 +349,7 @@ namespace PolymerCompat {
 							this._listenProps = [ source.trim() ];
 							this._valueSignature = {
 								type: 'prop',
+								binding,
 								negate: isNegate,
 								prop: source.trim()
 							}
@@ -521,46 +382,53 @@ namespace PolymerCompat {
 							return this._valueSignature.negate ? 
 								!propVal : propVal;
 						} else {
-							const fn = Config.Methods.resolveMethod(this._self,
-								this._valueSignature.signature);
-							if (fn === null) {
-								return this._getPending();
+							if (!this._element || this._self.shadowRoot!.contains(this._element)) {
+								const fn = Config.Methods.resolveMethod(this._self,
+									this._valueSignature.signature);
+								if (fn === null) {
+									return this._getPending();
+								}
+								const fnResult = fn.apply(this._self, 
+									Config.Methods.getMethodArgs(this._valueSignature.signature,
+										this._self.props));
+								return this._valueSignature.negate ?
+									!fnResult : fnResult;
+							} else {
+								this._self.onPostRender(() => {
+									this._commit();
+								}, this);
 							}
-							const fnResult = fn.apply(this._self, 
-								Config.Methods.getMethodArgs(this._valueSignature.signature,
-									this._self.props));
-							return this._valueSignature.negate ?
-								!fnResult : fnResult;
 						}
 					}
 				}
 
-				class PolymerAttributePart extends AttributePart {
-					private __binding: BindingPart|null = null;
-					private get _binding() {
-						if (this.__binding) return this.__binding;
-						return (this.__binding = new BindingPart(() => {
-							this.committer.dirty = true;
-							this.commit();
-						}, () => {
-							return this.value;
-						}, this.self));
-					}
-					public self!: PolymerElement;
+				class PolymerAttributeBindingPart implements Part {
+					private _binding: BindingPart = new BindingPart(() => {
+						this._dirty = true;
+						this.commit();
+					}, () => {
+						return this._pendingValue;
+					}, this.self, this.element, this.name);
 
-					constructor(public committer: AttributeCommitter) { 
-						super(committer);
-					}
+					public value: unknown = null;
+					private _pendingValue: unknown = null;
+					private _dirty: boolean = true;
+
+					constructor(public element: Element, 
+						public self: PolymerElement, 
+						public name: string,
+						public strings: string[],
+						public isString: boolean) { }
 
 					setValue(value: unknown) {
 						if (value !== noChange && (!isPrimitive(value) || value !== this.value)) {
-							this.value = value;
+							this._pendingValue = value;
 							this._binding.updateListeners();
 							// If the value is a not a directive, dirty the committer so that it'll
 							// call setAttribute. If the value is a directive, it'll dirty the
 							// committer if it calls setValue().
 							if (!isDirective(value)) {
-							  	this.committer.dirty = true;
+							  	this._dirty = true;
 							}
 						}
 					}
@@ -568,66 +436,40 @@ namespace PolymerCompat {
 					getValue() {
 						return this._binding.getValue();
 					}
-				}
 
-				class PolymerAttributeCommitter extends AttributeCommitter {
-					public parts!: ReadonlyArray<PolymerAttributePart>;
-					public dirty: boolean = false;
-
-					protected _createPart(): PolymerAttributePart {
-						return new PolymerAttributePart(this)
-					}
-
-					constructor(public element: Element, 
-						public self: PolymerElement, 
-						public name: string,
-						public strings: string[],
-						public isBoolean: boolean) { 
-							super(element, name, strings);
-							this.parts.forEach(p => p.self = self);
-						}
-
-					protected _getValue() {
-						if (this.parts.length === 1 && this.isBoolean) {
-							return this.parts[0].getValue();
-						}
-
-						const strings = this.strings;
-						const l = strings.length - 1;
-						let text = '';
-
-						for (let i = 0; i < l; i++) {
-							text += strings[i];
-							const part = this.parts[i];
-							if (part !== undefined) {
-								const v = part.getValue();
-								if (isPrimitive(v) || !isIterable(v)) {
-									text += typeof v === 'string' ? v : String(v);
-								} else {
-									for (const t of v) {
-										text += typeof t === 'string' ? t : String(t);
-									}
-								}
-							}
-						}
-
-						text += strings[l];
-						return text;
-					}
-					
-					commit() {
-						if (this.dirty) {
-							this.dirty = false;
-							const value = this._getValue();
-							if (this.isBoolean) {
-								if (value) {
-									this.element.setAttribute(this.name, '');
-								} else {
-									this.element.removeAttribute(this.name);
+					private static _dashesToCasing(input: string) {
+						let str = '';
+						for (let i = 0; i < input.length; i++) {
+							if (input[i] === '-') {
+								if (i + 1 < input.length) {
+									str += input[i + 1].toUpperCase();
+									i++;
 								}
 							} else {
-								this.element.setAttribute(this.name, this._getValue() as string);
+								str += input[i];
 							}
+						}
+						return str;
+					}
+
+					commit() {
+						if (!this._dirty) return;
+						this._dirty = false;
+
+						const value = this.getValue();
+						if (value === this.value || value === noChange) return;
+						this.value = value;
+
+						if (this.isString) {
+							if (value) {
+								this.element.setAttribute(this.name, value + '');
+							} else {
+								this.element.removeAttribute(this.name);
+							}
+						} else {
+							(this.element as any)[
+								PolymerAttributeBindingPart._dashesToCasing(this.name) as any
+							] = value;
 						}
 					}
 				}
@@ -635,57 +477,41 @@ namespace PolymerCompat {
 				class PolymerEventPart implements Part {
 					public self!: PolymerElement;
 					public value: unknown = null;
-					private _dirty: boolean = true;
+					private _tempValue: unknown = null;
 					private _handler = this._onEvent.bind(this);
 
-					constructor(private _element: Element, private _self: PolymerElement,
-						private _name: string) { }
+					constructor(_element: Element, private _self: PolymerElement,
+						_name: string) { 
+							_element.addEventListener(_name, this._handler);
+						}
 
-					private _onEvent(...args: any[]) {
+					private _onEvent(e: Event) {
+						if (typeof this.value !== 'string') {
+							console.warn('Event handler was not of type string');
+							return;
+						}
 
+						const method = Config.Methods.resolveMethod(this._self, {
+							methodName: this.value,
+							str: this.value
+						});
+						if (!method) return;
+	
+						method.call(this._self, e, e ? (e as any).detail : undefined);
 					}
 
 					setValue(value: unknown) {
 						if (value !== noChange && (!isPrimitive(value) || value !== this.value)) {
-							this._dirty = true;
-							this.value = value;
+							this._tempValue = value;
 						}
 					}
 
 					commit() {
-						if (!this._dirty) return;
-						this._dirty = false;
-
-
+						this.value = this._tempValue;
 					}
 				}
 
-				class PolymerEventCommitter extends AttributeCommitter {
-					public parts!: ReadonlyArray<PolymerEventPart>;
-					public dirty: boolean = false;
-
-					protected _createPart(): PolymerEventPart {
-						return new PolymerEventPart(this)
-					}
-
-					constructor(public element: Element, 
-						public self: PolymerElement, 
-						public name: string,
-						public strings: string[]) { 
-							super(element, name, strings);
-							this.parts.forEach(p => p.self = self);
-						}
-
-					commit() {
-						if (this.dirty) {
-							this.dirty = false;
-							
-							//TODO: 
-						}
-					}
-				}
-
-				class PolymerTextPart extends NodePart {
+				class PolymerTextBindingPart extends NodePart {
 					private _binding = new BindingPart(() => {
 						this.commit();
 					}, () => {
@@ -702,6 +528,7 @@ namespace PolymerCompat {
 					setValue(value: unknown) {
 						this.___pendingValue = value;
 						super.setValue(value);
+						this._binding.updateListeners();
 					}
 
 					commit() {
@@ -716,23 +543,21 @@ namespace PolymerCompat {
 
 					handleAttributeExpressions(
 						element: Element, name: string, strings: string[]): Part[]|ReadonlyArray<Part> {
-							if (name.endsWith('$')) {
-								// attr$="[[something]]"
-								return new PolymerAttributeCommitter(element, this._self,
-									name.slice(0, name.length - 1), strings, true).parts;
-							} else if (name.startsWith('on-')) {
-								// return new PolymerEventCommitter(element, this._self,
-								// 	name, strings).parts;
+							if (name.startsWith('on-')) {
 								return [new PolymerEventPart(element, this._self,
 									name.slice(3))];
+							} else if (name.endsWith('$')) {
+								// attr$="[[something]]"
+								return [new PolymerAttributeBindingPart(element, this._self,
+									name.slice(0, name.length - 1), strings, true)];
 							} else {
-								return new PolymerAttributeCommitter(element, this._self,
-									name, strings, false).parts;
+								return [new PolymerAttributeBindingPart(element, this._self,
+									name, strings, false)];
 							}
 						}
 
 					handleTextExpression(options: RenderOptions) {
-						return new PolymerTextPart(options, this._self);
+						return new PolymerTextBindingPart(options, this._self);
 					}
 				}
 				
@@ -877,17 +702,31 @@ namespace PolymerCompat {
 				}
 
 				type Behavior = Partial<PolymerInit>;			
-				export function collectBehaviors(init: PolymerInit|Behavior, behaviors: Behavior[] = []): Behavior[]  {
-					if (!init.behaviors) return behaviors;
+				function flattenBehaviors(behaviors: Behavior[], flatList: Behavior[] = []) {
+					for (let i=behaviors.length-1; i >= 0; i--) {
+						let b = behaviors[i];
+						if (b) {
+							if (Array.isArray(b)) {
+								flattenBehaviors(b, flatList);
+							} else {
+								// dedup
+								if (flatList.indexOf(b) < 0) {
+									flatList.unshift(b);
+								}
+							}
+						} else {
+						  console.warn('behavior is null, check for missing or 404 import');
+						}
+					  }
+					  return flatList;
+				}
+
+				export function collectBehaviors(init: PolymerInit|Behavior): Behavior[]  {
+					if (!init.behaviors) return [];
 					if (Array.isArray(init.behaviors)) {
-						Util.flatten(init.behaviors).forEach((behavior) => {
-							behaviors.push(behavior);
-							collectBehaviors(behavior, behaviors);
-						});
-						return behaviors;
+						return flattenBehaviors(init.behaviors);
 					} else {
-						behaviors.push(init.behaviors);
-						return collectBehaviors(init.behaviors, behaviors);
+						return flattenBehaviors([init.behaviors]);
 					}
 				}
 
@@ -1306,8 +1145,10 @@ export function Polymer(init: PolymerInit) {
 	}
 
 	PolymerCompat.PolymerClass.Config.Props.copyProps(
-		cls.prototype, [init, 
-			...PolymerCompat.PolymerClass.Config.Methods.collectBehaviors(init)]);
+		cls.prototype, [ 
+			...PolymerCompat.PolymerClass.Config.Methods.collectBehaviors(init),
+			init
+		]);
 
 	cls.define();
 	return cls;
@@ -1337,6 +1178,13 @@ export class PolymerElement extends WebComponent {
 	public _proxyObj!: PolymerInit & PolymerElement & {
 		fire(...args: any[]): any;
 	};
+	private _postRenderCallbacks: {
+		parts: WeakSet<any>;
+		fns: (() => void)[]
+	} = { 
+		parts: new WeakSet(),
+		fns: []
+	}
 
 	constructor(...args: any[]) {
 		super(...args);
@@ -1348,12 +1196,26 @@ export class PolymerElement extends WebComponent {
 		PolymerCompat.PolymerClass.polymerConstructor(this.constructor as any, this as any);
 	}
 
+	public onPostRender(callback: () => void, part: any) {
+		if (this._postRenderCallbacks.parts.has(part)) return;
+
+		this._postRenderCallbacks.parts.add(part);
+		this._postRenderCallbacks.fns.push(callback);
+	}
+
+	postRender() {
+		super.postRender();
+		this._postRenderCallbacks.fns.forEach(f => f());
+	}
+
 	attributeChangedCallback(name: string, oldValue: string, newValue: string) {
 		this._joinedInit.attributeChanged.forEach(f => f.call(this, name, oldValue, newValue));
 	}
 
+	isAttached: boolean = false;
 	connectedCallback() {
 		super.connectedCallback.call(this._proxyObj);
+		this.isAttached = true;
 
 		// All properties with default values will have a value at this point,
 		// run the observers
@@ -1361,17 +1223,42 @@ export class PolymerElement extends WebComponent {
 			if (config.value === undefined) continue;
 			this.wcFire('propChange', prop, this.props[prop], undefined);
 		}
-
-		this._joinedInit.attached.forEach(f => f.call(this));
 	}
 
 	disconnectedCallback() {
 		super.disconnectedCallback();
+		this.isAttached = false;
 		this._joinedInit.detached.forEach(f => f.call(this));
 	}
 
 	mounted() {
 		this._joinedInit.ready.forEach(f => f.call(this));
+		this._joinedInit.attached.forEach(f => f.call(this));
+	}
+
+	private _addedIdMapProps: {
+		[key: string]: HTMLElement;
+	} = {};
+	private _idMap: IDMapFn<any>|null = null;
+	get $() {
+		if (this._idMap) {
+			return this._idMap;
+		}
+		const __this = this;
+		return (this._idMap = new Proxy(super.$, {
+			get(target, prop) {
+				if (typeof prop !== 'string') return undefined;
+				if (prop in __this._addedIdMapProps) {
+					return __this._addedIdMapProps[prop];
+				}
+				return target[prop as keyof typeof target];
+			},
+			set(_target, prop, value) {
+				if (typeof prop !== 'string') return false;
+				__this._addedIdMapProps[prop] = value;
+				return true;
+			}
+		}));
 	}
 
 	$$(selector: string): any {
@@ -1388,9 +1275,32 @@ export class PolymerElement extends WebComponent {
 
 	// @ts-ignore
 	fire = (type: string, detail?: any, { node = this }: {
-		node?: any;
+		node?: Node & {
+			wcFire?: any;
+		};
 	} = { }) => {
-		node.wcFire(type as never, detail);
+		let currentNode: Node & {
+			wcFire?: any;
+		}|null = node;
+
+		const customEvent = new CustomEvent(type, detail);
+		node.dispatchEvent(customEvent);
+
+		// Do bubbling as well
+		let stop: boolean = false;
+		while (currentNode && !stop) {
+			if (currentNode.wcFire) {
+				currentNode.wcFire(type as never, {...detail, ...{
+					stopPropagation() {
+						stop = true;
+					},
+					stopImmediatePropagation() {
+						stop = true;
+					}
+				}});
+			}
+			currentNode = currentNode.parentNode;
+		}
 	}
 
 	private ___listenedTo: Set<string> = new Set();
@@ -1411,7 +1321,8 @@ export class PolymerElement extends WebComponent {
 		}
 
 		if (this.___listenedTo.has(`${event}${method}`)) return;
-		addListener(wcNode, event, onCall);
+		addListener(wcNode, event, onCall) ||
+			wcNode.addEventListener(event, onCall);
 		this.___listenedTo.add(`${event}${method}`);
 	}
 
@@ -1421,6 +1332,42 @@ export class PolymerElement extends WebComponent {
 
 	wcFire(event: string, ...params: any[]): any[] {
 		return super.fire(event as never, ...params);
+	}
+
+	getComputedStyleValue(name: string) {
+		const computedStyle = window.getComputedStyle(this);
+		if (name in computedStyle) return computedStyle[name as keyof typeof computedStyle];
+
+		if (window.ShadyCSS) {
+			return window.ShadyCSS.getComputedStyleValue(this, name);
+		}
+		return '';
+	}
+
+	updateStyles(props: { 
+		[key: string]: string|number;
+	}) {
+		if (window.ShadyCSS) {
+			return window.ShadyCSS.styleDocument(props);
+		}
+	}
+
+	getEffectiveChildren() {
+		return ((dom(this) as any).getEffectiveChildNodes() as Element[])
+			.filter(n => n.nodeType === Node.ELEMENT_NODE);
+	}
+
+	async(handler: () => void, timeout: number = 0) {
+		return window.setTimeout(handler.bind(this), timeout);
+	}
+
+	cancelAsync(timeoutId: number) {
+		window.clearTimeout(timeoutId);
+	}
+
+	isLightDescendant(node: Node) {
+		return node !== this && this.shadowRoot!.contains(node) &&
+			this.getRootNode() === node.getRootNode();
 	}
 
 	private __notImplemented() {
@@ -1484,18 +1431,6 @@ export class PolymerElement extends WebComponent {
 	}
 
 	unshift() {
-		this.__notImplemented();
-	}
-
-	updateStyles() {
-		this.__notImplemented();
-	}
-
-	async() {
-		this.__notImplemented();
-	}
-
-	cancelAsync() {
 		this.__notImplemented();
 	}
 
