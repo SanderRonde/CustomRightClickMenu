@@ -977,8 +977,6 @@ export namespace Storages.SetupHandling {
 		const syncStorage = await getDefaultSyncStorage();
 		const syncHash = window.md5(JSON.stringify(syncStorage));
 
-		const useAsUserscriptManager = await modules.Util.isTamperMonkeyEnabled();
-		const useAsUserstylesManager = await modules.Util.isStylishInstalled();
 		return [{
 			requestPermissions: [],
 			editing: null,
@@ -994,8 +992,8 @@ export namespace Storages.SetupHandling {
 			CRMOnPage: false,
 			editCRMInRM: true,
 			catchErrors: true,
-			useAsUserscriptInstaller: !useAsUserscriptManager,
-			useAsUserstylesInstaller: !useAsUserstylesManager,
+			useAsUserscriptInstaller: true,
+			useAsUserstylesInstaller: true,
 			hideToolsRibbon: false,
 			shrinkTitleRibbon: false,
 			libraries: [],
@@ -1918,13 +1916,6 @@ export namespace Storages {
 				await modules.CRMNodes.updateCrm();
 			});
 		}
-		if (isVersionInRange(oldVersion, newVersion, '2.0.11')) {
-			const isEnabled = await modules.Util.isTamperMonkeyEnabled();
-			modules.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
-			browserAPI.storage.local.set({
-				useAsUserscriptInstaller: !isEnabled
-			});
-		}
 		if (isVersionInRange(oldVersion, newVersion, '2.0.15')) {
 			fns.afterSyncLoad.push((sync) => {
 				sync.rootName = 'Custom Menu';
@@ -2010,13 +2001,6 @@ window.open(url.replace(/%s/g,query), \'_blank\');
 					}
 				});
 				modules.CRMNodes.updateCrm();
-			});
-		}
-		if (isVersionInRange(oldVersion, newVersion, '2.1.4')) {
-			const isEnabled = await modules.Util.isStylishInstalled();
-			modules.storages.storageLocal && (modules.storages.storageLocal.useAsUserstylesInstaller = !isEnabled);
-			browserAPI.storage.local.set({
-				useAsUserstylesInstaller: !isEnabled
 			});
 		}
 

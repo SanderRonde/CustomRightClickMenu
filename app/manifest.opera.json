@@ -44,10 +44,7 @@
 		"contextMenus",
 		"storage",
 		"tabs",
-		"management",
-		"unlimitedStorage",
-		"webRequest",
-		"webRequestBlocking"
+		"unlimitedStorage"
 	],
 
 	"web_accessible_resources": [
@@ -71,6 +68,7 @@
 		"history",
 		"identity",
 		"idle",
+		"management",
 		"notifications",
 		"pageCapture",
 		"power",
@@ -83,7 +81,9 @@
 		"topSites",
 		"tabCapture",
 		"tts",
-		"webNavigation"
+		"webNavigation",
+		"webRequest",
+		"webRequestBlocking"
 	],
 
 	"commands": {
