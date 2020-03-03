@@ -44,7 +44,6 @@
 		"contextMenus",
 		"storage",
 		"tabs",
-		"management",
 		"unlimitedStorage",
 		"webRequest",
 		"webRequestBlocking"
@@ -72,6 +71,7 @@
 		"history",
 		"identity",
 		"idle",
+		"management",
 		"notifications",
 		"pageCapture",
 		"power",

@@ -758,30 +758,6 @@ export namespace GlobalDeclarations {
 			}
 		}
 
-		async function updateOtherExtensionsInstallState() {
-			const tampermonkeyEnabled = await modules.Util.isTamperMonkeyEnabled();
-			const stylishEnabled = await modules.Util.isStylishInstalled();
-			if (modules.storages.storageLocal) {
-				modules.storages.storageLocal.useAsUserscriptInstaller = !tampermonkeyEnabled;
-				modules.storages.storageLocal.useAsUserstylesInstaller = !stylishEnabled;
-			}
-			browserAPI.storage.local.set({
-				useAsUserscriptInstaller: !tampermonkeyEnabled,
-				useAsUserstylesInstaller: !stylishEnabled
-			});
-		}
-
-		async function listenTamperMonkeyInstallState() {
-			await updateOtherExtensionsInstallState();
-			if ((window as any).chrome && (window as any).chrome.management) {
-				const management: typeof _chrome.management = (window as any).chrome.management as any;
-				management.onInstalled.addListener(updateOtherExtensionsInstallState);
-				management.onEnabled.addListener(updateOtherExtensionsInstallState);
-				management.onUninstalled.addListener(updateOtherExtensionsInstallState);
-				management.onDisabled.addListener(updateOtherExtensionsInstallState);
-			}
-		}
-
 		async function updateKeyCommands() {
 			if (browserAPI.commands) {
 				return await browserAPI.commands.getAll();
@@ -843,7 +819,6 @@ export namespace GlobalDeclarations {
 			urls: [`https://www.localhost.io/resource/*`]
 		}, ['blocking']);
 		listenNotifications();
-		listenTamperMonkeyInstallState();
 		listenKeyCommands();
 		setupResourceProxy();
 	}

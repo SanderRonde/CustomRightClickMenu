@@ -51,7 +51,6 @@
 		"contextMenus",
 		"storage",
 		"tabs",
-		"management",
 		"unlimitedStorage",
 		"webRequest",
 		"webRequestBlocking"
@@ -71,6 +70,7 @@
 		"cookies",
 		"history",
 		"idle",
+		"management",
 		"notifications",
 		"topSites",
 		"webNavigation"
