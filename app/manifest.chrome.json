@@ -39,7 +39,6 @@
 
 	"permissions": [
 		"<all_urls>",
-		"activeTab",
 		"contextMenus",
 		"storage",
 		"tabs",

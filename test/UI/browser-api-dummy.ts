@@ -1239,7 +1239,6 @@ testWindow.chrome = {
 				permissions: [
 					"tabs",
 					"<all_urls>",
-					"activeTab",
 					"notifications",
 					"storage",
 					"contextMenus",
