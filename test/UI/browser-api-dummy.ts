@@ -1242,8 +1242,6 @@ testWindow.chrome = {
 					"activeTab",
 					"notifications",
 					"storage",
-					"webRequest",
-					"webRequestBlocking",
 					"contextMenus",
 					"unlimitedStorage"
 				]

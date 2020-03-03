@@ -51,9 +51,7 @@
 		"contextMenus",
 		"storage",
 		"tabs",
-		"unlimitedStorage",
-		"webRequest",
-		"webRequestBlocking"
+		"unlimitedStorage"
 	],
 
 	"web_accessible_resources": [
@@ -73,7 +71,9 @@
 		"management",
 		"notifications",
 		"topSites",
-		"webNavigation"
+		"webNavigation",
+		"webRequest",
+		"webRequestBlocking"
 	],
 
 	"commands": {

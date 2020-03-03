@@ -44,9 +44,7 @@
 		"contextMenus",
 		"storage",
 		"tabs",
-		"unlimitedStorage",
-		"webRequest",
-		"webRequestBlocking"
+		"unlimitedStorage"
 	],
 
 	"web_accessible_resources": [
@@ -84,7 +82,9 @@
 		"topSites",
 		"tabCapture",
 		"tts",
-		"webNavigation"
+		"webNavigation",
+		"webRequest",
+		"webRequestBlocking"
 	],
 
 	"commands": {

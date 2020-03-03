@@ -944,18 +944,6 @@ export namespace CRMNodes.Script.Updating {
 			});
 		}
 
-		(anonymousLibs as {
-			url: string;
-			name: null;
-		}[]).forEach(anonymousLib => {
-			modules.Resources.Anonymous.handle({
-				type: 'register',
-				name: anonymousLib.url,
-				url: anonymousLib.url,
-				scriptId: scriptNode.id
-			});
-		});
-
 		const { libraries } = await browserAPI.storage.local.get('libraries');
 
 		//Install all libraries
@@ -1127,22 +1115,6 @@ export namespace CRMNodes.Script.Updating {
 			}
 			//Allowed permissions
 			node.permissions = allowedPermissions || [];
-
-			//Resources
-			if (metaTags['resource']) {
-				//Register resources
-				const resources: string[] = metaTags['resource'];
-				resources.forEach(resource => {
-					const resourceSplit = resource.split(/(\s*)/);
-					const [resourceName, resourceUrl] = resourceSplit;
-					modules.Resources.Resource.handle({
-						type: 'register',
-						name: resourceName,
-						url: resourceUrl,
-						scriptId: node.id as CRM.NodeId<CRM.ScriptNode>
-					});
-				});
-			}
 
 			const { requestPermissions = [] } = await browserAPI.storage.local.get<CRM.StorageLocal>();
 			const allPermissions = browserAPI.permissions ? await browserAPI.permissions.getAll() : {

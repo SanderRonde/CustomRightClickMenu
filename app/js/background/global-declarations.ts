@@ -667,17 +667,6 @@ export namespace GlobalDeclarations {
 			});
 		}
 
-		function setupResourceProxy() {
-			browserAPI.webRequest.onBeforeRequest.addListener((details) => {
-				window.info('Redirecting', details);
-				return {
-					redirectUrl: `${location.protocol}//${browserAPI.runtime.id}/fonts/fonts.css`
-				}
-			}, {
-				urls: ['*://fonts.googleapis.com/', '*://fonts.gstatic.com/']
-			});
-		}
-
 		function onTabUpdated(_id: TabId, changeInfo: {
 			status?: 'loading'|'complete';
 			url?: string;
@@ -807,20 +796,8 @@ export namespace GlobalDeclarations {
 		browserAPI.tabs.onUpdated.addListener(onTabUpdated);
 		browserAPI.tabs.onRemoved.addListener(onTabsRemoved);
 		browserAPI.tabs.onHighlighted && browserAPI.tabs.onHighlighted.addListener(tabChangeListener);
-		browserAPI.webRequest.onBeforeRequest.addListener((details) => {
-			const split = details.url
-				.split(`https://www.localhost.io/resource/`)[1].split('/');
-			const name = split[0];
-			const scriptId = ~~split[1] as CRM.NodeId<CRM.ScriptNode>;
-			return {
-				redirectUrl: getResourceData(name, scriptId)
-			};
-		}, {
-			urls: [`https://www.localhost.io/resource/*`]
-		}, ['blocking']);
 		listenNotifications();
 		listenKeyCommands();
-		setupResourceProxy();
 	}
 
 	export function runAlwaysRunNodes(tab: _browser.tabs.Tab) {

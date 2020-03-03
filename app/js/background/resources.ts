@@ -40,9 +40,6 @@ export namespace Resources {
 		scriptId: CRM.NodeId<CRM.ScriptNode>;
 	}, name: string) {
 		switch (message.type) {
-			case 'register':
-				registerResource(name, message.url, message.scriptId);
-				break;
 			case 'remove':
 				removeResource(name, message.scriptId);
 				break;
@@ -56,50 +53,6 @@ export namespace Resources {
 		}
 	}
 
-	function getUrlData(scriptId: CRM.NodeId<CRM.ScriptNode>, url: string, callback: (dataURI: string,
-		dataString: string) => void) {
-		//First check if the data has already been fetched
-		if (modules.storages.urlDataPairs.get(url)) {
-			const dataPairs = modules.storages.urlDataPairs.get(url);
-			if (dataPairs.refs.indexOf(scriptId) === -1) {
-				dataPairs.refs.push(scriptId);
-			}
-			callback(dataPairs.dataURI, dataPairs.dataString);
-		} else {
-			modules.Util.convertFileToDataURI(url, (dataURI, dataString) => {
-				//Write the data away to the url-data-pairs object
-				modules.storages.urlDataPairs.set(url, {
-					dataURI: dataURI,
-					dataString: dataString,
-					refs: [scriptId]
-				});
-				callback(dataURI, dataString);
-			});
-		}
-	}
-	function getHashes(url: string): {
-		algorithm: string;
-		hash: string;
-	}[] {
-		const hashes: {
-			algorithm: string;
-			hash: string;
-		}[] = [];
-		const hashString = url.split('#')[1];
-		if (!hashString) {
-			return [];
-		}
-
-		const hashStrings = hashString.split(/[,|;]/g);
-		hashStrings.forEach((hash) => {
-			const split = hash.split('=');
-			hashes.push({
-				algorithm: split[0],
-				hash: split[1]
-			});
-		});
-		return hashes;
-	}
 	function doAlgorithm(name: string, data: any, lastMatchingHash: {
 		algorithm: string;
 		hash: string;
@@ -160,45 +113,6 @@ export namespace Resources {
 
 		}
 		return false;
-	}
-	function registerResource(name: string, url: string, scriptId: CRM.NodeId<CRM.ScriptNode>) {
-		const registerHashes = getHashes(url);
-		if (window.navigator.onLine) {
-			getUrlData(scriptId, url, (dataURI, dataString) => {
-				const resources = modules.storages.resources;
-				modules.Util.setMapDefault(resources, scriptId, {});
-				resources.get(scriptId)[name] = {
-					name: name,
-					sourceUrl: url,
-					dataURI: dataURI,
-					dataString: dataString,
-					hashes: registerHashes,
-					matchesHashes: matchesHashes(registerHashes, dataString),
-					crmUrl: `https://www.localhost.io/resource/${scriptId}/${name}`
-				};
-				browserAPI.storage.local.set({
-					resources: modules.Util.fromMap(resources),
-					urlDataPairs: modules.Util.fromMap(modules.storages.urlDataPairs)
-				});
-			});
-		}
-
-		const resourceKeys = modules.storages.resourceKeys;
-		for (const resourceKey of resourceKeys) {
-			if (resourceKey.name === name && 
-				resourceKey.scriptId === scriptId) {
-					return;
-				}
-		}
-		resourceKeys.push({
-			name: name,
-			sourceUrl: url,
-			hashes: registerHashes,
-			scriptId: scriptId
-		});
-		browserAPI.storage.local.set({
-			resourceKeys: resourceKeys
-		});
 	}
 	function removeResource(name: string, scriptId: CRM.NodeId<CRM.ScriptNode>) {
 		for (let i = 0; i < modules.storages.resourceKeys.length; i++) {
