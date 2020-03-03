@@ -200,6 +200,12 @@
 			'Hide root node when empty',
 			'Add another CRM API function (crmAPI.fetchBackground) that can do a fetch' +
 				' without running into [CORB](https://www.chromestatus.com/feature/5629709824032768) issues'
+		],
+		'2.2.9': [
+			'Remove detection of extensions installed alongside this one such as Tampermonkey and Stylish' + 
+				' because Google thinks the permissions used are extraneous',
+			'Remove greasemonkey-style resources because Google thinks the permissions used are extraneous',
+			'Remove activeTab permission since it is overshadowed by the tabs permission'
 		]
 	};
 

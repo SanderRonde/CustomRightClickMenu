@@ -8,7 +8,7 @@
 	},
 	"name": "Custom Right-Click Menu",
 	"description": "Create a custom right-click menu and choose the links and scripts you want in it.",
-	"version": "2.2.8",
+	"version": "2.2.9",
 	"short_name": "CRM-dev",
 	"applications": {
 		"gecko": {
