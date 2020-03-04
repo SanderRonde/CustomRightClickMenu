@@ -203,8 +203,8 @@
 		],
 		'2.2.9': [
 			'Remove detection of extensions installed alongside this one such as Tampermonkey and Stylish' + 
-				' because Google thinks the permissions used are extraneous',
-			'Remove greasemonkey-style resources because Google thinks the permissions used are extraneous',
+				' because the permissions used were flagged as extraneous',
+			'Remove greasemonkey-style resources because the permissions used were flagged as extraneous',
 			'Remove activeTab permission since it is overshadowed by the tabs permission'
 		]
 	};
