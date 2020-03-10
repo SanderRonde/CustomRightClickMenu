@@ -112,7 +112,18 @@ namespace BrowserAPINS {
 				return createPromise<void>((handler) => {
 					__srcBrowser.storage[type].clear(handler);
 				});
-			}
+			},
+			getBytesInUse(keys?: string | string[] | null): Promise<number> {
+				return createPromise<number>((handler) => {
+					if (keys) {
+						__srcBrowser.storage[type].getBytesInUse(keys as string[], handler);
+					}
+					else {
+						__srcBrowser.storage[type].get(handler);
+					}
+				});
+			},
+			QUOTA_BYTES: __srcBrowser.storage[type].QUOTA_BYTES || Infinity
 		};
 	}
 	const browserAPIExists = 'browser' in window;

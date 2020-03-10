@@ -635,14 +635,18 @@ namespace CRMAppElement {
 		static _getSettingsJsonLengthColor(this: CrmApp): string {
 			let red;
 			let green;
-			if (this.settingsJsonLength <= 51200) {
+			const maxUsage = (browserAPI.storage.sync.QUOTA_BYTES || Infinity);
+			if (maxUsage == Infinity) {
+				return 'color: rgb(0, 178, 0);';
+			}
+			if (this.settingsJsonLength <= maxUsage) {
 				//Green to yellow, increase red
 				green = 255;
-				red = (this.settingsJsonLength / 51200) * 255;
+				red = (this.settingsJsonLength / maxUsage) * 255;
 			} else {
 				//Yellow to red, reduce green
 				red = 255;
-				green = 255 - (((this.settingsJsonLength - 51200) / 51200) * 255);
+				green = 255 - (((this.settingsJsonLength - maxUsage) / maxUsage) * 255);
 			}
 
 			//Darken a bit
@@ -2335,48 +2339,53 @@ namespace CRMAppElement {
 								settingsJsonArray.push(sync[`section${index}`]);
 							});
 							const jsonString = settingsJsonArray.join('');
-							parent.settingsJsonLength = jsonString.length;
-							const settings = JSON.parse(jsonString);
 
-							if (parent.settingsJsonLength >= 102400) {
-								window.app.$.useStorageSync.setCheckboxDisabledValue(true);
-							}
-							callback(settings);
+							const settings = JSON.parse(jsonString);
+							browserAPI.storage.sync.getBytesInUse().then((usage) => {
+								parent.settingsJsonLength = usage;
+
+								if (parent.settingsJsonLength >= (browserAPI.storage.sync.QUOTA_BYTES || Infinity)) {
+									window.app.$.useStorageSync.setCheckboxDisabledValue(true);
+								}
+								callback(settings);
+							});
 						}
 					});
 				} else {
 					//Send the "settings" object on the storage.local to the callback
-					parent.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
-					if (!storageLocal.settings) {
-						browserAPI.storage.local.set({
-							useStorageSync: true
-						});
-						browserAPI.storage.sync.get().then((storageSync: any) => {
-							const sync = storageSync as {
-								[key: string]: string
-							} & {
-								indexes: string[];
-							};
-							const indexes = sync.indexes;
-							const settingsJsonArray: string[] = [];
-							const indexesLength = typeof indexes === 'number' ? 
-								indexes : (Array.isArray(indexes) ? 
-									indexes.length : 0);
-							window.app.util.createArray(indexesLength).forEach((_, index) => {
-								settingsJsonArray.push(sync[`section${index}`]);
+					browserAPI.storage.local.getBytesInUse().then((usage) => {
+						parent.settingsJsonLength = usage;
+						if (!storageLocal.settings) {
+							browserAPI.storage.local.set({
+								useStorageSync: true
 							});
-							const jsonString = settingsJsonArray.join('');
-							parent.settingsJsonLength = jsonString.length;
-							const settings = JSON.parse(jsonString);
-							callback(settings);
-						});
-					} else {
-						callback(storageLocal.settings);
-					}
+							browserAPI.storage.sync.get().then((storageSync: any) => {
+								const sync = storageSync as {
+									[key: string]: string
+								} & {
+									indexes: string[];
+								};
+								const indexes = sync.indexes;
+								const settingsJsonArray: string[] = [];
+								const indexesLength = typeof indexes === 'number' ? 
+									indexes : (Array.isArray(indexes) ? 
+										indexes.length : 0);
+								window.app.util.createArray(indexesLength).forEach((_, index) => {
+									settingsJsonArray.push(sync[`section${index}`]);
+								});
+								const jsonString = settingsJsonArray.join('');
+								parent.settingsJsonLength = jsonString.length;
+								const settings = JSON.parse(jsonString);
+								callback(settings);
+							});
+						} else {
+							callback(storageLocal.settings);
+						}
 
-					if (!parent._supportsStorageSync() || parent.settingsJsonLength >= 102400) {
-						window.app.$.useStorageSync.setCheckboxDisabledValue(true);
-					}
+						if (!parent._supportsStorageSync() || parent.settingsJsonLength >= (browserAPI.storage.sync.QUOTA_BYTES || Infinity)) {
+							window.app.$.useStorageSync.setCheckboxDisabledValue(true);
+						}
+					});
 				}
 			};
 

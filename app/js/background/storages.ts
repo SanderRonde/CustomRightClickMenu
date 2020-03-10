@@ -1188,7 +1188,7 @@ export namespace Storages.SetupHandling {
 	async function uploadStorageSyncInitial(data: CRM.SettingsStorage) {
 		const settingsJson = JSON.stringify(data);
 		
-		if (settingsJson.length >= 101400 || !supportsStorageSync()) {
+		if (settingsJson.length >= (browserAPI.storage.sync.QUOTA_BYTES || Infinity) || !supportsStorageSync()) {
 			await browserAPI.storage.local.set({
 				useStorageSync: false
 			});
@@ -1433,7 +1433,7 @@ export namespace Storages {
 			});
 		} else {
 			//Using chrome.storage.sync
-			if (settingsJson.length >= 101400 || !supportsStorageSync()) {
+			if (settingsJson.length >= (browserAPI.storage.sync.QUOTA_BYTES || Infinity) || !supportsStorageSync()) {
 				await browserAPI.storage.local.set({
 					useStorageSync: false
 				});
