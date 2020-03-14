@@ -95,6 +95,11 @@ class StorageGenerator {
 		this._syncToLocalStorage();
 		callback && callback();
 	}
+	getBytesInUse(callback?: (amount: number) => void) {
+		checkOnlyCallback(callback, true);
+
+		callback && callback(JSON.stringify(this._container).length);
+	}
 }
 
 const extensionId = 'glloknfjojplkpphcmpgkcemckbcbmhe';
