@@ -649,8 +649,8 @@ export namespace GlobalDeclarations {
 				const isStylesheet = modules.crm.crmById.get(nodeId).type === 'stylesheet';
 				const currentValue = tabs.get(currentTabId);
 				const base = isStylesheet ? {
-					checked: typeof currentValue === 'boolean' ?
-						currentValue : defaultCheckedValue
+					checked: currentValue && typeof currentValue.checked === 'boolean' ?
+						currentValue.checked : defaultCheckedValue
 				} : null;
 				const overrides = getContextmenuTabOverrides(nodeId, currentTabId);
 
