@@ -3639,7 +3639,8 @@ describe('On-Page CRM', function() {
 				getBackgroundPageTestData: getBackgroundPageTestData()
 			}));
 		});
-		beforeEach('Close all tabs', async () => {
+		beforeEach('Close all tabs', async function () {
+			this.timeout(100000 * TIME_MODIFIER)
 			await closeOtherTabs();
 		});
 		it('should not throw when setting up the CRM', function(done) {
@@ -3939,7 +3940,8 @@ describe('On-Page CRM', function() {
 			DISABLED = 6
 		}
 
-		beforeEach('Close all tabs', async () => {
+		beforeEach('Close all tabs', async function() {
+			this.timeout(100000 * TIME_MODIFIER)
 			await closeOtherTabs();
 		});
 		it('should not throw when setting up the CRM', function(done) {
