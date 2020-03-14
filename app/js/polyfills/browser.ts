@@ -119,7 +119,7 @@ namespace BrowserAPINS {
 						__srcBrowser.storage[type].getBytesInUse(keys as string[], handler);
 					}
 					else {
-						__srcBrowser.storage[type].get(handler);
+						__srcBrowser.storage[type].getBytesInUse(handler);
 					}
 				});
 			},

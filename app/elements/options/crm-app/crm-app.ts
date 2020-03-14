@@ -2374,7 +2374,6 @@ namespace CRMAppElement {
 									settingsJsonArray.push(sync[`section${index}`]);
 								});
 								const jsonString = settingsJsonArray.join('');
-								parent.settingsJsonLength = jsonString.length;
 								const settings = JSON.parse(jsonString);
 								callback(settings);
 							});
