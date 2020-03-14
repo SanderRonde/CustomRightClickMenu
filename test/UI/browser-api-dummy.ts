@@ -90,11 +90,7 @@ class StorageGenerator {
 	clear(callback?: () => void) {
 		checkOnlyCallback(callback, true);
 
-		if (this._storageType === 'sync') {
-			this._container = {};
-		} else {
-			this._container = {};
-		}
+		this._container = {};
 
 		this._syncToLocalStorage();
 		callback && callback();
