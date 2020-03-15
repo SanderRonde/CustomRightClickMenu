@@ -206,6 +206,11 @@
 				' because the permissions used were flagged as extraneous',
 			'Remove greasemonkey-style resources because the permissions used were flagged as extraneous',
 			'Remove activeTab permission since it is overshadowed by the tabs permission'
+		],
+		'2.2.10': [
+			'Remove screenshotting during bug reporting because the permissions used were flagged as extraneous',
+			'Restrict browser.tabs permission to activeTab only because the permission used was flagged as extraneous,' +
+				' probably causing a few bugs'
 		]
 	};
 

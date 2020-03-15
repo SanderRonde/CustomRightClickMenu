@@ -208,6 +208,6 @@
     "package": "gulp genCRX && gulp genXPI && yarn genAppx",
     "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'app/bower_components', 'junction') } catch (e) { }\""
   },
-  "version": "2.2.9",
+  "version": "2.2.10",
   "dependencies": {}
 }

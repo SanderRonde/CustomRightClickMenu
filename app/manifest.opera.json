@@ -4,7 +4,7 @@
 	"options_page": "html/options.html",
 	"name": "Custom Right-Click Menu",
 	"description": "Create a custom right-click menu and choose the links and scripts you want in it.",
-	"version": "2.2.9",
+	"version": "2.2.10",
 	"short_name": "CRM-dev",
 	"minimum_opera_version": "51.0",
 
