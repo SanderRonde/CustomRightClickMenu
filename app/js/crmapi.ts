@@ -5681,7 +5681,25 @@ export type CRMAPIMessage = {
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_setClipboard}
 			 * @param {any} ignoredArguments - An argument that is ignored
 			 */
-			GM_setClipboard: CrmAPIInstance._helpers.emptyFn,
+			GM_setClipboard(this: CrmAPIInstance, content: string): void {
+				const element = document.createElement('span');
+				element.innerText = content;
+				document.body.appendChild(element);
+				
+				const snipRange = document.createRange();
+				snipRange.selectNode(element);
+				const selection = window.getSelection();
+				selection.removeAllRanges();
+				selection.addRange(snipRange);
+				try {
+					document.execCommand('copy');
+				} catch(e) {
+					console.log(e);
+				}
+
+				selection.removeAllRanges();
+				element.remove();
+			},
 			/**
 			 * Sends an xmlhttpRequest with given parameters
 			 *
