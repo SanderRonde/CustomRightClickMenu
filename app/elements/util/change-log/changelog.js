@@ -211,6 +211,9 @@
 			'Remove screenshotting during bug reporting because the permissions used were flagged as extraneous',
 			'Restrict browser.tabs permission to activeTab only because the permission used was flagged as extraneous,' +
 				' probably causing a few bugs'
+		],
+		'2.2.11': [
+			'Restrict permission usage some more'
 		]
 	};
 

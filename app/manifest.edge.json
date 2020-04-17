@@ -5,7 +5,7 @@
 	"options_page": "html/options.html",
 	"name": "Custom Right-Click Menu for Microsoft Edge",
 	"description": "Create a custom right-click menu and choose the links and scripts you want in it.",
-	"version": "2.2.10",
+	"version": "2.2.11",
 	"short_name": "CRM-dev",
 
 	"background": {
