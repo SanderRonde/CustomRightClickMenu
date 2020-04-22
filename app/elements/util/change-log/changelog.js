@@ -214,6 +214,10 @@
 		],
 		'2.2.11': [
 			'Restrict permission usage some more'
+		],
+		'2.2.12': [
+			'Removed permission API on chrome. See [this github issue](https://github.com/SanderRonde/CustomRightClickMenu/issues/44)' +
+				' for more info'
 		]
 	};
 
