@@ -52,36 +52,7 @@
 	],
 
 	"optional_permissions": [
-		"alarms",
-		"background",
-		"bookmarks",
-		"browsingData",
-		"clipboardRead",
-		"clipboardWrite",
-		"contentSettings",
-		"cookies",
-		"declarativeContent",
-		"desktopCapture",
-		"downloads",
-		"history",
-		"identity",
-		"idle",
-		"management",
-		"notifications",
-		"pageCapture",
-		"power",
-		"printerProvider",
-		"privacy",
-		"sessions",
-		"system.cpu",
-		"system.memory",
-		"system.storage",
-		"topSites",
-		"tabCapture",
-		"tts",
-		"webNavigation",
-		"webRequest",
-		"webRequestBlocking"
+		"downloads"
 	],
 
 	"commands": {

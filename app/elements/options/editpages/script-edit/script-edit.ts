@@ -330,6 +330,10 @@ namespace ScriptEditElement {
 									window.app.util.showToast(`Not asking for permission ${permission} as your browser does not support asking for permissions`);
 									return;
 								}
+								if (BrowserAPI.getBrowser() === 'chrome') {
+									window.app.util.showToast(`Not asking for permission ${permission} as chrome does not allow it anymore. See issue #44 on github for more info`);
+									return;
+								}
 
 								browserAPI.permissions.request({
 									permissions: [permission as _browser.permissions.Permission]
