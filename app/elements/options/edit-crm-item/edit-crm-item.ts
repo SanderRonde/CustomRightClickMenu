@@ -134,7 +134,7 @@ namespace EditCrmItemElement {
 		}
 
 		static rootNameChange(this: EditCrmItem) {
-			const value = (this.querySelector('#rootNameTitle') as HTMLInputElement).value;
+			const value = this.$$('#rootNameTitle').value;
 			window.app.settings.rootName = value;
 			window.app.upload();
 		}
