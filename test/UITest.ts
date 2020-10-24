@@ -414,6 +414,11 @@ before('Driver connect', async function() {
 	global.Promise = _promise;
 
 	this.timeout(600000 * TIME_MODIFIER);
+	if (TEST_EXTENSION) {
+		console.log('Testing extensions is no longer supported :(');
+		process.exit(1);
+	}
+
 	const additionalCapabilities = getAdditionalCapabilities();
 	const unBuilt = new webdriver.Builder()
 		.usingServer(url)
