@@ -77,10 +77,14 @@ export declare namespace Polymer {
 			selected: number;
 		};
 	}
+
+	interface _Slottable {
+		readonly assignedSlot: HTMLSlotElement | null;
+	}
 	
 	//Basically an HTMLElement with all queryselector methods set to return null
 	type WebcomponentElement = Animatable & GlobalEventHandlers & DocumentAndElementEventHandlers & ElementContentEditable & HTMLOrSVGElement & ElementCSSInlineStyle & 
-			NonDocumentTypeChildNode & Slottable & Animatable & EventTarget & {
+			NonDocumentTypeChildNode & _Slottable & Animatable & EventTarget & {
 		accessKey: string;
 		readonly accessKeyLabel: string;
 		autocapitalize: string;
