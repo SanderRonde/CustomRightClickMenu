@@ -1,5 +1,5 @@
 const monacoCommand = (() => {
-	type Model = monaco.editor.ITokenizedModel;
+	type Model = monaco.editor.ITextModel;
 	type Builder = monaco.editor.IEditOperationBuilder;
 	type Helper = monaco.editor.ICursorStateComputerData;
 

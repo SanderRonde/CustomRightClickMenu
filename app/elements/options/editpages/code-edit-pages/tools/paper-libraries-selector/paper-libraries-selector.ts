@@ -565,7 +565,7 @@ namespace PaperLibrariesSelectorElement {
 		}
 
 		private static async _saveLibEditChanges(this: PaperLibrariesSelector) {
-			const newVal = window.scriptEdit.fullscreenEditorManager.editor.getValue();
+			const newVal = window.scriptEdit.fullscreenEditorManager.getValue();
 			const lib = this._editingInstance.library;
 			
 			browserAPI.storage.local.get<CRM.StorageLocal>().then((e) => {

@@ -227,10 +227,15 @@ namespace NodeEditBehaviorNamespace {
 			if (target.tagName === 'PAPER-ICON-BUTTON') {
 				target = target.children[0] as Polymer.PolymerElement;
 			}
+			const element = window.app.util.findElementWithTagname(event, 'paper-icon-button')
+			if (!element) {
+				return;
+			}
+
+			const triggers = this.querySelectorAll('.executionTrigger');
+			const index = (Array.prototype.slice.apply(triggers) as HTMLElement[]).indexOf(element.parentElement)
 			// $(target.parentNode.parentNode).remove();
-			this.splice('newSettings.triggers',
-				Array.prototype.slice.apply(this.querySelectorAll('.executionTrigger')).indexOf(target.parentNode.parentNode),
-				1);
+			this.splice('newSettings.triggers', index, 1);
 		};
 
 		/**

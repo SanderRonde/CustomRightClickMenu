@@ -319,9 +319,6 @@ class Tasks {
 						return gulp
 							.src([
 								'**/**',
-								'!vs/basic-languages/src/**',
-								'vs/basic-languages/src/css.js',
-								'vs/basic-languages/src/less.js'
 							], {
 									base: 'node_modules/monaco-editor/min',
 									cwd: 'node_modules/monaco-editor/min'
@@ -1041,14 +1038,10 @@ class Tasks {
 									return gulp
 										.src([
 											'**/**/*.js',
-											'!vs/basic-languages/src/**',
-											'vs/basic-languages/src/css.js',
-											'vs/basic-languages/src/less.js'
 										], {
 												base: 'node_modules/monaco-editor/min',
 												cwd: 'node_modules/monaco-editor/min'
 											})
-										.pipe(uglify())
 								}).pipe(gulp.dest('temp/elements/options/editpages/monaco-editor/src/min/'))
 									.pipe(gulp.dest('app/elements/options/editpages/monaco-editor/src/min/'));
 							}
@@ -1060,7 +1053,6 @@ class Tasks {
 										.src([
 											'**/**',
 											'!**/**/*.js',
-											'!vs/basic-languages/src/**'
 										], {
 												base: 'node_modules/monaco-editor/min',
 												cwd: 'node_modules/monaco-editor/min'
@@ -1656,9 +1648,6 @@ class Tasks {
 											return gulp
 												.src([
 													'**/**/*.js',
-													'!vs/basic-languages/src/**',
-													'vs/basic-languages/src/css.js',
-													'vs/basic-languages/src/less.js'
 												], {
 														base: 'node_modules/monaco-editor/min',
 														cwd: 'node_modules/monaco-editor/min'
@@ -1671,7 +1660,6 @@ class Tasks {
 													'MonacoEditorHookManager.caretRangeFromPoint(arguments[0])'))
 												.pipe(replace(/this.target(\s)?=(\s)?e.target/g,
 													'this.target = e.path ? e.path[0] : e.target'))
-												.pipe(uglify())
 										}).pipe(gulp.dest('build/elements/options/editpages/monaco-editor/src/min/'));
 									}
 
@@ -1681,7 +1669,6 @@ class Tasks {
 											.src([
 												'**/**',
 												'!**/**/*.js',
-												'!vs/basic-languages/src/**'
 											], {
 												base: 'node_modules/monaco-editor/min',
 												cwd: 'node_modules/monaco-editor/min'

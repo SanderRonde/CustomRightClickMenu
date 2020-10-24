@@ -188,7 +188,7 @@ namespace CodeEditBehaviorNamespace {
 						selections[0].getPosition().lineNumber === 0 &&
 						selections[0].getPosition().column === 0) {
 							//Find the first line without comments
-							const lines = editor.getValue().split('\n');
+							const lines = __this.getEditorInstance().getValue().split('\n');
 							const commentLines = ['//', '/*', '*/', '*', ' *'];
 							for (let i = 0 ; i < lines.length; i++) {
 								for (const commentLine of commentLines) {
@@ -203,7 +203,7 @@ namespace CodeEditBehaviorNamespace {
 				}
 				const commands = selections.map((selection) => {
 					const content = noReplace ? snippet : snippet.replace(/%s/g, selection.toString());
-					return window.monacoCommands.createReplaceCommand(selection.cloneRange(), content);
+					return window.monacoCommands.createReplaceCommand(selection, content);
 				});
 				if (!__this.editorManager.isDiff(editor)) {
 					editor.executeCommands('snippet', commands);

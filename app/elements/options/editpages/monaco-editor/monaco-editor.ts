@@ -241,40 +241,55 @@ namespace MonacoEditorElement {
 		private _isMetaDataHighlightDisabled: boolean = false;
 
 		protected static readonly _metaTagProvider: monaco.languages.CompletionItemProvider = {
-			provideCompletionItems: () => {
-				return [{
-					label: '==UserScript==',
-					kind: monaco.languages.CompletionItemKind.Property,
-					insertText: '==UserScript==',
-					detail: window.__.sync(
-						I18NKeys.options.editPages.monaco.scriptStart),
-					documentation: window.__.sync(
-						I18NKeys.options.editPages.monaco.startTagUserscript)
-				}, {
-					label: '==/UserScript==',
-					kind: monaco.languages.CompletionItemKind.Property,
-					insertText: '==/UserScript==',
-					detail: window.__.sync(
-						I18NKeys.options.editPages.monaco.scriptEnd),
-					documentation: window.__.sync(
-						I18NKeys.options.editPages.monaco.endTagUserscript)
-				}, {
-					label: '==UserStyle==',
-					kind: monaco.languages.CompletionItemKind.Property,
-					insertText: '==UserStyle==',
-					detail: window.__.sync(
-						I18NKeys.options.editPages.monaco.styleStart),
-					documentation: window.__.sync(
-						I18NKeys.options.editPages.monaco.startTagUserstyle)
-				}, {
-					label: '==/UserStyle==',
-					kind: monaco.languages.CompletionItemKind.Property,
-					insertText: '==/UserStyle==',
-					detail: window.__.sync(
-						I18NKeys.options.editPages.monaco.styleEnd),
-					documentation: window.__.sync(
-						I18NKeys.options.editPages.monaco.endTagUserstyle)
-				}];
+			provideCompletionItems: (model, position) => {
+				const word = model.getWordUntilPosition(position);
+				const range = {
+					startLineNumber: position.lineNumber,
+					endLineNumber: position.lineNumber,
+					startColumn: word.startColumn,
+					endColumn: word.endColumn
+				};
+				console.log('returning userscript')
+				return {
+					suggestions: [{
+						label: '==UserScript==',
+						kind: monaco.languages.CompletionItemKind.Snippet,
+						insertText: '// ==UserScript==\n// ==/UserScript==',
+						detail: window.__.sync(
+							I18NKeys.options.editPages.monaco.scriptStart),
+						documentation: window.__.sync(
+							I18NKeys.options.editPages.monaco.startTagUserscript),
+						range
+					}, {
+						label: '==/UserScript==',
+						kind: monaco.languages.CompletionItemKind.Snippet,
+						insertText: '// ==/UserScript==',
+						detail: window.__.sync(
+							I18NKeys.options.editPages.monaco.scriptEnd),
+						documentation: window.__.sync(
+							I18NKeys.options.editPages.monaco.endTagUserscript),
+						range
+					}, {
+						label: '==UserStyle==',
+						kind: monaco.languages.CompletionItemKind.Snippet,
+						insertText: '// ==UserStyle==\n// ==/UserStyle==',
+						detail: window.__.sync(
+							I18NKeys.options.editPages.monaco.styleStart),
+						documentation: window.__.sync(
+							I18NKeys.options.editPages.monaco.startTagUserstyle),
+						range
+					}, {
+						label: '==/UserStyle==',
+						kind: monaco.languages.CompletionItemKind.Snippet,
+						insertText: '// ==/UserStyle==',
+						detail: window.__.sync(
+							I18NKeys.options.editPages.monaco.styleEnd),
+						documentation: window.__.sync(
+							I18NKeys.options.editPages.monaco.endTagUserstyle),
+						range
+					}],
+					incomplete: true
+				}
 			}
 		}
 
@@ -290,43 +305,41 @@ namespace MonacoEditorElement {
 		
 		protected static readonly _metaKeyProvider: monaco.languages.CompletionItemProvider = {
 			provideCompletionItems: (model, position) => {
+				const word = model.getWordUntilPosition(position);
+				const range = {
+					startLineNumber: position.lineNumber,
+					endLineNumber: position.lineNumber,
+					startColumn: word.startColumn,
+					endColumn: word.endColumn
+				};
+
 				const lineRange = new monaco.Range(position.lineNumber, 0, position.lineNumber, position.column);
 				const currentLineText = model.getValueInRange(lineRange);
 				const metaBlock = (model as any)._metaBlock as MetaBlock;
+				console.log('checking metablock', metaBlock)
 				if (!metaBlock || MonacoEditorMetaBlockMods._containsPosition(metaBlock, position)) {
-						let keyParts = currentLineText.split('@');
-						let length = keyParts[0].length;
-						keyParts = keyParts.slice(1);
-						for (let keyPart of keyParts) {
-							const partialStr = `@${keyPart}`;
-							let match: RegExpExecArray = null;
-							if ((match = /@(\w*)/.exec(partialStr))) {
-								const matchIndex = length + partialStr.indexOf(match[0]) + 1;
-								const matchRange = new monaco.Range(position.lineNumber, matchIndex, 
-									position.lineNumber, matchIndex + match[0].length);
-								if (matchRange.containsPosition(position)) {
-									const descriptions = getMetaDescriptions();
-									return {
-										isIncomplete: true,
-										items: Object.getOwnPropertyNames(descriptions).map((key: keyof typeof descriptions) => {
-											const description = descriptions[key];
-											return {
-												label: `@${key}`,
-												kind: monaco.languages.CompletionItemKind.Property,
-												insertText: `@${key}`,
-												detail: window.__.sync(
-													I18NKeys.options.editPages.monaco.metaKey),
-												documentation: description
-											}
-										})
-									};
-								}
+					const descriptions = getMetaDescriptions();
+					return {
+						incomplete: true,
+						suggestions: Object.getOwnPropertyNames(descriptions).map((key: keyof typeof descriptions) => {
+							const description = descriptions[key];
+							return {
+								label: `@${key}`,
+								kind: monaco.languages.CompletionItemKind.Property,
+								insertText: currentLineText.indexOf('@') > -1 ? `@${key}` : key,
+								detail: window.__.sync(
+									I18NKeys.options.editPages.monaco.metaKey),
+								documentation: description,
+								range
 							}
-							length += partialStr.length;
-						}
-					}
+						})
+					};
+				}
 
-				return [];
+				return {
+					suggestions: [],
+					incomplete: true
+				}
 			}
 		}
 
@@ -705,7 +718,10 @@ namespace MonacoEditorElement {
 							options: {
 								stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
 								inlineClassName: 'userScriptKeyHighlight',
-								hoverMessage: this._getKeyDescription(key),
+								hoverMessage: {
+									value: this._getKeyDescription(key),
+									isTrusted: true
+								},
 								isWholeLine: false
 							}
 						});
@@ -718,8 +734,11 @@ namespace MonacoEditorElement {
 							options: {
 								stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
 								inlineClassName: 'userScriptValueHighlight',
-								hoverMessage: window.__.sync(
-									I18NKeys.options.editPages.monaco.valueForKey, value, key),
+								hoverMessage: {
+									value: window.__.sync(
+										I18NKeys.options.editPages.monaco.valueForKey, value, key),
+									isTrusted: true
+								},
 								isWholeLine: false
 							}
 						});
@@ -1606,10 +1625,6 @@ namespace MonacoEditorElement {
 
 	interface MonacoBaseEditor {
 		updateOptions(options: monaco.editor.IEditorOptions): void;
-		getValue(options?: {
-			preserveBOM: boolean;
-			lineEnding: string
-		}): string;
 		saveViewState(): monaco.editor.IEditorViewState|MonacoModel|{
 			original: MonacoModel;
 			modified: MonacoModel;
@@ -1643,6 +1658,10 @@ namespace MonacoEditorElement {
 		getModel(): MonacoModel;
 		setModel(model: MonacoModel): void;
 		setValue(value: string): void;
+		getValue(options?: {
+			preserveBOM: boolean;
+			lineEnding: string
+		}): string;
 	}
 
 	interface MonacoDiffEditor extends MonacoBaseEditor {
@@ -2102,7 +2121,7 @@ namespace MonacoEditorElement {
 		/**
 		 * The options used on this editor
 		 */
-		static options: monaco.editor.IEditorConstructionOptions = null;
+		static options: monaco.editor.IStandaloneEditorConstructionOptions = null;
 
 		/**
 		 * Whether this is a typescript instance
@@ -2260,6 +2279,13 @@ namespace MonacoEditorElement {
 			return 'text/plain';
 		}
 
+		static getValue(this: MonacoEditor) {
+			if (this.isDiff(this.editor)) {
+				return '';
+			}
+			return this.editor.getValue();
+		}
+
 		static initTSLibrariesMode(this: MonacoEditor, node: CRM.ScriptNode,
 			isBackground: boolean): CustomEditorModeTSLibrariesMeta {
 				return {
@@ -2328,7 +2354,6 @@ namespace MonacoEditorElement {
 			const result = getEditor();
 			if (this._supportsMonaco()) {
 				MonacoEditorHookManager.registerScope(this, this.editor);
-				MonacoEditorHookManager.StyleHack.copyThemeScope(this);
 			}
 			this._hideSpinner();
 			return result;
@@ -2345,7 +2370,7 @@ namespace MonacoEditorElement {
 			return this._getChromeVersion() >= 30;
 		}
 
-		static async create(this: MonacoEditor, editorType: EditorConfig, options?: monaco.editor.IEditorConstructionOptions, 
+		static async create(this: MonacoEditor, editorType: EditorConfig, options?: monaco.editor.IStandaloneEditorConstructionOptions, 
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 				const language = this._getLanguage(editorType);
 				this._createInfo = {
@@ -2464,8 +2489,9 @@ namespace MonacoEditorElement {
 			this._isLess = this._typeIsLESS(editorType);
 			await this.setMonacoEditorScopes(() => {
 				if (this._supportsMonaco()) {
+					editor.getModel
 					this.editor = window.monaco.editor.create(this.$.editorElement, this._mergeObjects({
-						model: editor.getModel()
+						model: this.isDiff(editor) ? undefined : editor.getModel() as monaco.editor.ITextModel,
 					}, this.options)) as MonacoStandardEditor;
 				} else {
 					this.editor = new TextareaStandardEditor(this.$.editorElement, {
@@ -2978,23 +3004,6 @@ namespace MonacoEditorElement {
 			};
 		}
 
-		static StyleHack = class MonacoEditorStyleHack {
-			/**
-			 * The monaco theme style element
-			 */
-			static monacoStyleElement: HTMLStyleElement = null;
-
-			static copyThemeScope(scope: MonacoEditor) {
-				this.monacoStyleElement = this.monacoStyleElement || 
-					document.getElementsByClassName('monaco-colors')[0] as HTMLStyleElement;
-				
-				if (scope.shadowRoot.children[0] !== this.monacoStyleElement) {
-					const clone = this.monacoStyleElement.cloneNode(true);
-					scope.shadowRoot.insertBefore(clone, scope.shadowRoot.children[0]);
-				}
-			}
-		}
-
 		static setScope(scope: MonacoEditor) {
 			this.currentScope = scope;
 			window.setTimeout(() => {
@@ -3053,14 +3062,14 @@ namespace MonacoEditorElement {
 			const tagCompletions = [{
 				label: '==UserScript==',
 				kind: monaco.languages.CompletionItemKind.Property,
-				insertText: '==UserScript==',
+				insertText: '// ==UserScript==\n// ==/UserScript==',
 				detail: 'UserScript start tag',
 				documentation: window.__.sync(
 					I18NKeys.options.editPages.monaco.startTagUserscript)
 			}, {
 				label: '==/UserScript==',
 				kind: monaco.languages.CompletionItemKind.Property,
-				insertText: '==/UserScript==',
+				insertText: '// ==/UserScript==',
 				detail: 'UserScript end tag',
 				documentation: window.__.sync(
 					I18NKeys.options.editPages.monaco.endTagUserscript)
@@ -3068,7 +3077,7 @@ namespace MonacoEditorElement {
 			const descriptions = getMetaDescriptions();
 			const keyCompletions = {
 				isIncomplete: true,
-				items: Object.getOwnPropertyNames(descriptions).map((key: keyof typeof descriptions) => {
+				suggestions: Object.getOwnPropertyNames(descriptions).map((key: keyof typeof descriptions) => {
 					const description = descriptions[key];
 					return {
 						label: `@${key}`,
@@ -3076,7 +3085,8 @@ namespace MonacoEditorElement {
 						insertText: `@${key}`,
 						detail: window.__.sync(
 							I18NKeys.options.editPages.monaco.metaKey),
-						documentation: description
+						documentation: description,
+						range: undefined as any
 					}
 				})
 			} as monaco.languages.CompletionList;

@@ -63,7 +63,7 @@ namespace StylesheetEditElement {
 		static saveChanges(this: NodeEditBehaviorStylesheetInstance, resultStorage: Partial<CRM.StylesheetNode>) {
 			resultStorage.value.stylesheet = (this.editorManager && 
 				this.editorManager.editor && 
-				this.editorManager.editor.getValue()) || this.item.value.stylesheet;
+				this.editorManager.getValue()) || this.item.value.stylesheet;
 			resultStorage.value.launchMode = this.$.dropdownMenu.selected;
 			resultStorage.value.toggle = this.$.isTogglableButton.checked;
 			resultStorage.value.defaultOn = this.$.isDefaultOnButton.checked;
@@ -82,12 +82,12 @@ namespace StylesheetEditElement {
 		static reloadEditor(this: NodeEditBehaviorStylesheetInstance) {
 			if (this.editorManager) {
 				if (this.editorMode === 'main') {
-					this.newSettings.value.stylesheet = this.editorManager.editor.getValue();
+					this.newSettings.value.stylesheet = this.editorManager.getValue();
 				} else {
 					try {
-						this.newSettings.value.options = JSON.parse(this.editorManager.editor.getValue());
+						this.newSettings.value.options = JSON.parse(this.editorManager.getValue());
 					} catch(e) {
-						this.newSettings.value.options = this.editorManager.editor.getValue();
+						this.newSettings.value.options = this.editorManager.getValue();
 					}
 				}
 			}
@@ -217,7 +217,7 @@ namespace StylesheetEditElement {
 						//Save
 						let val;
 						try {
-							val = this.editorManager.editor.getValue();
+							val = this.editorManager.getValue();
 							browserAPI.storage.local.set({
 								editing: {
 									val: val,
@@ -408,9 +408,9 @@ namespace StylesheetEditElement {
 						'remove' : 'add']('hidden');
 
 				try {
-					this.newSettings.value.options = JSON.parse(this.editorManager.editor.getValue());
+					this.newSettings.value.options = JSON.parse(this.editorManager.getValue());
 				} catch(e) {
-					this.newSettings.value.options = this.editorManager.editor.getValue();
+					this.newSettings.value.options = this.editorManager.getValue();
 				}
 				this.hideCodeOptions();
 				const stylesheet = this.newSettings.value.stylesheet;
@@ -434,7 +434,7 @@ namespace StylesheetEditElement {
 			} else if (!mainClicked && this.editorMode === 'main') {
 				this.$.editorStylusInfo.classList.add('hidden');
 
-				this.newSettings.value.stylesheet = this.editorManager.editor.getValue();
+				this.newSettings.value.stylesheet = this.editorManager.getValue();
 				this.showCodeOptions();
 				const stylesheet = this.newSettings.value.stylesheet;
 				if (window.app.editCRM.getMetaLines(stylesheet).length > 0) {

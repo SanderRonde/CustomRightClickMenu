@@ -122,14 +122,14 @@ namespace ScriptEditElement {
 
 		private static _saveEditorContents(this: NodeEditBehaviorScriptInstance) {
 			if (this.editorMode === 'background') {
-				this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
+				this.newSettings.value.backgroundScript = this.editorManager.getValue();
 			} else if (this.editorMode === 'main') {
-				this.newSettings.value.script = this.editorManager.editor.getValue();
+				this.newSettings.value.script = this.editorManager.getValue();
 			} else if (this.editorMode === 'options') {
 				try {
-					this.newSettings.value.options = JSON.parse(this.editorManager.editor.getValue());
+					this.newSettings.value.options = JSON.parse(this.editorManager.getValue());
 				} catch(e) {
-					this.newSettings.value.options = this.editorManager.editor.getValue();
+					this.newSettings.value.options = this.editorManager.getValue();
 				}
 			}
 		}
@@ -139,7 +139,7 @@ namespace ScriptEditElement {
 				const isTs = this.item.value.ts && this.item.value.ts.enabled;
 				if (mode === 'main') {
 					if (this.editorMode === 'background') {
-						this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
+						this.newSettings.value.backgroundScript = this.editorManager.getValue();
 					}
 					this.editorMode = 'main';
 					this._enableButtons();
@@ -148,7 +148,7 @@ namespace ScriptEditElement {
 							this.editorManager.EditorMode.JS_META);
 				} else if (mode === 'background') {
 					if (this.editorMode === 'main') {
-						this.newSettings.value.script = this.editorManager.editor.getValue();
+						this.newSettings.value.script = this.editorManager.getValue();
 					}
 					this.editorMode = 'background';
 					this._disableButtons();
@@ -170,9 +170,9 @@ namespace ScriptEditElement {
 			element.classList.remove('optionsEditorTab');
 			if (this.editorMode === 'options') {
 				try {
-					this.newSettings.value.options = JSON.parse(this.editorManager.editor.getValue());
+					this.newSettings.value.options = JSON.parse(this.editorManager.getValue());
 				} catch(e) {
-					this.newSettings.value.options = this.editorManager.editor.getValue();
+					this.newSettings.value.options = this.editorManager.getValue();
 				}
 			}
 			this.hideCodeOptions();
@@ -198,9 +198,9 @@ namespace ScriptEditElement {
 				this._changeTab('background');
 			} else if (isOptions && this.editorMode !== 'options') {
 				if (this.editorMode === 'main') {
-					this.newSettings.value.script = this.editorManager.editor.getValue();
+					this.newSettings.value.script = this.editorManager.getValue();
 				} else if (this.editorMode === 'background') {
-					this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
+					this.newSettings.value.backgroundScript = this.editorManager.getValue();
 				}
 				this.showCodeOptions();
 				this.editorMode = 'options';
@@ -471,14 +471,14 @@ namespace ScriptEditElement {
 		static reloadEditor(this: NodeEditBehaviorScriptInstance) {
 			if (this.editorManager) {
 				if (this.editorMode === 'main') {
-					this.newSettings.value.script = this.editorManager.editor.getValue();
+					this.newSettings.value.script = this.editorManager.getValue();
 				} else if (this.editorMode === 'background') {
-					this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
+					this.newSettings.value.backgroundScript = this.editorManager.getValue();
 				} else {
 					try {
-						this.newSettings.value.options = JSON.parse(this.editorManager.editor.getValue());
+						this.newSettings.value.options = JSON.parse(this.editorManager.getValue());
 					} catch(e) {
-						this.newSettings.value.options = this.editorManager.editor.getValue();
+						this.newSettings.value.options = this.editorManager.getValue();
 					}
 				}
 			}
@@ -734,7 +734,7 @@ namespace ScriptEditElement {
 				this.savingInterval = window.setInterval(() => {
 					if (this.active && this.editorManager) {
 						//Save
-						const val = this.editorManager.editor.getValue();
+						const val = this.editorManager.getValue();
 						browserAPI.storage.local.set({
 							editing: {
 								val: val,
