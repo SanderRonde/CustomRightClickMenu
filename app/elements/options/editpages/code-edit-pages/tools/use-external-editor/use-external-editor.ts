@@ -425,7 +425,7 @@ namespace UseExternalEditorElement {
 						};
 					}
 				};
-				editor.addOverlayWidget(widget);
+				(editor as any).addOverlayWidget(widget);
 				return {
 					editor,
 					widget
@@ -448,7 +448,7 @@ namespace UseExternalEditorElement {
 				const toolsCont = this.createToolsCont();
 				const onDc = this.createCont(toolsCont)
 				const editorData = this.appendWrapper(toolsCont);
-				this.linkDisconnect(onDc, editorData);
+				this.linkDisconnect(onDc, editorData as any);
 			}
 
 			static parent() {

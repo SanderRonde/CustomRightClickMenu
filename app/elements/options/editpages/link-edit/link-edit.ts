@@ -34,7 +34,7 @@ namespace LinkEditElement {
 			resultStorage.value = [];
 			$(this.$.linksContainer).find('.linkChangeCont').each(function (this: HTMLElement) {
 				resultStorage.value.push({
-					'url': ($(this).children('paper-input')[0] as HTMLPaperInputElement).value,
+					'url': ($(this).children('paper-input')[0] as unknown as HTMLPaperInputElement).value,
 					'newTab': ($(this).children('paper-checkbox')[0].getAttribute('aria-checked') !== 'true')
 				});
 			});

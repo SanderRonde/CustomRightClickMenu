@@ -470,7 +470,7 @@ namespace CRMAppElement {
 						event: Polymer.CustomEvent,
 						eDetail: Polymer.CustomEvent['detail']) => void).bind(listeners)(event, event.detail);
 				} else {
-					console.warn.apply(console, this._logf(`_createEventHandler`, `listener method ${fnName} not defined`));
+					console.warn.apply(console, this._logf(`_createEventHandler`, `listener method ${fnName as any} not defined`));
 				}
 			} else {
 				console.warn.apply(console, this._logf(`_createEventHandler`, `property data-on${event.type} not defined`));
