@@ -17,7 +17,8 @@
         "noUnusedLocals": false,
         "target": "es6",
         "noUnusedParameters": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "skipLibCheck": true
 	}, 
     "allowJs": true,
     "compileOnSave": true,
