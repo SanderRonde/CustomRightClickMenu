@@ -69,7 +69,7 @@ export namespace CRMAPIFunctions.contextMenuItem {
 				
 			for (const key in override) {
 				const overrideKey = key as keyof ContextMenuOverrides;
-				destination[overrideKey] = override[overrideKey];
+				(destination[overrideKey] as any) = override[overrideKey];
 			}
 
 			const contextmenuId = modules.crmValues.contextMenuIds.get(nodeId);

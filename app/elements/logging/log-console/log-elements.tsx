@@ -160,7 +160,7 @@ window.logElements = (() => {
 									}
 								</div>
 								<div className="functionElementValue">{functionText}</div>
-								<span>}</span>
+								<span>{'}'}</span>
 							</div>
 						</div>
 					</div>

@@ -208,7 +208,7 @@ namespace PaperDropdownBehaviorNamespace {
 			if (this._paperMenu) {
 				return this._paperMenu;
 			}
-			return (this._paperMenu = this._getMenu());
+			return (this._paperMenu = (this as any)._getMenu());
 		}
 
 		static attached(this: PaperDropdownMenu) {

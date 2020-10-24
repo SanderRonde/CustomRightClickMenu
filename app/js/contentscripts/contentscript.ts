@@ -68,14 +68,14 @@
 	let crmAPIExecuted = false;
 	let lastContextmenuCall: MouseEvent = null;
 
-	browserAPI.runtime.onMessage.addListener(function (message: {
+	type ContentMessage = {
 		type: 'checkTabStatus';
 		data: {
 			willBeMatched: boolean;
 		}
-	} & {
+	} | {
 		type: 'getLastClickInfo';	
-	} & {
+	} | {
 		type: 'runScript';
 		data: {
 			scripts: {
@@ -83,7 +83,9 @@
 				file?: string;
 			}[];
 		}	
-	}, _sender: _browser.runtime.MessageSender, respond: (response: any) => Promise<void>) {
+	};
+
+	browserAPI.runtime.onMessage.addListener(function (message: ContentMessage, _sender: _browser.runtime.MessageSender, respond: (response: any) => Promise<void>) {
 		switch (message.type) {
 			case 'checkTabStatus':
 				//Code was already executed here, check if it has been matched before
@@ -104,7 +106,7 @@
 					if (CONTEXT_MENU_EVENT_KEYS.indexOf(key) !== -1) {
 						const pointerKey = key as keyof MouseEvent;
 						if (pointerKey !== 'button') {
-							responseObj[pointerKey] = lastContextmenuCall[pointerKey];
+							(responseObj[pointerKey] as any) = lastContextmenuCall[pointerKey];
 						}
 					}
 				}
@@ -117,7 +119,9 @@
 					responseObj.srcElement = contextElementId as Element & number;
 					(lastContextmenuCall.target as HTMLElement).classList.add('crm_element_identifier_' + ++contextElementId);
 					responseObj.target = contextElementId as Element & number;
-					lastContextmenuCall.toElement.classList.add('crm_element_identifier_' + ++contextElementId);
+					if ('toElement' in lastContextmenuCall && (lastContextmenuCall as any).toElement) {
+						(lastContextmenuCall as any).toElement.classList.add('crm_element_identifier_' + ++contextElementId);
+					}
 					responseObj.toElement = contextElementId as Element & number;
 					respond(responseObj);
 				}

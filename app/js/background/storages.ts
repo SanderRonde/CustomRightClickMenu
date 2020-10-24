@@ -1678,7 +1678,7 @@ export namespace Storages {
 				const storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 				delete storageLocalCopy.globalExcludes;
 
-				let settingsStorage;
+				let settingsStorage: CRM.SettingsStorage;
 				if (storageLocal['useStorageSync']) {
 					//Parse the data before sending it to the callback
 					const { data, syncEnabled } = parseCutData(storageSync);
@@ -1688,7 +1688,7 @@ export namespace Storages {
 						});
 						settingsStorage = storageLocal.settings;
 					} else {
-						settingsStorage = data;
+						settingsStorage = data as CRM.SettingsStorage;
 					}
 				} else {
 					//Send the "settings" object on the storage.local to the callback
@@ -1696,7 +1696,7 @@ export namespace Storages {
 						await browserAPI.storage.local.set({
 							useStorageSync: true
 						});
-						settingsStorage = parseCutData(storageSync).data;
+						settingsStorage = parseCutData(storageSync).data as CRM.SettingsStorage;
 					} else {
 						delete storageLocalCopy.settings;
 						settingsStorage = storageLocal['settings'];

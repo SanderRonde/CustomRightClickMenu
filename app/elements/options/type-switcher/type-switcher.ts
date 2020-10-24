@@ -205,7 +205,7 @@ namespace TypeSwitcherElement {
 				delete item.children;
 			} else {
 				item[prevType + 'Val' as ('menuVal'|'linkVal'|'scriptVal'|'stylesheetVal')] =
-					item.value;
+					item.value as any;
 			}
 			item.type = type;
 			if (type === 'menu') {

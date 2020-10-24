@@ -634,7 +634,7 @@ namespace CodeEditBehaviorNamespace {
 					const prevZoom = this.unchangedEditorSettings.zoom;
 					this.unchangedEditorSettings.zoom = zoom;
 					if (JSON.stringify(this.unchangedEditorSettings) !== JSON.stringify(window.app.settings.editor)) {
-						this.reloadEditor();
+						(this as any).reloadEditor();
 					}
 					if (zoom !== prevZoom) {
 						window.app.updateEditorZoom();

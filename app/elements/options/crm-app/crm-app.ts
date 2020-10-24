@@ -4180,12 +4180,12 @@ namespace CRMAppElement {
 							mainObject[key] !== undefined &&
 							mainObject[key] !== null) {
 							if (Array.isArray(additions[key])) {
-								mainObject[key] = this.mergeArrays(mainObject[key], additions[key]);
+								mainObject[key] = this.mergeArrays(mainObject[key], (additions as any)[key]);
 							} else {
 								mainObject[key] = this.mergeObjects(mainObject[key], additions[key]);
 							}
 						} else {
-							mainObject[key] = (additions[key] as any) as T[keyof T];
+							(mainObject as any)[key] = (additions[key] as any) as T[keyof T];
 						}
 					}
 				}
@@ -4218,12 +4218,12 @@ namespace CRMAppElement {
 							mainObject[key] !== undefined &&
 							mainObject[key] !== null) {
 							if (Array.isArray(additions[key])) {
-								this.mergeArraysWithoutAssignment(mainObject[key], additions[key]);
+								this.mergeArraysWithoutAssignment(mainObject[key], (additions as any)[key]);
 							} else {
 								this.mergeObjectsWithoutAssignment(mainObject[key], additions[key]);
 							}
 						} else {
-							mainObject[key] = additions[key];
+							(mainObject as any)[key] = additions[key];
 						}
 					}
 				}

@@ -195,7 +195,7 @@ window.CRMLoaded.register(() => {
 
 	window.addCalcFn = (element: HTMLElement, prop: StyleString, calcValue: string, disable: boolean) => {
 		if (calcSupported && !disable && prop !== 'length' && prop !== 'parentRule') {
-			element.style[prop] = 'calc(' + calcValue + ')';
+			(element.style as any)[prop] = 'calc(' + calcValue + ')';
 			return;
 		}
 
@@ -232,7 +232,7 @@ window.CRMLoaded.register(() => {
 				.replace('px', ''));
 			calcToUpdate.elements.forEach((element) => {
 				if (calcToUpdate.key !== 'length' && calcToUpdate.key !== 'parentRule')
-				element.style[calcToUpdate.key] = result + 'px';
+				(element.style as any)[calcToUpdate.key] = result + 'px';
 			});
 		})
 	}
@@ -277,7 +277,7 @@ window.CRMLoaded.register(() => {
 
 					elements.forEach((el) => {
 						if (key !== 'length' && key !== 'parentRule') {
-							el.style[key] = result + 'px';
+							(el.style as any)[key] = result + 'px';
 						}
 					});
 				});

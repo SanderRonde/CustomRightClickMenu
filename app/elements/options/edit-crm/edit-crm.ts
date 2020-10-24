@@ -817,7 +817,7 @@ namespace EditCrmElement {
 			for (let i = 0; i < props.length; i++) {
 				const property = props[i];
 				if (node[property] !== void 0) {
-					target[property] = node[property];
+					(target as any)[property] = node[property];
 				}
 			}
 		}

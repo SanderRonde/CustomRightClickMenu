@@ -112,7 +112,7 @@ declare global {
 			style: CSSStyleDeclaration;
 		}): void;
 		setTransform(el: HTMLElement|SVGElement, value: string): void;
-		animateTransform(el: HTMLElement, properties: {
+		animateTransform(el: HTMLElement|Polymer.PolymerElement, properties: {
 			propName: string;
 			postfix?: string;
 			from: number;
@@ -612,7 +612,7 @@ export type SharedWindow = Window & {
 		return res;
 	}
 	
-	function propertyPersists<T extends keyof CSSStyleDeclaration>(property: T, value: string) {
+	function propertyPersists<T extends keyof CSSStyleDeclaration>(property: T, value: CSSStyleDeclaration[T]) {
 		const dummyEl = document.createElement('div');
 	
 		dummyEl.style[property] = value;

@@ -208,7 +208,7 @@ namespace NodeEditBehaviorNamespace {
 				return;
 			}
 			const element = window.app.util.findElementWithClassName(e, 'showOnContentItemCont');
-			const checkbox = $(element).find('paper-checkbox')[0] as HTMLPaperCheckboxElement;
+			const checkbox = $(element).find('paper-checkbox')[0] as unknown as HTMLPaperCheckboxElement;
 			checkbox.checked = !checkbox.checked;
 			if (!checkbox.checked) {
 				this.checkToggledIconAmount({
@@ -410,7 +410,7 @@ namespace NodeEditBehaviorNamespace {
 				delete item.children;
 			} else {
 				item[prevType + 'Val' as ('menuVal'|'linkVal'|'scriptVal'|'stylesheetVal')] =
-					item.value;
+					item.value as any;
 			}
 			item.type = this.item.type = type;
 			if (type === 'menu') {

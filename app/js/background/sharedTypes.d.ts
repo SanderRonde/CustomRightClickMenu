@@ -310,6 +310,7 @@ type BackgroundpageWindow = Window & SharedWindow & {
 	logAsync: typeof console.log;
 	infoAsync: typeof console.log;
 	testLog?: typeof console.log;
+	console: typeof console;
 }
 
 declare const enum SCRIPT_CONVERSION_TYPE {

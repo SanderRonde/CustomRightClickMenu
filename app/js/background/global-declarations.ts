@@ -734,7 +734,7 @@ export namespace GlobalDeclarations {
 							});
 					}
 				});
-				browserAPI.notifications.onClosed.addListener((notificationId, byUser?) => {
+				browserAPI.notifications.onClosed.addListener((notificationId, byUser?: boolean) => {
 					const notification = notificationListeners.get(notificationId);
 					if (notification && notification.onDone !== undefined) {
 						modules.globalObject.globals.sendCallbackMessage(notification.tabId, notification.tabIndex,

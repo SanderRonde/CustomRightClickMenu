@@ -33,7 +33,7 @@ namespace BrowserAPINS {
 	// 	and callback-style APIs under the (probably temporary) "chrome" global
 	// So if browser is Edge, use "browser", otherwise use "chrome" if available
 	// 	to ensure always always getting callback-style APIs
-	const apisWindow = window as AllBrowserAPIsWindow;
+	const apisWindow = window as unknown as AllBrowserAPIsWindow;
 	const __srcBrowser: typeof _chrome = apisWindow.StyleMedia ?
 		(apisWindow.browser as any) : apisWindow.chrome;
 	function checkReject(reject: (err: _chrome.runtime.LastError) => void) {

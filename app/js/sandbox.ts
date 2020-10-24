@@ -6,7 +6,7 @@ interface SandboxWindow extends Window {
 	logNoStack(...args: any[]): void;	
 }
 
-const _self = self as SandboxWindow;
+const _self = self as unknown as SandboxWindow;
 
 (() => {
 

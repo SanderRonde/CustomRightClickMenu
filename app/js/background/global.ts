@@ -130,12 +130,12 @@ export namespace Global {
 								mainObject[key] !== undefined &&
 								mainObject[key] !== null) {
 									if (Array.isArray(additions[key])) {
-										mainObject[key] = this.mergeArrays(mainObject[key], additions[key]);
+										mainObject[key] = this.mergeArrays(mainObject[key], (additions as any)[key]);
 									} else {
 										mainObject[key] = this.mergeObjects(mainObject[key], additions[key]);
 									}
 								} else {
-									mainObject[key] = additions[key];
+									(mainObject as any)[key] = additions[key];
 								}
 						}
 					}

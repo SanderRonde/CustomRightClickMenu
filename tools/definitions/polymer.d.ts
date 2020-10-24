@@ -80,7 +80,7 @@ export declare namespace Polymer {
 	
 	//Basically an HTMLElement with all queryselector methods set to return null
 	type WebcomponentElement = Animatable & GlobalEventHandlers & DocumentAndElementEventHandlers & ElementContentEditable & HTMLOrSVGElement & ElementCSSInlineStyle & 
-			NonDocumentTypeChildNode & Slotable & Animatable & EventTarget & {
+			NonDocumentTypeChildNode & Slottable & Animatable & EventTarget & {
 		accessKey: string;
 		readonly accessKeyLabel: string;
 		autocapitalize: string;
@@ -134,8 +134,8 @@ export declare namespace Polymer {
 		getAttributeNames(): string[];
 		getAttributeNode(name: string): Attr | null;
 		getAttributeNodeNS(namespaceURI: string, localName: string): Attr | null;
-		getBoundingClientRect(): ClientRect | DOMRect;
-		getClientRects(): ClientRectList | DOMRectList;
+		getBoundingClientRect(): DOMRect;
+		getClientRects(): DOMRectList;
 		getElementsByClassName(classNames: string): HTMLCollectionOf<Element>;
 		getElementsByTagName<K extends keyof HTMLElementTagNameMap>(qualifiedName: K): HTMLCollectionOf<HTMLElementTagNameMap[K]>;
 		getElementsByTagName<K extends keyof SVGElementTagNameMap>(qualifiedName: K): HTMLCollectionOf<SVGElementTagNameMap[K]>;
@@ -188,7 +188,7 @@ export declare namespace Polymer {
 		readonly ownerDocument: Document | null;
 		readonly parentElement: HTMLElement | null;
 		readonly parentNode: Node & ParentNode | null;
-		readonly previousSibling: Node | null;
+		readonly previousSibling: ChildNode | null;
 		textContent: string | null;
 		appendChild<T extends Node>(newChild: T): T;
 		cloneNode(deep?: boolean): Node;

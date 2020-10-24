@@ -14,7 +14,7 @@
         "pretty": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
-        "noUnusedLocals": true,
+        "noUnusedLocals": false,
         "target": "es3",
         "noUnusedParameters": true,
         "experimentalDecorators": true

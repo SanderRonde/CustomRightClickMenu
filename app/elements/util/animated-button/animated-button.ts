@@ -77,7 +77,7 @@ namespace AnimatedButtonElement {
 				if (!this.tap) {
 					return;
 				}
-				const host = this.getRootNode().host as Polymer.RootElement;
+				const host = this.getRootNode().host as unknown as Polymer.RootElement;
 				if (this.tap in host) {
 					(host[this.tap as keyof typeof host] as (e: MouseEvent) => void)(e);
 				} else {
