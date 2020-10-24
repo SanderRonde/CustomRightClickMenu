@@ -1,9 +1,10 @@
 #codeEditCont {
-	max-height: 100vh;
+	max-height: calc(100vh - 100px);
 	max-width: 100vw;
 	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
+	overflow-y: auto;
 	-webkit-box-orient: vertical;
 	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
