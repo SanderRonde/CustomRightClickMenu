@@ -6,7 +6,7 @@
         "forceConsistentCasingInFileNames": true,
         "module": "esnext",
         "moduleResolution": "node",
-        "noImplicitAny": true,
+        "noImplicitAny": false,
         "noImplicitThis": true,
         "removeComments": true,
         "preserveConstEnums": false,

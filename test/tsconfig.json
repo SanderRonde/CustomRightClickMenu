@@ -5,7 +5,7 @@
         "forceConsistentCasingInFileNames": true,
         "module": "commonjs",
         "moduleResolution": "node",
-        "noImplicitAny": true,
+        "noImplicitAny": false,
         "noImplicitThis": true,
         "removeComments": true,
         "preserveConstEnums": false,
@@ -13,7 +13,7 @@
         "pretty": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
-        "noUnusedLocals": true,
+        "noUnusedLocals": false,
         "target": "es5",
         "noUnusedParameters": true,
         "experimentalDecorators": true
