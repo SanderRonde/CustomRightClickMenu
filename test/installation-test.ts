@@ -661,42 +661,45 @@ function doOpenUserCssTest(prefix: () => string|void) {
 	before('Driver connect', async function() {
 		const url = TEST_LOCAL ?
 			LOCAL_URL : 'http://hub-cloud.browserstack.com/wd/hub';
+
+		console.log('Testing extensions is no longer supported :(');
+		process.exit(1);
 	
-		global.Promise = _promise;
+		// global.Promise = _promise;
 	
-		this.timeout(600000 * TIME_MODIFIER);
-		const additionalCapabilities = getExtensionData().getCapabilities();
-		const unBuilt = new webdriver.Builder()
-			.usingServer(url)
-			.withCapabilities(new webdriver.Capabilities({...browserCapabilities, ...{
-				project: 'Custom Right-Click Menu',
-				build: `${(
-					await tryReadManifest('app/manifest.json') ||
-					await tryReadManifest('app/manifest.chrome.json')
-				).version} - ${await getGitHash()}`,
-				name: (() => {
-					if (process.env.TRAVIS) {
-						// Travis
-						return `${process.env.TEST} attempt ${process.env.ATTEMPTS}`;
-					}
-					// Local
-					return `local:${
-						browserCapabilities.browserName
-					} ${
-						browserCapabilities.browser_version || 'latest'
-					}`
-				})(),
-				'browserstack.local': false
-			}}).merge(additionalCapabilities));
-		if (TEST_LOCAL) {
-			driver = unBuilt.forBrowser('Chrome').build();
-		} else {
-			driver = unBuilt.build();
-		}
-		setTimeModifier(TIME_MODIFIER);
-		setDriver(driver);
+		// this.timeout(600000 * TIME_MODIFIER);
+		// const additionalCapabilities = getExtensionData().getCapabilities();
+		// const unBuilt = new webdriver.Builder()
+		// 	.usingServer(url)
+		// 	.withCapabilities(new webdriver.Capabilities({...browserCapabilities, ...{
+		// 		project: 'Custom Right-Click Menu',
+		// 		build: `${(
+		// 			await tryReadManifest('app/manifest.json') ||
+		// 			await tryReadManifest('app/manifest.chrome.json')
+		// 		).version} - ${await getGitHash()}`,
+		// 		name: (() => {
+		// 			if (process.env.TRAVIS) {
+		// 				// Travis
+		// 				return `${process.env.TEST} attempt ${process.env.ATTEMPTS}`;
+		// 			}
+		// 			// Local
+		// 			return `local:${
+		// 				browserCapabilities.browserName
+		// 			} ${
+		// 				browserCapabilities.browser_version || 'latest'
+		// 			}`
+		// 		})(),
+		// 		'browserstack.local': false
+		// 	}}).merge(additionalCapabilities));
+		// if (TEST_LOCAL) {
+		// 	driver = unBuilt.forBrowser('Chrome').build();
+		// } else {
+		// 	driver = unBuilt.build();
+		// }
+		// setTimeModifier(TIME_MODIFIER);
+		// setDriver(driver);
 	
-		global.Promise = webdriver.promise.Promise;
+		// global.Promise = webdriver.promise.Promise;
 	});
 
 	let prefix: string|void;
