@@ -1969,7 +1969,7 @@ describe('Conversion', () => {
 							value: {
 								script: script
 							}
-						})]), testType as number).then((result) => {
+						} as any)]), testType as number).then((result) => {
 							assert.isDefined(result, 'Result is defined');
 							assert.property(result[0], 'value', 'Script has property value');
 							assert.property(result[0].value, 'script', "Script's value property has a script property");
@@ -3255,7 +3255,7 @@ describe('CRMAPI', () => {
 
 				assert.isDefined(node, 'created node is defined');
 				assert.isObject(node, 'created node is an object');
-				assert.deepEqual(node, expected, 'created node matches expected node');
+				assert.deepEqual(node, expected as any, 'created node matches expected node');
 			});
 			it('should correctly place the node and store it', async () => {
 				const node = await crmAPI.crm.createNode({
@@ -5561,6 +5561,7 @@ describe('CRMAPI', () => {
 			await asyncDoesNotThrow(async () => {
 				//@ts-ignore
 				const result = await crmAPI.browser.alarms.getAll(1, 2).send();
+				//@ts-ignore
 				assert.deepEqual(result, [1, 2], 'resolved values matches expected');
 			});
 		});

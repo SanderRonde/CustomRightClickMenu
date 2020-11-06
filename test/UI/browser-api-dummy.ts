@@ -405,7 +405,7 @@ interface TestWindow extends Window {
 	dummyContainer: HTMLDivElement;
 }
 
-const testWindow = window as TestWindow;
+const testWindow = window as unknown as TestWindow;
 testWindow.chrome = {
 	_lastSpecialCall: null,
 	_currentContextMenu: [],
