@@ -111,7 +111,7 @@
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.6.1",
     "gulp-typescript": "^6.0.0-alpha.1",
-    "gulp-uglify": "^3.0.0",
+    "gulp-uglify": "^3.0.2",
     "gulp-yarn": "^1.0.1",
     "gulp-zip": "^4.1.0",
     "html-minifier": "^3.5.6",

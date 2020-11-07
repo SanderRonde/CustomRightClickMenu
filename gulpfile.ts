@@ -1766,10 +1766,9 @@ class Tasks {
 					})();
 
 					@describe('Copies extra dependencies not already copied by polymer')
-					static extraDependencies() {
+					static extraUglifiedDependencies() {
 						return gulp
 							.src([
-								'./js/crmapi.js',
 								'./js/contentscripts/openusercss.js',
 								'./js/contentscripts/usercss.js',
 								'./js/contentscripts/userstyles.js',
@@ -1787,6 +1786,16 @@ class Tasks {
 							.pipe(gulp.dest('./build'));
 					}
 
+					static extraDependencies() {
+						return gulp
+							.src([
+								'./js/crmapi.js',
+							], {
+									cwd: './temp',
+									base: './temp'
+							})
+							.pipe(gulp.dest('./build'));
+					}
 
 					@rootTask('buildDevNoCompile', 
 						'Builds the extension and attempts to beautify' +
@@ -1794,7 +1803,10 @@ class Tasks {
 					static buildDevNoCompile = series(
 						Build.PrePolymer.prepolymer,
 						Build.Dev.polymer,
-						Build.extraDependencies,
+						parallel(
+							Build.extraUglifiedDependencies,
+							Build.extraDependencies
+						),
 						Build.PostPolymer.postpolymer,
 						Build.Dev.beautify
 					)
