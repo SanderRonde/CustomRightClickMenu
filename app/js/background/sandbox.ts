@@ -170,12 +170,17 @@ export namespace Sandbox {
 		args: any[],
 		//@ts-ignore
 		window?: void,
+		//@ts-ignore
 		sandboxes?: void,
+		//@ts-ignore
 		chrome?: void,
+		//@ts-ignore
 		browser?: void,
 		//@ts-ignore
 		sandboxChromeFunction?: void,
+		//@ts-ignore
 		sandbox?: void,
+		//@ts-ignore
 		sandboxChrome?: any
 	) {
 		return fn.apply(context, args);

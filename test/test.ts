@@ -2033,8 +2033,8 @@ describe('Conversion', () => {
 						'Link has name linkname'
 					);
 					assert.isArray(result[0].value, "Link's value is an array");
-					// @ts-ignore
 					assert.lengthOf(
+						// @ts-ignore
 						result[0].value,
 						3,
 						"Link's value array has a length of 3"
@@ -2082,8 +2082,8 @@ describe('Conversion', () => {
 						'Link has name linkname'
 					);
 					assert.isArray(result[0].value, "Link's value is an array");
-					// @ts-ignore
 					assert.lengthOf(
+						// @ts-ignore
 						result[0].value,
 						3,
 						"Link's value array has a length of 3"
@@ -2216,8 +2216,8 @@ describe('Conversion', () => {
 						result[0].children,
 						"Resulting node's children property is an array"
 					);
-					// @ts-ignore
 					assert.lengthOf(
+						// @ts-ignore
 						result[0].children,
 						0,
 						"Resulting node's children array has length 0"
@@ -2277,8 +2277,8 @@ describe('Conversion', () => {
 						'launchMode',
 						'Resulting node has a launchMode property'
 					);
-					// @ts-ignore
 					assert.strictEqual(
+						// @ts-ignore
 						result[0].value.launchMode,
 						2,
 						'Resulting launch mode matches expected'
@@ -3671,9 +3671,9 @@ describe('CRMAPI', () => {
 			);
 			assert.deepEqual(crmAPI.tabId, tabData.id, 'tab ids match');
 			assert.deepEqual(crmAPI.getTabInfo(), tabData, 'tabData matches');
-			// @ts-ignore
 			assert.deepEqual(
 				crmAPI.getClickInfo(),
+				// @ts-ignore
 				clickData,
 				'clickData matches'
 			);
@@ -4707,8 +4707,8 @@ describe('CRMAPI', () => {
 					(window.globals.crm.crmTree[5] as CRM.MenuNode).children[0],
 					'removed node is removed from crmTree'
 				);
-				// @ts-ignore
 				assert.lengthOf(
+					// @ts-ignore
 					window.globals.crm.crmTree[5].children,
 					0,
 					'previous container has no more children'
@@ -5155,9 +5155,9 @@ describe('CRMAPI', () => {
 			it('should throw an error when a non-existent name is used', async () => {
 				await asyncThrows(
 					() => {
-						//@ts-ignore
 						return crmAPI.crm.setContentType(
 							safeTestCRMTree[0].id,
+							//@ts-ignore
 							'x',
 							true
 						);
@@ -5333,8 +5333,8 @@ describe('CRMAPI', () => {
 						'testValue',
 						'stylesheet has been set'
 					);
-					// @ts-ignore
 					assert.strictEqual(
+						// @ts-ignore
 						window.globals.crm.crmTree[3].value.stylesheet,
 						'testValue',
 						'stylesheet has been correctly updated in tree'
@@ -5346,14 +5346,14 @@ describe('CRMAPI', () => {
 						'testValue'
 					);
 					assert.isDefined(newNode, 'node has been passed along');
-					// @ts-ignore
 					assert.strictEqual(
+						// @ts-ignore
 						newNode.stylesheetVal.stylesheet,
 						'testValue',
 						'stylesheet has been set'
 					);
-					// @ts-ignore
 					assert.strictEqual(
+						// @ts-ignore
 						window.globals.crm.crmTree[2].stylesheetVal.stylesheet,
 						'testValue',
 						'stylesheet has been correctly updated in tree'
@@ -5500,9 +5500,9 @@ describe('CRMAPI', () => {
 				});
 				it('should throw an error when the link is missing (objec)', async () => {
 					await asyncThrows(() => {
-						// @ts-ignore
 						return crmAPI.crm.link.setLinks(
 							safeTestCRMTree[5].children[0].id,
+							// @ts-ignore
 							{}
 						);
 					}, /For not all values in the array items is the property url defined/);
@@ -5531,9 +5531,9 @@ describe('CRMAPI', () => {
 							},
 						]
 					);
-					// @ts-ignore
 					assert.sameDeepMembers(
 						newValue,
+						// @ts-ignore
 						safeTestCRMTree[5].children[0].value.concat([
 							{
 								url: 'firstlink.com',
@@ -5559,9 +5559,9 @@ describe('CRMAPI', () => {
 							newTab: true,
 						}
 					);
-					// @ts-ignore
 					assert.sameDeepMembers(
 						newValue,
+						// @ts-ignore
 						safeTestCRMTree[5].children[0].value.concat([
 							{
 								url: 'firstlink.com',
@@ -5590,9 +5590,9 @@ describe('CRMAPI', () => {
 				});
 				it('should throw an error when the link is missing (objec)', async () => {
 					await asyncThrows(() => {
-						// @ts-ignore
 						return crmAPI.crm.link.push(
 							safeTestCRMTree[5].children[0].id,
+							// @ts-ignore
 							{}
 						);
 					}, /For not all values in the array items is the property url defined/);
@@ -5713,8 +5713,8 @@ describe('CRMAPI', () => {
 						'testValue',
 						'script has been set'
 					);
-					// @ts-ignore
 					assert.strictEqual(
+						// @ts-ignore
 						window.globals.crm.crmTree[2].value.script,
 						'testValue',
 						'script has been correctly updated in tree'
@@ -5726,14 +5726,14 @@ describe('CRMAPI', () => {
 						'testValue'
 					);
 					assert.isDefined(newNode, 'node has been passed along');
-					// @ts-ignore
 					assert.strictEqual(
+						// @ts-ignore
 						newNode.scriptVal.script,
 						'testValue',
 						'script has been set'
 					);
-					// @ts-ignore
 					assert.strictEqual(
+						// @ts-ignore
 						window.globals.crm.crmTree[3].scriptVal.script,
 						'testValue',
 						'script has been correctly updated in tree'
@@ -5834,16 +5834,16 @@ describe('CRMAPI', () => {
 								name: 'jquery',
 							}
 						);
-						//@ts-ignore
 						assert.deepEqual(
 							libraries,
+							//@ts-ignore
 							window.globals.crm.crmTree[2].value.libraries,
 							'returned value is the same as in the tree'
 						);
-						//@ts-ignore
 						assert.includeDeepMembers(
 							libraries,
 							[
+								//@ts-ignore
 								{
 									name: 'jquery',
 								},
@@ -5864,15 +5864,15 @@ describe('CRMAPI', () => {
 							safeTestCRMTree[2].id,
 							registered
 						);
-						//@ts-ignore
 						assert.deepEqual(
 							libraries,
+							//@ts-ignore
 							window.globals.crm.crmTree[2].value.libraries,
 							'returned value is the same as in the tree'
 						);
-						//@ts-ignore
 						assert.includeDeepMembers(
 							libraries,
+							//@ts-ignore
 							registered,
 							'libraries array contains the registered library'
 						);
@@ -5966,15 +5966,15 @@ describe('CRMAPI', () => {
 						];
 						var splicedExpected = expectedArray.splice(0, 1);
 
-						//@ts-ignore
 						assert.deepEqual(
+							//@ts-ignore
 							window.globals.crm.crmTree[2].value.libraries,
 							expectedArray,
 							'new value matches expected'
 						);
-						//@ts-ignore
 						assert.deepEqual(
 							spliced,
+							//@ts-ignore
 							splicedExpected,
 							'spliced library matches expected library'
 						);
@@ -6003,15 +6003,15 @@ describe('CRMAPI', () => {
 						];
 						var splicedExpected = expectedArray.splice(2, 1);
 
-						//@ts-ignore
 						assert.deepEqual(
+							//@ts-ignore
 							window.globals.crm.crmTree[2].value.libraries,
 							expectedArray,
 							'new value matches expected'
 						);
-						//@ts-ignore
 						assert.deepEqual(
 							spliced,
+							//@ts-ignore
 							splicedExpected,
 							'spliced library matches expected library'
 						);
@@ -6040,15 +6040,15 @@ describe('CRMAPI', () => {
 						];
 						var splicedExpected = expectedArray.splice(0, 2);
 
-						//@ts-ignore
 						assert.deepEqual(
+							//@ts-ignore
 							window.globals.crm.crmTree[2].value.libraries,
 							expectedArray,
 							'new value matches expected'
 						);
-						//@ts-ignore
 						assert.deepEqual(
 							spliced,
+							//@ts-ignore
 							splicedExpected,
 							'spliced libraries matches expected libraries'
 						);
@@ -6077,15 +6077,15 @@ describe('CRMAPI', () => {
 						];
 						var splicedExpected = expectedArray.splice(1, 2);
 
-						//@ts-ignore
 						assert.deepEqual(
+							//@ts-ignore
 							window.globals.crm.crmTree[2].value.libraries,
 							expectedArray,
 							'new value matches expected'
 						);
-						//@ts-ignore
 						assert.deepEqual(
 							spliced,
+							//@ts-ignore
 							splicedExpected,
 							'spliced libraries matches expected libraries'
 						);
@@ -6120,17 +6120,17 @@ describe('CRMAPI', () => {
 									name: 'jquery',
 								}
 							);
-							//@ts-ignore
+							const value = window.globals.crm.crmTree[2].value;
 							assert.deepEqual(
 								libraries,
-								window.globals.crm.crmTree[2].value
-									.backgroundLibraries,
+								//@ts-ignore
+								value.backgroundLibraries,
 								'returned value is the same as in the tree'
 							);
-							//@ts-ignore
 							assert.includeDeepMembers(
 								libraries,
 								[
+									//@ts-ignore
 									{
 										name: 'jquery',
 									},
@@ -6151,16 +6151,16 @@ describe('CRMAPI', () => {
 								safeTestCRMTree[2].id,
 								registered
 							);
-							//@ts-ignore
+							const value = window.globals.crm.crmTree[2].value
 							assert.deepEqual(
 								libraries,
-								window.globals.crm.crmTree[2].value
-									.backgroundLibraries,
+								//@ts-ignore
+								value.backgroundLibraries,
 								'returned value is the same as in the tree'
 							);
-							//@ts-ignore
 							assert.includeDeepMembers(
 								libraries,
+								//@ts-ignore
 								registered,
 								'libraries array contains the registered library'
 							);
@@ -6254,16 +6254,16 @@ describe('CRMAPI', () => {
 							];
 							var splicedExpected = expectedArray.splice(0, 1);
 
-							//@ts-ignore
+							const value = window.globals.crm.crmTree[2].value;
 							assert.deepEqual(
-								window.globals.crm.crmTree[2].value
-									.backgroundLibraries,
+								//@ts-ignore
+								value.backgroundLibraries,
 								expectedArray,
 								'new value matches expected'
 							);
-							//@ts-ignore
 							assert.deepEqual(
 								spliced,
+								//@ts-ignore
 								splicedExpected,
 								'spliced library matches expected library'
 							);
@@ -6292,16 +6292,16 @@ describe('CRMAPI', () => {
 							];
 							var splicedExpected = expectedArray.splice(2, 1);
 
-							//@ts-ignore
+							const value = window.globals.crm.crmTree[2].value;
 							assert.deepEqual(
-								window.globals.crm.crmTree[2].value
-									.backgroundLibraries,
+								//@ts-ignore
+								value.backgroundLibraries,
 								expectedArray,
 								'new value matches expected'
 							);
-							//@ts-ignore
 							assert.deepEqual(
 								spliced,
+								//@ts-ignore
 								splicedExpected,
 								'spliced library matches expected library'
 							);
@@ -6330,16 +6330,16 @@ describe('CRMAPI', () => {
 							];
 							var splicedExpected = expectedArray.splice(0, 2);
 
-							//@ts-ignore
+							const value = window.globals.crm.crmTree[2].value;
 							assert.deepEqual(
-								window.globals.crm.crmTree[2].value
-									.backgroundLibraries,
+								//@ts-ignore
+								value.backgroundLibraries,
 								expectedArray,
 								'new value matches expected'
 							);
-							//@ts-ignore
 							assert.deepEqual(
 								spliced,
+								//@ts-ignore
 								splicedExpected,
 								'spliced libraries matches expected libraries'
 							);
@@ -6368,16 +6368,16 @@ describe('CRMAPI', () => {
 							];
 							var splicedExpected = expectedArray.splice(1, 2);
 
-							//@ts-ignore
+							const value = window.globals.crm.crmTree[2].value
 							assert.deepEqual(
-								window.globals.crm.crmTree[2].value
-									.backgroundLibraries,
+								//@ts-ignore
+								value.backgroundLibraries,
 								expectedArray,
 								'new value matches expected'
 							);
-							//@ts-ignore
 							assert.deepEqual(
 								spliced,
+								//@ts-ignore
 								splicedExpected,
 								'spliced libraries matches expected libraries'
 							);
@@ -6546,8 +6546,8 @@ describe('CRMAPI', () => {
 						0,
 						1
 					);
-					// @ts-ignore
 					assert.lengthOf(
+						// @ts-ignore
 						window.globals.crm.crmTree[5].children,
 						0,
 						'new node has 0 children'
@@ -6996,8 +6996,8 @@ describe('CRMAPI', () => {
 			it('should throw an error if the content types are incorrect', async () => {
 				await asyncThrows(
 					async () => {
-						//@ts-ignore
 						await crmAPI.contextMenuItem.setContentTypes([
+							//@ts-ignore
 							'incorrect',
 						]);
 					},
@@ -7991,8 +7991,8 @@ describe('CRMAPI', () => {
 		});
 		it('works with functions whose promise resolves into something', async () => {
 			await asyncDoesNotThrow(async () => {
-				//@ts-ignore
 				const result = await crmAPI.browser.alarms.get
+					//@ts-ignore
 					.args(1, 2)
 					.send();
 				assert.strictEqual(
@@ -8006,9 +8006,9 @@ describe('CRMAPI', () => {
 			await asyncDoesNotThrow(async () => {
 				//@ts-ignore
 				const result = await crmAPI.browser.alarms.getAll(1, 2).send();
-				//@ts-ignore
 				assert.deepEqual(
 					result,
+					//@ts-ignore
 					[1, 2],
 					'resolved values matches expected'
 				);
@@ -8017,8 +8017,8 @@ describe('CRMAPI', () => {
 		it('works with functions with a callback', async () => {
 			await asyncDoesNotThrow(async () => {
 				await new Promise(async (resolve) => {
-					//@ts-ignore
 					crmAPI.browser.alarms
+						//@ts-ignore
 						.clear((value) => {
 							assert.strictEqual(
 								value,
