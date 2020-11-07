@@ -1,17 +1,31 @@
-<!DOCTYPE HTML>
-<link rel="import" href="../../../bower_components/paper-button/paper-button.html"/>
+<!DOCTYPE html>
+<link
+	rel="import"
+	href="../../../bower_components/paper-button/paper-button.html"
+/>
 <dom-module id="animated-button" attributes="content cooldown tap raised">
 	<template>
 		<!-- build:css inline ../../../elements/util/animated-button/animated-button.css -->
-		<link rel="stylesheet" href="../../elements/util/animated-button/animated-button.css"/>
+		<link
+			rel="stylesheet"
+			href="../../elements/util/animated-button/animated-button.css"
+		/>
 		<!-- /build-->
 		<div>
 			<paper-button raised$="[[raised]]" id="button">
 				<div id="contentContainer">
 					<span id="textContent">[[content]]</span>
 					<div id="checkmarkContent">
-						<svg id="checkmark" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
-							<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
+						<svg
+							id="checkmark"
+							xmlns="http://www.w3.org/2000/svg"
+							width="30"
+							height="30"
+							viewbox="0 0 48 48"
+						>
+							<path
+								d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"
+							/>
 						</svg>
 					</div>
 				</div>

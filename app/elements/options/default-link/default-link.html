@@ -1,20 +1,38 @@
-﻿<!DOCTYPE HTML>
+﻿<!DOCTYPE html>
 <dom-module id="default-link" attributes="href defaultName searchEngine">
 	<template>
 		<!-- build:css inline ../../../elements/options/default-link/default-link.css -->
-		<link rel="stylesheet" href="../../elements/options/default-link/default-link.css"/>
+		<link
+			rel="stylesheet"
+			href="../../elements/options/default-link/default-link.css"
+		/>
 		<!-- /build -->
 		<div class="defaultLinkCont">
 			<div class="defaultLinkLinkCont" searchengine$="[[searchEngine]]">
 				<div class="defaultLinkLink">
-					<a class="defaultLinkHref" href="{{href}}" rel="noopener" target="_blank">{{href}}</a>
+					<a
+						class="defaultLinkHref"
+						href="{{href}}"
+						rel="noopener"
+						target="_blank"
+						>{{href}}</a
+					>
 				</div>
 			</div>
 			<div class="defaultLinkName" flex>
-				<paper-input id="input" label="[[__(lang, langReady, 'options_defaultLink_name')]]" value="{{defaultName}}"></paper-input>
+				<paper-input
+					id="input"
+					label="[[__(lang, langReady, 'options_defaultLink_name')]]"
+					value="{{defaultName}}"
+				></paper-input>
 			</div>
 			<div class="defaultLinkButton">
-				<animated-button class="blue" raised tap="onClick" content="ADD"></animated-button>
+				<animated-button
+					class="blue"
+					raised
+					tap="onClick"
+					content="ADD"
+				></animated-button>
 			</div>
 		</div>
 	</template>

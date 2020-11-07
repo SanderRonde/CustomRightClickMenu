@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="elementsLoading">
 	<head>
-		<meta charset="UTF-8">
+		<meta charset="UTF-8" />
 		<title>Options</title>
 		<style type="text/css">
 			/*#region Fonts*/
@@ -49,7 +49,7 @@
 
 			body {
 				font-size: 75%;
-				font-family: 'Roboto', "segoe UI", tahoma, sans serif;
+				font-family: 'Roboto', 'segoe UI', tahoma, sans serif;
 			}
 			/*#endregion*/
 
@@ -57,17 +57,17 @@
 			.contextMenuRoot {
 				z-index: 9999999999999999;
 				position: fixed;
-			}			
+			}
 
 			.contextMenuRoot.rootHidden {
 				display: none;
 			}
 
 			.contextMenuMenuSubmenu {
-				box-shadow: 1px 3px 1px 0 rgba(0, 0, 0, 0.14), 
-					0 1px 8px 0 rgba(0, 0, 0, 0.12), 
+				box-shadow: 1px 3px 1px 0 rgba(0, 0, 0, 0.14),
+					0 1px 8px 0 rgba(0, 0, 0, 0.12),
 					0 3px 3px -2px rgba(0, 0, 0, 0.4);
-				border: 1px solid #BABABA;
+				border: 1px solid #bababa;
 				background-color: white;
 				padding-top: 2px;
 				padding-bottom: 2px;
@@ -83,8 +83,10 @@
 				margin-top: -27px;
 			}
 
-			.contextMenuLink, .contextMenuScript, 
-			.contextMenuStylesheet, .contextMenuMenuContainer {
+			.contextMenuLink,
+			.contextMenuScript,
+			.contextMenuStylesheet,
+			.contextMenuMenuContainer {
 				padding-top: 7px;
 				padding-left: 36px;
 				padding-right: 25px;
@@ -97,15 +99,17 @@
 				cursor: default;
 			}
 
-			.contextMenuLink:hover, .contextMenuScript:hover, 
-			.contextMenuStylesheet:hover, .contextMenuMenuContainer:hover,
+			.contextMenuLink:hover,
+			.contextMenuScript:hover,
+			.contextMenuStylesheet:hover,
+			.contextMenuMenuContainer:hover,
 			.contextMenuMenuContainer.hover {
-				background-color: #EBEBEB;
+				background-color: #ebebeb;
 			}
 
 			.contextMenuDivider {
 				margin-top: 5px;
-				border-top: 1px solid #E9E9E9;
+				border-top: 1px solid #e9e9e9;
 				margin-bottom: 5px;
 			}
 
@@ -127,8 +131,8 @@
 				background-size: cover;
 				width: 0px;
 				height: 7px;
-				fill: #5A5A5A;
-				stroke: #5A5A5A;
+				fill: #5a5a5a;
+				stroke: #5a5a5a;
 				stroke-width: 5px;
 			}
 
@@ -139,7 +143,8 @@
 				margin-left: 4px;
 			}
 
-			.contextMenuRoot.clickable, .contextMenuRoot.clickable .contextMenuNode {
+			.contextMenuRoot.clickable,
+			.contextMenuRoot.clickable .contextMenuNode {
 				cursor: pointer;
 			}
 			/*#endregion*/
@@ -149,7 +154,7 @@
 				bottom: 0;
 				right: 0;
 				left: 0;
-				background-color: #FF5722;
+				background-color: #ff5722;
 				z-index: 999999999999999;
 				color: white;
 			}
@@ -162,18 +167,36 @@
 			<script src="../bower_components/webcomponentsjs/custom-elements-es5-adapter.js"></script>
 		/build -->
 		<!-- build:remove -->
-		<link rel="import" href="../bower_components/polymer/polymer.html">
+		<link rel="import" href="../bower_components/polymer/polymer.html" />
 		<!-- /build -->
 		<!-- build:remove -->
 		<script src="../bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 		<!-- /build -->
-		<link rel="import" href="../bower_components/polymer/lib/legacy/class.html" />
-		<link rel="import" href="../elements/util/splash-screen/splash-screen.html" />
-		<link async rel="import" href="../elements/options/crm-app/crm-app.html" />
-		<link async rel="import" href="../elements/util/error-reporting-tool/error-reporting-tool.html" />
+		<link
+			rel="import"
+			href="../bower_components/polymer/lib/legacy/class.html"
+		/>
+		<link
+			rel="import"
+			href="../elements/util/splash-screen/splash-screen.html"
+		/>
+		<link
+			async
+			rel="import"
+			href="../elements/options/crm-app/crm-app.html"
+		/>
+		<link
+			async
+			rel="import"
+			href="../elements/util/error-reporting-tool/error-reporting-tool.html"
+		/>
 	</head>
-	<body style="margin: 0;">
-		<splash-screen max="51" id="splashScreen" name="Custom Right-Click Menu">
+	<body style="margin: 0">
+		<splash-screen
+			max="51"
+			id="splashScreen"
+			name="Custom Right-Click Menu"
+		>
 			<error-reporting-tool></error-reporting-tool>
 			<crm-app></crm-app>
 		</splash-screen>

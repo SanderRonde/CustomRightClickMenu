@@ -1,30 +1,33 @@
 #errorToolContent {
-	position:fixed;
+	position: fixed;
 	z-index: 99999999999999;
 	width: 0;
 	height: 0;
 }
 
 #iconContent {
-	-webkit-transform: translate(-webkit-calc(100vw - 110px), -webkit-calc(100vh - 100px));
+	-webkit-transform: translate(
+		-webkit-calc(100vw - 110px),
+		-webkit-calc(100vh - 100px)
+	);
 	transform: translate(calc(100vw - 110px), calc(100vh - 100px));
 }
 
 #overlay {
 	position: fixed;
-	width:100vw;
-	height:100vh;
+	width: 100vw;
+	height: 100vh;
 	pointer-events: none;
-	z-index:50;
+	z-index: 50;
 	cursor: crosshair;
 	opacity: 0;
 	-webkit-transition: opacity ease-in-out 0.3s;
 	transition: opacity ease-in-out 0.3s;
 }
 
-	#overlay.toggled {
-		opacity: 1;
-	}
+#overlay.toggled {
+	opacity: 1;
+}
 
 #reportBugButton {
 	width: 66px;
@@ -33,29 +36,31 @@
 
 #reportingButtonElevation {
 	border-radius: 50%;
-	width:66px;
-	height:66px;
+	width: 66px;
+	height: 66px;
 	background-color: white;
-	cursor:pointer;
+	cursor: pointer;
 }
 
 #cropCanvas {
 	display: none;
 }
 
-#errorReportingDialog, #onErrorDialog {
+#errorReportingDialog,
+#onErrorDialog {
 	width: 800px;
 	position: static !important;
 	top: inherit !important;
 	max-height: none !important;
-	z-index:2000;
+	z-index: 2000;
 }
 
 .bugReportInfo {
 	font-weight: bold;
 }
 
-.canvasCont, .addImg {
+.canvasCont,
+.addImg {
 	width: 148.4px;
 	padding: 0 1px;
 	cursor: pointer;
@@ -72,18 +77,19 @@
 	-webkit-user-drag: none;
 }
 
-	#highlightingCont div {
-		background-color: rgba(0,0,0,0.35);
-		-webkit-user-drag: none;
-		position: absolute;
-		pointer-events: none;
-		will-change: -webkit-transform;
-		will-change: transform;
-		will-change: width;
-		will-change: height;
-	}
+#highlightingCont div {
+	background-color: rgba(0, 0, 0, 0.35);
+	-webkit-user-drag: none;
+	position: absolute;
+	pointer-events: none;
+	will-change: -webkit-transform;
+	will-change: transform;
+	will-change: width;
+	will-change: height;
+}
 
-#highlightingTopSquare, #highlightingBotSquare {
+#highlightingTopSquare,
+#highlightingBotSquare {
 	width: 100vw;
 }
 
@@ -96,25 +102,26 @@
 	font-size: 180%;
 	-webkit-transform: translate(-webkit-calc((100vw - 250px) / 2), 85vh);
 	transform: translate(calc((100vw - 250px) / 2), 85vh);
-	z-index:100;
+	z-index: 100;
 	opacity: 1;
 	-webkit-transition: opacity ease-in-out 0.3s;
 	transition: opacity ease-in-out 0.3s;
 }
 
-	#highlightButtons.hidden {
-		pointer-events:none;
-		opacity: 0;
-	}
+#highlightButtons.hidden {
+	pointer-events: none;
+	opacity: 0;
+}
 
-#submitHighlightButton, #cancelHighlightButton {
+#submitHighlightButton,
+#cancelHighlightButton {
 	background-color: white;
 	text-transform: capitalize;
 }
 
 .capture {
 	width: 750px;
-	cursor:pointer;
+	cursor: pointer;
 }
 
 .captureElevation {
@@ -128,14 +135,14 @@
 	-webkit-box-orient: horizontal;
 	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
-	        flex-direction: row;
+	flex-direction: row;
 	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	        justify-content: center;
+	justify-content: center;
 }
 
 #errorCont {
-	color: #D50000;
+	color: #d50000;
 	font-weight: bold;
 	font-size: 120%;
 }
@@ -160,9 +167,8 @@
 
 #bugCheckmark.checked {
 	-webkit-animation: error-checkmark-expand 140ms ease-out forwards;
-	        animation: error-checkmark-expand 140ms ease-out forwards;
+	animation: error-checkmark-expand 140ms ease-out forwards;
 }
-
 
 @-webkit-keyframes error-checkmark-expand {
 	0% {
@@ -182,7 +188,6 @@
 		border-bottom-width: 6px;
 	}
 }
-
 
 @keyframes error-checkmark-expand {
 	0% {
@@ -204,24 +209,24 @@
 }
 
 #bugCheckmarkCont {
-	border-radius:50%;
-	width:66px;
-	height:66px;
-	background-color:#4CAF50;
+	border-radius: 50%;
+	width: 66px;
+	height: 66px;
+	background-color: #4caf50;
 	opacity: 0;
 	-webkit-transition: opacity 350ms ease-in-out;
 	transition: opacity 350ms ease-in-out;
 }
 
-	#bugCheckmarkCont.checkmark {
-		opacity: 1;
-	}
+#bugCheckmarkCont.checkmark {
+	opacity: 1;
+}
 
 #bugButton {
 	opacity: 1;
 	-webkit-transition: opacity 350ms ease-in-out;
 	transition: opacity 350ms ease-in-out;
-	border-radius:50%;
+	border-radius: 50%;
 }
 
 #bugButton.checkmark {
@@ -233,7 +238,7 @@
 }
 
 .imgContainer[hidden] {
-	display: none!important;
+	display: none !important;
 }
 
 a {
@@ -247,7 +252,7 @@ a:focus {
 }
 
 a:focus::before {
-	background-color: rgba(0,0,0,.1);
+	background-color: rgba(0, 0, 0, 0.1);
 	border-radius: 2px;
 	bottom: -4px;
 	content: ' ';

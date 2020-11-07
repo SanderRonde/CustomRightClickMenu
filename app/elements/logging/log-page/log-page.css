@@ -3,8 +3,8 @@ body {
 }
 
 app-header {
-	left: 0!important;
-	background-color: rgb(255, 87, 34)!important;
+	left: 0 !important;
+	background-color: rgb(255, 87, 34) !important;
 	color: white;
 }
 
@@ -12,11 +12,11 @@ app-header {
 	text-align: center;
 	font-size: 200% !important;
 	height: 35px;
-	margin-left: 0!important;
+	margin-left: 0 !important;
 }
 
 .circle.paper-spinner {
-	border-width:3px;
+	border-width: 3px;
 }
 
 #spinner {
@@ -35,18 +35,18 @@ app-header {
 	display: flex;
 	-webkit-justify-content: center;
 	-webkit-box-pack: center;
-	        justify-content: center;
-	width:100%;
+	justify-content: center;
+	width: 100%;
 }
 
 #loadingContainer {
-	-webkit-transition: opacity 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
-	transition: opacity 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
+	-webkit-transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
+	transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
 	position: absolute;
-	opacity:1;
+	opacity: 1;
 	pointer-events: none;
 }
 
-	#loadingContainer[hide] {
-		opacity:0;
-	}
+#loadingContainer[hide] {
+	opacity: 0;
+}

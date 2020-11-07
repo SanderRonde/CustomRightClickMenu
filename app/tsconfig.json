@@ -1,33 +1,31 @@
 {
-    "compilerOptions": {
-        "jsx": "react",
-        "alwaysStrict": true,
-        "baseUrl": "../tools/definitions/",
-        "forceConsistentCasingInFileNames": true,
-        "module": "esnext",
-        "moduleResolution": "node",
-        "noImplicitAny": false,
-        "noImplicitThis": true,
-        "removeComments": true,
-        "preserveConstEnums": false,
-        "listFiles": false,
-        "pretty": true,
-        "noFallthroughCasesInSwitch": true,
-        "noImplicitReturns": true,
-        "noUnusedLocals": false,
-        "target": "es3",
-        "noUnusedParameters": true,
-        "experimentalDecorators": true,
-        "skipLibCheck": true
-	}, 
-    "allowJs": true,
-    "compileOnSave": true,
-    "include": [
-        "./"
-    ],
-    "exclude": [
-        "./js/libraries/crmapi.d.ts",
-        "./bower_components",
-        "./_locales"
-    ]
+	"compilerOptions": {
+		"jsx": "react",
+		"alwaysStrict": true,
+		"baseUrl": "../tools/definitions/",
+		"forceConsistentCasingInFileNames": true,
+		"module": "esnext",
+		"moduleResolution": "node",
+		"noImplicitAny": false,
+		"noImplicitThis": true,
+		"removeComments": true,
+		"preserveConstEnums": false,
+		"listFiles": false,
+		"pretty": true,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": false,
+		"target": "es3",
+		"noUnusedParameters": true,
+		"experimentalDecorators": true,
+		"skipLibCheck": true
+	},
+	"allowJs": true,
+	"compileOnSave": true,
+	"include": ["./"],
+	"exclude": [
+		"./js/libraries/crmapi.d.ts",
+		"./bower_components",
+		"./_locales"
+	]
 }

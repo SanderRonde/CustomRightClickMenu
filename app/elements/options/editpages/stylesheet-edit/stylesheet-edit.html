@@ -1,310 +1,796 @@
-﻿<!DOCTYPE HTML>
+﻿<!DOCTYPE html>
 <link rel="import" href="../../node-edit-behavior/node-edit-behavior.html" />
 <link rel="import" href="../code-edit-pages/code-edit-behavior.html" />
 <dom-module id="stylesheet-edit" attributes="item">
-<template>
-	<!-- build:css inline  ../../../../elements/options/editpages/code-edit-pages/code-edit-styles.css-->
-	<link rel="stylesheet" href="../../elements/options/editpages/code-edit-pages/code-edit-styles.css" />
-	<!-- /build -->
-	<!-- build:css inline  ../../../../elements/options/node-edit-behavior/node-edit-behavior.css-->
-	<link rel="stylesheet" href="../../elements/options/node-edit-behavior/node-edit-behavior.css" />
-	<!-- /build -->
-	<!-- build:css inline ../../../../elements/options/editpages/stylesheet-edit/stylesheet-edit.css -->
-	<link rel="stylesheet" href="../../elements/options/editpages/stylesheet-edit/stylesheet-edit.css" />
-	<!-- /build -->
-	<style is="custom-style" include="paper-material-styles"></style>
-	<div id="codeEditCont">
-		<div id="settingsCont">
-			<div id="settings">
-				<div id="nameAutoUpdateCont">
-					<div id="topRow">
-						<div class="itemEditBigTxt">[[__(lang, langReady, 'options_editPages_generic_name')]]</div>
-						<div id="updateIcon" title="[[__(lang, langReady, 'options_editPages_script_autoUpdate')]]" on-tap="toggleAutoUpdate">
-							<div id="updateImages">
-								<div id="updateEnabled">
-									<svg fill="#FFFFFF" height="30" viewBox="0 0 24 24" width="30" xmlns="http://www.w3.org/2000/svg">
-										<path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
-										<path d="M0 0h24v24H0z" fill="none"/>
-									</svg>
-								</div>
-								<div id="updateDisabled" class="hidden">
-									<svg fill="#FFFFFF" height="30" viewBox="0 0 24 24" width="30" xmlns="http://www.w3.org/2000/svg">
-										<path d="M0 0h24v24H0zm0 0h24v24H0z" fill="none"/>
-										<path d="M10 6.35V4.26c-.8.21-1.55.54-2.23.96l1.46 1.46c.25-.12.5-.24.77-.33zm-7.14-.94l2.36 2.36C4.45 8.99 4 10.44 4 12c0 2.21.91 4.2 2.36 5.64L4 20h6v-6l-2.24 2.24C6.68 15.15 6 13.66 6 12c0-1 .25-1.94.68-2.77l8.08 8.08c-.25.13-.5.25-.77.34v2.09c.8-.21 1.55-.54 2.23-.96l2.36 2.36 1.27-1.27L4.14 4.14 2.86 5.41zM20 4h-6v6l2.24-2.24C17.32 8.85 18 10.34 18 12c0 1-.25 1.94-.68 2.77l1.46 1.46C19.55 15.01 20 13.56 20 12c0-2.21-.91-4.2-2.36-5.64L20 4z"/>
-									</svg>
-								</div>
-							</div>
-						</div>
-					</div>
-					<paper-input no-label-float id="nameInput" value="{{newSettings.name}}" on-keydown="inputKeyPress"></paper-input>
-				</div>
-				<br/>
-				<div id="toggleButtonsCont">
-					<div class="toggleButtonOption">
-						<paper-toggle-button id="isTogglableButton" checked="{{newSettings.value.toggle}}">[[__(lang, langReady, 'options_editPages_stylesheet_togglable')]]</paper-toggle-button>
-					</div>
-					<div class="toggleButtonOption">
-						<paper-toggle-button id="isDefaultOnButton" disabled$="[[!newSettings.value.toggle]]" checked="{{newSettings.value.defaultOn}}">[[__(lang, langReady, 'options_editPages_stylesheet_onByDefault')]]</paper-toggle-button>
-					</div>
-					<div id="codeInfoCont">
-						<svg class="inactive" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-							<path d="M0 0h24v24H0z" fill="none"/>
-							<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/>
-						</svg>
-						<svg class="active" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-							<path d="M0 0h24v24H0z" fill="none"/>
-							<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-						</svg>
-						<div class="paper-material" id="codeInfoTxtCont" elevation="3">
-							<div id="codeInfoTxt">
-								[[__(lang, langReady, 'options_editPages_stylesheet_toggleInfo')]]
-							</div>
-						</div>
-					</div>
-				</div>
-				<div id="triggersCont">
-					<div class="itemEditBigTxt">
-						[[__(lang, langReady, 'options_editPages_code_triggers')]]
-					</div>
-					<br/>
-					<paper-dropdown-menu indent="false" id="dropdownMenu" selected="[[item.value.launchMode]]">
-						<paper-menu slot="menu" selected="{{newSettings.value.launchMode}}">
-							<div slot="content">
-								<paper-item id="executeOnClickOption" class="stylesheetLaunchOption">
-									<div class="menuSelectedCheckmark">
-										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
-									</div>
-									<span class="menuOptionName">[[__(lang, langReady, 'options_editPages_code_triggerOnClick')]]</span>
-								</paper-item>
-								<paper-item id="executeAlwaysOption" class="stylesheetLaunchOption">
-									<div class="menuSelectedCheckmark">
-										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
-									</div>
-									<span class="menuOptionName">[[__(lang, langReady, 'options_editPages_code_triggerAlways')]]</span>
-								</paper-item>
-								<paper-item id="executeOnSpecified" class="stylesheetLaunchOption">
-									<div class="menuSelectedCheckmark">
-										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
-									</div>
-									<span class="menuOptionName">[[__(lang, langReady, 'options_editPages_code_triggerSpecified')]]</span>
-								</paper-item>
-								<paper-item id="showOnSpecifiedSites" class="stylesheetLaunchOption">
-									<div class="menuSelectedCheckmark">
-										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
-									</div>
-									<span class="menuOptionName">[[__(lang, langReady, 'options_editPages_code_triggerShowOnSpecified')]]</span>
-								</paper-item>
-								<paper-item id="nodeDisabled" class="stylesheetLaunchOption">
-									<div class="menuSelectedCheckmark">
-										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
-									</div>
-									<span class="menuOptionName">[[__(lang, langReady, 'options_editPages_code_triggerDisabled')]]</span>
-								</paper-item>
-							</div>
-						</paper-menu>
-					</paper-dropdown-menu>
-					<br/>
-					<br/>
-					<div id="triggerOverflowContainer">
-						<div id="executionTriggersContainer">
+	<template>
+		<!-- build:css inline  ../../../../elements/options/editpages/code-edit-pages/code-edit-styles.css-->
+		<link
+			rel="stylesheet"
+			href="../../elements/options/editpages/code-edit-pages/code-edit-styles.css"
+		/>
+		<!-- /build -->
+		<!-- build:css inline  ../../../../elements/options/node-edit-behavior/node-edit-behavior.css-->
+		<link
+			rel="stylesheet"
+			href="../../elements/options/node-edit-behavior/node-edit-behavior.css"
+		/>
+		<!-- /build -->
+		<!-- build:css inline ../../../../elements/options/editpages/stylesheet-edit/stylesheet-edit.css -->
+		<link
+			rel="stylesheet"
+			href="../../elements/options/editpages/stylesheet-edit/stylesheet-edit.css"
+		/>
+		<!-- /build -->
+		<style is="custom-style" include="paper-material-styles"></style>
+		<div id="codeEditCont">
+			<div id="settingsCont">
+				<div id="settings">
+					<div id="nameAutoUpdateCont">
+						<div id="topRow">
 							<div class="itemEditBigTxt">
-								<span id="showOrExecutetxt">[[__(lang, langReady, 'options_editPages_code_executeOn')]]</span>
-								<div id="triggersInfoCont">
-									<svg class="inactive" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-										<path d="M0 0h24v24H0z" fill="none"/>
-										<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/>
-									</svg>
-									<svg class="active" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-										<path d="M0 0h24v24H0z" fill="none"/>
-										<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-									</svg>
-									<div class="paper-material" id="triggersInfoTxtCont" elevation="3">
-										<div id="triggersInfoTxt">
-											<echo-html html="[[__(lang, langReady, 'options_editPages_code_triggerInfo')]]"></echo-html>
+								[[__(lang, langReady,
+								'options_editPages_generic_name')]]
+							</div>
+							<div
+								id="updateIcon"
+								title="[[__(lang, langReady, 'options_editPages_script_autoUpdate')]]"
+								on-tap="toggleAutoUpdate"
+							>
+								<div id="updateImages">
+									<div id="updateEnabled">
+										<svg
+											fill="#FFFFFF"
+											height="30"
+											viewBox="0 0 24 24"
+											width="30"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"
+											/>
+											<path
+												d="M0 0h24v24H0z"
+												fill="none"
+											/>
+										</svg>
+									</div>
+									<div id="updateDisabled" class="hidden">
+										<svg
+											fill="#FFFFFF"
+											height="30"
+											viewBox="0 0 24 24"
+											width="30"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M0 0h24v24H0zm0 0h24v24H0z"
+												fill="none"
+											/>
+											<path
+												d="M10 6.35V4.26c-.8.21-1.55.54-2.23.96l1.46 1.46c.25-.12.5-.24.77-.33zm-7.14-.94l2.36 2.36C4.45 8.99 4 10.44 4 12c0 2.21.91 4.2 2.36 5.64L4 20h6v-6l-2.24 2.24C6.68 15.15 6 13.66 6 12c0-1 .25-1.94.68-2.77l8.08 8.08c-.25.13-.5.25-.77.34v2.09c.8-.21 1.55-.54 2.23-.96l2.36 2.36 1.27-1.27L4.14 4.14 2.86 5.41zM20 4h-6v6l2.24-2.24C17.32 8.85 18 10.34 18 12c0 1-.25 1.94-.68 2.77l1.46 1.46C19.55 15.01 20 13.56 20 12c0-2.21-.91-4.2-2.36-5.64L20 4z"
+											/>
+										</svg>
+									</div>
+								</div>
+							</div>
+						</div>
+						<paper-input
+							no-label-float
+							id="nameInput"
+							value="{{newSettings.name}}"
+							on-keydown="inputKeyPress"
+						></paper-input>
+					</div>
+					<br />
+					<div id="toggleButtonsCont">
+						<div class="toggleButtonOption">
+							<paper-toggle-button
+								id="isTogglableButton"
+								checked="{{newSettings.value.toggle}}"
+								>[[__(lang, langReady,
+								'options_editPages_stylesheet_togglable')]]</paper-toggle-button
+							>
+						</div>
+						<div class="toggleButtonOption">
+							<paper-toggle-button
+								id="isDefaultOnButton"
+								disabled$="[[!newSettings.value.toggle]]"
+								checked="{{newSettings.value.defaultOn}}"
+								>[[__(lang, langReady,
+								'options_editPages_stylesheet_onByDefault')]]</paper-toggle-button
+							>
+						</div>
+						<div id="codeInfoCont">
+							<svg
+								class="inactive"
+								fill="#000000"
+								height="24"
+								viewbox="0 0 24 24"
+								width="24"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path d="M0 0h24v24H0z" fill="none" />
+								<path
+									d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"
+								/>
+							</svg>
+							<svg
+								class="active"
+								fill="#000000"
+								height="24"
+								viewbox="0 0 24 24"
+								width="24"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path d="M0 0h24v24H0z" fill="none" />
+								<path
+									d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+								/>
+							</svg>
+							<div
+								class="paper-material"
+								id="codeInfoTxtCont"
+								elevation="3"
+							>
+								<div id="codeInfoTxt">
+									[[__(lang, langReady,
+									'options_editPages_stylesheet_toggleInfo')]]
+								</div>
+							</div>
+						</div>
+					</div>
+					<div id="triggersCont">
+						<div class="itemEditBigTxt">
+							[[__(lang, langReady,
+							'options_editPages_code_triggers')]]
+						</div>
+						<br />
+						<paper-dropdown-menu
+							indent="false"
+							id="dropdownMenu"
+							selected="[[item.value.launchMode]]"
+						>
+							<paper-menu
+								slot="menu"
+								selected="{{newSettings.value.launchMode}}"
+							>
+								<div slot="content">
+									<paper-item
+										id="executeOnClickOption"
+										class="stylesheetLaunchOption"
+									>
+										<div class="menuSelectedCheckmark">
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="30"
+												height="30"
+												viewbox="0 0 48 48"
+											>
+												<path
+													d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"
+												/>
+											</svg>
+										</div>
+										<span class="menuOptionName"
+											>[[__(lang, langReady,
+											'options_editPages_code_triggerOnClick')]]</span
+										>
+									</paper-item>
+									<paper-item
+										id="executeAlwaysOption"
+										class="stylesheetLaunchOption"
+									>
+										<div class="menuSelectedCheckmark">
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="30"
+												height="30"
+												viewbox="0 0 48 48"
+											>
+												<path
+													d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"
+												/>
+											</svg>
+										</div>
+										<span class="menuOptionName"
+											>[[__(lang, langReady,
+											'options_editPages_code_triggerAlways')]]</span
+										>
+									</paper-item>
+									<paper-item
+										id="executeOnSpecified"
+										class="stylesheetLaunchOption"
+									>
+										<div class="menuSelectedCheckmark">
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="30"
+												height="30"
+												viewbox="0 0 48 48"
+											>
+												<path
+													d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"
+												/>
+											</svg>
+										</div>
+										<span class="menuOptionName"
+											>[[__(lang, langReady,
+											'options_editPages_code_triggerSpecified')]]</span
+										>
+									</paper-item>
+									<paper-item
+										id="showOnSpecifiedSites"
+										class="stylesheetLaunchOption"
+									>
+										<div class="menuSelectedCheckmark">
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="30"
+												height="30"
+												viewbox="0 0 48 48"
+											>
+												<path
+													d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"
+												/>
+											</svg>
+										</div>
+										<span class="menuOptionName"
+											>[[__(lang, langReady,
+											'options_editPages_code_triggerShowOnSpecified')]]</span
+										>
+									</paper-item>
+									<paper-item
+										id="nodeDisabled"
+										class="stylesheetLaunchOption"
+									>
+										<div class="menuSelectedCheckmark">
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="30"
+												height="30"
+												viewbox="0 0 48 48"
+											>
+												<path
+													d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"
+												/>
+											</svg>
+										</div>
+										<span class="menuOptionName"
+											>[[__(lang, langReady,
+											'options_editPages_code_triggerDisabled')]]</span
+										>
+									</paper-item>
+								</div>
+							</paper-menu>
+						</paper-dropdown-menu>
+						<br />
+						<br />
+						<div id="triggerOverflowContainer">
+							<div id="executionTriggersContainer">
+								<div class="itemEditBigTxt">
+									<span id="showOrExecutetxt"
+										>[[__(lang, langReady,
+										'options_editPages_code_executeOn')]]</span
+									>
+									<div id="triggersInfoCont">
+										<svg
+											class="inactive"
+											fill="#000000"
+											height="24"
+											viewbox="0 0 24 24"
+											width="24"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M0 0h24v24H0z"
+												fill="none"
+											/>
+											<path
+												d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"
+											/>
+										</svg>
+										<svg
+											class="active"
+											fill="#000000"
+											height="24"
+											viewbox="0 0 24 24"
+											width="24"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M0 0h24v24H0z"
+												fill="none"
+											/>
+											<path
+												d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+											/>
+										</svg>
+										<div
+											class="paper-material"
+											id="triggersInfoTxtCont"
+											elevation="3"
+										>
+											<div id="triggersInfoTxt">
+												<echo-html
+													html="[[__(lang, langReady, 'options_editPages_code_triggerInfo')]]"
+												></echo-html>
+											</div>
 										</div>
 									</div>
 								</div>
+								<br />
+								<template
+									is="dom-repeat"
+									items="[[newSettings.triggers]]"
+									as="trigger"
+								>
+									<div class="executionTrigger">
+										<div
+											class="executionTriggerCheckboxCenterer"
+										>
+											<paper-checkbox
+												class="executionTriggerNot"
+												checked="{{trigger.not}}"
+												color="red"
+												>[[__(lang, langReady,
+												'options_editPages_generic_not')]]</paper-checkbox
+											>
+										</div>
+										<paper-input
+											pattern="{{_getPattern(newSettings.value.launchMode)}}"
+											auto-validate="true"
+											label="{{_getLabel(lang, langReady, newSettings.value.launchMode)}}"
+											error-message="[[__(lang, langReady, 'options_editPages_generic_invalidURLPattern')]]"
+											class="triggerInput"
+											value="{{trigger.url}}"
+										></paper-input>
+										<paper-icon-button
+											class="executionTriggerClear"
+											on-tap="clearTriggerAndNotifyMetaTags"
+											icon="clear"
+										></paper-icon-button>
+									</div>
+								</template>
+								<paper-button
+									on-tap="addTrigger"
+									raised
+									id="addTrigger"
+									>[[__(lang, langReady,
+									'generic_add')]]</paper-button
+								>
 							</div>
-							<br/>
-							<template is="dom-repeat" items="[[newSettings.triggers]]" as="trigger">
-								<div class="executionTrigger">
-									<div class="executionTriggerCheckboxCenterer">
-										<paper-checkbox class="executionTriggerNot" checked="{{trigger.not}}" color="red">[[__(lang, langReady, 'options_editPages_generic_not')]]</paper-checkbox>
-									</div>
-									<paper-input pattern="{{_getPattern(newSettings.value.launchMode)}}" auto-validate="true"
-										label="{{_getLabel(lang, langReady, newSettings.value.launchMode)}}" error-message="[[__(lang, langReady, 'options_editPages_generic_invalidURLPattern')]]"
-										class="triggerInput" value="{{trigger.url}}"></paper-input>
-									<paper-icon-button class="executionTriggerClear" on-tap="clearTriggerAndNotifyMetaTags" icon="clear"></paper-icon-button>
+							<div id="showOnContentContainer">
+								<div class="itemEditBigTxt">
+									[[__(lang, langReady,
+									'options_editPages_generic_contentType')]]
 								</div>
-							</template>
-							<paper-button on-tap="addTrigger" raised id="addTrigger">[[__(lang, langReady, 'generic_add')]]</paper-button>
-						</div>
-						<div id="showOnContentContainer">
-							<div class="itemEditBigTxt">
-								[[__(lang, langReady, 'options_editPages_generic_contentType')]]
-							</div>
-							<div id="showOnContentIconsContainer">
-								<div title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmTypes_webpages')]]" class="showOnContentItemCont pageType">
-									<div class="showOnContentItemIcon" on-tap="toggleIcon">
-										<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="80" height="80" viewbox="0 0 24 24">
-											<path d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z"/>
-										</svg>
+								<div id="showOnContentIconsContainer">
+									<div
+										title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmTypes_webpages')]]"
+										class="showOnContentItemCont pageType"
+									>
+										<div
+											class="showOnContentItemIcon"
+											on-tap="toggleIcon"
+										>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												xmlns:xlink="http://www.w3.org/1999/xlink"
+												version="1.1"
+												width="80"
+												height="80"
+												viewbox="0 0 24 24"
+											>
+												<path
+													d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z"
+												/>
+											</svg>
+										</div>
+										<div
+											class="showOnContentItemTxt"
+											on-tap="toggleIcon"
+										>
+											[[__(lang, langReady,
+											'crmTypes_webpages')]]
+										</div>
+										<paper-checkbox
+											class="showOnContentItemCheckbox"
+											checked="{{pageContentSelected}}"
+											on-tap="checkToggledIconAmount"
+										></paper-checkbox>
 									</div>
-									<div class="showOnContentItemTxt" on-tap="toggleIcon">
-										[[__(lang, langReady, 'crmTypes_webpages')]]
+									<div
+										title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmtype_weblinks')]]"
+										class="showOnContentItemCont linkType"
+									>
+										<div
+											class="showOnContentItemIcon"
+											on-tap="toggleIcon"
+										>
+											<svg
+												height="80"
+												viewbox="0 0 24 24"
+												width="80"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M0 0h24v24H0z"
+													fill="none"
+												/>
+												<path
+													d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
+												/>
+											</svg>
+										</div>
+										<div
+											class="showOnContentItemTxt"
+											on-tap="toggleIcon"
+										>
+											[[__(lang, langReady,
+											'crmTypes_weblinks')]]
+										</div>
+										<paper-checkbox
+											class="showOnContentItemCheckbox"
+											checked="{{linkContentSelected}}"
+											on-tap="checkToggledIconAmount"
+										></paper-checkbox>
 									</div>
-									<paper-checkbox class="showOnContentItemCheckbox" checked="{{pageContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
-								</div>
-								<div title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmtype_weblinks')]]" class="showOnContentItemCont linkType">
-									<div class="showOnContentItemIcon" on-tap="toggleIcon">
-										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
-											<path d="M0 0h24v24H0z" fill="none"/>
-											<path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
-										</svg>
+									<div
+										title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmtype_selection')]]"
+										class="showOnContentItemCont selectionType"
+									>
+										<div
+											class="showOnContentItemIcon"
+											on-tap="toggleIcon"
+										>
+											<svg
+												height="80"
+												viewbox="0 0 24 24"
+												width="80"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M0 0h24v24H0z"
+													fill="none"
+												/>
+												<path
+													d="M3 5h2V3c-1.1 0-2 .9-2 2zm0 8h2v-2H3v2zm4 8h2v-2H7v2zM3 9h2V7H3v2zm10-6h-2v2h2V3zm6 0v2h2c0-1.1-.9-2-2-2zM5 21v-2H3c0 1.1.9 2 2 2zm-2-4h2v-2H3v2zM9 3H7v2h2V3zm2 18h2v-2h-2v2zm8-8h2v-2h-2v2zm0 8c1.1 0 2-.9 2-2h-2v2zm0-12h2V7h-2v2zm0 8h2v-2h-2v2zm-4 4h2v-2h-2v2zm0-16h2V3h-2v2zM7 17h10V7H7v10zm2-8h6v6H9V9z"
+												/>
+											</svg>
+										</div>
+										<div
+											class="showOnContentItemTxt"
+											on-tap="toggleIcon"
+										>
+											[[__(lang, langReady,
+											'crmTypes_selection')]]
+										</div>
+										<paper-checkbox
+											class="showOnContentItemCheckbox"
+											checked="{{selectionContentSelected}}"
+											on-tap="checkToggledIconAmount"
+										></paper-checkbox>
 									</div>
-									<div class="showOnContentItemTxt" on-tap="toggleIcon">
-										[[__(lang, langReady, 'crmTypes_weblinks')]]
+									<div
+										title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmTypes_images')]]"
+										class="showOnContentItemCont imageType"
+									>
+										<div
+											class="showOnContentItemIcon"
+											on-tap="toggleIcon"
+										>
+											<svg
+												height="80"
+												viewbox="0 0 24 24"
+												width="80"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M0 0h24v24H0z"
+													fill="none"
+												/>
+												<path
+													d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+												/>
+											</svg>
+										</div>
+										<div
+											class="showOnContentItemTxt"
+											on-tap="toggleIcon"
+										>
+											[[__(lang, langReady,
+											'crmTypes_images')]]
+										</div>
+										<paper-checkbox
+											class="showOnContentItemCheckbox"
+											checked="{{imageContentSelected}}"
+											on-tap="checkToggledIconAmount"
+										></paper-checkbox>
 									</div>
-									<paper-checkbox class="showOnContentItemCheckbox" checked="{{linkContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
-								</div>
-								<div title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmtype_selection')]]" class="showOnContentItemCont selectionType">
-									<div class="showOnContentItemIcon" on-tap="toggleIcon">
-										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
-											<path d="M0 0h24v24H0z" fill="none"/>
-											<path d="M3 5h2V3c-1.1 0-2 .9-2 2zm0 8h2v-2H3v2zm4 8h2v-2H7v2zM3 9h2V7H3v2zm10-6h-2v2h2V3zm6 0v2h2c0-1.1-.9-2-2-2zM5 21v-2H3c0 1.1.9 2 2 2zm-2-4h2v-2H3v2zM9 3H7v2h2V3zm2 18h2v-2h-2v2zm8-8h2v-2h-2v2zm0 8c1.1 0 2-.9 2-2h-2v2zm0-12h2V7h-2v2zm0 8h2v-2h-2v2zm-4 4h2v-2h-2v2zm0-16h2V3h-2v2zM7 17h10V7H7v10zm2-8h6v6H9V9z"/>
-										</svg>
+									<div
+										title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmTypes_videos')]]"
+										class="showOnContentItemCont videoType"
+									>
+										<div
+											class="showOnContentItemIcon"
+											on-tap="toggleIcon"
+										>
+											<svg
+												height="80"
+												viewbox="0 0 24 24"
+												width="80"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M0 0h24v24H0z"
+													fill="none"
+												/>
+												<path
+													d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"
+												/>
+											</svg>
+										</div>
+										<div
+											class="showOnContentItemTxt"
+											on-tap="toggleIcon"
+										>
+											[[__(lang, langReady,
+											'crmTypes_videos')]]
+										</div>
+										<paper-checkbox
+											class="showOnContentItemCheckbox"
+											checked="{{videoContentSelected}}"
+											on-tap="checkToggledIconAmount"
+										></paper-checkbox>
 									</div>
-									<div class="showOnContentItemTxt" on-tap="toggleIcon">
-										[[__(lang, langReady, 'crmTypes_selection')]]
+									<div
+										title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmTypes_audio')]]"
+										class="showOnContentItemCont audioType"
+									>
+										<div
+											class="showOnContentItemIcon"
+											on-tap="toggleIcon"
+										>
+											<svg
+												height="80"
+												viewbox="0 0 24 24"
+												width="80"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M0 0h24v24H0z"
+													fill="none"
+												/>
+												<path
+													d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"
+												/>
+											</svg>
+										</div>
+										<div
+											class="showOnContentItemTxt"
+											on-tap="toggleIcon"
+										>
+											[[__(lang, langReady,
+											'crmTypes_audio')]]
+										</div>
+										<paper-checkbox
+											class="showOnContentItemCheckbox"
+											checked="{{audioContentSelected}}"
+											on-tap="checkToggledIconAmount"
+										></paper-checkbox>
 									</div>
-									<paper-checkbox class="showOnContentItemCheckbox" checked="{{selectionContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
-								</div>
-								<div title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmTypes_images')]]" class="showOnContentItemCont imageType">
-									<div class="showOnContentItemIcon" on-tap="toggleIcon">
-										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
-											<path d="M0 0h24v24H0z" fill="none"/>
-											<path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
-										</svg>
-									</div>
-									<div class="showOnContentItemTxt" on-tap="toggleIcon">
-										[[__(lang, langReady, 'crmTypes_images')]]
-									</div>
-									<paper-checkbox class="showOnContentItemCheckbox" checked="{{imageContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
-								</div>
-								<div title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmTypes_videos')]]" class="showOnContentItemCont videoType">
-									<div class="showOnContentItemIcon" on-tap="toggleIcon">
-										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
-											<path d="M0 0h24v24H0z" fill="none"/>
-											<path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
-										</svg>
-									</div>
-									<div class="showOnContentItemTxt" on-tap="toggleIcon">
-										[[__(lang, langReady, 'crmTypes_videos')]]
-									</div>
-									<paper-checkbox class="showOnContentItemCheckbox" checked="{{videoContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
-								</div>
-								<div title="[[__exec(lang, langReady, 'options_editPages_generic_contentTypeTitle', ___, 'crmTypes_audio')]]" class="showOnContentItemCont audioType">
-									<div class="showOnContentItemIcon" on-tap="toggleIcon">
-										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
-											<path d="M0 0h24v24H0z" fill="none"/>
-											<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/>
-										</svg>
-									</div>
-									<div class="showOnContentItemTxt" on-tap="toggleIcon">
-										[[__(lang, langReady, 'crmTypes_audio')]]
-									</div>
-									<paper-checkbox class="showOnContentItemCheckbox" checked="{{audioContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-			<div id="codeEditorCont">
-				<div class="itemEditBigTxt">[[__(lang, langReady, 'options_editPages_stylesheet_stylesheet')]]</div>
-				<div class="editorTopOption">
-					<div class="editorTabsCont">
-						<div id="mainEditorTab" class="editorTab mainEditorTab active" on-tap="changeTabEvent">
-							<div class="editorTabTxt">[[__(lang, langReady, 'options_editPages_stylesheet_stylesheet')]]</div>
-							<paper-ripple></paper-ripple>
-						</div>
-						<div id="stylesheetOptionsTab" class="editorTab optionsTab" on-tap="changeTabEvent">
-							<div class="editorTabTxt">[[__(lang, langReady, 'options_editPages_script_scriptOptions')]]</div>
-							<paper-ripple></paper-ripple>
-						</div>
-						<div id="editorTabInfoCont">
-							<svg class="inactive" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-								<path d="M0 0h24v24H0z" fill="none" />
-								<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z" />
-							</svg>
-							<svg class="active" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-								<path d="M0 0h24v24H0z" fill="none" />
-								<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-							</svg>
-							<div class="paper-material" id="editorTabInfoTxtCont" elevation="3">
-								<div id="editorTabInfoTxt">
-									<echo-html html="[[__(lang, langReady, 'options_editPages_stylesheet_optionsInfo')]]"></echo-html>
+				<div id="codeEditorCont">
+					<div class="itemEditBigTxt">
+						[[__(lang, langReady,
+						'options_editPages_stylesheet_stylesheet')]]
+					</div>
+					<div class="editorTopOption">
+						<div class="editorTabsCont">
+							<div
+								id="mainEditorTab"
+								class="editorTab mainEditorTab active"
+								on-tap="changeTabEvent"
+							>
+								<div class="editorTabTxt">
+									[[__(lang, langReady,
+									'options_editPages_stylesheet_stylesheet')]]
+								</div>
+								<paper-ripple></paper-ripple>
+							</div>
+							<div
+								id="stylesheetOptionsTab"
+								class="editorTab optionsTab"
+								on-tap="changeTabEvent"
+							>
+								<div class="editorTabTxt">
+									[[__(lang, langReady,
+									'options_editPages_script_scriptOptions')]]
+								</div>
+								<paper-ripple></paper-ripple>
+							</div>
+							<div id="editorTabInfoCont">
+								<svg
+									class="inactive"
+									fill="#000000"
+									height="24"
+									viewbox="0 0 24 24"
+									width="24"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path d="M0 0h24v24H0z" fill="none" />
+									<path
+										d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"
+									/>
+								</svg>
+								<svg
+									class="active"
+									fill="#000000"
+									height="24"
+									viewbox="0 0 24 24"
+									width="24"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path d="M0 0h24v24H0z" fill="none" />
+									<path
+										d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+									/>
+								</svg>
+								<div
+									class="paper-material"
+									id="editorTabInfoTxtCont"
+									elevation="3"
+								>
+									<div id="editorTabInfoTxt">
+										<echo-html
+											html="[[__(lang, langReady, 'options_editPages_stylesheet_optionsInfo')]]"
+										></echo-html>
+									</div>
+								</div>
+							</div>
+							<div id="editorStylusInfo" class="hidden">
+								<svg
+									class="inactive"
+									width="24"
+									height="24"
+									viewBox="0 0 24 24"
+								>
+									<path
+										fill="#000000"
+										d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16"
+									/>
+								</svg>
+								<svg
+									class="active"
+									width="24"
+									height="24"
+									viewBox="0 0 24 24"
+								>
+									<path
+										fill="#000000"
+										d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"
+									/>
+								</svg>
+								<div
+									class="paper-material"
+									id="editorStylusInfoTxtCont"
+									elevation="3"
+								>
+									<div id="editorStylusInfoTxt">
+										[[__(lang, langReady,
+										'options_editPages_stylesheet_stylusInfo')]]
+									</div>
 								</div>
 							</div>
 						</div>
-						<div id="editorStylusInfo" class="hidden">
-							<svg class="inactive" width="24" height="24" viewBox="0 0 24 24">
-								<path fill="#000000" d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" />
-							</svg>
-							<svg class="active" width="24" height="24" viewBox="0 0 24 24">
-								<path fill="#000000" d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z" />
-							</svg>
-							<div class="paper-material" id="editorStylusInfoTxtCont" elevation="3">
-								<div id="editorStylusInfoTxt">
-									[[__(lang, langReady, 'options_editPages_stylesheet_stylusInfo')]]
+						<div class="editorOptionsCont">
+							<paper-material id="buttonShadow" elevation="1">
+								<div id="buttonsContainer">
+									<div
+										title="Enter fullscreen"
+										id="editorFullScreen"
+										on-tap="toggleFullScreen"
+									>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="30"
+											height="30"
+											viewbox="0 0 48 48"
+										>
+											<path
+												d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"
+											/>
+										</svg>
+									</div>
+									<div
+										title="Toggle options"
+										id="editorSettings"
+										on-tap="toggleOptions"
+									>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="25"
+											height="25"
+											viewbox="0 0 48 48"
+										>
+											<path
+												d="M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"
+											/>
+										</svg>
+									</div>
 								</div>
-							</div>
+							</paper-material>
 						</div>
 					</div>
-					<div class="editorOptionsCont">
-						<paper-material id="buttonShadow" elevation="1">
-							<div id="buttonsContainer">
-								<div title="Enter fullscreen" id="editorFullScreen" on-tap="toggleFullScreen">
-									<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
-										<path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/>
-									</svg>
-								</div>
-								<div title="Toggle options" id="editorSettings" on-tap="toggleOptions">
-									<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48">
-										<path d="M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
-									</svg>
-								</div>
-							</div>
-						</paper-material>
-					</div>
-				</div>
-				<div id="container">
-					<div id="settingsAnimationPositioner">
-						<div id="settingsAnimationContainer">
-							<div id="bubbleCont">
-								<div id="settingsShadow">
-									<div id="editorOptionsContainer">
-										<div id="editorOptions">
-											<div id="settingsContainer" class="paper-material">
-												<div id="settingsPadding">
-													<div class="editorSettingsTxt">
-														[[__(lang, langReady, 'options_editPages_code_settings')]]
-													</div>
-													<div id="editorThemeSettingCont">
-														<div id="editorThemeSettingTxt">[[__(lang, langReady, 'options_editPages_code_theme')]]</div>:
-														<div id="editorThemeSettingChoicesCont">
-															<div id="editorThemeSettingWhite" on-tap="setThemeWhite" class="editorThemeSetting"></div>
-															<div id="editorThemeSettingDark" on-tap="setThemeDark" class="editorThemeSetting"></div>
+					<div id="container">
+						<div id="settingsAnimationPositioner">
+							<div id="settingsAnimationContainer">
+								<div id="bubbleCont">
+									<div id="settingsShadow">
+										<div id="editorOptionsContainer">
+											<div id="editorOptions">
+												<div
+													id="settingsContainer"
+													class="paper-material"
+												>
+													<div id="settingsPadding">
+														<div
+															class="editorSettingsTxt"
+														>
+															[[__(lang,
+															langReady,
+															'options_editPages_code_settings')]]
 														</div>
+														<div
+															id="editorThemeSettingCont"
+														>
+															<div
+																id="editorThemeSettingTxt"
+															>
+																[[__(lang,
+																langReady,
+																'options_editPages_code_theme')]]
+															</div>
+															:
+															<div
+																id="editorThemeSettingChoicesCont"
+															>
+																<div
+																	id="editorThemeSettingWhite"
+																	on-tap="setThemeWhite"
+																	class="editorThemeSetting"
+																></div>
+																<div
+																	id="editorThemeSettingDark"
+																	on-tap="setThemeDark"
+																	class="editorThemeSetting"
+																></div>
+															</div>
+														</div>
+														<br />
+														<div
+															id="editorThemeFontSize"
+														>
+															<paper-input
+																on-keypress="fontSizeChange"
+																id="editorThemeFontSizeInput"
+																type="number"
+																label="[[__(lang, langReady, 'options_editPages_code_fontSize')]]"
+															>
+																<div suffix>
+																	%
+																</div>
+															</paper-input>
+														</div>
+														<br />
+														<br
+															id="afterEditorSettingsSpacing"
+														/><br /><br />
 													</div>
-													<br />
-													<div id="editorThemeFontSize">
-														<paper-input on-keypress="fontSizeChange" id="editorThemeFontSizeInput" type="number" label="[[__(lang, langReady, 'options_editPages_code_fontSize')]]">
-															<div suffix>%</div>
-														</paper-input>
-													</div>
-													<br />
-													<br id="afterEditorSettingsSpacing" /><br /><br />
 												</div>
 											</div>
 										</div>
@@ -312,37 +798,72 @@
 								</div>
 							</div>
 						</div>
+						<monaco-editor id="editor"></monaco-editor>
 					</div>
-					<monaco-editor id="editor"></monaco-editor>
+				</div>
+			</div>
+			<div id="buttonCont">
+				<div id="buttons">
+					<paper-dropdown-menu
+						slot="menu"
+						overflowing
+						indent="false"
+						id="changeType"
+						selected="0"
+						fallback="Click to change type"
+					>
+						<paper-menu slot="menu" selected="0">
+							<div slot="content">
+								<paper-item on-tap="changeTypeToLink"
+									>[[__(lang, langReady,
+									'crm_link')]]</paper-item
+								>
+								<paper-item on-tap="changeTypeToScript"
+									>[[__(lang, langReady,
+									'crm_script')]]</paper-item
+								>
+								<paper-item on-tap="changeTypeToStylesheet"
+									>[[__(lang, langReady,
+									'crm_stylesheet')]]</paper-item
+								>
+								<paper-item on-tap="changeTypeToMenu"
+									>[[__(lang, langReady,
+									'crm_menu')]]</paper-item
+								>
+							</div>
+						</paper-menu>
+					</paper-dropdown-menu>
+					<paper-dropdown-menu
+						slot="menu"
+						overflowing
+						indent="false"
+						id="exportMenu"
+						selected="0"
+						fallback="[[__(lang, langReady, 'options_editPages_code_exportAs')]]"
+					>
+						<paper-menu slot="menu" selected="0">
+							<div slot="content">
+								<paper-item on-tap="exportScriptAsCRM"
+									>[[__(lang, langReady,
+									'options_editPages_script_crmNode')]]</paper-item
+								>
+								<paper-item on-tap="exportScriptAsUserscript"
+									>[[__(lang, langReady,
+									'options_editPages_script_userScript')]]</paper-item
+								>
+							</div>
+						</paper-menu>
+					</paper-dropdown-menu>
+					<paper-button id="cancelButton" on-tap="cancel"
+						>[[__(lang, langReady, 'generic_cancel')]]</paper-button
+					>
+					<paper-button id="saveButton" on-tap="save"
+						>[[__(lang, langReady, 'generic_save')]]</paper-button
+					>
 				</div>
 			</div>
 		</div>
-		<div id="buttonCont">
-			<div id="buttons">
-				<paper-dropdown-menu slot="menu" overflowing indent="false" id="changeType" selected="0" fallback="Click to change type">
-					<paper-menu slot="menu" selected="0">
-						<div slot="content">
-							<paper-item on-tap="changeTypeToLink">[[__(lang, langReady, 'crm_link')]]</paper-item>
-							<paper-item on-tap="changeTypeToScript">[[__(lang, langReady, 'crm_script')]]</paper-item>
-							<paper-item on-tap="changeTypeToStylesheet">[[__(lang, langReady, 'crm_stylesheet')]]</paper-item>
-							<paper-item on-tap="changeTypeToMenu">[[__(lang, langReady, 'crm_menu')]]</paper-item>
-						</div>
-					</paper-menu>
-				</paper-dropdown-menu>
-				<paper-dropdown-menu slot="menu" overflowing indent="false" id="exportMenu" selected="0" fallback="[[__(lang, langReady, 'options_editPages_code_exportAs')]]">
-					<paper-menu slot="menu" selected="0">
-						<div slot="content">
-							<paper-item on-tap="exportScriptAsCRM">[[__(lang, langReady, 'options_editPages_script_crmNode')]]</paper-item>
-							<paper-item on-tap="exportScriptAsUserscript">[[__(lang, langReady, 'options_editPages_script_userScript')]]</paper-item>
-						</div>
-					</paper-menu>
-				</paper-dropdown-menu>
-				<paper-button id="cancelButton" on-tap="cancel">[[__(lang, langReady, 'generic_cancel')]]</paper-button>
-					<paper-button id="saveButton" on-tap="save">[[__(lang, langReady, 'generic_save')]]</paper-button>
-			</div>
-		</div>
-	</div>
-</template>
+	</template>
 </dom-module>
 <!-- build:js inline -->
 <script src="../code-edit-pages/code-edit-behavior.js"></script>

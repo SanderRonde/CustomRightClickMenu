@@ -1,6 +1,9 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
 
-import { ContextMenuCreateProperties, BrowserTabsQueryInfo } from "../background/sharedTypes";
+import {
+	ContextMenuCreateProperties,
+	BrowserTabsQueryInfo,
+} from '../background/sharedTypes';
 
 declare global {
 	namespace _browser.runtime {
@@ -9,12 +12,23 @@ declare global {
 
 	namespace _browser.storage {
 		interface Get {
-			<S extends CRM.StorageLocal|CRM.SettingsStorage = 
-				CRM.StorageLocal|CRM.SettingsStorage>(): Promise<S>;
-			<S extends CRM.StorageLocal|CRM.SettingsStorage,
-				K extends keyof S>(keys: K): Promise<S>;
-			<S extends CRM.StorageLocal|CRM.SettingsStorage,
-				K extends keyof S>(keys: K[]): Promise<S>;
+			<
+				S extends CRM.StorageLocal | CRM.SettingsStorage =
+					| CRM.StorageLocal
+					| CRM.SettingsStorage
+			>(): Promise<S>;
+			<
+				S extends CRM.StorageLocal | CRM.SettingsStorage,
+				K extends keyof S
+			>(
+				keys: K
+			): Promise<S>;
+			<
+				S extends CRM.StorageLocal | CRM.SettingsStorage,
+				K extends keyof S
+			>(
+				keys: K[]
+			): Promise<S>;
 		}
 	}
 }
@@ -33,9 +47,10 @@ namespace BrowserAPINS {
 	// 	and callback-style APIs under the (probably temporary) "chrome" global
 	// So if browser is Edge, use "browser", otherwise use "chrome" if available
 	// 	to ensure always always getting callback-style APIs
-	const apisWindow = window as unknown as AllBrowserAPIsWindow;
-	const __srcBrowser: typeof _chrome = apisWindow.StyleMedia ?
-		(apisWindow.browser as any) : apisWindow.chrome;
+	const apisWindow = (window as unknown) as AllBrowserAPIsWindow;
+	const __srcBrowser: typeof _chrome = apisWindow.StyleMedia
+		? (apisWindow.browser as any)
+		: apisWindow.chrome;
 	function checkReject(reject: (err: _chrome.runtime.LastError) => void) {
 		if (__srcBrowser.runtime.lastError) {
 			reject(__srcBrowser.runtime.lastError);
@@ -56,16 +71,20 @@ namespace BrowserAPINS {
 			this.message = message;
 		}
 	}
-	function createCallback<T>(stackSrc: Error, prom: {
-		resolve: (result: T) => void;
-		reject: (reason: any) => void;
-	}): ChromeCallbackHandler<T> {
+	function createCallback<T>(
+		stackSrc: Error,
+		prom: {
+			resolve: (result: T) => void;
+			reject: (reason: any) => void;
+		}
+	): ChromeCallbackHandler<T> {
 		const { resolve, reject } = prom;
 		const fn = ((...args: any[]) => {
 			if (__srcBrowser.runtime.lastError) {
-				reject(new CustomError(__srcBrowser.runtime.lastError, stackSrc));
-			}
-			else {
+				reject(
+					new CustomError(__srcBrowser.runtime.lastError, stackSrc)
+				);
+			} else {
 				resolve(args[0]);
 			}
 		}) as Partial<ChromeCallbackHandler<T>>;
@@ -74,11 +93,16 @@ namespace BrowserAPINS {
 		fn.__stack = stackSrc;
 		return fn as ChromeCallbackHandler<T>;
 	}
-	function createPromise<T>(callback: (handler: ChromeCallbackHandler<T>) => void) {
+	function createPromise<T>(
+		callback: (handler: ChromeCallbackHandler<T>) => void
+	) {
 		return new Promise<T>((resolve, reject) => {
-			callback(createCallback(new Error(), {
-				resolve, reject
-			}));
+			callback(
+				createCallback(new Error(), {
+					resolve,
+					reject,
+				})
+			);
 		});
 	}
 	function genStoragePolyfill(type: 'local' | 'sync') {
@@ -91,15 +115,20 @@ namespace BrowserAPINS {
 			remove(keys: string | string[]) {
 				return createPromise<void>((handler) => {
 					if (Array.isArray(keys)) {
-						Promise.all(keys.map((key) => {
-							return new Promise((resolveMapped) => {
-								__srcBrowser.storage[type].remove(key, () => {
-									checkReject(handler.__reject) || resolveMapped(null);
+						Promise.all(
+							keys.map((key) => {
+								return new Promise((resolveMapped) => {
+									__srcBrowser.storage[type].remove(
+										key,
+										() => {
+											checkReject(handler.__reject) ||
+												resolveMapped(null);
+										}
+									);
 								});
-							});
-						})).then(handler);
-					}
-					else {
+							})
+						).then(handler);
+					} else {
 						__srcBrowser.storage[type].remove(keys, handler);
 					}
 				});
@@ -108,7 +137,7 @@ namespace BrowserAPINS {
 				return createPromise<void>((handler) => {
 					__srcBrowser.storage[type].clear(handler);
 				});
-			}
+			},
 		};
 	}
 	const browserAPIExists = 'browser' in window;
@@ -116,14 +145,14 @@ namespace BrowserAPINS {
 	export function isBrowserAPISupported(api: 'browser' | 'chrome'): boolean {
 		if (api === 'browser') {
 			return browserAPIExists;
-		}
-		else if (api === 'chrome') {
+		} else if (api === 'chrome') {
 			return chromeAPIExists;
-		}
-		else if (typeof location === 'undefined' || typeof location.host === 'undefined') {
+		} else if (
+			typeof location === 'undefined' ||
+			typeof location.host === 'undefined'
+		) {
 			return false;
-		}
-		else {
+		} else {
 			throw new Error('Unsupported browser API support queried');
 		}
 	}
@@ -135,10 +164,18 @@ namespace BrowserAPINS {
 		InstallTrigger?: any;
 		StyleMedia?: any;
 	}
-	let _browserUserAgent: 'chrome' | 'firefox' | 'edge' | 'opera' | 'node' = null;
+	let _browserUserAgent:
+		| 'chrome'
+		| 'firefox'
+		| 'edge'
+		| 'opera'
+		| 'node' = null;
 	function getBrowserUserAgent() {
 		const win = window as MultiBrowserWindow;
-		const isOpera = (!!win.opr && !!win.opr.addons) || !!win.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+		const isOpera =
+			(!!win.opr && !!win.opr.addons) ||
+			!!win.opera ||
+			navigator.userAgent.indexOf(' OPR/') >= 0;
 		if (typeof win.InstallTrigger !== 'undefined') {
 			return 'firefox';
 		}
@@ -151,7 +188,10 @@ namespace BrowserAPINS {
 		if (isOpera) {
 			return 'opera';
 		}
-		if (typeof location === 'undefined' || typeof location.host === 'undefined') {
+		if (
+			typeof location === 'undefined' ||
+			typeof location.host === 'undefined'
+		) {
 			return 'node';
 		}
 		throw new Error('Unsupported browser');
@@ -169,15 +209,23 @@ namespace BrowserAPINS {
 		return location.href.indexOf('backgroun') === -1;
 	}
 	function isDevBackgroundPage() {
-		return __srcBrowser.runtime.getManifest().short_name.indexOf('dev') > -1;
+		return (
+			__srcBrowser.runtime.getManifest().short_name.indexOf('dev') > -1
+		);
 	}
 	function areStringsEqual(a: string | number, b: string | number): boolean {
-		return (a + '') === (b + '');
+		return a + '' === b + '';
 	}
-	function findItemWithId<T extends {
-		id: string | number;
-		children?: T[];
-	}>(arr: T[], idToFind: number | string, fn: (item: T, index: number, parent: T[]) => void) {
+	function findItemWithId<
+		T extends {
+			id: string | number;
+			children?: T[];
+		}
+	>(
+		arr: T[],
+		idToFind: number | string,
+		fn: (item: T, index: number, parent: T[]) => void
+	) {
 		for (let i = 0; i < arr.length; i++) {
 			const item = arr[i];
 			const { id, children } = item;
@@ -247,17 +295,21 @@ namespace BrowserAPINS {
 		_activeTabs: ActiveTabs;
 		_executedScripts: ExecutedScripts;
 		_activatedBackgroundPages: CRM.GenericNodeId[];
-		_tabUpdateListeners: ((id: TabId, updateData: {
-			status?: 'loading' | 'complete';
-			url?: string;
-			pinned?: boolean;
-			audible?: boolean;
-			discarded?: boolean;
-			autoDiscardable?: boolean;
-			mutedInfo?: any;
-			favIconUrl?: string;
-			title?: string;
-		}, tab: _browser.tabs.Tab) => void)[];
+		_tabUpdateListeners: ((
+			id: TabId,
+			updateData: {
+				status?: 'loading' | 'complete';
+				url?: string;
+				pinned?: boolean;
+				audible?: boolean;
+				discarded?: boolean;
+				autoDiscardable?: boolean;
+				mutedInfo?: any;
+				favIconUrl?: string;
+				title?: string;
+			},
+			tab: _browser.tabs.Tab
+		) => void)[];
 		_clearExecutedScripts: () => void;
 		_fakeTabs: {
 			[id: number]: {
@@ -280,8 +332,8 @@ namespace BrowserAPINS {
 		_activatedBackgroundPages: null,
 		_tabUpdateListeners: null,
 		_clearExecutedScripts: function () {
-			while (testData._executedScripts.pop()) { }
-		}
+			while (testData._executedScripts.pop()) {}
+		},
 	};
 	export function getTestData() {
 		if (!isDevOptionsPage() && !isDevBackgroundPage()) {
@@ -290,506 +342,794 @@ namespace BrowserAPINS {
 		return testData;
 	}
 	export function getDownloadAPI() {
-		return __srcBrowser.downloads ? {
-			download(options: {
-				url: string;
-				filename?: string;
-				conflictAction?: string;
-				saveAs?: boolean;
-				method?: string;
-				headers?: {
-					[key: string]: string;
-				};
-				body?: string;
-			}) {
-				if (loggingEnabled) {
-					testData._lastSpecialCall = {
-						api: 'downloads.download',
-						args: [options]
-					};
-				}
-				return createPromise<number>((handler) => {
-					__srcBrowser.downloads.download(options as any, handler);
-				});
-			}
-		} : void 0
+		return __srcBrowser.downloads
+			? {
+					download(options: {
+						url: string;
+						filename?: string;
+						conflictAction?: string;
+						saveAs?: boolean;
+						method?: string;
+						headers?: {
+							[key: string]: string;
+						};
+						body?: string;
+					}) {
+						if (loggingEnabled) {
+							testData._lastSpecialCall = {
+								api: 'downloads.download',
+								args: [options],
+							};
+						}
+						return createPromise<number>((handler) => {
+							__srcBrowser.downloads.download(
+								options as any,
+								handler
+							);
+						});
+					},
+			  }
+			: void 0;
 	}
-	export const polyfill = !__srcBrowser ? {} : {
-		commands: __srcBrowser.commands ? {
-			getAll() {
-				return createPromise<_browser.commands.Command[]>((handler) => {
-					__srcBrowser.commands.getAll(handler);
-				});
-			},
-			onCommand: __srcBrowser.commands.onCommand as Listener<string>
-		} : void 0,
-		contextMenus: __srcBrowser.contextMenus ? {
-			create(createProperties: {
-				type?: _browser.contextMenus.ItemType;
-				id?: string;
-				title?: string;
-				checked?: boolean;
-				command?: "_execute_browser_action" | "_execute_page_action" | "_execute_sidebar_action";
-				contexts?: _browser.contextMenus.ContextType[];
-				onclick?: (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => void;
-				parentId?: number | string;
-				documentUrlPatterns?: string[];
-				targetUrlPatterns?: string[];
-				enabled?: boolean;
-			}, callback?: () => void): Promise<number | string> {
-				const id = __srcBrowser.contextMenus.create(createProperties as any, () => {
-					if (!callback) {
-						return;
-					}
-					if (__srcBrowser.runtime.lastError) {
-						polyfill.runtime.lastError = __srcBrowser.runtime.lastError.message;
-						callback();
-						polyfill.runtime.lastError = null;
-					}
-					else {
-						callback();
-					}
-				});
-				const testNode: ContextMenuItem = {
-					id,
-					createProperties,
-					currentProperties: createProperties,
-					children: []
-				};
-				if (loggingEnabled) {
-					if (createProperties.parentId) {
-						findItemWithId(testData._currentContextMenu, createProperties.parentId, (parent) => {
-							parent.children.push(testNode);
-						});
-					}
-					else {
-						testData._currentContextMenu.push(testNode);
-					}
-				}
-				return Promise.resolve(id);
-			},
-			update(id: number | string, updateProperties: {
-				type?: _browser.contextMenus.ItemType;
-				title?: string;
-				checked?: boolean;
-				contexts?: _browser.contextMenus.ContextType[];
-				onclick?: (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => void;
-				parentId?: number | string;
-				documentUrlPatterns?: string[];
-				targetUrlPatterns?: string[];
-				enabled?: boolean;
-			}) {
-				if (loggingEnabled) {
-					findItemWithId(testData._currentContextMenu, id, (item) => {
-						var currentProperties = item.currentProperties;
-						for (var key in updateProperties) {
-							(currentProperties as any)[key] =
-								updateProperties[key as keyof typeof updateProperties];
-						}
-					});
-				}
-				return createPromise<void>((handler) => {
-					__srcBrowser.contextMenus.update(id + '', updateProperties, () => {
-						if (__srcBrowser.runtime.lastError) {
-							//Try the other method
-							__srcBrowser.contextMenus.update(~~id, updateProperties, handler);
-						}
-						else {
-							handler();
-						}
-					});
-				});
-			},
-			remove(id: string | number) {
-				if (loggingEnabled) {
-					findItemWithId(testData._currentContextMenu, id, (_item, index, parent) => {
-						parent.splice(index, 1);
-					});
-				}
-				return createPromise<void>((handler) => {
-					__srcBrowser.contextMenus.remove(id + '', () => {
-						if (__srcBrowser.runtime.lastError) {
-							//Try the other method
-							__srcBrowser.contextMenus.remove(~~id, handler);
-						}
-						else {
-							handler();
-						}
-					});
-				});
-			},
-			removeAll() {
-				if (loggingEnabled) {
-					while (testData._currentContextMenu.length) {
-						testData._currentContextMenu.pop();
-					}
-				}
-				return createPromise<void>((handler) => {
-					//Does not follow the spec but currently all browsers implement this behavior
-					const retVal: any = __srcBrowser.contextMenus.removeAll(() => {
-						//Edge throws an error if other extensions are active... ignore that
-						// see https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/17799250/
-						if (getBrowser() === 'edge' && __srcBrowser.runtime.lastError) {
-							handler.__resolve(undefined);
-						}
-						if (__srcBrowser.runtime.lastError) {
-							handler.__reject(new CustomError(__srcBrowser.runtime.lastError, handler.__stack));
-						}
-						else {
-							handler.__resolve(undefined);
-						}
-					});
-					if (retVal && typeof window !== 'undefined' &&
-						window.Promise && retVal instanceof window.Promise) {
-						retVal.then(handler.__resolve, handler.__reject);
-					}
-				});
-			}
-		} : void 0,
-		downloads: getDownloadAPI(),
-		extension: __srcBrowser.extension ? {
-			isAllowedFileSchemeAccess(): Promise<boolean> {
-				return createPromise<boolean>((handler) => {
-					__srcBrowser.extension.isAllowedFileSchemeAccess(handler);
-				});
-			}
-		} : void 0,
-		i18n: __srcBrowser.i18n ? {
-			getAcceptLanguages(): Promise<string[]> {
-				return createPromise<string[]>((handler) => {
-					__srcBrowser.i18n.getAcceptLanguages(handler);
-				});
-			},
-			getMessage(messageName: string, substitutions?: any): string {
-				return __srcBrowser.i18n.getMessage(messageName, substitutions);
-			},
-			getUILanguage(): string {
-				return __srcBrowser.i18n.getUILanguage();
-			}
-		} : void 0,
-		notifications: __srcBrowser.notifications ? {
-			onClicked: __srcBrowser.notifications.onClicked as Listener<string>,
-			onClosed: __srcBrowser.notifications.onClosed as Listener<string>
-		} : void 0,
-		permissions: __srcBrowser.permissions ? {
-			contains(permissions: _browser.permissions.Permissions) {
-				return createPromise<boolean>((handler) => {
-					__srcBrowser.permissions.contains(permissions, handler);
-				});
-			},
-			getAll() {
-				return createPromise<_browser.permissions.Permissions>((handler) => {
-					__srcBrowser.permissions.getAll(handler);
-				});
-			},
-			request(permissions: _browser.permissions.Permissions) {
-				return createPromise<boolean>((handler) => {
-					__srcBrowser.permissions.request(permissions, handler);
-				});
-			},
-			remove(permissions: _browser.permissions.Permissions) {
-				return createPromise<boolean>((handler) => {
-					__srcBrowser.permissions.remove(permissions, handler);
-				});
-			}
-		} : void 0,
-		runtime: __srcBrowser.runtime ? {
-			connect(extensionIdOrConnectInfo?: string, connectInfo?: {
-				name?: string;
-				includeTlsChannelId?: boolean;
-			}): _browser.runtime.Port {
-				if (connectInfo) {
-					return __srcBrowser.runtime.connect(extensionIdOrConnectInfo, connectInfo) as any;
-				}
-				else if (extensionIdOrConnectInfo) {
-					return __srcBrowser.runtime.connect(extensionIdOrConnectInfo) as any;
-				}
-				else {
-					return __srcBrowser.runtime.connect() as any;
-				}
-			},
-			getBackgroundPage() {
-				return createPromise<Window>((handler) => {
-					__srcBrowser.runtime.getBackgroundPage(handler);
-				});
-			},
-			getManifest() {
-				return Promise.resolve(__srcBrowser.runtime.getManifest());
-			},
-			getURL(path: string) {
-				return __srcBrowser.runtime.getURL(path);
-			},
-			getPlatformInfo() {
-				return createPromise<_browser.runtime.PlatformInfo>((handler) => {
-					__srcBrowser.runtime.getPlatformInfo(handler);
-				});
-			},
-			openOptionsPage() {
-				return createPromise<void>((handler) => {
-					if (BrowserAPINS.getBrowser() === 'edge') {
-						polyfill.tabs.create({
-							url: polyfill.runtime.getURL('html/options.html')
-						}).then(() => {
-							handler();
-						});
-					}
-					else {
-						__srcBrowser.runtime.openOptionsPage(handler);
-					}
-				});
-			},
-			reload() {
-				return Promise.resolve(__srcBrowser.runtime.reload());
-			},
-			sendMessage<U>(extensionIdOrmessage: string | {
-				[key: string]: any;
-				[key: number]: any;
-			}, optionsOrMessage?: {
-				[key: string]: any;
-				[key: number]: any;
-			} | {
-				includeTlsChannelId?: boolean;
-				toProxyScript?: boolean;
-			}, options?: {
-				includeTlsChannelId?: boolean;
-				toProxyScript?: boolean;
-			}) {
-				return createPromise<U | void>((handler) => {
-					if (options) {
-						__srcBrowser.runtime.sendMessage(extensionIdOrmessage as string, optionsOrMessage, options, handler);
-					}
-					else if (optionsOrMessage) {
-						//extensionId, message or message, options
-						__srcBrowser.runtime.sendMessage(extensionIdOrmessage, optionsOrMessage, handler);
-					}
-					else {
-						__srcBrowser.runtime.sendMessage(extensionIdOrmessage, handler);
-					}
-				});
-			},
-			onInstalled: (__srcBrowser.runtime.onInstalled as any) as Listener<{
-				reason: _browser.runtime.OnInstalledReason;
-				previousVersion?: string;
-				id?: string;
-			}>,
-			onConnectExternal: (__srcBrowser.runtime.onConnectExternal as any) as Listener<_browser.runtime.Port>,
-			onConnect: (__srcBrowser.runtime.onConnect as any) as Listener<_browser.runtime.Port>,
-			onMessage: (__srcBrowser.runtime.onMessage as any) as EvListener<_browser.runtime.onMessageEvent>,
-			lastError: null as string | null,
-			id: __srcBrowser.runtime.id
-		} : void 0,
-		storage: __srcBrowser.storage ? {
-			local: {
-			...genStoragePolyfill('local'), ...{
-				get<T = CRM.StorageLocal>(keys?: string | string[] | null): Promise<T> {
-					return createPromise<T>((handler) => {
-						if (keys) {
-							__srcBrowser.storage.local.get(keys, handler);
-						}
-						else {
-							__srcBrowser.storage.local.get(handler);
-						}
-					});
-				},
-			}
-			},
-			sync: {
-			...genStoragePolyfill('sync'), ...{
-				get<T = CRM.SettingsStorage>(keys?: string | string[] | null): Promise<T> {
-					return createPromise<T>((handler) => {
-						if (keys) {
-							__srcBrowser.storage.sync.get(keys, handler);
-						}
-						else {
-							__srcBrowser.storage.sync.get(handler);
-						}
-					});
-				},
-			}
-			},
-			onChanged: __srcBrowser.storage.onChanged as EvListener<(changes: _browser.storage.ChangeDict, areaName: _browser.storage.StorageName) => void>
-		} : void 0,
-		tabs: __srcBrowser.tabs ? {
-			create(createProperties: {
-				active?: boolean;
-				cookieStoreId?: string;
-				index?: number;
-				openerTabId?: TabId;
-				pinned?: boolean;
-				// deprecated: selected: boolean,
-				url?: string;
-				windowId?: number;
-			}) {
-				return createPromise<_browser.tabs.Tab>((handler) => {
-					__srcBrowser.tabs.create(createProperties, (tab) => {
-						const { id } = tab;
-						if (loggingEnabled) {
-							testData._activeTabs.push({
-								type: 'create',
-								data: createProperties,
-								id
-							});
-						}
-						handler(tab);
-					});
-				});
-			},
-			get(tabId: TabId) {
-				return createPromise<_browser.tabs.Tab>((handler) => {
-					__srcBrowser.tabs.get(tabId, handler);
-				});
-			},
-			getCurrent() {
-				return createPromise<_browser.tabs.Tab>((handler) => {
-					__srcBrowser.tabs.getCurrent(handler);
-				});
-			},
-			captureVisibleTab(windowIdOrOptions?: number | _browser.extensionTypes.ImageDetails, options?: _browser.extensionTypes.ImageDetails) {
-				return createPromise<string>((handler) => {
-					if (options) {
-						__srcBrowser.tabs.captureVisibleTab(windowIdOrOptions as number, options, handler);
-					}
-					else if (windowIdOrOptions) {
-						__srcBrowser.tabs.captureVisibleTab(windowIdOrOptions as _browser.extensionTypes.ImageDetails, handler);
-					}
-					else {
-						__srcBrowser.tabs.captureVisibleTab(handler);
-					}
-				});
-			},
-			async update(tabIdOrOptions: TabId | {
-				active?: boolean;
-				// unsupported: autoDiscardable?: boolean,
-				// unsupported: highlighted?: boolean,
-				loadReplace?: boolean;
-				muted?: boolean;
-				openerTabId?: TabId;
-				pinned?: boolean;
-				// deprecated: selected?: boolean,
-				url?: string;
-			}, options?: {
-				active?: boolean;
-				// unsupported: autoDiscardable?: boolean,
-				// unsupported: highlighted?: boolean,
-				loadReplace?: boolean;
-				muted?: boolean;
-				openerTabId?: TabId;
-				pinned?: boolean;
-				// deprecated: selected?: boolean,
-				url?: string;
-			}) {
-				return createPromise<_browser.tabs.Tab>(async (handler) => {
-					if (!options) {
-						__srcBrowser.tabs.update(tabIdOrOptions as {
-							active?: boolean;
-							// unsupported: autoDiscardable?: boolean,
-							// unsupported: highlighted?: boolean,
-							loadReplace?: boolean;
-							muted?: boolean;
-							openerTabId?: TabId;
-							pinned?: boolean;
-							// deprecated: selected?: boolean,
-							url?: string;
-						}, handler);
-					}
-					else {
-						__srcBrowser.tabs.update(tabIdOrOptions as TabId, options, handler);
-					}
-					if (loggingEnabled) {
-						testData._activeTabs.push({
-							type: 'create',
-							data: typeof tabIdOrOptions === 'number' ?
-								options : tabIdOrOptions,
-							id: typeof tabIdOrOptions === 'number' ?
-								tabIdOrOptions : undefined
-						});
-					}
-				});
-			},
-			query(queryInfo: BrowserTabsQueryInfo) {
-				return createPromise<_browser.tabs.Tab[]>((handler) => {
-					__srcBrowser.tabs.query(queryInfo, handler);
-				});
-			},
-			executeScript(tabIdOrDetails: TabId | _browser.extensionTypes.InjectDetails, details?: _browser.extensionTypes.InjectDetails) {
-				return createPromise<any[]>(async (handler) => {
-					if (!details) {
-						__srcBrowser.tabs.executeScript(tabIdOrDetails as _browser.extensionTypes.InjectDetails, handler);
-					}
-					else {
-						__srcBrowser.tabs.executeScript(tabIdOrDetails as TabId, details, handler);
-					}
-					const settings = typeof tabIdOrDetails === 'number' ?
-						details : tabIdOrDetails;
-					if (settings.code) {
-						let id: TabId = undefined;
-						if (typeof tabIdOrDetails === 'number') {
-							id = tabIdOrDetails;
-						}
-						else {
-							const currentTab = await browserAPI.tabs.getCurrent();
-							if (currentTab) {
-								id = currentTab.id;
-							}
-						}
-						if (loggingEnabled) {
-							testData._executedScripts.push({
-								id,
-								code: settings.code
-							});
-						}
-					}
-				});
-			},
-			sendMessage<R>(tabId: TabId, message: any, _options?: {
-				frameId: number;
-			}) {
-				return createPromise<void | R>(({ __resolve, __reject }) => {
-					__srcBrowser.tabs.sendMessage(tabId, message, (response?: R) => {
-						checkReject(__reject) || __resolve(response);
-					});
-				});
-			},
-			onUpdated: (__srcBrowser.tabs.onUpdated as any) as EvListener<(tabId: number, changeInfo: {
-				audible?: boolean;
-				discarded?: boolean;
-				favIconUrl?: string;
-				mutedInfo?: _browser.tabs.MutedInfo;
-				pinned?: boolean;
-				status?: string;
-				title?: string;
-				url?: string;
-			}, tab: _browser.tabs.Tab) => void>,
-			onRemoved: (__srcBrowser.tabs.onRemoved as any) as EvListener<(tabId: number, removeInfo: {
-				windowId: number;
-				isWindowClosing: boolean;
-			}) => void>,
-			onHighlighted: (__srcBrowser.tabs.onHighlighted as any) as Listener<{
-				windowId: number;
-				tabIds: number[];
-			}>
-		} : void 0,
-		webRequest: __srcBrowser.webRequest ? {
-			onBeforeRequest: (__srcBrowser.webRequest.onBeforeRequest as any) as _browser.webRequest.ReqListener<{
-				requestId: string;
-				url: string;
-				method: string;
-				frameId: number;
-				parentFrameId: number;
-				requestBody?: {
-					error?: string;
-					formData?: {
-						[key: string]: string[];
-					};
-					raw?: _browser.webRequest.UploadData[];
-				};
-				tabId: TabId;
-				type: _browser.webRequest.ResourceType;
-				timeStamp: number;
-				originUrl: string;
-			}, "blocking" | "requestBody">
-		} : void 0
-	};
+	export const polyfill = !__srcBrowser
+		? {}
+		: {
+				commands: __srcBrowser.commands
+					? {
+							getAll() {
+								return createPromise<
+									_browser.commands.Command[]
+								>((handler) => {
+									__srcBrowser.commands.getAll(handler);
+								});
+							},
+							onCommand: __srcBrowser.commands
+								.onCommand as Listener<string>,
+					  }
+					: void 0,
+				contextMenus: __srcBrowser.contextMenus
+					? {
+							create(
+								createProperties: {
+									type?: _browser.contextMenus.ItemType;
+									id?: string;
+									title?: string;
+									checked?: boolean;
+									command?:
+										| '_execute_browser_action'
+										| '_execute_page_action'
+										| '_execute_sidebar_action';
+									contexts?: _browser.contextMenus.ContextType[];
+									onclick?: (
+										info: _browser.contextMenus.OnClickData,
+										tab: _browser.tabs.Tab
+									) => void;
+									parentId?: number | string;
+									documentUrlPatterns?: string[];
+									targetUrlPatterns?: string[];
+									enabled?: boolean;
+								},
+								callback?: () => void
+							): Promise<number | string> {
+								const id = __srcBrowser.contextMenus.create(
+									createProperties as any,
+									() => {
+										if (!callback) {
+											return;
+										}
+										if (__srcBrowser.runtime.lastError) {
+											polyfill.runtime.lastError =
+												__srcBrowser.runtime.lastError.message;
+											callback();
+											polyfill.runtime.lastError = null;
+										} else {
+											callback();
+										}
+									}
+								);
+								const testNode: ContextMenuItem = {
+									id,
+									createProperties,
+									currentProperties: createProperties,
+									children: [],
+								};
+								if (loggingEnabled) {
+									if (createProperties.parentId) {
+										findItemWithId(
+											testData._currentContextMenu,
+											createProperties.parentId,
+											(parent) => {
+												parent.children.push(testNode);
+											}
+										);
+									} else {
+										testData._currentContextMenu.push(
+											testNode
+										);
+									}
+								}
+								return Promise.resolve(id);
+							},
+							update(
+								id: number | string,
+								updateProperties: {
+									type?: _browser.contextMenus.ItemType;
+									title?: string;
+									checked?: boolean;
+									contexts?: _browser.contextMenus.ContextType[];
+									onclick?: (
+										info: _browser.contextMenus.OnClickData,
+										tab: _browser.tabs.Tab
+									) => void;
+									parentId?: number | string;
+									documentUrlPatterns?: string[];
+									targetUrlPatterns?: string[];
+									enabled?: boolean;
+								}
+							) {
+								if (loggingEnabled) {
+									findItemWithId(
+										testData._currentContextMenu,
+										id,
+										(item) => {
+											var currentProperties =
+												item.currentProperties;
+											for (var key in updateProperties) {
+												(currentProperties as any)[
+													key
+												] =
+													updateProperties[
+														key as keyof typeof updateProperties
+													];
+											}
+										}
+									);
+								}
+								return createPromise<void>((handler) => {
+									__srcBrowser.contextMenus.update(
+										id + '',
+										updateProperties,
+										() => {
+											if (
+												__srcBrowser.runtime.lastError
+											) {
+												//Try the other method
+												__srcBrowser.contextMenus.update(
+													~~id,
+													updateProperties,
+													handler
+												);
+											} else {
+												handler();
+											}
+										}
+									);
+								});
+							},
+							remove(id: string | number) {
+								if (loggingEnabled) {
+									findItemWithId(
+										testData._currentContextMenu,
+										id,
+										(_item, index, parent) => {
+											parent.splice(index, 1);
+										}
+									);
+								}
+								return createPromise<void>((handler) => {
+									__srcBrowser.contextMenus.remove(
+										id + '',
+										() => {
+											if (
+												__srcBrowser.runtime.lastError
+											) {
+												//Try the other method
+												__srcBrowser.contextMenus.remove(
+													~~id,
+													handler
+												);
+											} else {
+												handler();
+											}
+										}
+									);
+								});
+							},
+							removeAll() {
+								if (loggingEnabled) {
+									while (
+										testData._currentContextMenu.length
+									) {
+										testData._currentContextMenu.pop();
+									}
+								}
+								return createPromise<void>((handler) => {
+									//Does not follow the spec but currently all browsers implement this behavior
+									const retVal: any = __srcBrowser.contextMenus.removeAll(
+										() => {
+											//Edge throws an error if other extensions are active... ignore that
+											// see https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/17799250/
+											if (
+												getBrowser() === 'edge' &&
+												__srcBrowser.runtime.lastError
+											) {
+												handler.__resolve(undefined);
+											}
+											if (
+												__srcBrowser.runtime.lastError
+											) {
+												handler.__reject(
+													new CustomError(
+														__srcBrowser.runtime.lastError,
+														handler.__stack
+													)
+												);
+											} else {
+												handler.__resolve(undefined);
+											}
+										}
+									);
+									if (
+										retVal &&
+										typeof window !== 'undefined' &&
+										window.Promise &&
+										retVal instanceof window.Promise
+									) {
+										retVal.then(
+											handler.__resolve,
+											handler.__reject
+										);
+									}
+								});
+							},
+					  }
+					: void 0,
+				downloads: getDownloadAPI(),
+				extension: __srcBrowser.extension
+					? {
+							isAllowedFileSchemeAccess(): Promise<boolean> {
+								return createPromise<boolean>((handler) => {
+									__srcBrowser.extension.isAllowedFileSchemeAccess(
+										handler
+									);
+								});
+							},
+					  }
+					: void 0,
+				i18n: __srcBrowser.i18n
+					? {
+							getAcceptLanguages(): Promise<string[]> {
+								return createPromise<string[]>((handler) => {
+									__srcBrowser.i18n.getAcceptLanguages(
+										handler
+									);
+								});
+							},
+							getMessage(
+								messageName: string,
+								substitutions?: any
+							): string {
+								return __srcBrowser.i18n.getMessage(
+									messageName,
+									substitutions
+								);
+							},
+							getUILanguage(): string {
+								return __srcBrowser.i18n.getUILanguage();
+							},
+					  }
+					: void 0,
+				notifications: __srcBrowser.notifications
+					? {
+							onClicked: __srcBrowser.notifications
+								.onClicked as Listener<string>,
+							onClosed: __srcBrowser.notifications
+								.onClosed as Listener<string>,
+					  }
+					: void 0,
+				permissions: __srcBrowser.permissions
+					? {
+							contains(
+								permissions: _browser.permissions.Permissions
+							) {
+								return createPromise<boolean>((handler) => {
+									__srcBrowser.permissions.contains(
+										permissions,
+										handler
+									);
+								});
+							},
+							getAll() {
+								return createPromise<
+									_browser.permissions.Permissions
+								>((handler) => {
+									__srcBrowser.permissions.getAll(handler);
+								});
+							},
+							request(
+								permissions: _browser.permissions.Permissions
+							) {
+								return createPromise<boolean>((handler) => {
+									__srcBrowser.permissions.request(
+										permissions,
+										handler
+									);
+								});
+							},
+							remove(
+								permissions: _browser.permissions.Permissions
+							) {
+								return createPromise<boolean>((handler) => {
+									__srcBrowser.permissions.remove(
+										permissions,
+										handler
+									);
+								});
+							},
+					  }
+					: void 0,
+				runtime: __srcBrowser.runtime
+					? {
+							connect(
+								extensionIdOrConnectInfo?: string,
+								connectInfo?: {
+									name?: string;
+									includeTlsChannelId?: boolean;
+								}
+							): _browser.runtime.Port {
+								if (connectInfo) {
+									return __srcBrowser.runtime.connect(
+										extensionIdOrConnectInfo,
+										connectInfo
+									) as any;
+								} else if (extensionIdOrConnectInfo) {
+									return __srcBrowser.runtime.connect(
+										extensionIdOrConnectInfo
+									) as any;
+								} else {
+									return __srcBrowser.runtime.connect() as any;
+								}
+							},
+							getBackgroundPage() {
+								return createPromise<Window>((handler) => {
+									__srcBrowser.runtime.getBackgroundPage(
+										handler
+									);
+								});
+							},
+							getManifest() {
+								return Promise.resolve(
+									__srcBrowser.runtime.getManifest()
+								);
+							},
+							getURL(path: string) {
+								return __srcBrowser.runtime.getURL(path);
+							},
+							getPlatformInfo() {
+								return createPromise<
+									_browser.runtime.PlatformInfo
+								>((handler) => {
+									__srcBrowser.runtime.getPlatformInfo(
+										handler
+									);
+								});
+							},
+							openOptionsPage() {
+								return createPromise<void>((handler) => {
+									if (BrowserAPINS.getBrowser() === 'edge') {
+										polyfill.tabs
+											.create({
+												url: polyfill.runtime.getURL(
+													'html/options.html'
+												),
+											})
+											.then(() => {
+												handler();
+											});
+									} else {
+										__srcBrowser.runtime.openOptionsPage(
+											handler
+										);
+									}
+								});
+							},
+							reload() {
+								return Promise.resolve(
+									__srcBrowser.runtime.reload()
+								);
+							},
+							sendMessage<U>(
+								extensionIdOrmessage:
+									| string
+									| {
+											[key: string]: any;
+											[key: number]: any;
+									  },
+								optionsOrMessage?:
+									| {
+											[key: string]: any;
+											[key: number]: any;
+									  }
+									| {
+											includeTlsChannelId?: boolean;
+											toProxyScript?: boolean;
+									  },
+								options?: {
+									includeTlsChannelId?: boolean;
+									toProxyScript?: boolean;
+								}
+							) {
+								return createPromise<U | void>((handler) => {
+									if (options) {
+										__srcBrowser.runtime.sendMessage(
+											extensionIdOrmessage as string,
+											optionsOrMessage,
+											options,
+											handler
+										);
+									} else if (optionsOrMessage) {
+										//extensionId, message or message, options
+										__srcBrowser.runtime.sendMessage(
+											extensionIdOrmessage,
+											optionsOrMessage,
+											handler
+										);
+									} else {
+										__srcBrowser.runtime.sendMessage(
+											extensionIdOrmessage,
+											handler
+										);
+									}
+								});
+							},
+							onInstalled: (__srcBrowser.runtime
+								.onInstalled as any) as Listener<{
+								reason: _browser.runtime.OnInstalledReason;
+								previousVersion?: string;
+								id?: string;
+							}>,
+							onConnectExternal: (__srcBrowser.runtime
+								.onConnectExternal as any) as Listener<
+								_browser.runtime.Port
+							>,
+							onConnect: (__srcBrowser.runtime
+								.onConnect as any) as Listener<
+								_browser.runtime.Port
+							>,
+							onMessage: (__srcBrowser.runtime
+								.onMessage as any) as EvListener<
+								_browser.runtime.onMessageEvent
+							>,
+							lastError: null as string | null,
+							id: __srcBrowser.runtime.id,
+					  }
+					: void 0,
+				storage: __srcBrowser.storage
+					? {
+							local: {
+								...genStoragePolyfill('local'),
+								...{
+									get<T = CRM.StorageLocal>(
+										keys?: string | string[] | null
+									): Promise<T> {
+										return createPromise<T>((handler) => {
+											if (keys) {
+												__srcBrowser.storage.local.get(
+													keys,
+													handler
+												);
+											} else {
+												__srcBrowser.storage.local.get(
+													handler
+												);
+											}
+										});
+									},
+								},
+							},
+							sync: {
+								...genStoragePolyfill('sync'),
+								...{
+									get<T = CRM.SettingsStorage>(
+										keys?: string | string[] | null
+									): Promise<T> {
+										return createPromise<T>((handler) => {
+											if (keys) {
+												__srcBrowser.storage.sync.get(
+													keys,
+													handler
+												);
+											} else {
+												__srcBrowser.storage.sync.get(
+													handler
+												);
+											}
+										});
+									},
+								},
+							},
+							onChanged: __srcBrowser.storage
+								.onChanged as EvListener<
+								(
+									changes: _browser.storage.ChangeDict,
+									areaName: _browser.storage.StorageName
+								) => void
+							>,
+					  }
+					: void 0,
+				tabs: __srcBrowser.tabs
+					? {
+							create(createProperties: {
+								active?: boolean;
+								cookieStoreId?: string;
+								index?: number;
+								openerTabId?: TabId;
+								pinned?: boolean;
+								// deprecated: selected: boolean,
+								url?: string;
+								windowId?: number;
+							}) {
+								return createPromise<_browser.tabs.Tab>(
+									(handler) => {
+										__srcBrowser.tabs.create(
+											createProperties,
+											(tab) => {
+												const { id } = tab;
+												if (loggingEnabled) {
+													testData._activeTabs.push({
+														type: 'create',
+														data: createProperties,
+														id,
+													});
+												}
+												handler(tab);
+											}
+										);
+									}
+								);
+							},
+							get(tabId: TabId) {
+								return createPromise<_browser.tabs.Tab>(
+									(handler) => {
+										__srcBrowser.tabs.get(tabId, handler);
+									}
+								);
+							},
+							getCurrent() {
+								return createPromise<_browser.tabs.Tab>(
+									(handler) => {
+										__srcBrowser.tabs.getCurrent(handler);
+									}
+								);
+							},
+							captureVisibleTab(
+								windowIdOrOptions?:
+									| number
+									| _browser.extensionTypes.ImageDetails,
+								options?: _browser.extensionTypes.ImageDetails
+							) {
+								return createPromise<string>((handler) => {
+									if (options) {
+										__srcBrowser.tabs.captureVisibleTab(
+											windowIdOrOptions as number,
+											options,
+											handler
+										);
+									} else if (windowIdOrOptions) {
+										__srcBrowser.tabs.captureVisibleTab(
+											windowIdOrOptions as _browser.extensionTypes.ImageDetails,
+											handler
+										);
+									} else {
+										__srcBrowser.tabs.captureVisibleTab(
+											handler
+										);
+									}
+								});
+							},
+							async update(
+								tabIdOrOptions:
+									| TabId
+									| {
+											active?: boolean;
+											// unsupported: autoDiscardable?: boolean,
+											// unsupported: highlighted?: boolean,
+											loadReplace?: boolean;
+											muted?: boolean;
+											openerTabId?: TabId;
+											pinned?: boolean;
+											// deprecated: selected?: boolean,
+											url?: string;
+									  },
+								options?: {
+									active?: boolean;
+									// unsupported: autoDiscardable?: boolean,
+									// unsupported: highlighted?: boolean,
+									loadReplace?: boolean;
+									muted?: boolean;
+									openerTabId?: TabId;
+									pinned?: boolean;
+									// deprecated: selected?: boolean,
+									url?: string;
+								}
+							) {
+								return createPromise<_browser.tabs.Tab>(
+									async (handler) => {
+										if (!options) {
+											__srcBrowser.tabs.update(
+												tabIdOrOptions as {
+													active?: boolean;
+													// unsupported: autoDiscardable?: boolean,
+													// unsupported: highlighted?: boolean,
+													loadReplace?: boolean;
+													muted?: boolean;
+													openerTabId?: TabId;
+													pinned?: boolean;
+													// deprecated: selected?: boolean,
+													url?: string;
+												},
+												handler
+											);
+										} else {
+											__srcBrowser.tabs.update(
+												tabIdOrOptions as TabId,
+												options,
+												handler
+											);
+										}
+										if (loggingEnabled) {
+											testData._activeTabs.push({
+												type: 'create',
+												data:
+													typeof tabIdOrOptions ===
+													'number'
+														? options
+														: tabIdOrOptions,
+												id:
+													typeof tabIdOrOptions ===
+													'number'
+														? tabIdOrOptions
+														: undefined,
+											});
+										}
+									}
+								);
+							},
+							query(queryInfo: BrowserTabsQueryInfo) {
+								return createPromise<_browser.tabs.Tab[]>(
+									(handler) => {
+										__srcBrowser.tabs.query(
+											queryInfo,
+											handler
+										);
+									}
+								);
+							},
+							executeScript(
+								tabIdOrDetails:
+									| TabId
+									| _browser.extensionTypes.InjectDetails,
+								details?: _browser.extensionTypes.InjectDetails
+							) {
+								return createPromise<any[]>(async (handler) => {
+									if (!details) {
+										__srcBrowser.tabs.executeScript(
+											tabIdOrDetails as _browser.extensionTypes.InjectDetails,
+											handler
+										);
+									} else {
+										__srcBrowser.tabs.executeScript(
+											tabIdOrDetails as TabId,
+											details,
+											handler
+										);
+									}
+									const settings =
+										typeof tabIdOrDetails === 'number'
+											? details
+											: tabIdOrDetails;
+									if (settings.code) {
+										let id: TabId = undefined;
+										if (
+											typeof tabIdOrDetails === 'number'
+										) {
+											id = tabIdOrDetails;
+										} else {
+											const currentTab = await browserAPI.tabs.getCurrent();
+											if (currentTab) {
+												id = currentTab.id;
+											}
+										}
+										if (loggingEnabled) {
+											testData._executedScripts.push({
+												id,
+												code: settings.code,
+											});
+										}
+									}
+								});
+							},
+							sendMessage<R>(
+								tabId: TabId,
+								message: any,
+								_options?: {
+									frameId: number;
+								}
+							) {
+								return createPromise<void | R>(
+									({ __resolve, __reject }) => {
+										__srcBrowser.tabs.sendMessage(
+											tabId,
+											message,
+											(response?: R) => {
+												checkReject(__reject) ||
+													__resolve(response);
+											}
+										);
+									}
+								);
+							},
+							onUpdated: (__srcBrowser.tabs
+								.onUpdated as any) as EvListener<
+								(
+									tabId: number,
+									changeInfo: {
+										audible?: boolean;
+										discarded?: boolean;
+										favIconUrl?: string;
+										mutedInfo?: _browser.tabs.MutedInfo;
+										pinned?: boolean;
+										status?: string;
+										title?: string;
+										url?: string;
+									},
+									tab: _browser.tabs.Tab
+								) => void
+							>,
+							onRemoved: (__srcBrowser.tabs
+								.onRemoved as any) as EvListener<
+								(
+									tabId: number,
+									removeInfo: {
+										windowId: number;
+										isWindowClosing: boolean;
+									}
+								) => void
+							>,
+							onHighlighted: (__srcBrowser.tabs
+								.onHighlighted as any) as Listener<{
+								windowId: number;
+								tabIds: number[];
+							}>,
+					  }
+					: void 0,
+				webRequest: __srcBrowser.webRequest
+					? {
+							onBeforeRequest: (__srcBrowser.webRequest
+								.onBeforeRequest as any) as _browser.webRequest.ReqListener<
+								{
+									requestId: string;
+									url: string;
+									method: string;
+									frameId: number;
+									parentFrameId: number;
+									requestBody?: {
+										error?: string;
+										formData?: {
+											[key: string]: string[];
+										};
+										raw?: _browser.webRequest.UploadData[];
+									};
+									tabId: TabId;
+									type: _browser.webRequest.ResourceType;
+									timeStamp: number;
+									originUrl: string;
+								},
+								'blocking' | 'requestBody'
+							>,
+					  }
+					: void 0,
+		  };
 }
 
 declare global {
@@ -809,17 +1149,22 @@ window.BrowserAPIInstances.push(BrowserAPINS);
 
 if (!window.browserAPI || window.__isVirtual) {
 	// Force override of window.browser if browser is edge or if no "browser"
-	//	global exists already. Basically equal to 
+	//	global exists already. Basically equal to
 	// 	window.browser = BrowserAPI.polyfill || window.browser  	&
 	// 	if getBrowser() === 'edge': window.browser = BrowserAPI.polyfill
 	window.BrowserAPINS = window.BrowserAPI = BrowserAPINS;
-	window.browserAPI = (BrowserAPINS.getBrowser() === 'edge' || !(window as any).browser) ?
-		{...BrowserAPINS.polyfill as typeof BrowserAPI.polyfill, ...{
-			__isProxied: true
-		}} : (window as any).browser;
+	window.browserAPI =
+		BrowserAPINS.getBrowser() === 'edge' || !(window as any).browser
+			? {
+					...(BrowserAPINS.polyfill as typeof BrowserAPI.polyfill),
+					...{
+						__isProxied: true,
+					},
+			  }
+			: (window as any).browser;
 
 	type MenusBrowserAPI = typeof BrowserAPI.polyfill & {
-		menus?: (typeof BrowserAPI.polyfill)['contextMenus']
+		menus?: typeof BrowserAPI.polyfill['contextMenus'];
 	};
 	const menusBrowserAPI = window.browserAPI as MenusBrowserAPI;
 	if (!menusBrowserAPI.contextMenus) {

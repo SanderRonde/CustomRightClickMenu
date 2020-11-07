@@ -1,6 +1,6 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
-import { BrowserHandler } from "./browserhandler.js";
-import { ModuleData } from "./moduleTypes";
+import { BrowserHandler } from './browserhandler.js';
+import { ModuleData } from './moduleTypes';
 import { CRMAPIMessageInstance } from './sharedTypes.js';
 
 export namespace APIMessaging.CRMMessage {
@@ -8,27 +8,38 @@ export namespace APIMessaging.CRMMessage {
 		type: string;
 		callbackId: number;
 		messageType: string;
-		data: {
-			error: string,
-			stackTrace: string,
-			lineNumber: string;
-		} | T;
+		data:
+			| {
+					error: string;
+					stackTrace: string;
+					lineNumber: string;
+			  }
+			| T;
 	}
 
-	export function respond(message: CRMAPIMessageInstance<'crmapi' | 'chrome' | 'browser' | 'background', any>,
-		type: 'success' | 'error' | 'chromeError', data: any | string, stackTrace?:
-			string) {
+	export function respond(
+		message: CRMAPIMessageInstance<
+			'crmapi' | 'chrome' | 'browser' | 'background',
+			any
+		>,
+		type: 'success' | 'error' | 'chromeError',
+		data: any | string,
+		stackTrace?: string
+	) {
 		const msg: CRMAPIResponse<any> = {
 			type: type,
 			callbackId: message.onFinish,
-			messageType: 'callback'
+			messageType: 'callback',
 		} as any;
-		msg.data = (type === 'error' || type === 'chromeError' ? {
-			error: data,
-			message: data,
-			stackTrace: stackTrace,
-			lineNumber: message.lineNumber
-		} : data);
+		msg.data =
+			type === 'error' || type === 'chromeError'
+				? {
+						error: data,
+						message: data,
+						stackTrace: stackTrace,
+						lineNumber: message.lineNumber,
+				  }
+				: data;
 		try {
 			const tabData = modules.crmValues.tabData;
 			const { nodes } = tabData.get(message.tabId);
@@ -36,8 +47,11 @@ export namespace APIMessaging.CRMMessage {
 			modules.Util.postMessage(port, msg);
 		} catch (e) {
 			if (e.message === 'Converting circular structure to JSON') {
-				APIMessaging.CRMMessage.respond(message, 'error',
-					'Converting circular structure to JSON, this API will not work');
+				APIMessaging.CRMMessage.respond(
+					message,
+					'error',
+					'Converting circular structure to JSON, this API will not work'
+				);
 			} else {
 				throw e;
 			}
@@ -46,7 +60,13 @@ export namespace APIMessaging.CRMMessage {
 }
 
 export namespace APIMessaging.ChromeMessage {
-	export function throwError(message: BrowserHandler.ChromeAPIMessage|BrowserHandler.BrowserAPIMessage, error: string, stackTrace?: string) {
+	export function throwError(
+		message:
+			| BrowserHandler.ChromeAPIMessage
+			| BrowserHandler.BrowserAPIMessage,
+		error: string,
+		stackTrace?: string
+	) {
 		console.warn('Error:', error);
 		if (stackTrace) {
 			const stacktraceSplit = stackTrace.split('\n');
@@ -54,10 +74,17 @@ export namespace APIMessaging.ChromeMessage {
 				console.warn(line);
 			});
 		}
-		APIMessaging.CRMMessage.respond(message, 'chromeError', error,
-			stackTrace);
+		APIMessaging.CRMMessage.respond(
+			message,
+			'chromeError',
+			error,
+			stackTrace
+		);
 	}
-	export function succeed(message: BrowserHandler.BrowserAPIMessage, result: any) {
+	export function succeed(
+		message: BrowserHandler.BrowserAPIMessage,
+		result: any
+	) {
 		APIMessaging.CRMMessage.respond(message, 'success', result);
 	}
 }
@@ -69,30 +96,36 @@ export namespace APIMessaging {
 		modules = _modules;
 	}
 
-	export function createReturn(message: CRMAPIMessageInstance<'crmapi' | 'chrome' | 'browser', any>,
-		callbackIndex: number) {
+	export function createReturn(
+		message: CRMAPIMessageInstance<'crmapi' | 'chrome' | 'browser', any>,
+		callbackIndex: number
+	) {
 		return (result: any) => {
 			CRMMessage.respond(message, 'success', {
 				callbackId: callbackIndex,
-				params: [result]
+				params: [result],
 			});
 		};
 	}
-	export function sendThroughComm(message: BrowserHandler.ChromeAPIMessage|BrowserHandler.BrowserAPIMessage) {
+	export function sendThroughComm(
+		message:
+			| BrowserHandler.ChromeAPIMessage
+			| BrowserHandler.BrowserAPIMessage
+	) {
 		const instancesObj = modules.crmValues.nodeInstances.get(message.id);
 		const instancesArr: {
 			id: TabId;
 			tabIndex: TabIndex;
 			instance: {
 				hasHandler: boolean;
-			}
+			};
 		}[] = [];
 		modules.Util.iterateMap(instancesObj, (tabId, tabInstance) => {
 			tabInstance.forEach((tabIndexInstance, index) => {
 				instancesArr.push({
 					id: tabId,
 					tabIndex: index,
-					instance: tabIndexInstance
+					instance: tabIndexInstance,
 				});
 			});
 		});
@@ -122,7 +155,7 @@ export namespace APIMessaging {
 			const { port } = nodes.get(message.id)[instancesArr[i].tabIndex];
 			modules.Util.postMessage(port, {
 				messageType: 'instanceMessage',
-				message: args[0]
+				message: args[0],
 			});
 		}
 	}

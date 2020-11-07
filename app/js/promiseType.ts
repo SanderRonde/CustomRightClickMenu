@@ -1,18 +1,36 @@
 class Promise<T> implements Promise<T> {
-	_listeners:((result: T) => void)[] = [];
-	_async:{
+	_listeners: ((result: T) => void)[] = [];
+	_async: {
 		fn: Function;
-		args: any[]
+		args: any[];
 	}[] = [];
 	_caught: boolean = false;
 	_rejectListeners: ((reason: any) => void)[] = [];
 	_status: 'pending' | 'rejected' | 'fulfilled' = 'pending';
 	_result: T;
 	_rejectReason: any;
-	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => Promise<T>)
-	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void)
-	constructor(_initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void|Promise<T>) { }
-	then(_onfulfilled: (result: T) => void, _onrejected?: (reason: any) => void): Promise<T> {
+	constructor(
+		initializer: (
+			resolve: (result: T) => void,
+			reject: (reason: any) => void
+		) => Promise<T>
+	);
+	constructor(
+		initializer: (
+			resolve: (result: T) => void,
+			reject: (reason: any) => void
+		) => void
+	);
+	constructor(
+		_initializer: (
+			resolve: (result: T) => void,
+			reject: (reason: any) => void
+		) => void | Promise<T>
+	) {}
+	then(
+		_onfulfilled: (result: T) => void,
+		_onrejected?: (reason: any) => void
+	): Promise<T> {
 		return this;
 	}
 	catch(_onrejected: (reason: any) => void): Promise<T> {
@@ -24,33 +42,42 @@ class Promise<T> implements Promise<T> {
 			const promises: {
 				done: boolean;
 				result?: any;
-				promise: Promise<any>
-			}[] = Array.prototype.slice.apply(values).map((promise: Promise<any>) => {
-				return {
-					done: false,
-					promise: promise
-				};
-			});
+				promise: Promise<any>;
+			}[] = Array.prototype.slice
+				.apply(values)
+				.map((promise: Promise<any>) => {
+					return {
+						done: false,
+						promise: promise,
+					};
+				});
 			if (promises.length === 0) {
 				resolve([]);
 			} else {
 				promises.forEach((obj) => {
-					obj.promise.then((result) => {
-						obj.done = true;
-						obj.result = result;
-						if (rejected) {
-							return;
+					obj.promise.then(
+						(result) => {
+							obj.done = true;
+							obj.result = result;
+							if (rejected) {
+								return;
+							}
+							if (
+								promises.filter((listPromise) => {
+									return !listPromise.done;
+								}).length === 0
+							) {
+								resolve(
+									promises.map((listPromise) => {
+										return listPromise.result;
+									})
+								);
+							}
+						},
+						(reason) => {
+							reject(reason);
 						}
-						if (promises.filter((listPromise) => {
-							return !listPromise.done;
-						}).length === 0) {
-							resolve(promises.map((listPromise) => {
-								return listPromise.result;
-							}));
-						}
-					}, (reason) => {
-						reject(reason);
-					});
+					);
 				});
 			}
 		});
@@ -58,11 +85,14 @@ class Promise<T> implements Promise<T> {
 	static race<T>(values: Promise<T>[]): Promise<T> {
 		return new Promise((resolve, reject) => {
 			Array.prototype.slice.apply(values).map((promise: Promise<any>) => {
-				promise.then((result) => {
-					resolve(result);
-				}, (reason) => {
-					reject(reason);
-				});
+				promise.then(
+					(result) => {
+						resolve(result);
+					},
+					(reason) => {
+						reject(reason);
+					}
+				);
 			});
 		});
 	}

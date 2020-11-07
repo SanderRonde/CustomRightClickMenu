@@ -28,7 +28,7 @@
 	display: flex;
 	-webkit-justify-content: space-between;
 	-webkit-box-pack: justify;
-	        justify-content: space-between;
+	justify-content: space-between;
 }
 
 #arrayInputNoItemsMessage {
@@ -41,7 +41,7 @@
 	opacity: 0;
 	-webkit-transition: opacity 250ms ease-in-out;
 	transition: opacity 250ms ease-in-out;
-} 
+}
 
 #maxElementsReachedMessage.visible {
 	opacity: 1;
@@ -53,11 +53,11 @@
 	display: flex;
 	-webkit-justify-content: flex-end;
 	-webkit-box-pack: end;
-	        justify-content: flex-end;
+	justify-content: flex-end;
 	-webkit-box-orient: vertical;
 	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	        flex-direction: column;
+	flex-direction: column;
 }
 
 .arrayInputLine paper-input {

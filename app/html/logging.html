@@ -1,54 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<title>View your scripts' logs</title>
-	<style type="text/css">
-		::-webkit-scrollbar-thumb {
-			border-radius: 10px;
-			background-color: rgb(93,93,93);
-		}
+	<head>
+		<meta charset="UTF-8" />
+		<title>View your scripts' logs</title>
+		<style type="text/css">
+			::-webkit-scrollbar-thumb {
+				border-radius: 10px;
+				background-color: rgb(93, 93, 93);
+			}
 
-		::-webkit-scrollbar {
-			background-color: rgb(40,40,40);
-			border-radius: 10px;
-			width: 8px;
-		}
+			::-webkit-scrollbar {
+				background-color: rgb(40, 40, 40);
+				border-radius: 10px;
+				width: 8px;
+			}
 
-		body {
-			font-size: 75%;
-			font-family: "Segoe UI", Tahoma, sans-serif;
-			margin: 0!important;
-		}
+			body {
+				font-size: 75%;
+				font-family: 'Segoe UI', Tahoma, sans-serif;
+				margin: 0 !important;
+			}
 
-		#splashScreen {
-			top: 0;
-			bottom: 0;
-			right: 0;
-			left: 0;
-			background-color: #FF5722;
-			position: fixed;
-			z-index: 999999999999999;
-			color: white;
-		}
-	</style>
-	<!-- build:template
+			#splashScreen {
+				top: 0;
+				bottom: 0;
+				right: 0;
+				left: 0;
+				background-color: #ff5722;
+				position: fixed;
+				z-index: 999999999999999;
+				color: white;
+			}
+		</style>
+		<!-- build:template
 		<script src="../bower_components/webcomponentsjs/custom-elements-es5-adapter.js"></script>
 	/build -->
-	<!-- build:remove -->
-	<link rel="import" href="../bower_components/polymer/polymer.html">
-	<!-- /build -->
-	<!-- build:remove -->
-	<script src="../bower_components/webcomponentsjs/webcomponents-loader.js"></script>
-	<!-- /build -->
-	<link rel="import" href="../bower_components/polymer/lib/legacy/class.html" />
-	<link rel="import" href="../elements/logging/log-page/log-page.html" />
-	<link rel="stylesheet" href="../fonts/fonts.css">
-</head>
-<body style="margin: 0;">
-	<log-page></log-page>
-	<!-- build:js inline -->
-	<script src="../js/calcPolyfill.js" defer async></script>
-	<!-- /build -->
-</body>
+		<!-- build:remove -->
+		<link rel="import" href="../bower_components/polymer/polymer.html" />
+		<!-- /build -->
+		<!-- build:remove -->
+		<script src="../bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+		<!-- /build -->
+		<link
+			rel="import"
+			href="../bower_components/polymer/lib/legacy/class.html"
+		/>
+		<link rel="import" href="../elements/logging/log-page/log-page.html" />
+		<link rel="stylesheet" href="../fonts/fonts.css" />
+	</head>
+	<body style="margin: 0">
+		<log-page></log-page>
+		<!-- build:js inline -->
+		<script src="../js/calcPolyfill.js" defer async></script>
+		<!-- /build -->
+	</body>
 </html>

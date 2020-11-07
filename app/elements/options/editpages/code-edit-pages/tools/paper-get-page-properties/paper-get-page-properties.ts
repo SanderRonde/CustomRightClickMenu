@@ -11,8 +11,8 @@ namespace PaperGetPagePropertiesElement {
 		selected: {
 			type: Array,
 			refleftToAttribute: true,
-			notify: true
-		}
+			notify: true,
+		},
 	} as any;
 
 	export class PGPP implements I18NClass {
@@ -23,23 +23,25 @@ namespace PaperGetPagePropertiesElement {
 		 */
 		static options: {
 			name: string;
-			id: string;	
+			id: string;
 		}[] = [];
 
 		/**
 		 * The event listener to send all onclick data to
 		 */
-		static listener: (data: string) => void = function() {};
+		static listener: (data: string) => void = function () {};
 
 		/**
 		 * Triggers an 'addsnippet' event and sends the snippet with it
 		 */
 		static sendData(data: string) {
 			this.listener(data);
-		};
+		}
 
 		static _click(e: Polymer.ClickEvent) {
-			var option = e.target.getAttribute('id').split('paperGetProperty')[1];
+			var option = e.target
+				.getAttribute('id')
+				.split('paperGetProperty')[1];
 			switch (option) {
 				case 'Selection':
 					this.sendData('crmAPI.getSelection();');
@@ -72,56 +74,90 @@ namespace PaperGetPagePropertiesElement {
 					this.sendData('crmAPI.contextData.target;');
 					break;
 			}
-		};
+		}
 
-		private static _menuClick(this: PaperGetPageProperties, e: Polymer.ClickEvent) {
+		private static _menuClick(
+			this: PaperGetPageProperties,
+			e: Polymer.ClickEvent
+		) {
 			//Find out if the dropdown menu has already been clicked
 			if (window.app.util.getPath(e).indexOf(this.$.dropdown) > -1) {
 				return;
 			}
 			this.$.dropdown._toggleDropdown();
 		}
-		
-		static init(this: PaperGetPageProperties, listener: (data: string) => void) {
+
+		static init(
+			this: PaperGetPageProperties,
+			listener: (data: string) => void
+		) {
 			this.listener = listener;
-		};
+		}
 
 		private static async _setOptions(this: PaperGetPageProperties) {
 			this.options = [
 				{
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.selection),
-					id: 'paperGetPropertySelection'
-				}, {
+					name: this.___(
+						I18NKeys.options.tools.paperGetPageProperties.selection
+					),
+					id: 'paperGetPropertySelection',
+				},
+				{
 					name: (() => {
 						const str = this.___(I18NKeys.generic.url);
 						return str[0].toLocaleUpperCase() + str.slice(1);
 					})(),
-					id: 'paperGetPropertyUrl'
-				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.host),
-					id: 'paperGetPropertyHost'
-				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.path),
-					id: 'paperGetPropertyPath'
-				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.protocol),
-					id: 'paperGetPropertyProtocol'
-				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.width),
-					id: 'paperGetPropertyWidth'
-				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.height),
-					id: 'paperGetPropertyHeight'
-				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.scrolled),
-					id: 'paperGetPropertyPixels'
-				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.title),
-					id: 'paperGetPropertyTitle'
-				}, {
-					name: this.___(I18NKeys.options.tools.paperGetPageProperties.clickedElement),
-					id: 'paperGetPropertyClicked'
-				}
+					id: 'paperGetPropertyUrl',
+				},
+				{
+					name: this.___(
+						I18NKeys.options.tools.paperGetPageProperties.host
+					),
+					id: 'paperGetPropertyHost',
+				},
+				{
+					name: this.___(
+						I18NKeys.options.tools.paperGetPageProperties.path
+					),
+					id: 'paperGetPropertyPath',
+				},
+				{
+					name: this.___(
+						I18NKeys.options.tools.paperGetPageProperties.protocol
+					),
+					id: 'paperGetPropertyProtocol',
+				},
+				{
+					name: this.___(
+						I18NKeys.options.tools.paperGetPageProperties.width
+					),
+					id: 'paperGetPropertyWidth',
+				},
+				{
+					name: this.___(
+						I18NKeys.options.tools.paperGetPageProperties.height
+					),
+					id: 'paperGetPropertyHeight',
+				},
+				{
+					name: this.___(
+						I18NKeys.options.tools.paperGetPageProperties.scrolled
+					),
+					id: 'paperGetPropertyPixels',
+				},
+				{
+					name: this.___(
+						I18NKeys.options.tools.paperGetPageProperties.title
+					),
+					id: 'paperGetPropertyTitle',
+				},
+				{
+					name: this.___(
+						I18NKeys.options.tools.paperGetPageProperties
+							.clickedElement
+					),
+					id: 'paperGetPropertyClicked',
+				},
 			];
 		}
 
@@ -135,7 +171,7 @@ namespace PaperGetPagePropertiesElement {
 				this._menuClick(e as any);
 			});
 			this._setOptions();
-		};
+		}
 
 		static _getMenu(this: PaperGetPageProperties): HTMLPaperMenuElement {
 			return this.$.menu;
@@ -151,5 +187,8 @@ namespace PaperGetPagePropertiesElement {
 	}
 }
 
-export type PaperGetPageProperties = Polymer.El<'paper-get-page-properties', 
-	typeof PaperGetPagePropertiesElement.PGPP & typeof PaperGetPagePropertiesElement.paperGetPagePropertiesProperties>;
+export type PaperGetPageProperties = Polymer.El<
+	'paper-get-page-properties',
+	typeof PaperGetPagePropertiesElement.PGPP &
+		typeof PaperGetPagePropertiesElement.paperGetPagePropertiesProperties
+>;

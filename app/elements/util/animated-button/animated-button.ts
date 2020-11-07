@@ -12,22 +12,22 @@ namespace AnimatedButtonElement {
 		cooldown: {
 			type: Boolean,
 			notify: false,
-			value: false
+			value: false,
 		},
 		content: {
 			type: String,
 			notify: true,
-			value: ''
+			value: '',
 		},
 		tap: {
 			type: String,
-			notify: false
+			notify: false,
 		},
 		raised: {
 			type: Boolean,
 			notify: true,
-			value: false
-		}
+			value: false,
+		},
 	} as any;
 
 	export class AB {
@@ -77,21 +77,29 @@ namespace AnimatedButtonElement {
 				if (!this.tap) {
 					return;
 				}
-				const host = this.getRootNode().host as unknown as Polymer.RootElement;
+				const host = (this.getRootNode()
+					.host as unknown) as Polymer.RootElement;
 				if (this.tap in host) {
-					(host[this.tap as keyof typeof host] as (e: MouseEvent) => void)(e);
+					(host[this.tap as keyof typeof host] as (
+						e: MouseEvent
+					) => void)(e);
 				} else {
-					console.warn.apply(console, host._logf(`_createEventHandler`, 
-						`listener method ${this.tap} not defined`));
+					console.warn.apply(
+						console,
+						host._logf(
+							`_createEventHandler`,
+							`listener method ${this.tap} not defined`
+						)
+					);
 				}
 			}
 		}
 
 		static ready(this: AnimatedButton) {
 			this.addEventListener('click', (e) => {
-				this.__click(e as MouseEvent)
+				this.__click(e as MouseEvent);
 			});
-		};
+		}
 	}
 
 	if (window.objectify) {
@@ -103,5 +111,8 @@ namespace AnimatedButtonElement {
 	}
 }
 
-export type AnimatedButton = Polymer.El<'animated-button', 
-	typeof AnimatedButtonElement.AB & typeof AnimatedButtonElement.animatedButtonProperties>;
+export type AnimatedButton = Polymer.El<
+	'animated-button',
+	typeof AnimatedButtonElement.AB &
+		typeof AnimatedButtonElement.animatedButtonProperties
+>;

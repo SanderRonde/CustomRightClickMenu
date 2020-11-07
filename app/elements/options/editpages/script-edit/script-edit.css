@@ -1,7 +1,7 @@
 script-edit #settingsContainer {
 	width: 477px;
 	height: 376px;
-	overflow-y:scroll;
+	overflow-y: scroll;
 }
 
 .CodeMirror.fullscreen #bubbleCont {
@@ -10,17 +10,18 @@ script-edit #settingsContainer {
 
 #editorThemeFontSizeInput {
 	width: 78px;
-	margin-left:7px;
+	margin-left: 7px;
 }
 
-	#triggersInfoTxt.expandLeft, #codeInfoTxt.expandLeft {
-		margin-left: -263px;
-	}
+#triggersInfoTxt.expandLeft,
+#codeInfoTxt.expandLeft {
+	margin-left: -263px;
+}
 
 #openPermissionsDialogButton {
 	font-size: 125%;
-	background: #3F51B5;
-    color: white;
+	background: #3f51b5;
+	color: white;
 }
 
 .executionTriggerClear {
@@ -36,8 +37,8 @@ script-edit #settingsContainer {
 }
 
 paper-button.blue {
-    background-color: #3F51B5;
-    color: white;
+	background-color: #3f51b5;
+	color: white;
 }
 
 .editorTitle {

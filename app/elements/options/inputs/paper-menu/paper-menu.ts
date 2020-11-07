@@ -16,7 +16,8 @@ namespace PaperMenuElement {
 	}
 }
 
-type PaperMenuBase = Polymer.El<'paper-menu',
+type PaperMenuBase = Polymer.El<
+	'paper-menu',
 	typeof PaperMenuElement.PM & typeof Polymer.IronMenuBehavior
 >;
 export type PaperMenu = PaperMenuBase;

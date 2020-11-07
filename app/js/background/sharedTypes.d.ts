@@ -2,7 +2,7 @@
 /// <reference path="../../../tools/definitions/specialJSON.d.ts" />
 /// <reference path="../polyfills/weakmap.ts" />
 
-import { SharedWindow } from "../shared";
+import { SharedWindow } from '../shared';
 
 interface CRMAPIMessageInstance<T, TD> {
 	id: CRM.GenericNodeId;
@@ -21,17 +21,19 @@ interface LogListenerLine {
 	nodeTitle?: string;
 	tabTitle?: string;
 	data?: LogLineData[];
-	val?: {
-		type: 'success';
-		result: any;
-	} | {
-		type: 'error';
-		result: {
-			stack: string;
-			name: string;
-			message: string;
-		}
-	};
+	val?:
+		| {
+				type: 'success';
+				result: any;
+		  }
+		| {
+				type: 'error';
+				result: {
+					stack: string;
+					name: string;
+					message: string;
+				};
+		  };
 	logId?: number;
 	lineNumber?: string;
 	timestamp?: string;
@@ -71,7 +73,12 @@ interface LogListenerObject {
 	/**
 	 * A function that can be used to update the filters etc
 	 */
-	update: (id: string | CRM.GenericNodeId, tab: string | TabId, tabIndex: TabIndex, textFilter: string) => LogListenerLine[];
+	update: (
+		id: string | CRM.GenericNodeId,
+		tab: string | TabId,
+		tabIndex: TabIndex,
+		textFilter: string
+	) => LogListenerLine[];
 	/**
 	 * The text to filter for
 	 */
@@ -107,7 +114,7 @@ interface ContextMenuItemTreeItem {
 	/**
 	 * The ID of this item
 	 */
-	id: string|number;
+	id: string | number;
 	/**
 	 * Whether this item is enabled
 	 */
@@ -115,11 +122,16 @@ interface ContextMenuItemTreeItem {
 	/**
 	 * The associated CRM node
 	 */
-	node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
+	node:
+		| CRM.DividerNode
+		| CRM.MenuNode
+		| CRM.LinkNode
+		| CRM.StylesheetNode
+		| CRM.ScriptNode;
 	/**
 	 * The ID of the parent contextmenu item
 	 */
-	parentId: string|number;
+	parentId: string | number;
 	/**
 	 * The children of this leaf
 	 */
@@ -131,22 +143,22 @@ interface ContextMenuItemTreeItem {
 }
 
 interface BrowserTabsQueryInfo {
-	active?: boolean,
-	audible?: boolean,
+	active?: boolean;
+	audible?: boolean;
 	// unsupported: autoDiscardable?: boolean,
-	cookieStoreId?: string,
-	currentWindow?: boolean,
-	discarded?: boolean,
-	highlighted?: boolean,
-	index?: number,
-	muted?: boolean,
-	lastFocusedWindow?: boolean,
-	pinned?: boolean,
-	status?: _browser.tabs.TabStatus,
-	title?: string,
-	url?: string|string[],
-	windowId?: number,
-	windowType?: _browser.tabs.WindowType,
+	cookieStoreId?: string;
+	currentWindow?: boolean;
+	discarded?: boolean;
+	highlighted?: boolean;
+	index?: number;
+	muted?: boolean;
+	lastFocusedWindow?: boolean;
+	pinned?: boolean;
+	status?: _browser.tabs.TabStatus;
+	title?: string;
+	url?: string | string[];
+	windowId?: number;
+	windowType?: _browser.tabs.WindowType;
 }
 
 interface EncodedContextData {
@@ -198,11 +210,11 @@ interface GreaseMonkeyDataInfo {
 				orig_includes?: string[];
 				use_excludes: string[];
 				use_includes: string[];
-			}
-		},
+			};
+		};
 		position: number;
 		resources: CRM.Resource[];
-		"run-at": string;
+		'run-at': string;
 		system: boolean;
 		unwrap: boolean;
 		version?: number;
@@ -256,67 +268,98 @@ interface MessageLogging {
 	};
 }
 
-type BackgroundpageWindow = Window & SharedWindow & {
-	logging?: MessageLogging;
-	isDev: boolean;
-	createHandlerFunction: (port: {
-		postMessage: (message: Object) => void;
-	}|_browser.runtime.Port) => (message: any) => Promise<void>;
-	backgroundPageLog: (id: CRM.GenericNodeId, sourceData: [string, number], ...params: any[]) => void;
-	filter: (nodeId: any, tabId: any) => void;
-	_getCurrentTabIndex: (id: CRM.GenericNodeId, currentTab: TabId|'background', callback: (newTabIndexes: TabIndex[]) => void) => void;
-	_getIdsAndTabs: (selectedId: CRM.GenericNodeId, selectedTab: TabId|'background', callback: (result: {
-		ids: {
-			id: string|CRM.GenericNodeId;
-			title: string;
-		}[];
-		tabs: TabData[];
-	}) => void) => void;
-	_listenIds: (listener: (newIds: {
-		id: CRM.GenericNodeId;
-		title: string;
-	}[]) => void) => void;
-	_listenTabs: (listener: (newTabs: TabData[]) => void) => void;
-	_listenLog: (listener: LogListener,
-		callback: (result: LogListenerObject) => void) => LogListenerLine[];
-	XMLHttpRequest: any;
-	setTimeout(callback: () => void, time: number): void;
-	TextEncoder: any;
-	getID: (name: string) => void;
-	debugBackgroundScript(id: CRM.NodeId<CRM.ScriptNode>): void;
-	debugNextScriptCall(id: CRM.NodeId<CRM.ScriptNode>): void;
-	md5: (data: any) => string;
-	ts: Typescript & typeof ts;
-	less: {
-		Parser(): {
-			parse(code: string, callback: (err: Error, result: {
-				toCSS(): string;
-			}) => void): void;
-		}
-	};
-	stylus(code: string): {
-		render(callback: (err: Error, str: string) => void): void;
-	}
-	TernFile: Tern.File;
-	tern: Tern.Tern;
-	module?: {
-		exports?: any;
-	}
-	crypto: Crypto;
-	WeakMap: typeof WeakMapPolyfill;
+type BackgroundpageWindow = Window &
+	SharedWindow & {
+		logging?: MessageLogging;
+		isDev: boolean;
+		createHandlerFunction: (
+			port:
+				| {
+						postMessage: (message: Object) => void;
+				  }
+				| _browser.runtime.Port
+		) => (message: any) => Promise<void>;
+		backgroundPageLog: (
+			id: CRM.GenericNodeId,
+			sourceData: [string, number],
+			...params: any[]
+		) => void;
+		filter: (nodeId: any, tabId: any) => void;
+		_getCurrentTabIndex: (
+			id: CRM.GenericNodeId,
+			currentTab: TabId | 'background',
+			callback: (newTabIndexes: TabIndex[]) => void
+		) => void;
+		_getIdsAndTabs: (
+			selectedId: CRM.GenericNodeId,
+			selectedTab: TabId | 'background',
+			callback: (result: {
+				ids: {
+					id: string | CRM.GenericNodeId;
+					title: string;
+				}[];
+				tabs: TabData[];
+			}) => void
+		) => void;
+		_listenIds: (
+			listener: (
+				newIds: {
+					id: CRM.GenericNodeId;
+					title: string;
+				}[]
+			) => void
+		) => void;
+		_listenTabs: (listener: (newTabs: TabData[]) => void) => void;
+		_listenLog: (
+			listener: LogListener,
+			callback: (result: LogListenerObject) => void
+		) => LogListenerLine[];
+		XMLHttpRequest: any;
+		setTimeout(callback: () => void, time: number): void;
+		TextEncoder: any;
+		getID: (name: string) => void;
+		debugBackgroundScript(id: CRM.NodeId<CRM.ScriptNode>): void;
+		debugNextScriptCall(id: CRM.NodeId<CRM.ScriptNode>): void;
+		md5: (data: any) => string;
+		ts: Typescript & typeof ts;
+		less: {
+			Parser(): {
+				parse(
+					code: string,
+					callback: (
+						err: Error,
+						result: {
+							toCSS(): string;
+						}
+					) => void
+				): void;
+			};
+		};
+		stylus(
+			code: string
+		): {
+			render(callback: (err: Error, str: string) => void): void;
+		};
+		TernFile: Tern.File;
+		tern: Tern.Tern;
+		module?: {
+			exports?: any;
+		};
+		crypto: Crypto;
+		WeakMap: typeof WeakMapPolyfill;
 
-	log: typeof console.log;
-	info: typeof console.log;
-	logAsync: typeof console.log;
-	infoAsync: typeof console.log;
-	testLog?: typeof console.log;
-	console: typeof console;
-}
+		log: typeof console.log;
+		info: typeof console.log;
+		logAsync: typeof console.log;
+		infoAsync: typeof console.log;
+		testLog?: typeof console.log;
+		console: typeof console;
+	};
 
 declare const enum SCRIPT_CONVERSION_TYPE {
 	CHROME = 0,
 	LOCAL_STORAGE = 1,
-	BOTH = 2
+	BOTH = 2,
 }
 
 interface MatchPattern {
@@ -337,7 +380,7 @@ interface BGStorages {
 	/**
 	 * URLs that should be globally excluded (nothing runs on them)
 	 */
-	globalExcludes: (MatchPattern|'<all_urls>')[];
+	globalExcludes: (MatchPattern | '<all_urls>')[];
 	/**
 	 * Registered resources
 	 */
@@ -371,20 +414,23 @@ interface BGStorages {
 	/**
 	 * An object with URLs as keys and resources as values
 	 */
-	urlDataPairs: Map<string, {
-		/**
-		 * The data in string form
-		 */
-		dataString: string;
-		/**
-		 * All nodes that use this resource
-		 */
-		refs: CRM.GenericNodeId[];
-		/**
-		 * A data URI
-		 */
-		dataURI: string;
-	}>;
+	urlDataPairs: Map<
+		string,
+		{
+			/**
+			 * The data in string form
+			 */
+			dataString: string;
+			/**
+			 * All nodes that use this resource
+			 */
+			refs: CRM.GenericNodeId[];
+			/**
+			 * A data URI
+			 */
+			dataURI: string;
+		}
+	>;
 	/**
 	 * The local storage data (not synced)
 	 */
@@ -409,12 +455,12 @@ interface BGStorages {
 	 * Tab lookups that failed as a result of inaccessible pages such as
 	 * chrome extension pages, file:// pages etc
 	 */
-	failedLookups: (TabId|string)[];
+	failedLookups: (TabId | string)[];
 }
 
 interface SandboxWorkerInterface {
 	worker: Worker;
-	
+
 	post(message: any): void;
 	listen(callback: Function): void;
 	terminate(): void;
@@ -437,7 +483,13 @@ interface BGCRM {
 	/**
 	 * The CRM tree
 	 */
-	crmTree: (CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode)[]
+	crmTree: (
+		| CRM.DividerNode
+		| CRM.MenuNode
+		| CRM.LinkNode
+		| CRM.StylesheetNode
+		| CRM.ScriptNode
+	)[];
 	/**
 	 * CRM nodes ordered by ID
 	 */
@@ -453,29 +505,38 @@ interface BGCRM {
 }
 
 interface ContextMenuCreateProperties {
-	type?: _browser.contextMenus.ItemType,
-	id?: string,
-	title?: string,
-	checked?: boolean,
-	command?: "_execute_browser_action" | "_execute_page_action" | "_execute_sidebar_action",
-	contexts?: _browser.contextMenus.ContextType[],
-	onclick?: (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => void,
-	parentId?: number|string,
-	documentUrlPatterns?: string[],
-	targetUrlPatterns?: string[],
-	enabled?: boolean,
+	type?: _browser.contextMenus.ItemType;
+	id?: string;
+	title?: string;
+	checked?: boolean;
+	command?:
+		| '_execute_browser_action'
+		| '_execute_page_action'
+		| '_execute_sidebar_action';
+	contexts?: _browser.contextMenus.ContextType[];
+	onclick?: (
+		info: _browser.contextMenus.OnClickData,
+		tab: _browser.tabs.Tab
+	) => void;
+	parentId?: number | string;
+	documentUrlPatterns?: string[];
+	targetUrlPatterns?: string[];
+	enabled?: boolean;
 }
 
 interface ContextMenuUpdateProperties {
-	type?: _browser.contextMenus.ItemType,
-	title?: string,
-	checked?: boolean,
-	contexts?: _browser.contextMenus.ContextType[],
-	onclick?: (info: _browser.contextMenus.OnClickData, tab: _browser.tabs.Tab) => void,
-	parentId?: number|string,
-	documentUrlPatterns?: string[],
-	targetUrlPatterns?: string[],
-	enabled?: boolean,
+	type?: _browser.contextMenus.ItemType;
+	title?: string;
+	checked?: boolean;
+	contexts?: _browser.contextMenus.ContextType[];
+	onclick?: (
+		info: _browser.contextMenus.OnClickData,
+		tab: _browser.tabs.Tab
+	) => void;
+	parentId?: number | string;
+	documentUrlPatterns?: string[];
+	targetUrlPatterns?: string[];
+	enabled?: boolean;
 }
 
 interface ContextMenuSettings extends ContextMenuCreateProperties {
@@ -498,11 +559,11 @@ interface UserAddedContextMenu {
 	 * The mapped id used to identify this item. Not the actual
 	 * id as that changes with every re-creation
 	 */
-	generatedId: string|number;
+	generatedId: string | number;
 	/**
 	 * The actual contextmenu ID of this node
 	 */
-	actualId: string|number;
+	actualId: string | number;
 	/**
 	 * The parent of this node
 	 */
@@ -550,69 +611,85 @@ interface BGCRMValues {
 	/**
 	 * Tab-specific data
 	 */
-	tabData: Map<TabId, {
-		/**
-		 * The nodes that are currently running on this tab by ID
-		 */
-		nodes: Map<CRM.GenericNodeId, {
+	tabData: Map<
+		TabId,
+		{
 			/**
-			 * The secret key for this CRM API instance
+			 * The nodes that are currently running on this tab by ID
 			 */
-			secretKey: number[];
+			nodes: Map<
+				CRM.GenericNodeId,
+				{
+					/**
+					 * The secret key for this CRM API instance
+					 */
+					secretKey: number[];
+					/**
+					 * The runtime.port object associated with it
+					 */
+					port?:
+						| _browser.runtime.Port
+						| {
+								postMessage(message: Object): void;
+						  };
+					/**
+					 * Whether this instance uses local storage
+					 */
+					usesLocalStorage: boolean;
+				}[]
+			>;
 			/**
-			 * The runtime.port object associated with it
+			 * Any libraries that are active on the tab by name
 			 */
-			port?: _browser.runtime.Port | {
-				postMessage(message: Object): void;
-			};
-			/**
-			 * Whether this instance uses local storage
-			 */
-			usesLocalStorage: boolean;
-		}[]>;
-		/**
-		 * Any libraries that are active on the tab by name
-		 */
-		libraries: Map<string, boolean>;
-	}>;
+			libraries: Map<string, boolean>;
+		}
+	>;
 	/**
 	 * The ID of the root contextmenu item
 	 */
-	rootId: number|string;
+	rootId: number | string;
 	/**
 	 * Contextmenu IDs by the node ID that created them
 	 */
-	contextMenuIds: Map<CRM.GenericNodeId, string|number>;
+	contextMenuIds: Map<CRM.GenericNodeId, string | number>;
 	/**
 	 * All active instances of nodes by node ID
 	 */
-	nodeInstances: Map<CRM.GenericNodeId, 
+	nodeInstances: Map<
+		CRM.GenericNodeId,
 		/**
 		 * All instances of this node by their tab ID
 		 */
-		Map<TabId, {
-			/**
-			 * Whether this instance has a handler associated with it yet
-			 */
-			hasHandler: boolean;
-		}[]>>;
+		Map<
+			TabId,
+			{
+				/**
+				 * Whether this instance has a handler associated with it yet
+				 */
+				hasHandler: boolean;
+			}[]
+		>
+	>;
 	/**
 	 * Info about a contextmenu item by contextmenu item ID
 	 */
-	contextMenuInfoById: Map<string|number, {
-		/**
-		 * The path to this item as an array of numbers
-		 */
-		path: number[];
-		/**
-		 * The settings used to create this contextmenu item
-		 */
-		settings: ContextMenuSettings;
-		/**
-		 * Whether this contextmenu item is enabled
-		 */
-		enabled: boolean;
-	}>;
+	contextMenuInfoById: Map<
+		string | number,
+		{
+			/**
+			 * The path to this item as an array of numbers
+			 */
+			path: number[];
+			/**
+			 * The settings used to create this contextmenu item
+			 */
+			settings: ContextMenuSettings;
+			/**
+			 * Whether this contextmenu item is enabled
+			 */
+			enabled: boolean;
+		}
+	>;
 	/**
 	 * The contextmenu items in tree form
 	 */
@@ -624,7 +701,7 @@ interface BGCRMValues {
 	/**
 	 * Contextmenus added by the user sorted by their mapped ID
 	 */
-	userAddedContextMenusById: Map<string|number, UserAddedContextMenu>;
+	userAddedContextMenusById: Map<string | number, UserAddedContextMenu>;
 	/**
 	 * Contextmenu settings overrides for items on all tabs (global) by the node ID
 	 */
@@ -632,38 +709,47 @@ interface BGCRMValues {
 	/**
 	 * Data about on which pages to show or hide contextmenu items by ID
 	 */
-	hideNodesOnPagesData: Map<CRM.GenericNodeId, {
-		/**
-		 * Whether to not show the node on given URL
-		 */
-		not: boolean;
-		/**
-		 * The URL on which to show or not show the node
-		 */
-		url: string;
-	}[]>;
+	hideNodesOnPagesData: Map<
+		CRM.GenericNodeId,
+		{
+			/**
+			 * Whether to not show the node on given URL
+			 */
+			not: boolean;
+			/**
+			 * The URL on which to show or not show the node
+			 */
+			url: string;
+		}[]
+	>;
 	/**
 	 * Info about the status of a node on given tab by ID
 	 */
-	nodeTabStatuses: Map<CRM.GenericNodeId, {
-		/**
-		 * Data by each tab the node is running in
-		 */
-		tabs: Map<TabId, {
+	nodeTabStatuses: Map<
+		CRM.GenericNodeId,
+		{
 			/**
-			 * Whether the checkbox is checked
+			 * Data by each tab the node is running in
 			 */
-			checked?: boolean;
+			tabs: Map<
+				TabId,
+				{
+					/**
+					 * Whether the checkbox is checked
+					 */
+					checked?: boolean;
+					/**
+					 * Tab-specific contextmenu overrides
+					 */
+					overrides?: ContextMenuOverrides;
+				}
+			>;
 			/**
-			 * Tab-specific contextmenu overrides
+			 * The default checked status of the node
 			 */
-			overrides?: ContextMenuOverrides;
-		}>;
-		/**
-		 * The default checked status of the node
-		 */
-		defaultCheckedValue?: boolean;
-	}>;
+			defaultCheckedValue?: boolean;
+		}
+	>;
 }
 
 /**
@@ -709,12 +795,17 @@ interface BGToExecute {
 /**
  * A function used to send a response as a callback to a page
  */
-type SendCallbackMessage = (tabId: TabId, tabIndex: TabIndex, id: CRM.GenericNodeId, data: {
-	err: boolean,
-	errorMessage?: string;
-	args?: any[];
-	callbackId: number;
-}) => void;
+type SendCallbackMessage = (
+	tabId: TabId,
+	tabIndex: TabIndex,
+	id: CRM.GenericNodeId,
+	data: {
+		err: boolean;
+		errorMessage?: string;
+		args?: any[];
+		callbackId: number;
+	}
+) => void;
 
 interface Globals {
 	/**
@@ -756,46 +847,52 @@ interface Globals {
 		/**
 		 * Event listeners for the browser.notifications API
 		 */
-		notificationListeners: Map<string|number, {
-			/**
-			 * The ID of the node that created the notification
-			 */
-			id: CRM.GenericNodeId;
-			/**
-			 * The ID of the tab from which a node created the notification
-			 */
-			tabId: TabId;
-			/**
-			 * The index of the script on the tab that created it (if 3 instances
-			 * of the script are running, their tabIndexes are 0, 1 and 2 respectively)
-			 */
-			tabIndex: TabIndex;
-			/**
-			 * The ID of the notification
-			 */
-			notificationId: number;
-			/**
-			 * A callback ID for an onDone listener
-			 */
-			onDone: number;
-			/**
-			 * A callback ID for an onClick listener
-			 */
-			onClick: number;
-		}>;
+		notificationListeners: Map<
+			string | number,
+			{
+				/**
+				 * The ID of the node that created the notification
+				 */
+				id: CRM.GenericNodeId;
+				/**
+				 * The ID of the tab from which a node created the notification
+				 */
+				tabId: TabId;
+				/**
+				 * The index of the script on the tab that created it (if 3 instances
+				 * of the script are running, their tabIndexes are 0, 1 and 2 respectively)
+				 */
+				tabIndex: TabIndex;
+				/**
+				 * The ID of the notification
+				 */
+				notificationId: number;
+				/**
+				 * A callback ID for an onDone listener
+				 */
+				onDone: number;
+				/**
+				 * A callback ID for an onClick listener
+				 */
+				onClick: number;
+			}
+		>;
 		/**
 		 * Event listeners for the browser's keyboard shortcut API
 		 */
-		shortcutListeners: Map<string, {
-			/**
-			 * The keyboard shortcut (as keys)
-			 */
-			shortcut: string;
-			/**
-			 * The function to run when it's pressed
-			 */
-			callback(): void;
-		}[]>;
+		shortcutListeners: Map<
+			string,
+			{
+				/**
+				 * The keyboard shortcut (as keys)
+				 */
+				shortcut: string;
+				/**
+				 * The function to run when it's pressed
+				 */
+				callback(): void;
+			}[]
+		>;
 		/**
 		 * A set of nodes that should be debugged when they next activate
 		 */
@@ -816,21 +913,44 @@ interface Globals {
 }
 
 interface CRMTemplates {
-	mergeArrays<T extends T[] | U[], U>(this: CRMTemplates, mainArray: T, additionArray: T): T;
-	mergeObjects<T extends {
-		[key: string]: any;
-		[key: number]: any;
-	}, Y extends Partial<T>>(this: CRMTemplates, mainObject: T, additions: Y): T & Y;
+	mergeArrays<T extends T[] | U[], U>(
+		this: CRMTemplates,
+		mainArray: T,
+		additionArray: T
+	): T;
+	mergeObjects<
+		T extends {
+			[key: string]: any;
+			[key: number]: any;
+		},
+		Y extends Partial<T>
+	>(
+		this: CRMTemplates,
+		mainObject: T,
+		additions: Y
+	): T & Y;
 	getDefaultNodeInfo(options?: Partial<CRM.NodeInfo>): CRM.NodeInfo;
 	getDefaultLinkNode(options?: Partial<CRM.LinkNode>): CRM.LinkNode;
-	getDefaultStylesheetValue(options?: Partial<CRM.StylesheetVal>): CRM.StylesheetVal;
+	getDefaultStylesheetValue(
+		options?: Partial<CRM.StylesheetVal>
+	): CRM.StylesheetVal;
 	getDefaultScriptValue(options?: Partial<CRM.ScriptVal>): CRM.ScriptVal;
 	getDefaultScriptNode(options?: CRM.PartialScriptNode): CRM.ScriptNode;
-	getDefaultStylesheetNode(options?: CRM.PartialStylesheetNode): CRM.StylesheetNode;
-	getDefaultDividerOrMenuNode(options: Partial<CRM.DividerNode> | Partial<CRM.MenuNode>, type: 'menu' | 'divider'): CRM.DividerNode | CRM.MenuNode;
+	getDefaultStylesheetNode(
+		options?: CRM.PartialStylesheetNode
+	): CRM.StylesheetNode;
+	getDefaultDividerOrMenuNode(
+		options: Partial<CRM.DividerNode> | Partial<CRM.MenuNode>,
+		type: 'menu' | 'divider'
+	): CRM.DividerNode | CRM.MenuNode;
 	getDefaultDividerNode(options?: Partial<CRM.DividerNode>): CRM.DividerNode;
 	getDefaultMenuNode(options?: Partial<CRM.MenuNode>): CRM.MenuNode;
-	globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string, browserVal: string): string;
+	globalObjectWrapperCode(
+		name: string,
+		wrapperName: string,
+		chromeVal: string,
+		browserVal: string
+	): string;
 }
 
 interface BGConstants {
@@ -841,7 +961,7 @@ interface BGConstants {
 	/**
 	 * Valid protocols
 	 */
-	validSchemes: string[]; 
+	validSchemes: string[];
 	/**
 	 * Templates used to generate new nodes
 	 */
@@ -892,16 +1012,18 @@ interface BGListeners {
 	/**
 	 * A function that can be used to register an on ID update handler
 	 */
-	ids: ((updatedIds: {
-		/**
-		 * The node ID
-		 */
-		id: CRM.GenericNodeId;
-		/**
-		 * The name of the node
-		 */
-		title: string;
-	}[]) => void)[];
+	ids: ((
+		updatedIds: {
+			/**
+			 * The node ID
+			 */
+			id: CRM.GenericNodeId;
+			/**
+			 * The name of the node
+			 */
+			title: string;
+		}[]
+	) => void)[];
 	/**
 	 * A function that can be used to register an on tab ID update handler
 	 */
@@ -912,18 +1034,25 @@ interface BGListeners {
 	log: LogListenerObject[];
 }
 
-type UpgradeErrorHandler = (oldScriptErrors: CursorPosition[],
-	newScriptErrors: CursorPosition[], parseError: boolean) => void;
+type UpgradeErrorHandler = (
+	oldScriptErrors: CursorPosition[],
+	newScriptErrors: CursorPosition[],
+	parseError: boolean
+) => void;
 
 interface GlobalObject extends Partial<Window> {
 	globals?: Globals;
 	TransferFromOld?: {
-		transferCRMFromOld(openInNewTab: boolean, storageSource?: {
-			getItem(index: string | number): any;
-		}, method?: SCRIPT_CONVERSION_TYPE): Promise<CRM.Tree>;
+		transferCRMFromOld(
+			openInNewTab: boolean,
+			storageSource?: {
+				getItem(index: string | number): any;
+			},
+			method?: SCRIPT_CONVERSION_TYPE
+		): Promise<CRM.Tree>;
 		LegacyScriptReplace: {
-			generateScriptUpgradeErrorHandler(id: number): UpgradeErrorHandler
-		}
+			generateScriptUpgradeErrorHandler(id: number): UpgradeErrorHandler;
+		};
 	};
 	backgroundPageLoaded?: Promise<void>;
 

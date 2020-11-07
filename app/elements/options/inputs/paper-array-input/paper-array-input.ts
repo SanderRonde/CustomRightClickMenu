@@ -1,6 +1,6 @@
 /// <reference path="../../../elements.d.ts" />
 
-import { Polymer } from "../../../../../tools/definitions/polymer";
+import { Polymer } from '../../../../../tools/definitions/polymer';
 
 namespace PaperArrayInputElement {
 	export const paperArrayInputProperties: {
@@ -13,25 +13,25 @@ namespace PaperArrayInputElement {
 		values: {
 			type: Array,
 			value: [],
-			notify: true
+			notify: true,
 		},
 		max: {
 			type: Number,
-			value: -1
+			value: -1,
 		},
 		title: {
 			type: String,
 			value: '',
-			notify: true
+			notify: true,
 		},
 		type: {
 			type: String,
-			value: 'string'
+			value: 'string',
 		},
 		subtext: {
 			type: String,
-			value: ''
-		}
+			value: '',
+		},
 	} as any;
 
 	export class PAI {
@@ -50,7 +50,8 @@ namespace PaperArrayInputElement {
 		}
 
 		static saveSettings(this: PaperArrayInput) {
-			this.values = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.arrayInputLine'))
+			this.values = Array.prototype.slice
+				.apply(this.shadowRoot.querySelectorAll('.arrayInputLine'))
 				.map((element: HTMLElement) => {
 					return element.querySelector('paper-input').value;
 				});
@@ -59,11 +60,17 @@ namespace PaperArrayInputElement {
 		static addLine(this: PaperArrayInput) {
 			this.saveSettings();
 
-			if (this.max !== -1 && (this.values && this.values.length >= this.max)) {
+			if (
+				this.max !== -1 &&
+				this.values &&
+				this.values.length >= this.max
+			) {
 				this.$.maxElementsReachedMessage.classList.add('visible');
 				let timer = window.setTimeout(() => {
 					if (this._maxReachedTimeout === timer) {
-						this.$.maxElementsReachedMessage.classList.remove('visible');
+						this.$.maxElementsReachedMessage.classList.remove(
+							'visible'
+						);
 					}
 				}, 5000);
 				this._maxReachedTimeout = timer;
@@ -82,13 +89,21 @@ namespace PaperArrayInputElement {
 			const target = e.target;
 			this.async(() => {
 				this.saveSettings();
-				const iconButton = window.app.util.findElementWithTagname({
-					path: (e as any).path,
-					Aa: (e as any).Aa,
-					target: target
-				}, 'paper-icon-button');
-				this.splice('values', Array.prototype.slice.apply(this.querySelectorAll('.arrayInputLine'))
-					.indexOf(iconButton.parentElement.parentElement), 1);
+				const iconButton = window.app.util.findElementWithTagname(
+					{
+						path: (e as any).path,
+						Aa: (e as any).Aa,
+						target: target,
+					},
+					'paper-icon-button'
+				);
+				this.splice(
+					'values',
+					Array.prototype.slice
+						.apply(this.querySelectorAll('.arrayInputLine'))
+						.indexOf(iconButton.parentElement.parentElement),
+					1
+				);
 			}, 50);
 		}
 
@@ -109,5 +124,8 @@ namespace PaperArrayInputElement {
 	}
 }
 
-export type PaperArrayInput = Polymer.El<'paper-array-input',
-	typeof PaperArrayInputElement.PAI & typeof PaperArrayInputElement.paperArrayInputProperties>;
+export type PaperArrayInput = Polymer.El<
+	'paper-array-input',
+	typeof PaperArrayInputElement.PAI &
+		typeof PaperArrayInputElement.paperArrayInputProperties
+>;

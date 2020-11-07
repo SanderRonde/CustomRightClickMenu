@@ -1,5 +1,5 @@
 .circle.paper-spinner {
-	border-width:11px;
+	border-width: 11px;
 }
 
 #spinner {
@@ -17,32 +17,31 @@
 	display: flex;
 	-webkit-justify-content: center;
 	justify-content: center;
-	width:100%;
+	width: 100%;
 }
 
 #loadingContainer {
-	-webkit-transition: opacity 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
-	transition: opacity 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
+	-webkit-transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
+	transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
 	position: absolute;
-	opacity:1;
+	opacity: 1;
 	pointer-events: none;
 }
 
-	#loadingContainer[hide] {
-		opacity:0;
-	}
-
+#loadingContainer[hide] {
+	opacity: 0;
+}
 
 app-header {
-	background-color: rgb(255, 87, 34)!important;
+	background-color: rgb(255, 87, 34) !important;
 	color: white;
-	left: 0!important;
+	left: 0 !important;
 }
 
 .title {
 	text-align: center;
 	font-size: 150% !important;
-	margin-left: 0!important;
+	margin-left: 0 !important;
 	white-space: nowrap;
 	overflow: hidden;
 	-o-text-overflow: ellipsis;

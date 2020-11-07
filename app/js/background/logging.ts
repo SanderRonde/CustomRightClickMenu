@@ -1,19 +1,28 @@
 /// <reference path="../background/sharedTypes.d.ts"/>
-import { BackgroundpageWindow, LogListenerObject, CRMAPIMessageInstance, TabData, LogListenerLine } from './sharedTypes';
-import { I18NKeys } from "../../_locales/i18n-keys.js";
-import { ModuleData } from "./moduleTypes";
+import {
+	BackgroundpageWindow,
+	LogListenerObject,
+	CRMAPIMessageInstance,
+	TabData,
+	LogListenerLine,
+} from './sharedTypes';
+import { I18NKeys } from '../../_locales/i18n-keys.js';
+import { ModuleData } from './moduleTypes';
 
 declare const browserAPI: browserAPI;
 declare const window: BackgroundpageWindow;
 
 export namespace Logging.LogExecution {
-	export function executeCRMCode(message: {
-		code: any,
-		id: CRM.GenericNodeId,
-		tabIndex: TabIndex;
-		tab: TabId,
-		logListener: LogListenerObject;
-	}, type: 'executeCRMCode' | 'getCRMHints' | 'createLocalLogVariable') {
+	export function executeCRMCode(
+		message: {
+			code: any;
+			id: CRM.GenericNodeId;
+			tabIndex: TabIndex;
+			tab: TabId;
+			logListener: LogListenerObject;
+		},
+		type: 'executeCRMCode' | 'getCRMHints' | 'createLocalLogVariable'
+	) {
 		//Get the port
 		if (!modules.crmValues.tabData.has(message.tab)) {
 			return;
@@ -24,24 +33,29 @@ export namespace Logging.LogExecution {
 		modules.Util.postMessage(port, {
 			messageType: type,
 			code: message.code,
-			logCallbackIndex: message.logListener.index
+			logCallbackIndex: message.logListener.index,
 		});
 	}
-	export function displayHints(message: CRMAPIMessageInstance<'displayHints', {
-		hints: string[];
-		id: CRM.GenericNodeId;
-		callbackIndex: number;
-		tabId: TabId;
-	}>) {
+	export function displayHints(
+		message: CRMAPIMessageInstance<
+			'displayHints',
+			{
+				hints: string[];
+				id: CRM.GenericNodeId;
+				callbackIndex: number;
+				tabId: TabId;
+			}
+		>
+	) {
 		modules.listeners.log[message.data.callbackIndex].listener({
 			id: message.id,
 			tabId: message.tabId,
 			tabInstanceIndex: message.tabIndex,
 			type: 'hints',
-			suggestions: message.data.hints
+			suggestions: message.data.hints,
 		});
 	}
-};
+}
 
 export namespace Logging.Listeners {
 	export function getIds(filterTabId: TabId = -1 as TabId) {
@@ -58,14 +72,21 @@ export namespace Logging.Listeners {
 			});
 		});
 
-		return ids.sort((a, b) => {
-			return a - b;
-		}).map((id) => ({
-			id,
-			title: modules.crm.crmById.get(id).name
-		}));
+		return ids
+			.sort((a, b) => {
+				return a - b;
+			})
+			.map((id) => ({
+				id,
+				title: modules.crm.crmById.get(id).name,
+			}));
 	}
-	function compareToCurrent<T extends U[], U>(current: T, previous: T, changeListeners: ((result: T) => void)[], type: 'id'|'tab') {
+	function compareToCurrent<T extends U[], U>(
+		current: T,
+		previous: T,
+		changeListeners: ((result: T) => void)[],
+		type: 'id' | 'tab'
+	) {
 		if (!modules.Util.compareArray(current, previous)) {
 			changeListeners.forEach((listener) => {
 				listener(current);
@@ -77,7 +98,9 @@ export namespace Logging.Listeners {
 			}
 		}
 	}
-	export function getTabs(nodeId: CRM.GenericNodeId = 0 as CRM.GenericNodeId): Promise<TabData[]> {
+	export function getTabs(
+		nodeId: CRM.GenericNodeId = 0 as CRM.GenericNodeId
+	): Promise<TabData[]> {
 		return new Promise<TabData[]>(async (resolveOuter) => {
 			const tabData = modules.crmValues.tabData;
 			const tabs: Promise<TabData>[] = [];
@@ -86,26 +109,34 @@ export namespace Logging.Listeners {
 					return;
 				}
 				if (tabId === 0) {
-					tabs.push(Promise.resolve({
-						id: 'background',
-						title: 'background'
-					} as TabData));
+					tabs.push(
+						Promise.resolve({
+							id: 'background',
+							title: 'background',
+						} as TabData)
+					);
 				} else {
-					tabs.push(modules.Util.iipe(async () => {
-						const tab = await browserAPI.tabs.get(tabId).catch(() => {
-							modules.Util.removeTab(tabId);
-						});
-						if (!tab) {
-							return null;
-						}
-						return {
-							id: tabId,
-							title: tab.title
-						}
-					}));
+					tabs.push(
+						modules.Util.iipe(async () => {
+							const tab = await browserAPI.tabs
+								.get(tabId)
+								.catch(() => {
+									modules.Util.removeTab(tabId);
+								});
+							if (!tab) {
+								return null;
+							}
+							return {
+								id: tabId,
+								title: tab.title,
+							};
+						})
+					);
 				}
 			});
-			resolveOuter((await Promise.all(tabs)).filter(val => val !== null));
+			resolveOuter(
+				(await Promise.all(tabs)).filter((val) => val !== null)
+			);
 		});
 	}
 	export async function updateTabAndIdLists(): Promise<{
@@ -113,7 +144,7 @@ export namespace Logging.Listeners {
 			id: CRM.GenericNodeId;
 			title: string;
 		}[];
-		tabs: TabData[]
+		tabs: TabData[];
 	}> {
 		const listeners = modules.globalObject.globals.listeners;
 
@@ -125,10 +156,10 @@ export namespace Logging.Listeners {
 
 		return {
 			ids,
-			tabs
-		}
+			tabs,
+		};
 	}
-};
+}
 
 export namespace Logging {
 	export let modules: ModuleData;
@@ -137,9 +168,17 @@ export namespace Logging {
 		modules = _modules;
 	}
 
-	export function log(nodeId: CRM.GenericNodeId, tabId: TabId | string, ...args: any[]) {
+	export function log(
+		nodeId: CRM.GenericNodeId,
+		tabId: TabId | string,
+		...args: any[]
+	) {
 		const filter = modules.globalObject.globals.logging.filter;
-		if (filter.id !== null && nodeId === filter.id && filter.tabId !== null) {
+		if (
+			filter.id !== null &&
+			nodeId === filter.id &&
+			filter.tabId !== null
+		) {
 			if (tabId === '*' || tabId === filter.tabId) {
 				window.log.apply(console, args);
 			}
@@ -147,44 +186,57 @@ export namespace Logging {
 			window.log.apply(console, args);
 		}
 	}
-	export async function backgroundPageLog(this: Window | typeof Logging, 
-		id: CRM.GenericNodeId, sourceData: [string, number], ...args: any[]) {
-			sourceData = sourceData || [undefined, undefined];
+	export async function backgroundPageLog(
+		this: Window | typeof Logging,
+		id: CRM.GenericNodeId,
+		sourceData: [string, number],
+		...args: any[]
+	) {
+		sourceData = sourceData || [undefined, undefined];
 
-			const srcObjDetails = {
-				tabId: await window.__(I18NKeys.background.logging.background),
-				nodeTitle: modules.crm.crmById.get(id).name,
-				tabTitle: await window.__(I18NKeys.background.logging.backgroundPage),
-				data: args,
-				lineNumber: sourceData[0],
-				logId: sourceData[1],
-				timestamp: new Date().toLocaleString()
-			};
+		const srcObjDetails = {
+			tabId: await window.__(I18NKeys.background.logging.background),
+			nodeTitle: modules.crm.crmById.get(id).name,
+			tabTitle: await window.__(
+				I18NKeys.background.logging.backgroundPage
+			),
+			data: args,
+			lineNumber: sourceData[0],
+			logId: sourceData[1],
+			timestamp: new Date().toLocaleString(),
+		};
 
-			const srcObj: LogListenerLine & typeof srcObjDetails = {
-				id: id
-			} as any;
-			const logArgs = [
-				`${await window.__(I18NKeys.background.logging.backgroundPage)} [`, 
-					srcObj, ']: '
-			].concat(args);
+		const srcObj: LogListenerLine & typeof srcObjDetails = {
+			id: id,
+		} as any;
+		const logArgs = [
+			`${await window.__(I18NKeys.background.logging.backgroundPage)} [`,
+			srcObj,
+			']: ',
+		].concat(args);
 
-			Logging.log.bind(modules.globalObject, id, 
-				await window.__(I18NKeys.background.logging.background))
-					.apply(modules.globalObject, logArgs);
+		Logging.log
+			.bind(
+				modules.globalObject,
+				id,
+				await window.__(I18NKeys.background.logging.background)
+			)
+			.apply(modules.globalObject, logArgs);
 
-			for (let key in srcObjDetails) {
-				if (srcObjDetails.hasOwnProperty(key)) {
-					(srcObj as any)[key as keyof typeof srcObjDetails] = (srcObjDetails as any)[key];
-				}
+		for (let key in srcObjDetails) {
+			if (srcObjDetails.hasOwnProperty(key)) {
+				(srcObj as any)[
+					key as keyof typeof srcObjDetails
+				] = (srcObjDetails as any)[key];
 			}
-			modules.globalObject.globals.logging[id] = 
-				modules.globalObject.globals.logging[id] as any || {
-					logMessages: []
-				};
-			modules.globalObject.globals.logging[id].logMessages.push(srcObj);
-			updateLogs(srcObj);
 		}
+		modules.globalObject.globals.logging[id] = (modules.globalObject.globals
+			.logging[id] as any) || {
+			logMessages: [],
+		};
+		modules.globalObject.globals.logging[id].logMessages.push(srcObj);
+		updateLogs(srcObj);
+	}
 	export async function logHandler(message: {
 		type: string;
 		id: CRM.GenericNodeId;
@@ -195,17 +247,19 @@ export namespace Logging {
 		callbackIndex?: number;
 		timestamp?: string;
 		data?: any;
-		value?: {
-			type: 'success';
-			result: string;
-		} | {
-			type: 'error';
-			result: {
-				stack: string;
-				name: string;
-				message: string;
-			}
-		}
+		value?:
+			| {
+					type: 'success';
+					result: string;
+			  }
+			| {
+					type: 'error';
+					result: {
+						stack: string;
+						name: string;
+						message: string;
+					};
+			  };
 	}) {
 		prepareLog(message.id, message.tabId);
 		switch (message.type) {
@@ -220,10 +274,15 @@ export namespace Logging {
 					type: 'evalResult',
 					lineNumber: message.lineNumber,
 					timestamp: message.timestamp,
-					val: (message.value.type === 'success') ? {
-						type: 'success',
-						result: modules.constants.specialJSON.fromJSON(message.value.result as string)
-					} : message.value
+					val:
+						message.value.type === 'success'
+							? {
+									type: 'success',
+									result: modules.constants.specialJSON.fromJSON(
+										message.value.result as string
+									),
+							  }
+							: message.value,
 				});
 				break;
 			case 'log':
@@ -237,7 +296,7 @@ export namespace Logging {
 					tabId: message.tabId,
 					logId: message.logId,
 					callbackIndex: message.callbackIndex,
-					timestamp: message.type
+					timestamp: message.type,
 				});
 				break;
 		}
@@ -254,19 +313,23 @@ export namespace Logging {
 				logMessages: LogListenerLine[];
 				[tabId: number]: any;
 			} = {
-					values: [],
-					logMessages: []
-				};
+				values: [],
+				logMessages: [],
+			};
 			idObj[tabId] = {};
 			modules.globalObject.globals.logging[nodeId] = idObj;
 		}
 	}
 	function updateLogs(newLog: LogListenerLine) {
 		modules.globalObject.globals.listeners.log.forEach((logListener) => {
-			const idMatches = logListener.id === 'all' || ~~logListener.id === ~~newLog.id;
-			const tabMatches = logListener.tab === 'all' ||
-				(logListener.tab === 'background' && logListener.tab === newLog.tabId) ||
-				(logListener.tab !== 'background' && ~~logListener.tab === ~~newLog.tabId);
+			const idMatches =
+				logListener.id === 'all' || ~~logListener.id === ~~newLog.id;
+			const tabMatches =
+				logListener.tab === 'all' ||
+				(logListener.tab === 'background' &&
+					logListener.tab === newLog.tabId) ||
+				(logListener.tab !== 'background' &&
+					~~logListener.tab === ~~newLog.tabId);
 			if (idMatches && tabMatches) {
 				logListener.listener(newLog);
 			}
@@ -290,14 +353,15 @@ export namespace Logging {
 			tab: _browser.tabs.Tab;
 			url: string;
 			tabTitle: string;
-			node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
+			node:
+				| CRM.DividerNode
+				| CRM.MenuNode
+				| CRM.LinkNode
+				| CRM.StylesheetNode
+				| CRM.ScriptNode;
 			nodeName: string;
 		} = {} as any;
-		let args = [
-			'Log[src:',
-			srcObj,
-			']: '
-		];
+		let args = ['Log[src:', srcObj, ']: '];
 
 		const logValue: LogListenerLine = {
 			id: message.id,
@@ -305,15 +369,18 @@ export namespace Logging {
 			logId: message.logId,
 			tabIndex: message.tabIndex,
 			lineNumber: message.lineNumber || '?',
-			timestamp: new Date().toLocaleString()
+			timestamp: new Date().toLocaleString(),
 		} as any;
 
 		const tab = await browserAPI.tabs.get(message.tabId);
-		const data: any[] = modules.constants.specialJSON
-			.fromJSON(message.data);
+		const data: any[] = modules.constants.specialJSON.fromJSON(
+			message.data
+		);
 		args = args.concat(data);
-		log.bind(modules.globalObject, message.id, message.tabId)
-			.apply(modules.globalObject, args);
+		log.bind(modules.globalObject, message.id, message.tabId).apply(
+			modules.globalObject,
+			args
+		);
 
 		srcObj.id = message.id;
 		srcObj.tabId = message.tabId;
@@ -328,8 +395,9 @@ export namespace Logging {
 		logValue.nodeTitle = srcObj.nodeName;
 		logValue.data = data;
 
-		modules.globalObject.globals.logging[message.id]
-			.logMessages.push(logValue);
+		modules.globalObject.globals.logging[message.id].logMessages.push(
+			logValue
+		);
 		updateLogs(logValue);
 	}
 }

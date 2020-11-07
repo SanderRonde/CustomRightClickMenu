@@ -19,15 +19,16 @@
 	padding: 20px;
 	display: -webkit-flex;
 	display: flex;
-	padding-bottom:0;
+	padding-bottom: 0;
 }
 
-#scriptInfoMeta, #scriptInfoPermissions {
+#scriptInfoMeta,
+#scriptInfoPermissions {
 	width: calc(50vw - 90px);
 }
 
 #scriptInfoMeta {
-	margin-right:35px;
+	margin-right: 35px;
 }
 
 #scriptInfoPermissions {
@@ -40,7 +41,7 @@
 }
 
 html {
-	margin:0;
+	margin: 0;
 	overflow-y: auto;
 	overflow-x: hidden;
 }
@@ -57,15 +58,16 @@ html {
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-end;
-	color:white;
+	color: white;
 }
 
-#installButton, #acceptAndInstallbutton {
-	background: #4CAF50;
+#installButton,
+#acceptAndInstallbutton {
+	background: #4caf50;
 }
 
 #cancelButton {
-	background: #F44336;
+	background: #f44336;
 }
 
 .installButton paper-material {
@@ -82,10 +84,10 @@ html {
 	transform: rotate(90deg);
 }
 
-	.infoPermissionArrow svg.shown {
-		-webkit-transform: rotate(-90deg);
-		transform: rotate(-90deg);
-	}
+.infoPermissionArrow svg.shown {
+	-webkit-transform: rotate(-90deg);
+	transform: rotate(-90deg);
+}
 
 .infoPermissionArrow {
 	display: inline-block;
@@ -94,13 +96,13 @@ html {
 
 .infoPermission {
 	display: inline-block;
-	-webkit-user-select:initial;
+	-webkit-user-select: initial;
 	user-select: initial;
 }
 
 paper-checkbox #checkbox.checked.paper-checkbox {
-	background-color: rgb(63, 81, 181)!important;
-	border-color: rgb(63, 81, 181)!important;
+	background-color: rgb(63, 81, 181) !important;
+	border-color: rgb(63, 81, 181) !important;
 }
 
 .infoPermissionToggleContainer {
@@ -110,7 +112,7 @@ paper-checkbox #checkbox.checked.paper-checkbox {
 
 .infoPermissionExtraText {
 	height: 0;
-	overflow:hidden;
+	overflow: hidden;
 }
 
 .infoPermissionCheckbox paper-ripple {
@@ -147,20 +149,19 @@ paper-checkbox #checkbox.checked.paper-checkbox {
 	}
 }
 
-
 #scriptInstalledCheckmark {
 	-webkit-transform: rotate(45deg);
-    transform: rotate(45deg);
-    top: 120px;
-    left: 12px;
-    width: 0px;
-    height: 0px;
-    border-style: solid;
-    border-top: none;
-    border-left: none;
-    border-right-width: 10px;
-    border-bottom-width: 10px;
-    border-color: #ff5722;
+	transform: rotate(45deg);
+	top: 120px;
+	left: 12px;
+	width: 0px;
+	height: 0px;
+	border-style: solid;
+	border-top: none;
+	border-left: none;
+	border-right-width: 10px;
+	border-bottom-width: 10px;
+	border-color: #ff5722;
 	position: relative;
 }
 
@@ -206,7 +207,7 @@ paper-checkbox #checkbox.checked.paper-checkbox {
 	display: none;
 }
 
-#installButtons.installed #installButton, 
+#installButtons.installed #installButton,
 #installButtons.installed #cancelButton,
 #installButtons.installed #acceptAndInstallbutton {
 	display: none;
@@ -247,20 +248,20 @@ paper-checkbox #checkbox.checked.paper-checkbox {
 }
 
 #permissionsInfoCont:hover .inactive {
-	display:none;
+	display: none;
 }
 
 #permissionsInfoText {
 	position: absolute;
-    z-index: 10000;
-    margin-top: -24px;
-    margin-left: 24px;
-    width: 250px;
-    background-color: white;
-    border: 1px solid black;
-    padding: 5px;
-	font-size:15.6px;
-	font-weight:normal;
+	z-index: 10000;
+	margin-top: -24px;
+	margin-left: 24px;
+	width: 250px;
+	background-color: white;
+	border: 1px solid black;
+	padding: 5px;
+	font-size: 15.6px;
+	font-weight: normal;
 	cursor: default;
 }
 

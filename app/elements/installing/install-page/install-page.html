@@ -1,17 +1,47 @@
-﻿<!DOCTYPE HTML>
-<link rel="import" href="../../../elements/installing/install-error/install-error.html" />
-<link rel="import" href="../../../elements/installing/install-confirm/install-confirm.html" />
-<link rel="import" href="../../../bower_components/app-layout/app-layout.html"/>
-<link rel="import" href="../../../bower_components/app-layout/app-header-layout/app-header-layout.html"/>
-<link rel="import" href="../../../bower_components/app-layout/app-header/app-header.html"/>
-<link rel="import" href="../../../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
-<link rel="import" href="../../../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html"/>
-<link rel="import" href="../../../elements/util/center-element/center-element.html"/>
-<link rel="import" href="../../../bower_components/paper-spinner/paper-spinner.html"/>
+﻿<!DOCTYPE html>
+<link
+	rel="import"
+	href="../../../elements/installing/install-error/install-error.html"
+/>
+<link
+	rel="import"
+	href="../../../elements/installing/install-confirm/install-confirm.html"
+/>
+<link
+	rel="import"
+	href="../../../bower_components/app-layout/app-layout.html"
+/>
+<link
+	rel="import"
+	href="../../../bower_components/app-layout/app-header-layout/app-header-layout.html"
+/>
+<link
+	rel="import"
+	href="../../../bower_components/app-layout/app-header/app-header.html"
+/>
+<link
+	rel="import"
+	href="../../../bower_components/app-layout/app-toolbar/app-toolbar.html"
+/>
+<link
+	rel="import"
+	href="../../../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html"
+/>
+<link
+	rel="import"
+	href="../../../elements/util/center-element/center-element.html"
+/>
+<link
+	rel="import"
+	href="../../../bower_components/paper-spinner/paper-spinner.html"
+/>
 <dom-module id="install-page">
 	<template>
 		<!-- build:css inline ../../../elements/installing/install-page/install-page.css -->
-		<link rel="stylesheet" href="../../../elements/installing/install-page/install-page.css" />
+		<link
+			rel="stylesheet"
+			href="../../../elements/installing/install-page/install-page.css"
+		/>
 		<!-- /build -->
 		<style>
 			.title {
@@ -29,12 +59,21 @@
 				</app-header>
 				<div class="container">
 					<div id="loadingContainer" hide$="{{!isLoading}}">
-						<center-element width="100vw" height="calc(100vh - 64px)">
+						<center-element
+							width="100vw"
+							height="calc(100vh - 64px)"
+						>
 							<div>
 								<div id="spinnerCenterer">
-									<paper-spinner id="spinner" active></paper-spinner>
+									<paper-spinner
+										id="spinner"
+										active
+									></paper-spinner>
 								</div>
-								<div id="loadingText">[[__(lang, langReady, 'install_page_fetching')]]</div>
+								<div id="loadingText">
+									[[__(lang, langReady,
+									'install_page_fetching')]]
+								</div>
 							</div>
 						</center-element>
 					</div>
@@ -42,7 +81,9 @@
 						<install-error id="installError"></install-error>
 					</template>
 					<template is="dom-if" if="{{fetchCompleted}}">
-						<install-confirm script="{{fetchedData}}"></install-confirm>
+						<install-confirm
+							script="{{fetchedData}}"
+						></install-confirm>
 					</template>
 				</div>
 			</app-header-layout>

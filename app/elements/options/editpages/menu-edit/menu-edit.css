@@ -16,20 +16,20 @@
 
 #triggersInfoTxt {
 	position: absolute;
-    z-index: 10000;
-    margin-top: -24px;
-    margin-left: 24px;
-    width: 250px;
-    background-color: white;
-    border: 1px solid black;
-    padding: 5px;
-	font-size:15.6px;
-	font-weight:normal;
+	z-index: 10000;
+	margin-top: -24px;
+	margin-left: 24px;
+	width: 250px;
+	background-color: white;
+	border: 1px solid black;
+	padding: 5px;
+	font-size: 15.6px;
+	font-weight: normal;
 }
 
-	#triggersInfoTxt.expandLeft {
-		margin-left: -263px;
-	}
+#triggersInfoTxt.expandLeft {
+	margin-left: -263px;
+}
 
 .executionTriggerClear {
 	padding: 8px 0;
@@ -39,23 +39,23 @@
 	color: #f44336;
 }
 
-	.executionTriggerNot #checkboxLabel {
-		padding-left: 0;
-		padding-right: 8px;
-	}
+.executionTriggerNot #checkboxLabel {
+	padding-left: 0;
+	padding-right: 8px;
+}
 
-	.executionTriggerNot #ink {
-		color: #f44336!important;
-	}
+.executionTriggerNot #ink {
+	color: #f44336 !important;
+}
 
-	.executionTriggerNot #ink[checked] {
-		color: #f44336!important;
-	}
+.executionTriggerNot #ink[checked] {
+	color: #f44336 !important;
+}
 
-	.executionTriggerNot #checkbox.checked {
-		background-color: #f44336!important;
-		border-color: #f44336!important;
-	}
+.executionTriggerNot #checkbox.checked {
+	background-color: #f44336 !important;
+	border-color: #f44336 !important;
+}
 
 #changeType {
 	margin-right: 10px;

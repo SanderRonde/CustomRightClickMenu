@@ -8,11 +8,13 @@ paper-libraries-selector #dropdownSelected {
 	font-size: 250%;
 }
 
-paper-libraries-selector[indent=false] #dropdownSelectedCont {
+paper-libraries-selector[indent='false'] #dropdownSelectedCont {
 	margin-left: 0;
 }
 
-.menuSelectedCheckmark, .addLibraryPlusImg, span {
+.menuSelectedCheckmark,
+.addLibraryPlusImg,
+span {
 	margin-right: 0 !important;
 }
 
@@ -26,11 +28,12 @@ paper-libraries-selector[indent=false] #dropdownSelectedCont {
 	text-overflow: ellipsis;
 }
 
-paper-item[aria-selected=true] .menuSelectedCheckmark {
+paper-item[aria-selected='true'] .menuSelectedCheckmark {
 	display: block;
 }
 
-paper-item[aria-selected=true] .menuOptionName, paper-item[addlibrary] .menuOptionName {
+paper-item[aria-selected='true'] .menuOptionName,
+paper-item[addlibrary] .menuOptionName {
 	padding-left: 8px;
 }
 
@@ -44,7 +47,7 @@ paper-libraries-selector .library.anonymous {
 }
 
 .anonymous > .menuOptionName[data-descr]:hover::after {
-  	content: attr(data-descr);
+	content: attr(data-descr);
 	position: absolute;
 	left: 49px;
 	margin-top: 26px;
@@ -65,7 +68,8 @@ paper-libraries-selector .library.anonymous {
 	margin-right: 5px;
 }
 
-#libraryInfoCont .active, #libraryInfoCont #libraryInfoTxtCont {
+#libraryInfoCont .active,
+#libraryInfoCont #libraryInfoTxtCont {
 	display: none;
 }
 
@@ -73,30 +77,31 @@ paper-libraries-selector .library.anonymous {
 	display: block;
 }
 
-#libraryInfoCont:hover .active, #libraryInfoCont:hover #libraryInfoTxtCont {
+#libraryInfoCont:hover .active,
+#libraryInfoCont:hover #libraryInfoTxtCont {
 	display: block;
 }
 
 #libraryInfoCont:hover .inactive {
-	display:none;
+	display: none;
 }
 
 #libraryInfoTxt {
 	position: absolute;
-    z-index: 10000;
-    margin-top: -24px;
-    margin-left: 24px;
-    width: 250px;
-    background-color: white;
-    border: 1px solid black;
-    padding: 5px;
-	font-size:15.6px;
-	font-weight:normal;
+	z-index: 10000;
+	margin-top: -24px;
+	margin-left: 24px;
+	width: 250px;
+	background-color: white;
+	border: 1px solid black;
+	padding: 5px;
+	font-size: 15.6px;
+	font-weight: normal;
 }
 
-	#libraryInfoTxt.expandLeft {
-		margin-left: -263px;
-	}
+#libraryInfoTxt.expandLeft {
+	margin-left: -263px;
+}
 
 .removeLibrary {
 	position: absolute;
@@ -120,14 +125,15 @@ paper-libraries-selector .library.anonymous {
 }
 
 paper-menu[noroot] .library {
-	box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14), 0 1px 8px 0 rgba(0, 0, 0, 0.12), 0 3px 3px -2px rgba(0, 0, 0, 0.4);
+	box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14), 0 1px 8px 0 rgba(0, 0, 0, 0.12),
+		0 3px 3px -2px rgba(0, 0, 0, 0.4);
 	margin-left: 3px;
 	margin-right: 3px;
 	margin-top: 2px;
 }
 
 paper-menu[noroot] .addLibrary {
-	margin-bottom:10px;
+	margin-bottom: 10px;
 }
 
 #dropdown {

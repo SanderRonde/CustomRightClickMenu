@@ -10,8 +10,8 @@ namespace LinkEditElement {
 		item: {
 			type: Object,
 			value: {},
-			notify: true
-		}
+			notify: true,
+		},
 	} as any;
 
 	export class LE {
@@ -23,43 +23,62 @@ namespace LinkEditElement {
 
 		static init(this: NodeEditBehaviorLinkInstance) {
 			this._init();
-		};
+		}
 
 		static ready(this: NodeEditBehaviorLinkInstance) {
 			window.linkEdit = this;
-		};
+		}
 
-		static saveChanges(this: NodeEditBehaviorLinkInstance, resultStorage: Partial<CRM.LinkNode>) {
+		static saveChanges(
+			this: NodeEditBehaviorLinkInstance,
+			resultStorage: Partial<CRM.LinkNode>
+		) {
 			//Get new "item"
 			resultStorage.value = [];
-			$(this.$.linksContainer).find('.linkChangeCont').each(function (this: HTMLElement) {
-				resultStorage.value.push({
-					'url': ($(this).children('paper-input')[0] as unknown as HTMLPaperInputElement).value,
-					'newTab': ($(this).children('paper-checkbox')[0].getAttribute('aria-checked') !== 'true')
+			$(this.$.linksContainer)
+				.find('.linkChangeCont')
+				.each(function (this: HTMLElement) {
+					resultStorage.value.push({
+						url: (($(this).children(
+							'paper-input'
+						)[0] as unknown) as HTMLPaperInputElement).value,
+						newTab:
+							$(this)
+								.children('paper-checkbox')[0]
+								.getAttribute('aria-checked') !== 'true',
+					});
 				});
-			});
-		};
+		}
 
-		static checkboxStateChange(this: NodeEditBehaviorLinkInstance, e: Polymer.ClickEvent) {
+		static checkboxStateChange(
+			this: NodeEditBehaviorLinkInstance,
+			e: Polymer.ClickEvent
+		) {
 			//Get this checkbox
-			const checkbox = window.app.util.findElementWithTagname(e, 'paper-checkbox');
-			$(this.$.linksContainer).find('paper-checkbox').each(function (this: HTMLPaperCheckboxElement) {
-				if (this !== checkbox) {
-					this.removeAttribute('checked');
-				}
-			});
-		};
+			const checkbox = window.app.util.findElementWithTagname(
+				e,
+				'paper-checkbox'
+			);
+			$(this.$.linksContainer)
+				.find('paper-checkbox')
+				.each(function (this: HTMLPaperCheckboxElement) {
+					if (this !== checkbox) {
+						this.removeAttribute('checked');
+					}
+				});
+		}
 
 		static addLink() {
 			window.linkEdit.push('newSettings.value', {
 				url: 'https://www.example.com',
-				newTab: true
+				newTab: true,
 			});
-		};
+		}
 
 		static toggleCheckbox(e: Polymer.ClickEvent) {
 			$(window.app.util.findElementWithClassName(e, 'linkChangeCont'))
-				.children('paper-checkbox').click();
+				.children('paper-checkbox')
+				.click();
 		}
 	}
 
@@ -72,4 +91,7 @@ namespace LinkEditElement {
 	}
 }
 
-export type LinkEdit = Polymer.El<'link-edit', typeof LinkEditElement.LE & typeof LinkEditElement.linkEditProperties>;
+export type LinkEdit = Polymer.El<
+	'link-edit',
+	typeof LinkEditElement.LE & typeof LinkEditElement.linkEditProperties
+>;

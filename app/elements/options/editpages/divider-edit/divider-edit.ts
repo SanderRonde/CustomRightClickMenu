@@ -10,8 +10,8 @@ namespace DividerEditElement {
 		item: {
 			type: Object,
 			value: {},
-			notify: true
-		}
+			notify: true,
+		},
 	} as any;
 
 	export class DE {
@@ -23,12 +23,11 @@ namespace DividerEditElement {
 
 		static init(this: NodeEditBehaviorDividerInstance) {
 			this._init();
-		};
+		}
 
 		static ready(this: NodeEditBehaviorDividerInstance) {
 			window.dividerEdit = this;
 		}
-
 	}
 
 	if (window.objectify) {
@@ -40,5 +39,8 @@ namespace DividerEditElement {
 	}
 }
 
-export type DividerEdit = Polymer.El<'divider-edit', typeof DividerEditElement.DE & 
-	typeof DividerEditElement.dividerEditProperties>;
+export type DividerEdit = Polymer.El<
+	'divider-edit',
+	typeof DividerEditElement.DE &
+		typeof DividerEditElement.dividerEditProperties
+>;

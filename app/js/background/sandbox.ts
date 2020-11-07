@@ -7,23 +7,26 @@ import { CRMAPIMessage } from '../crmapi';
 declare const window: BackgroundpageWindow;
 
 interface SandboxWorkerMessage {
-	data: {
-		type: 'log';
-		lineNo: number;
-		data: EncodedString<any[]>
-	}|{
-		type: 'handshake';
-		key: number[];
-		data: EncodedString<{
-			id: CRM.GenericNodeId;
-			key: number[];
-			tabId: TabId;
-		}>;
-	}|{
-		type: 'crmapi';
-		key: number[];
-		data: EncodedString<CRMAPIMessage>;
-	}
+	data:
+		| {
+				type: 'log';
+				lineNo: number;
+				data: EncodedString<any[]>;
+		  }
+		| {
+				type: 'handshake';
+				key: number[];
+				data: EncodedString<{
+					id: CRM.GenericNodeId;
+					key: number[];
+					tabId: TabId;
+				}>;
+		  }
+		| {
+				type: 'crmapi';
+				key: number[];
+				data: EncodedString<CRMAPIMessage>;
+		  };
 }
 
 export class SandboxWorker implements SandboxWorkerInterface {
@@ -31,46 +34,58 @@ export class SandboxWorker implements SandboxWorkerInterface {
 	_callbacks: Function[] = [];
 	_verified: boolean = false;
 	_handler = window.createHandlerFunction({
-		postMessage: this._postMessage.bind(this)
+		postMessage: this._postMessage.bind(this),
 	});
 
-	constructor(public id: CRM.GenericNodeId, public script: string, libraries: string[],
-		public secretKey: number[], private _getInstances: () => {
-			id: string|TabId;
+	constructor(
+		public id: CRM.GenericNodeId,
+		public script: string,
+		libraries: string[],
+		public secretKey: number[],
+		private _getInstances: () => {
+			id: string | TabId;
 			tabIndex: TabIndex;
-		}[]) {
-			this.worker.addEventListener('message', (e: SandboxWorkerMessage) => {
+		}[]
+	) {
+		this.worker.addEventListener(
+			'message',
+			(e: SandboxWorkerMessage) => {
 				this._onMessage(e);
-			}, false);
+			},
+			false
+		);
 
-			this.worker.postMessage({
-				type: 'init',
-				id: id,
-				script: script,
-				libraries: libraries
-			});
-		}
+		this.worker.postMessage({
+			type: 'init',
+			id: id,
+			script: script,
+			libraries: libraries,
+		});
+	}
 
 	post(message: any) {
 		this.worker.postMessage(message);
-	};
+	}
 
 	listen(callback: Function) {
 		this._callbacks.push(callback);
-	};
+	}
 
 	terminate() {
 		this.worker.terminate();
 	}
 
-	private _onMessage(e: SandboxWorkerMessage) {	
+	private _onMessage(e: SandboxWorkerMessage) {
 		const data = e.data;
 		switch (data.type) {
 			case 'handshake':
 			case 'crmapi':
 				if (!this._verified) {
-					window.backgroundPageLog(this.id, null,
-						'Ininitialized background page');
+					window.backgroundPageLog(
+						this.id,
+						null,
+						'Ininitialized background page'
+					);
 
 					this.worker.postMessage({
 						type: 'verify',
@@ -78,20 +93,21 @@ export class SandboxWorker implements SandboxWorkerInterface {
 							instances: this._getInstances(),
 							currentInstance: null,
 						}),
-						key: this.secretKey.join('') + this.id + 'verified'
+						key: this.secretKey.join('') + this.id + 'verified',
 					});
 					this._verified = true;
 				}
 				this._verifyKey(data, this._handler);
 				break;
 			case 'log':
-				window.backgroundPageLog.apply(window,
-					[this.id, [data.lineNo, -1]].concat(JSON
-						.parse(data.data)));
+				window.backgroundPageLog.apply(
+					window,
+					[this.id, [data.lineNo, -1]].concat(JSON.parse(data.data))
+				);
 				break;
 		}
 		if (this._callbacks) {
-			this._callbacks.forEach(callback => {
+			this._callbacks.forEach((callback) => {
 				callback(data);
 			});
 			this._callbacks = [];
@@ -102,50 +118,78 @@ export class SandboxWorker implements SandboxWorkerInterface {
 		this.worker.postMessage({
 			type: 'message',
 			message: JSON.stringify(message),
-			key: this.secretKey.join('') + this.id + 'verified'
+			key: this.secretKey.join('') + this.id + 'verified',
 		});
-	};
+	}
 
-	private _verifyKey(message: {
-		key: number[];
-		data: EncodedString<{
-			id: CRM.GenericNodeId;
+	private _verifyKey(
+		message: {
 			key: number[];
-			tabId: TabIndex;
-		}>|EncodedString<CRMAPIMessage>;
-	}, callback: (data: any, port?: any) => void) {
+			data:
+				| EncodedString<{
+						id: CRM.GenericNodeId;
+						key: number[];
+						tabId: TabIndex;
+				  }>
+				| EncodedString<CRMAPIMessage>;
+		},
+		callback: (data: any, port?: any) => void
+	) {
 		if (message.key.join('') === this.secretKey.join('')) {
 			callback(JSON.parse(message.data));
 		} else {
-			window.backgroundPageLog(this.id, null,
-				'Tried to send an unauthenticated message');
+			window.backgroundPageLog(
+				this.id,
+				null,
+				'Tried to send an unauthenticated message'
+			);
 		}
 	}
 }
 
 export namespace Sandbox {
-	export function sandbox(id: CRM.GenericNodeId, script: string, libraries: string[],
-		secretKey: number[], getInstances: () => {
-			id: TabId|string;
+	export function sandbox(
+		id: CRM.GenericNodeId,
+		script: string,
+		libraries: string[],
+		secretKey: number[],
+		getInstances: () => {
+			id: TabId | string;
 			tabIndex: TabIndex;
 		}[],
-		callback: (worker: SandboxWorker) => void) {
-			callback(new SandboxWorker(id, script, libraries, secretKey, getInstances));
-		}
+		callback: (worker: SandboxWorker) => void
+	) {
+		callback(
+			new SandboxWorker(id, script, libraries, secretKey, getInstances)
+		);
+	}
 
-	function sandboxChromeFunction(fn: Function, context: any, args: any[], 
+	function sandboxChromeFunction(
+		fn: Function,
+		context: any,
+		args: any[],
 		//@ts-ignore
-		window?: void, sandboxes?: void, chrome?: void, browser?: void,
+		window?: void,
+		sandboxes?: void,
+		chrome?: void,
+		browser?: void,
 		//@ts-ignore
-		sandboxChromeFunction?: void, sandbox?: void, sandboxChrome?: any) {
-			return fn.apply(context, args);
-		}
+		sandboxChromeFunction?: void,
+		sandbox?: void,
+		sandboxChrome?: any
+	) {
+		return fn.apply(context, args);
+	}
 
-	export function sandboxVirtualChromeFunction(api: string, base: 'chrome'|'browser', args: {
-		type: 'fn' | 'return' | 'arg';
-		isPersistent?: boolean;
-		val: any;
-	}[]) {
+	export function sandboxVirtualChromeFunction(
+		api: string,
+		base: 'chrome' | 'browser',
+		args: {
+			type: 'fn' | 'return' | 'arg';
+			isPersistent?: boolean;
+			val: any;
+		}[]
+	) {
 		return new Promise<{
 			success: boolean;
 			result: any;
@@ -157,7 +201,7 @@ export namespace Sandbox {
 					obj.onError = () => {
 						resolve({
 							success: false,
-							result: null
+							result: null,
 						});
 					};
 					for (const arg of args) {
@@ -176,13 +220,13 @@ export namespace Sandbox {
 					obj.return((returnVal) => {
 						resolve({
 							success: true,
-							result: returnVal
+							result: returnVal,
 						});
 					}).send();
-				} catch(e) {
+				} catch (e) {
 					resolve({
 						success: false,
-						result: null
+						result: null,
 					});
 				}
 			} else if (base === 'browser') {
@@ -203,28 +247,35 @@ export namespace Sandbox {
 								break;
 						}
 					}
-					call.send().then((result) => {
-						resolve({
-							success: true,
-							result
-						});
-					}, () => {
-						resolve({
-							success: false,
-							result: null
-						})
-					});
-				} catch(e) {
+					call.send().then(
+						(result) => {
+							resolve({
+								success: true,
+								result,
+							});
+						},
+						() => {
+							resolve({
+								success: false,
+								result: null,
+							});
+						}
+					);
+				} catch (e) {
 					resolve({
 						success: false,
-						result: null
+						result: null,
 					});
 				}
 			}
 		});
 	}
 
-	export function sandboxChrome(api: string, base: 'chrome'|'browser', args: any[]) {
+	export function sandboxChrome(
+		api: string,
+		base: 'chrome' | 'browser',
+		args: any[]
+	) {
 		let context = {};
 		let fn: any;
 		if (base === 'browser') {
@@ -238,29 +289,33 @@ export namespace Sandbox {
 				context = fn;
 				fn = (fn as any)[apiSplit[i]];
 			}
-		} catch(e) {
+		} catch (e) {
 			return {
 				success: false,
-				result: null
-			}
+				result: null,
+			};
 		}
 		if (!fn || typeof fn !== 'function') {
 			return {
 				success: false,
-				result: null
-			}
+				result: null,
+			};
 		}
 
 		if ('crmAPI' in window && window.crmAPI && '__isVirtual' in window) {
 			return {
 				success: true,
-				result: sandboxVirtualChromeFunction(api, base, args)
-			}
+				result: sandboxVirtualChromeFunction(api, base, args),
+			};
 		}
 
 		return {
 			success: true,
-			result: sandboxChromeFunction((fn as any) as Function, context, args)
-		}
-	};
+			result: sandboxChromeFunction(
+				(fn as any) as Function,
+				context,
+				args
+			),
+		};
+	}
 }

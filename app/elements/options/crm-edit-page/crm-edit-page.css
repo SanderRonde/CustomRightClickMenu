@@ -11,11 +11,11 @@
 	-webkit-box-orient: horizontal;
 	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
-	        flex-direction: row;
+	flex-direction: row;
 	flex-direction: row;
 	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	        justify-content: center;
+	justify-content: center;
 	width: -webkit-calc(100vw - 20px);
 	width: calc(100vw - 20px);
 	height: 100vh;
@@ -30,30 +30,31 @@
 	-webkit-box-orient: vertical;
 	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	        flex-direction: column;
+	flex-direction: column;
 	flex-direction: column;
 	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	        justify-content: center;
+	justify-content: center;
 }
 
-#nodeInfo, #scriptUpdateNotice {
-	background-color: #3F51B5;
-    color: white;
-    font-size: 125%;
-    padding: 5px 8px;
+#nodeInfo,
+#scriptUpdateNotice {
+	background-color: #3f51b5;
+	color: white;
+	font-size: 125%;
+	padding: 5px 8px;
 	pointer-events: all;
 	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
-    -webkit-box-pack: justify;
-    -webkit-justify-content: space-between;
-            justify-content: space-between;
+	-webkit-box-pack: justify;
+	-webkit-justify-content: space-between;
+	justify-content: space-between;
 }
 
 #scriptUpdateNotice {
-	background-color: #E65100;
-	max-width:890px;
+	background-color: #e65100;
+	max-width: 890px;
 }
 
 a {
@@ -67,7 +68,7 @@ a:focus {
 }
 
 a:focus::before {
-	background-color: rgba(0,0,0,.1);
+	background-color: rgba(0, 0, 0, 0.1);
 	border-radius: 2px;
 	bottom: -4px;
 	content: ' ';
@@ -79,25 +80,39 @@ a:focus::before {
 	top: -4px;
 }
 
-	#nodeInfo a, #scriptUpdateNotice a {
-		color: white;
-		text-decoration: underline;
-	}
-
-#nodeInfo span::-moz-selection, #nodeInfo b::-moz-selection, #nodeInfo a::-moz-selection, #nodeInfo div::-moz-selection,
-#scriptUpdateNotice span::-moz-selection, #scriptUpdateNotice b::-moz-selection, #scriptUpdateNotice a::-moz-selection, #scriptUpdateNotice div::-moz-selection {
-    background-color: white;
-    color: black;
+#nodeInfo a,
+#scriptUpdateNotice a {
+	color: white;
+	text-decoration: underline;
 }
 
-#nodeInfo span::selection, #nodeInfo b::selection, #nodeInfo a::selection, #nodeInfo div::selection,
-#scriptUpdateNotice span::selection, #scriptUpdateNotice b::selection, #scriptUpdateNotice a::selection, #scriptUpdateNotice div::selection {
-    background-color: white;
-    color: black;
+#nodeInfo span::-moz-selection,
+#nodeInfo b::-moz-selection,
+#nodeInfo a::-moz-selection,
+#nodeInfo div::-moz-selection,
+#scriptUpdateNotice span::-moz-selection,
+#scriptUpdateNotice b::-moz-selection,
+#scriptUpdateNotice a::-moz-selection,
+#scriptUpdateNotice div::-moz-selection {
+	background-color: white;
+	color: black;
 }
 
-#scriptUpdateMessage, #scriptUpdateStatus {
-	display:inline;
+#nodeInfo span::selection,
+#nodeInfo b::selection,
+#nodeInfo a::selection,
+#nodeInfo div::selection,
+#scriptUpdateNotice span::selection,
+#scriptUpdateNotice b::selection,
+#scriptUpdateNotice a::selection,
+#scriptUpdateNotice div::selection {
+	background-color: white;
+	color: black;
+}
+
+#scriptUpdateMessage,
+#scriptUpdateStatus {
+	display: inline;
 }
 
 #scriptUpdateWarningIcon {
@@ -107,10 +122,10 @@ a:focus::before {
 	-webkit-box-orient: vertical;
 	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	        flex-direction: column;
+	flex-direction: column;
 	-webkit-box-pack: center;
 	-webkit-justify-content: center;
-	        justify-content: center;
+	justify-content: center;
 	fill: white;
 	padding-right: 8px;
 }
@@ -118,7 +133,7 @@ a:focus::before {
 #scriptUpdateHideDialog {
 	fill: white;
 	margin-top: -5px;
-    margin-right: -5px;
+	margin-right: -5px;
 	cursor: pointer;
 }
 
@@ -127,25 +142,28 @@ a:focus::before {
 	cursor: pointer;
 }
 
-	.scriptUpdateTextButton:hover {
-		text-decoration: underline;
-	}
+.scriptUpdateTextButton:hover {
+	text-decoration: underline;
+}
 
-menu-edit, divider-edit, link-edit {
+menu-edit,
+divider-edit,
+link-edit {
 	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
 	-webkit-box-orient: vertical;
 	-webkit-box-direction: normal;
 	-webkit-flex-direction: column;
-	        flex-direction: column;
+	flex-direction: column;
 }
 
 #nodeInfo > div {
 	display: inline;
 }
 
-#nodeInfoNameCont, #nodeInfoAuthorCont {
+#nodeInfoNameCont,
+#nodeInfoAuthorCont {
 	max-width: 200px;
 	text-overflow: ellipsis;
 	display: inline-block;
@@ -160,5 +178,5 @@ menu-edit, divider-edit, link-edit {
 }
 
 *[hidden] {
-	display: none!important;
+	display: none !important;
 }

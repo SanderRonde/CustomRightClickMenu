@@ -1,27 +1,25 @@
 {
-    "compilerOptions": {
-        "alwaysStrict": true,
-        "baseUrl": "../tools/definitions/",
-        "forceConsistentCasingInFileNames": true,
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "noImplicitAny": false,
-        "noImplicitThis": true,
-        "removeComments": true,
-        "preserveConstEnums": false,
-        "listFiles": false,
-        "pretty": true,
-        "noFallthroughCasesInSwitch": true,
-        "noImplicitReturns": true,
-        "noUnusedLocals": false,
-        "target": "es5",
-        "noUnusedParameters": true,
-        "experimentalDecorators": true,
-        "skipLibCheck": true
-	}, 
-    "allowJs": true,
-    "compileOnSave": true,
-    "include": [
-        "./"
-    ]
+	"compilerOptions": {
+		"alwaysStrict": true,
+		"baseUrl": "../tools/definitions/",
+		"forceConsistentCasingInFileNames": true,
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"noImplicitAny": false,
+		"noImplicitThis": true,
+		"removeComments": true,
+		"preserveConstEnums": false,
+		"listFiles": false,
+		"pretty": true,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": false,
+		"target": "es5",
+		"noUnusedParameters": true,
+		"experimentalDecorators": true,
+		"skipLibCheck": true
+	},
+	"allowJs": true,
+	"compileOnSave": true,
+	"include": ["./"]
 }

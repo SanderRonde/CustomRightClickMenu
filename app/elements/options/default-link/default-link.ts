@@ -11,16 +11,16 @@ namespace DefaultLinkElement {
 		searchEngine: {
 			type: Boolean,
 			notify: true,
-			value: false
+			value: false,
 		},
 		href: {
 			type: String,
-			notify: true
+			notify: true,
 		},
 		defaultName: {
 			type: String,
-			notify: true
-		}
+			notify: true,
+		},
 	} as any;
 
 	export class DL {
@@ -31,17 +31,21 @@ namespace DefaultLinkElement {
 		static onClick(this: DefaultLink) {
 			const link = this.href;
 			const name = this.$.input.$$('input').value;
-			
+
 			window.app.uploading.createRevertPoint();
-			window.app.crm.add(window.app.templates.getDefaultLinkNode({
-				id: window.app.generateItemId() as CRM.NodeId<CRM.LinkNode>,
-				name: name,
-				value: [{
-					url: link,
-					newTab: true
-				}]
-			}));
-		};
+			window.app.crm.add(
+				window.app.templates.getDefaultLinkNode({
+					id: window.app.generateItemId() as CRM.NodeId<CRM.LinkNode>,
+					name: name,
+					value: [
+						{
+							url: link,
+							newTab: true,
+						},
+					],
+				})
+			);
+		}
 
 		static reset(this: DefaultLink) {
 			this.$.input.value = this.defaultName;
@@ -57,6 +61,8 @@ namespace DefaultLinkElement {
 	}
 }
 
-export type DefaultLink = Polymer.El<'default-link',
-	typeof DefaultLinkElement.DL & typeof DefaultLinkElement.defaultLinkProperties
+export type DefaultLink = Polymer.El<
+	'default-link',
+	typeof DefaultLinkElement.DL &
+		typeof DefaultLinkElement.defaultLinkProperties
 >;

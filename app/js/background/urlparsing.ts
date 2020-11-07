@@ -1,4 +1,4 @@
-import { ModuleData } from "./moduleTypes";
+import { ModuleData } from './moduleTypes';
 import { MatchPattern } from './sharedTypes';
 
 export namespace URLParsing {
@@ -7,10 +7,9 @@ export namespace URLParsing {
 	export function initModule(_modules: ModuleData) {
 		modules = _modules;
 	}
-	
+
 	export function triggerMatchesScheme(trigger: string): boolean {
-		const reg =
-			/(file:\/\/\/.*|(\*|http|https|file|ftp):\/\/(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(\/(.*))?|(<all_urls>))/;
+		const reg = /(file:\/\/\/.*|(\*|http|https|file|ftp):\/\/(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(\/(.*))?|(<all_urls>))/;
 		return reg.test(trigger);
 	}
 	export function prepareTrigger(trigger: string): string {
@@ -46,9 +45,11 @@ export namespace URLParsing {
 			return true;
 		}
 		const matchPattern = urlPattern as MatchPattern;
-		return (matchesScheme(pattern.scheme, matchPattern.scheme) &&
+		return (
+			matchesScheme(pattern.scheme, matchPattern.scheme) &&
 			matchesHost(pattern.host, matchPattern.host) &&
-			matchesPath(pattern.path, matchPattern.path));
+			matchesPath(pattern.path, matchPattern.path)
+		);
 	}
 	export function validatePatternUrl(url: string): MatchPattern | void {
 		if (!url || typeof url !== 'string') {
@@ -60,7 +61,7 @@ export namespace URLParsing {
 			return {
 				scheme: '*',
 				host: '*',
-				path: '*'
+				path: '*',
 			};
 		}
 		const matchPattern = pattern as MatchPattern;
@@ -89,17 +90,23 @@ export namespace URLParsing {
 
 		return matchPattern;
 	}
-	export function matchesUrlSchemes(matchPatterns: {
-		not: boolean;
-		url: string;
-	}[], url: string) {
+	export function matchesUrlSchemes(
+		matchPatterns: {
+			not: boolean;
+			url: string;
+		}[],
+		url: string
+	) {
 		let matches = false;
 		for (const { not, url: matchURL } of matchPatterns) {
-			if (matchURL.indexOf('/') === 0 &&
-				modules.Util.endsWith(matchURL, '/')) {
+			if (
+				matchURL.indexOf('/') === 0 &&
+				modules.Util.endsWith(matchURL, '/')
+			) {
 				//It's regular expression
-				if (new RegExp(matchURL.slice(1, matchURL.length - 1))
-					.test(url)) {
+				if (
+					new RegExp(matchURL.slice(1, matchURL.length - 1)).test(url)
+				) {
 					if (not) {
 						return false;
 					} else {
@@ -122,42 +129,58 @@ export namespace URLParsing {
 					if (matchPattern.invalid || urlPattern.invalid) {
 						throw new Error('nomatch');
 					}
-					if (matchPattern.scheme !== '*' &&
-						matchPattern.scheme !== urlPattern.scheme) {
+					if (
+						matchPattern.scheme !== '*' &&
+						matchPattern.scheme !== urlPattern.scheme
+					) {
+						throw new Error('nomatch');
+					}
+
+					if (
+						matchPattern.host.split('.').length > 2 ||
+						matchPattern.host.indexOf('*.') === 0
+					) {
+						let host = urlPattern.host;
+						if (host.indexOf('www.') === 0) {
+							host = host.slice(4);
+						}
+						if (matchPattern.host.indexOf('*.') === 0) {
+							matchPattern.host = matchPattern.host.slice(2);
+							host = host.split('.').slice(-2).join('.');
+						}
+						if (
+							matchPattern.host !== '*' &&
+							matchPattern.host !== host
+						) {
 							throw new Error('nomatch');
 						}
-
-					if (matchPattern.host.split('.').length > 2 ||
-						matchPattern.host.indexOf('*.') === 0) {
-							let host = urlPattern.host;
-							if (host.indexOf('www.') === 0) {
-								host = host.slice(4);
-							}
-							if (matchPattern.host.indexOf('*.') === 0) {
-								matchPattern.host = matchPattern.host.slice(2);
-								host = host.split('.').slice(-2).join('.');
-							}
-							if (matchPattern.host !== '*' &&
-								matchPattern.host !== host) {
-									throw new Error('nomatch');
-								}
-					} else if (matchPattern.host !== '*' &&
-						matchPattern.host !== urlPattern.host.split('.').slice(-2).join('.')) {
+					} else if (
+						matchPattern.host !== '*' &&
+						matchPattern.host !==
+							urlPattern.host.split('.').slice(-2).join('.')
+					) {
 						// something.com matching about.something.com, allow
 						throw new Error('nomatch');
 					}
-					if (matchPattern.path !== '*' &&
-						!new RegExp(`^${matchPattern.path.replace(/\*/g, '(.*)')}$`)
-							.test(urlPattern.path)) {
-								throw new Error('nomatch');
-							}
+					if (
+						matchPattern.path !== '*' &&
+						!new RegExp(
+							`^${matchPattern.path.replace(/\*/g, '(.*)')}$`
+						).test(urlPattern.path)
+					) {
+						throw new Error('nomatch');
+					}
 					if (not) {
 						return false;
 					} else {
 						matches = true;
 					}
-				} catch(e) {
-					if (new RegExp(`^${matchURL.replace(/\*/g, '(.*)')}$`).test(url)) {
+				} catch (e) {
+					if (
+						new RegExp(`^${matchURL.replace(/\*/g, '(.*)')}$`).test(
+							url
+						)
+					) {
 						if (not) {
 							return false;
 						} else {
@@ -182,14 +205,14 @@ export namespace URLParsing {
 			return {
 				scheme: scheme,
 				host: host,
-				path: path.join('/')
+				path: path.join('/'),
 			};
 		} catch (e) {
 			return {
 				scheme: '*',
 				host: '*',
 				path: '*',
-				invalid: true
+				invalid: true,
 			};
 		}
 	}
@@ -210,7 +233,7 @@ export namespace URLParsing {
 			return index === host2.length - host1Split.length;
 		}
 
-		return (host1 === host2);
+		return host1 === host2;
 	}
 	function matchesPath(path1: string, path2: string): boolean {
 		const path1Split = path1.split('*');

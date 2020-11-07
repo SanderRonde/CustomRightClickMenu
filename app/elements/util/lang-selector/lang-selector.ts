@@ -16,47 +16,56 @@ namespace LangSelectorElement {
 		langs: {
 			type: Array,
 			value: [],
-			notify: true
-		}
+			notify: true,
+		},
 	} as any;
 
 	export class LS implements I18NClass {
-		private static _lang: LANGS
+		private static _lang: LANGS;
 
 		static is: string = 'lang-selector';
 
 		private static async _getCurrentLang(this: LangSelector) {
 			this._lang = await window.__.getLang();
-			this.$.mainBubble.title = `${
-				await this.__async(I18NKeys.langs.selector.clickToChangeLanguage)
-			} (${await this.__async(I18NKeys.langs.selector.current)}: ${this._lang})`;
+			this.$.mainBubble.title = `${await this.__async(
+				I18NKeys.langs.selector.clickToChangeLanguage
+			)} (${await this.__async(I18NKeys.langs.selector.current)}: ${
+				this._lang
+			})`;
 		}
 
 		private static async _updateAvailableLangs(this: LangSelector) {
 			const availableLangs = window.__.SUPPORTED_LANGS;
 			const currentLang = this._lang;
 
-			this.langs = await Promise.all(availableLangs.map(async (lang) => {
-				const baseName = await this.__async(`langs_languages_${lang}`);
-				return {
-					name: lang === currentLang ?
-						`${baseName} (${lang}, ${await this.__async(I18NKeys.langs.selector.current)})` :
-						`${baseName} (${lang})`,
-					code: lang,
-					url: `../images/country_flags/${lang}.svg`,
-					selected: lang === currentLang
-				}
-			}));
+			this.langs = await Promise.all(
+				availableLangs.map(async (lang) => {
+					const baseName = await this.__async(
+						`langs_languages_${lang}`
+					);
+					return {
+						name:
+							lang === currentLang
+								? `${baseName} (${lang}, ${await this.__async(
+										I18NKeys.langs.selector.current
+								  )})`
+								: `${baseName} (${lang})`,
+						code: lang,
+						url: `../images/country_flags/${lang}.svg`,
+						selected: lang === currentLang,
+					};
+				})
+			);
 		}
 
 		static async onLangChanged(this: LangSelector) {
 			await this._getCurrentLang();
 			this._updateAvailableLangs();
 		}
-		
+
 		static async ready(this: LangSelector) {
 			this.onLangChanged();
-		};
+		}
 
 		static mainClick(this: LangSelector) {
 			this.$.bubbles.classList.toggle('expanded');
@@ -85,5 +94,8 @@ namespace LangSelectorElement {
 	}
 }
 
-export type LangSelector = Polymer.El<'lang-selector', 
-	typeof LangSelectorElement.LS & typeof LangSelectorElement.langSelectorProperties>;
+export type LangSelector = Polymer.El<
+	'lang-selector',
+	typeof LangSelectorElement.LS &
+		typeof LangSelectorElement.langSelectorProperties
+>;

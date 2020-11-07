@@ -10,8 +10,8 @@ namespace MenuEditElement {
 		item: {
 			type: Object,
 			value: {},
-			notify: true
-		}
+			notify: true,
+		},
 	} as any;
 
 	export class ME {
@@ -23,12 +23,11 @@ namespace MenuEditElement {
 
 		static init(this: NodeEditBehaviorMenuInstance) {
 			this._init();
-		};
+		}
 
 		static ready(this: NodeEditBehaviorMenuInstance) {
 			window.menuEdit = this;
 		}
-
 	}
 
 	if (window.objectify) {
@@ -40,5 +39,7 @@ namespace MenuEditElement {
 	}
 }
 
-export type MenuEdit = Polymer.El<'menu-edit', typeof MenuEditElement.ME &
-	typeof MenuEditElement.menuEditProperties>;
+export type MenuEdit = Polymer.El<
+	'menu-edit',
+	typeof MenuEditElement.ME & typeof MenuEditElement.menuEditProperties
+>;

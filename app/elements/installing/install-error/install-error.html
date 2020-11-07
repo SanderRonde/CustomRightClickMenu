@@ -1,16 +1,23 @@
-﻿<!DOCTYPE HTML>
+﻿<!DOCTYPE html>
 <dom-module id="install-error">
 	<template>
 		<!-- build:css inline ../../../elements/installing/install-error/install-error.css -->
-		<link rel="stylesheet" href="../../../elements/installing/install-error/install-error.css"/>
+		<link
+			rel="stylesheet"
+			href="../../../elements/installing/install-error/install-error.css"
+		/>
 		<!-- /build -->
 		<style is="custom-style" include="paper-material-styles"></style>
-		<center-element id="installErrorContainer" width="100vw" height="calc(100vh - 64px)">
+		<center-element
+			id="installErrorContainer"
+			width="100vw"
+			height="calc(100vh - 64px)"
+		>
 			<div class="paper-material" elevation="5">
 				<div id="errorContainer">
 					<div id="errorText">
 						[[__(lang, langReady, 'install_error_notFound1')]]<br />
-						[[__(lang, langReady, 'install_error_notFound2')]]<br/>
+						[[__(lang, langReady, 'install_error_notFound2')]]<br />
 						<span id="errCode"></span>
 					</div>
 				</div>
