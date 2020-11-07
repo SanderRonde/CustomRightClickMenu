@@ -1,43 +1,18 @@
-﻿<!DOCTYPE html>
+﻿<!DOCTYPE HTML>
 <dom-module id="type-switcher" attributes="type">
 	<template>
 		<!-- build:css inline ../../../elements/options/type-switcher/type-switcher.css -->
-		<link
-			rel="stylesheet"
-			href="../../elements/options/type-switcher/type-switcher.css"
-		/>
+		<link rel="stylesheet" href="../../elements/options/type-switcher/type-switcher.css" />
 		<!-- /build -->
-		<div
-			on-tap="toggleTypeSwitch"
-			link$="{{isLink}}"
-			script$="{{isScript}}"
-			divider$="{{isDivider}}"
-			menu$="{{isMenu}}"
-			stylesheet$="{{isStylesheet}}"
-			class="TSContainer"
-		>
+		<div on-tap="toggleTypeSwitch" link$="{{isLink}}" script$="{{isScript}}" divider$="{{isDivider}}" menu$="{{isMenu}}" stylesheet$="{{isStylesheet}}" class="TSContainer">
 			<span id="typeTxt"></span>
-			<svg
-				id="typeSwitchArrow"
-				xmlns="http://www.w3.org/2000/svg"
-				width="48"
-				height="48"
-				viewbox="0 0 48 48"
-			>
-				<path d="M16 10v28l22-14z" />
+			<svg id="typeSwitchArrow" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewbox="0 0 48 48">
+				<path d="M16 10v28l22-14z"/>
 			</svg>
 		</div>
 		<div id="typeSwitchChoicesContainer">
-			<template
-				is="dom-repeat"
-				items="{{remainingTypes}}"
-				as="remainingType"
-			>
-				<div
-					on-tap="changeType"
-					class="typeSwitchChoice"
-					title="[[getTitle(remainingType)]]"
-				>
+			<template is="dom-repeat" items="{{remainingTypes}}" as="remainingType">
+				<div on-tap="changeType" class="typeSwitchChoice" title="[[getTitle(remainingType)]]">
 					<span class="typeSwitchChoiceTxt">[[remainingType]]</span>
 				</div>
 			</template>

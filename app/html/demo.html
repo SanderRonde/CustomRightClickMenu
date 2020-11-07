@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" class="elementsLoading">
 	<head>
-		<meta charset="UTF-8" />
-		<title>CRM Demo</title>
-		<link rel="shortcut icon" href="../../test/UI/favicon.ico" />
+		<meta charset="UTF-8">
+		<title>
+			CRM Demo
+		</title>
+		<link rel="shortcut icon" href="../../test/UI/favicon.ico"/>
 		<style>
 			body {
 				margin: 0;
@@ -54,7 +56,7 @@
 
 			body {
 				font-size: 75%;
-				font-family: 'Roboto', 'segoe UI', tahoma, sans serif;
+				font-family: 'Roboto', "segoe UI", tahoma, sans serif;
 			}
 			/*#endregion*/
 
@@ -64,7 +66,7 @@
 				bottom: 0;
 				right: 0;
 				left: 0;
-				background-color: #ff5722;
+				background-color: #FF5722;
 				position: fixed;
 				z-index: 999999999999999;
 				color: white;
@@ -74,14 +76,13 @@
 				overflow: hidden;
 			}
 
-			#splashScreenVerticalCenterer,
-			#splashScreenHorizontalCenterer {
+			#splashScreenVerticalCenterer, #splashScreenHorizontalCenterer {
 				display: -webkit-box;
 				display: -webkit-flex;
 				display: flex;
 				-webkit-box-pack: center;
 				-webkit-justify-content: center;
-				justify-content: center;
+	        	justify-content: center;
 				height: 100vh;
 			}
 
@@ -123,7 +124,7 @@
 			.elementsLoading #splashScreen {
 				opacity: 1;
 				pointer-events: initial;
-			}
+		}
 
 			#splashScreenProgressBarCont {
 				width: 50vw;
@@ -147,27 +148,13 @@
 			/*#endregion*/
 		</style>
 		<!-- build:remove -->
-		<link rel="import" href="../bower_components/polymer/polymer.html" />
+		<link rel="import" href="../bower_components/polymer/polymer.html">
 		<!-- /build -->
 		<script src="../bower_components/webcomponentsjs/webcomponents-loader.js"></script>
-		<link
-			rel="import"
-			href="../bower_components/polymer/lib/legacy/class.html"
-		/>
-		<link
-			rel="import"
-			href="../bower_components/paper-input/paper-input.html"
-		/>
-		<link
-			async
-			rel="import"
-			href="../elements/options/crm-app/crm-app.html"
-		/>
-		<link
-			async
-			rel="import"
-			href="../elements/util/error-reporting-tool/error-reporting-tool.html"
-		/>
+		<link rel="import" href="../bower_components/polymer/lib/legacy/class.html" />
+		<link rel="import" href="../bower_components/paper-input/paper-input.html" />
+		<link async rel="import" href="../elements/options/crm-app/crm-app.html" />
+		<link async rel="import" href="../elements/util/error-reporting-tool/error-reporting-tool.html" />
 	</head>
 	<body>
 		<script src="../../test/UI/browser-api-dummy.js"></script>
@@ -179,7 +166,9 @@
 		<div id="splashScreen">
 			<div id="splashScreenHorizontalCenterer">
 				<div id="splashScreenVerticalCenterer">
-					<div id="splashScreenTitle">Custom Right-Click Menu</div>
+					<div id="splashScreenTitle">
+						Custom Right-Click Menu
+					</div>
 					<div id="splashScreenLoaderCenterer">
 						<div id="splashScreenProgressBarCont">
 							<div id="splashScreenProgressBarLoader"></div>

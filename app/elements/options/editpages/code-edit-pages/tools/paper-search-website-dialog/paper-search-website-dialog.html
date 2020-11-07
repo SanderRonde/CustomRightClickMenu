@@ -1,65 +1,31 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <dom-module id="paper-search-website-dialog">
 	<template>
 		<!-- build:css inline ../../../../../../elements/options/editpages/code-edit-pages/tools/paper-search-website-dialog/paper-search-website-dialog.css -->
-		<link
-			rel="stylesheet"
-			href="../../elements/options/editpages/code-edit-pages/tools/paper-search-website-dialog/paper-search-website-dialog.css"
-		/>
+		<link rel="stylesheet" href="../../elements/options/editpages/code-edit-pages/tools/paper-search-website-dialog/paper-search-website-dialog.css" />
 		<!-- /build -->
-		<paper-dialog
-			no-cancel-on-esc-key
-			with-backdrop
-			id="paperSearchWebsiteDialog"
-			entry-animation="scale-up-animation"
-			exit-animation="fade-out-animation"
-		>
+		<paper-dialog no-cancel-on-esc-key with-backdrop id="paperSearchWebsiteDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 			<div id="initialWindow">
-				<h2>
-					[[__(lang, langReady,
-					'options_tools_paperSearchWebsiteDialog_title')]]
-				</h2>
-				[[__(lang, langReady,
-				'options_tools_paperSearchWebsiteDialog_description')]]<br />
-				<paper-radio-group
-					selected="manual"
-					id="initialWindowChoicesCont"
-				>
-					<paper-radio-button
-						name="manual"
-						class="initialWindowChoice"
-					>
-						[[__(lang, langReady,
-						'options_tools_paperSearchWebsiteDialog_inputOne')]]
+				<h2>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_title')]]</h2>
+				[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_description')]]<br/>
+				<paper-radio-group selected="manual" id="initialWindowChoicesCont">
+					<paper-radio-button name="manual" class="initialWindowChoice">
+						[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_inputOne')]]
 					</paper-radio-button>
-					<paper-radio-button
-						name="defaults"
-						class="initialWindowChoice"
-					>
-						[[__(lang, langReady,
-						'options_tools_paperSearchWebsiteDialog_inputDefault')]]
+					<paper-radio-button name="defaults" class="initialWindowChoice">
+						[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_inputDefault')]]
 					</paper-radio-button>
 				</paper-radio-group>
 				<div class="buttons">
-					<paper-button dialog-dismiss
-						>[[__(lang, langReady, 'generic_cancel')]]</paper-button
-					>
-					<paper-button on-tap="confirmInitialChoice"
-						>[[__(lang, langReady, 'generic_next')]]</paper-button
-					>
+					<paper-button dialog-dismiss>[[__(lang, langReady, 'generic_cancel')]]</paper-button>
+					<paper-button on-tap="confirmInitialChoice">[[__(lang, langReady, 'generic_next')]]</paper-button>
 				</div>
 			</div>
 			<div id="chooseDefaultSearchWindow">
-				<h2>
-					[[__(lang, langReady,
-					'options_tools_paperSearchWebsiteDialog_chooseDefault')]]
-				</h2>
-				<br />
+				<h2>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_chooseDefault')]]</h2>
+				<br/>
 				<div id="searchWebsiteDefaultsCont">
-					<paper-radio-group
-						selected="google"
-						id="searchWebsitesRadioGroup"
-					>
+					<paper-radio-group selected="google" id="searchWebsitesRadioGroup">
 						<paper-radio-button name="google">
 							Google
 						</paper-radio-button>
@@ -75,205 +41,96 @@
 					</paper-radio-group>
 				</div>
 				<div class="buttons">
-					<paper-button on-tap="goBackWindow"
-						>[[__(lang, langReady, 'generic_back')]]</paper-button
-					>
-					<paper-button
-						window="confirmationWindow"
-						on-tap="applyDefaultsUrls"
-						class="goToConfirmationWindowButton"
-						>[[__(lang, langReady,
-						'options_tools_paperSearchWebsiteDialog_try')]]</paper-button
-					>
+					<paper-button on-tap="goBackWindow">[[__(lang, langReady, 'generic_back')]]</paper-button>
+					<paper-button window="confirmationWindow" on-tap="applyDefaultsUrls" class="goToConfirmationWindowButton">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_try')]]</paper-button>
 				</div>
 			</div>
 			<div id="manuallyInputSearchWebsiteWindow">
-				<h2>
-					[[__(lang, langReady,
-					'options_tools_paperSearchWebsiteDialog_manualInput')]]
-				</h2>
-				<paper-radio-group
-					id="manualInputChoiceRadios"
-					selected="{{selectedOption}}"
-				>
-					<paper-radio-button id="manualInputURLChoice" name="url"
-						>[[__(lang, langReady,
-						'options_tools_paperSearchWebsiteDialog_findingSearchURL')]]</paper-radio-button
-					>
-					<paper-radio-button id="manualInputSavedChoice" name="list"
-						>[[__(lang, langReady,
-						'options_tools_paperSearchWebsiteDialog_chooseFromList')]]</paper-radio-button
-					>
+				<h2>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_manualInput')]]</h2>
+				<paper-radio-group id="manualInputChoiceRadios" selected="{{selectedOption}}">
+					<paper-radio-button id="manualInputURLChoice" name="url">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_findingSearchURL')]]</paper-radio-button>
+					<paper-radio-button id="manualInputSavedChoice" name="list">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_chooseFromList')]]</paper-radio-button>
 				</paper-radio-group>
 				<div hidden$="[[!selectedIsUrl]]" id="manualInputURLOption">
-					[[__(lang, langReady,
-					'options_tools_paperSearchWebsiteDialog_goToWebsite')]]
-					<paper-input
-						id="manualInputURLInput"
-						label="[[__(lang, langReady, 'generic_url')]]"
-					></paper-input>
+					[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_goToWebsite')]]
+					<paper-input id="manualInputURLInput" label="[[__(lang, langReady, 'generic_url')]]"></paper-input>
 				</div>
 				<div hidden$="[[selectedIsUrl]]" id="manualInputListChoice">
-					[[__(lang, langReady,
-					'options_tools_paperSearchWebsiteDialog_clickOmnibar')]]
-					<br /><br />
+					[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_clickOmnibar')]]
+					<br><br>
 					<code>
-						copy(JSON.stringify(Array.prototype.slice.apply(document.querySelectorAll('#search-engine-manager-page
-						.deletable-item')).slice(0,
-						-1).map(function(searchEngine) { var data =
-						searchEngine.querySelectorAll('.static-text.overruleable');
-						return { name: data[0].innerText, url:
-						data[1].innerText, searchUrl: data[2].innerText }; })));
+						copy(JSON.stringify(Array.prototype.slice.apply(document.querySelectorAll('#search-engine-manager-page .deletable-item')).slice(0, -1).map(function(searchEngine) {
+							var data = searchEngine.querySelectorAll('.static-text.overruleable');
+								return {
+									name: data[0].innerText,
+									url: data[1].innerText,
+									searchUrl: data[2].innerText
+								};
+							})));
 					</code>
-					<paper-textarea
-						on-paste="fixFit"
-						on-keyup="fixOnChange"
-						id="manualInputListChoiceInput"
-						label="[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_pasteHere')]]"
-						error-message="[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_pasteHere')]]"
-					></paper-textarea>
+					<paper-textarea on-paste="fixFit" on-keyup="fixOnChange" id="manualInputListChoiceInput" label="[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_pasteHere')]]" error-message="[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_pasteHere')]]"></paper-textarea>
 				</div>
 				<div class="buttons">
-					<paper-button on-tap="backFromManualInput"
-						>[[__(lang, langReady, 'generic_cancel')]]</paper-button
-					>
+					<paper-button on-tap="backFromManualInput">[[__(lang, langReady, 'generic_cancel')]]</paper-button>
 					<paper-button on-tap="processManualInput">
-						<span hidden$="[[!selectedIsUrl]]"
-							>[[__(lang, langReady,
-							'options_tools_paperSearchWebsiteDialog_try')]]</span
-						>
-						<span hidden$="[[selectedIsUrl]]"
-							>[[__(lang, langReady,
-							'options_tools_paperSearchWebsiteDialog_process')]]</span
-						>
+						<span hidden$="[[!selectedIsUrl]]">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_try')]]</span>
+						<span hidden$="[[selectedIsUrl]]">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_process')]]</span>
 					</paper-button>
 				</div>
 			</div>
 			<div id="processedListWindow">
-				<h2>
-					[[__(lang, langReady,
-					'options_tools_paperSearchWebsiteDialog_processedTitle')]]
-				</h2>
+				<h2>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_processedTitle')]]</h2>
 				<div id="listInputSearchList">
-					<template
-						is="dom-repeat"
-						items="{{searchList}}"
-						as="searchOption"
-					>
+					<template is="dom-repeat" items="{{searchList}}" as="searchOption">
 						<div class="searchOptionContainer">
-							<paper-input
-								disabled
-								value="[[searchOption.name]]"
-								class="searchOptionName"
-							></paper-input>
-							<paper-input
-								disabled
-								value="[[searchOption.searchUrl]]"
-								class="searchOptionURL"
-							></paper-input>
-							<paper-radio-button
-								on-tap="cancelAllRadiobuttons"
-								url="[[searchOption.searchUrl]]"
-								class="searchOptionCheckbox"
-							></paper-radio-button>
+							<paper-input disabled value="[[searchOption.name]]" class="searchOptionName"></paper-input>
+							<paper-input disabled value="[[searchOption.searchUrl]]" class="searchOptionURL"></paper-input>
+							<paper-radio-button on-tap="cancelAllRadiobuttons" url="[[searchOption.searchUrl]]" class="searchOptionCheckbox"></paper-radio-button>
 						</div>
 					</template>
 				</div>
 				<div class="buttons">
-					<paper-button on-tap="goBackWindow"
-						>[[__(lang, langReady, 'generic_back')]]</paper-button
-					>
-					<paper-button
-						disabled$="[[disableManualButton]]"
-						on-tap="confirmManualSearchListInput"
-						>[[__(lang, langReady,
-						'options_tools_paperSearchWebsiteDialog_choose')]]</paper-button
-					>
+					<paper-button on-tap="goBackWindow">[[__(lang, langReady, 'generic_back')]]</paper-button>
+					<paper-button disabled$="[[disableManualButton]]" on-tap="confirmManualSearchListInput">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_choose')]]</paper-button>
 				</div>
 			</div>
 			<div id="confirmationWindow">
-				<h2>
-					[[__(lang, langReady,
-					'options_tools_paperSearchWebsiteDialog_confirmTitle')]]
-				</h2>
-				<br />
+				<h2>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_confirmTitle')]]</h2>
+				<br/>
 				<div class="textAndInputContainer">
-					<span class="capitalized"
-						>[[__(lang, langReady, 'generic_url')]]</span
-					>
-					<paper-input
-						id="urlPreviewInput"
-						disabled
-						value="[[chosenUrl]]"
-					></paper-input>
+					<span class="capitalized">[[__(lang, langReady, 'generic_url')]]</span>
+					<paper-input id="urlPreviewInput" disabled value="[[chosenUrl]]"></paper-input>
 				</div>
 				<div class="textAndInputContainer">
-					<span
-						>[[__(lang, langReady,
-						'options_tools_paperSearchWebsiteDialog_searchQuery')]]</span
-					>
-					<paper-input
-						id="queryInput"
-						value="{{searchQuery}}"
-						label="[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_query')]]"
-					></paper-input>
+					<span>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_searchQuery')]]</span>
+					<paper-input id="queryInput" value="{{searchQuery}}" label="[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_query')]]"></paper-input>
 				</div>
-				<br /><br />
+				<br/><br/>
 				<div id="testResultContainer">
-					<span
-						>[[__(lang, langReady,
-						'options_tools_paperSearchWebsiteDialog_testURL')]]
-					</span>
+					<span>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_testURL')]] </span>
 					<div id="testUrlLink">
-						<a
-							href="[[searchTestResult]]"
-							rel="noopener"
-							target="_blank"
-							>[[searchTestResult]]</a
-						>
+						<a href="[[searchTestResult]]" rel="noopener" target="_blank">[[searchTestResult]]</a>
 					</div>
 				</div>
 				<div class="buttons">
-					<paper-button on-tap="goBackWindow"
-						>[[__(lang, langReady, 'generic_back')]]</paper-button
-					>
-					<paper-button on-tap="switchWindow" window="howToOpenWindow"
-						>[[__(lang, langReady,
-						'generic_confirm')]]</paper-button
-					>
+					<paper-button on-tap="goBackWindow">[[__(lang, langReady, 'generic_back')]]</paper-button>
+					<paper-button on-tap="switchWindow" window="howToOpenWindow">[[__(lang, langReady, 'generic_confirm')]]</paper-button>
 				</div>
 			</div>
 			<div id="howToOpenWindow">
-				<h2>
-					[[__(lang, langReady,
-					'options_tools_paperSearchWebsiteDialog_howOpenTitle')]]
-				</h2>
+				<h2>[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_howOpenTitle')]]</h2>
 				<paper-radio-group id="howToOpenLink" selected="newTab">
-					<paper-radio-button name="newTab"
-						>[[__(lang, langReady,
-						'__options_tools_paperSearchWebsiteDialog_newTab')]]</paper-radio-button
-					>
-					<paper-radio-button name="currentTab"
-						>[[__(lang, langReady,
-						'options_tools_paperSearchWebsiteDialog_currentTab')]]</paper-radio-button
-					>
+					<paper-radio-button name="newTab">[[__(lang, langReady, '__options_tools_paperSearchWebsiteDialog_newTab')]]</paper-radio-button>
+					<paper-radio-button name="currentTab">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_currentTab')]]</paper-radio-button>
 				</paper-radio-group>
 				<div class="buttons">
-					<paper-button on-tap="goBackWindow"
-						>[[__(lang, langReady, 'generic_back')]]</paper-button
-					>
-					<paper-button on-tap="switchWindow" window="successWindow"
-						>[[__(lang, langReady,
-						'generic_confirm')]]</paper-button
-					>
+					<paper-button on-tap="goBackWindow">[[__(lang, langReady, 'generic_back')]]</paper-button>
+					<paper-button on-tap="switchWindow" window="successWindow">[[__(lang, langReady, 'generic_confirm')]]</paper-button>
 				</div>
 			</div>
 			<div id="successWindow">
 				<div class="checkmark"></div>
-				<div class="successText">
-					[[__(lang, langReady,
-					'options_tools_paperSearchWebsiteDialog_added')]]
-				</div>
+				<div class="successText">[[__(lang, langReady, 'options_tools_paperSearchWebsiteDialog_added')]]</div>
 			</div>
 			<div id="loadingWindow">
 				<center-element fill="true">

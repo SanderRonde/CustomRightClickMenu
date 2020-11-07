@@ -1,41 +1,22 @@
-﻿<!DOCTYPE html>
-<link
-	rel="import"
-	href="../../../bower_components/paper-button/paper-button.html"
-/>
-<link
-	rel="import"
-	href="../../../bower_components/paper-checkbox/paper-checkbox.html"
-/>
-<link
-	rel="import"
-	href="../../../elements/options/editpages/monaco-editor/monaco-editor.html"
-/>
+﻿<!DOCTYPE HTML>
+<link rel="import" href="../../../bower_components/paper-button/paper-button.html"/>
+<link rel="import" href="../../../bower_components/paper-checkbox/paper-checkbox.html"/>
+<link rel="import" href="../../../elements/options/editpages/monaco-editor/monaco-editor.html"/>
 <dom-module id="install-confirm" attributes="script">
 	<template>
 		<!-- build:css inline ../../../elements/installing/install-confirm/install-confirm.css -->
-		<link
-			rel="stylesheet"
-			href="../../elements/installing/install-confirm/install-confirm.css"
-		/>
+		<link rel="stylesheet" href="../../elements/installing/install-confirm/install-confirm.css"/>
 		<!-- /build -->
 		<style is="custom-style" include="paper-material-styles"></style>
 		<div id="installConfirmContainer">
 			<div id="scriptInstalled">
 				<center-element width="100vw" height="calc(100vh - 64px)">
-					<div
-						class="paper-material"
-						elevation="2"
-						id="scriptInstalledBackground"
-					>
+					<div class="paper-material" elevation="2" id="scriptInstalledBackground">
 						<div id="scriptInstalledCenterCont">
 							<div id="scriptInstalledCheckmarkCont">
 								<div id="scriptInstalledCheckmark"></div>
 							</div>
-							<div id="scriptInstalledText">
-								[[__(lang, langReady,
-								'install_confirm_installed')]]
-							</div>
+							<div id="scriptInstalledText">[[__(lang, langReady, 'install_confirm_installed')]]</div>
 						</div>
 					</div>
 				</center-element>
@@ -43,162 +24,70 @@
 			<div id="scriptInfo">
 				<table id="scriptInfoMeta">
 					<tr class="infoData" id="descriptionInfo">
-						<td class="infoName">
-							[[__(lang, langReady,
-							'install_confirm_description')]]:
-						</td>
+						<td class="infoName">[[__(lang, langReady, 'install_confirm_description')]]:</td>
 						<td id="descriptionValue" class="infoValue">?</td>
 					</tr>
 					<tr class="infoData" id="authorInfo">
-						<td class="infoName">
-							[[__(lang, langReady, 'install_confirm_author')]]:
-						</td>
+						<td class="infoName">[[__(lang, langReady, 'install_confirm_author')]]:</td>
 						<td id="authorValue" class="infoValue">?</td>
 					</tr>
 					<tr class="infoData" id="sourceInfo">
-						<td class="infoName">
-							[[__(lang, langReady, 'install_confirm_source')]]:
-						</td>
+						<td class="infoName">[[__(lang, langReady, 'install_confirm_source')]]:</td>
 						<td id="sourceValue" class="infoValue">?</td>
 					</tr>
 				</table>
 				<div id="scriptInfoPermissions">
 					<div class="infoData" id="permissionInfo">
 						<div class="infoName">
-							<span class="permissionsTitleText"
-								>[[__(lang, langReady,
-								'install_confirm_permissions')]]:</span
-							>
+							<span class="permissionsTitleText">[[__(lang, langReady, 'install_confirm_permissions')]]:</span>
 							<div id="permissionsInfoCont">
-								<svg
-									class="inactive"
-									fill="#000000"
-									height="24"
-									viewbox="0 0 24 24"
-									width="24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
+								<svg class="inactive" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none" />
-									<path
-										d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"
+									<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"
 									/>
 								</svg>
-								<svg
-									class="active"
-									fill="#000000"
-									height="24"
-									viewbox="0 0 24 24"
-									width="24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
+								<svg class="active" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none" />
-									<path
-										d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-									/>
+									<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
 								</svg>
-								<div
-									class="paper-material"
-									id="permissionsInfoTxtCont"
-									elevation="3"
-								>
+								<div class="paper-material" id="permissionsInfoTxtCont" elevation="3">
 									<div id="permissionsInfoText">
-										[[__(lang, langReady,
-										'install_confirm_permissionInfo')]]
+										[[__(lang, langReady, 'install_confirm_permissionInfo')]]
 									</div>
 								</div>
 							</div>
 						</div>
 						<div class="infoValue">
-							<template
-								is="dom-if"
-								if="{{lengthIs(permissions, 0)}}"
-							>
+							<template is="dom-if" if="{{lengthIs(permissions, 0)}}">
 								<div class="infoPermissionContainer">
 									<div class="infoPermissionToggleContainer">
 										<div class="infoPermission">
-											<b
-												>[[__(lang, langReady,
-												'install_confirm_none')]]</b
-											>
+											<b>[[__(lang, langReady, 'install_confirm_none')]]</b>
 										</div>
-										<div
-											on-tap="showPermissionDescription"
-											class="infoPermissionArrow"
-										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="20"
-												height="20"
-												viewbox="0 0 48 48"
-											>
-												<path d="M16 10v28l22-14z" />
-											</svg>
+										<div on-tap="showPermissionDescription" class="infoPermissionArrow">
+											<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
 										</div>
-										<paper-checkbox
-											permission$="{{permission}}"
-											on-tap="checkPermission"
-											disabled
-											class="infoPermissionCheckbox"
-											>[[__(lang, langReady,
-											'install_confirm_allow')]]</paper-checkbox
-										>
+										<paper-checkbox permission$="{{permission}}" on-tap="checkPermission" disabled class="infoPermissionCheckbox">[[__(lang, langReady, 'install_confirm_allow')]]</paper-checkbox>
 									</div>
-									<div class="infoPermissionExtraText">
-										[[__(lang, langReady,
-										'install_confirm_noneRequired')]]
-									</div>
+									<div class="infoPermissionExtraText">[[__(lang, langReady, 'install_confirm_noneRequired')]]</div>
 								</div>
 							</template>
 							<div hidden="{{lengthIs(permissions, 0)}}">
-								<template
-									is="dom-repeat"
-									id="permissionValue"
-									class="infoValue"
-									as="permission"
-									items="{{permissions}}"
-								>
+								<template is="dom-repeat" id="permissionValue" class="infoValue" as="permission" items="{{permissions}}">
 									<div class="infoPermissionContainer">
-										<div
-											class="infoPermissionToggleContainer"
-										>
+										<div class="infoPermissionToggleContainer">
 											<div class="infoPermission">
 												<b>{{permission}}</b>
 											</div>
-											<div
-												on-tap="showPermissionDescription"
-												class="infoPermissionArrow"
-											>
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													width="20"
-													height="20"
-													viewbox="0 0 48 48"
-												>
-													<path
-														d="M16 10v28l22-14z"
-													/>
-												</svg>
+											<div on-tap="showPermissionDescription" class="infoPermissionArrow">
+												<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
 											</div>
-											<paper-checkbox
-												permission$="{{permission}}"
-												on-tap="checkPermission"
-												class="infoPermissionCheckbox"
-												>[[__(lang, langReady,
-												'install_confirm_allow')]]</paper-checkbox
-											>
+											<paper-checkbox permission$="{{permission}}" on-tap="checkPermission" class="infoPermissionCheckbox">[[__(lang, langReady, 'install_confirm_allow')]]</paper-checkbox>
 										</div>
-										<div class="infoPermissionExtraText">
-											{{getDescription(permission, lang,
-											langReady)}}
-										</div>
+										<div class="infoPermissionExtraText">{{getDescription(permission, lang, langReady)}}</div>
 									</div>
 								</template>
-								<paper-checkbox
-									id="permissionsToggleAll"
-									on-tap="toggleAll"
-									>[[__(lang, langReady,
-									'install_confirm_toggleAll')]]</paper-checkbox
-								>
+								<paper-checkbox id="permissionsToggleAll" on-tap="toggleAll">[[__(lang, langReady, 'install_confirm_toggleAll')]]</paper-checkbox>
 							</div>
 						</div>
 					</div>
@@ -206,36 +95,10 @@
 			</div>
 			<monaco-editor id="editorCont"></monaco-editor>
 			<div id="installButtons">
-				<paper-button
-					on-tap="acceptAndCompleteInstall"
-					class="installButton"
-					raised
-					id="acceptAndInstallbutton"
-					>[[__(lang, langReady,
-					'install_confirm_allowAccept')]]</paper-button
-				>
-				<paper-button
-					on-tap="completeInstall"
-					class="installButton"
-					raised
-					id="installButton"
-					>[[__(lang, langReady,
-					'install_confirm_install')]]</paper-button
-				>
-				<paper-button
-					on-tap="cancelInstall"
-					class="installButton"
-					raised
-					id="cancelButton"
-					>[[__(lang, langReady, 'generic_cancel')]]</paper-button
-				>
-				<paper-button
-					on-tap="cancelInstall"
-					class="installButton"
-					raised
-					id="closePage"
-					>[[__(lang, langReady, 'generic_close')]]</paper-button
-				>
+				<paper-button on-tap="acceptAndCompleteInstall" class="installButton" raised id="acceptAndInstallbutton">[[__(lang, langReady, 'install_confirm_allowAccept')]]</paper-button>
+				<paper-button on-tap="completeInstall" class="installButton" raised id="installButton">[[__(lang, langReady, 'install_confirm_install')]]</paper-button>
+				<paper-button on-tap="cancelInstall" class="installButton" raised id="cancelButton">[[__(lang, langReady, 'generic_cancel')]]</paper-button>
+				<paper-button on-tap="cancelInstall" class="installButton" raised id="closePage">[[__(lang, langReady, 'generic_close')]]</paper-button>
 			</div>
 		</div>
 	</template>

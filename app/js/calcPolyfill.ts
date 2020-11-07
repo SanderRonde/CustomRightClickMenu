@@ -2,8 +2,8 @@ window.CRMLoaded = window.CRMLoaded || {
 	listener: null,
 	register: (fn) => {
 		window.CRMLoaded.listener = fn;
-	},
-};
+	}
+}
 
 type StyleString = Extract<keyof CSSStyleDeclaration, string>;
 
@@ -12,7 +12,7 @@ window.CRMLoaded.register(() => {
 	// when handling at least this regex string
 	// /((.+,(\s+))*(.+)+){(((\s+)(.*)(\s+))+)}/
 	// the regex engine cannot be applied, so this
-	// will have to do
+	// will have to do 
 	function findStylesheetBlocks(text: string) {
 		const rules: {
 			elements: string;
@@ -26,44 +26,34 @@ window.CRMLoaded.register(() => {
 			const ruleText = block.slice(bracketIndex + 1).trim();
 			rules.push({
 				elements: selector,
-				ruleText: ruleText,
+				ruleText: ruleText
 			});
 		});
 		return rules;
 	}
 
-	function makeNum(str: string | number): number {
+	function makeNum(str: string|number): number {
 		if (typeof str === 'number') {
 			return str;
 		}
 		const splitStr = str.split('.');
 		let num = ~~str;
 		if (splitStr.length > 1) {
-			num = num + ~~splitStr[1] / 10;
+			num = num + (~~splitStr[1] / 10);
 		}
 		return num;
 	}
 
-	function calc(terms: (string | number)[]): number {
+	function calc(terms: (string|number)[]): number {
 		let index;
 		if ((index = terms.indexOf('*')) > -1) {
-			return calc(
-				terms
-					.slice(0, index - 1)
-					.concat([
-						makeNum(terms[index - 1]) * makeNum(terms[index + 1]),
-					])
-					.concat(terms.slice(index + 2))
-			);
+			return calc(terms.slice(0, index - 1).concat([
+				makeNum(terms[index - 1]) * makeNum(terms[index + 1])
+			]).concat(terms.slice(index + 2)));
 		} else if ((index = terms.indexOf('/')) > -1) {
-			return calc(
-				terms
-					.slice(0, index - 1)
-					.concat([
-						makeNum(terms[index - 1]) / makeNum(terms[index + 1]),
-					])
-					.concat(terms.slice(index + 2))
-			);
+			return calc(terms.slice(0, index - 1).concat([
+				makeNum(terms[index - 1]) / makeNum(terms[index + 1])
+			]).concat(terms.slice(index + 2)));
 		} else if (terms.indexOf('-') > -1 || terms.indexOf('+') > -1) {
 			terms.forEach((term, index) => {
 				if (term === '-') {
@@ -118,36 +108,30 @@ window.CRMLoaded.register(() => {
 		if ((match = parenthesesRegex.exec(str))) {
 			return calculate(str.replace(match[0], calculate(match[1]) + ''));
 		} else {
-			return calc(
-				splitTerms(str).map((term) => {
-					return term.trim();
-				})
-			);
+			return calc(splitTerms(str).map((term) => {
+				return term.trim();
+			}));
 		}
 	}
 
 	/**
 	 * @type {Array<HTMLElement>}
 	 */
-	let allRoots: (HTMLElement | ShadowRoot)[] = null;
+	let allRoots: (HTMLElement|ShadowRoot)[] = null;
 
 	function getAllRoots() {
 		if (allRoots) {
 			return allRoots;
 		}
 		const docEl = document.documentElement;
-		allRoots = [docEl as HTMLElement | ShadowRoot].concat(
-			getRoots(docEl.children as any)
-		);
+		allRoots = [docEl as HTMLElement|ShadowRoot].concat(getRoots(docEl.children as any));
 		return allRoots;
 	}
 
 	function querySelectorEverything(selector: string) {
-		return flatten<HTMLElement>(
-			getAllRoots().map((root: HTMLElement) => {
-				return root.querySelectorAll(selector);
-			}) as any
-		);
+		return flatten<HTMLElement>(getAllRoots().map((root: HTMLElement) => {
+			return root.querySelectorAll(selector);
+		}) as any);
 	}
 
 	function traverseDom(node: HTMLElement, fn: (node: HTMLElement) => void) {
@@ -185,18 +169,14 @@ window.CRMLoaded.register(() => {
 		const parts = selector.split(' ');
 		let current = querySelectorEverything(parts[0]);
 		for (let i = 1; i < parts.length; i++) {
-			current = flatten<HTMLElement>(
-				current
-					.map((node: HTMLElement) => {
-						if (node.shadowRoot) {
-							return node.shadowRoot;
-						}
-						return node.shadowRoot;
-					})
-					.map((node: HTMLElement | ShadowRoot) => {
-						return node.querySelectorAll(parts[i]);
-					}) as any
-			);
+			current = flatten<HTMLElement>(current.map((node: HTMLElement) => {
+				if (node.shadowRoot) {
+					return node.shadowRoot;
+				}
+				return node.shadowRoot;
+			}).map((node: HTMLElement|ShadowRoot) => {
+				return node.querySelectorAll(parts[i]);
+			}) as any);
 		}
 		return current;
 	}
@@ -209,35 +189,24 @@ window.CRMLoaded.register(() => {
 
 	const toUpdate: {
 		elements: HTMLElement[];
-		calculation: string;
-		key: StyleString;
+		calculation:string;
+		key: StyleString; 
 	}[] = [];
 
-	window.addCalcFn = (
-		element: HTMLElement,
-		prop: StyleString,
-		calcValue: string,
-		disable: boolean
-	) => {
-		if (
-			calcSupported &&
-			!disable &&
-			prop !== 'length' &&
-			prop !== 'parentRule'
-		) {
+	window.addCalcFn = (element: HTMLElement, prop: StyleString, calcValue: string, disable: boolean) => {
+		if (calcSupported && !disable && prop !== 'length' && prop !== 'parentRule') {
 			(element.style as any)[prop] = 'calc(' + calcValue + ')';
 			return;
 		}
 
+
 		//Check if it already has an object defined on it
 		for (let i = 0; i < toUpdate.length; i++) {
-			if (
-				toUpdate[i].elements.indexOf(element) > -1 &&
-				toUpdate[i].key === prop
-			) {
-				toUpdate.splice(i, 1);
-				break;
-			}
+			if (toUpdate[i].elements.indexOf(element) > -1 &&
+				toUpdate[i].key === prop) {
+					toUpdate.splice(i, 1);
+					break;
+				}
 		}
 
 		if (disable) {
@@ -247,7 +216,7 @@ window.CRMLoaded.register(() => {
 		const calcObject = {
 			elements: [element],
 			calculation: calcValue,
-			key: prop,
+			key: prop
 		};
 
 		toUpdate.push(calcObject);
@@ -256,21 +225,16 @@ window.CRMLoaded.register(() => {
 
 	function updateCalcs() {
 		toUpdate.forEach((calcToUpdate) => {
-			const result = calculate(
-				calcToUpdate.calculation
-					.replace('vw', ' * ' + window.innerWidth / 100)
-					.replace('vh', ' * ' + window.innerHeight / 100)
-					.replace('em', ' * 16')
-					.replace('px', '')
-			);
+			const result = calculate(calcToUpdate.calculation
+				.replace('vw', ' * ' + window.innerWidth / 100)
+				.replace('vh', ' * ' + window.innerHeight / 100)
+				.replace('em', ' * 16')
+				.replace('px', ''));
 			calcToUpdate.elements.forEach((element) => {
-				if (
-					calcToUpdate.key !== 'length' &&
-					calcToUpdate.key !== 'parentRule'
-				)
-					(element.style as any)[calcToUpdate.key] = result + 'px';
+				if (calcToUpdate.key !== 'length' && calcToUpdate.key !== 'parentRule')
+				(element.style as any)[calcToUpdate.key] = result + 'px';
 			});
-		});
+		})
 	}
 
 	(() => {
@@ -279,14 +243,14 @@ window.CRMLoaded.register(() => {
 
 		calcSupported = !!el.style.length;
 		if (!calcSupported) {
-			((calcs) => {
+			(((calcs) => {
 				calcs.forEach((calc) => {
 					let key = calc.key;
 					let dashIndex;
 					while ((dashIndex = key.indexOf('-')) > -1) {
-						key = (key.slice(0, dashIndex) +
+						key = key.slice(0, dashIndex) +
 							key[dashIndex + 1].toUpperCase() +
-							key.slice(dashIndex + 2)) as StyleString;
+							key.slice(dashIndex + 2) as StyleString;
 					}
 
 					calc.elements = breakdownSelector(calc.elements as string);
@@ -297,14 +261,11 @@ window.CRMLoaded.register(() => {
 
 					const elements = toArr(calc.elements as any);
 
-					if (
-						calc.calculation.indexOf('vh') > -1 ||
-						calc.calculation.indexOf('vw') > -1
-					) {
+					if (calc.calculation.indexOf('vh') > -1 || calc.calculation.indexOf('vw') > -1) {
 						toUpdate.push({
 							calculation: calc.calculation,
 							elements: elements,
-							key: key,
+							key: key
 						});
 					}
 					const calcString = calc.calculation
@@ -323,135 +284,87 @@ window.CRMLoaded.register(() => {
 
 				window.onresize = () => {
 					updateCalcs();
-				};
-			})(
-				((stylesheetBlocks) => {
-					const calculations: {
-						elements: string | HTMLElement[];
-						key: StyleString;
-						calculation: string;
-					}[] = [];
+				}
+			})(((stylesheetBlocks) => {
+				const calculations: {
+					elements: string|HTMLElement[];
+					key: StyleString;
+					calculation: string;
+				}[] = [];
 
-					const calcRegex = /calc\((.+)\)/;
-					stylesheetBlocks.forEach((stylesheetBlock) => {
-						stylesheetBlock &&
-							stylesheetBlock.rules &&
-							stylesheetBlock.rules.forEach((stylesheetRule) => {
-								let match = null;
-								if (
-									(match = calcRegex.exec(
-										stylesheetRule.value
-									))
-								) {
-									if (
-										match[1].indexOf('vh') > -1 ||
-										match[1].indexOf('vw') > -1
-									) {
-										calculations.push({
-											elements: stylesheetBlock.elements,
-											key: stylesheetRule.key,
-											calculation: match[1],
-										});
-									}
-								}
-							});
-					});
-					return calculations;
-				})(
-					((stylesheetBlocks) => {
-						const cssRuleRegex = /(\s*)((\w|-)+)(\s*):(\s*)((\w|%|\/|\*|\+|\(|\)|-|,|\s)+);(\s*)/;
-						return stylesheetBlocks
-							.map((stylesheetBlock) => {
-								if (
-									stylesheetBlock.ruleText.indexOf('calc') ===
-										-1 ||
-									(stylesheetBlock.ruleText.indexOf('vh') ===
-										-1 &&
-										stylesheetBlock.ruleText.indexOf(
-											'vw'
-										) === -1)
-								) {
-									return null;
-								}
-								const rules: {
-									key: StyleString;
-									value: string;
-								}[] = [];
-								const blockMatch = stylesheetBlock.ruleText.match(
-									/(\s*)((\w|-)+)(\s*):(\s*)((\w|%|\/|\*|\+|\(|\)|-|,|\s)+);(\s*)/g
-								);
-								if (blockMatch) {
-									blockMatch.forEach((matchedString) => {
-										const match = matchedString.match(
-											cssRuleRegex
-										);
-										rules.push({
-											key: match[2] as StyleString,
-											value: match[6],
-										});
-									});
-									return {
-										rules: rules,
-										elements: stylesheetBlock.elements,
-									};
-								}
-								return null;
-							})
-							.filter((block) => block !== null);
-					})(
-						((stylesheets) => {
-							let stylesheetBlocks: {
-								elements: string;
-								ruleText: string;
-							}[] = [];
-							stylesheets.forEach((stylesheetContent) => {
-								if (
-									stylesheetContent.indexOf('calc(') === -1 ||
-									(stylesheetContent.indexOf('vh') === -1 &&
-										stylesheetContent.indexOf('vw') === -1)
-								) {
-									return null;
-								}
-
-								stylesheetBlocks = stylesheetBlocks.concat(
-									findStylesheetBlocks(stylesheetContent)
-								);
-							});
-							return stylesheetBlocks;
-						})(
-							((
-								linkElements: (
-									| HTMLLinkElement
-									| HTMLStyleElement
-								)[]
-							) => {
-								return linkElements.map((linkElement) => {
-									if (linkElement.tagName === 'STYLE') {
-										return linkElement.textContent;
-									} else {
-										const xhr = new XMLHttpRequest();
-										xhr.open(
-											'GET',
-											linkElement.sheet.href,
-											false
-										);
-										xhr.send();
-										if (xhr.status === 200) {
-											return xhr.responseText;
-										} else {
-											return '';
-										}
-									}
+				const calcRegex = /calc\((.+)\)/;
+				stylesheetBlocks.forEach((stylesheetBlock) => {
+					stylesheetBlock && stylesheetBlock.rules && stylesheetBlock.rules.forEach((stylesheetRule) => {
+						let match = null;
+						if ((match = calcRegex.exec(stylesheetRule.value))) {
+							if (match[1].indexOf('vh') > -1 || match[1].indexOf('vw') > -1) {
+								calculations.push({
+									elements: stylesheetBlock.elements,
+									key: stylesheetRule.key,
+									calculation: match[1]
 								});
-							})(
-								querySelectorEverything(
-									'style, link[rel="stylesheet"]'
-								) as (HTMLLinkElement | HTMLStyleElement)[]
-							)
-						)
-					)
-				)
-			);
+							}
+						}
+					});
+				});
+				return calculations;
+			})(((stylesheetBlocks) => {
+				const cssRuleRegex = /(\s*)((\w|-)+)(\s*):(\s*)((\w|%|\/|\*|\+|\(|\)|-|,|\s)+);(\s*)/;
+				return stylesheetBlocks.map((stylesheetBlock) => {
+					if (stylesheetBlock.ruleText.indexOf('calc') === -1 ||
+						(stylesheetBlock.ruleText.indexOf('vh') === -1 && stylesheetBlock.ruleText.indexOf('vw') === -1)) {
+							return null;
+						}
+					const rules: {
+						key: StyleString;
+						value: string;
+					}[] = [];
+					const blockMatch = stylesheetBlock.ruleText.match(/(\s*)((\w|-)+)(\s*):(\s*)((\w|%|\/|\*|\+|\(|\)|-|,|\s)+);(\s*)/g);
+					if (blockMatch) {
+						blockMatch.forEach((matchedString) => {
+							const match = matchedString.match(cssRuleRegex)
+							rules.push({
+								key: match[2] as StyleString,
+								value: match[6]
+							});
+						});
+						return {
+							rules: rules,
+							elements: stylesheetBlock.elements
+						};
+					}
+					return null;
+				}).filter((block) => block !== null);
+			})(((stylesheets) => {
+				let stylesheetBlocks: {
+					elements: string;
+					ruleText: string;
+				}[] = [];
+				stylesheets.forEach((stylesheetContent) => {
+					if (stylesheetContent.indexOf('calc(') === -1 ||
+						(stylesheetContent.indexOf('vh') === -1 && stylesheetContent.indexOf('vw') === -1)) {
+							return null;
+						}
+
+					stylesheetBlocks = stylesheetBlocks.concat(findStylesheetBlocks(stylesheetContent));
+				});
+				return stylesheetBlocks;
+			})(((linkElements: (HTMLLinkElement|HTMLStyleElement)[]) => {
+				return linkElements.map((linkElement) => {
+					if (linkElement.tagName === 'STYLE') {
+						return linkElement.textContent;
+					} else {
+						const xhr = new XMLHttpRequest;
+						xhr.open('GET', linkElement.sheet.href, false);
+						xhr.send();
+						if (xhr.status === 200) {
+							return xhr.responseText;
+						} else {
+							return '';
+						}
+					}
+				});
+			})(querySelectorEverything('style, link[rel="stylesheet"]') as (HTMLLinkElement|HTMLStyleElement)[]))))))
 		}
 		el.remove();
 	})();

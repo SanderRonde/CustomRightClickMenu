@@ -1,6 +1,6 @@
 ﻿/// <reference path="../../../elements.d.ts" />
 
-import { Polymer } from '../../../../../tools/definitions/polymer';
+import { Polymer } from "../../../../../tools/definitions/polymer";
 
 namespace PaperToggleOptionElement {
 	export const paperToggleOptionProperties: {
@@ -11,45 +11,40 @@ namespace PaperToggleOptionElement {
 	} = {
 		toggled: {
 			type: Boolean,
-			notify: true,
+			notify: true
 		},
 		disabled: {
 			type: Boolean,
-			notify: true,
+			notify: true
 		},
 		disabledreason: {
 			type: String,
 			notify: true,
-			value: 'disbled',
+			value: 'disbled'
 		},
 		showmessage: {
 			type: Boolean,
-			notify: true,
-		},
+			notify: true
+		}
 	} as any;
 
 	export class PTO {
 		static is: string = 'paper-toggle-option';
 
 		static properties = paperToggleOptionProperties;
-
-		static setCheckboxDisabledValue(
-			this: PaperToggleOption,
-			value: boolean
-		) {
+		
+		static setCheckboxDisabledValue(this: PaperToggleOption, value: boolean) {
 			this.$.checkbox.disabled = value;
 			this.disabled = value;
-		}
+		};
 
 		static _showMessage(this: PaperToggleOption): boolean {
 			return this.disabled && this.showmessage;
 		}
 
 		static init(this: PaperToggleOption, storage: CRM.StorageLocal) {
-			this.toggled = storage[
-				this.getAttribute('id') as keyof CRM.StorageLocal
-			] as boolean;
-		}
+			this.toggled = storage[this.getAttribute('id') as keyof CRM.StorageLocal] as boolean;
+		};
 
 		static onClick(this: PaperToggleOption) {
 			const id = this.getAttribute('id') as keyof CRM.StorageLocal;
@@ -66,8 +61,5 @@ namespace PaperToggleOptionElement {
 	}
 }
 
-export type PaperToggleOption = Polymer.El<
-	'paper-toggle-option',
-	typeof PaperToggleOptionElement.PTO &
-		typeof PaperToggleOptionElement.paperToggleOptionProperties
->;
+export type PaperToggleOption = Polymer.El<'paper-toggle-option',
+	typeof PaperToggleOptionElement.PTO & typeof PaperToggleOptionElement.paperToggleOptionProperties>;

@@ -11,18 +11,18 @@ namespace SplashScreenElement {
 		name: {
 			type: String,
 			value: '',
-			notify: true,
+			notify: true
 		},
 		max: {
 			type: Number,
-			value: Infinity,
+			value: Infinity
 		},
 		finished: {
 			type: Boolean,
 			value: false,
 			notify: true,
-			observer: '_onFinish',
-		},
+			observer: '_onFinish'
+		}
 	} as any;
 
 	export class SS {
@@ -48,11 +48,7 @@ namespace SplashScreenElement {
 			}
 		}
 
-		private static _animateTo(
-			this: SplashScreen,
-			progress: number,
-			scaleAfter: string
-		) {
+		private static _animateTo(this: SplashScreen, progress: number, scaleAfter: string) {
 			return new Promise((resolve) => {
 				window.setTransform(this.$.progressBar, scaleAfter);
 				this.async(() => {
@@ -64,13 +60,9 @@ namespace SplashScreenElement {
 			});
 		}
 
-		private static async _animateLoadingBar(
-			this: SplashScreen,
-			progress: number
-		) {
+		private static async _animateLoadingBar(this: SplashScreen, progress: number) {
 			const scaleAfter = 'scaleX(' + progress + ')';
-			const isAtMax =
-				this._settings.max === this._settings.lastReachedProgress;
+			const isAtMax = this._settings.max === this._settings.lastReachedProgress;
 			if (isAtMax || this._settings.toReach >= 1) {
 				this._animateTo(progress, scaleAfter);
 				return;
@@ -83,7 +75,7 @@ namespace SplashScreenElement {
 				await this._animateTo(progress, scaleAfter);
 				this._animateLoadingBar(this._settings.toReach);
 			}
-		}
+		};
 
 		static setProgress(this: SplashScreen, progress: number) {
 			this._animateLoadingBar(Math.min(progress, 1.0));
@@ -108,13 +100,8 @@ namespace SplashScreenElement {
 			});
 		}
 
-		private static _onRegistration(
-			this: SplashScreen,
-			registered: number,
-			resolve: (res: void) => void
-		) {
-			const progress =
-				Math.round((registered / this._settings.max + 1) * 100) / 100;
+		private static _onRegistration(this: SplashScreen, registered: number, resolve: (res: void) => void) {
+			const progress = Math.round((registered / this._settings.max + 1) * 100) / 100;
 			this.setProgress(progress);
 
 			if (registered >= this._settings.max && !this.finished) {
@@ -129,16 +116,13 @@ namespace SplashScreenElement {
 
 		private static _listenForRegistrations(this: SplashScreen) {
 			this.done = new Promise<void>((resolve) => {
-				let registeredElements =
-					window.Polymer.telemetry.registrations.length;
-				const registrationArray = Array.prototype.slice.apply(
-					window.Polymer.telemetry.registrations
-				);
+				let registeredElements = window.Polymer.telemetry.registrations.length;
+				const registrationArray = Array.prototype.slice.apply(window.Polymer.telemetry.registrations);
 				registrationArray.push = (element: HTMLElement) => {
 					Array.prototype.push.call(registrationArray, element);
 					registeredElements++;
 					this._onRegistration(registeredElements, resolve);
-				};
+				}
 
 				this._onRegistration(registeredElements, resolve);
 
@@ -158,14 +142,14 @@ namespace SplashScreenElement {
 				toReach: 0,
 				isAnimating: false,
 				shouldAnimate: false,
-				max: Infinity,
+				max: Infinity
 			};
 			window.splashScreen = this;
 
 			if (this.max) {
 				this.init(this.max);
 			}
-		}
+		};
 	}
 
 	if (window.objectify) {
@@ -177,8 +161,4 @@ namespace SplashScreenElement {
 	}
 }
 
-export type SplashScreen = Polymer.El<
-	'splash-screen',
-	typeof SplashScreenElement.SS &
-		typeof SplashScreenElement.splashScreenProperties
->;
+export type SplashScreen = Polymer.El<'splash-screen', typeof SplashScreenElement.SS & typeof SplashScreenElement.splashScreenProperties>;

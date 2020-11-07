@@ -1,6 +1,4 @@
-.defaultLinkLinkCont,
-.defaultLinkName,
-.defaultLinkButton {
+.defaultLinkLinkCont, .defaultLinkName, .defaultLinkButton {
 	display: inline-block;
 }
 
@@ -11,10 +9,10 @@
 	-webkit-box-orient: horizontal;
 	-webkit-box-direction: normal;
 	-webkit-flex-direction: row;
-	flex-direction: row;
+	        flex-direction: row;
 	-webkit-box-pack: justify;
 	-webkit-justify-content: space-between;
-	justify-content: space-between;
+	        justify-content: space-between;
 }
 
 .defaultLinkHref {
@@ -22,25 +20,26 @@
 	text-decoration: none;
 }
 
-.defaultLinkHref:hover {
-	text-decoration: underline;
-}
+	.defaultLinkHref:hover {
+		text-decoration: underline;
+	}
+
 
 .defaultLinkName {
 	-webkit-box-flex: 3;
 	-webkit-flex-grow: 3;
-	flex-grow: 3;
+	        flex-grow: 3;
 	margin-left: 10px;
 	margin-right: 10px;
 }
 
-.defaultLinkName paper-input {
-	width: 100%;
-}
+	.defaultLinkName paper-input {
+		width: 100%;
+	}
 
-.defaultLinkName input {
-	font-size: 125%;
-}
+	.defaultLinkName input {
+		font-size: 125%;
+	}
 
 .defaultLinkLink {
 	margin-top: 25px;
@@ -63,6 +62,6 @@ paper-button {
 }
 
 paper-button.blue {
-	background-color: #3f51b5;
-	color: white;
+    background-color: #3F51B5;
+    color: white;
 }

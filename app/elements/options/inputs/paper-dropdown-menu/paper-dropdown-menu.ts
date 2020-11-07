@@ -1,6 +1,6 @@
 ﻿/// <reference path="../../../elements.d.ts" />
 
-import { Polymer } from '../../../../../tools/definitions/polymer';
+import { Polymer } from "../../../../../tools/definitions/polymer";
 import { PaperDropdownBehavior } from '../paper-dropdown-behavior/paper-dropdown-behavior';
 
 namespace PaperDropdownMenuElement {
@@ -20,40 +20,40 @@ namespace PaperDropdownMenuElement {
 		selected: {
 			type: Number,
 			reflectToAttribute: true,
-			notify: true,
+			notify: true
 		},
 		label: {
 			type: String,
 			notify: true,
-			value: '',
+			value: ''
 		},
 		fancylabel: {
 			type: Boolean,
-			value: false,
+			value: false
 		},
 		subtext: {
 			type: String,
-			value: '',
+			value: ''
 		},
 		fallback: {
 			type: String,
-			value: '',
+			value: ''
 		},
 		updater: {
 			type: Number,
 			value: 0,
-			notify: true,
+			notify: true
 		},
 		inline: {
 			type: Boolean,
 			value: false,
-			notify: true,
+			notify: true
 		},
 		dropdownraised: {
 			type: Boolean,
 			value: false,
-			notify: true,
-		},
+			notify: true
+		}
 	} as any;
 
 	export type PaperDropdownMenuProperties = typeof paperDropdownMenuProperties;
@@ -67,7 +67,7 @@ namespace PaperDropdownMenuElement {
 
 		static _hasNoLabel(label: string): boolean {
 			return !(label && label !== '');
-		}
+		};
 
 		static _hasNoSubtext(subtext: string): boolean {
 			return !(subtext && subtext !== '');
@@ -87,18 +87,15 @@ namespace PaperDropdownMenuElement {
 				return this.fallback;
 			}
 			const paperItems = menu.querySelectorAll('paper-item');
-			return (
-				(paperItems[this.selected] &&
-					paperItems[this.selected].children[1] &&
-					paperItems[this.selected].children[1].innerHTML) ||
-				this.fallback
-			);
+			return (paperItems[this.selected] &&
+				paperItems[this.selected].children[1] && 
+				paperItems[this.selected].children[1].innerHTML) || this.fallback;
 		}
 
 		static init(this: PaperDropdownMenu) {
 			this.refreshListeners();
 			this.doHighlight();
-		}
+		};
 
 		static _getMenu(this: PaperDropdownMenu): HTMLPaperMenuElement {
 			return this.$.menuSlot.assignedNodes()[0] as any;
@@ -120,9 +117,7 @@ namespace PaperDropdownMenuElement {
 	}
 }
 
-export type PaperDropdownMenuBase = Polymer.El<
-	'paper-dropdown-menu',
-	typeof PaperDropdownMenuElement.PDM &
-		typeof PaperDropdownMenuElement.paperDropdownMenuProperties
+export type PaperDropdownMenuBase = Polymer.El<'paper-dropdown-menu',
+	typeof PaperDropdownMenuElement.PDM & typeof PaperDropdownMenuElement.paperDropdownMenuProperties
 >;
 export type PaperDropdownMenu = PaperDropdownBehavior<PaperDropdownMenuBase>;

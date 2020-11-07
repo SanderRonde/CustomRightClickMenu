@@ -1,10 +1,5 @@
-import { ModuleData } from './moduleTypes';
-import {
-	BackgroundpageWindow,
-	ContextMenuCreateProperties,
-	ContextMenuUpdateProperties,
-	ContextMenuOverrides,
-} from './sharedTypes';
+import { ModuleData } from "./moduleTypes";
+import { BackgroundpageWindow, ContextMenuCreateProperties, ContextMenuUpdateProperties, ContextMenuOverrides } from './sharedTypes';
 
 declare const browserAPI: browserAPI;
 declare const BrowserAPI: BrowserAPI;
@@ -16,7 +11,7 @@ export namespace Util {
 	export function initModule(_modules: ModuleData) {
 		modules = _modules;
 	}
-
+	
 	/**
 	 * JSONfn - javascript (both node.js and browser) plugin to stringify,
 	 *          parse and clone objects with Functions, Regexp and Date.
@@ -41,9 +36,8 @@ export namespace Util {
 			});
 		},
 		parse: (str: string, date2Obj?: boolean): any => {
-			const iso8061 = !date2Obj
-				? false
-				: /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/;
+			const iso8061 = !date2Obj ? false :
+				/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/;
 			return JSON.parse(str, (_key: string, value: any) => {
 				if (typeof value !== 'string') {
 					return value;
@@ -66,18 +60,15 @@ export namespace Util {
 
 				return value;
 			});
-		},
-	};
-	function compareObj(
-		firstObj: {
-			[key: string]: any;
-			[key: number]: any;
-		},
-		secondObj: {
-			[key: string]: any;
-			[key: number]: any;
 		}
-	): boolean {
+	};
+	function compareObj(firstObj: {
+		[key: string]: any;
+		[key: number]: any;
+	}, secondObj: {
+		[key: string]: any;
+		[key: number]: any;
+	}): boolean {
 		for (let key in firstObj) {
 			if (firstObj.hasOwnProperty(key) && firstObj[key] !== undefined) {
 				if (typeof firstObj[key] === 'object') {
@@ -101,10 +92,7 @@ export namespace Util {
 		}
 		return true;
 	}
-	export function compareArray(
-		firstArray: any[],
-		secondArray: any[]
-	): boolean {
+	export function compareArray(firstArray: any[], secondArray: any[]): boolean {
 		if (!firstArray && !secondArray) {
 			return false;
 		} else if (!firstArray || !secondArray) {
@@ -168,84 +156,73 @@ export namespace Util {
 		return _lastNumber;
 	}
 	export async function generateItemId(): Promise<CRM.GenericNodeId> {
-		modules.globalObject.globals.latestId =
+		modules.globalObject.globals.latestId = 
 			modules.globalObject.globals.latestId || 0;
 		modules.globalObject.globals.latestId++;
 		if (modules.storages.settingsStorage) {
 			await modules.Storages.applyChanges({
 				type: 'optionsPage',
-				settingsChanges: [
-					{
-						key: 'latestId',
-						oldValue: modules.globalObject.globals.latestId - 1,
-						newValue: modules.globalObject.globals.latestId,
-					},
-				],
+				settingsChanges: [{
+					key: 'latestId',
+					oldValue: modules.globalObject.globals.latestId - 1,
+					newValue: modules.globalObject.globals.latestId
+				}]
 			});
 		}
 		return modules.globalObject.globals.latestId as CRM.GenericNodeId;
 	}
-	export async function getMultipleItemIds(
-		amount: number
-	): Promise<CRM.GenericNodeId[]> {
-		modules.globalObject.globals.latestId =
+	export async function getMultipleItemIds(amount: number): Promise<CRM.GenericNodeId[]> {
+		modules.globalObject.globals.latestId = 
 			modules.globalObject.globals.latestId || 0;
 		const ids: CRM.GenericNodeId[] = [];
 		for (let i = 0; i < amount; i++) {
 			modules.globalObject.globals.latestId++;
-			ids.push(
-				modules.globalObject.globals.latestId as CRM.GenericNodeId
-			);
+			ids.push(modules.globalObject.globals.latestId as CRM.GenericNodeId);
 		}
 		if (modules.storages.settingsStorage) {
 			await modules.Storages.applyChanges({
 				type: 'optionsPage',
-				settingsChanges: [
-					{
-						key: 'latestId',
-						oldValue:
-							modules.globalObject.globals.latestId - amount,
-						newValue: modules.globalObject.globals.latestId,
-					},
-				],
+				settingsChanges: [{
+					key: 'latestId',
+					oldValue: modules.globalObject.globals.latestId - amount,
+					newValue: modules.globalObject.globals.latestId
+				}]
 			});
 		}
 		return ids;
 	}
-	export function convertFileToDataURI(
-		url: string,
-		callback: (dataURI: string, dataString: string) => void,
-		onError?: () => void
-	) {
-		const xhr: XMLHttpRequest = new window.XMLHttpRequest();
-		xhr.responseType = 'blob';
-		xhr.onload = () => {
-			const readerResults: [string, string] = [null, null];
+	export function convertFileToDataURI(url: string, callback: (dataURI: string,
+		dataString: string) => void,
+		onError?: () => void) {
+			const xhr: XMLHttpRequest = new window.XMLHttpRequest();
+			xhr.responseType = 'blob';
+			xhr.onload = () => {
+				const readerResults: [string, string] = [null, null];
 
-			const blobReader = new FileReader();
-			blobReader.onloadend = () => {
-				readerResults[0] = blobReader.result as string;
-				if (readerResults[1]) {
-					callback(readerResults[0], readerResults[1]);
-				}
-			};
-			blobReader.readAsDataURL(xhr.response);
+				const blobReader = new FileReader();
+				blobReader.onloadend = () => {
+					readerResults[0] = blobReader.result as string;
+					if (readerResults[1]) {
+						callback(readerResults[0], readerResults[1]);
+					}
+				};
+				blobReader.readAsDataURL(xhr.response);
 
-			const textReader = new FileReader();
-			textReader.onloadend = () => {
-				readerResults[1] = textReader.result as string;
-				if (readerResults[0]) {
-					callback(readerResults[0], readerResults[1]);
-				}
+				const textReader = new FileReader();
+				textReader.onloadend = () => {
+					readerResults[1] = textReader.result as string;
+					if (readerResults[0]) {
+						callback(readerResults[0], readerResults[1]);
+					}
+				};
+				textReader.readAsText(xhr.response);
 			};
-			textReader.readAsText(xhr.response);
-		};
-		if (onError) {
-			xhr.onerror = onError;
+			if (onError) {
+				xhr.onerror = onError;
+			}
+			xhr.open('GET', url);
+			xhr.send();
 		}
-		xhr.open('GET', url);
-		xhr.send();
-	}
 	export function isNewer(newVersion: string, oldVersion: string): boolean {
 		const newSplit = newVersion.split('.');
 		const oldSplit = oldVersion.split('.');
@@ -262,11 +239,7 @@ export namespace Util {
 		}
 		return false;
 	}
-	export function pushIntoArray<T, U>(
-		toPush: T,
-		position: number,
-		target: (T | U)[]
-	): (T | U)[] {
+	export function pushIntoArray<T, U>(toPush: T, position: number, target: (T|U)[]): (T|U)[] {
 		if (position === target.length) {
 			target[position] = toPush;
 		} else {
@@ -282,14 +255,8 @@ export namespace Util {
 		return target;
 	}
 	export function flattenCrm(searchScope: CRM.Node[], obj: CRM.Node): void;
-	export function flattenCrm(
-		searchScope: CRM.SafeNode[],
-		obj: CRM.SafeNode
-	): void;
-	export function flattenCrm(
-		searchScope: CRM.Node[] | CRM.SafeNode[],
-		obj: CRM.Node | CRM.SafeNode
-	) {
+	export function flattenCrm(searchScope: CRM.SafeNode[], obj: CRM.SafeNode): void;
+	export function flattenCrm(searchScope: (CRM.Node[])|(CRM.SafeNode[]), obj: CRM.Node|CRM.SafeNode) {
 		(searchScope as any).push(obj as any);
 		if (obj.type === 'menu' && obj.children) {
 			for (const child of obj.children) {
@@ -297,10 +264,7 @@ export namespace Util {
 			}
 		}
 	}
-	export function iterateMap<K, V>(
-		map: Map<K, V>,
-		handler: (key: K, val: V) => void | true
-	) {
+	export function iterateMap<K, V>(map: Map<K, V>, handler: (key: K, val: V) => void|true) {
 		let breakLoop: boolean = false;
 		map.forEach((value, key) => {
 			if (breakLoop) {
@@ -312,158 +276,86 @@ export namespace Util {
 		});
 	}
 	export function mapToArr<K, V>(map: Map<K, V>): [K, V][] {
-		const pairs: [K, V][] = [];
+		const pairs: [K,V][] = [];
 		map.forEach((value, key) => {
 			pairs.push([key, value]);
 		});
 		return pairs;
 	}
-	export async function asyncIterateMap<K, V>(
-		map: Map<K, V>,
-		handler: (key: K, val: V) => Promise<void | true>
-	) {
-		for (const [key, value] of mapToArr(map)) {
+	export async function asyncIterateMap<K, V>(map: Map<K, V>, handler: (key: K, val: V) => Promise<void|true>) {
+		for (const [ key, value ] of mapToArr(map)) {
 			if (await handler(key, value)) {
 				return;
 			}
 		}
 	}
-	export function setMapDefault<K, V>(
-		map: Map<K, V>,
-		key: K,
-		defaultValue: V
-	): boolean {
+	export function setMapDefault<K, V>(map: Map<K, V>, key: K, defaultValue: V): boolean {
 		if (!map.has(key)) {
 			map.set(key, defaultValue);
 			return true;
 		}
 		return false;
 	}
-	export function accessPath<
-		B,
-		K1 extends keyof B,
-		K2 extends keyof B[K1],
-		K3 extends keyof B[K1][K2],
-		K4 extends keyof B[K1][K2][K3],
-		K5 extends keyof B[K1][K2][K3][K4]
-	>(base: B, key1: K1): B[K1] | void;
-	export function accessPath<
-		B,
-		K1 extends keyof B,
-		K2 extends keyof B[K1],
-		K3 extends keyof B[K1][K2],
-		K4 extends keyof B[K1][K2][K3],
-		K5 extends keyof B[K1][K2][K3][K4]
-	>(base: B, key1: K1, key2: K2): B[K1][K2] | void;
-	export function accessPath<
-		B,
-		K1 extends keyof B,
-		K2 extends keyof B[K1],
-		K3 extends keyof B[K1][K2],
-		K4 extends keyof B[K1][K2][K3],
-		K5 extends keyof B[K1][K2][K3][K4]
-	>(base: B, key1: K1, key2: K2, key3: K3): B[K1][K2][K3] | void;
-	export function accessPath<
-		B,
-		K1 extends keyof B,
-		K2 extends keyof B[K1],
-		K3 extends keyof B[K1][K2],
-		K4 extends keyof B[K1][K2][K3],
-		K5 extends keyof B[K1][K2][K3][K4]
-	>(
-		base: B,
-		key1: K1,
-		key2: K2,
-		key3: K3,
-		key4: K4
-	): B[K1][K2][K3][K4] | void;
-	export function accessPath<
-		B,
-		K1 extends keyof B,
-		K2 extends keyof B[K1],
-		K3 extends keyof B[K1][K2],
-		K4 extends keyof B[K1][K2][K3],
-		K5 extends keyof B[K1][K2][K3][K4]
-	>(
-		base: B,
-		key1: K1,
-		key2: K2,
-		key3: K3,
-		key4: K4,
-		key5: K5
-	): B[K1][K2][K3][K4][K5] | void;
-	export function accessPath<
-		B,
-		K1 extends keyof B,
-		K2 extends keyof B[K1],
-		K3 extends keyof B[K1][K2],
-		K4 extends keyof B[K1][K2][K3],
-		K5 extends keyof B[K1][K2][K3][K4]
-	>(
-		base: B,
-		key1: K1,
-		key2?: K2,
-		key3?: K3,
-		key4?: K4,
-		key5?: K5
-	):
-		| B[K1][K2][K3][K4][K5]
-		| B[K1][K2][K3][K4]
-		| B[K1][K2][K3]
-		| B[K1][K2]
-		| B[K1]
-		| void {
-		const v1 = base[key1];
-		if (!v1) {
-			return undefined;
-		}
-		if (!key2) {
-			return v1;
-		}
+	export function accessPath<B, K1 extends keyof B, 
+		K2 extends keyof B[K1], 
+		K3 extends keyof B[K1][K2], 
+		K4 extends keyof B[K1][K2][K3], 
+		K5 extends keyof B[K1][K2][K3][K4]>(base: B, key1: K1): B[K1] | void;
+	export function accessPath<B, K1 extends keyof B, 
+		K2 extends keyof B[K1], 
+		K3 extends keyof B[K1][K2], 
+		K4 extends keyof B[K1][K2][K3], 
+		K5 extends keyof B[K1][K2][K3][K4]>(base: B, key1: K1,
+			key2: K2): B[K1][K2] | void;
+	export function accessPath<B, K1 extends keyof B, 
+		K2 extends keyof B[K1], 
+		K3 extends keyof B[K1][K2], 
+		K4 extends keyof B[K1][K2][K3], 
+		K5 extends keyof B[K1][K2][K3][K4]>(base: B, key1: K1,
+			key2: K2, key3: K3): B[K1][K2][K3] | void;
+	export function accessPath<B, K1 extends keyof B, 
+		K2 extends keyof B[K1], 
+		K3 extends keyof B[K1][K2], 
+		K4 extends keyof B[K1][K2][K3], 
+		K5 extends keyof B[K1][K2][K3][K4]>(base: B, key1: K1,
+			key2: K2, key3: K3, key4: K4): B[K1][K2][K3][K4] | void;
+	export function accessPath<B, K1 extends keyof B, 
+		K2 extends keyof B[K1], 
+		K3 extends keyof B[K1][K2], 
+		K4 extends keyof B[K1][K2][K3], 
+		K5 extends keyof B[K1][K2][K3][K4]>(base: B, key1: K1,
+			key2: K2, key3: K3, key4: K4, key5: K5): B[K1][K2][K3][K4][K5] | void;
+	export function accessPath<B, K1 extends keyof B, 
+		K2 extends keyof B[K1], 
+		K3 extends keyof B[K1][K2], 
+		K4 extends keyof B[K1][K2][K3], 
+		K5 extends keyof B[K1][K2][K3][K4]>(base: B, key1: K1,
+			key2?: K2, key3?: K3, key4?: K4, key5?: K5): B[K1][K2][K3][K4][K5]|
+				B[K1][K2][K3][K4]|B[K1][K2][K3]|B[K1][K2]|B[K1]|void {
+					const v1 = base[key1];
+					if (!v1) { return undefined; }
+					if (!key2) { return v1; }
 
-		const v2 = v1[key2];
-		if (!v2) {
-			return undefined;
-		}
-		if (!key3) {
-			return v2;
-		}
+					const v2 = v1[key2];
+					if (!v2) { return undefined; }
+					if (!key3) { return v2; }
 
-		const v3 = v2[key3];
-		if (!v3) {
-			return undefined;
-		}
-		if (!key4) {
-			return v3;
-		}
+					const v3 = v2[key3];
+					if (!v3) { return undefined; }
+					if (!key4) { return v3; }
 
-		const v4 = v3[key4];
-		if (!v4) {
-			return undefined;
-		}
-		if (!key5) {
-			return v4;
-		}
+					const v4 = v3[key4];
+					if (!v4) { return undefined; }
+					if (!key5) { return v4; }
 
-		const v5 = v4[key5];
-		if (!v5) {
-			return undefined;
-		}
-		return v5;
-	}
-	export function toMap<
-		V,
-		K extends string | number,
-		O extends CRM.ObjectifiedMap<K, V>
-	>(obj: O): Map<K, V> {
-		return new window.Map<K, V>(
-			Object.getOwnPropertyNames(obj).map((key: any) => {
-				return [
-					key,
-					obj[key as Extract<keyof CRM.ObjectifiedMap<K, V>, string>],
-				];
-			})
-		);
+					const v5 = v4[key5];
+					if (!v5) { return undefined; }
+					return v5;
+				}
+	export function toMap<V, K extends string|number, O extends CRM.ObjectifiedMap<K, V>>(obj: O): Map<K, V> {
+		return new window.Map<K, V>(Object.getOwnPropertyNames(obj).map((key: any) => {
+			return [key, obj[key as Extract<keyof CRM.ObjectifiedMap<K, V>, string>]];
+		}));
 	}
 	export function fromMap<K, V>(map: Map<K, V>): CRM.ObjectifiedMap<K, V> {
 		const obj: CRM.ObjectifiedMap<K, V> = {} as any;
@@ -472,19 +364,16 @@ export namespace Util {
 		});
 		return obj;
 	}
-	export function toArray<
-		T,
-		O extends {
-			[key: string]: T;
-		} = {}
-	>(obj: O): [string, T][] {
+	export function toArray<T, O extends {
+		[key: string]: T;
+	} = {}>(obj: O): [string, T][] {
 		return Object.getOwnPropertyNames(obj).map((key) => {
 			return [key, obj[key]] as [string, T];
 		});
 	}
 	export function removeTab(tabId: TabId) {
 		const nodeStatusses = modules.crmValues.nodeTabStatuses;
-
+		
 		iterateMap(nodeStatusses, (_, { tabs }) => {
 			if (tabs.has(tabId)) {
 				tabs.delete(tabId);
@@ -504,19 +393,11 @@ export namespace Util {
 		return arr[arr.length - 1];
 	}
 	export function endsWith(haystack: string, needle: string): boolean {
-		return (
-			haystack
-				.split('')
-				.reverse()
-				.join('')
-				.indexOf(needle.split('').reverse().join('')) === 0
-		);
+		return haystack.split('').reverse().join('')
+			.indexOf(needle.split('').reverse().join('')) === 0;
 	}
 	const _requiredFiles: string[] = [];
-	export async function execFile(
-		path: string,
-		global?: keyof BackgroundpageWindow
-	): Promise<void> {
+	export async function execFile(path: string, global?: keyof BackgroundpageWindow): Promise<void> {
 		if (_requiredFiles.indexOf(path) > -1) {
 			return;
 		}
@@ -528,23 +409,16 @@ export namespace Util {
 			await window.onExists(global, window);
 		}
 	}
-	export function getScriptNodeJS(
-		script: CRM.ScriptNode | CRM.SafeScriptNode,
-		type: 'background' | 'script' = 'script'
-	): string {
-		return type === 'background'
-			? script.value.backgroundScript
-			: script.value.script;
+	export function getScriptNodeJS(script: CRM.ScriptNode|CRM.SafeScriptNode, type: 'background'|'script' = 'script'): string {
+		return type === 'background' ?
+			script.value.backgroundScript : script.value.script;
 	}
-	export async function getScriptNodeScript(
-		script: CRM.ScriptNode | CRM.SafeScriptNode,
-		type: 'background' | 'script' = 'script'
-	): Promise<string> {
+	export async function getScriptNodeScript(script: CRM.ScriptNode|CRM.SafeScriptNode, type: 'background'|'script' = 'script'): Promise<string> {
 		if (script.value.ts && script.value.ts.enabled) {
 			await modules.CRMNodes.TS.compileNode(script);
-			return type === 'background'
-				? script.value.ts.backgroundScript.compiled
-				: script.value.ts.script.compiled;
+			return type === 'background' ?
+				script.value.ts.backgroundScript.compiled :
+				script.value.ts.script.compiled;
 		}
 		return getScriptNodeJS(script, type);
 	}
@@ -553,9 +427,7 @@ export namespace Util {
 			if (library.ts.code) {
 				return library.ts.code.compiled;
 			}
-			const { ts } = await await modules.CRMNodes.TS.compileLibrary(
-				library
-			);
+			const { ts } = await (await modules.CRMNodes.TS.compileLibrary(library));
 			return ts.code.compiled;
 		}
 		return library.code;
@@ -564,25 +436,22 @@ export namespace Util {
 	let lastFsAccessCheck: number;
 	let fsAccessAllowed: boolean;
 	export function canRunOnUrl(url: string): boolean {
-		if (
-			!url ||
-			modules.CRMNodes.Running.urlIsGlobalExcluded(url) ||
+		if (!url || modules.CRMNodes.Running.urlIsGlobalExcluded(url) ||
 			url.indexOf('chrome://') !== -1 ||
 			url.indexOf('chrome-extension://') !== -1 ||
 			url.indexOf('about://') !== -1 ||
 			url.indexOf('chrome-devtools://') !== -1 ||
 			url.indexOf('view-source:') !== -1 ||
 			(url.indexOf('://chrome.google') > -1 &&
-				url.indexOf('/webstore') > -1)
-		) {
-			return false;
-		}
+			url.indexOf('/webstore') > -1)) {
+				return false;
+			}
 
 		if (Date.now() - lastFsAccessCheck > HOUR) {
-			async () => {
+			(async () => {
 				fsAccessAllowed = await browserAPI.extension.isAllowedFileSchemeAccess();
 				lastFsAccessCheck = Date.now();
-			};
+			});
 		}
 		if (fsAccessAllowed) {
 			return true;
@@ -605,7 +474,7 @@ export namespace Util {
 						reject(new Error('Failed XHR'));
 					}
 				}
-			};
+			}
 			xhr.send();
 		});
 	}
@@ -641,19 +510,14 @@ export namespace Util {
 			});
 		});
 	}
-	export function postMessage(
-		port: {
-			postMessage(message: any): void;
-		},
-		message: any
-	) {
+	export function postMessage(port: {
+		postMessage(message: any): void;
+	}, message: any) {
 		port.postMessage(message);
 	}
-	export function climbTree<
-		T extends {
-			children: T[];
-		}
-	>(tree: T[], shouldContinue: (item: T) => boolean) {
+	export function climbTree<T extends {
+		children: T[];
+	}>(tree: T[], shouldContinue: (item: T) => boolean) {
 		for (const item of tree) {
 			if (shouldContinue(item)) {
 				climbTree(item.children, shouldContinue);
@@ -661,16 +525,9 @@ export namespace Util {
 		}
 	}
 	export function isThennable(value: any): value is Promise<any> {
-		return (
-			value &&
-			typeof value === 'object' &&
-			typeof value.then === 'function'
-		);
+		return value && typeof value === "object" && typeof value.then === "function";
 	}
-	export async function filter<T>(
-		tree: T[],
-		fn: (item: T) => boolean | Promise<boolean>
-	) {
+	export async function filter<T>(tree: T[], fn: (item: T) => boolean|Promise<boolean>) {
 		for (let i = 0; i < tree.length; i++) {
 			let res = fn(tree[i]);
 			if (isThennable(res)) {
@@ -690,10 +547,7 @@ export namespace Util {
 			}
 		}
 	}
-	export async function crmForEachAsync(
-		crm: CRM.Tree,
-		fn: (node: CRM.Node) => Promise<void>
-	) {
+	export async function crmForEachAsync(crm: CRM.Tree, fn: (node: CRM.Node) => Promise<void>) {
 		for (const node of crm) {
 			await fn(node);
 			if (node.type === 'menu' && node.children) {
@@ -703,64 +557,52 @@ export namespace Util {
 	}
 	export function getChromeVersion() {
 		if (BrowserAPI.getBrowser() === 'chrome') {
-			return parseInt(
-				navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2],
-				10
-			);
+			return parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);	
 		}
 		return 1000;
 	}
-	export function applyContextmenuOverride<
-		T extends ContextMenuCreateProperties | ContextMenuUpdateProperties,
-		U extends ContextMenuOverrides
-	>(base: T, override: U): T {
-		override = override || ({} as U);
-		base = base || ({} as T);
-		const {
-			type,
-			checked,
-			contentTypes,
-			isVisible,
-			isDisabled,
-			name,
-		} = override;
-		if (type) {
-			base.type = type;
+	export function applyContextmenuOverride<T extends ContextMenuCreateProperties|ContextMenuUpdateProperties, 
+		U extends ContextMenuOverrides>(base: T, override: U): T {
+			override = override || {} as U;
+			base = base || {} as T;
+			const {
+				type, checked, contentTypes, isVisible, isDisabled, name
+			} = override;
+			if (type) {
+				base.type = type;
+			}
+			if (typeof checked === 'boolean') {
+				base.checked = checked;
+			}
+			if (contentTypes) {
+				base.contexts = contentTypes;
+			}
+			if (typeof isVisible === 'boolean' && 
+				BrowserAPI.getBrowser() === 'chrome' && 
+				getChromeVersion() >= 62) {
+					(base as any).visible = isVisible;
+				}
+			if (typeof isDisabled === 'boolean') {
+				base.enabled = !isDisabled;
+			}
+			if (name) {
+				base.title = name;
+			}
+			return base;
 		}
-		if (typeof checked === 'boolean') {
-			base.checked = checked;
-		}
-		if (contentTypes) {
-			base.contexts = contentTypes;
-		}
-		if (
-			typeof isVisible === 'boolean' &&
-			BrowserAPI.getBrowser() === 'chrome' &&
-			getChromeVersion() >= 62
-		) {
-			(base as any).visible = isVisible;
-		}
-		if (typeof isDisabled === 'boolean') {
-			base.enabled = !isDisabled;
-		}
-		if (name) {
-			base.title = name;
-		}
-		return base;
-	}
 	const locks: Map<LOCK, Promise<void>> = new window.Map();
 	export const enum LOCK {
-		ROOT_CONTEXTMENU_NODE,
+		ROOT_CONTEXTMENU_NODE
 	}
 	export function lock(lockName: LOCK): Promise<() => void> {
 		setMapDefault(locks, lockName, Promise.resolve(null));
 
 		const currentLock = locks.get(lockName);
 		let _resolve: () => void;
-		const returnPromise = new Promise<void>((resolve) => {
-			_resolve = () => {
-				resolve(null);
-			};
+		const returnPromise = new Promise<void>((resolve) => { 
+			_resolve = () => { 
+				resolve(null); 
+			}
 		});
 		const prom = new Promise<void>((resolve) => {
 			returnPromise.then(() => {

@@ -1,11 +1,8 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <dom-module id="paper-array-input" attributes="values max title type subtext">
 	<template>
 		<!-- build:css inline ../../../../elements/options/inputs/paper-array-input/paper-array-input.css -->
-		<link
-			rel="stylesheet"
-			href="../../elements/options/inputs/paper-array-input/paper-array-input.css"
-		/>
+		<link rel="stylesheet" href="../../elements/options/inputs/paper-array-input/paper-array-input.css">
 		<!-- /build -->
 		<style is="custom-style" include="paper-material-styles"></style>
 		<div class="paper-material" elevation="3" id="arrayInput">
@@ -26,31 +23,23 @@
 					<template is="dom-if" if="[[_hasItems(values)]]">
 						<template is="dom-repeat" items="{{values}}" as="item">
 							<div class="arrayInputLine">
-								<paper-input
-									no-label-float
-									type="[[type]]"
-									value="{{item}}"
-								></paper-input>
+								<paper-input no-label-float type="[[type]]" value="{{item}}"></paper-input>
 								<div class="arrayInputRemoveLine">
-									<paper-icon-button
-										class="removeLineButton"
-										on-tap="clearLine"
-										icon="clear"
-									>
+									<paper-icon-button class="removeLineButton" on-tap="clearLine" icon="clear">
 									</paper-icon-button>
 								</div>
 							</div>
 						</template>
 					</template>
 					<template is="dom-if" if="[[!_hasItems(values)]]">
-						<div id="arrayInputNoItemsMessage">No items!</div>
+						<div id="arrayInputNoItemsMessage">
+							No items!
+						</div>
 					</template>
 				</div>
 				<div id="arrayInputAddPositioner">
 					<div id="maxElementsReachedCenterer">
-						<span id="maxElementsReachedMessage"
-							>maximum reached (<span>[[max]]</span>)</span
-						>
+						<span id="maxElementsReachedMessage">maximum reached (<span>[[max]]</span>)</span>
 					</div>
 					<paper-button on-tap="addLine" raised>add</paper-button>
 				</div>

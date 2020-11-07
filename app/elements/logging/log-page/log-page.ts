@@ -9,8 +9,8 @@ namespace LogPageElement {
 		isLoading: {
 			type: Boolean,
 			value: true,
-			notify: true,
-		},
+			notify: true
+		}
 	} as any;
 
 	export class LP {
@@ -29,7 +29,7 @@ namespace LogPageElement {
 					listener: null,
 					register(fn) {
 						fn();
-					},
+					}
 				};
 				window.CRMLoaded.listener && window.CRMLoaded.listener();
 			}, 2500);
@@ -45,7 +45,5 @@ namespace LogPageElement {
 	}
 }
 
-export type LogPage = Polymer.El<
-	'log-page',
-	typeof LogPageElement.LP & typeof LogPageElement.logPageProperties
->;
+export type LogPage = Polymer.El<'log-page', 
+	typeof LogPageElement.LP & typeof LogPageElement.logPageProperties>;

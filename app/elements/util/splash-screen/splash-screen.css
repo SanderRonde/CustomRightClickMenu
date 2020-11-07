@@ -11,7 +11,7 @@
 	overflow: hidden;
 	pointer-events: none;
 	z-index: 999999999999999;
-	background-color: #ff5722;
+	background-color: #FF5722;
 }
 
 @-webkit-keyframes fadeIn {
@@ -51,10 +51,10 @@
 	-webkit-flex-direction: column;
 	-webkit-box-orient: vertical;
 	-webkit-box-direction: normal;
-	flex-direction: column;
+	        flex-direction: column;
 	-webkit-justify-content: center;
 	-webkit-box-pack: center;
-	justify-content: center;
+	        justify-content: center;
 }
 
 #splashHorizontalCenterer {
@@ -65,10 +65,10 @@
 	-webkit-flex-direction: row;
 	-webkit-box-orient: horizontal;
 	-webkit-box-direction: normal;
-	flex-direction: row;
+	        flex-direction: row;
 	-webkit-justify-content: center;
 	-webkit-box-pack: center;
-	justify-content: center;
+	        justify-content: center;
 }
 
 #splashTitle {
@@ -85,10 +85,10 @@
 	-webkit-flex-direction: row;
 	-webkit-box-orient: horizontal;
 	-webkit-box-direction: normal;
-	flex-direction: row;
+	        flex-direction: row;
 	-webkit-justify-content: center;
 	-webkit-box-pack: center;
-	justify-content: center;
+	        justify-content: center;
 }
 
 #splashBarCont {
@@ -110,7 +110,7 @@
 	width: 50vw;
 	height: 4px;
 	-webkit-transition: transform 200ms linear, -webkit-transform 200ms linear;
-	transition: transform 200ms linear, -webkit-transform 200ms linear;
+	transition: transform 200ms linear, -webkit-transform 200ms linear
 }
 
 #contentContainer {

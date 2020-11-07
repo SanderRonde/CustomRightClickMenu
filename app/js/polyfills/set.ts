@@ -1,6 +1,6 @@
 class SetIterator<T> implements Iterator<T> {
 	private _index = 0;
-	constructor(private _data: T[]) {}
+	constructor(private _data: T[]) { }
 	next() {
 		const val = this._data[this._index];
 		this._index++;
@@ -20,7 +20,7 @@ class SetPolyfill<T> {
 			throw new TypeError('Passed value is not iterable');
 		}
 		Object.defineProperty(this, 'size', {
-			get: this._getSize,
+			get: this._getSize
 		});
 		if (iterable) {
 			Array.prototype.slice.apply(iterable).forEach((data: T) => {
@@ -48,11 +48,9 @@ class SetPolyfill<T> {
 		return false;
 	}
 	entries(): Iterator<[T, T]> {
-		return new SetIterator(
-			this._data.map((data) => {
-				return [data, data];
-			})
-		);
+		return new SetIterator(this._data.map((data) => {
+			return [data, data];
+		}));
 	}
 	forEach<U = any>(callbackFn: (this: U, value: T) => void, thisArg?: U) {
 		this._data.forEach((data) => {
@@ -72,21 +70,17 @@ class SetPolyfill<T> {
 	values() {
 		return new SetIterator(this._data);
 	}
-
+	
 	private _getSize(): number {
 		return this._data.length;
 	}
 	private _isIterable(value: Iterable<T>): value is Iterable<T> {
-		if (
-			Array.isArray(value) ||
-			typeof value === 'string' ||
-			value.toString() ===
-				Object.prototype.toString.call(function () {
-					return arguments;
-				})
-		) {
-			return true;
-		}
+		if (Array.isArray(value) || typeof value === 'string' || 
+			value.toString() === Object.prototype.toString.call((function() {
+				return arguments;
+			}))) {
+				return true;
+			}
 		return false;
 	}
 }
@@ -95,6 +89,6 @@ interface Window {
 	Set: typeof SetPolyfill;
 }
 
-interface Set<T> extends SetPolyfill<T> {}
+interface Set<T> extends SetPolyfill<T> { };
 
 window.Set = window.Set || SetPolyfill;

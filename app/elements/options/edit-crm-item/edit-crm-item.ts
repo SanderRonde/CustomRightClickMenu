@@ -17,36 +17,36 @@ namespace EditCrmItemElement {
 	} = {
 		item: {
 			type: Object,
-			notify: true,
+			notify: true
 		},
 		expanded: {
 			type: Boolean,
-			notify: true,
+			notify: true
 		},
 		shadow: {
 			type: Boolean,
-			notify: true,
+			notify: true
 		},
 		itemName: {
 			type: String,
-			notify: true,
+			notify: true
 		},
 		isMenu: {
 			type: Boolean,
-			notify: true,
+			notify: true
 		},
 		hasCodeSettings: {
 			type: Boolean,
-			notify: true,
+			notify: true
 		},
 		rootNode: {
 			type: Boolean,
-			notify: true,
+			notify: true
 		},
 		crmTypeHidden: {
 			type: Boolean,
-			notify: true,
-		},
+			notify: true
+		}
 	} as any;
 
 	export class ECI {
@@ -54,7 +54,7 @@ namespace EditCrmItemElement {
 
 		/**
 		 * The type of this item
-		 */
+		*/
 		static type: string = '';
 
 		static properties = editCrmItemProperties;
@@ -94,25 +94,19 @@ namespace EditCrmItemElement {
 		private static _isDrag: boolean = false;
 
 		static _openCodeSettings(this: EditCrmItem) {
-			window.app.initCodeOptions(
-				this.item as CRM.ScriptNode | CRM.StylesheetNode
-			);
+			window.app.initCodeOptions(this.item as CRM.ScriptNode|CRM.StylesheetNode);
 		}
 
 		static getMenuExpandMessage(this: EditCrmItem) {
 			if (!this.item.children) {
-				return this.___(
-					I18NKeys.options.editCrmItem.clickToShowChildren
-				);
+				return this.___(I18NKeys.options.editCrmItem.clickToShowChildren);
 			}
 			if ((this.item as CRM.MenuNode).children.length === 1) {
 				return this.___(I18NKeys.options.editCrmItem.clickToShowChild);
 			}
-			return this.___(
-				I18NKeys.options.editCrmItem.clickToShowXChildren,
-				(this.item as CRM.MenuNode).children.length + ''
-			);
-		}
+			return this.___(I18NKeys.options.editCrmItem.clickToShowXChildren,
+				(this.item as CRM.MenuNode).children.length + '');
+		};
 
 		static update(this: EditCrmItem) {
 			if (!this.classList.contains('id' + this.item.id)) {
@@ -127,13 +121,12 @@ namespace EditCrmItemElement {
 
 				this.attached(true);
 			}
-		}
+		};
 
 		static async updateName(this: EditCrmItem, name: string) {
 			if (name === undefined) {
-				name = window.app.settings.rootName = await this.__async(
-					I18NKeys.options.editCrmItem.rootName
-				);
+				name = window.app.settings.rootName = 
+					await this.__async(I18NKeys.options.editCrmItem.rootName);;
 				window.app.upload();
 			}
 			this.set('itemName', name);
@@ -152,7 +145,7 @@ namespace EditCrmItemElement {
 				id: -1 as CRM.NodeId<CRM.DividerNode>,
 				index: -1,
 				path: [-1],
-				onContentTypes: [true, true, true, true, true, true],
+				onContentTypes: [true, true, true, true, true, true]
 			});
 		}
 
@@ -172,8 +165,8 @@ namespace EditCrmItemElement {
 						isCustom: true,
 						target: window.app.util.getPath(e as any)[0],
 						clientX: e.clientX,
-						clientY: e.clientY,
-					},
+						clientY: e.clientY
+					}
 				});
 				//Dispatch it to this node's column
 				this.parentNode.dispatchEvent(event);
@@ -190,10 +183,7 @@ namespace EditCrmItemElement {
 				this.$.itemCont.classList.add('fallbackFiller');
 				return;
 			}
-			if (
-				this.classList.contains('draggingFiller') ||
-				this.getAttribute('draggable')
-			) {
+			if (this.classList.contains('draggingFiller') || this.getAttribute('draggable')) {
 				//It's a dragging copy
 				this.$.itemCont.classList.add('draggingFiller');
 				this._isDrag = true;
@@ -228,17 +218,11 @@ namespace EditCrmItemElement {
 					this.itemName = this.item.name;
 					this.calculateType();
 					this.itemIndex = this.index;
-					this.$$('#typeSwitcher') &&
-						this.$$('#typeSwitcher').ready &&
-						this.$$('#typeSwitcher').ready();
+					this.$$('#typeSwitcher') && this.$$('#typeSwitcher').ready && this.$$('#typeSwitcher').ready();
 
 					if (window.app.editCRM.isSelecting) {
 						this.$.itemCont.classList.add('selecting');
-						if (
-							window.app.editCRM.selectedElements.indexOf(
-								this.item.id
-							) > -1
-						) {
+						if (window.app.editCRM.selectedElements.indexOf(this.item.id) > -1) {
 							this._onSelect(true, true);
 						} else {
 							this._onDeselect(true, true);
@@ -250,28 +234,22 @@ namespace EditCrmItemElement {
 
 		static openMenu(this: EditCrmItem) {
 			window.app.editCRM.build({
-				setItems: this.item.path,
+				setItems: this.item.path
 			});
-		}
+		};
 
-		private static _getCheckbox(
-			this: EditCrmItem
-		): HTMLPaperCheckboxElement {
-			return this.shadowRoot.querySelector(
-				'#checkbox'
-			) as HTMLPaperCheckboxElement;
+		private static _getCheckbox(this: EditCrmItem): HTMLPaperCheckboxElement {
+			return this.shadowRoot.querySelector('#checkbox') as HTMLPaperCheckboxElement;
 		}
 
 		private static _selectThisNode(this: EditCrmItem) {
 			let prevState = this._getCheckbox().checked;
 			this._getCheckbox().checked = !prevState;
-			if (
-				window.app.editCRM.getItemsWithClass('highlighted').length === 0
-			) {
+			if (window.app.editCRM.getItemsWithClass('highlighted').length === 0) {
 				this.$.itemCont.classList.add('firstHighlighted');
 			}
 			prevState ? this._onDeselect() : this._onSelect();
-		}
+		};
 
 		static openEditPage(this: EditCrmItem) {
 			if (!this.shadow && !window.app.item && !this.rootNode) {
@@ -294,7 +272,7 @@ namespace EditCrmItemElement {
 					this._selectThisNode();
 				}
 			}
-		}
+		};
 
 		static getTitle(this: EditCrmItem): string {
 			if (this.rootNode) {
@@ -319,7 +297,7 @@ namespace EditCrmItemElement {
 				currentNodeIndex = path.splice(path.length - 1, 1)[0];
 			}
 			return currentNodeSiblings[currentNodeIndex + 1];
-		}
+		};
 
 		private static _getPreviousNode(node: CRM.Node): CRM.Node {
 			const path = Array.prototype.slice.apply(node.path);
@@ -332,22 +310,16 @@ namespace EditCrmItemElement {
 			}
 			const possibleParent = currentNodeSiblings[currentNodeIndex - 1];
 			if (possibleParent.children) {
-				return possibleParent.children[
-					possibleParent.children.length - 1
-				];
+				return possibleParent.children[possibleParent.children.length - 1];
 			}
 			return possibleParent;
-		}
+		};
 
-		private static _getNodesOrder(
-			this: EditCrmItem,
-			reference: CRM.Node,
-			other: CRM.Node
-		): 'after' | 'before' | 'same' {
+		private static _getNodesOrder(this: EditCrmItem, reference: CRM.Node, other: CRM.Node): 'after'|'before'|'same' {
 			let i;
 			const referencePath = reference.path;
 			const otherPath = other.path;
-
+			
 			//Check if they're the same
 			if (referencePath.length === otherPath.length) {
 				let same = true;
@@ -362,18 +334,13 @@ namespace EditCrmItemElement {
 				}
 			}
 
-			const biggestArray =
-				referencePath.length > otherPath.length
-					? referencePath.length
-					: otherPath.length;
+			const biggestArray = (referencePath.length > otherPath.length ? referencePath.length : otherPath.length);
 			for (i = 0; i < biggestArray; i++) {
-				if (
-					otherPath[i] !== undefined &&
-					referencePath[i] !== undefined
-				) {
+				if (otherPath[i] !== undefined && referencePath[i] !== undefined) {
 					if (otherPath[i] > referencePath[i]) {
 						return 'after';
-					} else if (otherPath[i] < referencePath[i]) {
+					}
+					else if (otherPath[i] < referencePath[i]) {
 						return 'before';
 					}
 				} else {
@@ -385,66 +352,47 @@ namespace EditCrmItemElement {
 				}
 			}
 			return 'same';
-		}
+		};
 
-		private static _generateShiftSelectionCallback(
-			this: EditCrmItem,
-			node: CRM.Node,
-			wait: number
-		): () => void {
-			return function () {
-				window.setTimeout(function () {
-					window.app.editCRM
-						.getCRMElementFromPath(node.path)
-						._onSelect(true);
+		private static _generateShiftSelectionCallback(this: EditCrmItem, node: CRM.Node, wait: number): () => void {
+			return function() {
+				window.setTimeout(function() {
+					window.app.editCRM.getCRMElementFromPath(node.path)._onSelect(true);
 				}, wait);
 			};
-		}
+		};
 
 		private static _selectFromXToThis(this: EditCrmItem) {
 			//Get the first highlighted node
-			const firstHighlightedNode = window.app.editCRM.getItemsWithClass(
-				'firstHighlighted'
-			)[0];
+			const firstHighlightedNode = window.app.editCRM.getItemsWithClass('firstHighlighted')[0];
 			const firstHighlightedItem = firstHighlightedNode.item;
 
 			//Deselect everything else
-			window.app.editCRM
-				.getItemsWithClass('highlighted')
-				.forEach((item) => {
-					item.$.itemCont.classList.remove('highlighted');
-				});
+			window.app.editCRM.getItemsWithClass('highlighted').forEach((item) => {
+				item.$.itemCont.classList.remove('highlighted');
+			});
 
 			//Find out if the clicked on node is before, at, or after the first highlighted node
-			const relation = this._getNodesOrder(
-				firstHighlightedItem,
-				this.item
-			);
+			const relation = this._getNodesOrder(firstHighlightedItem, this.item);
 			if (relation === 'same') {
 				this.$.itemCont.classList.add('highlighted');
 				this._getCheckbox().checked = true;
 				window.app.editCRM.selectedElements = [this.item.id];
-			} else {
+			}
+			else {
 				firstHighlightedNode.$.itemCont.classList.add('highlighted');
-				(firstHighlightedNode.shadowRoot.getElementById(
-					'checkbox'
-				) as HTMLPaperCheckboxElement).checked = true;
-				window.app.editCRM.selectedElements = [
-					firstHighlightedNode.item.id,
-				];
+				(firstHighlightedNode.shadowRoot.getElementById('checkbox') as HTMLPaperCheckboxElement).checked = true;
+				window.app.editCRM.selectedElements = [firstHighlightedNode.item.id];
 
 				let wait = 0;
-				const nodeWalker =
-					relation === 'after'
-						? this._getNextNode
-						: this._getPreviousNode;
+				const nodeWalker = (relation === 'after' ? this._getNextNode : this._getPreviousNode);
 				let node = nodeWalker(firstHighlightedItem);
 				while (node.id !== this.item.id) {
 					this._generateShiftSelectionCallback(node, wait)();
 					wait += 35;
 					node = nodeWalker(node);
 				}
-
+				
 				//Finally select this node
 				window.setTimeout(() => {
 					this.$.itemCont.classList.add('highlighted');
@@ -452,7 +400,7 @@ namespace EditCrmItemElement {
 					window.app.editCRM.selectedElements.push(this.item.id);
 				}, wait);
 			}
-		}
+		};
 
 		static checkClickType(this: EditCrmItem, e: Polymer.ClickEvent) {
 			if (this.rootNode) {
@@ -461,27 +409,22 @@ namespace EditCrmItemElement {
 				window.app.editCRM.cancelAdding();
 				window.app.editCRM.selectItems();
 				this._selectThisNode();
-			} else if (
-				this.$.itemCont.classList.contains('selecting') &&
-				e.detail.sourceEvent.shiftKey
-			) {
+			}
+			else if (this.$.itemCont.classList.contains('selecting') && e.detail.sourceEvent.shiftKey) {
 				this._selectFromXToThis();
 			} else {
 				window.app.editCRM.cancelAdding();
 				this.openEditPage();
 			}
-		}
+		};
 
 		static calculateType(this: EditCrmItem) {
 			this.type = this.item.type;
 			this.isMenu = this.item.type === 'menu';
 
-			this.hasCodeSettings =
-				(this.item.type === 'script' ||
-					this.item.type === 'stylesheet') &&
-				window.app.generateCodeOptionsArray(this.item.value.options)
-					.length > 0;
-		}
+			this.hasCodeSettings = (this.item.type === 'script' || this.item.type === 'stylesheet') &&
+				window.app.generateCodeOptionsArray(this.item.value.options).length > 0;
+		};
 
 		static typeIndicatorMouseOver(this: EditCrmItem) {
 			if (!this.shadow) {
@@ -490,34 +433,23 @@ namespace EditCrmItemElement {
 				this.async(() => {
 					if (this._lastTypeSwitchMouseover === time) {
 						this._lastTypeSwitchMouseover = null;
-						$(this.$$('type-switcher').$$('.TSContainer'))
-							.stop()
-							.animate(
-								{
-									marginLeft: 0,
-								},
-								300
-							);
+						$(this.$$('type-switcher').$$('.TSContainer')).stop().animate({
+							marginLeft: 0
+						}, 300);
 					}
 				}, 25);
 			}
-		}
+		};
 
 		private static _animateOut(this: EditCrmItem) {
-			if (
-				this._typeIndicatorAnimation &&
-				this._typeIndicatorAnimation.reverse
-			) {
+			if (this._typeIndicatorAnimation && this._typeIndicatorAnimation.reverse) {
 				this._typeIndicatorAnimation.reverse();
 			} else {
-				$(this.$$('type-switcher').$$('.TSContainer')).stop().animate(
-					{
-						marginLeft: '-293px',
-					},
-					300
-				);
+				$(this.$$('type-switcher').$$('.TSContainer')).stop().animate({
+					marginLeft: '-293px'
+				}, 300);
 			}
-		}
+		};
 
 		static typeIndicatorMouseLeave(this: EditCrmItem) {
 			this._lastTypeSwitchMouseover = null;
@@ -526,82 +458,54 @@ namespace EditCrmItemElement {
 				if (typeSwitcher.toggledOpen) {
 					typeSwitcher.closeTypeSwitchContainer(true, () => {
 						typeSwitcher.toggledOpen = false;
-						typeSwitcher.$.typeSwitchChoicesContainer.style.display =
-							'none';
-						window.setTransform(
-							typeSwitcher.$.typeSwitchArrow,
-							'rotate(180deg)'
-						);
+						typeSwitcher.$.typeSwitchChoicesContainer.style.display = 'none';
+						window.setTransform(typeSwitcher.$.typeSwitchArrow, 'rotate(180deg)');
 						this._animateOut();
 					});
 				} else {
 					this._animateOut();
 				}
 			}
-		}
+		};
 
 		private static _getOnSelectFunction(this: EditCrmItem, index: number) {
 			return () => {
-				window.app.editCRM
-					.getCRMElementFromPath(
-						(this.item.children as CRM.Node[])[index].path
-					)
-					._onSelect(true);
+				window.app.editCRM.getCRMElementFromPath((this.item.children as CRM.Node[])[index].path)._onSelect(true);
 			};
-		}
+		};
 
-		private static _onSelect(
-			this: EditCrmItem,
-			selectCheckbox: boolean = false,
-			dontSelectChildren: boolean = false
-		) {
+		private static _onSelect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
 			this.$.itemCont.classList.add('highlighted');
 			selectCheckbox && (this._getCheckbox().checked = true);
 			if (this.item.children && !dontSelectChildren) {
 				for (let i = 0; i < this.item.children.length; i++) {
 					setTimeout(() => {
-						this._getOnSelectFunction(i);
-					}, i * 35);
-					window.app.editCRM.selectedElements.push(
-						this.item.children[i].id
-					);
+						this._getOnSelectFunction(i)
+					}, (i * 35));
+					window.app.editCRM.selectedElements.push(this.item.children[i].id);
 				}
 			}
-		}
+		};
 
-		private static _getOnDeselectFunction(
-			this: EditCrmItem,
-			index: number
-		) {
+		private static _getOnDeselectFunction(this: EditCrmItem, index: number) {
 			return () => {
-				window.app.editCRM
-					.getCRMElementFromPath(
-						(this.item.children as CRM.Node[])[index].path
-					)
-					._onDeselect(true);
+				window.app.editCRM.getCRMElementFromPath((this.item.children as CRM.Node[])[index].path)._onDeselect(true);
 			};
-		}
+		};
 
-		private static _onDeselect(
-			this: EditCrmItem,
-			selectCheckbox: boolean = false,
-			dontSelectChildren: boolean = false
-		) {
+		private static _onDeselect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
 			this.$.itemCont.classList.remove('highlighted');
 			selectCheckbox && (this._getCheckbox().checked = false);
 			if (this.item.children && !dontSelectChildren) {
 				const selectedPaths = window.app.editCRM.selectedElements;
 				for (let i = 0; i < this.item.children.length; i++) {
 					setTimeout(() => {
-						this._getOnDeselectFunction(i);
-					}, i * 35);
-					selectedPaths.splice(
-						selectedPaths.indexOf(this.item.children[i].id),
-						1
-					);
+						this._getOnDeselectFunction(i)
+					}, (i * 35));
+					selectedPaths.splice(selectedPaths.indexOf(this.item.children[i].id), 1);
 				}
 			}
-		}
+		};
 
 		static onToggle(this: EditCrmItem) {
 			setTimeout(() => {
@@ -623,8 +527,5 @@ namespace EditCrmItemElement {
 	}
 }
 
-export type EditCrmItem = Polymer.El<
-	'edit-crm-item',
-	typeof EditCrmItemElement.ECI &
-		typeof EditCrmItemElement.editCrmItemProperties
->;
+export type EditCrmItem = Polymer.El<'edit-crm-item', 
+	typeof EditCrmItemElement.ECI & typeof EditCrmItemElement.editCrmItemProperties>;

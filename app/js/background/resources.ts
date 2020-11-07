@@ -1,6 +1,6 @@
 import { BackgroundpageWindow } from './sharedTypes';
-import { I18NKeys } from '../../_locales/i18n-keys';
-import { ModuleData } from './moduleTypes';
+import { I18NKeys } from "../../_locales/i18n-keys";
+import { ModuleData } from "./moduleTypes";
 
 declare const browserAPI: browserAPI;
 declare const window: BackgroundpageWindow;
@@ -34,15 +34,12 @@ export namespace Resources {
 		modules = _modules;
 	}
 
-	export function handle(
-		message: {
-			type: string;
-			name: string;
-			url: string;
-			scriptId: CRM.NodeId<CRM.ScriptNode>;
-		},
-		name: string
-	) {
+	export function handle(message: {
+		type: string;
+		name: string;
+		url: string;
+		scriptId: CRM.NodeId<CRM.ScriptNode>;
+	}, name: string) {
 		switch (message.type) {
 			case 'remove':
 				removeResource(name, message.scriptId);
@@ -53,22 +50,16 @@ export namespace Resources {
 	export function updateResourceValues() {
 		const resourceKeys = modules.storages.resourceKeys;
 		for (let i = 0; i < resourceKeys.length; i++) {
-			setTimeout(generateUpdateCallback(resourceKeys[i]), i * 1000);
+			setTimeout(generateUpdateCallback(resourceKeys[i]), (i * 1000));
 		}
 	}
 
-	function doAlgorithm(
-		name: string,
-		data: any,
-		lastMatchingHash: {
-			algorithm: string;
-			hash: string;
-		}
-	) {
+	function doAlgorithm(name: string, data: any, lastMatchingHash: {
+		algorithm: string;
+		hash: string;
+	}) {
 		window.crypto.subtle.digest(name, data).then((hash) => {
-			return (
-				String.fromCharCode.apply(null, hash) === lastMatchingHash.hash
-			);
+			return String.fromCharCode.apply(null, hash) === lastMatchingHash.hash;
 		});
 	}
 	function algorithmNameToFnName(name: string): string {
@@ -80,17 +71,12 @@ export namespace Resources {
 			}
 		}
 
-		return (
-			name.slice(0, numIndex).toUpperCase() + '-' + name.slice(numIndex)
-		);
+		return name.slice(0, numIndex).toUpperCase() + '-' + name.slice(numIndex);
 	}
-	function matchesHashes(
-		hashes: {
-			algorithm: string;
-			hash: string;
-		}[],
-		data: string
-	) {
+	function matchesHashes(hashes: {
+		algorithm: string;
+		hash: string;
+	}[], data: string) {
 		if (hashes.length === 0) {
 			return true;
 		}
@@ -105,7 +91,7 @@ export namespace Resources {
 			if (modules.constants.supportedHashes.indexOf(lowerCase) !== -1) {
 				lastMatchingHash = {
 					algorithm: lowerCase,
-					hash: hash,
+					hash: hash
 				};
 				break;
 			}
@@ -122,36 +108,27 @@ export namespace Resources {
 			case 'sha1':
 			case 'sha384':
 			case 'sha512':
-				doAlgorithm(
-					algorithmNameToFnName(lastMatchingHash.algorithm),
-					arrayBuffer,
-					lastMatchingHash
-				);
+				doAlgorithm(algorithmNameToFnName(lastMatchingHash.algorithm),
+					arrayBuffer, lastMatchingHash);
 				break;
+
 		}
 		return false;
 	}
-	function removeResource(
-		name: string,
-		scriptId: CRM.NodeId<CRM.ScriptNode>
-	) {
+	function removeResource(name: string, scriptId: CRM.NodeId<CRM.ScriptNode>) {
 		for (let i = 0; i < modules.storages.resourceKeys.length; i++) {
-			if (
-				modules.storages.resourceKeys[i].name === name &&
-				modules.storages.resourceKeys[i].scriptId === scriptId
-			) {
-				modules.storages.resourceKeys.splice(i, 1);
-				break;
-			}
+			if (modules.storages.resourceKeys[i].name === name &&
+				modules.storages.resourceKeys[i].scriptId === scriptId) {
+					modules.storages.resourceKeys.splice(i, 1);
+					break;
+				}
 		}
-		if (
-			!modules.storages.resources.has(scriptId) ||
+		if (!modules.storages.resources.has(scriptId) ||
 			!modules.storages.resources.get(scriptId)[name] ||
-			!modules.storages.resources.get(scriptId)[name].sourceUrl
-		) {
-			//It's already been removed, skip
-			return;
-		}
+			!modules.storages.resources.get(scriptId)[name].sourceUrl) {
+				//It's already been removed, skip
+				return;
+			}
 		const { sourceUrl } = modules.storages.resources.get(scriptId)[name];
 		const urlDataLink = modules.storages.urlDataPairs.get(sourceUrl);
 		if (urlDataLink) {
@@ -161,18 +138,16 @@ export namespace Resources {
 				modules.storages.urlDataPairs.delete(sourceUrl);
 			}
 		}
-		if (
-			modules.storages.resources &&
+		if (modules.storages.resources &&
 			modules.storages.resources.has(scriptId) &&
-			modules.storages.resources.get(scriptId)[name]
-		) {
-			delete modules.storages.resources.get(scriptId)[name];
-		}
+			modules.storages.resources.get(scriptId)[name]) {
+				delete modules.storages.resources.get(scriptId)[name];
+			}
 
 		browserAPI.storage.local.set({
 			resourceKeys: modules.storages.resourceKeys,
 			resources: modules.Util.fromMap(modules.storages.resources),
-			urlDataPairs: modules.Util.fromMap(modules.storages.urlDataPairs),
+			urlDataPairs: modules.Util.fromMap(modules.storages.urlDataPairs)
 		});
 	}
 	function compareResource(key: {
@@ -185,36 +160,24 @@ export namespace Resources {
 		scriptId: CRM.NodeId<CRM.ScriptNode>;
 	}) {
 		const resources = modules.storages.resources;
-		modules.Util.convertFileToDataURI(
-			key.sourceUrl,
-			(dataURI, dataString) => {
-				if (
-					!(
-						resources.has(key.scriptId) &&
-						resources.get(key.scriptId)[key.name]
-					) ||
-					resources.get(key.scriptId)[key.name].dataURI !== dataURI
-				) {
+		modules.Util.convertFileToDataURI(key.sourceUrl, (dataURI, dataString) => {
+			if (!(resources.has(key.scriptId) && resources.get(key.scriptId)[key.name]) ||
+				resources.get(key.scriptId)[key.name].dataURI !== dataURI) {
 					//Check if the hashes still match, if they don't, reject it
 					const resourceData = resources.get(key.scriptId)[key.name];
 					if (matchesHashes(resourceData.hashes, dataString)) {
 						//Data URIs do not match, just update the url ref
-						const data = modules.storages.urlDataPairs.get(
-							key.sourceUrl
-						);
+						const data = modules.storages.urlDataPairs.get(key.sourceUrl);
 						data.dataURI = dataURI;
 						data.dataString = dataString;
 
 						browserAPI.storage.local.set({
 							resources: modules.Util.fromMap(resources),
-							urlDataPairs: modules.Util.fromMap(
-								modules.storages.urlDataPairs
-							),
+							urlDataPairs: modules.Util.fromMap(modules.storages.urlDataPairs)
 						});
 					}
 				}
-			}
-		);
+		});
 	}
 	function generateUpdateCallback(resourceKey: {
 		name: string;
@@ -226,9 +189,7 @@ export namespace Resources {
 		scriptId: CRM.NodeId<CRM.ScriptNode>;
 	}) {
 		return async () => {
-			window.info(
-				await window.__(I18NKeys.background.init.resourceUpdate)
-			);
+			window.info(await window.__(I18NKeys.background.init.resourceUpdate));
 			compareResource(resourceKey);
 		};
 	}

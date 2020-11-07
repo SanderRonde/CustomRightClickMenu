@@ -20,10 +20,10 @@
 	-webkit-flex-direction: row;
 	-webkit-box-orient: horizontal;
 	-webkit-box-direction: normal;
-	flex-direction: row;
+	        flex-direction: row;
 	-webkit-justify-content: center;
 	-webkit-box-pack: center;
-	justify-content: center;
+	        justify-content: center;
 }
 
 #linkEditLeft {

@@ -11,7 +11,7 @@ namespace ChangeLogElement {
 	} = {
 		/**
 		 * The changelog that is displayed
-		 *
+		 * 
 		 * @attribute changelog
 		 * @type Array
 		 * @value []
@@ -19,8 +19,8 @@ namespace ChangeLogElement {
 		changelog: {
 			type: Array,
 			value: [],
-			notify: true,
-		},
+			notify: true
+		}
 	} as any;
 
 	interface Version {
@@ -38,27 +38,23 @@ namespace ChangeLogElement {
 			return `<a target="_blank" rel="noopener" href="${url}" title="${name}">${name}</a>`;
 		}
 
-		private static _stringSplice(
-			str: string,
-			startIndex: number,
-			endIndex: number,
-			newContents: string
-		): string {
-			return str.slice(0, startIndex) + newContents + str.slice(endIndex);
-		}
+		private static _stringSplice(str: string, startIndex: number, endIndex: number, 
+			newContents: string): string {
+				return str.slice(0, startIndex) + newContents + str.slice(endIndex);
+			}
 
 		private static _convertLinks(change: string): string {
 			const state: {
-				startIndex: number;
+				startIndex: number,
 				inBlock: boolean;
 				inBrackets: boolean;
-				blockContents: string | void;
+				blockContents: string|void;
 			} = {
 				startIndex: -1,
 				inBlock: false,
 				inBrackets: false,
-				blockContents: null,
-			};
+				blockContents: null
+			}
 
 			let buf = '';
 			for (let i = 0; i < change.length; i++) {
@@ -77,14 +73,8 @@ namespace ChangeLogElement {
 				} else if (char === ')') {
 					state.inBrackets = false;
 					if (state.blockContents) {
-						return this._convertLinks(
-							this._stringSplice(
-								change,
-								state.startIndex,
-								i + 1,
-								this._makeLink(state.blockContents, buf)
-							)
-						);
+						return this._convertLinks(this._stringSplice(change, state.startIndex,
+							i + 1, this._makeLink(state.blockContents, buf)));
 					}
 				} else if (state.inBlock || state.inBrackets) {
 					buf += char;
@@ -99,31 +89,29 @@ namespace ChangeLogElement {
 		}
 
 		/**
-		 * Turns the object-based changelog into an array-based changelog
+		 * Turns the object-based changelog into an array-based changelog 
 		 * for polymer to iterate through
 		 */
 		private static _makeChangelogArray(changelog: {
 			[key: string]: string[];
 		}): {
 			version: string;
-			changes: string[];
+			changes: string[];	
 		}[] {
 			const arrayChangelog: {
 				version: string;
-				changes: string[];
+				changes: string[];	
 			}[] = [];
 			for (let versionEntry in changelog) {
 				if (changelog.hasOwnProperty(versionEntry)) {
 					arrayChangelog.push({
 						version: versionEntry,
-						changes: changelog[versionEntry].map((change) =>
-							this._convertLinks(change)
-						),
+						changes: changelog[versionEntry].map(change => this._convertLinks(change))
 					});
 				}
 			}
 			return arrayChangelog;
-		}
+		};
 
 		/**
 		 * Turns a version string into 3 seperate version parts
@@ -133,18 +121,15 @@ namespace ChangeLogElement {
 			return {
 				baseVersion: parseInt(split[0], 10),
 				majorVersion: parseInt(split[1], 10),
-				minorVersion: parseInt(split[2], 10),
+				minorVersion: parseInt(split[2], 10)
 			};
-		}
+		};
 
 		/**
 		 * Compares two versions and returns true if A is lower,
 		 *		false if B is lower and 0 if they are equal
-		 */
-		private static _compareVersions(
-			versionStringA: string,
-			versionStringB: string
-		): number {
+		*/
+		private static _compareVersions(versionStringA: string, versionStringB: string): number {
 			const aSplit = this._splitVersion(versionStringA);
 			const bSplit = this._splitVersion(versionStringB);
 
@@ -161,46 +146,39 @@ namespace ChangeLogElement {
 			}
 
 			return 0;
-		}
+		};
 
 		/**
 		 * The function used in javascript's sort function
 		 */
-		private static _sortFunction(
-			a: {
-				version: string;
-				changes: string[];
-			},
-			b: {
-				version: string;
-				changes: string[];
-			}
-		): number {
+		private static _sortFunction(a: {
+			version: string;
+			changes: string[];
+		}, b: {
+			version: string;
+			changes: string[];
+		}): number {
 			return window.changeLog._compareVersions(a.version, b.version);
-		}
+		};
 
 		/**
 		 * Sorts the changelog from highest version first to lowest last
 		 */
-		private static _sortChangelog(
-			changelog: {
-				version: string;
-				changes: string[];
-			}[]
-		): {
+		private static _sortChangelog(changelog: {
+			version: string;
+			changes: string[];
+		}[]): {
 			version: string;
 			changes: string[];
 		}[] {
 			return changelog.sort(this._sortFunction).reverse();
-		}
+		};
 
 		static ready(this: ChangeLog) {
 			window.changeLog = this;
-			this.changelog = this._sortChangelog(
-				this._makeChangelogArray((window as any).changelogLog)
-			);
+			this.changelog = this._sortChangelog(this._makeChangelogArray((window as any).changelogLog));
 		}
-	}
+	};
 
 	if (window.objectify) {
 		window.register(CL);
@@ -211,7 +189,4 @@ namespace ChangeLogElement {
 	}
 }
 
-export type ChangeLog = Polymer.El<
-	'change-log',
-	typeof ChangeLogElement.CL & typeof ChangeLogElement.changeLogProperties
->;
+export type ChangeLog = Polymer.El<'change-log', typeof ChangeLogElement.CL & typeof ChangeLogElement.changeLogProperties>;

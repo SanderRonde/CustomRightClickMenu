@@ -11,16 +11,16 @@ namespace EchoHtmlElement {
 		html: {
 			type: String,
 			value: '',
-			observer: 'htmlChanged',
+			observer: 'htmlChanged'
 		},
 		makelink: {
 			type: Boolean,
-			value: false,
+			value: false
 		},
 		inline: {
 			type: Boolean,
-			value: false,
-		},
+			value: false
+		}
 	} as any;
 
 	export class EH {
@@ -30,17 +30,12 @@ namespace EchoHtmlElement {
 
 		private static _stampHtml(this: EchoHtml, html: string) {
 			this.$.content.innerHTML = html;
-		}
+		};
 
 		private static _makeLinksFromHtml(html: string): string {
-			html =
-				html &&
-				html.replace(
-					/(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))/g,
-					'<a rel="noopener" target="_blank" href="$1" title="">$1</a>'
-				);
+			html = html && html.replace(/(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))/g, '<a rel="noopener" target="_blank" href="$1" title="">$1</a>');
 			return html;
-		}
+		};
 
 		static htmlChanged(this: EchoHtml) {
 			let html = this.html;
@@ -48,7 +43,7 @@ namespace EchoHtmlElement {
 				html = this._makeLinksFromHtml(html);
 			}
 			this._stampHtml(html);
-		}
+		};
 
 		static ready(this: EchoHtml) {
 			this.htmlChanged();
@@ -67,7 +62,5 @@ namespace EchoHtmlElement {
 	}
 }
 
-export type EchoHtml = Polymer.El<
-	'echo-html',
-	typeof EchoHtmlElement.EH & typeof EchoHtmlElement.echoHtmlProperties
->;
+export type EchoHtml = Polymer.El<'echo-html',
+	typeof EchoHtmlElement.EH & typeof EchoHtmlElement.echoHtmlProperties>;

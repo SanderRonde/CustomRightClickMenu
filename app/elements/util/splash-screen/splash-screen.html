@@ -1,11 +1,8 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <dom-module id="splash-screen" attributes="name max">
 	<template>
 		<!-- build:css inline ../../../elements/util/splash-screen/splash-screen.css -->
-		<link
-			rel="stylesheet"
-			href="../../elements/util/splash-screen/splash-screen.css"
-		/>
+		<link rel="stylesheet" href="../../elements/util/splash-screen/splash-screen.css"/>
 		<!-- /build -->
 		<div id="splashContainer" invisible$="[[finished]]">
 			<div id="splashVerticalCenterer">
@@ -24,9 +21,7 @@
 		<div hidden$="{{!finished}}" id="contentContainer">
 			<slot id="content"></slot>
 		</div>
-		<div id="langReadyDetector" hidden>
-			[[__(lang, langReady, 'splashScreen_ready')]]
-		</div>
+		<div id="langReadyDetector" hidden>[[__(lang, langReady, 'splashScreen_ready')]]</div>
 	</template>
 </dom-module>
 <!-- build:js inline -->

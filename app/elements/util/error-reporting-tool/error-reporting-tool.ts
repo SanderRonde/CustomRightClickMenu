@@ -25,7 +25,7 @@ namespace ErrorReportingToolElement {
 		reportType: {
 			type: String,
 			value: 'bug',
-			notify: true,
+			notify: true
 		},
 		/**
 		 * The screencap's dataURI
@@ -33,7 +33,7 @@ namespace ErrorReportingToolElement {
 		image: {
 			type: String,
 			value: '',
-			notify: true,
+			notify: true
 		},
 		/**
 		 * Whether this overlay needs to be hidden
@@ -41,18 +41,12 @@ namespace ErrorReportingToolElement {
 		hide: {
 			type: Boolean,
 			value: true,
-			notify: true,
-		},
+			notify: true
+		}
 	} as any;
 
 	interface ErrorHandler {
-		(
-			event: Event | string,
-			source?: string,
-			fileno?: number,
-			columnNumber?: number,
-			error?: Error
-		): boolean | undefined;
+		(event: Event | string, source?: string, fileno?: number, columnNumber?: number, error?: Error): boolean|undefined;
 	}
 
 	export class ERT {
@@ -81,7 +75,7 @@ namespace ErrorReportingToolElement {
 			X: number;
 			Y: number;
 		};
-
+		
 		/**
 		 * The last error that occurred in the console
 		 */
@@ -98,51 +92,37 @@ namespace ErrorReportingToolElement {
 
 		static toggleVisibility(this: ErrorReportingTool) {
 			this.hide = !this.hide;
-		}
+		};
 
-		static isBugType(
-			this: ErrorReportingTool,
-			reportType: string
-		): boolean {
+		static isBugType(this: ErrorReportingTool, reportType: string): boolean {
 			return reportType === 'bug';
-		}
+		};
 
 		static isEmptyImage(this: ErrorReportingTool, img: string): boolean {
 			return img === '';
-		}
+		};
 
-		private static _scaleScreenshot(
-			this: ErrorReportingTool,
-			canvas: HTMLCanvasElement,
-			newImg: HTMLImageElement
-		) {
-			this.image = canvas.toDataURL();
-			let maxViewportHeight = window.innerHeight - 450;
-			if (maxViewportHeight > 750) {
-				maxViewportHeight = 750;
-			}
-			if ((750 / newImg.width) * newImg.height > maxViewportHeight) {
-				const captureConts = Array.prototype.slice.apply(
-					this.shadowRoot.querySelectorAll('.captureCont')
-				);
-				captureConts.forEach((captureCont: HTMLElement) => {
-					captureCont.style.width =
-						(maxViewportHeight / newImg.height) * newImg.width +
-						'px';
-				});
-			}
-		}
+		private static _scaleScreenshot(this: ErrorReportingTool, canvas: HTMLCanvasElement,
+			newImg: HTMLImageElement) {
+				this.image = canvas.toDataURL();
+				let maxViewportHeight = window.innerHeight - 450;
+				if (maxViewportHeight > 750) {
+					maxViewportHeight = 750;
+				}
+				if ((750 / newImg.width) * newImg.height > maxViewportHeight) {
+					const captureConts = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.captureCont'));
+					captureConts.forEach((captureCont: HTMLElement) => {
+						captureCont.style.width = ((maxViewportHeight / newImg.height) * newImg.width) + 'px';
+					});
+				}
+			};
 
-		private static _cropScreenshot(
-			this: ErrorReportingTool,
-			dataURI: string,
-			cropData: {
-				width: number;
-				height: number;
-				left: number;
-				top: number;
-			}
-		) {
+		private static _cropScreenshot(this: ErrorReportingTool, dataURI: string, cropData: {
+			width: number;
+			height: number;
+			left: number;
+			top: number;
+		}) {
 			return new Promise<void>((resolve) => {
 				const img = new Image();
 				const canvas = this.$.cropCanvas;
@@ -154,17 +134,7 @@ namespace ErrorReportingToolElement {
 					canvas.setAttribute('width', cropData.width + '');
 					canvas.style.display = 'none';
 					this.appendChild(canvas);
-					context.drawImage(
-						img,
-						cropData.left,
-						cropData.top,
-						cropData.width,
-						cropData.height,
-						0,
-						0,
-						cropData.width,
-						cropData.height
-					);
+					context.drawImage(img, cropData.left, cropData.top, cropData.width, cropData.height, 0, 0, cropData.width, cropData.height);
 
 					//Scale the image to fit the canvas
 					const base64 = canvas.toDataURL();
@@ -185,162 +155,92 @@ namespace ErrorReportingToolElement {
 				imgTag2.src = dataURI;
 				document.body.appendChild(imgTag2);
 			});
-		}
+		};
 
-		private static async _screenshot(
-			this: ErrorReportingTool,
-			cropData: {
-				width: number;
-				height: number;
-				left: number;
-				top: number;
-			}
-		) {
+		private static async _screenshot(this: ErrorReportingTool, cropData: {
+			width: number;
+			height: number;
+			left: number;
+			top: number;
+		}) {
 			//Make sure the overlay is gone for a while
 			this.$.overlay.style.display = 'none';
 			const { windowId } = await browserAPI.tabs.getCurrent();
 			const dataURI = await browserAPI.tabs.captureVisibleTab(windowId, {
 				format: 'png',
-				quality: 100,
+				quality: 100
 			});
 			//Turn it on again
 			this.$.overlay.style.display = 'block';
 			await this._cropScreenshot(dataURI, cropData);
-		}
+		};
 
 		private static _px(this: ErrorReportingTool, num: number): string {
 			return num + 'px';
-		}
+		};
 
-		private static _translateX(
-			this: ErrorReportingTool,
-			el: ErrorReportingToolSquare,
-			x: string
-		) {
+		private static _translateX(this: ErrorReportingTool, el: ErrorReportingToolSquare, x: string) {
 			el.xPos = x;
 			window.setTransform(el, `translate(${x},${el.yPos || '0px'})`);
-		}
+		};
 
-		private static _translateY(
-			this: ErrorReportingTool,
-			el: ErrorReportingToolSquare,
-			y: string
-		) {
+		private static _translateY(this: ErrorReportingTool, el: ErrorReportingToolSquare, y: string) {
 			el.yPos = y;
 			window.setTransform(el, `translate(${el.xPos || '0px'}, ${y})`);
-		}
+		};
 
-		private static _unLink<
-			T extends {
-				[key: string]: any;
-			}
-		>(this: ErrorReportingTool, obj: T): T {
+		private static _unLink<T extends {
+			[key: string]: any;
+		}>(this: ErrorReportingTool, obj: T): T {
 			return JSON.parse(JSON.stringify(obj));
 		}
 
-		private static _getDivs(
-			this: ErrorReportingTool,
-			direction: 'x' | 'y'
-		): [ErrorReportingToolSquare, ErrorReportingToolSquare];
-		private static _getDivs(
-			this: ErrorReportingTool,
-			direction: 'xy'
-		): [
-			ErrorReportingToolSquare,
-			ErrorReportingToolSquare,
-			ErrorReportingToolSquare,
-			ErrorReportingToolSquare
-		];
-		private static _getDivs(
-			this: ErrorReportingTool,
-			direction: 'x' | 'y' | 'xy'
-		):
-			| [ErrorReportingToolSquare, ErrorReportingToolSquare]
-			| [
-					ErrorReportingToolSquare,
-					ErrorReportingToolSquare,
-					ErrorReportingToolSquare,
-					ErrorReportingToolSquare
-			  ] {
-			const x: [ErrorReportingToolSquare, ErrorReportingToolSquare] = [
-				this.$.highlightingLeftSquare,
-				this.$.highlightingRightSquare,
-			];
-			const y: [ErrorReportingToolSquare, ErrorReportingToolSquare] = [
-				this.$.highlightingTopSquare,
-				this.$.highlightingBotSquare,
-			];
+		private static _getDivs(this: ErrorReportingTool, direction: 'x'|'y'): [ErrorReportingToolSquare, ErrorReportingToolSquare];
+		private static _getDivs(this: ErrorReportingTool, direction: 'xy'): 
+			[ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare];
+		private static _getDivs(this: ErrorReportingTool, direction: 'x'|'y'|'xy'): [ErrorReportingToolSquare, ErrorReportingToolSquare]|
+			[ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare] {
+			const x: [ErrorReportingToolSquare, ErrorReportingToolSquare] = [this.$.highlightingLeftSquare, this.$.highlightingRightSquare];
+			const y: [ErrorReportingToolSquare, ErrorReportingToolSquare] = [this.$.highlightingTopSquare, this.$.highlightingBotSquare];
 			switch (direction) {
 				case 'x':
 					return x;
 				case 'y':
 					return y;
 				case 'xy':
-					return x.concat(y) as [
-						ErrorReportingToolSquare,
-						ErrorReportingToolSquare,
-						ErrorReportingToolSquare,
-						ErrorReportingToolSquare
-					];
+					return x.concat(y) as [ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare];
 			}
 		}
 
-		private static _setDivsXValues(
-			this: ErrorReportingTool,
-			left: string,
-			marginLeftPx: string,
-			rightDivTranslate: string,
-			[topHeight, botHeight]: [number, number]
-		) {
-			const [leftDiv, rightDiv] = this._getDivs('x');
-			leftDiv.style.width = left;
-			window.addCalcFn(rightDiv, 'width', `100vw - ${marginLeftPx}`);
+		private static _setDivsXValues(this: ErrorReportingTool, left: string, marginLeftPx: string, 
+			rightDivTranslate: string, [topHeight, botHeight]: [number, number]) {
+				const [ leftDiv, rightDiv ] = this._getDivs('x');
+				leftDiv.style.width = left;
+				window.addCalcFn(rightDiv, 'width', `100vw - ${marginLeftPx}`);
 
-			leftDiv.style.height = rightDiv.style.height = this._px(
-				window.innerHeight -
-					topHeight -
-					(window.innerHeight - botHeight)
-			);
-			this._translateX(rightDiv, rightDivTranslate);
-		}
+				leftDiv.style.height = rightDiv.style.height = this._px(window.innerHeight - topHeight - (window.innerHeight - botHeight));
+				this._translateX(rightDiv, rightDivTranslate);
+			}
 
-		private static _setSelectionX(
-			this: ErrorReportingTool,
-			startX: number,
-			width: number,
-			xHeights: [number, number]
-		) {
+		private static _setSelectionX(this: ErrorReportingTool, startX: number, width: number, xHeights: [number, number]) {
 			const left = startX + width;
 			if (width < 0) {
-				this._setDivsXValues(
-					this._px(left),
-					this._px(startX),
-					this._px(left - width),
-					xHeights
-				);
+				this._setDivsXValues(this._px(left), this._px(startX), this._px(left - width), xHeights);
 			} else {
-				this._setDivsXValues(
-					this._px(startX),
-					this._px(left),
-					this._px(left),
-					xHeights
-				);
+				this._setDivsXValues(this._px(startX), this._px(left), this._px(left), xHeights);
 			}
 		}
 
-		private static _setDivsYValues(
-			this: ErrorReportingTool,
-			{
-				topHeight,
-				heights,
-				botHeight,
-			}: {
-				topHeight: string;
-				heights: string;
-				botHeight: number;
-			}
-		) {
-			const [leftDiv, rightDiv, topDiv, botDiv] = this._getDivs('xy');
+		private static _setDivsYValues(this: ErrorReportingTool, {
+			topHeight,
+			heights, 
+			botHeight
+		}: {
+			topHeight: string;
+			heights: string;
+			botHeight: number;
+		}) {
+			const [ leftDiv, rightDiv, topDiv, botDiv ] = this._getDivs('xy');
 
 			topDiv.style.height = topHeight;
 			leftDiv.style.height = rightDiv.style.height = heights + 'px';
@@ -351,52 +251,39 @@ namespace ErrorReportingToolElement {
 			this._translateY(rightDiv, topHeight);
 		}
 
-		private static _setSelectionY(
-			this: ErrorReportingTool,
-			startY: number,
-			height: number,
-			startPlusHeightPx: number
-		) {
+		private static _setSelectionY(this: ErrorReportingTool, startY: number, height: number, startPlusHeightPx: number) {
 			if (height < 0) {
 				this._setDivsYValues({
 					topHeight: this._px(startPlusHeightPx),
-					heights: this._px(-height),
-					botHeight: startY,
+					heights: this._px(-height), 
+					botHeight: startY
 				});
 			} else {
 				this._setDivsYValues({
 					topHeight: this._px(startY),
-					heights: this._px(height),
-					botHeight: startPlusHeightPx,
+					heights: this._px(height), 
+					botHeight: startPlusHeightPx
 				});
 			}
 		}
 
-		private static _changed(
-			this: ErrorReportingTool,
-			width: number,
-			height: number
-		) {
+		private static _changed(this: ErrorReportingTool, width: number, height: number) {
 			return this._lastSize.X !== width || this._lastSize.Y !== height;
 		}
 
-		private static _setSelection(
-			this: ErrorReportingTool,
-			{
-				startX,
-				width,
-			}: {
-				startX: number;
-				width: number;
-			},
-			{
-				startY,
-				height,
-			}: {
-				startY: number;
-				height: number;
-			}
-		) {
+		private static _setSelection(this: ErrorReportingTool, { 
+			startX, 
+			width
+		}: {
+			startX: number;
+			width: number;
+		}, {
+			startY,
+			height
+		}: {
+			startY: number;
+			height: number;
+		}) {
 			if (!this._changed(width, height)) {
 				return;
 			}
@@ -406,22 +293,17 @@ namespace ErrorReportingToolElement {
 			this._setSelectionY(startY, height, startY + height);
 		}
 
-		static handleSelection(
-			this: ErrorReportingTool,
-			e: Polymer.PolymerDragEvent
-		) {
+		static handleSelection(this: ErrorReportingTool, e: Polymer.PolymerDragEvent) {
 			switch (e.detail.state) {
 				case 'start':
 					this.$.highlightButtons.classList.add('hidden');
 
 					const startYPx = e.detail.y + 'px';
 					this._lastSize.X = this._lastSize.Y = 0;
-					this._dragStart = this._unLink(
-						(this._lastPos = {
-							X: e.detail.x,
-							Y: e.detail.y,
-						})
-					);
+					this._dragStart = this._unLink(this._lastPos = {
+						X: e.detail.x,
+						Y: e.detail.y
+					});
 
 					this.$.highlightingTopSquare.style.width = '100vw';
 					this.$.highlightingTopSquare.style.height = startYPx;
@@ -435,40 +317,31 @@ namespace ErrorReportingToolElement {
 					this.$.highlightButtons.classList.remove('hidden');
 					break;
 				case 'track':
-					if (
-						e.detail.x !== this._lastPos.X ||
-						e.detail.y !== this._lastPos.Y
-					) {
+					if (e.detail.x !== this._lastPos.X || e.detail.y !== this._lastPos.Y) {
 						const width = e.detail.dx;
 						const height = e.detail.dy;
 						const startX = e.detail.x - width;
 						const startY = e.detail.y - height;
-						this._setSelection(
-							{ startX, width },
-							{ startY, height }
-						);
+						this._setSelection({ startX, width }, { startY, height });
 						this._lastSize = {
 							X: width,
-							Y: height,
+							Y: height
 						};
 						this._lastPos = {
 							X: e.detail.x,
-							Y: e.detail.y,
-						};
+							Y: e.detail.y
+						}
 					}
 					break;
 			}
-		}
+		};
 
 		private static _resetSelection(this: ErrorReportingTool) {
 			this._setSelectionX(0, 0, [0, 0]);
 			this._setSelectionY(0, 0, 0);
 		}
 
-		private static _toggleScreenCapArea(
-			this: ErrorReportingTool,
-			visible: boolean
-		) {
+		private static _toggleScreenCapArea(this: ErrorReportingTool, visible: boolean) {
 			this.$.highlightingTopSquare.style.height = '100vh';
 			this.$.highlightingTopSquare.style.width = '100vw';
 			this._resetSelection();
@@ -479,7 +352,7 @@ namespace ErrorReportingToolElement {
 		static cancelScreencap(this: ErrorReportingTool) {
 			this._toggleScreenCapArea(false);
 			this.$.errorReportingDialog.open();
-		}
+		};
 
 		static async finishScreencap(this: ErrorReportingTool) {
 			this._toggleScreenCapArea(false);
@@ -487,65 +360,58 @@ namespace ErrorReportingToolElement {
 				top: this._dragStart.Y,
 				left: this._dragStart.X,
 				height: this._lastSize.Y,
-				width: this._lastSize.X,
+				width: this._lastSize.X
 			});
 			this.$.errorReportingDialog.open();
-		}
+		};
 
 		private static _resetVars(this: ErrorReportingTool) {
-			this._dragStart = this._unLink(
-				(this._lastSize = this._unLink(
-					(this._lastPos = {
-						X: 0,
-						Y: 0,
-					})
-				))
-			);
+			this._dragStart = this._unLink(this._lastSize = this._unLink(this._lastPos = {
+				X: 0,
+				Y: 0
+			}));
 		}
 
 		static addCapture(this: ErrorReportingTool) {
 			this.$.errorReportingDialog.close();
 			this._resetVars();
 			this._toggleScreenCapArea(true);
-		}
+		};
 
 		static reportBug(this: ErrorReportingTool) {
 			this.reportType = 'bug';
 			this.image = '';
 			this.$.errorReportingDialog.open();
-		}
+		};
 
 		private static async _getStorages() {
 			return {
 				local: await browserAPI.storage.local.get<CRM.StorageLocal>(),
 				sync: await browserAPI.storage.local.get<CRM.SettingsStorage>(),
-			};
+			}
 		}
 
 		private static async _downloadFiles(this: ErrorReportingTool) {
-			if (!browserAPI.downloads) {
+			if (!(browserAPI.downloads)) {
 				return false;
 			}
 			await browserAPI.downloads.download({
 				url: this.image,
-				filename: 'screencap.png',
+				filename: 'screencap.png'
 			});
 			if (this.reportType === 'bug') {
 				const { local, sync } = await this._getStorages();
 				const dataCont = {
-					local,
-					sync,
-					lastErrors: this.lastErrors,
+					local, sync,
+					lastErrors: this.lastErrors
 				};
 				await browserAPI.downloads.download({
-					url:
-						'data:text/plain;base64,' +
-						window.btoa(JSON.stringify(dataCont)),
-					filename: 'settings.txt', //Downloads as text because github doesn't allow JSON uploads
+					url: 'data:text/plain;base64,' + window.btoa(JSON.stringify(dataCont)),
+					filename: 'settings.txt' //Downloads as text because github doesn't allow JSON uploads
 				});
 			}
 			return true;
-		}
+		};
 
 		private static _hideCheckmark(this: ErrorReportingTool) {
 			this.$.bugCheckmarkCont.classList.remove('checkmark');
@@ -566,29 +432,20 @@ namespace ErrorReportingToolElement {
 					this.async(this._hideCheckmark, 5000);
 				}, 350);
 			}, 350);
-		}
+		};
 
-		private static async _getDownloadPermission(
-			this: ErrorReportingTool
-		): Promise<boolean> {
-			if (
-				BrowserAPI.getSrc().downloads &&
-				BrowserAPI.getSrc().downloads.download
-			) {
+		private static async _getDownloadPermission(this: ErrorReportingTool): Promise<boolean> {
+			if (BrowserAPI.getSrc().downloads && BrowserAPI.getSrc().downloads.download) {
 				return true;
 			}
 
-			if (!BrowserAPI.getSrc().permissions) {
-				window.app.util.showToast(
-					await this.__async(
-						I18NKeys.crmApp.code.downloadNotSupported
-					)
-				);
+			if (!(BrowserAPI.getSrc().permissions)) {
+				window.app.util.showToast(await this.__async(I18NKeys.crmApp.code.downloadNotSupported));
 				return false;
 			}
 
 			const granted = await browserAPI.permissions.contains({
-				permissions: ['downloads'],
+				permissions: ['downloads']
 			});
 			if (granted) {
 				window.errorReportingTool.$.errorReportingDialog.close();
@@ -601,80 +458,46 @@ namespace ErrorReportingToolElement {
 				return true;
 			} else {
 				const nowGranted = await browserAPI.permissions.request({
-					permissions: ['downloads'],
+					permissions: ['downloads']
 				});
 				//Refresh browserAPI object
-				browserAPI.downloads =
-					browserAPI.downloads || BrowserAPI.getDownloadAPI();
+				browserAPI.downloads = browserAPI.downloads || BrowserAPI.getDownloadAPI();
 				if (!nowGranted) {
 					window.doc.acceptDownloadToast.show();
 				}
 				return nowGranted;
 			}
-		}
+		};
 
 		static async submitErrorReport(this: ErrorReportingTool) {
 			const granted = await this._getDownloadPermission();
 			if (!granted) {
 				return;
 			}
-			if (!(await this._downloadFiles())) {
-				window.app.util.showToast(
-					await this.__async(
-						I18NKeys.crmApp.code.downloadNotSupported
-					)
-				);
+			if (!await this._downloadFiles()) {
+				window.app.util.showToast(await this.__async(I18NKeys.crmApp.code.downloadNotSupported));
 				return;
 			}
 			//Take the user to the github page
-			const messageBody = `${await this.__async(
-				I18NKeys.util.errorReportingTool.messagePlaceholder
-			)}\n`;
-			const title =
-				(this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') +
-				(await this.__async(
-					I18NKeys.util.errorReportingTool.titlePlaceholder
-				));
-			window.open(
-				'https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=' +
-					title +
-					'&body=' +
-					messageBody,
-				'_blank'
-			);
-		}
+			const messageBody = `${await this.__async(I18NKeys.util.errorReportingTool.messagePlaceholder)}\n`;
+			const title = (this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + await this.__async(I18NKeys.util.errorReportingTool.titlePlaceholder);
+			window.open('https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=' + title + '&body=' + messageBody, '_blank');
+		};
 
-		private static _onError(
-			this: ErrorReportingTool,
-			message: string,
-			source: any,
-			lineno: number,
-			colno: number,
-			error: Error,
-			handled: boolean
-		) {
-			this.lastErrors.push({
-				message,
-				source,
-				lineno,
-				colno,
-				error,
-				handled,
-			});
-		}
+		private static _onError(this: ErrorReportingTool, message: string, 
+			source: any, lineno: number, colno: number, error: 
+			Error, handled: boolean) {
+				this.lastErrors.push({
+					message, source, lineno, colno, error, handled
+				});
+			};
 
 		private static _registerOnError(this: ErrorReportingTool) {
 			const handlers: ErrorHandler[] = [];
 			if (window.onerror) {
 				handlers.push(window.onerror as ErrorHandler);
 			}
-			window.onerror = (
-				message: string,
-				source: any,
-				lineno: number,
-				colno: number,
-				error: Error
-			) => {
+			window.onerror = (message: string, source: any, lineno: number, colno: number, error: Error) => {
 				let handled: boolean = false;
 				handlers.forEach((handler) => {
 					if (handler(message, source, lineno, colno, error)) {
@@ -686,12 +509,12 @@ namespace ErrorReportingToolElement {
 					return true;
 				}
 				return undefined;
-			};
+			}
 
 			Object.defineProperty(window, 'onerror', {
 				set(handler: ErrorHandler) {
 					handlers.push(handler);
-				},
+				}
 			});
 		}
 
@@ -710,8 +533,5 @@ namespace ErrorReportingToolElement {
 	}
 }
 
-export type ErrorReportingTool = Polymer.El<
-	'error-reporting-tool',
-	typeof ErrorReportingToolElement.ERT &
-		typeof ErrorReportingToolElement.errorReportingTool
->;
+export type ErrorReportingTool = Polymer.El<'error-reporting-tool', typeof ErrorReportingToolElement.ERT & 
+	typeof ErrorReportingToolElement.errorReportingTool>;

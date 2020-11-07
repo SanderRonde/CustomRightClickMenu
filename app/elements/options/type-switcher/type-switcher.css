@@ -1,45 +1,39 @@
 .TSContainer {
 	width: 300px;
-	margin-left: -293px;
-	height: 50px;
-	color: white;
+	margin-left:-293px;
+	height:50px;
+	color:white;
 	text-align: center;
 }
 
-.TSContainer[link],
-.typeSwitchChoice[type='link'] {
-	background-color: #3f51b5;
+.TSContainer[link], .typeSwitchChoice[type=link] {
+	background-color: #3F51B5;
 }
 
-.TSContainer[script],
-.typeSwitchChoice[type='script'] {
-	background-color: #f44336;
+.TSContainer[script], .typeSwitchChoice[type=script] {
+	background-color: #F44336;
 }
 
-.TSContainer[menu],
-.typeSwitchChoice[type='menu'] {
-	background-color: #4caf50;
+.TSContainer[menu], .typeSwitchChoice[type=menu] {
+	background-color: #4CAF50;
 }
 
-.TSContainer[divider],
-.typeSwitchChoice[type='divider'] {
-	background-color: #ffc107;
+.TSContainer[divider], .typeSwitchChoice[type=divider] {
+	background-color: #FFC107;
 }
 
-.TSContainer[stylesheet],
-.typeSwitchChoice[type='stylesheet'] {
-	background-color: #aa00ff;
+.TSContainer[stylesheet], .typeSwitchChoice[type=stylesheet] {
+	background-color: #AA00FF;
 }
 
 .typeSwitchChoice {
 	width: 300px;
 	height: 50px;
-	color: white;
+	color:white;
 	text-align: center;
 }
 
-#typeText,
-.typeSwitchChoiceText {
+#typeText, .typeSwitchChoiceText {
 	font-size: 141%;
 	text-transform: uppercase;
 }
@@ -59,4 +53,4 @@
 
 #typeSwitchChoicesContainer {
 	display: none;
-}
+}	

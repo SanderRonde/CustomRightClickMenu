@@ -1,26 +1,16 @@
-﻿<!DOCTYPE html>
+﻿<!DOCTYPE HTML>
 <dom-module id="change-log">
 	<template>
 		<!-- build:css inline ../../../elements/util/change-log/change-log.css -->
-		<link
-			rel="stylesheet"
-			href="../../elements/util/change-log/change-log.css"
-		/>
+		<link rel="stylesheet" href="../../elements/util/change-log/change-log.css"/>
 		<!-- /build -->
 		<template is="dom-repeat" items="{{changelog}}" as="changelogItem">
 			<div class="changelogItem">
 				<div class="changelogVersion">{{changelogItem.version}}</div>
 				<ul class="changelogChanges">
-					<template
-						is="dom-repeat"
-						items="{{changelogItem.changes}}"
-						as="change"
-					>
+					<template is="dom-repeat" items="{{changelogItem.changes}}" as="change">
 						<li>
-							<echo-html
-								html$="{{change}}"
-								class="changelogChange"
-							></echo-html>
+							<echo-html html$="{{change}}" class="changelogChange"></echo-html>
 						</li>
 					</template>
 				</ul>

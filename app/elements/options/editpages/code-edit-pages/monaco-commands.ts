@@ -4,16 +4,13 @@ const monacoCommand = (() => {
 	type Helper = monaco.editor.ICursorStateComputerData;
 
 	class ReplaceCommand implements monaco.editor.ICommand {
-		constructor(private _range: monaco.Range, private _text: string) {}
+		constructor(private _range: monaco.Range, private _text: string) { }
 
 		public getEditOperations(_model: Model, builder: Builder) {
 			builder.addTrackedEditOperation(this._range, this._text);
 		}
 
-		public computeCursorState(
-			_model: Model,
-			helper: Helper
-		): monaco.Selection {
+		public computeCursorState(_model: Model, helper: Helper): monaco.Selection {
 			let inverseEditOperations = helper.getInverseEditOperations();
 			let srcRange = inverseEditOperations[0].range;
 			return new monaco.Selection(
@@ -28,7 +25,7 @@ const monacoCommand = (() => {
 	return {
 		createReplaceCommand(selection: monaco.Range, text: string) {
 			return new ReplaceCommand(selection, text);
-		},
+		}
 	};
 })();
 

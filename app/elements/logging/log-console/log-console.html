@@ -1,40 +1,16 @@
-﻿<!DOCTYPE html>
-<link
-	rel="import"
-	href="../../../bower_components/paper-spinner/paper-spinner.html"
-/>
-<link
-	rel="import"
-	href="../../../bower_components/paper-input/paper-input.html"
-/>
-<link
-	rel="import"
-	href="../../../bower_components/iron-menu-behavior/iron-menu-behavior.html"
-/>
-<link
-	rel="import"
-	href="../../../bower_components/paper-item/paper-item.html"
-/>
-<link
-	rel="import"
-	href="../../../bower_components/paper-toast/paper-toast.html"
-/>
-<link
-	rel="import"
-	href="../../../elements/options/inputs/paper-menu/paper-menu.html"
-/>
-<link
-	rel="import"
-	href="../../../elements/options/inputs/paper-dropdown-menu/paper-dropdown-menu.html"
-/>
+﻿<!DOCTYPE HTML>
+<link rel="import" href="../../../bower_components/paper-spinner/paper-spinner.html" />
+<link rel="import" href="../../../bower_components/paper-input/paper-input.html" />
+<link rel="import" href="../../../bower_components/iron-menu-behavior/iron-menu-behavior.html" />
+<link rel="import" href="../../../bower_components/paper-item/paper-item.html"/>
+<link rel="import" href="../../../bower_components/paper-toast/paper-toast.html" />
+<link rel="import" href="../../../elements/options/inputs/paper-menu/paper-menu.html"/>
+<link rel="import" href="../../../elements/options/inputs/paper-dropdown-menu/paper-dropdown-menu.html" />
 <link rel="import" href="../../../elements/util/echo-html/echo-html.html" />
 <dom-module id="log-console">
 	<template>
 		<!-- build:css inline ../../../elements/logging/log-console/log-console.css -->
-		<link
-			rel="stylesheet"
-			href="../../elements/logging/log-console/log-console.css"
-		/>
+		<link rel="stylesheet" href="../../elements/logging/log-console/log-console.css" />
 		<!-- /build -->
 		<style is="custom-style" include="paper-material-styles"></style>
 		<div class="paper-material" id="consoleCont" elevation="5">
@@ -42,198 +18,78 @@
 				<div class="paper-material" elevation="2">
 					<div id="consoleInfo">
 						<div id="filterCont">
-							<div
-								id="idFilter"
-								class="dropdownFilter centerVertical"
-							>
-								<paper-dropdown-menu
-									inline
-									id="idDropdown"
-									label="[[__(lang, langReady, 'crm_idCapital')]]"
-									overflowing
-									indent="false"
-									selected="{{selectedId}}"
-								>
+							<div id="idFilter" class="dropdownFilter centerVertical">
+								<paper-dropdown-menu inline id="idDropdown" label="[[__(lang, langReady, 'crm_idCapital')]]" overflowing indent="false" selected="{{selectedId}}">
 									<paper-menu slot="menu" selected="0">
 										<div slot="content">
 											<paper-item>
-												<div
-													class="menuSelectedCheckmark"
-												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														width="30"
-														height="30"
-														viewbox="0 0 48 48"
-													>
-														<path
-															d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"
-														/>
+												<div class="menuSelectedCheckmark">
+													<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+														<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
 													</svg>
 												</div>
-												<span class="menuOptionName"
-													>[[__(lang, langReady,
-													'generic_all_capital')]]</span
-												>
+												<span class="menuOptionName">[[__(lang, langReady, 'generic_all_capital')]]</span>
 											</paper-item>
-											<template
-												id="idRepeat"
-												is="dom-repeat"
-												items="{{_getTabsIds(selectedTab, ids)}}"
-												as="id"
-											>
+											<template id="idRepeat" is="dom-repeat" items="{{_getTabsIds(selectedTab, ids)}}" as="id">
 												<paper-item>
-													<div
-														class="menuSelectedCheckmark"
-													>
-														<svg
-															xmlns="http://www.w3.org/2000/svg"
-															width="30"
-															height="30"
-															viewbox="0 0 48 48"
-														>
-															<path
-																d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"
-															/>
+													<div class="menuSelectedCheckmark">
+														<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+															<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
 														</svg>
 													</div>
-													<span
-														title$="[[id.title]]"
-														class="menuOptionName"
-														>[[id.id]]</span
-													>
+													<span title$="[[id.title]]" class="menuOptionName">[[id.id]]</span>
 												</paper-item>
 											</template>
 										</div>
 									</paper-menu>
 								</paper-dropdown-menu>
 							</div>
-							<div
-								id="tabFilter"
-								class="dropdownFilter centerVertical"
-							>
-								<paper-dropdown-menu
-									inline
-									id="tabDropdown"
-									label="[[__(lang, langReady, 'generic_tab')]]"
-									overflowing
-									indent="false"
-									selected="{{selectedTab}}"
-								>
+							<div id="tabFilter" class="dropdownFilter centerVertical">
+								<paper-dropdown-menu inline id="tabDropdown" label="[[__(lang, langReady, 'generic_tab')]]" overflowing indent="false" selected="{{selectedTab}}">
 									<paper-menu slot="menu" selected="0">
 										<div slot="content">
 											<paper-item>
-												<div
-													class="menuSelectedCheckmark"
-												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														width="30"
-														height="30"
-														viewbox="0 0 48 48"
-													>
-														<path
-															d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"
-														/>
+												<div class="menuSelectedCheckmark">
+													<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+														<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
 													</svg>
 												</div>
-												<span class="menuOptionName"
-													>[[__(lang, langReady,
-													'generic_all_capital')]]</span
-												>
+												<span class="menuOptionName">[[__(lang, langReady, 'generic_all_capital')]]</span>
 											</paper-item>
-											<template
-												id="tabRepeat"
-												is="dom-repeat"
-												items="{{_getIdTabs(selectedId, tabs)}}"
-												as="tab"
-											>
+											<template id="tabRepeat" is="dom-repeat" items="{{_getIdTabs(selectedId, tabs)}}" as="tab">
 												<paper-item>
-													<div
-														class="menuSelectedCheckmark"
-													>
-														<svg
-															xmlns="http://www.w3.org/2000/svg"
-															width="30"
-															height="30"
-															viewbox="0 0 48 48"
-														>
-															<path
-																d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"
-															/>
+													<div class="menuSelectedCheckmark">
+														<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+															<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
 														</svg>
 													</div>
-													<span
-														title$="[[tab.title]]"
-														class="menuOptionName"
-														>[[tab.id]]</span
-													>
+													<span title$="[[tab.title]]" class="menuOptionName">[[tab.id]]</span>
 												</paper-item>
 											</template>
 										</div>
 									</paper-menu>
 								</paper-dropdown-menu>
 							</div>
-							<div
-								id="tabIndexFilter"
-								class="dropdownFilter centerVertical"
-							>
-								<paper-dropdown-menu
-									inline
-									id="tabIndexDropdown"
-									label="[[__(lang, langReady, 'generic_tabIndex')]]"
-									overflowing
-									indent="false"
-									selected="0"
-								>
+							<div id="tabIndexFilter" class="dropdownFilter centerVertical">
+								<paper-dropdown-menu inline id="tabIndexDropdown" label="[[__(lang, langReady, 'generic_tabIndex')]]" overflowing indent="false" selected="0">
 									<paper-menu slot="menu" selected="0">
 										<div slot="content">
 											<paper-item>
-												<div
-													class="menuSelectedCheckmark"
-												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														width="30"
-														height="30"
-														viewbox="0 0 48 48"
-													>
-														<path
-															d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"
-														/>
+												<div class="menuSelectedCheckmark">
+													<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+														<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
 													</svg>
 												</div>
-												<span class="menuOptionName"
-													>[[__(lang, langReady,
-													'generic_all_capital')]]</span
-												>
+												<span class="menuOptionName">[[__(lang, langReady, 'generic_all_capital')]]</span>
 											</paper-item>
-											<template
-												id="tabIndexRepeat"
-												is="dom-repeat"
-												items="{{_getTabIndexes(selectedId, selectedTab)}}"
-												as="tabIndex"
-											>
+											<template id="tabIndexRepeat" is="dom-repeat" items="{{_getTabIndexes(selectedId, selectedTab)}}" as="tabIndex">
 												<paper-item>
-													<div
-														class="menuSelectedCheckmark"
-													>
-														<svg
-															xmlns="http://www.w3.org/2000/svg"
-															width="30"
-															height="30"
-															viewbox="0 0 48 48"
-														>
-															<path
-																d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"
-															/>
+													<div class="menuSelectedCheckmark">
+														<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+															<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
 														</svg>
 													</div>
-													<span
-														title$="[[tabIndex]]"
-														class="menuOptionName"
-														>[[tabIndex]]</span
-													>
+													<span title$="[[tabIndex]]" class="menuOptionName">[[tabIndex]]</span>
 												</paper-item>
 											</template>
 										</div>
@@ -241,61 +97,32 @@
 								</paper-dropdown-menu>
 							</div>
 							<div id="textFilterCont">
-								<paper-input
-									label="[[__(lang, langReady, 'logging_filter')]]"
-									id="textFilter"
-									no-label-float="true"
-									value="{{textfilter}}"
-									on-change="_textFilterChange"
-								></paper-input>
+								<paper-input label="[[__(lang, langReady, 'logging_filter')]]" id="textFilter" no-label-float="true" value="{{textfilter}}" on-change="_textFilterChange"></paper-input>
 							</div>
 						</div>
 						<div id="consoleStats">
 							<div id="whatIsThis">
 								<div class="centerVertical inactive">
-									<svg
-										fill="#FFFFFF"
-										height="24"
-										viewbox="0 0 24 24"
-										width="24"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path d="M0 0h24v24H0z" fill="none" />
-										<path
-											d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"
-										/>
+									<svg fill="#FFFFFF" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+										<path d="M0 0h24v24H0z" fill="none"/>
+										<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/>
 									</svg>
 								</div>
 								<div class="centerVertical active">
-									<svg
-										fill="#FFFFFF"
-										height="24"
-										viewbox="0 0 24 24"
-										width="24"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path d="M0 0h24v24H0z" fill="none" />
-										<path
-											d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-										/>
+									<svg fill="#FFFFFF" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+										<path d="M0 0h24v24H0z" fill="none"/>
+										<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
 									</svg>
 								</div>
-								<div
-									class="paper-material"
-									id="consoleInfoTxtCont"
-									elevation="3"
-								>
+								<div class="paper-material" id="consoleInfoTxtCont" elevation="3">
 									<div id="consoleInfoTxt" class="expandLeft">
-										[[__(lang, langReady,
-										'logging_description')]].
+										[[__(lang, langReady, 'logging_description')]]. 
 									</div>
 								</div>
 							</div>
 							<div class="centerVertical">
 								<div id="totalLines">
-									<span id="totalLinesNumber"
-										>[[_getTotalLines(lines)]]</span
-									>[[__(lang, langReady, 'logging_lines')]]
+									<span id="totalLinesNumber">[[_getTotalLines(lines)]]</span>[[__(lang, langReady, 'logging_lines')]]
 								</div>
 							</div>
 						</div>
@@ -308,64 +135,37 @@
 							&gt;
 						</div>
 						<div id="inputFieldWarning">
-							[[__(lang, langReady,
-							'logging_runningCodeNotPossible')]]
+							[[__(lang, langReady, 'logging_runningCodeNotPossible')]]
 						</div>
-						<textarea
-							rows="1"
-							style="resize: none"
-							type="text"
-							id="consoleInput"
+						<textarea rows="1" style="resize:none;"
+							type="text" id="consoleInput"
 							on-keydown="_inputKeypress"
-							disabled$="[[waitingForEval]]"
-						></textarea>
+							disabled$="[[waitingForEval]]"></textarea>
 					</div>
 				</div>
 			</div>
 			<div id="consoleFiller" on-tap="_focusInput"></div>
 		</div>
 		<div id="contextMenu" data-element-type="ContextMenuElement">
-			<div
-				on-tap="_contextStoreAsLocal"
-				id="storeAsLocal"
-				class="contextMenuElement"
-			>
+			<div on-tap="_contextStoreAsLocal" id="storeAsLocal" class="contextMenuElement">
 				[[__(lang, langReady, 'logging_storeAsLocal')]]
 			</div>
-			<div
-				on-tap="_contextLogValue"
-				id="logValue"
-				class="contextMenuElement"
-			>
+			<div on-tap="_contextLogValue" id="logValue" class="contextMenuElement">
 				[[__(lang, langReady, 'logging_logThis')]]
 			</div>
-			<div
-				on-tap="_contextCopyAsJSON"
-				id="copyAsJSON"
-				class="contextMenuElement"
-			>
+			<div on-tap="_contextCopyAsJSON" id="copyAsJSON" class="contextMenuElement">
 				[[__(lang, langReady, 'logging_copyAsJson')]]
 			</div>
-			<div
-				on-tap="_contextCopyPath"
-				id="copyPath"
-				class="contextMenuElement"
-			>
+			<div on-tap="_contextCopyPath" id="copyPath" class="contextMenuElement">
 				[[__(lang, langReady, 'logging_copyPath')]]
 			</div>
-			<div
-				on-tap="_contextClearConsole"
-				id="clearConsole"
-				class="contextMenuElement"
-			>
+			<div on-tap="_contextClearConsole" id="clearConsole" class="contextMenuElement">
 				[[__(lang, langReady, 'logging_clearConsole')]]
 			</div>
 		</div>
 		<span id="copySource"></span>
 		<paper-toast id="genericToast" text="">
-			<span class="toastLink" on-tap="_hideGenericToast" role="button"
-				>[[__(lang, langReady, 'generic_dismiss')]]</span
-			>
+		<span class="toastLink" on-tap="_hideGenericToast" role="button">[[__(lang, langReady, 'generic_dismiss')]]</span>
 		</paper-toast>
 	</template>
 </dom-module>

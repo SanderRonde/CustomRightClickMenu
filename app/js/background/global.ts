@@ -1,4 +1,4 @@
-import { ModuleData } from './moduleTypes';
+import { ModuleData } from "./moduleTypes";
 import { Globals, CRMTemplates } from './sharedTypes';
 import { EncodedString } from '../../elements/elements';
 
@@ -21,28 +21,23 @@ export namespace Global {
 			storageLocal: null,
 			failedLookups: [],
 			nodeStorage: null,
-			resources: null,
+			resources: null
 		},
 		background: {
-			byId: new window.Map(),
+			byId: new window.Map()
 		},
 		crm: {
 			crmTree: [],
 			crmById: new window.Map(),
 			safeTree: [],
-			crmByIdSafe: new window.Map(),
+			crmByIdSafe:new window.Map()
 		},
 		availablePermissions: [],
 		crmValues: {
-			tabData: new window.Map([
-				[
-					0,
-					{
-						nodes: new window.Map(),
-						libraries: new window.Map(),
-					},
-				],
-			]),
+			tabData: new window.Map([[0, {
+				nodes: new window.Map(),
+				libraries: new window.Map()
+			}]]),
 			rootId: null,
 			contextMenuIds: new window.Map(),
 			nodeInstances: new window.Map(),
@@ -52,52 +47,40 @@ export namespace Global {
 			userAddedContextMenusById: new window.Map(),
 			contextMenuGlobalOverrides: new window.Map(),
 			hideNodesOnPagesData: new window.Map(),
-			nodeTabStatuses: new window.Map(),
+			nodeTabStatuses: new window.Map()
 		},
 		toExecuteNodes: {
 			onUrl: {
 				documentStart: [],
-				documentEnd: [],
+				documentEnd: []
 			},
 			always: {
 				documentStart: [],
-				documentEnd: [],
-			},
-		},
-		sendCallbackMessage: (
-			tabId: TabId,
-			tabIndex: TabIndex,
-			id: CRM.GenericNodeId,
-			data: {
-				err: boolean;
-				errorMessage?: string;
-				args?: any[];
-				callbackId: number;
+				documentEnd: []
 			}
-		) => {
+		},
+		sendCallbackMessage: (tabId: TabId, tabIndex: TabIndex, id: CRM.GenericNodeId, data: {
+			err: boolean;
+			errorMessage?: string;
+			args?: any[];
+			callbackId: number;
+		}) => {
 			const message = {
-				type: data.err ? 'error' : 'success',
-				data: data.err ? data.errorMessage : data.args,
+				type: (data.err ? 'error' : 'success'),
+				data: (data.err ? data.errorMessage : data.args),
 				callbackId: data.callbackId,
-				messageType: 'callback',
+				messageType: 'callback'
 			};
 
 			const tabData = globals.crmValues.tabData;
 			try {
-				modules.Util.postMessage(
-					tabData.get(tabId).nodes.get(id)[tabIndex].port,
-					message
-				);
+				modules.Util.postMessage(tabData.get(tabId).nodes.get(id)[tabIndex].port, message);
 			} catch (e) {
 				if (e.message === 'Converting circular structure to JSON') {
-					message.data =
-						'Converting circular structure to JSON, ' +
+					message.data = 'Converting circular structure to JSON, ' + 
 						'getting a response from this API will not work';
 					message.type = 'error';
-					modules.Util.postMessage(
-						tabData.get(tabId).nodes.get(id)[tabIndex].port,
-						message
-					);
+					modules.Util.postMessage(tabData.get(tabId).nodes.get(id)[tabIndex].port, message);
 				} else {
 					throw e;
 				}
@@ -106,151 +89,103 @@ export namespace Global {
 		eventListeners: {
 			notificationListeners: new window.Map(),
 			shortcutListeners: new window.Map(),
-			scriptDebugListeners: [],
+			scriptDebugListeners: []
 		},
 		logging: {
 			filter: {
 				id: null,
-				tabId: null,
-			},
+				tabId: null
+			}
 		},
 		constants: {
 			supportedHashes: ['sha1', 'sha256', 'sha384', 'sha512', 'md5'],
 			validSchemes: ['http', 'https', 'file', 'ftp', '*'],
 			templates: {
-				mergeArrays<T extends T[] | U[], U>(
-					this: CRMTemplates,
-					mainArray: T,
-					additionArray: T
-				): T {
+				mergeArrays<T extends T[] | U[], U>(this: CRMTemplates, mainArray: T, additionArray: T): T {
 					for (let i = 0; i < additionArray.length; i++) {
-						if (
-							mainArray[i] &&
+						if (mainArray[i] &&
 							typeof additionArray[i] === 'object' &&
 							typeof mainArray[i] === 'object' &&
 							mainArray[i] !== undefined &&
-							mainArray[i] !== null
-						) {
-							if (Array.isArray(additionArray[i])) {
-								mainArray[i] = this.mergeArrays(
-									mainArray[i] as T,
-									additionArray[i] as T
-								);
+							mainArray[i] !== null) {
+								if (Array.isArray(additionArray[i])) {
+									mainArray[i] = this.mergeArrays(mainArray[i] as T, additionArray[i] as T);
+								} else {
+									mainArray[i] = this.mergeObjects(mainArray[i], additionArray[i]);
+								}
 							} else {
-								mainArray[i] = this.mergeObjects(
-									mainArray[i],
-									additionArray[i]
-								);
+								mainArray[i] = additionArray[i];
 							}
-						} else {
-							mainArray[i] = additionArray[i];
-						}
 					}
 					return mainArray;
 				},
-				mergeObjects<
-					T extends {
-						[key: string]: any;
-						[key: number]: any;
-					},
-					Y extends Partial<T>
-				>(this: CRMTemplates, mainObject: T, additions: Y): T & Y {
+				mergeObjects<T extends {
+					[key: string]: any;
+					[key: number]: any;
+				}, Y extends Partial<T>>(this: CRMTemplates, mainObject: T, additions: Y): T & Y {
 					for (let key in additions) {
 						if (additions.hasOwnProperty(key)) {
-							if (
-								typeof additions[key] === 'object' &&
+							if (typeof additions[key] === 'object' &&
 								typeof mainObject[key] === 'object' &&
 								mainObject[key] !== undefined &&
-								mainObject[key] !== null
-							) {
-								if (Array.isArray(additions[key])) {
-									mainObject[key] = this.mergeArrays(
-										mainObject[key],
-										(additions as any)[key]
-									);
+								mainObject[key] !== null) {
+									if (Array.isArray(additions[key])) {
+										mainObject[key] = this.mergeArrays(mainObject[key], (additions as any)[key]);
+									} else {
+										mainObject[key] = this.mergeObjects(mainObject[key], additions[key]);
+									}
 								} else {
-									mainObject[key] = this.mergeObjects(
-										mainObject[key],
-										additions[key]
-									);
+									(mainObject as any)[key] = additions[key];
 								}
-							} else {
-								(mainObject as any)[key] = additions[key];
-							}
 						}
 					}
 					return mainObject as T & Y;
 				},
-				getDefaultNodeInfo(
-					this: CRMTemplates,
-					options: Partial<CRM.NodeInfo> = {}
-				): CRM.NodeInfo {
+				getDefaultNodeInfo(this: CRMTemplates, options: Partial<CRM.NodeInfo> = {}): CRM.NodeInfo {
 					const defaultNodeInfo: Partial<CRM.NodeInfo> = {
 						permissions: [],
 						installDate: new Date().toLocaleDateString(),
 						lastUpdatedAt: Date.now(),
 						version: '1.0',
 						isRoot: false,
-						source: 'local',
+						source: 'local'
 					};
 
-					return this.mergeObjects(
-						defaultNodeInfo,
-						options
-					) as CRM.NodeInfo;
+					return this.mergeObjects(defaultNodeInfo, options) as CRM.NodeInfo;
 				},
-				getDefaultLinkNode(
-					this: CRMTemplates,
-					options: Partial<CRM.LinkNode> = {}
-				): CRM.LinkNode {
+				getDefaultLinkNode(this: CRMTemplates, options: Partial<CRM.LinkNode> = {}): CRM.LinkNode {
 					const defaultNode: Partial<CRM.LinkNode> = {
 						name: 'My Link',
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'link',
 						showOnSpecified: false,
 						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
-						triggers: [
-							{
-								url: '*://*.example.com/*',
-								not: false,
-							},
-						],
+						triggers: [{
+							url: '*://*.example.com/*',
+							not: false
+						}],
 						isLocal: false,
-						value: [
-							{
-								newTab: true,
-								url: 'https://www.example.com',
-							},
-						],
+						value: [{
+							newTab: true,
+							url: 'https://www.example.com'
+						}]
 					};
 
-					return this.mergeObjects(
-						defaultNode,
-						options
-					) as CRM.LinkNode;
+					return this.mergeObjects(defaultNode, options) as CRM.LinkNode;
 				},
-				getDefaultStylesheetValue(
-					this: CRMTemplates,
-					options: Partial<CRM.StylesheetVal> = {}
-				): CRM.StylesheetVal {
+				getDefaultStylesheetValue(this: CRMTemplates, options: Partial<CRM.StylesheetVal> = {}): CRM.StylesheetVal {
 					const value: CRM.StylesheetVal = {
 						stylesheet: [].join('\n'),
 						launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 						toggle: false,
 						defaultOn: false,
 						options: {},
-						convertedStylesheet: null,
+						convertedStylesheet: null
 					};
 
-					return this.mergeObjects(
-						value,
-						options
-					) as CRM.StylesheetVal;
+					return this.mergeObjects(value, options) as CRM.StylesheetVal;
 				},
-				getDefaultScriptValue(
-					this: CRMTemplates,
-					options: Partial<CRM.ScriptVal> = {}
-				): CRM.ScriptVal {
+				getDefaultScriptValue(this: CRMTemplates, options: Partial<CRM.ScriptVal> = {}): CRM.ScriptVal {
 					const value: CRM.ScriptVal = {
 						launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 						backgroundLibraries: [],
@@ -262,65 +197,46 @@ export namespace Global {
 						ts: {
 							enabled: false,
 							backgroundScript: {},
-							script: {},
-						},
+							script: {}
+						}
 					};
 
 					return this.mergeObjects(value, options) as CRM.ScriptVal;
 				},
-				getDefaultScriptNode(
-					this: CRMTemplates,
-					options: CRM.PartialScriptNode = {}
-				): CRM.ScriptNode {
+				getDefaultScriptNode(this: CRMTemplates, options: CRM.PartialScriptNode = {}): CRM.ScriptNode {
 					const defaultNode: CRM.PartialScriptNode = {
 						name: 'My Script',
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'script',
 						isLocal: false,
 						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
-						triggers: [
-							{
-								url: '*://*.example.com/*',
-								not: false,
-							},
-						],
-						value: this.getDefaultScriptValue(options.value),
+						triggers: [{
+							url: '*://*.example.com/*',
+							not: false
+						}],
+						value: this.getDefaultScriptValue(options.value)
 					};
 
-					return this.mergeObjects(
-						defaultNode,
-						options
-					) as CRM.ScriptNode;
+					return this.mergeObjects(defaultNode, options) as CRM.ScriptNode;
 				},
-				getDefaultStylesheetNode(
-					this: CRMTemplates,
-					options: CRM.PartialStylesheetNode = {}
-				): CRM.StylesheetNode {
+				getDefaultStylesheetNode(this: CRMTemplates, options: CRM.PartialStylesheetNode = {}): CRM.StylesheetNode {
 					const defaultNode: CRM.PartialStylesheetNode = {
 						name: 'My Stylesheet',
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'stylesheet',
 						isLocal: true,
 						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
-						triggers: [
-							{
-								url: '*://*.example.com/*',
-								not: false,
-							},
-						],
-						value: this.getDefaultStylesheetValue(options.value),
+						triggers: [{
+							url: '*://*.example.com/*',
+							not: false
+						}],
+						value: this.getDefaultStylesheetValue(options.value)
 					};
 
-					return this.mergeObjects(
-						defaultNode,
-						options
-					) as CRM.StylesheetNode;
+					return this.mergeObjects(defaultNode, options) as CRM.StylesheetNode;
 				},
-				getDefaultDividerOrMenuNode(
-					this: CRMTemplates,
-					options: Partial<CRM.PassiveNode> = {},
-					type: 'divider' | 'menu'
-				): CRM.DividerNode | CRM.MenuNode {
+				getDefaultDividerOrMenuNode(this: CRMTemplates, options: Partial<CRM.PassiveNode> = {}, type: 'divider' | 'menu'):
+					CRM.DividerNode | CRM.MenuNode {
 					const defaultNode: Partial<CRM.PassiveNode> = {
 						name: `My ${type[0].toUpperCase() + type.slice(1)}`,
 						type: type,
@@ -330,130 +246,82 @@ export namespace Global {
 						value: null,
 						showOnSpecified: true,
 						children: type === 'menu' ? [] : null,
-						permissions: [],
+						permissions: []
 					};
 
 					return this.mergeObjects(defaultNode, options) as any;
 				},
-				getDefaultDividerNode(
-					this: CRMTemplates,
-					options: Partial<CRM.DividerNode> = {}
-				): CRM.DividerNode {
-					return this.getDefaultDividerOrMenuNode(
-						options,
-						'divider'
-					) as CRM.DividerNode;
+				getDefaultDividerNode(this: CRMTemplates, options: Partial<CRM.DividerNode> = {}): CRM.DividerNode {
+					return this.getDefaultDividerOrMenuNode(options, 'divider') as CRM.DividerNode;
 				},
-				getDefaultMenuNode(
-					this: CRMTemplates,
-					options: Partial<CRM.MenuNode> = {}
-				): CRM.MenuNode {
-					return this.getDefaultDividerOrMenuNode(
-						options,
-						'menu'
-					) as CRM.MenuNode;
+				getDefaultMenuNode(this: CRMTemplates, options: Partial<CRM.MenuNode> = {}): CRM.MenuNode {
+					return this.getDefaultDividerOrMenuNode(options, 'menu') as CRM.MenuNode;
 				},
-				globalObjectWrapperCode(
-					name: string,
-					wrapperName: string,
-					chromeVal: string,
-					browserVal: string,
-					fromCache: any = true
-				): string {
-					if (fromCache) {
-						return modules.Caches.cacheCall(
-							this.globalObjectWrapperCode,
-							arguments
-						);
-					}
-					return `var ${wrapperName} = (${((REPLACE: {
-						REPLACEWrapperName: any;
-						REPLACEName: {
-							[key: string]: any;
-						};
-						REPLACECrmAPI: any;
-						REPLACEBrowserVal: string;
-						REPLACEChromeVal: string;
-					}) => {
-						//@ts-ignore
-						let REPLACEWrapperName: {
-							[key: string]: any;
-						};
-						return (REPLACEWrapperName = (() => {
-							const tempWrapper: {
+				globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string, browserVal: string, 
+					fromCache: any = true): string {
+						if (fromCache) {
+							return modules.Caches.cacheCall(this.globalObjectWrapperCode, arguments)
+						}
+						return `var ${wrapperName} = (${((REPLACE: {
+							REPLACEWrapperName: any;
+							REPLACEName: {
 								[key: string]: any;
-							} = {};
-							const original = REPLACE.REPLACEName;
-							for (var prop in original) {
-								((prop) => {
-									if (
-										prop !== 'webkitStorageInfo' &&
-										typeof original[prop] === 'function'
-									) {
-										tempWrapper[prop] = function () {
-											return original[prop].apply(
-												original,
-												arguments
-											);
-										};
-									} else {
-										Object.defineProperty(
-											tempWrapper,
-											prop,
-											{
-												get: function () {
-													if (
-														original[prop] ===
-														original
-													) {
+							};
+							REPLACECrmAPI: any;
+							REPLACEBrowserVal: string;
+							REPLACEChromeVal: string;
+						}) => {
+							//@ts-ignore
+							let REPLACEWrapperName: {
+								[key: string]: any;
+							};
+							return (REPLACEWrapperName = (() => {
+								const tempWrapper: {
+									[key: string]: any;
+								} = {};
+								const original = REPLACE.REPLACEName;
+								for (var prop in original) {
+									((prop) => {
+										if (prop !== 'webkitStorageInfo' && typeof original[prop] === 'function') {
+											tempWrapper[prop] = function() {
+												return original[prop].apply(original, arguments);
+											}
+										} else {
+											Object.defineProperty(tempWrapper, prop, {
+												get: function() {
+													if (original[prop] === original) {
 														return tempWrapper;
-													} else if (
-														prop === 'crmAPI'
-													) {
+													} else if (prop === 'crmAPI') {
 														return REPLACE.REPLACECrmAPI;
-													} else if (
-														prop === 'browser'
-													) {
+													} else if (prop === 'browser') {
 														return REPLACE.REPLACEBrowserVal;
-													} else if (
-														prop === 'chrome'
-													) {
+													} else if (prop === 'chrome') {
 														return REPLACE.REPLACEChromeVal;
 													} else {
 														return original[prop];
 													}
 												},
-												set: function (value) {
+												set: function(value) {
 													tempWrapper[prop] = value;
-												},
-											}
-										);
-									}
-								})(prop);
-							}
-							return tempWrapper;
-						})());
-					})
-						.toString()
-						.replace(/\w+.REPLACEName/g, name)
-						.replace(/\w+.REPLACEChromeVal/g, chromeVal)
-						.replace(/\w+.REPLACEBrowserVal/g, browserVal)
-						.replace(/\w+.REPLACECrmAPI/g, 'crmAPI')
-						.replace(/\var\s\w+;/g, `var ${wrapperName};`)
-						.replace(
-							/return \(\w+ = \(/g,
-							`return (${wrapperName} = (`
-						)})()`.replace(/\n/g, '');
+												}
+											});
+										}
+									})(prop);
+								}
+								return tempWrapper;
+							})());
+						}).toString()	
+							.replace(/\w+.REPLACEName/g, name)
+							.replace(/\w+.REPLACEChromeVal/g, chromeVal)
+							.replace(/\w+.REPLACEBrowserVal/g, browserVal)
+							.replace(/\w+.REPLACECrmAPI/g, 'crmAPI')
+							.replace(/\var\s\w+;/g, `var ${wrapperName};`)
+							.replace(/return \(\w+ = \(/g, `return (${wrapperName} = (`)})()`
+							.replace(/\n/g, '');
+					}
 				},
-			},
 			specialJSON: {
-				_regexFlagNames: [
-					'global',
-					'multiline',
-					'sticky',
-					'unicode',
-					'ignoreCase',
-				],
+				_regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'],
 				_getRegexFlags(this: SpecialJSON, expr: RegExp): string[] {
 					const flags: string[] = [];
 					this._regexFlagNames.forEach((flagName: string) => {
@@ -467,10 +335,7 @@ export namespace Global {
 					});
 					return flags;
 				},
-				_stringifyNonObject(
-					this: SpecialJSON,
-					data: string | number | Function | RegExp | Date | boolean
-				): string {
+				_stringifyNonObject(this: SpecialJSON, data: string | number | Function | RegExp | Date | boolean): string {
 					if (typeof data === 'function') {
 						const fn = data.toString();
 						const match = this._fnRegex.exec(fn);
@@ -478,7 +343,7 @@ export namespace Global {
 					} else if (data instanceof RegExp) {
 						data = `__regexp$${JSON.stringify({
 							regexp: (data as RegExp).source,
-							flags: this._getRegexFlags(data),
+							flags: this._getRegexFlags(data)
 						})}$regexp__`;
 					} else if (data instanceof Date) {
 						data = `__date$${data + ''}$date__`;
@@ -490,43 +355,26 @@ export namespace Global {
 				_fnRegex: /^(.|\s)*\(((\w+((\s*),?(\s*)))*)\)(\s*)(=>)?(\s*)\{((.|\n|\r)+)\}$/,
 				_specialStringRegex: /^__(fn|regexp|date)\$((.|\n)+)\$\1__$/,
 				_fnCommRegex: /^\(((\w+((\s*),?(\s*)))*)\)\{((.|\n|\r)+)\}$/,
-				_parseNonObject(
-					this: SpecialJSON,
-					data: string
-				): string | number | Function | RegExp | Date | boolean {
+				_parseNonObject(this: SpecialJSON, data: string): string | number | Function | RegExp | Date | boolean {
 					const dataParsed = JSON.parse(data);
 					if (typeof dataParsed === 'string') {
 						let matchedData: RegExpExecArray;
-						if (
-							(matchedData = this._specialStringRegex.exec(
-								dataParsed
-							))
-						) {
+						if ((matchedData = this._specialStringRegex.exec(dataParsed))) {
 							const dataContent = matchedData[2] as EncodedString<{
 								regexp: string;
 								flags: string[];
 							}>;
 							switch (matchedData[1]) {
 								case 'fn':
-									const fnRegexed = this._fnCommRegex.exec(
-										dataContent
-									);
+									const fnRegexed = this._fnCommRegex.exec(dataContent);
 									if (fnRegexed[1].trim() !== '') {
-										return Function(
-											...fnRegexed[1].split(','),
-											fnRegexed[6]
-										);
+										return Function(...fnRegexed[1].split(','), fnRegexed[6]);
 									} else {
 										return new Function(fnRegexed[6]);
 									}
 								case 'regexp':
-									const regExpParsed = JSON.parse(
-										dataContent
-									);
-									return new RegExp(
-										regExpParsed.regexp,
-										regExpParsed.flags.join('')
-									);
+									const regExpParsed = JSON.parse(dataContent);
+									return new RegExp(regExpParsed.regexp, regExpParsed.flags.join(''));
 								case 'date':
 									return new Date();
 							}
@@ -536,82 +384,51 @@ export namespace Global {
 					}
 					return dataParsed;
 				},
-				_iterate(
-					this: SpecialJSON,
-					copyTarget: ArrOrObj,
-					iterable: ArrOrObj,
-					fn: (
-						data: any,
-						index: string | number,
-						container: ArrOrObj
-					) => any
-				) {
+				_iterate(this: SpecialJSON, copyTarget: ArrOrObj, iterable: ArrOrObj,
+					fn: (data: any, index: string | number, container: ArrOrObj) => any) {
 					if (Array.isArray(iterable)) {
 						copyTarget = copyTarget || [];
-						(iterable as any[]).forEach(
-							(data: any, key: number, container: any[]) => {
-								(copyTarget as any)[key] = fn(
-									data,
-									key,
-									container
-								);
-							}
-						);
+						(iterable as any[]).forEach((data: any, key: number, container: any[]) => {
+							(copyTarget as any)[key] = fn(data, key, container);
+						});
 					} else {
 						copyTarget = copyTarget || {};
 						Object.getOwnPropertyNames(iterable).forEach((key) => {
-							(copyTarget as any)[key] = fn(
-								iterable[key],
-								key,
-								iterable
-							);
+							(copyTarget as any)[key] = fn(iterable[key], key, iterable);
 						});
 					}
 					return copyTarget;
 				},
 				_isObject(this: SpecialJSON, data: any): boolean {
-					if (
-						data instanceof Date ||
-						data instanceof RegExp ||
-						data instanceof Function
-					) {
+					if (data instanceof Date || data instanceof RegExp || data instanceof Function) {
 						return false;
 					}
 					return typeof data === 'object' && !Array.isArray(data);
 				},
-				_toJSON(
-					this: SpecialJSON,
-					copyTarget: ArrOrObj,
-					data: any,
-					path: (string | number)[],
-					refData: {
-						refs: Refs;
-						paths: (string | number)[][];
-						originalValues: any[];
-					}
-				):
-					| {
-							refs: Refs;
-							data: any[];
-							rootType: 'array';
-					  }
-					| {
-							refs: Refs;
-							data: {
-								[key: string]: any;
-							};
-							rootType: 'object';
-					  }
-					| {
-							refs: Refs;
-							data: string;
-							rootType: 'normal';
-					  } {
+				_toJSON(this: SpecialJSON, copyTarget: ArrOrObj, data: any, path: (string|number)[], refData: {
+					refs: Refs,
+					paths: (string|number)[][],
+					originalValues: any[]
+				}): {
+					refs: Refs;
+					data: any[];
+					rootType: 'array';
+				} | {
+					refs: Refs;
+					data: {
+						[key: string]: any;
+					};
+					rootType: 'object';
+				} | {
+					refs: Refs;
+					data: string;
+					rootType: 'normal';
+				} {
 					if (!(this._isObject(data) || Array.isArray(data))) {
 						return {
 							refs: [],
 							data: this._stringifyNonObject(data),
-							rootType: 'normal',
+							rootType: 'normal'
 						};
 					} else {
 						if (refData.originalValues.indexOf(data) === -1) {
@@ -620,52 +437,32 @@ export namespace Global {
 							refData.paths[index] = path;
 							refData.originalValues[index] = data;
 						}
-						copyTarget = this._iterate(
-							copyTarget,
-							data,
-							(element: any, key: string | number) => {
-								if (
-									!(
-										this._isObject(element) ||
-										Array.isArray(element)
-									)
-								) {
-									return this._stringifyNonObject(element);
-								} else {
-									let index: number;
-									if (
-										(index = refData.originalValues.indexOf(
-											element
-										)) === -1
-									) {
-										index = refData.refs.length;
+						copyTarget = this._iterate(copyTarget, data, (element: any, key: string | number) => {
+							if (!(this._isObject(element) || Array.isArray(element))) {
+								return this._stringifyNonObject(element);
+							} else {
+								let index: number;
+								if ((index = refData.originalValues.indexOf(element)) === -1) {
+									index = refData.refs.length;
 
-										copyTarget = Array.isArray(element)
-											? []
-											: {};
+									copyTarget = (Array.isArray(element) ? [] : {});
 
-										//Filler
-										refData.refs.push(null);
-										refData.paths[index] = path;
-										const newData = this._toJSON(
-											(copyTarget as any)[key as any],
-											element,
-											path.concat(key),
-											refData
-										);
-										refData.refs[index] = newData.data;
-										refData.originalValues[index] = element;
-									}
-									return `__$${index}$__`;
+									//Filler
+									refData.refs.push(null);
+									refData.paths[index] = path;
+									const newData = this._toJSON((copyTarget as any)[key as any], element, path.concat(key), refData);
+									refData.refs[index] = newData.data;
+									refData.originalValues[index] = element;
 								}
+								return `__$${index}$__`;
 							}
-						);
+						});
 						const isArr = Array.isArray(data);
 						if (isArr) {
 							return {
 								refs: refData.refs,
 								data: copyTarget as any[],
-								rootType: 'array',
+								rootType: 'array'
 							};
 						} else {
 							return {
@@ -673,13 +470,13 @@ export namespace Global {
 								data: copyTarget as {
 									[key: string]: any;
 								},
-								rootType: 'object',
+								rootType: 'object'
 							};
 						}
 					}
 				},
 				toJSON(this: SpecialJSON, data: any, refs: Refs = []): string {
-					const paths: (string | number)[][] = [[]];
+					const paths: (string|number)[][] = [[]];
 					const originalValues = [data];
 
 					if (!(this._isObject(data) || Array.isArray(data))) {
@@ -687,66 +484,44 @@ export namespace Global {
 							refs: [],
 							data: this._stringifyNonObject(data),
 							rootType: 'normal',
-							paths: [],
+							paths: []
 						});
 					} else {
-						let copyTarget = Array.isArray(data) ? [] : {};
+						let copyTarget = (Array.isArray(data) ? [] : {});
 
 						refs.push(copyTarget);
-						copyTarget = this._iterate(
-							copyTarget,
-							data,
-							(element: any, key: string | number) => {
-								if (
-									!(
-										this._isObject(element) ||
-										Array.isArray(element)
-									)
-								) {
-									return this._stringifyNonObject(element);
-								} else {
-									let index: number;
-									if (
-										(index = originalValues.indexOf(
-											element
-										)) === -1
-									) {
-										index = refs.length;
+						copyTarget = this._iterate(copyTarget, data, (element: any, key: string | number) => {
+							if (!(this._isObject(element) || Array.isArray(element))) {
+								return this._stringifyNonObject(element);
+							} else {
+								let index: number;
+								if ((index = originalValues.indexOf(element)) === -1) {
+									index = refs.length;
 
-										//Filler
-										refs.push(null);
-										const newData = this._toJSON(
-											(copyTarget as any)[key],
-											element,
-											[key],
-											{
-												refs: refs,
-												paths: paths,
-												originalValues: originalValues,
-											}
-										).data;
-										originalValues[index] = element;
-										paths[index] = [key];
-										refs[index] = newData;
-									}
-									return `__$${index}$__`;
+									//Filler
+									refs.push(null);
+									const newData = this._toJSON((copyTarget as any)[key], element, [key], {
+										refs: refs,
+										paths: paths,
+										originalValues: originalValues
+									}).data;
+									originalValues[index] = element;
+									paths[index] = [key];
+									refs[index] = newData;
 								}
+								return `__$${index}$__`;
 							}
-						);
+						});
 						return JSON.stringify({
 							refs: refs,
 							data: copyTarget,
 							rootType: Array.isArray(data) ? 'array' : 'object',
-							paths: paths,
+							paths: paths
 						});
 					}
 				},
 				_refRegex: /^__\$(\d+)\$__$/,
-				_replaceRefs(
-					this: SpecialJSON,
-					data: ArrOrObj,
-					refs: ParsingRefs
-				): ArrOrObj {
+				_replaceRefs(this: SpecialJSON, data: ArrOrObj, refs: ParsingRefs): ArrOrObj {
 					this._iterate(data, data, (element: string) => {
 						let match: RegExpExecArray;
 						if ((match = this._refRegex.exec(element))) {
@@ -764,29 +539,24 @@ export namespace Global {
 
 					return data;
 				},
-				fromJSON(
-					this: SpecialJSON,
-					str: EncodedString<{
-						refs: Refs;
-						data: any;
-						rootType: 'normal' | 'array' | 'object';
-					}>
-				): any {
+				fromJSON(this: SpecialJSON, str: EncodedString<{
+					refs: Refs;
+					data: any;
+					rootType: 'normal' | 'array' | 'object';
+				}>): any {
 					const parsed = JSON.parse(str);
 
 					parsed.refs = parsed.refs.map((ref) => {
 						return {
 							ref: ref,
-							parsed: false,
+							parsed: false
 						};
 					});
 
 					const refs = parsed.refs as {
-						ref:
-							| any[]
-							| {
-									[key: string]: any;
-							  };
+						ref: any[] | {
+							[key: string]: any
+						};
 						parsed: boolean;
 					}[];
 
@@ -796,7 +566,7 @@ export namespace Global {
 
 					refs[0].parsed = true;
 					return this._replaceRefs(refs[0].ref, refs as ParsingRefs);
-				},
+				}
 			},
 			contexts: ['page', 'link', 'selection', 'image', 'video', 'audio'],
 			permissions: [
@@ -833,7 +603,7 @@ export namespace Global {
 				'tts',
 				'webNavigation',
 				'webRequest',
-				'webRequestBlocking',
+				'webRequestBlocking'
 			],
 			tamperMonkeyExtensions: [
 				//Tampermonkey chrome
@@ -845,21 +615,21 @@ export namespace Global {
 				//Violentmonkey firefox
 				'7b7e1485-191d-4cb7-91d9-b6121c1157fe',
 				//Greasemonkey firefox
-				'23c311a8-060b-422e-a46e-80dd73308a3b',
+				'23c311a8-060b-422e-a46e-80dd73308a3b'
 			],
 			stylishExtensions: [
 				//Stylish chrome
 				'fjnbnpbmkenffdnngjfgmeleoegfcffe',
 				//Stylus firefox
-				'220fd736-2425-4d0a-aa36-6015937215f1',
-			],
+				'220fd736-2425-4d0a-aa36-6015937215f1'
+			]
 		},
 		listeners: {
 			idVals: [],
 			tabVals: [],
 			ids: [],
 			tabs: [],
-			log: [],
-		},
-	};
-}
+			log: []
+		}
+	}
+};

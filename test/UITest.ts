@@ -18,7 +18,8 @@ const TEST_LOCAL: boolean = (() => {
 		console.log('Testing remotely');
 		return false;
 	}
-	console.log(TEST_LOCAL_DEFAULT ? 'Testing locally' : 'Testing remotely');
+	console.log(TEST_LOCAL_DEFAULT ?
+		'Testing locally' : 'Testing remotely');
 	return TEST_LOCAL_DEFAULT;
 })();
 const TEST_EXTENSION = hasSetting('test-extension');
@@ -37,7 +38,7 @@ const REMOTE_URL = (async () => {
 	if (hasSetting('remote-url')) {
 		return getSetting('remote-url');
 	}
-	if (process.env.REMOTE_URL && (await ping(process.env.REMOTE_URL))) {
+	if (process.env.REMOTE_URL && await ping(process.env.REMOTE_URL)) {
 		console.log('Using custom remote URL');
 		return process.env.REMOTE_URL;
 	}
@@ -50,14 +51,12 @@ const REMOTE_PW = (async () => {
 	if (hasSetting('remote-pw')) {
 		return getSetting('remote-pw');
 	}
-	if (
-		process.env.REMOTE_PW &&
-		process.env.REMOTE_URL &&
-		(await ping(process.env.REMOTE_URL))
-	) {
-		console.log('Using custom remote PW');
-		return process.env.REMOTE_PW;
-	}
+	if (process.env.REMOTE_PW && 
+		process.env.REMOTE_URL && 
+		await ping(process.env.REMOTE_URL)) {
+			console.log('Using custom remote PW');
+			return process.env.REMOTE_PW;
+		}
 	return undefined;
 })();
 
@@ -80,22 +79,11 @@ function getSetting(setting: string) {
 	return process.argv[process.argv.indexOf(`--${setting}`) + 1];
 }
 
-type SkipOption =
-	| 'stylesheet'
-	| 'divider'
-	| 'script'
-	| 'menu'
-	| 'link'
-	| 'script-fullscreen';
-function getSkipExceptDialogSetting(): SkipOption | false {
-	const options: SkipOption[] = [
-		'stylesheet',
-		'divider',
-		'script',
-		'menu',
-		'link',
-		'script-fullscreen',
-	];
+type SkipOption = 'stylesheet'|'divider'|'script'|
+	'menu'|'link'|'script-fullscreen';
+function getSkipExceptDialogSetting(): SkipOption|false {
+	const options: SkipOption[] = ['stylesheet', 'divider', 
+		'script', 'menu', 'link', 'script-fullscreen'];
 	for (const option of options) {
 		if (hasSetting(`skip-types-except-${option}`)) {
 			return option;
@@ -106,14 +94,8 @@ function getSkipExceptDialogSetting(): SkipOption | false {
 
 function getSkipDialogSettings(): SkipOption[] {
 	const toSkip: SkipOption[] = [];
-	const options: SkipOption[] = [
-		'stylesheet',
-		'divider',
-		'script',
-		'menu',
-		'link',
-		'script-fullscreen',
-	];
+	const options: SkipOption[] = ['stylesheet', 'divider', 
+		'script', 'menu', 'link', 'script-fullscreen'];
 	for (const option of options) {
 		if (hasSetting(`skip-type-${option}`)) {
 			toSkip.push(option);
@@ -134,37 +116,15 @@ import * as webdriver from 'selenium-webdriver';
 import * as path from 'path';
 import * as chai from 'chai';
 import * as fs from 'fs';
-import {
-	tryReadManifest,
-	getGitHash,
-	setDriver,
-	AppWindow,
-	TypedWebdriver,
-	setTimeModifier,
-	inlineFn,
-	executeAsyncScript,
-	inlineAsyncFn,
-	FoundElement,
-	waitForEditor,
-	wait,
-	waitFor,
-	DialogType,
-	quote,
-	TestData,
-	getDialog,
-	findElement,
-	getCRM,
-	InputKeys,
-	saveDialog,
-	forEachPromise,
-	FoundElementPromise,
-	BrowserstackCapabilities,
-	waitForCRM,
-	resetSettings,
-	ContextMenu,
-	ContextMenuItem,
-	ActiveTabs,
-	ExecutedScript,
+import { 
+	tryReadManifest, getGitHash, setDriver, 
+	AppWindow, TypedWebdriver, setTimeModifier, 
+	inlineFn, executeAsyncScript, inlineAsyncFn, 
+	FoundElement, waitForEditor, wait, waitFor, 
+	DialogType, quote, TestData, getDialog, 
+	findElement, getCRM, InputKeys, saveDialog, 
+	forEachPromise, FoundElementPromise, 
+	BrowserstackCapabilities, waitForCRM, resetSettings, ContextMenu, ContextMenuItem, ActiveTabs, ExecutedScript
 } from './imports';
 import { I18NKeys } from '../app/_locales/i18n-keys';
 import { EncodedString } from '../app/elements/elements';
@@ -199,227 +159,172 @@ function getCapabilities(): BrowserstackCapabilities {
 	} else {
 		secrets = {
 			user: '',
-			key: '',
-		};
+			key: ''
+		}
 	}
 	if (process.argv.indexOf('--chrome-latest') > -1) {
 		return {
-			browserName: 'Chrome',
-			os: 'Windows',
-			os_version: '10',
-			resolution: '1920x1080',
-			'browserstack.user': secrets.user,
-			'browserstack.key': secrets.key,
+			'browserName' : 'Chrome',
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
-			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-				? false
-				: true,
-			'browserstack.localIdentifier':
-				process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		} as BrowserstackCapabilities;
 	}
-	if (
-		arrContains<string>(
-			process.argv,
-			(str) => str.indexOf('--chrome-') > -1
-		)
-	) {
-		const chromeStr = arrContains<string>(
-			process.argv,
-			(str) => str.indexOf('--chrome-') > -1
-		);
+	if (arrContains<string>(process.argv, str => str.indexOf('--chrome-') > -1)) {
+		const chromeStr = arrContains<string>(process.argv, str => str.indexOf('--chrome-') > -1);
 		const chromeVersion = chromeStr.split('--chrome-')[1];
 		return {
-			browserName: 'Chrome',
-			browser_version: `${chromeVersion}.0`,
-			os: 'Windows',
-			os_version: '8.1',
-			resolution: '1920x1080',
-			'browserstack.user': secrets.user,
-			'browserstack.key': secrets.key,
+			'browserName' : 'Chrome',
+			'browser_version': `${chromeVersion}.0`,
+			'os' : 'Windows',
+			'os_version' : '8.1',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
-			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-				? false
-				: true,
-			'browserstack.localIdentifier':
-				process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-		};
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
 	}
 	if (process.argv.indexOf('--firefox-quantum') > -1) {
 		return {
-			browserName: 'Firefox',
-			browser_version: '57.0',
-			os: 'Windows',
-			os_version: '10',
-			resolution: '1920x1080',
-			'browserstack.user': secrets.user,
-			'browserstack.key': secrets.key,
+			'browserName' : 'Firefox',
+			'browser_version': '57.0',
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
-			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-				? false
-				: true,
-			'browserstack.localIdentifier':
-				process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-		};
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
 	}
 	if (process.argv.indexOf('--firefox-latest') > -1) {
 		return {
-			browserName: 'Firefox',
-			os: 'Windows',
-			os_version: '10',
-			resolution: '1920x1080',
-			'browserstack.user': secrets.user,
-			'browserstack.key': secrets.key,
+			'browserName' : 'Firefox',
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
-			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-				? false
-				: true,
-			'browserstack.localIdentifier':
-				process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-		};
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
 	}
-	if (
-		arrContains<string>(
-			process.argv,
-			(str) => str.indexOf('--firefox-') > -1
-		)
-	) {
-		const firefoxStr = arrContains<string>(
-			process.argv,
-			(str) => str.indexOf('--firefox-') > -1
-		);
+	if (arrContains<string>(process.argv, str => str.indexOf('--firefox-') > -1)) {
+		const firefoxStr = arrContains<string>(process.argv, str => str.indexOf('--firefox-') > -1);
 		const firefoxVersion = firefoxStr.split('--firefox-')[1];
 		return {
-			browserName: 'Firefox',
-			browser_version: `${firefoxVersion}.0`,
-			os: 'Windows',
-			os_version: '10',
-			resolution: '1920x1080',
-			'browserstack.user': secrets.user,
-			'browserstack.key': secrets.key,
+			'browserName' : 'Firefox',
+			'browser_version': `${firefoxVersion}.0`,
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
-			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-				? false
-				: true,
-			'browserstack.localIdentifier':
-				process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-		};
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
 	}
 	if (process.argv.indexOf('--edge-latest') > -1) {
 		return {
-			browserName: 'Edge',
-			os: 'Windows',
-			os_version: '10',
-			resolution: '1920x1080',
-			'browserstack.user': secrets.user,
-			'browserstack.key': secrets.key,
+			'browserName' : 'Edge',
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
-			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-				? false
-				: true,
-			'browserstack.localIdentifier':
-				process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-		};
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
 	}
-	if (
-		arrContains<string>(process.argv, (str) => str.indexOf('--edge-') > -1)
-	) {
-		const edgeStr = arrContains<string>(
-			process.argv,
-			(str) => str.indexOf('--edge-') > -1
-		);
+	if (arrContains<string>(process.argv, str => str.indexOf('--edge-') > -1)) {
+		const edgeStr = arrContains<string>(process.argv, str => str.indexOf('--edge-') > -1);
 		const edgeVersion = edgeStr.split('--edge-')[1];
 		return {
-			browserName: 'Edge',
-			browser_version: `${edgeVersion}.0`,
-			os: 'Windows',
-			os_version: '10',
-			resolution: '1920x1080',
-			'browserstack.user': secrets.user,
-			'browserstack.key': secrets.key,
+			'browserName' : 'Edge',
+			'browser_version': `${edgeVersion}.0`,
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
-			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-				? false
-				: true,
-			'browserstack.localIdentifier':
-				process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-		};
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
 	}
 	if (process.argv.indexOf('--opera-latest') > -1) {
 		return {
-			browserName: 'Opera',
-			os: 'Windows',
-			os_version: '10',
-			resolution: '1920x1080',
-			'browserstack.user': secrets.user,
-			'browserstack.key': secrets.key,
+			'browserName' : 'Opera',
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
-			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-				? false
-				: true,
-			'browserstack.localIdentifier':
-				process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-		};
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
 	}
-	if (
-		arrContains<string>(process.argv, (str) => str.indexOf('--opera-') > -1)
-	) {
-		const operaStr = arrContains<string>(
-			process.argv,
-			(str) => str.indexOf('--opera-') > -1
-		);
+	if (arrContains<string>(process.argv, str => str.indexOf('--opera-') > -1)) {
+		const operaStr = arrContains<string>(process.argv, str => str.indexOf('--opera-') > -1);
 		const operaVersion = operaStr.split('--opera-')[1];
 		return {
-			browserName: 'Opera',
-			browser_version: `${operaVersion}.0`,
-			os: 'Windows',
-			os_version: '10',
-			resolution: '1920x1080',
-			'browserstack.user': secrets.user,
-			'browserstack.key': secrets.key,
+			'browserName' : 'Opera',
+			'browser_version': `${operaVersion}.0`,
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
 			'browserstack.local': true,
 			'browserstack.console': 'errors',
 			'browserstack.networkLogs': true,
-			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-				? false
-				: true,
-			'browserstack.localIdentifier':
-				process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
-		};
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		}
 	}
 	if (TEST_LOCAL) {
 		return {} as any;
 	}
 	console.error('Please specify a browser version to test');
 	console.error('Choose from:');
-	console.error('\n--chrome-latest\n--chrome-{version}\n--firefox-quantum');
-	console.error(
-		'--firefox-latest\n--edge-16\n--edge-latest\n--opera-51\n--opera-latest'
-	);
+	console.error('\n--chrome-latest\n--chrome-{version}\n--firefox-quantum')
+	console.error('--firefox-latest\n--edge-16\n--edge-latest\n--opera-51\n--opera-latest')
 	process.exit(1);
 	return {} as any;
 }
 
 const browserCapabilities = getCapabilities();
 
-function getBrowser(): 'Chrome' | 'Firefox' | 'Edge' | 'Opera' {
-	return browserCapabilities.browserName || ('Chrome' as any);
+function getBrowser(): 'Chrome'|'Firefox'|'Edge'|'Opera' {
+	return browserCapabilities.browserName || 'Chrome' as any
 }
 
 function getExtensionDataOnly() {
@@ -461,62 +366,50 @@ function getAdditionalCapabilities() {
 }
 
 async function enableTestLogging() {
-	await driver.executeScript(
-		inlineFn(() => {
-			window.BrowserAPIInstances.forEach((instance) => {
-				instance.enableLogging();
+	await driver.executeScript(inlineFn(() => {
+		window.BrowserAPIInstances.forEach((instance) => {
+			instance.enableLogging();
+		});
+	}));
+	await executeAsyncScript(inlineAsyncFn((ondone, onreject) => {
+		let done: boolean;
+		if (window.browserAPI) {
+			window.browserAPI.runtime.getBackgroundPage().then((page: Window & {
+				BrowserAPI: BrowserAPI;
+				BrowserAPIInstances: BrowserAPI[];
+			}) => {
+				page.BrowserAPIInstances.forEach((instance) => {
+					instance.enableLogging();
+				});
+				done = true;
+				ondone(null);
+			}).catch(() => {
+				onreject(null);
 			});
-		})
-	);
-	await executeAsyncScript(
-		inlineAsyncFn((ondone, onreject) => {
-			let done: boolean;
-			if (window.browserAPI) {
-				window.browserAPI.runtime
-					.getBackgroundPage()
-					.then(
-						(
-							page: Window & {
-								BrowserAPI: BrowserAPI;
-								BrowserAPIInstances: BrowserAPI[];
-							}
-						) => {
-							page.BrowserAPIInstances.forEach((instance) => {
-								instance.enableLogging();
-							});
-							done = true;
-							ondone(null);
-						}
-					)
-					.catch(() => {
-						onreject(null);
-					});
-			} else {
+		} else {
+			ondone(null);
+		}
+		window.setTimeout(() => {
+			if (!done) {
 				ondone(null);
 			}
-			window.setTimeout(() => {
-				if (!done) {
-					ondone(null);
-				}
-			}, 5000);
-		})
-	);
+		}, 5000);
+	}));
 }
 
 async function openTestPageURL(capabilities: BrowserstackCapabilities) {
 	if (TEST_EXTENSION) {
 		await getExtensionDataOnly().openOptionsPage(driver, capabilities);
 	} else {
-		await driver.get(
-			`http://localhost:${PORT}/build/html/UITest.html#test-noBackgroundInfo`
-		);
+		await driver.get(`http://localhost:${PORT}/build/html/UITest.html#test-noBackgroundInfo`);
 	}
 	await wait(5000);
 	await enableTestLogging();
 }
 
-before('Driver connect', async function () {
-	const url = TEST_LOCAL ? LOCAL_URL : await REMOTE_URL;
+before('Driver connect', async function() {
+	const url = TEST_LOCAL ?
+		LOCAL_URL : await REMOTE_URL;
 
 	global.Promise = _promise;
 
@@ -527,36 +420,30 @@ before('Driver connect', async function () {
 	}
 
 	const additionalCapabilities = getAdditionalCapabilities();
-	const unBuilt = new webdriver.Builder().usingServer(url).withCapabilities(
-		new webdriver.Capabilities({
-			...browserCapabilities,
-			...{
-				project: 'Custom Right-Click Menu',
-				build: `${
-					(
-						(await tryReadManifest('app/manifest.json')) ||
-						(await tryReadManifest('app/manifest.chrome.json'))
-					).version
-				} - ${await getGitHash()}`,
-				name: (() => {
-					if (process.env.TRAVIS) {
-						// Travis
-						return `${process.env.TEST} attempt ${process.env.ATTEMPTS}`;
-					}
-					// Local
-					return `local:${browserCapabilities.browserName} ${
-						browserCapabilities.browser_version || 'latest'
-					}`;
-				})(),
-				'browserstack.local': !TEST_EXTENSION,
-			},
-			...((await REMOTE_PW)
-				? {
-						pw: await REMOTE_PW,
-				  }
-				: {}),
-		}).merge(additionalCapabilities)
-	);
+	const unBuilt = new webdriver.Builder()
+		.usingServer(url)
+		.withCapabilities(new webdriver.Capabilities({...browserCapabilities, ...{
+			project: 'Custom Right-Click Menu',
+			build: `${(
+				await tryReadManifest('app/manifest.json') ||
+				await tryReadManifest('app/manifest.chrome.json')
+			).version} - ${await getGitHash()}`,
+			name: (() => {
+				if (process.env.TRAVIS) {
+					// Travis
+					return `${process.env.TEST} attempt ${process.env.ATTEMPTS}`;
+				}
+				// Local
+				return `local:${
+					browserCapabilities.browserName
+				} ${
+					browserCapabilities.browser_version || 'latest'
+				}`
+			})(),
+			'browserstack.local': !TEST_EXTENSION
+		}, ...(await REMOTE_PW) ? {
+			pw: await REMOTE_PW,
+		} : {}}).merge(additionalCapabilities));
 	if (TEST_LOCAL) {
 		driver = unBuilt.forBrowser('chrome').build();
 	} else {
@@ -567,18 +454,12 @@ before('Driver connect', async function () {
 
 	global.Promise = webdriver.promise.Promise;
 
-	if (
-		SKIP_ENTRYPOINTS ||
-		SKIP_OPTIONS_PAGE_NON_DIALOGS ||
-		SKIP_OPTIONS_PAGE_DIALOGS ||
-		SKIP_CONTEXTMENU ||
-		SKIP_DIALOG_TYPES_EXCEPT ||
-		SKIP_EXTERNAL_TESTS ||
-		SKIP_USERSCRIPT_TEST ||
-		SKIP_USERSTYLE_TEST
-	) {
-		console.warn('Skipping is enabled');
-	}
+	if (SKIP_ENTRYPOINTS || SKIP_OPTIONS_PAGE_NON_DIALOGS ||
+		SKIP_OPTIONS_PAGE_DIALOGS || SKIP_CONTEXTMENU ||
+		SKIP_DIALOG_TYPES_EXCEPT || SKIP_EXTERNAL_TESTS ||
+		SKIP_USERSCRIPT_TEST || SKIP_USERSTYLE_TEST) {
+			console.warn('Skipping is enabled')
+		}
 });
 
 const sentIds: number[] = [];
@@ -594,22 +475,14 @@ function getRandomId(): number {
 const templates = {
 	mergeArrays(mainArray: any[], additionArray: any[]): any[] {
 		for (let i = 0; i < additionArray.length; i++) {
-			if (
-				mainArray[i] &&
+			if (mainArray[i] &&
 				typeof additionArray[i] === 'object' &&
 				mainArray[i] !== undefined &&
-				mainArray[i] !== null
-			) {
+				mainArray[i] !== null) {
 				if (Array.isArray(additionArray[i])) {
-					mainArray[i] = templates.mergeArrays(
-						mainArray[i],
-						additionArray[i]
-					);
+					mainArray[i] = templates.mergeArrays(mainArray[i], additionArray[i]);
 				} else {
-					mainArray[i] = templates.mergeObjects(
-						mainArray[i],
-						additionArray[i]
-					);
+					mainArray[i] = templates.mergeObjects(mainArray[i], additionArray[i]);
 				}
 			} else {
 				mainArray[i] = additionArray[i];
@@ -620,21 +493,13 @@ const templates = {
 	mergeObjects<T extends U, U>(mainObject: T, additions: U): T {
 		for (let key in additions) {
 			if (additions.hasOwnProperty(key)) {
-				if (
-					typeof additions[key] === 'object' &&
+				if (typeof additions[key] === 'object' &&
 					mainObject[key] !== undefined &&
-					mainObject[key] !== null
-				) {
+					mainObject[key] !== null) {
 					if (Array.isArray(additions[key])) {
-						mainObject[key] = templates.mergeArrays(
-							mainObject[key] as any,
-							additions[key] as any
-						) as any;
+						mainObject[key] = templates.mergeArrays(mainObject[key] as any, additions[key] as any) as any;
 					} else {
-						mainObject[key] = templates.mergeObjects(
-							mainObject[key],
-							additions[key]
-						);
+						mainObject[key] = templates.mergeObjects(mainObject[key], additions[key]);
 					}
 				} else {
 					mainObject[key] = additions[key] as any;
@@ -646,9 +511,9 @@ const templates = {
 	getDefaultNodeInfo(options: CRM.NodeInfo): CRM.NodeInfo {
 		const defaultNodeInfo: CRM.NodeInfo = {
 			permissions: [],
-			source: {
-				autoUpdate: true,
-			},
+			source: { 
+				autoUpdate: true
+			}
 		};
 
 		return templates.mergeObjects(defaultNodeInfo, options);
@@ -663,16 +528,16 @@ const templates = {
 			triggers: [
 				{
 					url: '*://*.example.com/*',
-					not: false,
-				},
+					not: false
+				}
 			],
 			isLocal: true,
 			value: [
 				{
 					newTab: true,
-					url: 'https://www.example.com',
-				},
-			],
+					url: 'https://www.example.com'
+				}
+			]
 		} as CRM.LinkNode;
 
 		return templates.mergeObjects(defaultNode, options);
@@ -698,8 +563,8 @@ const templates = {
 			ts: {
 				enabled: false,
 				script: {},
-				backgroundScript: {},
-			},
+				backgroundScript: {}
+			}
 		};
 
 		return templates.mergeObjects(value, options);
@@ -714,17 +579,15 @@ const templates = {
 			triggers: [
 				{
 					url: '*://*.example.com/*',
-					not: false,
-				},
+					not: false
+				}
 			],
-			value: templates.getDefaultScriptValue(options.value),
+			value: templates.getDefaultScriptValue(options.value)
 		} as CRM.ScriptNode;
 
 		return templates.mergeObjects(defaultNode, options);
 	},
-	getDefaultStylesheetNode(
-		options: CRM.PartialStylesheetNode
-	): CRM.StylesheetNode {
+	getDefaultStylesheetNode(options: CRM.PartialStylesheetNode): CRM.StylesheetNode {
 		const defaultNode: Partial<CRM.StylesheetNode> = {
 			name: 'My Stylesheet',
 			onContentTypes: [true, true, true, false, false, false],
@@ -734,100 +597,71 @@ const templates = {
 			triggers: [
 				{
 					url: '*://*.example.com/*',
-					not: false,
-				},
+					not: false
+				}
 			],
-			value: templates.getDefaultStylesheetValue(options.value),
+			value: templates.getDefaultStylesheetValue(options.value)
 		} as Partial<CRM.StylesheetNode>;
 
-		return templates.mergeObjects(
-			defaultNode,
-			options
-		) as CRM.StylesheetNode;
+		return templates.mergeObjects(defaultNode, options) as CRM.StylesheetNode;
 	},
-	getDefaultDividerOrMenuNode(
-		options: any,
-		type: 'divider' | 'menu'
-	): CRM.DividerNode | CRM.MenuNode {
-		const defaultNode: CRM.DividerNode | CRM.MenuNode = {
+	getDefaultDividerOrMenuNode(options: any, type: 'divider' | 'menu'):
+	CRM.DividerNode | CRM.MenuNode {
+		const defaultNode: CRM.DividerNode|CRM.MenuNode = {
 			name: `My ${type[0].toUpperCase() + type.slice(1)}`,
 			type: type,
 			nodeInfo: templates.getDefaultNodeInfo(options.nodeInfo),
 			onContentTypes: [true, true, true, false, false, false],
 			isLocal: true,
-			value: {},
-		} as CRM.DividerNode | CRM.MenuNode;
+			value: {}
+		} as CRM.DividerNode|CRM.MenuNode;
 
 		return templates.mergeObjects(defaultNode, options);
 	},
 	getDefaultDividerNode(options: any): CRM.DividerNode {
-		return templates.getDefaultDividerOrMenuNode(
-			options,
-			'divider'
-		) as CRM.DividerNode;
+		return templates.getDefaultDividerOrMenuNode(options, 'divider') as CRM.DividerNode;
 	},
 	getDefaultMenuNode(options: any): CRM.MenuNode {
-		return templates.getDefaultDividerOrMenuNode(
-			options,
-			'menu'
-		) as CRM.MenuNode;
-	},
+		return templates.getDefaultDividerOrMenuNode(options, 'menu') as CRM.MenuNode;
+	}
 };
 
 function getSyncSettings(): webdriver.promise.Promise<CRM.SettingsStorage> {
-	return new webdriver.promise.Promise<CRM.SettingsStorage>((resolve) => {
-		driver
-			.executeScript(
-				inlineFn(() => {
-					return JSON.stringify(window.app.settings);
-				})
-			)
-			.then((str) => {
-				resolve(JSON.parse(str) as CRM.SettingsStorage);
-			});
-	});
+	return new webdriver.promise.Promise<CRM.SettingsStorage>((resolve) => { 
+		driver.executeScript(inlineFn(() => {
+			return JSON.stringify(window.app.settings);
+		})).then((str) => {
+			resolve(JSON.parse(str) as CRM.SettingsStorage);
+		});
+	}); 
 }
 
 function getContextMenu(): webdriver.promise.Promise<ContextMenu> {
 	return new webdriver.promise.Promise<ContextMenu>((resolve) => {
-		executeAsyncScript<EncodedString<ContextMenuItem[]>>(
-			inlineAsyncFn(
-				(ondone, onreject, REPLACE) => {
-					REPLACE.getBackgroundPageTestData().then((testData) => {
-						if (testData._currentContextMenu[0]) {
-							ondone(
-								JSON.stringify(
-									testData._currentContextMenu[0].children
-								)
-							);
-						} else {
-							onreject('Contextmenu is empty');
-						}
-					});
-				},
-				{
-					getBackgroundPageTestData: getBackgroundPageTestData(),
+		executeAsyncScript<EncodedString<ContextMenuItem[]>>(inlineAsyncFn((ondone, onreject, REPLACE) => {
+			REPLACE.getBackgroundPageTestData().then((testData) => {
+				if (testData._currentContextMenu[0]) {
+					ondone(JSON.stringify(testData._currentContextMenu[0].children));
+				} else {
+					onreject('Contextmenu is empty');
 				}
-			)
-		).then((str) => {
+			});
+		}, {
+			getBackgroundPageTestData: getBackgroundPageTestData()
+		})).then((str) => {
 			resolve(JSON.parse(str));
 		});
 	});
 }
 
 async function getActiveTabs(): Promise<ActiveTabs> {
-	const encoded = await executeAsyncScript<EncodedString<ActiveTabs>>(
-		inlineAsyncFn(
-			(ondone, _onreject, REPLACE) => {
-				REPLACE.getBackgroundPageTestData().then((testData) => {
-					ondone(JSON.stringify(testData._activeTabs));
-				});
-			},
-			{
-				getBackgroundPageTestData: getBackgroundPageTestData(),
-			}
-		)
-	);
+	const encoded = await executeAsyncScript<EncodedString<ActiveTabs>>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+		REPLACE.getBackgroundPageTestData().then((testData) => {
+			ondone(JSON.stringify(testData._activeTabs));
+		});
+	}, {
+		getBackgroundPageTestData: getBackgroundPageTestData()
+	}));
 
 	//Filter dummy tab
 	const newTabs: ActiveTabs = [];
@@ -841,35 +675,27 @@ async function getActiveTabs(): Promise<ActiveTabs> {
 
 async function getActivatedScripts({
 	clear = false,
-	filterDummy = false,
+	filterDummy = false
 }: {
 	clear?: boolean;
 	filterDummy?: boolean;
 } = {}): Promise<ExecutedScript[]> {
-	const encoded = await executeAsyncScript<EncodedString<ExecutedScript[]>>(
-		inlineAsyncFn(
-			(ondone, _onreject, REPLACE) => {
-				REPLACE.getBackgroundPageTestData().then((testData) => {
-					const scripts = JSON.stringify(testData._executedScripts);
-					if (REPLACE.clear) {
-						testData._clearExecutedScripts();
-					}
-					ondone(scripts);
-				});
-			},
-			{
-				getBackgroundPageTestData: getBackgroundPageTestData(),
-				clear,
+	const encoded = await executeAsyncScript<EncodedString<ExecutedScript[]>>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+		REPLACE.getBackgroundPageTestData().then((testData) => {
+			const scripts = JSON.stringify(testData._executedScripts);
+			if (REPLACE.clear) {
+				testData._clearExecutedScripts();
 			}
-		)
-	);
-
+			ondone(scripts);
+		});
+	}, {
+		getBackgroundPageTestData: getBackgroundPageTestData(),
+		clear
+	}));
+	
 	const newTabs: ExecutedScript[] = [];
 	for (const executedScript of JSON.parse(encoded)) {
-		if (
-			!filterDummy ||
-			executedScript.id !== (await dummyTab.getTabId()).tabId
-		) {
+		if (!filterDummy || executedScript.id !== (await dummyTab.getTabId()).tabId) {
 			newTabs.push(executedScript);
 		}
 	}
@@ -885,103 +711,75 @@ function cancelDialog(dialog: FoundElement): webdriver.promise.Promise<void> {
 }
 
 function getRandomString(length: number): string {
-	return new Array(length)
-		.join(' ')
-		.split(' ')
-		.map(() => {
-			const randomNum = ~~(Math.random() * 62);
-			if (randomNum <= 10) {
-				return String(randomNum);
-			} else if (randomNum < 36) {
-				return String.fromCharCode(randomNum + 87);
-			} else {
-				return String.fromCharCode(randomNum + 29);
-			}
-		})
-		.join('');
+	return new Array(length).join(' ').split(' ').map(() => {
+		const randomNum = ~~(Math.random() * 62);
+		if (randomNum <= 10) {
+			return String(randomNum);
+		} else if (randomNum < 36) {
+			return String.fromCharCode(randomNum + 87);
+		} else {
+			return String.fromCharCode(randomNum + 29);
+		}
+	}).join('');
 }
 
-async function doFullRefresh(
-	__this?: Mocha.ISuiteCallbackContext | Mocha.IHookCallbackContext
-) {
+async function doFullRefresh(__this?: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext) {
 	__this && __this.timeout(120000 * TIME_MODIFIER);
 
 	await driver.navigate().refresh();
 	await enableTestLogging();
-	await waitFor(
-		() => {
-			return driver.executeScript(
-				inlineFn(() => {
-					return window.polymerElementsLoaded;
-				})
-			);
-		},
-		2500,
-		600000 * TIME_MODIFIER
-	).then(
-		() => {},
-		() => {
-			//About to time out
-			throw new Error('Failed to reload page');
+	await waitFor(() => {
+		return driver.executeScript(inlineFn(() => {
+			return window.polymerElementsLoaded;
+		}));
+	}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
+		//About to time out
+		throw new Error('Failed to reload page');
+	});
+	await driver.executeScript(inlineFn(() => {
+		if (typeof window.onIsTest === 'function') {
+			window.onIsTest();
+		} else {
+			window.onIsTest = true;
 		}
-	);
-	await driver.executeScript(
-		inlineFn(() => {
-			if (typeof window.onIsTest === 'function') {
-				window.onIsTest();
-			} else {
-				window.onIsTest = true;
-			}
-		})
-	);
+	}));
 }
 
-function reloadPage(
-	__this: Mocha.ISuiteCallbackContext | Mocha.IHookCallbackContext,
-	done: (...args: any[]) => void
-): void;
-function reloadPage(
-	__this: Mocha.ISuiteCallbackContext | Mocha.IHookCallbackContext
-): webdriver.promise.Promise<void>;
-function reloadPage(
-	__this: Mocha.ISuiteCallbackContext | Mocha.IHookCallbackContext,
-	done?: (...args: any[]) => void
-): webdriver.promise.Promise<any> | void {
-	__this.timeout(60000 * TIME_MODIFIER);
-	const promise = new webdriver.promise.Promise<void>((resolve) => {
-		wait(500).then(() => {
-			executeAsyncScript(
-				inlineAsyncFn((done) => {
+function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done: (...args: any[]) => void): void;
+function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext): webdriver.promise.Promise<void>; 
+function reloadPage(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, 
+	done?: (...args: any[]) => void): webdriver.promise.Promise<any>|void {
+		__this.timeout(60000 * TIME_MODIFIER);
+		const promise = new webdriver.promise.Promise<void>((resolve) => {
+			wait(500).then(() => {
+				executeAsyncScript(inlineAsyncFn((done) => {
 					try {
 						window.app.refreshPage().then(() => {
 							done(null);
 						});
-					} catch (e) {
+					} catch(e) {
 						done({
 							message: e.message,
-							stack: e.stack,
+							stack: e.stack
 						});
 					}
-				})
-			)
-				.then((e) => {
+				})).then((e) => {
 					if (e) {
 						console.log(e);
 						throw e;
 					}
 					return wait(1000);
-				})
-				.then(() => {
+				}).then(() => {
 					resolve(null);
 				});
+			});
 		});
-	});
-	if (done) {
-		promise.then(done);
-	} else {
-		return promise;
+		if (done) {
+			promise.then(done);
+		} else {
+			return promise;
+		}
 	}
-}
 
 async function switchToTypeAndOpen(type: CRM.NodeType) {
 	try {
@@ -990,42 +788,30 @@ async function switchToTypeAndOpen(type: CRM.NodeType) {
 		//Timeout, element not found
 		throw new Error('edit-crm-item element could not be found');
 	}
-	await driver.executeScript(
-		inlineFn(
-			() => {
-				const crmItem = window.app.editCRM.shadowRoot.querySelectorAll(
-					'edit-crm-item:not([root-node])'
-				)[0] as EditCrmItem;
-				crmItem
-					.$$('type-switcher')
-					.changeType('REPLACE.type' as CRM.NodeType);
-			},
-			{
-				type: type,
-			}
-		)
-	);
+	await driver.executeScript(inlineFn(() => {
+		const crmItem = window.app.editCRM
+			.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])')[0] as EditCrmItem;
+		crmItem.$$('type-switcher').changeType('REPLACE.type' as CRM.NodeType);	
+	}, {
+		type: type
+	}));
 	await wait(100);
-	await driver.executeScript(
-		inlineFn(() => {
-			(window.app.editCRM.shadowRoot.querySelectorAll(
-				'edit-crm-item:not([root-node])'
-			) as NodeListOf<EditCrmItem>)[0].openEditPage();
-		})
-	);
+	await driver.executeScript(inlineFn(() => {
+		((window.app.editCRM.shadowRoot
+			.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>)[0])
+			.openEditPage();
+	}));
 	await wait(1000);
 }
 
 function openDialog(type: CRM.NodeType) {
 	return new webdriver.promise.Promise(async (resolve) => {
 		if (type === 'link') {
-			await driver.executeScript(
-				inlineFn(() => {
-					(window.app.editCRM.shadowRoot.querySelectorAll(
-						'edit-crm-item:not([root-node])'
-					) as NodeListOf<EditCrmItem>)[0].openEditPage();
-				})
-			);
+			await driver.executeScript(inlineFn(() => {
+				((window.app.editCRM.shadowRoot
+					.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>)[0])
+					.openEditPage();
+			}));
 			await wait(1000);
 		} else {
 			await switchToTypeAndOpen(type);
@@ -1080,20 +866,12 @@ function subtractStrings(biggest: string, smallest: string): string {
 }
 
 function getEditorValue(type: DialogType): webdriver.promise.Promise<string> {
-	return driver.executeScript(
-		inlineFn(
-			(REPLACE) => {
-				return window[
-					REPLACE.editor as 'scriptEdit' | 'stylesheetEdit'
-				].editorManager.getValue();
-			},
-			{
-				editor: quote(
-					type === 'script' ? 'scriptEdit' : 'stylesheetEdit'
-				),
-			}
-		)
-	);
+	return driver.executeScript(inlineFn((REPLACE) => {
+		return window[(REPLACE.editor) as 'scriptEdit'|'stylesheetEdit']
+			.editorManager.getValue();
+	}, {
+		editor: quote(type === 'script' ? 'scriptEdit' : 'stylesheetEdit'),
+	}));
 }
 
 interface NameCheckingCRM {
@@ -1105,10 +883,8 @@ function getCRMNames(crm: CRM.Tree): NameCheckingCRM[] {
 	return crm.map((node) => {
 		return {
 			name: node.name,
-			children:
-				node.children && node.children.length > 0
-					? getCRMNames(node.children)
-					: undefined,
+			children: (node.children && node.children.length > 0) ? 
+				getCRMNames(node.children) : undefined
 		};
 	});
 }
@@ -1117,39 +893,24 @@ function getContextMenuNames(contextMenu: ContextMenu): NameCheckingCRM[] {
 	return contextMenu.map((item) => {
 		return {
 			name: item.currentProperties.title,
-			children:
-				item.children && item.children.length > 0
-					? getContextMenuNames(item.children)
-					: undefined,
+			children: (item.children && item.children.length > 0) ? 
+				getContextMenuNames(item.children) : undefined
 		};
 	});
 }
 
-function assertContextMenuEquality(
-	contextMenu: ContextMenu,
-	CRMNodes: CRM.Tree
-) {
+function assertContextMenuEquality(contextMenu: ContextMenu, CRMNodes: CRM.Tree) {
 	try {
-		assert.deepEqual(
-			getContextMenuNames(contextMenu),
-			getCRMNames(CRMNodes),
-			'structures match'
-		);
-	} catch (e) {
-		assert.deepEqual(
-			getContextMenuNames(contextMenu),
-			getCRMNames(CRMNodes).concat([
-				{
-					children: undefined,
-					name: undefined,
-				},
-				{
-					children: undefined,
-					name: 'Options',
-				},
-			]),
-			'structures match'
-		);
+		assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes),
+			'structures match');
+	} catch(e) {
+		assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes).concat([{
+			children: undefined,
+			name: undefined
+		}, {
+			children: undefined,
+			name: 'Options'
+		}]), 'structures match');
 	}
 }
 
@@ -1162,11 +923,11 @@ function getTestData() {
 				}
 			}
 			return window.BrowserAPI.getTestData();
-		};
+		}
 	} else {
 		return () => {
 			return window.chrome;
-		};
+		}
 	}
 }
 
@@ -1190,20 +951,13 @@ class DummyTab {
 		this._tabInfo = await executeAsyncScript<{
 			tabId: number;
 			windowId: number;
-		}>(
-			inlineAsyncFn((done) => {
-				browserAPI.tabs
-					.create({
-						url: 'http://www.github.com',
-					})
-					.then(function (createdTab) {
-						done({
-							tabId: createdTab.id,
-							windowId: createdTab.windowId,
-						});
-					});
-			})
-		);
+		}>(inlineAsyncFn((done) => { 
+			browserAPI.tabs.create({
+				url: 'http://www.github.com'
+			}).then(function(createdTab) {
+				done({ tabId: createdTab.id, windowId: createdTab.windowId });
+			});
+		}));
 
 		const handles = await driver.getAllWindowHandles();
 		for (const handle of handles) {
@@ -1241,8 +995,8 @@ class DummyTab {
 		} else {
 			return {
 				tabId: getRandomId(),
-				windowId: getRandomId(),
-			};
+				windowId: getRandomId()
+			}
 		}
 	}
 
@@ -1261,7 +1015,7 @@ async function switchToTestWindow() {
 			const handles = await driver.getAllWindowHandles();
 			if (dummyTab.active) {
 				for (const handle of handles) {
-					if (handle !== (await dummyTab.getHandle())) {
+					if (handle !== await dummyTab.getHandle()) {
 						currentTestWindow = handle;
 						break;
 					}
@@ -1279,88 +1033,65 @@ async function createTab(url: string, doClear: boolean = false) {
 		const idData = await executeAsyncScript<{
 			tabId: number;
 			windowId: number;
-		}>(
-			inlineAsyncFn(
-				(done, _onReject, REPLACE) => {
-					if (REPLACE.doClear) {
-						for (const instance of window.BrowserAPIInstances) {
-							if (instance.isLoggingEnabled()) {
-								instance.getTestData()._clearExecutedScripts();
-							}
-						}
-						window.BrowserAPI.getTestData()._clearExecutedScripts();
+		}>(inlineAsyncFn((done, _onReject, REPLACE) => { 
+			if (REPLACE.doClear) {
+				for (const instance of window.BrowserAPIInstances) {
+					if (instance.isLoggingEnabled()) {
+						instance.getTestData()._clearExecutedScripts()
 					}
-					browserAPI.tabs
-						.create({
-							url: 'REPLACE.url',
-						})
-						.then(function (createdTab) {
-							done({
-								tabId: createdTab.id,
-								windowId: createdTab.windowId,
-							});
-						});
-				},
-				{
-					url,
-					doClear,
 				}
-			)
-		);
+				window.BrowserAPI.getTestData()._clearExecutedScripts()
+			}
+			browserAPI.tabs.create({
+				url: "REPLACE.url"
+			}).then(function(createdTab) {
+				done({
+					tabId: createdTab.id,
+					windowId: createdTab.windowId
+				});
+			});
+		}, {
+			url,
+			doClear
+		}));
 		await wait(5000);
 		await switchToTestWindow();
 		return idData;
 	} else {
 		const fakeTabId = getRandomId();
-		await driver.executeScript(
-			inlineFn(
-				(REPLACE) => {
-					if (REPLACE.doClear) {
-						REPLACE.getTestData()._clearExecutedScripts();
-					}
-					const tab = {
-						id: REPLACE.fakeTabId,
-						title: 'title',
-						url: 'REPLACE.url',
-					};
-					REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = tab;
-					REPLACE.getTestData()._tabUpdateListeners.forEach(
-						(listener) => {
-							listener(
-								REPLACE.fakeTabId,
-								{
-									status: 'loading',
-									url: 'REPLACE.url',
-								},
-								JSON.parse(
-									JSON.stringify(tab)
-								) as _browser.tabs.Tab
-							);
-						}
-					);
-					window.browserAPI.runtime.sendMessage(
-						{
-							type: 'newTabCreated',
-						},
-						{
-							tab: {
-								id: REPLACE.fakeTabId,
-							},
-						} as any
-					);
-				},
-				{
-					url,
-					doClear,
-					fakeTabId,
-					getTestData: getTestData(),
+		await driver.executeScript(inlineFn((REPLACE) => {
+			if (REPLACE.doClear) {
+				REPLACE.getTestData()._clearExecutedScripts();
+			}
+			const tab = {
+				id: REPLACE.fakeTabId,
+				title: 'title',
+				url: "REPLACE.url"
+			};
+			REPLACE.getTestData()._fakeTabs[REPLACE.fakeTabId] = tab;
+			REPLACE.getTestData()._tabUpdateListeners.forEach((listener) => {
+				listener(REPLACE.fakeTabId, {
+					status: 'loading',
+					url: "REPLACE.url"
+				}, JSON.parse(JSON.stringify(tab)) as _browser.tabs.Tab);
+			});
+			window.browserAPI.runtime.sendMessage({
+				type: 'newTabCreated'
+			}, {
+				tab: {
+					id: REPLACE.fakeTabId
 				}
-			)
-		);
+			} as any);
+		}, {
+			url,
+			doClear,
+			fakeTabId,
+			getTestData: getTestData()
+		}));
 		return {
 			tabId: fakeTabId,
-			windowId: getRandomId(),
-		};
+			windowId: getRandomId()
+		}
 	}
 }
 
@@ -1374,22 +1105,18 @@ function getBackgroundPageTestData(): () => Promiselike<TestData> {
 			const listeners: ((result: TestData) => void)[] = [];
 			let isDone: boolean = false;
 			let result: TestData = null;
-			window.browserAPI.runtime.getBackgroundPage().then(
-				(
-					page: Window & {
-						BrowserAPI: BrowserAPI;
+			window.browserAPI.runtime.getBackgroundPage().then((page: Window & {
+				BrowserAPI: BrowserAPI;
+			}) => {
+				isDone = true;
+				for (const instance of page.BrowserAPIInstances) {
+					if (instance.isLoggingEnabled()) {
+						result = instance.getTestData();
 					}
-				) => {
-					isDone = true;
-					for (const instance of page.BrowserAPIInstances) {
-						if (instance.isLoggingEnabled()) {
-							result = instance.getTestData();
-						}
-					}
-					result = result || page.BrowserAPI.getTestData();
-					listeners.forEach((listener) => listener(result));
 				}
-			);
+				result = result || page.BrowserAPI.getTestData();
+				listeners.forEach(listener => listener(result));
+			});
 			return {
 				then(listener) {
 					if (isDone) {
@@ -1397,24 +1124,24 @@ function getBackgroundPageTestData(): () => Promiselike<TestData> {
 					} else {
 						listeners.push(listener);
 					}
-				},
-			};
-		};
+				}
+			}
+		}
 	} else {
 		return () => {
 			return {
 				then(listener) {
 					listener(window.chrome);
-				},
-			};
-		};
+				}
+			}
+		}
 	}
 }
 
 async function closeOtherTabs() {
 	const tabs = await driver.getAllWindowHandles();
 	for (const tab of tabs) {
-		if (tab !== currentTestWindow && tab !== (await dummyTab.getHandle())) {
+		if (tab !== currentTestWindow && tab !== await dummyTab.getHandle()) {
 			await driver.switchTo().window(tab);
 			await driver.close();
 		}
@@ -1422,120 +1149,85 @@ async function closeOtherTabs() {
 	await switchToTestWindow();
 }
 
-function enterEditorFullscreen(
-	__thisOrType: Mocha.ISuiteCallbackContext | DialogType,
-	type?: DialogType
-): webdriver.promise.Promise<FoundElement> {
-	let __this: Mocha.ISuiteCallbackContext;
-	if (typeof __thisOrType === 'string') {
-		type = __thisOrType;
-		__this = void 0;
-	} else {
-		__this = __thisOrType;
-	}
-	return new webdriver.promise.Promise<FoundElement>((resolve) => {
-		resetSettings(__this)
-			.then(() => {
+function enterEditorFullscreen(__thisOrType: Mocha.ISuiteCallbackContext|DialogType,
+	type?: DialogType): webdriver.promise.Promise<FoundElement> {
+		let __this: Mocha.ISuiteCallbackContext;
+		if (typeof __thisOrType === 'string') {
+			type = __thisOrType;
+			__this = void 0;
+		} else {
+			__this = __thisOrType
+		}
+		return new webdriver.promise.Promise<FoundElement>((resolve) => {
+			resetSettings(__this).then(() => {
 				return openDialog(type);
-			})
-			.then(() => {
+			}).then(() => {
 				return getDialog(type);
-			})
-			.then((dialog) => {
+			}).then((dialog) => {
 				return wait(500, dialog);
-			})
-			.then((dialog) => {
+			}).then((dialog) => {
 				return dialog
 					.findElement(webdriver.By.id('editorFullScreen'))
 					.click()
 					.then(() => {
 						return wait(500);
-					})
-					.then(() => {
+					}).then(() => {
 						resolve(dialog);
 					});
 			});
-	});
-}
+		});
+	}
 
-describe('User entrypoints', function () {
+describe('User entrypoints', function() {
 	if (SKIP_ENTRYPOINTS) {
 		return;
 	}
 	if (TEST_EXTENSION) {
-		describe('Logging page', function () {
-			describe('Loading', function () {
-				it('should happen without errors', async function () {
+		describe('Logging page', function() {
+			describe('Loading', function() {
+				it('should happen without errors', async function() {
 					this.timeout(600000 * TIME_MODIFIER);
 					this.slow(600000 * TIME_MODIFIER);
-					const prefix = await getExtensionDataOnly().getExtensionURLPrefix(
-						driver,
-						browserCapabilities
-					);
+					const prefix = await getExtensionDataOnly().getExtensionURLPrefix(driver, browserCapabilities);
 					await driver.get(`${prefix}/html/logging.html`);
 					currentTestWindow = await driver.getWindowHandle();
-					await waitFor(
-						() => {
-							return driver.executeScript(
-								inlineFn(() => {
-									return window.polymerElementsLoaded;
-								})
-							);
-						},
-						2500,
-						600000 * TIME_MODIFIER
-					).then(
-						() => {},
-						() => {
-							//About to time out
-							throw new Error(
-								'Failed to get elements loaded message, page load is failing'
-							);
-						}
-					);
+					await waitFor(() => {
+						return driver.executeScript(inlineFn(() => {
+							return window.polymerElementsLoaded;
+						}));
+					}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
+						//About to time out
+						throw new Error('Failed to get elements loaded message, page load is failing');
+					});
 				});
 			});
 		});
-		describe('Userscript install page', function () {
-			describe('Loading', function () {
-				it('should happen without errors', async function () {
+		describe('Userscript install page', function() {
+			describe('Loading', function() {
+				it('should happen without errors', async function() {
 					this.timeout(600000 * TIME_MODIFIER);
 					this.slow(600000 * TIME_MODIFIER);
-					const prefix = await getExtensionDataOnly().getExtensionURLPrefix(
-						driver,
-						browserCapabilities
-					);
+					const prefix = await getExtensionDataOnly().getExtensionURLPrefix(driver, browserCapabilities);
 					await driver.get(`${prefix}/html/install.html`);
 					currentTestWindow = await driver.getWindowHandle();
-					await waitFor(
-						() => {
-							return driver.executeScript(
-								inlineFn(() => {
-									return window.polymerElementsLoaded;
-								})
-							);
-						},
-						2500,
-						600000 * TIME_MODIFIER
-					).then(
-						() => {},
-						() => {
-							//About to time out
-							throw new Error(
-								'Failed to get elements loaded message, page load is failing'
-							);
-						}
-					);
+					await waitFor(() => {
+						return driver.executeScript(inlineFn(() => {
+							return window.polymerElementsLoaded;
+						}));
+					}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
+						//About to time out
+						throw new Error('Failed to get elements loaded message, page load is failing');
+					});
 				});
 			});
 		});
 	}
-	describe('Options Page', function () {
+	describe('Options Page', function() {
 		before('Switch to correct tab', async () => {
 			await switchToTestWindow();
 		});
-		describe('Loading', function () {
-			it('should finish loading', async function () {
+		describe('Loading', function() {
+			it('should finish loading', async function() {
 				this.timeout(1200000 * TIME_MODIFIER);
 				this.slow(15000);
 				try {
@@ -1549,75 +1241,49 @@ describe('User entrypoints', function () {
 					await wait(500);
 					await switchToTestWindow();
 
-					await waitFor(
-						() => {
-							return driver.executeScript(
-								inlineFn(() => {
-									return window.polymerElementsLoaded;
-								})
-							);
-						},
-						2500,
-						600000 * TIME_MODIFIER
-					).then(
-						() => {},
-						() => {
-							//About to time out
-							throw new Error(
-								'Failed to get elements loaded message, page load is failing'
-							);
-						}
-					);
-				} catch (e) {}
+					await waitFor(() => {
+						return driver.executeScript(inlineFn(() => {
+							return window.polymerElementsLoaded;
+						}));
+					}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
+						//About to time out
+						throw new Error('Failed to get elements loaded message, page load is failing');
+					});
+				} catch(e) {}
 			});
-			it('should apply i18n', async function () {
+			it('should apply i18n', async function() {
 				this.timeout(10000 * TIME_MODIFIER);
 				this.slow(8000 * TIME_MODIFIER);
 
-				const content = await findElement(
-					webdriver.By.tagName('crm-app')
-				)
+				const content = await findElement(webdriver.By.tagName('crm-app'))
 					.findElement(webdriver.By.className('title'))
 					.findElement(webdriver.By.tagName('span'))
 					.getText();
-				const i18nFile = await new Promise<string>(
-					(resolve, reject) => {
-						fs.readFile(
-							path.join(
-								__dirname,
-								'../',
-								'build/_locales/en/messages.json'
-							),
-							{
-								encoding: 'utf8',
-							},
-							(err, data) => {
-								if (err) {
-									reject(err);
-								} else {
-									resolve(data);
-								}
-							}
-						);
-					}
-				);
+				const i18nFile = await new Promise<string>((resolve, reject) => {
+					fs.readFile(path.join(__dirname, '../', 'build/_locales/en/messages.json'), {
+						encoding: 'utf8'
+					}, (err, data) => {
+						if (err) {
+							reject(err);
+						} else {
+							resolve(data);
+						}
+					});
+				});
 				let parsed: {
 					[key: string]: {
-						message: string;
+						message: string
 					};
 				};
 				assert.doesNotThrow(() => {
 					parsed = JSON.parse(i18nFile);
 				}, 'messages file should be JSON parsable');
 				const expected = parsed[I18NKeys.generic.appTitle].message;
-				assert.strictEqual(
-					content,
-					expected,
-					'text was changed to i18n version'
-				);
+				assert.strictEqual(content, expected,
+					'text was changed to i18n version');
 			});
 		});
-		describe('CheckboxOptions', function () {
+		describe('CheckboxOptions', function() {
 			if (SKIP_OPTIONS_PAGE_NON_DIALOGS) {
 				return;
 			}
@@ -1628,101 +1294,56 @@ describe('User entrypoints', function () {
 				catchErrors: true,
 				showOptions: true,
 				recoverUnsavedData: false,
-				useStorageSync: true,
+				useStorageSync: true
 			};
-			Object.getOwnPropertyNames(checkboxDefaults).forEach(
-				(checkboxId) => {
-					it(`${checkboxId} should be clickable`, async () => {
-						await reloadPage(this);
-						await findElement(webdriver.By.tagName('crm-app'))
-							.findElement(webdriver.By.id(checkboxId))
-							.findElement(webdriver.By.tagName('paper-checkbox'))
-							.click();
-
-						const { checked, match } = JSON.parse(
-							await driver.executeScript(
-								inlineFn(
-									(REPLACE) => {
-										const id = 'REPLACE.checkboxId' as keyof CRM.StorageLocal;
-										return JSON.stringify({
-											match:
-												window.app.storageLocal[id] ===
-												REPLACE.expected,
-											checked: (window.app.$ as any)[
-												id
-											].shadowRoot.querySelector(
-												'paper-checkbox'
-											).checked,
-										});
-									},
-									{
-										checkboxId: checkboxId,
-										expected: !checkboxDefaults[
-											checkboxId as keyof typeof checkboxDefaults
-										],
-									}
-								)
-							)
-						);
-
-						assert.strictEqual(
-							checked,
-							!checkboxDefaults[
-								checkboxId as keyof typeof checkboxDefaults
-							],
-							'checkbox checked status matches expected'
-						);
-						assert.strictEqual(
-							match,
-							true,
-							`checkbox ${checkboxId} value reflects settings value`
-						);
-					});
-					it(`${checkboxId} should be saved`, async function () {
-						await reloadPage(this);
-						const { checked, match } = JSON.parse(
-							await driver.executeScript(
-								inlineFn(
-									(REPLACE) => {
-										const id = 'REPLACE.checkboxId' as keyof CRM.StorageLocal;
-										return JSON.stringify({
-											match:
-												window.app.storageLocal[id] ===
-												REPLACE.expected,
-											checked: (window.app.$ as any)[
-												id
-											].shadowRoot.querySelector(
-												'paper-checkbox'
-											).checked,
-										});
-									},
-									{
-										checkboxId: checkboxId,
-										expected: !checkboxDefaults[
-											checkboxId as keyof typeof checkboxDefaults
-										],
-									}
-								)
-							)
-						);
-
-						assert.strictEqual(
-							checked,
-							!checkboxDefaults[
-								checkboxId as keyof typeof checkboxDefaults
-							],
-							'checkbox checked status has been saved'
-						);
-						assert.strictEqual(
-							match,
-							true,
-							`checkbox ${checkboxId} value has been saved`
-						);
-					});
-				}
-			);
+			Object.getOwnPropertyNames(checkboxDefaults).forEach((checkboxId) => {
+				it(`${checkboxId} should be clickable`, async () => {
+					await reloadPage(this);
+					await findElement(webdriver.By.tagName('crm-app'))
+						.findElement(webdriver.By.id(checkboxId))
+						.findElement(webdriver.By.tagName('paper-checkbox'))
+						.click();
+					
+					const { checked, match } = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
+						const id = 'REPLACE.checkboxId' as keyof CRM.StorageLocal;
+						return JSON.stringify({
+							match: window.app.storageLocal[id] === REPLACE.expected,
+							checked: (window.app.$ as any)[id]
+								.shadowRoot
+								.querySelector('paper-checkbox').checked
+						});
+					}, {
+						checkboxId: checkboxId,
+						expected: !checkboxDefaults[checkboxId as keyof typeof checkboxDefaults]
+					})));
+	
+					assert.strictEqual(checked, !checkboxDefaults[checkboxId as keyof typeof checkboxDefaults],
+						'checkbox checked status matches expected');
+					assert.strictEqual(match, true, 
+						`checkbox ${checkboxId} value reflects settings value`);
+				});
+				it(`${checkboxId} should be saved`, async function() {
+					await reloadPage(this);
+					const { checked, match } = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
+						const id = 'REPLACE.checkboxId' as keyof CRM.StorageLocal;
+						return JSON.stringify({
+							match: window.app.storageLocal[id] === REPLACE.expected,
+							checked: (window.app.$ as any)[id]
+								.shadowRoot.querySelector('paper-checkbox').checked
+						});
+					}, {
+						checkboxId: checkboxId,
+						expected: !checkboxDefaults[checkboxId as keyof typeof checkboxDefaults]
+					})));
+	
+					assert.strictEqual(checked, !checkboxDefaults[checkboxId as keyof typeof checkboxDefaults],
+						'checkbox checked status has been saved');
+					assert.strictEqual(match, true, 
+						`checkbox ${checkboxId} value has been saved`);
+				});
+			});
 		});
-		describe('Commonly used links', function () {
+		describe('Commonly used links', function() {
 			if (SKIP_OPTIONS_PAGE_NON_DIALOGS) {
 				return;
 			}
@@ -1730,152 +1351,97 @@ describe('User entrypoints', function () {
 			this.slow(10000 * TIME_MODIFIER);
 			let searchEngineLink = '';
 			let defaultLinkName = '';
-
-			before('Reset settings', function () {
+	
+			before('Reset settings', function() {
 				return resetSettings(this);
 			});
-			it('should be addable', async function () {
-				const firstElement = await findElement(
-					webdriver.By.tagName('crm-app')
-				)
-					.findElements(webdriver.By.tagName('default-link'))
-					.get(0);
-				await firstElement
-					.findElement(webdriver.By.tagName('animated-button'))
-					.click();
-				const name = await firstElement
-					.findElement(webdriver.By.tagName('paper-input'))
+			it('should be addable', async function()  {
+				const firstElement = await findElement(webdriver.By.tagName('crm-app'))
+					.findElements(webdriver.By.tagName('default-link')).get(0);
+				await firstElement.findElement(webdriver.By.tagName('animated-button')).click();
+				const name = await firstElement.findElement(webdriver.By.tagName('paper-input'))
 					.getProperty('value');
-				const link = await firstElement
-					.findElement(webdriver.By.tagName('a'))
-					.getAttribute('href');
+				const link = await firstElement.findElement(webdriver.By.tagName('a')).getAttribute('href');
 				await wait(1000);
 				const crm = await getCRM<CRM.LinkNode[]>();
-
+	
 				searchEngineLink = link;
 				defaultLinkName = name;
-
+	
 				const element = crm[crm.length - 1];
-
-				assert.strictEqual(
-					name,
-					element.name,
-					'name is the same as expected'
-				);
-				assert.strictEqual(
-					element.type,
-					'link',
-					'type of element is link'
-				);
+	
+				assert.strictEqual(name, element.name, 
+					'name is the same as expected');
+				assert.strictEqual(element.type, 'link',
+					'type of element is link');
 				assert.isArray(element.value, 'element value is array');
 				assert.lengthOf(element.value, 1, 'element has one child');
 				assert.isDefined(element.value[0], 'first element is defined');
 				assert.isObject(element.value[0], 'first element is an object');
-				assert.strictEqual(
-					element.value[0].url,
-					link,
-					'value url is the same as expected'
-				);
+				assert.strictEqual(element.value[0].url, link, 
+					'value url is the same as expected');
 				assert.isTrue(element.value[0].newTab, 'newTab is true');
 			});
-			it('should be renamable', async function () {
+			it('should be renamable', async function() {
 				const renameName = 'SomeName';
-				const firstElement = await findElement(
-					webdriver.By.tagName('crm-app')
-				)
-					.findElements(webdriver.By.tagName('default-link'))
-					.get(0);
-				await firstElement
-					.findElement(webdriver.By.tagName('paper-input'))
+				const firstElement = await findElement(webdriver.By.tagName('crm-app'))
+					.findElements(webdriver.By.tagName('default-link')).get(0);
+				await firstElement.findElement(webdriver.By.tagName('paper-input'))
 					.findElement(webdriver.By.tagName('input'))
 					.sendKeys(InputKeys.CLEAR_ALL, renameName);
-				await firstElement
-					.findElement(webdriver.By.tagName('animated-button'))
-					.click();
-				const link = await firstElement
-					.findElement(webdriver.By.tagName('a'))
-					.getAttribute('href');
+				await firstElement.findElement(webdriver.By.tagName('animated-button')).click();
+				const link = await firstElement.findElement(webdriver.By.tagName('a')).getAttribute('href');
 				await wait(1000);
 				const crm = await getCRM<CRM.LinkNode[]>();
 				const element = crm[crm.length - 1];
-
-				assert.strictEqual(
-					element.name,
-					renameName,
-					'name is the same as expected'
-				);
-				assert.strictEqual(
-					element.type,
-					'link',
-					'type of element is link'
-				);
+	
+				assert.strictEqual(element.name, renameName,
+					'name is the same as expected');
+				assert.strictEqual(element.type, 'link',
+					'type of element is link');
 				assert.isArray(element.value, 'element value is array');
 				assert.lengthOf(element.value, 1, 'element has one child');
 				assert.isDefined(element.value[0], 'first element is defined');
 				assert.isObject(element.value[0], 'first element is an object');
-				assert.strictEqual(
-					element.value[0].url,
-					link,
-					'value url is the same as expected'
-				);
+				assert.strictEqual(element.value[0].url, link, 
+					'value url is the same as expected');
 				assert.isTrue(element.value[0].newTab, 'newTab is true');
 			});
-			it('should be saved', async function () {
+			it('should be saved', async function() {
 				await reloadPage(this);
 				const crm = await getCRM<CRM.LinkNode[]>();
-
+				
 				const element = crm[crm.length - 2];
-
+	
 				assert.isDefined(element, 'element is defined');
-				assert.strictEqual(
-					element.name,
-					defaultLinkName,
-					'name is the same as expected'
-				);
-				assert.strictEqual(
-					element.type,
-					'link',
-					'type of element is link'
-				);
+				assert.strictEqual(element.name, defaultLinkName, 
+					'name is the same as expected');
+				assert.strictEqual(element.type, 'link',
+					'type of element is link');
 				assert.isArray(element.value, 'element value is array');
 				assert.lengthOf(element.value, 1, 'element has one child');
 				assert.isDefined(element.value[0], 'first element is defined');
 				assert.isObject(element.value[0], 'first element is an object');
-				assert.strictEqual(
-					element.value[0].url,
-					searchEngineLink,
-					'value url is the same as expected'
-				);
+				assert.strictEqual(element.value[0].url, searchEngineLink, 
+					'value url is the same as expected');
 				assert.isTrue(element.value[0].newTab, 'newTab is true');
-
+	
 				const element2 = crm[crm.length - 1];
 				assert.isDefined(element2, 'element is defined');
-				assert.strictEqual(
-					element2.name,
-					'SomeName',
-					'name is the same as expected'
-				);
-				assert.strictEqual(
-					element2.type,
-					'link',
-					'type of element is link'
-				);
+				assert.strictEqual(element2.name, 'SomeName', 
+					'name is the same as expected');
+				assert.strictEqual(element2.type, 'link',
+					'type of element is link');
 				assert.isArray(element2.value, 'element value is array');
 				assert.lengthOf(element2.value, 1, 'element has one child');
 				assert.isDefined(element2.value[0], 'first element is defined');
-				assert.isObject(
-					element2.value[0],
-					'first element is an object'
-				);
-				assert.strictEqual(
-					element2.value[0].url,
-					searchEngineLink,
-					'value url is the same as expected'
-				);
+				assert.isObject(element2.value[0], 'first element is an object');
+				assert.strictEqual(element2.value[0].url, searchEngineLink, 
+					'value url is the same as expected');
 				assert.isTrue(element2.value[0].newTab, 'newTab is true');
 			});
 		});
-		describe('SearchEngines', function () {
+		describe('SearchEngines', function() {
 			if (SKIP_OPTIONS_PAGE_NON_DIALOGS) {
 				return;
 			}
@@ -1883,237 +1449,155 @@ describe('User entrypoints', function () {
 			this.slow(10000 * TIME_MODIFIER);
 			let searchEngineLink = '';
 			let searchEngineName = '';
-
-			before('Reset settings', function () {
+	
+			before('Reset settings', function() {
 				return resetSettings(this);
 			});
-
-			it('should be addable', async function () {
-				const elements = await findElement(
-					webdriver.By.tagName('crm-app')
-				).findElements(webdriver.By.tagName('default-link'));
+	
+			it('should be addable', async function()  {
+				const elements = await findElement(webdriver.By.tagName('crm-app'))
+					.findElements(webdriver.By.tagName('default-link'));
 				const index = elements.length - 1;
-				await elements[index]
-					.findElement(webdriver.By.tagName('animated-button'))
-					.click();
-				const name = await elements[index]
-					.findElement(webdriver.By.tagName('paper-input'))
+				await elements[index].findElement(webdriver.By.tagName('animated-button')).click();
+				const name = await elements[index].findElement(webdriver.By.tagName('paper-input'))
 					.getProperty('value');
-				const link = await elements[index]
-					.findElement(webdriver.By.tagName('a'))
-					.getAttribute('href');
+				const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
 				await wait(1000);
 				const crm = await getCRM<CRM.LinkNode[]>();
 				const element = crm[crm.length - 1];
-
+	
 				searchEngineLink = link;
 				searchEngineName = name;
-
-				assert.strictEqual(
-					element.name,
-					name,
-					'name is the same as expected'
-				);
-				assert.strictEqual(
-					element.type,
-					'link',
-					'type of element is link'
-				);
+				
+				assert.strictEqual(element.name, name, 
+					'name is the same as expected');
+				assert.strictEqual(element.type, 'link',
+					'type of element is link');
 				assert.isArray(element.value, 'element value is an array');
 				assert.exists(element.value[0], 'url exists');
 				assert.isString(element.value[0].url, 'url is a string');
-				assert.strictEqual(
-					element.value[0].url,
-					link,
-					'script1 value matches expected'
-				);
+				assert.strictEqual(element.value[0].url, link,
+					'script1 value matches expected');
 			});
-			it('should be renamable', async function () {
+			it('should be renamable', async function() {
 				const renameName = 'SomeName';
-				const elements = await findElement(
-					webdriver.By.tagName('crm-app')
-				).findElements(webdriver.By.tagName('default-link'));
+				const elements = await findElement(webdriver.By.tagName('crm-app'))
+					.findElements(webdriver.By.tagName('default-link'));
 				const index = elements.length - 1;
-				await elements[index]
-					.findElement(webdriver.By.tagName('paper-input'))
+				await elements[index].findElement(webdriver.By.tagName('paper-input'))
 					.findElement(webdriver.By.tagName('input'))
 					.sendKeys(InputKeys.CLEAR_ALL, renameName);
-				await elements[index]
-					.findElement(webdriver.By.tagName('animated-button'))
-					.click();
-				const link = await elements[index]
-					.findElement(webdriver.By.tagName('a'))
-					.getAttribute('href');
+				await elements[index].findElement(webdriver.By.tagName('animated-button')).click();
+				const link = await elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href');
 				await wait(1000);
 				const crm = await getCRM<CRM.LinkNode[]>();
 				const element = crm[crm.length - 1];
-
-				assert.strictEqual(
-					renameName,
-					element.name,
-					'name is the same as expected'
-				);
-				assert.strictEqual(
-					element.type,
-					'link',
-					'type of element is link'
-				);
+				
+				assert.strictEqual(renameName, element.name, 
+					'name is the same as expected');
+					assert.strictEqual(element.type, 'link',
+					'type of element is link');
 				assert.isArray(element.value, 'element value is an array');
 				assert.exists(element.value[0], 'url exists');
 				assert.isString(element.value[0].url, 'url is a string');
-				assert.strictEqual(
-					element.value[0].url,
-					link,
-					'script1 value matches expected'
-				);
+				assert.strictEqual(element.value[0].url, link,
+					'script1 value matches expected');
 			});
-			it('should be saved', async function () {
+			it('should be saved', async function() {
 				await reloadPage(this);
 				const crm = await getCRM<CRM.LinkNode[]>();
 				await (async () => {
 					const element = crm[crm.length - 2];
-
+	
 					assert.isDefined(element, 'element is defined');
-					assert.strictEqual(
-						element.name,
-						searchEngineName,
-						'name is the same as expected'
-					);
-					assert.strictEqual(
-						element.type,
-						'link',
-						'type of element is link'
-					);
+					assert.strictEqual(element.name, searchEngineName, 
+						'name is the same as expected');
+					assert.strictEqual(element.type, 'link',
+						'type of element is link');
 					assert.isArray(element.value, 'element value is an array');
 					assert.exists(element.value[0], 'url exists');
 					assert.isString(element.value[0].url, 'url is a string');
-					assert.strictEqual(
-						element.value[0].url,
-						searchEngineLink,
-						'script1 value matches expected'
-					);
+					assert.strictEqual(element.value[0].url, searchEngineLink,
+						'script1 value matches expected');
 				})();
 				await (async () => {
-					const element2 = crm[crm.length - 1];
-					assert.strictEqual(
-						element2.name,
-						'SomeName',
-						'name is the same as expected'
-					);
-					assert.strictEqual(
-						element2.type,
-						'link',
-						'type of element is link'
-					);
+					const element2 = crm[crm.length - 1];	
+					assert.strictEqual(element2.name, 'SomeName', 
+						'name is the same as expected');
+					assert.strictEqual(element2.type, 'link',
+						'type of element is link');
 					assert.isArray(element2.value, 'element value is an array');
 					assert.exists(element2.value[0], 'url exists');
 					assert.isString(element2.value[0].url, 'url is a string');
-					assert.strictEqual(
-						element2.value[0].url,
-						searchEngineLink,
-						'script1 value matches expected'
-					);
+					assert.strictEqual(element2.value[0].url, searchEngineLink,
+						'script1 value matches expected');
 				});
 			});
 		});
-		describe('URIScheme', function () {
+		describe('URIScheme', function() {
 			if (SKIP_OPTIONS_PAGE_NON_DIALOGS) {
 				return;
 			}
-			before('Reset settings', function () {
+			before('Reset settings', function() {
 				return resetSettings(this);
 			});
 			this.slow(5000 * TIME_MODIFIER);
 			this.timeout(7500 * TIME_MODIFIER);
-
-			async function testURIScheme(
-				toExecutePath: string,
-				schemeName: string
-			) {
+	
+			async function testURIScheme(toExecutePath: string, schemeName: string) {
 				await findElement(webdriver.By.tagName('crm-app'))
 					.findElement(webdriver.By.className('URISchemeGenerator'))
 					.findElement(webdriver.By.tagName('animated-button'))
-					.click();
-
+					.click()
+	
 				if (TEST_EXTENSION) {
 					return;
 				}
-
+					
 				await wait(500);
 
-				const lastCall = JSON.parse(
-					await driver.executeScript(
-						inlineFn(
-							(REPLACE) => {
-								return JSON.stringify(
-									REPLACE.getTestData()._lastSpecialCall
-								);
-							},
-							{
-								getTestData: getTestData(),
-							}
-						)
-					)
-				);
-				assert.isDefined(
-					lastCall,
-					'a call to the browser API was made'
-				);
-				assert.strictEqual(
-					lastCall.api,
-					'downloads.download',
-					'browser downloads API was called'
-				);
+				const lastCall = JSON.parse(await driver.executeScript(inlineFn((REPLACE) => {
+					return JSON.stringify(REPLACE.getTestData()._lastSpecialCall);
+				}, {
+					getTestData: getTestData()
+				})));
+				assert.isDefined(lastCall, 'a call to the browser API was made');
+				assert.strictEqual(lastCall.api, 'downloads.download',
+					'browser downloads API was called');
 				assert.isArray(lastCall.args, 'api args are present');
 				assert.lengthOf(lastCall.args, 1, 'api has only one arg');
-				assert.strictEqual(
-					lastCall.args[0].url,
-					'data:text/plain;charset=utf-8;base64,' +
-						btoa(
-							[
-								'Windows Registry Editor Version 5.00',
-								'',
-								'[HKEY_CLASSES_ROOT\\' + schemeName + ']',
-								'@="URL:' + schemeName + ' Protocol"',
-								'"URL Protocol"=""',
-								'',
-								'[HKEY_CLASSES_ROOT\\' +
-									schemeName +
-									'\\shell]',
-								'',
-								'[HKEY_CLASSES_ROOT\\' +
-									schemeName +
-									'\\shell\\open]',
-								'',
-								'[HKEY_CLASSES_ROOT\\' +
-									schemeName +
-									'\\shell\\open\\command]',
-								'@="\\"' +
-									toExecutePath.replace(/\\/g, '\\\\') +
-									'\\""',
-							].join('\n')
-						),
-					'file content matches expected'
-				);
-				assert.strictEqual(
-					lastCall.args[0].filename,
-					schemeName + '.reg',
-					'filename matches expected'
-				);
+				assert.strictEqual(lastCall.args[0].url, 
+					'data:text/plain;charset=utf-8;base64,' + btoa([
+					'Windows Registry Editor Version 5.00',
+					'',
+					'[HKEY_CLASSES_ROOT\\' + schemeName + ']',
+					'@="URL:' + schemeName +' Protocol"',
+					'"URL Protocol"=""',
+					'',
+					'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell]',
+					'',
+					'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open]',
+					'',
+					'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open\\command]',
+					'@="\\"' + toExecutePath.replace(/\\/g, '\\\\') + '\\""'
+				].join('\n')),
+					'file content matches expected');
+				assert.strictEqual(lastCall.args[0].filename, 
+					schemeName + '.reg', 'filename matches expected');
 			}
-
-			afterEach('Reset page settings', function () {
+	
+			afterEach('Reset page settings', function() {
 				return resetSettings(this);
 			});
-
+	
 			const defaultToExecutePath = 'C:\\files\\my_file.exe';
 			const defaultSchemeName = 'myscheme';
-			it('should be able to download the default file', async function () {
+			it('should be able to download the default file', async function()  {
 				const toExecutePath = defaultToExecutePath;
 				const schemeName = defaultSchemeName;
 				await testURIScheme(toExecutePath, schemeName);
 			});
-			it('should be able to download when a different file path was entered', async function () {
+			it('should be able to download when a different file path was entered', async function()  {
 				const toExecutePath = 'somefile.a.b.c';
 				const schemeName = defaultSchemeName;
 				await findElement(webdriver.By.tagName('crm-app'))
@@ -2122,7 +1606,7 @@ describe('User entrypoints', function () {
 					.sendKeys(InputKeys.CLEAR_ALL, toExecutePath);
 				await testURIScheme(toExecutePath, schemeName);
 			});
-			it('should be able to download when a different scheme name was entered', async function () {
+			it('should be able to download when a different scheme name was entered', async function()  {
 				const toExecutePath = defaultToExecutePath;
 				const schemeName = getRandomString(25);
 				await findElement(webdriver.By.tagName('crm-app'))
@@ -2135,250 +1619,171 @@ describe('User entrypoints', function () {
 					.sendKeys(InputKeys.CLEAR_ALL, toExecutePath);
 				await testURIScheme(toExecutePath, schemeName);
 			});
-			it('should be able to download when a different scheme name and a different file path are entered', async () => {
-				const toExecutePath = 'somefile.x.y.z';
-				const schemeName = getRandomString(25);
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.id('URISchemeFilePath'))
-					.findElement(webdriver.By.tagName('input'))
-					.sendKeys(InputKeys.CLEAR_ALL, toExecutePath);
-				await findElement(webdriver.By.tagName('crm-app'))
-					.findElement(webdriver.By.id('URISchemeSchemeName'))
-					.findElement(webdriver.By.tagName('input'))
-					.sendKeys(InputKeys.CLEAR_ALL, schemeName);
-				await testURIScheme(toExecutePath, schemeName);
-			});
+			it('should be able to download when a different scheme name and a different file path are entered', 
+				async () => {
+					const toExecutePath = 'somefile.x.y.z';
+					const schemeName = getRandomString(25);
+					await findElement(webdriver.By.tagName('crm-app'))
+						.findElement(webdriver.By.id('URISchemeFilePath'))
+						.findElement(webdriver.By.tagName('input'))
+						.sendKeys(InputKeys.CLEAR_ALL, toExecutePath);
+					await findElement(webdriver.By.tagName('crm-app'))
+						.findElement(webdriver.By.id('URISchemeSchemeName'))
+						.findElement(webdriver.By.tagName('input'))
+						.sendKeys(InputKeys.CLEAR_ALL, schemeName);
+					await testURIScheme(toExecutePath, schemeName);
+				});
 		});
-
+	
 		function testNameInput(type: CRM.NodeType) {
 			const defaultName = `My ${type[0].toUpperCase() + type.slice(1)}`;
-			describe('Name Input', function () {
+			describe('Name Input', function() {
 				this.timeout(20000 * TIME_MODIFIER);
 				this.slow(20000 * TIME_MODIFIER);
-
-				it('should not change when not saved', async function () {
-					before('Reset settings', function () {
+	
+				it('should not change when not saved', async function() {
+					before('Reset settings', function() {
 						return resetSettings(this);
 					});
-
+	
 					const name = getRandomString(25);
 					await resetSettings(this);
 					await openDialog(type);
 					const dialog = await getDialog(type);
-					await dialog
-						.findElement(webdriver.By.id('nameInput'))
-						.sendKeys(InputKeys.CLEAR_ALL, name);
+					await dialog.findElement(webdriver.By.id('nameInput'))
+						.sendKeys(InputKeys.CLEAR_ALL, name)
 					await cancelDialog(dialog);
-
+	
 					const crm = await getCRM();
-					assert.strictEqual(crm[0].type, type, `type is ${type}`);
-					assert.strictEqual(
-						crm[0].name,
-						defaultName,
-						'name has not been saved'
-					);
+					assert.strictEqual(crm[0].type, type, 
+						`type is ${type}`);
+					assert.strictEqual(crm[0].name, defaultName, 
+						'name has not been saved');
 				});
 				const name = getRandomString(25);
-				it('should be editable when saved', async function () {
-					before('Reset settings', function () {
+				it('should be editable when saved', async function()  {
+					before('Reset settings', function() {
 						return resetSettings(this);
 					});
-
+	
 					await resetSettings(this);
 					await openDialog(type);
 					const dialog = await getDialog(type);
-					dialog
-						.findElement(webdriver.By.id('nameInput'))
+					dialog.findElement(webdriver.By.id('nameInput'))
 						.sendKeys(InputKeys.CLEAR_ALL, name);
 					await wait(300);
 					await saveDialog(dialog);
 					await wait(300);
-
+	
 					const crm = await getCRM();
-					assert.strictEqual(crm[0].type, type, 'type is link');
-					assert.strictEqual(
-						crm[0].name,
-						name,
-						'name has been properly saved'
-					);
+					assert.strictEqual(crm[0].type, type, 
+						'type is link');
+					assert.strictEqual(crm[0].name, name, 
+						'name has been properly saved');
 				});
-				it('should be saved when changed', async function () {
-					await reloadPage(this);
+				it('should be saved when changed', async function() {
+					await reloadPage(this)
 					const crm = await getCRM();
-					assert.strictEqual(crm[0].type, type, `type is ${type}`);
-					assert.strictEqual(
-						crm[0].name,
-						name,
-						'name has been properly saved'
-					);
+					assert.strictEqual(crm[0].type, type, 
+						`type is ${type}`);
+					assert.strictEqual(crm[0].name, name, 
+						'name has been properly saved');
 				});
 			});
 		}
-
+	
 		function testVisibilityTriggers(type: CRM.NodeType) {
-			describe('Triggers', function () {
+			describe('Triggers', function() {
 				this.timeout(20000 * TIME_MODIFIER);
 				this.slow(20000 * TIME_MODIFIER);
-
-				it('should not change when not saved', async function () {
+	
+				it('should not change when not saved', async function()  {
 					await resetSettings(this);
 					await openDialog(type);
 					const dialog = await getDialog(type);
-					await dialog
-						.findElement(webdriver.By.id('showOnSpecified'))
-						.click();
-					await dialog
-						.findElement(webdriver.By.id('addTrigger'))
+					await dialog.findElement(webdriver.By.id('showOnSpecified')).click()
+					await dialog.findElement(webdriver.By.id('addTrigger'))
 						.click()
 						.click();
-
+	
 					await wait(500);
-					const triggers = await dialog.findElements(
-						webdriver.By.className('executionTrigger')
-					);
-					await triggers[0]
-						.findElement(webdriver.By.tagName('paper-checkbox'))
-						.click();
-					await triggers[0].sendKeys(
-						InputKeys.CLEAR_ALL,
-						'www.google.com'
-					);
-					await triggers[1].sendKeys(
-						InputKeys.CLEAR_ALL,
-						'www.google.com'
-					);
+					const triggers = await dialog.findElements(webdriver.By.className('executionTrigger'))
+					await triggers[0].findElement(webdriver.By.tagName('paper-checkbox')).click();
+					await triggers[0].sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
+					await triggers[1].sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
 					await cancelDialog(dialog);
 					const crm = await getCRM();
-					assert.lengthOf(
-						crm[0].triggers,
-						1,
-						'no triggers have been added'
-					);
-					assert.isFalse(
-						crm[0].triggers[0].not,
-						'first trigger NOT status did not change'
-					);
-					assert.strictEqual(
-						crm[0].triggers[0].url,
+					assert.lengthOf(crm[0].triggers, 1, 
+						'no triggers have been added');
+					assert.isFalse(crm[0].triggers[0].not, 
+						'first trigger NOT status did not change');
+					assert.strictEqual(crm[0].triggers[0].url, 
 						'*://*.example.com/*',
-						'first trigger url stays the same'
-					);
+						'first trigger url stays the same');
 				});
 				it('should be addable/editable when saved', async () => {
 					await resetSettings(this);
 					await openDialog(type);
 					const dialog = await getDialog(type);
-					await dialog
-						.findElement(webdriver.By.id('showOnSpecified'))
-						.click();
-					await dialog
-						.findElement(webdriver.By.id('addTrigger'))
+					await dialog.findElement(webdriver.By.id('showOnSpecified')).click();
+					await dialog.findElement(webdriver.By.id('addTrigger'))
 						.click()
 						.click();
 					await wait(500);
-					const triggers = await dialog.findElements(
-						webdriver.By.className('executionTrigger')
-					);
-					await triggers[0]
-						.findElement(webdriver.By.tagName('paper-checkbox'))
-						.click();
-					await triggers[1]
-						.findElement(webdriver.By.tagName('paper-input'))
+					const triggers = await dialog.findElements(webdriver.By.className('executionTrigger'));
+					await triggers[0].findElement(webdriver.By.tagName('paper-checkbox')).click();
+					await triggers[1].findElement(webdriver.By.tagName('paper-input'))
 						.sendKeys(InputKeys.CLEAR_ALL, 'http://www.google.com');
 					await saveDialog(dialog);
-
+	
 					const crm = await getCRM();
-					assert.lengthOf(
-						crm[0].triggers,
-						3,
-						'trigger has been added'
-					);
-					assert.isTrue(
-						crm[0].triggers[0].not,
-						'first trigger is NOT'
-					);
-					assert.isFalse(
-						crm[0].triggers[1].not,
-						'second trigger is not NOT'
-					);
-					assert.strictEqual(
-						crm[0].triggers[0].url,
-						'*://*.example.com/*',
-						'first trigger url stays the same'
-					);
-					assert.strictEqual(
-						crm[0].triggers[1].url,
-						'http://www.google.com',
-						'second trigger url changed'
-					);
+					assert.lengthOf(crm[0].triggers, 3, 'trigger has been added');
+					assert.isTrue(crm[0].triggers[0].not, 'first trigger is NOT');
+					assert.isFalse(crm[0].triggers[1].not, 'second trigger is not NOT');
+					assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*',
+						'first trigger url stays the same');
+					assert.strictEqual(crm[0].triggers[1].url, 'http://www.google.com',
+						'second trigger url changed');
 				});
-				it('should be preserved on page reload', async function () {
+				it('should be preserved on page reload', async function() {
 					await reloadPage(this);
 					await wait(500);
 					const crm = await getCRM();
-
-					assert.lengthOf(
-						crm[0].triggers,
-						3,
-						'trigger has been added'
-					);
-					assert.isTrue(
-						crm[0].triggers[0].not,
-						'first trigger is NOT'
-					);
-					assert.isFalse(
-						crm[0].triggers[1].not,
-						'second trigger is not NOT'
-					);
-					assert.strictEqual(
-						crm[0].triggers[0].url,
+	
+					assert.lengthOf(crm[0].triggers, 3, 
+						'trigger has been added');
+					assert.isTrue(crm[0].triggers[0].not, 
+						'first trigger is NOT');
+					assert.isFalse(crm[0].triggers[1].not,
+						'second trigger is not NOT');
+					assert.strictEqual(crm[0].triggers[0].url, 
 						'*://*.example.com/*',
-						'first trigger url stays the same'
-					);
-					assert.strictEqual(
-						crm[0].triggers[1].url,
+						'first trigger url stays the same');
+					assert.strictEqual(crm[0].triggers[1].url,
 						'http://www.google.com',
-						'second trigger url changed'
-					);
+						'second trigger url changed');
 				});
 			});
 		}
-
+	
 		function testContentTypes(type: CRM.NodeType) {
-			if (
-				TEST_EXTENSION &&
-				browserCapabilities.browser_version &&
-				Math.round(parseFloat(browserCapabilities.browser_version)) <=
-					40
-			) {
-				return;
-			}
-			describe('Content Types', function () {
+			if (TEST_EXTENSION && browserCapabilities.browser_version && 
+				Math.round(parseFloat(browserCapabilities.browser_version)) <= 40) {
+					return;
+				}
+			describe('Content Types', function() {
 				this.timeout(60000 * TIME_MODIFIER);
 				this.slow(30000 * TIME_MODIFIER);
-				const defaultContentTypes = [
-					true,
-					true,
-					true,
-					false,
-					false,
-					false,
-				];
-
-				it('should be editable through clicking on the checkboxes', async function () {
+				const defaultContentTypes = [true, true, true, false, false, false];
+	
+				it('should be editable through clicking on the checkboxes', async function()  {
 					this.retries(10);
 					await resetSettings(this);
 					await openDialog(type);
 					const dialog = await getDialog(type);
-					await dialog
-						.findElements(
-							webdriver.By.className('showOnContentItemCont')
-						)
+					await dialog.findElements(webdriver.By.className('showOnContentItemCont'))
 						.mapWaitChain((element) => {
-							return element
-								.findElement(
-									webdriver.By.tagName('paper-checkbox')
-								)
+							return element.findElement(webdriver.By.tagName('paper-checkbox'))
 								.click()
 								.then(() => {
 									return wait(250);
@@ -2387,42 +1792,26 @@ describe('User entrypoints', function () {
 					await wait(1000);
 					await saveDialog(dialog);
 					const crm = await getCRM();
-
-					assert.isFalse(
-						crm[0].onContentTypes[0],
-						'content types that were on were switched off'
-					);
-					assert.isTrue(
-						crm[0].onContentTypes[4],
-						'content types that were off were switched on'
-					);
-					let newContentTypes = defaultContentTypes.map(
-						(contentType) => !contentType
-					);
+	
+					assert.isFalse(crm[0].onContentTypes[0], 
+						'content types that were on were switched off');
+					assert.isTrue(crm[0].onContentTypes[4],
+						'content types that were off were switched on');
+					let newContentTypes = defaultContentTypes.map(contentType => !contentType);
 					//CRM prevents you from turning off all content types and 2 is the one that stays on
 					newContentTypes[2] = true;
-					assert.deepEqual(
-						crm[0].onContentTypes,
+					assert.deepEqual(crm[0].onContentTypes,
 						newContentTypes,
-						'all content types were toggled'
-					);
+						'all content types were toggled');
 				});
-				it('should be editable through clicking on the icons', async function () {
+				it('should be editable through clicking on the icons', async function()  {
 					this.retries(10);
 					await resetSettings(this);
 					await openDialog(type);
 					const dialog = await getDialog(type);
-					await dialog
-						.findElements(
-							webdriver.By.className('showOnContentItemCont')
-						)
+					await dialog.findElements(webdriver.By.className('showOnContentItemCont'))
 						.mapWaitChain((element) => {
-							return element
-								.findElement(
-									webdriver.By.className(
-										'showOnContentItemIcon'
-									)
-								)
+							return element.findElement(webdriver.By.className('showOnContentItemIcon'))
 								.click()
 								.then(() => {
 									return wait(250);
@@ -2431,42 +1820,26 @@ describe('User entrypoints', function () {
 					await wait(1000);
 					await saveDialog(dialog);
 					const crm = await getCRM();
-
-					assert.isFalse(
-						crm[0].onContentTypes[0],
-						'content types that were on were switched off'
-					);
-					assert.isTrue(
-						crm[0].onContentTypes[4],
-						'content types that were off were switched on'
-					);
-					const newContentTypes = defaultContentTypes.map(
-						(contentType) => !contentType
-					);
+	
+					assert.isFalse(crm[0].onContentTypes[0], 
+						'content types that were on were switched off');
+					assert.isTrue(crm[0].onContentTypes[4],
+						'content types that were off were switched on');
+					const newContentTypes = defaultContentTypes.map(contentType => !contentType);
 					//CRM prevents you from turning off all content types and 4 is the one that stays on
 					newContentTypes[2] = true;
-					assert.deepEqual(
-						crm[0].onContentTypes,
+					assert.deepEqual(crm[0].onContentTypes,
 						newContentTypes,
-						'all content types were toggled'
-					);
+						'all content types were toggled');
 				});
-				it('should be editable through clicking on the names', async function () {
+				it('should be editable through clicking on the names', async function()  {
 					this.retries(10);
 					await resetSettings(this);
 					await openDialog(type);
 					const dialog = await getDialog(type);
-					await dialog
-						.findElements(
-							webdriver.By.className('showOnContentItemCont')
-						)
+					await dialog.findElements(webdriver.By.className('showOnContentItemCont'))
 						.mapWaitChain((element) => {
-							return element
-								.findElement(
-									webdriver.By.className(
-										'showOnContentItemTxt'
-									)
-								)
+							return element.findElement(webdriver.By.className('showOnContentItemTxt'))
 								.click()
 								.then(() => {
 									return wait(250);
@@ -2475,64 +1848,40 @@ describe('User entrypoints', function () {
 					await wait(1000);
 					await saveDialog(dialog);
 					const crm = await getCRM();
-
-					assert.isFalse(
-						crm[0].onContentTypes[0],
-						'content types that were on were switched off'
-					);
-					assert.isTrue(
-						crm[0].onContentTypes[4],
-						'content types that were off were switched on'
-					);
-					const newContentTypes = defaultContentTypes.map(
-						(contentType) => !contentType
-					);
+	
+					assert.isFalse(crm[0].onContentTypes[0], 
+						'content types that were on were switched off');
+					assert.isTrue(crm[0].onContentTypes[4],
+						'content types that were off were switched on');
+					const newContentTypes = defaultContentTypes.map(contentType => !contentType);
 					//CRM prevents you from turning off all content types and 4 is the one that stays on
 					newContentTypes[2] = true;
-					assert.deepEqual(
-						crm[0].onContentTypes,
+					assert.deepEqual(crm[0].onContentTypes,
 						newContentTypes,
-						'all content types were toggled'
-					);
+						'all content types were toggled');
 				});
-				it('should be preserved on page reload', async function () {
+				it('should be preserved on page reload', async function() {
 					await reloadPage(this);
 					const crm = await getCRM();
-
-					assert.isFalse(
-						crm[0].onContentTypes[0],
-						'content types that were on were switched off'
-					);
-					assert.isTrue(
-						crm[0].onContentTypes[4],
-						'content types that were off were switched on'
-					);
-					const newContentTypes = defaultContentTypes.map(
-						(contentType) => !contentType
-					);
+	
+					assert.isFalse(crm[0].onContentTypes[0], 
+						'content types that were on were switched off');
+					assert.isTrue(crm[0].onContentTypes[4],
+						'content types that were off were switched on');
+					const newContentTypes = defaultContentTypes.map(contentType => !contentType);
 					//CRM prevents you from turning off all content types and 4 is the one that stays on
 					newContentTypes[2] = true;
-					assert.deepEqual(
-						crm[0].onContentTypes,
+					assert.deepEqual(crm[0].onContentTypes,
 						newContentTypes,
-						'all content types were toggled'
-					);
+						'all content types were toggled');
 				});
-				it('should not change when not saved', async function () {
+				it('should not change when not saved', async function()  {
 					await resetSettings(this);
 					await openDialog(type);
 					const dialog = await getDialog(type);
-					await dialog
-						.findElements(
-							webdriver.By.className('showOnContentItemCont')
-						)
+					await dialog.findElements(webdriver.By.className('showOnContentItemCont'))
 						.mapWaitChain((element) => {
-							return element
-								.findElement(
-									webdriver.By.className(
-										'showOnContentItemIcon'
-									)
-								)
+							return element.findElement(webdriver.By.className('showOnContentItemIcon'))
 								.click()
 								.then(() => {
 									return wait(250);
@@ -2541,568 +1890,374 @@ describe('User entrypoints', function () {
 					await wait(1000);
 					await cancelDialog(dialog);
 					const crm = await getCRM();
-
-					assert.isTrue(
-						crm[0].onContentTypes[0],
-						'content types that were on did not change'
-					);
-					assert.isFalse(
-						crm[0].onContentTypes[4],
-						'content types that were off did not change'
-					);
-					assert.deepEqual(
-						crm[0].onContentTypes,
+	
+					assert.isTrue(crm[0].onContentTypes[0], 
+						'content types that were on did not change');
+					assert.isFalse(crm[0].onContentTypes[4],
+						'content types that were off did not change');
+					assert.deepEqual(crm[0].onContentTypes,
 						defaultContentTypes,
-						'all content types were not toggled'
-					);
+						'all content types were not toggled');
 				});
 			});
 		}
-
+	
 		function testClickTriggers(type: CRM.NodeType) {
-			describe('Click Triggers', function () {
+			describe('Click Triggers', function() {
 				this.timeout(30000 * TIME_MODIFIER);
 				this.slow(25000 * TIME_MODIFIER);
 				[0, 1, 2, 3, 4].forEach((triggerOptionIndex) => {
-					describe(`Trigger option ${triggerOptionIndex}`, function () {
-						it(`should be possible to select trigger option number ${triggerOptionIndex}`, async function () {
+					describe(`Trigger option ${triggerOptionIndex}`, function() {
+						it(`should be possible to select trigger option number ${triggerOptionIndex}`, async function() {
 							await resetSettings(this);
 							await openDialog(type);
 							const dialog = await getDialog(type);
 							await wait(500, dialog);
-							await dialog
-								.findElement(webdriver.By.id('dropdownMenu'))
-								.findElement(
-									webdriver.By.id('dropdownSelected')
-								)
-								.click();
+							await dialog.findElement(webdriver.By.id('dropdownMenu'))
+								.findElement(webdriver.By.id('dropdownSelected')).click();
 							await wait(500);
-							await dialog
-								.findElements(
-									webdriver.By.css(
-										'.stylesheetLaunchOption, .scriptLaunchOption'
-									)
-								)
+							await dialog.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
 								.get(triggerOptionIndex)
 								.click();
 							await wait(5000);
 							await saveDialog(dialog);
-							const crm = await getCRM<
-								(CRM.StylesheetNode | CRM.ScriptNode)[]
-							>();
-
-							assert.strictEqual(
-								crm[0].value.launchMode,
-								triggerOptionIndex,
-								'launchmode is the same as expected'
-							);
+							const crm = await getCRM<(CRM.StylesheetNode|CRM.ScriptNode)[]>();
+	
+							assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex,
+								'launchmode is the same as expected');
 						});
-						it('should be saved on page reload', async function () {
+						it('should be saved on page reload', async function() {
 							await reloadPage(this);
-							const crm = await getCRM<
-								(CRM.StylesheetNode | CRM.ScriptNode)[]
-							>();
-
-							assert.strictEqual(
-								crm[0].value.launchMode,
-								triggerOptionIndex,
-								'launchmode is the same as expected'
-							);
+							const crm = await getCRM<(CRM.StylesheetNode|CRM.ScriptNode)[]>();
+	
+							assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex,
+								'launchmode is the same as expected');
 						});
-						it('should not be saved when cancelled', async function () {
+						it('should not be saved when cancelled', async function() {
 							await resetSettings(this);
 							await openDialog(type);
 							const dialog = await getDialog(type);
 							await wait(500, dialog);
-							await dialog
-								.findElement(webdriver.By.id('dropdownMenu'))
-								.click();
+							await dialog.findElement(webdriver.By.id('dropdownMenu')).click();
 							await wait(500);
-							await dialog
-								.findElements(
-									webdriver.By.css(
-										'.stylesheetLaunchOption, .scriptLaunchOption'
-									)
-								)
+							await dialog.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
 								.get(triggerOptionIndex)
 								.click();
 							await wait(1500);
 							await cancelDialog(dialog);
-							const crm = await getCRM<
-								(CRM.StylesheetNode | CRM.ScriptNode)[]
-							>();
-
-							assert.strictEqual(
-								crm[0].value.launchMode,
-								0,
-								'launchmode is the same as before'
-							);
+							const crm = await getCRM<(CRM.StylesheetNode|CRM.ScriptNode)[]>();
+	
+							assert.strictEqual(crm[0].value.launchMode, 0,
+								'launchmode is the same as before');
 						});
 					});
 				});
 				[2, 3].forEach((triggerOptionIndex) => {
-					describe(`Trigger Option ${triggerOptionIndex} with URLs`, function () {
+					describe(`Trigger Option ${triggerOptionIndex} with URLs`, function() {
 						it('should be editable', async () => {
 							await resetSettings(this);
 							await openDialog(type);
 							const dialog = await getDialog(type);
 							await wait(500);
-							await dialog
-								.findElement(webdriver.By.id('dropdownMenu'))
-								.click();
+							await dialog.findElement(webdriver.By.id('dropdownMenu')).click();
 							await wait(1000);
-							await dialog
-								.findElements(
-									webdriver.By.css(
-										'.stylesheetLaunchOption, .scriptLaunchOption'
-									)
-								)
+							await dialog.findElements(
+								webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
 								.get(triggerOptionIndex)
 								.click();
 							await wait(1000);
-							await dialog
-								.findElement(webdriver.By.id('addTrigger'))
+							await dialog.findElement(webdriver.By.id('addTrigger'))
 								.click()
 								.click();
 							await wait(500);
-							const triggers = await dialog.findElements(
-								webdriver.By.className('executionTrigger')
-							);
-							await triggers[0]
-								.findElement(
-									webdriver.By.tagName('paper-checkbox')
-								)
-								.click();
-							await triggers[1]
-								.findElement(
-									webdriver.By.tagName('paper-input')
-								)
+							const triggers = await dialog.findElements(webdriver.By.className('executionTrigger'));
+							await triggers[0].findElement(webdriver.By.tagName('paper-checkbox')).click()
+							await triggers[1].findElement(webdriver.By.tagName('paper-input'))
 								.findElement(webdriver.By.tagName('input'))
-								.sendKeys(
-									InputKeys.CLEAR_ALL,
-									'www.google.com'
-								);
+								.sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
 							await saveDialog(dialog);
 							const crm = await getCRM();
-
-							assert.lengthOf(
-								crm[0].triggers,
-								3,
-								'trigger has been added'
-							);
-							assert.isTrue(
-								crm[0].triggers[0].not,
-								'first trigger is NOT'
-							);
-							assert.isFalse(
-								crm[0].triggers[1].not,
-								'second trigger is not NOT'
-							);
-							assert.strictEqual(
-								crm[0].triggers[0].url,
+	
+							assert.lengthOf(crm[0].triggers, 3, 
+								'trigger has been added');
+							assert.isTrue(crm[0].triggers[0].not, 
+								'first trigger is NOT');
+							assert.isFalse(crm[0].triggers[1].not,
+								'second trigger is not NOT');
+							assert.strictEqual(crm[0].triggers[0].url, 
 								'*://*.example.com/*',
-								'first trigger url stays the same'
-							);
-							assert.strictEqual(
-								crm[0].triggers[1].url,
+								'first trigger url stays the same');
+							assert.strictEqual(crm[0].triggers[1].url,
 								'www.google.com',
-								'second trigger url changed'
-							);
+								'second trigger url changed');
 						});
 						it('should be saved on page reload', async () => {
-							const crm = await getCRM<
-								(CRM.StylesheetNode | CRM.ScriptNode)[]
-							>();
-							assert.lengthOf(
-								crm[0].triggers,
-								3,
-								'trigger has been added'
-							);
-							assert.isTrue(
-								crm[0].triggers[0].not,
-								'first trigger is NOT'
-							);
-							assert.isFalse(
-								crm[0].triggers[1].not,
-								'second trigger is not NOT'
-							);
-							assert.strictEqual(
-								crm[0].triggers[0].url,
+							const crm = await getCRM<(CRM.StylesheetNode|CRM.ScriptNode)[]>();
+							assert.lengthOf(crm[0].triggers, 3, 
+								'trigger has been added');
+							assert.isTrue(crm[0].triggers[0].not, 
+								'first trigger is NOT');
+							assert.isFalse(crm[0].triggers[1].not,
+								'second trigger is not NOT');
+							assert.strictEqual(crm[0].triggers[0].url, 
 								'*://*.example.com/*',
-								'first trigger url stays the same'
-							);
-							assert.strictEqual(
-								crm[0].triggers[1].url,
+								'first trigger url stays the same');
+							assert.strictEqual(crm[0].triggers[1].url,
 								'www.google.com',
-								'second trigger url changed'
-							);
+								'second trigger url changed');
 						});
 						it('should not be saved when cancelled', async () => {
 							await resetSettings(this);
 							await openDialog(type);
 							const dialog = await getDialog(type);
 							await wait(500);
-							await dialog
-								.findElement(webdriver.By.id('dropdownMenu'))
-								.click();
+							await dialog.findElement(webdriver.By.id('dropdownMenu')).click();
 							await wait(1000);
-							await dialog
-								.findElements(
-									webdriver.By.css(
-										'.stylesheetLaunchOption, .scriptLaunchOption'
-									)
-								)
+							await dialog.findElements(
+								webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
 								.get(triggerOptionIndex)
 								.click();
 							await wait(1000);
-							await dialog
-								.findElement(webdriver.By.id('addTrigger'))
+							await dialog.findElement(webdriver.By.id('addTrigger'))
 								.click()
 								.click();
 							await wait(500);
-							const triggers = await dialog.findElements(
-								webdriver.By.className('executionTrigger')
-							);
-							await triggers[0]
-								.findElement(
-									webdriver.By.tagName('paper-checkbox')
-								)
-								.click();
-							await triggers[1]
-								.findElement(
-									webdriver.By.tagName('paper-input')
-								)
+							const triggers = await dialog.findElements(webdriver.By.className('executionTrigger'));
+							await triggers[0].findElement(webdriver.By.tagName('paper-checkbox')).click()
+							await triggers[1].findElement(webdriver.By.tagName('paper-input'))
 								.findElement(webdriver.By.tagName('input'))
-								.sendKeys(
-									InputKeys.CLEAR_ALL,
-									'www.google.com'
-								);
+								.sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
 							await cancelDialog(dialog);
 							const crm = await getCRM();
-							assert.lengthOf(
-								crm[0].triggers,
-								1,
-								'no triggers have been added'
-							);
-							assert.isFalse(
-								crm[0].triggers[0].not,
-								'first trigger NOT status did not change'
-							);
-							assert.strictEqual(
-								crm[0].triggers[0].url,
+							assert.lengthOf(crm[0].triggers, 1, 
+								'no triggers have been added');
+							assert.isFalse(crm[0].triggers[0].not, 
+								'first trigger NOT status did not change');
+							assert.strictEqual(crm[0].triggers[0].url, 
 								'*://*.example.com/*',
-								'first trigger url stays the same'
-							);
+								'first trigger url stays the same');
 						});
 					});
 				});
 			});
 		}
-
+	
 		function testEditorSettings(type: CRM.NodeType) {
-			describe('Theme', function () {
+			describe('Theme', function() {
 				this.slow(8000 * TIME_MODIFIER);
 				this.timeout(10000 * TIME_MODIFIER);
-				it('is changable', async function () {
+				it('is changable', async function() {
 					this.slow(10000 * TIME_MODIFIER);
 					await resetSettings(this);
 					await openDialog(type);
 					const dialog = await getDialog(type);
 					await wait(500, dialog);
-
+	
 					const initialSettings = await getSyncSettings();
-					assert.strictEqual(
-						initialSettings.editor.theme,
-						'dark',
-						'initial theme is set to dark mode'
-					);
-					await dialog
-						.findElement(webdriver.By.id('editorSettings'))
-						.click();
+					assert.strictEqual(initialSettings.editor.theme, 'dark',
+						'initial theme is set to dark mode');
+					await dialog.findElement(webdriver.By.id('editorSettings')).click();
 					await wait(500);
-					await dialog
-						.findElement(webdriver.By.id('editorThemeSettingWhite'))
-						.click();
+					await dialog.findElement(webdriver.By.id('editorThemeSettingWhite')).click();
 					const settings = await getSyncSettings();
-
-					assert.strictEqual(
-						settings.editor.theme,
-						'white',
-						'theme has been switched to white'
-					);
+	
+					assert.strictEqual(settings.editor.theme, 'white',
+						'theme has been switched to white');
 				});
-				it('is preserved on page reload', async function () {
+				it('is preserved on page reload', async function() {
 					await reloadPage(this);
 					const settings = await getSyncSettings();
-
-					assert.strictEqual(
-						settings.editor.theme,
-						'white',
-						'theme has been switched to white'
-					);
+	
+					assert.strictEqual(settings.editor.theme, 'white',
+						'theme has been switched to white');
 				});
 			});
-			describe('Zoom', function () {
+			describe('Zoom', function() {
 				this.slow(30000 * TIME_MODIFIER);
 				this.timeout(40000 * TIME_MODIFIER);
-
+	
 				const newZoom = '135';
-				it('is changable', async function () {
+				it('is changable', async function() {
 					await resetSettings(this);
 					await openDialog(type);
 					const dialog = await getDialog(type);
 					await wait(500, dialog);
-					await dialog
-						.findElement(webdriver.By.id('editorSettings'))
-						.click();
+					await dialog.findElement(webdriver.By.id('editorSettings')).click();
 					await wait(500);
-					await dialog
-						.findElement(
-							webdriver.By.id('editorThemeFontSizeInput')
-						)
+					await dialog.findElement(webdriver.By.id('editorThemeFontSizeInput'))
 						.findElement(webdriver.By.tagName('input'))
-						.sendKeys(
+						.sendKeys(InputKeys.BACK_SPACE,
 							InputKeys.BACK_SPACE,
 							InputKeys.BACK_SPACE,
-							InputKeys.BACK_SPACE,
-							newZoom
-						);
-					await driver.executeScript(
-						inlineFn(() => {
-							window.app.util.getDialog().fontSizeChange();
-						})
-					);
+							newZoom);
+					await driver.executeScript(inlineFn(() => {
+						window.app.util.getDialog().fontSizeChange();
+					}));
 					await wait(10000, dialog);
 					const settings = await getSyncSettings();
-
-					assert.strictEqual(
-						settings.editor.zoom,
-						newZoom,
-						'zoom has changed to the correct number'
-					);
+	
+					assert.strictEqual(settings.editor.zoom, newZoom,
+						'zoom has changed to the correct number');
 				});
-				it('is preserved on page reload', async function () {
+				it('is preserved on page reload', async function() {
 					await reloadPage(this);
 					const settings = await getSyncSettings();
-
-					assert.strictEqual(
-						settings.editor.zoom,
-						newZoom,
-						'zoom has changed to the correct number'
-					);
+	
+					assert.strictEqual(settings.editor.zoom, newZoom,
+						'zoom has changed to the correct number');
 				});
 			});
 		}
-
-		describe('CRM Editing', function () {
+	
+		describe('CRM Editing', function() {
 			if (SKIP_OPTIONS_PAGE_DIALOGS) {
 				return;
 			}
-			beforeEach('Switch to correct tab', async function () {
+			beforeEach('Switch to correct tab', async function() {
 				await switchToTestWindow();
 			});
-			before('Reset settings', async function () {
+			before('Reset settings', async function() {
 				await resetSettings(this);
 				await switchToTestWindow();
 			});
 			this.timeout(60000 * TIME_MODIFIER);
-
-			describe('Type Switching', function () {
+	
+			describe('Type Switching', function() {
 				if (SKIP_DIALOG_TYPES_EXCEPT) {
 					return;
 				}
 				async function testTypeSwitch(type: string) {
-					await driver.executeScript(
-						inlineFn(() => {
-							const crmItem = (window.app.editCRM.shadowRoot.querySelectorAll(
-								'edit-crm-item:not([root-node])'
-							) as NodeListOf<EditCrmItem>)[0];
-							crmItem.typeIndicatorMouseOver();
-						})
-					);
+					await driver.executeScript(inlineFn(() => {
+						const crmItem = (window.app.editCRM.shadowRoot
+							.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>)[0];
+						crmItem.typeIndicatorMouseOver();
+					}));
 					await wait(300);
-					await driver.executeScript(
-						inlineFn(() => {
-							const crmItem = window.app.editCRM.shadowRoot.querySelectorAll(
-								'edit-crm-item:not([root-node])'
-							)[0];
-							const typeSwitcher = crmItem.shadowRoot.querySelector(
-								'type-switcher'
-							);
-							typeSwitcher.openTypeSwitchContainer();
-						})
-					);
+					await driver.executeScript(inlineFn(() => {
+						const crmItem = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])')[0];
+						const typeSwitcher = crmItem.shadowRoot.querySelector('type-switcher');
+						typeSwitcher.openTypeSwitchContainer();
+					}));
 					await wait(300);
-					const typesMatch = await driver.executeScript(
-						inlineFn(
-							() => {
-								const crmItem = (window.app.editCRM.shadowRoot.querySelectorAll(
-									'edit-crm-item:not([root-node])'
-								) as NodeListOf<EditCrmItem>)[0];
-								const typeSwitcher = crmItem.shadowRoot.querySelector(
-									'type-switcher'
-								);
-								(typeSwitcher.shadowRoot.querySelector(
-									'.typeSwitchChoice[type="REPLACE.type"]'
-								) as HTMLElement).click();
-								crmItem.typeIndicatorMouseLeave();
-								return (
-									window.app.settings.crm[0].type ===
-									('REPLACE.type' as CRM.NodeType)
-								);
-							},
-							{
-								type: type,
-							}
-						)
-					);
-
+					const typesMatch = await driver.executeScript(inlineFn(() => {
+						const crmItem = (window.app.editCRM.shadowRoot
+							.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>)[0];
+						const typeSwitcher = crmItem.shadowRoot.querySelector('type-switcher');
+						(typeSwitcher.shadowRoot.querySelector('.typeSwitchChoice[type="REPLACE.type"]') as HTMLElement)
+							.click();
+						crmItem.typeIndicatorMouseLeave();
+						return window.app.settings.crm[0].type === 'REPLACE.type' as CRM.NodeType;
+					}, {
+						type: type
+					}));
+	
 					assert.isTrue(typesMatch, 'new type matches expected');
 				}
 				this.timeout(10000 * TIME_MODIFIER);
 				this.slow(5000 * TIME_MODIFIER);
-
-				it('should be able to switch to a script', async function () {
+				
+				it('should be able to switch to a script', async function()  {
 					this.slow(10000 * TIME_MODIFIER);
 					await resetSettings(this);
 					await testTypeSwitch('script');
 				});
-				it('should be preserved', async function () {
+				it('should be preserved', async function() {
 					await reloadPage(this);
 					const crm = await getCRM();
-
-					assert.strictEqual(
-						crm[0].type,
-						'script',
-						'type has stayed the same'
-					);
+					
+					assert.strictEqual(crm[0].type, 'script', 'type has stayed the same');
 				});
-				it('should be able to switch to a menu', async function () {
+				it('should be able to switch to a menu', async function()  {
 					this.slow(10000 * TIME_MODIFIER);
 					await resetSettings(this);
 					await testTypeSwitch('menu');
 				});
-				it('should be preserved', async function () {
+				it('should be preserved', async function() {
 					await reloadPage(this);
 					const crm = await getCRM();
-
-					assert.strictEqual(
-						crm[0].type,
-						'menu',
-						'type has stayed the same'
-					);
+					
+					assert.strictEqual(crm[0].type, 'menu', 'type has stayed the same');
 				});
-				it('should be able to switch to a divider', async function () {
+				it('should be able to switch to a divider', async function()  {
 					this.slow(10000 * TIME_MODIFIER);
 					await resetSettings(this);
 					await testTypeSwitch('divider');
 				});
-				it('should be preserved', async function () {
+				it('should be preserved', async function() {
 					await reloadPage(this);
 					const crm = await getCRM();
-
-					assert.strictEqual(
-						crm[0].type,
-						'divider',
-						'type has stayed the same'
-					);
+					
+					assert.strictEqual(crm[0].type, 'divider', 'type has stayed the same');
 				});
-				it('should be able to switch to a stylesheet', async function () {
+				it('should be able to switch to a stylesheet', async function()  {
 					this.slow(10000 * TIME_MODIFIER);
 					await resetSettings(this);
 					await testTypeSwitch('stylesheet');
 				});
-				it('should be preserved', async function () {
+				it('should be preserved', async function() {
 					await reloadPage(this);
 					const crm = await getCRM();
-
-					assert.strictEqual(
-						crm[0].type,
-						'stylesheet',
-						'type has stayed the same'
-					);
+					
+					assert.strictEqual(crm[0].type, 'stylesheet', 'type has stayed the same');
 				});
 			});
-			describe('Link Dialog', function () {
+			describe('Link Dialog', function() {
 				const type: CRM.NodeType = 'link';
-				if (
-					(SKIP_DIALOG_TYPES_EXCEPT &&
-						SKIP_DIALOG_TYPES_EXCEPT !== type) ||
-					SKIP_DIALOG_TYPES.indexOf(type) !== -1
-				) {
+				if ((SKIP_DIALOG_TYPES_EXCEPT && SKIP_DIALOG_TYPES_EXCEPT !== type) ||
+					SKIP_DIALOG_TYPES.indexOf(type) !== -1) {
 					return;
 				}
-
+	
 				this.timeout(30000 * TIME_MODIFIER);
-
-				before('Reset settings', function () {
+	
+				before('Reset settings', function() {
 					return resetSettings(this);
 				});
-
+	
 				testNameInput(type);
 				testVisibilityTriggers(type);
 				testContentTypes(type);
-
-				describe('Links', function () {
+	
+				describe('Links', function() {
 					this.slow(20000 * TIME_MODIFIER);
 					this.timeout(25000 * TIME_MODIFIER);
-
-					after('Reset settings', function () {
+	
+					after('Reset settings', function() {
 						return resetSettings(this);
 					});
-
-					it('open in new tab property should be editable', async function () {
+	
+					it('open in new tab property should be editable', async function()  {
 						await resetSettings(this);
 						await openDialog('link');
 						const dialog = await getDialog('link');
-						await dialog
-							.findElement(
-								webdriver.By.className('linkChangeCont')
-							)
+						await dialog.findElement(webdriver.By.className('linkChangeCont'))
 							.findElement(webdriver.By.tagName('paper-checkbox'))
 							.click();
 						await saveDialog(dialog);
 						const crm = await getCRM<CRM.LinkNode[]>();
-
-						assert.lengthOf(
-							crm[0].value,
-							1,
-							'node has only 1 link'
-						);
-						assert.isFalse(
-							crm[0].value[0].newTab,
-							'newTab has been switched off'
-						);
+	
+						assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
+						assert.isFalse(crm[0].value[0].newTab, 'newTab has been switched off');
 					});
-					it('url property should be editable', async function () {
+					it('url property should be editable', async function()  {
 						const newUrl = 'www.google.com';
 						await resetSettings(this);
 						await openDialog('link');
 						const dialog = await getDialog('link');
-						await dialog
-							.findElement(
-								webdriver.By.className('linkChangeCont')
-							)
+						await dialog.findElement(webdriver.By.className('linkChangeCont'))
 							.findElement(webdriver.By.tagName('paper-input'))
 							.sendKeys(InputKeys.CLEAR_ALL, newUrl);
 						await saveDialog(dialog);
 						const crm = await getCRM<CRM.LinkNode[]>();
-
-						assert.lengthOf(
-							crm[0].value,
-							1,
-							'node has only 1 link'
-						);
-						assert.strictEqual(
-							crm[0].value[0].url,
-							newUrl,
-							'url has been changed'
-						);
+	
+						assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
+						assert.strictEqual(crm[0].value[0].url, newUrl,
+							'url has been changed');
 					});
-					it('should be addable', async function () {
+					it('should be addable', async function()  {
 						const defaultLink = {
 							newTab: true,
-							url: 'https://www.example.com',
+							url: 'https://www.example.com'
 						};
 						await resetSettings(this);
 						await openDialog('link');
@@ -3112,26 +2267,20 @@ describe('User entrypoints', function () {
 							.findElement(webdriver.By.tagName('paper-button'))
 							.click()
 							.click()
-							.click();
+							.click()
 						await saveDialog(dialog);
 						const crm = await getCRM<CRM.LinkNode[]>();
-
-						assert.lengthOf(
-							crm[0].value,
-							4,
-							'node has 4 links now'
-						);
-						assert.deepEqual(
-							crm[0].value,
+	
+						assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
+						assert.deepEqual(crm[0].value,
 							Array.apply(null, Array(4)).map(() => defaultLink),
-							'new links match default link value'
-						);
+							'new links match default link value');
 					});
-					it('should be editable when newly added', async function () {
+					it('should be editable when newly added', async function()  {
 						const newUrl = 'www.google.com';
 						const newValue = {
 							newTab: true,
-							url: newUrl,
+							url: newUrl
 						};
 						await resetSettings(this);
 						await openDialog('link');
@@ -3141,93 +2290,60 @@ describe('User entrypoints', function () {
 							.findElement(webdriver.By.tagName('paper-button'))
 							.click()
 							.click()
-							.click();
+							.click()
 						await wait(500);
-						await forEachPromise(
-							await dialog.findElements(
-								webdriver.By.className('linkChangeCont')
-							),
+						await forEachPromise(await dialog.findElements(webdriver.By.className('linkChangeCont')), 
 							(element) => {
-								return new webdriver.promise.Promise(
-									async (resolve) => {
-										await wait(250);
-										await element
-											.findElement(
-												webdriver.By.tagName(
-													'paper-checkbox'
-												)
-											)
-											.click();
-										await element
-											.findElement(
-												webdriver.By.tagName(
-													'paper-input'
-												)
-											)
-											.sendKeys(
-												InputKeys.CLEAR_ALL,
-												newUrl
-											);
-										resolve(null);
-									}
-								);
-							}
-						);
+								return new webdriver.promise.Promise(async (resolve) => {
+									await wait(250);
+									await element
+										.findElement(webdriver.By.tagName('paper-checkbox'))
+										.click();
+									await element
+										.findElement(webdriver.By.tagName('paper-input'))
+										.sendKeys(InputKeys.CLEAR_ALL, newUrl);
+									resolve(null);
+								});
+							});
 						await wait(500);
 						await saveDialog(dialog);
 						const crm = await getCRM<CRM.LinkNode[]>();
-
-						assert.lengthOf(
-							crm[0].value,
-							4,
-							'node has 4 links now'
-						);
-
+	
+						assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
+	
 						//Only one newTab can be false at a time
-						const newLinks = Array.apply(null, Array(4)).map(() =>
-							JSON.parse(JSON.stringify(newValue))
-						);
+						const newLinks = Array.apply(null, Array(4))
+							.map(() => JSON.parse(JSON.stringify(newValue)));
 						newLinks[3].newTab = false;
-
-						assert.deepEqual(
-							crm[0].value,
-							newLinks,
-							'new links match changed link value'
-						);
+	
+						assert.deepEqual(crm[0].value, newLinks,
+							'new links match changed link value');
 					});
-					it('should be preserved on page reload', async function () {
+					it('should be preserved on page reload', async function() {
 						const newUrl = 'www.google.com';
 						const newValue = {
 							newTab: true,
-							url: newUrl,
+							url: newUrl
 						};
-
+	
 						await reloadPage(this);
 						const crm = await getCRM<CRM.LinkNode[]>();
-
-						assert.lengthOf(
-							crm[0].value as CRM.LinkNodeLink[],
-							4,
-							'node has 4 links now'
-						);
-
+	
+						assert.lengthOf(crm[0].value as CRM.LinkNodeLink[], 4, 'node has 4 links now');
+	
 						//Only one newTab can be false at a time
-						const newLinks = Array.apply(null, Array(4)).map(() =>
-							JSON.parse(JSON.stringify(newValue))
-						);
+						const newLinks = Array.apply(null, Array(4))
+							.map(() => JSON.parse(JSON.stringify(newValue)));
 						newLinks[3].newTab = false;
-
-						assert.deepEqual(
-							crm[0].value,
-							newLinks,
-							'new links match changed link value'
-						);
+	
+						assert.deepEqual(crm[0].value, newLinks,
+							'new links match changed link value');
 					});
-					it('should not change when not saved', async function () {
+					it('should not change when not saved', async function()  {
 						const newUrl = 'www.google.com';
 						const defaultLink = {
 							newTab: true,
-							url: 'https://www.example.com',
+							url: 'https://www.example.com'
 						};
 						await resetSettings(this);
 						await openDialog('link');
@@ -3237,243 +2353,174 @@ describe('User entrypoints', function () {
 							.findElement(webdriver.By.tagName('paper-button'))
 							.click()
 							.click()
-							.click();
-						await forEachPromise(
-							await dialog.findElements(
-								webdriver.By.className('linkChangeCont')
-							),
+							.click()
+						await forEachPromise(await dialog.findElements(webdriver.By.className('linkChangeCont')), 
 							(element) => {
 								return element
-									.findElement(
-										webdriver.By.tagName('paper-checkbox')
-									)
+									.findElement(webdriver.By.tagName('paper-checkbox'))
 									.click()
 									.then(() => {
-										return element.sendKeys(
-											InputKeys.CLEAR_ALL,
-											newUrl
-										);
+										return element
+											.sendKeys(InputKeys.CLEAR_ALL, newUrl);
 									});
-							}
-						);
+							});
 						await cancelDialog(dialog);
 						const crm = await getCRM<CRM.LinkNode[]>();
-
-						assert.lengthOf(
-							crm[0].value,
-							1,
-							'node still has 1 link'
-						);
-						assert.deepEqual(
-							crm[0].value,
-							[defaultLink],
-							'link value has stayed the same'
-						);
+	
+						assert.lengthOf(crm[0].value, 1, 'node still has 1 link');
+						assert.deepEqual(crm[0].value, [defaultLink],
+							'link value has stayed the same');
 					});
 				});
 			});
-			describe('Divider Dialog', function () {
+			describe('Divider Dialog', function() {
 				const type: CRM.NodeType = 'divider';
-				if (
-					(SKIP_DIALOG_TYPES_EXCEPT &&
-						SKIP_DIALOG_TYPES_EXCEPT !== type) ||
-					SKIP_DIALOG_TYPES.indexOf(type) !== -1
-				) {
+				if ((SKIP_DIALOG_TYPES_EXCEPT && SKIP_DIALOG_TYPES_EXCEPT !== type) ||
+					SKIP_DIALOG_TYPES.indexOf(type) !== -1) {
 					return;
 				}
-
+	
 				this.timeout(60000 * TIME_MODIFIER);
-				before('Reset settings', function () {
+				before('Reset settings', function() {
 					return resetSettings(this);
 				});
-
+	
 				testNameInput(type);
 				testVisibilityTriggers(type);
 				testContentTypes(type);
 			});
-			describe('Menu Dialog', function () {
+			describe('Menu Dialog', function() {
 				const type: CRM.NodeType = 'menu';
-				if (
-					(SKIP_DIALOG_TYPES_EXCEPT &&
-						SKIP_DIALOG_TYPES_EXCEPT !== type) ||
-					SKIP_DIALOG_TYPES.indexOf(type) !== -1
-				) {
+				if ((SKIP_DIALOG_TYPES_EXCEPT && SKIP_DIALOG_TYPES_EXCEPT !== type) ||
+					SKIP_DIALOG_TYPES.indexOf(type) !== -1) {
 					return;
 				}
-
+	
 				this.timeout(60000 * TIME_MODIFIER);
-				before('Reset settings', function () {
+				before('Reset settings', function() {
 					return resetSettings(this);
 				});
-
+	
 				testNameInput(type);
 				testVisibilityTriggers(type);
 				testContentTypes(type);
 			});
-			describe('Stylesheet Dialog', function () {
+			describe('Stylesheet Dialog', function() {
 				const type: CRM.NodeType = 'stylesheet';
-				if (
-					(SKIP_DIALOG_TYPES_EXCEPT &&
-						SKIP_DIALOG_TYPES_EXCEPT !== type) ||
-					SKIP_DIALOG_TYPES.indexOf(type) !== -1
-				) {
+				if ((SKIP_DIALOG_TYPES_EXCEPT && SKIP_DIALOG_TYPES_EXCEPT !== type) ||
+					SKIP_DIALOG_TYPES.indexOf(type) !== -1) {
 					return;
 				}
-
-				before('Reset settings', function () {
+	
+				before('Reset settings', function() {
 					return resetSettings(this);
 				});
-
+	
 				testNameInput(type);
 				testContentTypes(type);
 				testClickTriggers(type);
-
-				describe('Toggling', function () {
+	
+				describe('Toggling', function() {
 					this.timeout(15000 * TIME_MODIFIER);
 					this.slow(10000 * TIME_MODIFIER);
 					it('should be possible to toggle on', async () => {
 						await resetSettings(this);
 						await openDialog(type);
 						const dialog = await getDialog(type);
-						await dialog
-							.findElement(webdriver.By.id('isTogglableButton'))
+						await dialog.findElement(webdriver.By.id('isTogglableButton'))
 							.click();
 						await saveDialog(dialog);
 						const crm = await getCRM<CRM.StylesheetNode[]>();
-
-						assert.isTrue(
-							crm[0].value.toggle,
-							'toggle option is set to on'
-						);
+	
+						assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
 					});
-					it('should be saved on page reload', async function () {
+					it('should be saved on page reload', async function() {
 						await reloadPage(this);
 						const crm = await getCRM<CRM.StylesheetNode[]>();
-
-						assert.isTrue(
-							crm[0].value.toggle,
-							'toggle option is set to on'
-						);
+	
+						assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
 					});
 					it('should be possible to toggle on-off', async () => {
 						await resetSettings(this);
 						await openDialog(type);
 						const dialog = await getDialog(type);
-						await dialog
-							.findElement(webdriver.By.id('isTogglableButton'))
+						await dialog.findElement(webdriver.By.id('isTogglableButton'))
 							.click()
-							.click();
+							.click()
 						await saveDialog(dialog);
 						const crm = await getCRM<CRM.StylesheetNode[]>();
-
-						assert.isFalse(
-							crm[0].value.toggle,
-							'toggle option is set to off'
-						);
+	
+						assert.isFalse(crm[0].value.toggle, 'toggle option is set to off');
 					});
 					it('should not be saved on cancel', async () => {
 						await resetSettings(this);
 						await openDialog(type);
 						const dialog = await getDialog(type);
-						await dialog
-							.findElement(webdriver.By.id('isTogglableButton'))
+						await dialog.findElement(webdriver.By.id('isTogglableButton'))
 							.click();
 						await cancelDialog(dialog);
 						const crm = await getCRM<CRM.StylesheetNode[]>();
-
-						assert.isNotTrue(
-							crm[0].value.toggle,
-							'toggle option is unchanged'
-						);
+	
+						assert.isNotTrue(crm[0].value.toggle, 'toggle option is unchanged');
 					});
 				});
-				describe('Default State', function () {
+				describe('Default State', function() {
 					this.timeout(20000 * TIME_MODIFIER);
 					this.slow(10000 * TIME_MODIFIER);
 					it('should be togglable to true', async () => {
 						await resetSettings(this);
 						await openDialog(type);
 						const dialog = await getDialog(type);
-						await dialog
-							.findElement(webdriver.By.id('isTogglableButton'))
+						await dialog.findElement(webdriver.By.id('isTogglableButton'))
 							.click();
-						await dialog
-							.findElement(webdriver.By.id('isDefaultOnButton'))
+						await dialog.findElement(webdriver.By.id('isDefaultOnButton'))
 							.click();
 						await saveDialog(dialog);
 						const crm = await getCRM<CRM.StylesheetNode[]>();
-
-						assert.isTrue(
-							crm[0].value.toggle,
-							'toggle option is set to true'
-						);
-						assert.isTrue(
-							crm[0].value.defaultOn,
-							'defaultOn is set to true'
-						);
+	
+						assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
+						assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
 					});
-					it('should be saved on page reset', async function () {
+					it('should be saved on page reset', async function() {
 						await reloadPage(this);
 						const crm = await getCRM<CRM.StylesheetNode[]>();
-
-						assert.isTrue(
-							crm[0].value.toggle,
-							'toggle option is set to true'
-						);
-						assert.isTrue(
-							crm[0].value.defaultOn,
-							'defaultOn is set to false'
-						);
+	
+						assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
+						assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to false');
 					});
 					it('should be togglable to false', async () => {
 						await resetSettings(this);
 						await openDialog(type);
 						const dialog = await getDialog(type);
-						await dialog
-							.findElement(webdriver.By.id('isTogglableButton'))
+						await dialog.findElement(webdriver.By.id('isTogglableButton'))
 							.click();
-						await dialog
-							.findElement(webdriver.By.id('isDefaultOnButton'))
+						await dialog.findElement(webdriver.By.id('isDefaultOnButton'))
 							.click()
 							.click();
 						await saveDialog(dialog);
 						const crm = await getCRM<CRM.StylesheetNode[]>();
-
-						assert.isTrue(
-							crm[0].value.toggle,
-							'toggle option is set to true'
-						);
-						assert.isFalse(
-							crm[0].value.defaultOn,
-							'defaultOn is set to false'
-						);
+	
+						assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
+						assert.isFalse(crm[0].value.defaultOn, 'defaultOn is set to false');
 					});
 					it('should not be saved when cancelled', async () => {
 						await resetSettings(this);
 						await openDialog(type);
 						const dialog = await getDialog(type);
-						await dialog
-							.findElement(webdriver.By.id('isTogglableButton'))
+						await dialog.findElement(webdriver.By.id('isTogglableButton'))
 							.click();
-						await dialog
-							.findElement(webdriver.By.id('isDefaultOnButton'))
+						await dialog.findElement(webdriver.By.id('isDefaultOnButton'))
 							.click();
 						await cancelDialog(dialog);
 						const crm = await getCRM<CRM.StylesheetNode[]>();
-
-						assert.isNotTrue(
-							crm[0].value.toggle,
-							'toggle option is set to false'
-						);
-						assert.isNotTrue(
-							crm[0].value.defaultOn,
-							'defaultOn is set to false'
-						);
+	
+						assert.isNotTrue(crm[0].value.toggle, 'toggle option is set to false');
+						assert.isNotTrue(crm[0].value.defaultOn, 'defaultOn is set to false');
 					});
 				});
-				describe('Editor', function () {
-					describe('Settings', function () {
-						before('Reload page', async function () {
+				describe('Editor', function() {
+					describe('Settings', function() {
+						before('Reload page', async function() {
 							return doFullRefresh(this).then(() => {
 								return wait(10000);
 							});
@@ -3482,1073 +2529,578 @@ describe('User entrypoints', function () {
 					});
 				});
 			});
-			describe('Script Dialog', function () {
+			describe('Script Dialog', function() {
 				const type: CRM.NodeType = 'script';
-				if (
-					SKIP_DIALOG_TYPES_EXCEPT &&
+				if (SKIP_DIALOG_TYPES_EXCEPT && 
 					SKIP_DIALOG_TYPES_EXCEPT !== 'script' &&
-					SKIP_DIALOG_TYPES_EXCEPT !== 'script-fullscreen'
-				) {
+					SKIP_DIALOG_TYPES_EXCEPT !== 'script-fullscreen') {
 					return;
 				}
 				if (SKIP_DIALOG_TYPES.indexOf(type) !== -1) {
 					return;
 				}
-
-				before('Reload page and reset settings', async function () {
+	
+				before('Reload page and reset settings', async function() {
 					return doFullRefresh(this).then(() => {
 						return wait(10000).then(() => {
 							return resetSettings(this);
 						});
 					});
 				});
-
-				if (
-					!SKIP_DIALOG_TYPES_EXCEPT ||
-					SKIP_DIALOG_TYPES_EXCEPT !== 'script-fullscreen'
-				) {
-					testNameInput(type);
-					testContentTypes(type);
-					testClickTriggers(type);
-				}
-
-				describe('Editor', function () {
-					describe('Settings', function () {
-						if (
-							SKIP_DIALOG_TYPES_EXCEPT &&
-							SKIP_DIALOG_TYPES_EXCEPT === 'script-fullscreen'
-						) {
-							return;
-						}
+	
+				if (!SKIP_DIALOG_TYPES_EXCEPT ||
+					SKIP_DIALOG_TYPES_EXCEPT !== 'script-fullscreen') {
+						testNameInput(type);
+						testContentTypes(type);
+						testClickTriggers(type);
+					}
+	
+				describe('Editor', function() {
+					describe('Settings', function() {
+						if (SKIP_DIALOG_TYPES_EXCEPT && 
+							SKIP_DIALOG_TYPES_EXCEPT === 'script-fullscreen') {
+								return;
+							}
 						testEditorSettings(type);
 					});
-
-					describe('Fullscreen Tools', function () {
+					
+					describe('Fullscreen Tools', function() {
 						this.slow(70000 * TIME_MODIFIER);
 						this.timeout(100000 * TIME_MODIFIER);
-						before('Reload page', async function () {
+						before('Reload page', async function() {
 							return doFullRefresh(this).then(() => {
 								return wait(10000);
 							});
 						});
-						describe('Libraries', function () {
+						describe('Libraries', function() {
 							afterEach('Close dialog', async () => {
-								await driver.executeScript(
-									inlineFn(() => {
-										window.doc.addLibraryDialog.close();
-									})
-								);
+								await driver.executeScript(inlineFn(() => {
+									window.doc.addLibraryDialog.close();
+								}));
 							});
-
-							it('should be possible to add your own library through a URL', async function () {
+	
+							it('should be possible to add your own library through a URL', async function() {
 								this.retries(3);
 								const libName = getRandomString(25);
-								const libUrl =
-									'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js';
-
-								const dialog = await enterEditorFullscreen(
-									this,
-									type
-								);
-								const crmApp = await findElement(
-									webdriver.By.tagName('crm-app')
-								);
-								await crmApp
-									.findElement(
-										webdriver.By.id(
-											'paperLibrariesSelector'
-										)
-									)
-									.findElement(
-										webdriver.By.id('dropdownSelectedCont')
-									)
+								const libUrl = 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js';
+	
+								const dialog = await enterEditorFullscreen(this, type);
+								const crmApp = await findElement(webdriver.By.tagName('crm-app'));
+								await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+									.findElement(webdriver.By.id('dropdownSelectedCont'))
 									.click();
 								await wait(1000);
-								for (const item of await crmApp
-									.findElement(
-										webdriver.By.id(
-											'paperLibrariesSelector'
-										)
-									)
-									.findElements(
-										webdriver.By.tagName('paper-item')
-									)) {
-									if (
-										(
-											await item.getAttribute('class')
-										).indexOf('addLibrary') > -1
-									) {
-										item.click();
-										break;
+								for (const item of (await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+									.findElements(webdriver.By.tagName('paper-item')))) {
+										if ((await item.getAttribute('class')).indexOf('addLibrary') > -1) {
+											item.click();
+											break;
+										}
 									}
-								}
 								await wait(1000);
-								await crmApp
-									.findElement(
-										webdriver.By.id('addLibraryUrlInput')
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryUrlInput'))
 									.findElement(webdriver.By.tagName('input'))
 									.sendKeys(InputKeys.CLEAR_ALL, libUrl);
 								await wait(1000);
-								await crmApp
-									.findElement(
-										webdriver.By.id('addLibraryButton')
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryButton'))
 									.click();
 								await wait(1000);
 								const isInvalid = await crmApp
-									.findElement(
-										webdriver.By.id('addedLibraryName')
-									)
+									.findElement(webdriver.By.id('addedLibraryName'))
 									.getProperty('invalid');
-
-								assert.isTrue(
-									isInvalid,
-									'Name should be marked as invalid'
-								);
-
-								await crmApp
-									.findElement(
-										webdriver.By.id('addedLibraryName')
-									)
+	
+								assert.isTrue(isInvalid, 'Name should be marked as invalid');
+	
+								await crmApp.findElement(webdriver.By.id('addedLibraryName'))
 									.findElement(webdriver.By.tagName('input'))
 									.sendKeys(InputKeys.CLEAR_ALL, libName);
 								await wait(3000);
-								await crmApp
-									.findElement(
-										webdriver.By.id('addLibraryButton')
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryButton'))
 									.click();
 								await wait(1000);
-								await crmApp
-									.findElement(
-										webdriver.By.id(
-											'addLibraryConfirmAddition'
-										)
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryConfirmAddition'))
 									.click();
 								await wait(1000);
-								await driver.executeScript(
-									inlineFn(() => {
-										window.app.$.fullscreenEditorToggle.click();
-									})
-								);
+								await driver.executeScript(inlineFn(() => {
+									window.app.$.fullscreenEditorToggle.click();
+								}));
 								await wait(2000);
 								await saveDialog(dialog);
 								await wait(2000);
 								const crm = await getCRM<[CRM.ScriptNode]>();
-
-								assert.deepInclude(
-									crm[0].value.libraries,
-									{
-										name: libName,
-										url: libUrl,
-									},
-									'Library was added'
-								);
-
+	
+								assert.deepInclude(crm[0].value.libraries, {
+									name: libName,
+									url: libUrl
+								}, 'Library was added');
+	
 								if (!TEST_EXTENSION) {
 									return;
 								}
-
+	
 								await wait(200);
 								//Get the code that is stored at given test URL
-								const jqCode = await new webdriver.promise.Promise<
-									string
-								>((resolve) => {
-									request(
-										libUrl,
-										(
-											err: Error | void,
-											res: XMLHttpRequest & {
-												statusCode: number;
-											},
-											body: string
-										) => {
-											assert.ifError(
-												err,
-												'Should not fail the GET request'
-											);
-
-											if (res.statusCode === 200) {
-												resolve(body);
-											} else {
-												assert.ifError(
-													new Error('err'),
-													'Should get 200 statuscode' +
-														' when doing GET request'
-												);
-											}
+								const jqCode = await new webdriver.promise.Promise<string>((resolve) => {
+									request(libUrl, (err: Error|void, res: XMLHttpRequest & {
+										statusCode: number;
+									}, body: string) => {
+										assert.ifError(err, 'Should not fail the GET request');
+	
+										if (res.statusCode === 200) {
+											resolve(body);
+										} else {
+											assert.ifError(new Error('err'), 'Should get 200 statuscode' +
+												' when doing GET request');
 										}
-									).end();
+									}).end();
 								});
 								const contextMenu = await getContextMenu();
-								const {
-									tabId,
-									windowId,
-								} = await dummyTab.getTabId();
-								await executeAsyncScript<void>(
-									inlineAsyncFn(
-										(ondone, _onreject, REPLACE) => {
-											REPLACE.getTestData()._clearExecutedScripts();
-											REPLACE.getBackgroundPageTestData().then(
-												(testData) => {
-													ondone(
-														testData._currentContextMenu[0].children[0].currentProperties.onclick(
-															REPLACE.page,
-															REPLACE.tab
-														)
-													);
-												}
-											);
-										},
-										{
-											getTestData: getTestData(),
-											getBackgroundPageTestData: getBackgroundPageTestData(),
-											page: {
-												menuItemId: contextMenu[0].id,
-												editable: false,
-												pageUrl: 'www.google.com',
-												modifiers: [],
-											},
-											tab: {
-												isArticle: false,
-												isInReaderMode: false,
-												lastAccessed: 0,
-												id: tabId,
-												index: 1,
-												windowId: windowId,
-												highlighted: false,
-												active: true,
-												pinned: false,
-												selected: false,
-												url: 'http://www.google.com',
-												title: 'Google',
-												incognito: false,
-											},
-										}
-									)
-								);
-								await wait(1000);
-								const activatedScripts = (
-									await getActivatedScripts()
-								).map((scr) => JSON.stringify(scr));
-
-								assert.deepInclude(
-									activatedScripts,
-									JSON.stringify({
+								const { tabId, windowId } = await dummyTab.getTabId();
+								await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+									REPLACE.getTestData()._clearExecutedScripts();
+									REPLACE.getBackgroundPageTestData().then((testData) => {
+										ondone(testData._currentContextMenu[0]
+											.children[0]
+											.currentProperties.onclick(
+												REPLACE.page, REPLACE.tab
+											));
+									});
+								}, {
+									getTestData: getTestData(),
+									getBackgroundPageTestData: getBackgroundPageTestData(),
+									page: {
+										menuItemId: contextMenu[0].id,
+										editable: false,
+										pageUrl: 'www.google.com',
+										modifiers: []
+									},
+									tab: {
+										isArticle: false,
+										isInReaderMode: false,
+										lastAccessed: 0,
 										id: tabId,
-										code: jqCode,
-									}),
-									'library was properly executed'
-								);
+										index: 1,
+										windowId: windowId,
+										highlighted: false,
+										active: true,
+										pinned: false,
+										selected: false,
+										url: 'http://www.google.com',
+										title: 'Google',
+										incognito: false
+									}
+								}));
+								await wait(1000);
+								const activatedScripts = (await getActivatedScripts())
+									.map(scr => JSON.stringify(scr));
+	
+								assert.deepInclude(activatedScripts, JSON.stringify({
+									id: tabId,
+									code: jqCode
+								}), 'library was properly executed');
 							});
 							it('should not add a library through url when not saved', async () => {
 								const libName = getRandomString(25);
-								const libUrl =
-									'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js';
-
-								const dialog = await enterEditorFullscreen(
-									this,
-									type
-								);
-								const crmApp = await findElement(
-									webdriver.By.tagName('crm-app')
-								);
-								await crmApp
-									.findElement(
-										webdriver.By.id(
-											'paperLibrariesSelector'
-										)
-									)
-									.findElement(
-										webdriver.By.id('dropdownSelectedCont')
-									)
+								const libUrl = 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js';
+	
+								const dialog = await enterEditorFullscreen(this, type);
+								const crmApp = await findElement(webdriver.By.tagName('crm-app'));
+								await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+									.findElement(webdriver.By.id('dropdownSelectedCont'))
 									.click();
 								await wait(1000);
-								for (const item of await crmApp
-									.findElement(
-										webdriver.By.id(
-											'paperLibrariesSelector'
-										)
-									)
-									.findElements(
-										webdriver.By.tagName('paper-item')
-									)) {
-									if (
-										(
-											await item.getAttribute('class')
-										).indexOf('addLibrary') > -1
-									) {
-										item.click();
-										break;
+								for (const item of (await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+									.findElements(webdriver.By.tagName('paper-item')))) {
+										if ((await item.getAttribute('class')).indexOf('addLibrary') > -1) {
+											item.click();
+											break;
+										}
 									}
-								}
 								await wait(1000);
-								await crmApp
-									.findElement(
-										webdriver.By.id('addLibraryUrlInput')
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryUrlInput'))
 									.findElement(webdriver.By.tagName('input'))
 									.sendKeys(InputKeys.CLEAR_ALL, libUrl);
 								await wait(1000);
-								await crmApp
-									.findElement(
-										webdriver.By.id('addLibraryButton')
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryButton'))
 									.click();
 								await wait(5000);
 								const isInvalid = await crmApp
-									.findElement(
-										webdriver.By.id('addedLibraryName')
-									)
+									.findElement(webdriver.By.id('addedLibraryName'))
 									.getProperty('invalid');
-
-								assert.isTrue(
-									isInvalid,
-									'Name should be marked as invalid'
-								);
-
-								await crmApp
-									.findElement(
-										webdriver.By.id('addedLibraryName')
-									)
+	
+								assert.isTrue(isInvalid, 'Name should be marked as invalid');
+	
+								await crmApp.findElement(webdriver.By.id('addedLibraryName'))
 									.findElement(webdriver.By.tagName('input'))
 									.sendKeys(InputKeys.CLEAR_ALL, libName);
 								await wait(5000);
-								await crmApp
-									.findElement(
-										webdriver.By.id('addLibraryButton')
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryButton'))
 									.click();
 								await wait(1000);
-								await crmApp
-									.findElement(
-										webdriver.By.id(
-											'addLibraryConfirmAddition'
-										)
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryConfirmAddition'))
 									.click();
 								await wait(1000);
-								await driver.executeScript(
-									inlineFn(() => {
-										window.app.$.fullscreenEditorToggle.click();
-									})
-								);
+								await driver.executeScript(inlineFn(() => {
+									window.app.$.fullscreenEditorToggle.click();
+								}));
 								await wait(2000);
 								await cancelDialog(dialog);
 								await wait(2000);
 								const crm = await getCRM<[CRM.ScriptNode]>();
-
-								assert.notDeepInclude(
-									crm[0].value.libraries,
-									{
-										name: libName,
-										url: libUrl,
-									},
-									'Library was added'
-								);
+	
+								assert.notDeepInclude(crm[0].value.libraries, {
+									name: libName,
+									url: libUrl
+								}, 'Library was added');
 							});
-							it('should be possible to add your own library through code', async function () {
-								this.retries(3);
+							it('should be possible to add your own library through code', async function() {
+								this.retries(3); 
 								const libName = getRandomString(25);
 								const testCode = `'${getRandomString(100)}'`;
-
+	
 								await doFullRefresh();
 								this.timeout(60000 * TIME_MODIFIER);
 								await wait(10000);
-								const dialog = await enterEditorFullscreen(
-									type
-								);
-								const crmApp = await findElement(
-									webdriver.By.tagName('crm-app')
-								);
-								await crmApp
-									.findElement(
-										webdriver.By.id(
-											'paperLibrariesSelector'
-										)
-									)
-									.findElement(
-										webdriver.By.id('dropdownSelectedCont')
-									)
+								const dialog = await enterEditorFullscreen(type);
+								const crmApp = await findElement(webdriver.By.tagName('crm-app'));
+								await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+									.findElement(webdriver.By.id('dropdownSelectedCont'))
 									.click();
 								await wait(1000);
-								for (const item of await crmApp
-									.findElement(
-										webdriver.By.id(
-											'paperLibrariesSelector'
-										)
-									)
-									.findElements(
-										webdriver.By.tagName('paper-item')
-									)) {
-									if (
-										(
-											await item.getAttribute('class')
-										).indexOf('addLibrary') > -1
-									) {
-										item.click();
-										break;
+								for (const item of (await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+									.findElements(webdriver.By.tagName('paper-item')))) {
+										if ((await item.getAttribute('class')).indexOf('addLibrary') > -1) {
+											item.click();
+											break;
+										}
 									}
-								}
 								await wait(1000);
-								await crmApp
-									.findElement(
-										webdriver.By.id(
-											'addLibraryManualOption'
-										)
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryManualOption'))
 									.click();
-								await crmApp
-									.findElement(
-										webdriver.By.id('addLibraryManualInput')
-									)
-									.findElement(
-										webdriver.By.tagName(
-											'iron-autogrow-textarea'
-										)
-									)
-									.findElement(
-										webdriver.By.tagName('textarea')
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryManualInput'))
+									.findElement(webdriver.By.tagName('iron-autogrow-textarea'))
+									.findElement(webdriver.By.tagName('textarea'))
 									.sendKeys(InputKeys.CLEAR_ALL, testCode);
-								await crmApp
-									.findElement(
-										webdriver.By.id('addLibraryButton')
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryButton'))
 									.click();
 								const isInvalid = await crmApp
-									.findElement(
-										webdriver.By.id('addedLibraryName')
-									)
+									.findElement(webdriver.By.id('addedLibraryName'))
 									.getProperty('invalid');
-
-								assert.isTrue(
-									isInvalid,
-									'Name should be marked as invalid'
-								);
-
-								await crmApp
-									.findElement(
-										webdriver.By.id('addedLibraryName')
-									)
+								
+								assert.isTrue(isInvalid, 'Name should be marked as invalid');
+	
+								await crmApp.findElement(webdriver.By.id('addedLibraryName'))
 									.findElement(webdriver.By.tagName('input'))
 									.sendKeys(InputKeys.CLEAR_ALL, libName);
-								await crmApp
-									.findElement(
-										webdriver.By.id('addLibraryButton')
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryButton'))
 									.click();
 								await wait(15000);
-								await crmApp
-									.findElement(
-										webdriver.By.id(
-											'addLibraryConfirmAddition'
-										)
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryConfirmAddition'))
 									.click();
 								await wait(1000);
-								await crmApp
-									.findElement(
-										webdriver.By.id(
-											'fullscreenEditorToggle'
-										)
-									)
+								await crmApp.findElement(webdriver.By.id('fullscreenEditorToggle'))
 									.click();
 								await wait(1000);
 								await saveDialog(dialog);
 								const crm = await getCRM<[CRM.ScriptNode]>();
-
-								assert.deepInclude(
-									crm[0].value.libraries,
-									{
-										name: libName,
-										url: null,
-									},
-									'Library was added'
-								);
-
+	
+								assert.deepInclude(crm[0].value.libraries, {
+									name: libName,
+									url: null
+								}, 'Library was added');
+	
 								if (!TEST_EXTENSION) {
 									return;
 								}
-
+	
 								await wait(1000);
-
+	
 								const contextMenu = await getContextMenu();
-								const {
-									tabId,
-									windowId,
-								} = await dummyTab.getTabId();
-								await executeAsyncScript<void>(
-									inlineAsyncFn(
-										(ondone, _onreject, REPLACE) => {
-											REPLACE.getTestData()._clearExecutedScripts();
-											REPLACE.getBackgroundPageTestData().then(
-												(testData) => {
-													ondone(
-														testData._currentContextMenu[0].children[0].currentProperties.onclick(
-															REPLACE.page,
-															REPLACE.tab
-														)
-													);
-												}
-											);
-										},
-										{
-											getTestData: getTestData(),
-											getBackgroundPageTestData: getBackgroundPageTestData(),
-											page: {
-												menuItemId: contextMenu[0].id,
-												editable: false,
-												pageUrl: 'www.google.com',
-												modifiers: [],
-											},
-											tab: {
-												isArticle: false,
-												isInReaderMode: false,
-												lastAccessed: 0,
-												id: tabId,
-												index: 1,
-												windowId: windowId,
-												highlighted: false,
-												active: true,
-												pinned: false,
-												selected: false,
-												url: 'http://www.google.com',
-												title: 'Google',
-												incognito: false,
-											},
-										}
-									)
-								);
+								const { tabId, windowId } = await dummyTab.getTabId();
+								await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+									REPLACE.getTestData()._clearExecutedScripts();
+									REPLACE.getBackgroundPageTestData().then((testData) => {
+										ondone(testData._currentContextMenu[0]
+											.children[0]
+											.currentProperties.onclick(
+												REPLACE.page, REPLACE.tab
+											));
+									});
+								}, {
+									getTestData: getTestData(),
+									getBackgroundPageTestData: getBackgroundPageTestData(),
+									page: {
+										menuItemId: contextMenu[0].id,
+										editable: false,
+										pageUrl: 'www.google.com',
+										modifiers: []
+									},
+									tab: {
+										isArticle: false,
+										isInReaderMode: false,
+										lastAccessed: 0,
+										id: tabId,
+										index: 1,
+										windowId: windowId,
+										highlighted: false,
+										active: true,
+										pinned: false,
+										selected: false,
+										url: 'http://www.google.com',
+										title: 'Google',
+										incognito: false
+									}
+								}));
 								await wait(1000);
 								const activatedScripts = await getActivatedScripts();
-
-								assert.deepInclude(
-									activatedScripts,
-									{
-										id: tabId,
-										code: testCode,
-									},
-									'library was properly executed'
-								);
+	
+								assert.deepInclude(activatedScripts, {
+									id: tabId,
+									code: testCode
+								}, 'library was properly executed');
 							});
 							it('should not add canceled library that was added through code', async () => {
 								const libName = getRandomString(25);
 								const testCode = getRandomString(100);
-
-								const crmApp = await findElement(
-									webdriver.By.tagName('crm-app')
-								);
-								const dialog = await enterEditorFullscreen(
-									this,
-									type
-								);
-								await crmApp
-									.findElement(
-										webdriver.By.id(
-											'paperLibrariesSelector'
-										)
-									)
-									.findElement(
-										webdriver.By.id('dropdownSelectedCont')
-									)
+	
+								const crmApp = await findElement(webdriver.By.tagName('crm-app'));
+								const dialog = await enterEditorFullscreen(this, type);
+								await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+									.findElement(webdriver.By.id('dropdownSelectedCont'))
 									.click();
 								await wait(1000);
-								for (const item of await crmApp
-									.findElement(
-										webdriver.By.id(
-											'paperLibrariesSelector'
-										)
-									)
-									.findElements(
-										webdriver.By.tagName('paper-item')
-									)) {
-									if (
-										(
-											await item.getAttribute('class')
-										).indexOf('addLibrary') > -1
-									) {
-										item.click();
-										break;
+								for (const item of (await crmApp.findElement(webdriver.By.id('paperLibrariesSelector'))
+									.findElements(webdriver.By.tagName('paper-item')))) {
+										if ((await item.getAttribute('class')).indexOf('addLibrary') > -1) {
+											item.click();
+											break;
+										}
 									}
-								}
 								await wait(1000);
-								await crmApp
-									.findElement(
-										webdriver.By.id(
-											'addLibraryManualOption'
-										)
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryManualOption'))
 									.click();
-								await crmApp
-									.findElement(
-										webdriver.By.id('addLibraryManualInput')
-									)
-									.findElement(
-										webdriver.By.tagName(
-											'iron-autogrow-textarea'
-										)
-									)
-									.findElement(
-										webdriver.By.tagName('textarea')
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryManualInput'))
+									.findElement(webdriver.By.tagName('iron-autogrow-textarea'))
+									.findElement(webdriver.By.tagName('textarea'))
 									.sendKeys(InputKeys.CLEAR_ALL, testCode);
-								await crmApp
-									.findElement(
-										webdriver.By.id('addLibraryButton')
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryButton'))
 									.click();
 								const isInvalid = await crmApp
-									.findElement(
-										webdriver.By.id('addedLibraryName')
-									)
+									.findElement(webdriver.By.id('addedLibraryName'))
 									.getProperty('invalid');
-
-								assert.isTrue(
-									isInvalid,
-									'Name should be marked as invalid'
-								);
-
-								await crmApp
-									.findElement(
-										webdriver.By.id('addedLibraryName')
-									)
+	
+								assert.isTrue(isInvalid, 'Name should be marked as invalid');
+	
+								await crmApp.findElement(webdriver.By.id('addedLibraryName'))
 									.findElement(webdriver.By.tagName('input'))
 									.sendKeys(InputKeys.CLEAR_ALL, libName);
-								await crmApp
-									.findElement(
-										webdriver.By.id('addLibraryButton')
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryButton'))
 									.click();
 								await wait(15000);
-								await crmApp
-									.findElement(
-										webdriver.By.id(
-											'addLibraryConfirmAddition'
-										)
-									)
+								await crmApp.findElement(webdriver.By.id('addLibraryConfirmAddition'))
 									.click();
 								await wait(1000);
-								await crmApp
-									.findElement(
-										webdriver.By.id(
-											'fullscreenEditorToggle'
-										)
-									)
+								await crmApp.findElement(webdriver.By.id('fullscreenEditorToggle'))
 									.click();
 								await wait(1000);
 								await cancelDialog(dialog);
 								const crm = await getCRM<[CRM.ScriptNode]>();
-								assert.notInclude(
-									crm[0].value.libraries,
-									{
-										name: libName,
-										url: testCode,
-									},
-									'Library was not added'
-								);
+								assert.notInclude(crm[0].value.libraries, {
+									name: libName,
+									url: testCode
+								}, 'Library was not added');
 							});
 							after('Disable dummy tab', async () => {
 								await dummyTab.disable();
 							});
 						});
-						describe('GetPageProperties', function () {
+						describe('GetPageProperties', function() {
 							const pagePropertyPairs = {
-								paperGetPropertySelection:
-									'crmAPI.getSelection();',
+								paperGetPropertySelection: 'crmAPI.getSelection();',
 								paperGetPropertyUrl: 'window.location.href;',
 								paperGetPropertyHost: 'window.location.host;',
 								paperGetPropertyPath: 'window.location.path;',
-								paperGetPropertyProtocol:
-									'window.location.protocol;',
+								paperGetPropertyProtocol: 'window.location.protocol;',
 								paperGetPropertyWidth: 'window.innerWidth;',
 								paperGetPropertyHeight: 'window.innerHeight;',
 								paperGetPropertyPixels: 'window.scrollY;',
 								paperGetPropertyTitle: 'document.title;',
-								paperGetPropertyClicked:
-									'crmAPI.contextData.target;',
+								paperGetPropertyClicked: 'crmAPI.contextData.target;'
 							};
-							Object.getOwnPropertyNames(
-								pagePropertyPairs
-							).forEach(
-								(prop: keyof typeof pagePropertyPairs) => {
-									it(`should be able to insert the ${prop} property`, async function () {
-										this.retries(5);
-										const dialog = await enterEditorFullscreen(
-											this,
-											type
-										);
-										const crmApp = await findElement(
-											webdriver.By.tagName('crm-app')
-										);
-										const prevCode = await getEditorValue(
-											type
-										);
-										crmApp
-											.findElement(
-												webdriver.By.id(
-													'paperGetPageProperties'
-												)
-											)
-											.click()
-											.waitFor(wait(500))
-											.findElement(webdriver.By.id(prop))
-											.click();
-										await wait(500);
-										const newCode = await getEditorValue(
-											type
-										);
-
-										assert.strictEqual(
-											subtractStrings(newCode, prevCode),
-											pagePropertyPairs[prop],
-											'Added text should match expected'
-										);
-										await crmApp
-											.findElement(
-												webdriver.By.id(
-													'fullscreenEditorToggle'
-												)
-											)
-											.click();
-										await wait(500);
-										await cancelDialog(dialog);
-									});
-								}
-							);
-						});
-						describe('Search Website', function () {
-							afterEach('Close dialog', async () => {
-								await driver.executeScript(
-									inlineFn(() => {
-										window.doc.paperSearchWebsiteDialog.opened() &&
-											window.doc.paperSearchWebsiteDialog.hide();
-									})
-								);
+							Object.getOwnPropertyNames(pagePropertyPairs).forEach((prop: keyof typeof pagePropertyPairs) => {
+								it(`should be able to insert the ${prop} property`, async function() {
+									this.retries(5);
+									const dialog = await enterEditorFullscreen(this, type);
+									const crmApp = await findElement(webdriver.By.tagName('crm-app'));
+									const prevCode = await getEditorValue(type);
+									crmApp.findElement(webdriver.By.id('paperGetPageProperties'))
+										.click()
+										.waitFor(wait(500))
+										.findElement(webdriver.By.id(prop))
+										.click();
+									await wait(500);
+									const newCode = await getEditorValue(type);
+									
+									assert.strictEqual(subtractStrings(newCode, prevCode),
+										pagePropertyPairs[prop], 
+										'Added text should match expected');
+									await crmApp.findElement(webdriver.By.id('fullscreenEditorToggle'))
+										.click();
+									await wait(500);
+									await cancelDialog(dialog);
+								});
 							});
-
-							describe('Default SearchEngines', function () {
+						});
+						describe('Search Website', function() {
+							afterEach('Close dialog', async () => {
+								await driver.executeScript(inlineFn(() => {
+									window.doc.paperSearchWebsiteDialog.opened() &&
+									window.doc.paperSearchWebsiteDialog.hide();
+								}));
+							});
+	
+							describe('Default SearchEngines', function(){
 								it('should correctly add a search engine script (new tab)', async () => {
 									await enterEditorFullscreen(this, type);
-									const crmApp = await findElement(
-										webdriver.By.tagName('crm-app')
-									);
+									const crmApp = await findElement(webdriver.By.tagName('crm-app'));
 									const prevCode = await getEditorValue(type);
-									crmApp
-										.findElement(
-											webdriver.By.id(
-												'paperSearchWebsitesToolTrigger'
-											)
-										)
+									crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
 										.click();
 									await wait(500);
-									const searchDialog = await crmApp.findElement(
-										webdriver.By.id(
-											'paperSearchWebsiteDialog'
-										)
-									);
+									const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
 									await searchDialog
-										.findElement(
-											webdriver.By.id('initialWindow')
-										)
-										.findElement(
-											webdriver.By.className('buttons')
-										)
-										.findElement(
-											webdriver.By.css(
-												'paper-button:nth-child(2)'
-											)
-										)
+										.findElement(webdriver.By.id('initialWindow'))
+										.findElement(webdriver.By.className('buttons'))
+										.findElement(webdriver.By.css('paper-button:nth-child(2)'))
 										.click();
 									await wait(500);
-									await searchDialog
-										.findElement(
-											webdriver.By.id(
-												'chooseDefaultSearchWindow'
-											)
-										)
-										.findElement(
-											webdriver.By.className('buttons')
-										)
-										.findElements(
-											webdriver.By.tagName('paper-button')
-										)
+									await searchDialog.findElement(webdriver.By.id('chooseDefaultSearchWindow'))
+										.findElement(webdriver.By.className('buttons'))
+										.findElements(webdriver.By.tagName('paper-button'))
 										.get(1)
 										.click();
 									await wait(500);
-									await searchDialog
-										.findElement(
-											webdriver.By.id(
-												'confirmationWindow'
-											)
-										)
-										.findElement(
-											webdriver.By.className('buttons')
-										)
-										.findElements(
-											webdriver.By.tagName('paper-button')
-										)
+									await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
+										.findElement(webdriver.By.className('buttons'))
+										.findElements(webdriver.By.tagName('paper-button'))
 										.get(1)
 										.click();
 									await wait(500);
-									await searchDialog
-										.findElement(
-											webdriver.By.id('howToOpenWindow')
-										)
-										.findElement(
-											webdriver.By.className('buttons')
-										)
-										.findElements(
-											webdriver.By.tagName('paper-button')
-										)
+									await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
+										.findElement(webdriver.By.className('buttons'))
+										.findElements(webdriver.By.tagName('paper-button'))
 										.get(1)
 										.click();
 									await wait(500);
 									const newCode = await getEditorValue(type);
-
+									
 									const lines = [
-										"var search = crmAPI.getSelection() || prompt('Please enter a search query');",
-										"var url = 'https://www.google.com/search?q=%s';",
+										'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+										'var url = \'https://www.google.com/search?q=%s\';',
 										'var toOpen = url.replace(/%s/g,search);',
-										"window.open(toOpen, '_blank');",
+										'window.open(toOpen, \'_blank\');'
 									];
-									const possibilities = [
-										lines.join('\r\n'),
-										lines.join('\n'),
-									];
-									assert.include(
-										possibilities,
-										subtractStrings(newCode, prevCode),
-										'Added code matches expected'
-									);
+									const possibilities = [lines.join('\r\n'), lines.join('\n')];
+									assert.include(possibilities, subtractStrings(newCode, prevCode), 
+										'Added code matches expected');
 								});
 								it('should correctly add a search engine script (current tab)', async () => {
 									await enterEditorFullscreen(this, type);
-									const crmApp = findElement(
-										webdriver.By.tagName('crm-app')
-									);
+									const crmApp = findElement(webdriver.By.tagName('crm-app'));
 									const prevCode = await getEditorValue(type);
-									await crmApp
-										.findElement(
-											webdriver.By.id(
-												'paperSearchWebsitesToolTrigger'
-											)
-										)
+									await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
 										.click();
 									await wait(500);
-									const searchDialog = await crmApp.findElement(
-										webdriver.By.id(
-											'paperSearchWebsiteDialog'
-										)
-									);
+									const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
 									await searchDialog
-										.findElement(
-											webdriver.By.id('initialWindow')
-										)
-										.findElement(
-											webdriver.By.className('buttons')
-										)
-										.findElement(
-											webdriver.By.css(
-												'paper-button:nth-child(2)'
-											)
-										)
+										.findElement(webdriver.By.id('initialWindow'))
+										.findElement(webdriver.By.className('buttons'))
+										.findElement(webdriver.By.css('paper-button:nth-child(2)'))
 										.click();
-									await searchDialog
-										.findElement(
-											webdriver.By.id(
-												'chooseDefaultSearchWindow'
-											)
-										)
-										.findElement(
-											webdriver.By.className('buttons')
-										)
-										.findElements(
-											webdriver.By.tagName('paper-button')
-										)
+									await searchDialog.findElement(webdriver.By.id('chooseDefaultSearchWindow'))
+										.findElement(webdriver.By.className('buttons'))
+										.findElements(webdriver.By.tagName('paper-button'))
 										.get(1)
 										.click();
 									await wait(500);
-									await searchDialog
-										.findElement(
-											webdriver.By.id(
-												'confirmationWindow'
-											)
-										)
-										.findElement(
-											webdriver.By.className('buttons')
-										)
-										.findElements(
-											webdriver.By.tagName('paper-button')
-										)
+									await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
+										.findElement(webdriver.By.className('buttons'))
+										.findElements(webdriver.By.tagName('paper-button'))
 										.get(1)
 										.click();
 									await wait(500);
-									await searchDialog
-										.findElement(
-											webdriver.By.id('howToOpenLink')
-										)
-										.findElements(
-											webdriver.By.tagName(
-												'paper-radio-button'
-											)
-										)
+									await searchDialog.findElement(webdriver.By.id('howToOpenLink'))
+										.findElements(webdriver.By.tagName('paper-radio-button'))
 										.get(1)
 										.click();
 									await wait(500);
-									await searchDialog
-										.findElement(
-											webdriver.By.id('howToOpenWindow')
-										)
-										.findElement(
-											webdriver.By.className('buttons')
-										)
-										.findElements(
-											webdriver.By.tagName('paper-button')
-										)
+									await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
+										.findElement(webdriver.By.className('buttons'))
+										.findElements(webdriver.By.tagName('paper-button'))
 										.get(1)
 										.click();
 									await wait(500);
 									const newCode = await getEditorValue(type);
-
+	
 									const lines = [
-										"var search = crmAPI.getSelection() || prompt('Please enter a search query');",
-										"var url = 'https://www.google.com/search?q=%s';",
+										'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+										'var url = \'https://www.google.com/search?q=%s\';',
 										'var toOpen = url.replace(/%s/g,search);',
-										'location.href = toOpen;',
+										'location.href = toOpen;'
 									];
-									const possibilities = [
-										lines.join('\r\n'),
-										lines.join('\n'),
-									];
-									assert.include(
-										possibilities,
-										subtractStrings(newCode, prevCode),
-										'Added code matches expected'
-									);
+									const possibilities = [lines.join('\r\n'), lines.join('\n')];
+									assert.include(possibilities, subtractStrings(newCode, prevCode), 
+										'Added code matches expected');
 								});
 							});
-							describe('Custom Input', function () {
+							describe('Custom Input', function() {
 								it('should be able to add one from a search URL', async () => {
-									const exampleSearchURL = `http://www.${getRandomString(
-										10
-									)}/?${getRandomString(
-										10
-									)}=customRightClickMenu}`;
-
+									const exampleSearchURL = 
+										`http://www.${getRandomString(10)}/?${getRandomString(10)}=customRightClickMenu}`;
+	
 									await enterEditorFullscreen(this, type);
-									const crmApp = findElement(
-										webdriver.By.tagName('crm-app')
-									);
+									const crmApp = findElement(webdriver.By.tagName('crm-app'));
 									const prevCode = await getEditorValue(type);
-									await crmApp
-										.findElement(
-											webdriver.By.id(
-												'paperSearchWebsitesToolTrigger'
-											)
-										)
-										.click();
-									const searchDialog = await crmApp.findElement(
-										webdriver.By.id(
-											'paperSearchWebsiteDialog'
-										)
-									);
-									await searchDialog
-										.findElement(
-											webdriver.By.id(
-												'initialWindowChoicesCont'
-											)
-										)
-										.findElement(
-											webdriver.By.css(
-												'paper-radio-button:nth-child(2)'
-											)
-										)
+									await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
+											.click();
+									const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
+									await searchDialog.findElement(webdriver.By.id('initialWindowChoicesCont'))
+										.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
 										.click();
 									await wait(500);
-									await searchDialog
-										.findElement(
-											webdriver.By.id(
-												'manuallyInputSearchWebsiteWindow'
-											)
-										)
-										.findElement(
-											webdriver.By.id(
-												'manualInputURLInput'
-											)
-										)
-										.findElement(
-											webdriver.By.tagName('input')
-										)
-										.sendKeys(
-											InputKeys.CLEAR_ALL,
-											exampleSearchURL
-										);
-									await searchDialog
-										.findElement(
-											webdriver.By.id(
-												'manuallyInputSearchWebsiteWindow'
-											)
-										)
-										.findElement(
-											webdriver.By.className('buttons')
-										)
-										.findElements(
-											webdriver.By.tagName('paper-button')
-										)
+									await searchDialog.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+										.findElement(webdriver.By.id('manualInputURLInput'))
+										.findElement(webdriver.By.tagName('input'))
+										.sendKeys(InputKeys.CLEAR_ALL, exampleSearchURL);
+									await searchDialog.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+										.findElement(webdriver.By.className('buttons'))
+										.findElements(webdriver.By.tagName('paper-button'))
 										.get(1)
 										.click();
 									await wait(500);
-									await searchDialog
-										.findElement(
-											webdriver.By.id(
-												'confirmationWindow'
-											)
-										)
-										.findElement(
-											webdriver.By.className('buttons')
-										)
-										.findElements(
-											webdriver.By.tagName('paper-button')
-										)
+									await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
+										.findElement(webdriver.By.className('buttons'))
+										.findElements(webdriver.By.tagName('paper-button'))
 										.get(1)
 										.click();
 									await wait(500);
-									await searchDialog
-										.findElement(
-											webdriver.By.id('howToOpenWindow')
-										)
-										.findElement(
-											webdriver.By.className('buttons')
-										)
-										.findElements(
-											webdriver.By.tagName('paper-button')
-										)
+									await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
+										.findElement(webdriver.By.className('buttons'))
+										.findElements(webdriver.By.tagName('paper-button'))
 										.get(1)
 										.click();
 									await wait(500);
 									const newCode = await getEditorValue(type);
-
+	
 									const lines = [
-										"var search = crmAPI.getSelection() || prompt('Please enter a search query');",
-										`var url = '${exampleSearchURL.replace(
-											'customRightClickMenu',
-											'%s'
-										)}';`,
+										'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+										`var url = '${exampleSearchURL.replace('customRightClickMenu', '%s')}';`,
 										'var toOpen = url.replace(/%s/g,search);',
-										'location.href = toOpen;',
+										'location.href = toOpen;'
 									];
-									const possibilities = [
-										lines.join('\r\n'),
-										lines.join('\n'),
-									];
-									assert.include(
-										possibilities,
-										subtractStrings(newCode, prevCode),
-										'Script should match expected value'
-									);
+									const possibilities = [lines.join('\r\n'), lines.join('\n')];
+									assert.include(possibilities, subtractStrings(newCode, prevCode), 
+										'Script should match expected value');
 								});
 								if (getBrowser() === 'Chrome') {
 									it('should be able to add one from your visited websites', async () => {
@@ -4556,189 +3108,73 @@ describe('User entrypoints', function () {
 											name: string;
 											url: string;
 											searchUrl: string;
-										}[] = [
-											{
-												name: getRandomString(20),
-												url: `http://www.${getRandomString(
-													20
-												)}.com`,
-												searchUrl: `${getRandomString(
-													20
-												)}%s${getRandomString(10)}`,
-											},
-										];
-
+										}[] = [{
+											name: getRandomString(20),
+											url: `http://www.${getRandomString(20)}.com`,
+											searchUrl: `${getRandomString(20)}%s${getRandomString(10)}`
+										}];
+		
 										await enterEditorFullscreen(this, type);
-										const crmApp = findElement(
-											webdriver.By.tagName('crm-app')
-										);
-										const oldValue = await getEditorValue(
-											type
-										);
-										await crmApp
-											.findElement(
-												webdriver.By.id(
-													'paperSearchWebsitesToolTrigger'
-												)
-											)
+										const crmApp = findElement(webdriver.By.tagName('crm-app'));
+										const oldValue = await getEditorValue(type);
+										await crmApp.findElement(webdriver.By.id('paperSearchWebsitesToolTrigger'))
 											.click();
 										await wait(500);
-										const searchDialog = await crmApp.findElement(
-											webdriver.By.id(
-												'paperSearchWebsiteDialog'
-											)
-										);
-										await searchDialog
-											.findElement(
-												webdriver.By.id(
-													'initialWindowChoicesCont'
-												)
-											)
-											.findElement(
-												webdriver.By.css(
-													'paper-radio-button:nth-child(2)'
-												)
-											)
+										const searchDialog = await crmApp.findElement(webdriver.By.id('paperSearchWebsiteDialog'));
+										await searchDialog.findElement(webdriver.By.id('initialWindowChoicesCont'))
+											.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
 											.click();
 										await wait(500);
-										await searchDialog
-											.findElement(
-												webdriver.By.id(
-													'manualInputSavedChoice'
-												)
-											)
+										await searchDialog.findElement(webdriver.By.id('manualInputSavedChoice'))
 											.click();
 										await wait(500);
-										await driver.executeScript(
-											inlineFn(
-												() => {
-													window.app.$.paperSearchWebsiteDialog.shadowRoot
-														.querySelector(
-															'#manualInputListChoiceInput'
-														)
-														.shadowRoot.querySelector(
-															'iron-autogrow-textarea'
-														)
-														.shadowRoot.querySelector(
-															'textarea'
-														).value =
-														'REPLACE.websites';
-												},
-												{
-													websites: JSON.stringify(
-														exampleVisitedWebsites
-													),
-												}
-											)
-										);
+										await driver.executeScript(inlineFn(() => {
+											window.app.$.paperSearchWebsiteDialog
+												.shadowRoot.querySelector('#manualInputListChoiceInput')
+												.shadowRoot.querySelector('iron-autogrow-textarea')
+												.shadowRoot.querySelector('textarea').value = 'REPLACE.websites';
+										}, {
+											websites: JSON.stringify(exampleVisitedWebsites)
+										}));
 										await wait(500);
-										await searchDialog
-											.findElement(
-												webdriver.By.id(
-													'manuallyInputSearchWebsiteWindow'
-												)
-											)
-											.findElement(
-												webdriver.By.className(
-													'buttons'
-												)
-											)
-											.findElements(
-												webdriver.By.tagName(
-													'paper-button'
-												)
-											)
+										await searchDialog.findElement(webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+											.findElement(webdriver.By.className('buttons'))
+											.findElements(webdriver.By.tagName('paper-button'))
 											.get(1)
 											.click();
 										await wait(500);
-										await searchDialog
-											.findElement(
-												webdriver.By.id(
-													'processedListWindow'
-												)
-											)
-											.findElement(
-												webdriver.By.className(
-													'searchOptionCheckbox'
-												)
-											)
+										await searchDialog.findElement(webdriver.By.id('processedListWindow'))
+											.findElement(webdriver.By.className('searchOptionCheckbox'))
 											.click();
-										await searchDialog
-											.findElement(
-												webdriver.By.id(
-													'processedListWindow'
-												)
-											)
-											.findElement(
-												webdriver.By.className(
-													'buttons'
-												)
-											)
-											.findElements(
-												webdriver.By.tagName(
-													'paper-button'
-												)
-											)
+										await searchDialog.findElement(webdriver.By.id('processedListWindow'))
+											.findElement(webdriver.By.className('buttons'))
+											.findElements(webdriver.By.tagName('paper-button'))
 											.get(1)
 											.click();
 										await wait(500);
-										await searchDialog
-											.findElement(
-												webdriver.By.id(
-													'confirmationWindow'
-												)
-											)
-											.findElement(
-												webdriver.By.className(
-													'buttons'
-												)
-											)
-											.findElements(
-												webdriver.By.tagName(
-													'paper-button'
-												)
-											)
+										await searchDialog.findElement(webdriver.By.id('confirmationWindow'))
+											.findElement(webdriver.By.className('buttons'))
+											.findElements(webdriver.By.tagName('paper-button'))
 											.get(1)
 											.click();
 										await wait(500);
-										await searchDialog
-											.findElement(
-												webdriver.By.id(
-													'howToOpenWindow'
-												)
-											)
-											.findElement(
-												webdriver.By.className(
-													'buttons'
-												)
-											)
-											.findElements(
-												webdriver.By.tagName(
-													'paper-button'
-												)
-											)
+										await searchDialog.findElement(webdriver.By.id('howToOpenWindow'))
+											.findElement(webdriver.By.className('buttons'))
+											.findElements(webdriver.By.tagName('paper-button'))
 											.get(1)
 											.click();
 										await wait(500);
-										const newValue = await getEditorValue(
-											type
-										);
-
+										const newValue = await getEditorValue(type);
+		
 										const lines = [
-											"var search = crmAPI.getSelection() || prompt('Please enter a search query');",
+											'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
 											`var url = '${exampleVisitedWebsites[0].searchUrl}';`,
 											'var toOpen = url.replace(/%s/g,search);',
-											'location.href = toOpen;',
+											'location.href = toOpen;'
 										];
-										const possibilities = [
-											lines.join('\r\n'),
-											lines.join('\n'),
-										];
-										assert.include(
-											possibilities,
-											subtractStrings(newValue, oldValue),
-											'Added script should match expected'
-										);
+										const possibilities = [lines.join('\r\n'), lines.join('\n')];
+										assert.include(possibilities, subtractStrings(newValue, oldValue), 
+											'Added script should match expected');
 									});
 								}
 							});
@@ -4750,12 +3186,12 @@ describe('User entrypoints', function () {
 	});
 });
 
-describe('On-Page CRM', function () {
+describe('On-Page CRM', function() {
 	if (SKIP_CONTEXTMENU) {
 		return;
 	}
 	if (SKIP_ENTRYPOINTS) {
-		before('Open test page', async function () {
+		before('Open test page', async function() {
 			this.timeout(600000 * TIME_MODIFIER);
 			await openTestPageURL(browserCapabilities);
 			currentTestWindow = await driver.getWindowHandle();
@@ -4763,109 +3199,89 @@ describe('On-Page CRM', function () {
 			await dummyTab.init();
 			await switchToTestWindow();
 
-			await waitFor(
-				() => {
-					return driver.executeScript(
-						inlineFn(() => {
-							return window.polymerElementsLoaded;
-						})
-					);
-				},
-				2500,
-				600000 * TIME_MODIFIER
-			).then(
-				() => {},
-				() => {
-					//About to time out
-					throw new Error(
-						'Failed to get elements loaded message, page load is failing'
-					);
-				}
-			);
+			await waitFor(() => {
+				return driver.executeScript(inlineFn(() => {
+					return window.polymerElementsLoaded;
+				}));
+			}, 2500, 600000 * TIME_MODIFIER).then(() => {}, () => {
+				//About to time out
+				throw new Error('Failed to get elements loaded message, page load is failing');
+			});
 		});
 	}
-	describe('Redraws on new CRM', function () {
+	describe('Redraws on new CRM', function() {
 		this.slow(2000 * TIME_MODIFIER);
 		this.timeout(30000 * TIME_MODIFIER);
 
 		const CRM1 = [
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
-				id: getRandomId(),
+				id: getRandomId()
 			}),
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
-				id: getRandomId(),
+				id: getRandomId()
 			}),
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
-				id: getRandomId(),
-			}),
+				id: getRandomId()
+			})
+		
 		];
 		const CRM2 = [
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
-				id: getRandomId(),
+				id: getRandomId()
 			}),
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
-				id: getRandomId(),
+				id: getRandomId()
 			}),
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
-				id: getRandomId(),
-			}),
+				id: getRandomId()
+			})
 		];
 
-		it('should not throw when setting up the CRM', function (done) {
+		it('should not throw when setting up the CRM', function(done) {
 			this.slow(10000 * TIME_MODIFIER);
 			this.timeout(10000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
-				await driver.executeScript(
-					inlineFn(
-						(REPLACE) => {
-							window.app.settings.crm = REPLACE.crm;
-							window.app.upload();
-						},
-						{
-							crm: CRM1,
-						}
-					)
-				);
+				await driver.executeScript(inlineFn((REPLACE) => {
+					window.app.settings.crm = REPLACE.crm;
+					window.app.upload();
+				}, {
+					crm: CRM1
+				}));
 				await wait(1000);
 				done();
 			}, 'setting up the CRM does not throw');
 		});
-		it('should be using the first CRM', async function () {
+		it('should be using the first CRM', async function() {
 			this.timeout(60000 * TIME_MODIFIER);
 			const contextMenu = await getContextMenu();
 			assertContextMenuEquality(contextMenu, CRM1);
 		});
-		it('should be able to switch to a new CRM', function (done) {
+		it('should be able to switch to a new CRM', function(done) {
 			assert.doesNotThrow(async () => {
-				await driver.executeScript(
-					inlineFn(
-						(REPLACE) => {
-							window.app.settings.crm = REPLACE.crm;
-							window.app.upload();
-							return true;
-						},
-						{
-							crm: CRM2,
-						}
-					)
-				);
+				await driver.executeScript(inlineFn((REPLACE) => {
+					window.app.settings.crm = REPLACE.crm;
+					window.app.upload();
+					return true;
+				}, {
+					crm: CRM2
+				}));
 				await wait(1000);
 				done();
 			}, 'settings CRM does not throw');
 		});
-		it('should be using the new CRM', async function () {
+		it('should be using the new CRM', async function() {
 			const contextMenu = await getContextMenu();
 			assertContextMenuEquality(contextMenu, CRM2);
 		});
 	});
-	describe('Links', function () {
+	describe('Links', function() {
 		this.slow(10000 * TIME_MODIFIER);
 		this.timeout(2000000 * TIME_MODIFIER);
 		const CRMNodes = [
@@ -4873,83 +3289,67 @@ describe('On-Page CRM', function () {
 				name: getRandomString(25),
 				id: getRandomId(),
 				showOnSpecified: false,
-				triggers: [
-					{
-						url: 'https://www.yahoo.com/',
-						not: false,
-					},
-				],
+				triggers: [{
+					url: 'https://www.yahoo.com/',
+					not: false
+				}]
 			}),
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
 				id: getRandomId(),
 				showOnSpecified: true,
-				triggers: [
-					{
-						url: 'https://www.yahoo.com/',
-						not: false,
-					},
-				],
+				triggers: [{
+					url: 'https://www.yahoo.com/',
+					not: false
+				}]
 			}),
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
 				id: getRandomId(),
 				showOnSpecified: true,
-				triggers: [
-					{
-						url: 'https://www.yahoo.com/',
-						not: true,
-					},
-				],
+				triggers: [{
+					url: 'https://www.yahoo.com/',
+					not: true
+				}]
 			}),
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
 				id: getRandomId(),
 				showOnSpecified: true,
-				triggers: [
-					{
-						url: 'https://www.yahoo.com/',
-						not: false,
-					},
-				],
-				onContentTypes: [true, false, false, false, false, false],
+				triggers: [{
+					url: 'https://www.yahoo.com/',
+					not: false
+				}],
+				onContentTypes: [true, false, false, false, false, false]
 			}),
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
 				id: getRandomId(),
 				showOnSpecified: true,
-				triggers: [
-					{
-						url: 'https://www.yahoo.com/',
-						not: false,
-					},
-				],
-				onContentTypes: [false, false, false, false, false, true],
+				triggers: [{
+					url: 'https://www.yahoo.com/',
+					not: false
+				}],
+				onContentTypes: [false, false, false, false, false, true]
 			}),
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
 				id: getRandomId(),
 				showOnSpecified: true,
-				triggers: [
-					{
-						url: 'https://www.yahoo.com/',
-						not: false,
-					},
-				],
-				value: [
-					{
-						url: 'www.youtube.com',
-						newTab: true,
-					},
-					{
-						url: 'www.reddit.com',
-						newTab: true,
-					},
-					{
-						url: 'www.bing.com',
-						newTab: true,
-					},
-				],
+				triggers: [{
+					url: 'https://www.yahoo.com/',
+					not: false
+				}],
+				value: [{
+					url: 'www.youtube.com',
+					newTab: true
+				}, {
+					url: 'www.reddit.com',
+					newTab: true
+				}, {
+					url: 'www.bing.com',
+					newTab: true
+				}]
 			}),
 		];
 
@@ -4957,26 +3357,21 @@ describe('On-Page CRM', function () {
 			NO_TRIGGERS = 0,
 			TRIGGERS = 1,
 			DEFAULT_LINKS = 4,
-			PRESET_LINKS = 5,
+			PRESET_LINKS = 5
 		}
 
-		it('should not throw when setting up the CRM', function (done) {
+		it('should not throw when setting up the CRM', function(done) {
 			this.slow(10000 * TIME_MODIFIER);
 			this.timeout(10000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
-				await driver.executeScript(
-					inlineFn(
-						(REPLACE) => {
-							window.app.settings.crm = REPLACE.crm;
-							window.app.upload();
-							return true;
-						},
-						{
-							crm: CRMNodes,
-						}
-					)
-				);
+				await driver.executeScript(inlineFn((REPLACE) => {
+					window.app.settings.crm = REPLACE.crm;
+					window.app.upload();
+					return true;
+				}, {
+					crm: CRMNodes
+				}));
 				await wait(1000);
 				done();
 			}, 'setting up the CRM does not throw');
@@ -4985,267 +3380,181 @@ describe('On-Page CRM', function () {
 			const contextMenu = await getContextMenu();
 			for (let i = 0; i < CRMNodes.length; i++) {
 				assert.isDefined(contextMenu[i], `node ${i} is defined`);
-				assert.strictEqual(
-					contextMenu[i].currentProperties.title,
-					CRMNodes[i].name,
-					`names for ${i} match`
-				);
-				assert.strictEqual(
-					contextMenu[i].currentProperties.type || 'normal',
-					'normal',
-					`type for ${i} is normal`
-				);
+				assert.strictEqual(contextMenu[i].currentProperties.title, 
+					CRMNodes[i].name, `names for ${i} match`);
+				assert.strictEqual(contextMenu[i].currentProperties.type || 'normal',
+					'normal', `type for ${i} is normal`);
 			}
 		});
 		it('should match the given triggers', async () => {
 			const contextMenu = await getContextMenu();
 			assert.lengthOf(
-				contextMenu[LinkOnPageTest.NO_TRIGGERS].createProperties
-					.documentUrlPatterns || [],
-				0,
-				'triggers are turned off'
-			);
-			assert.deepEqual(
-				contextMenu[LinkOnPageTest.TRIGGERS].createProperties
-					.documentUrlPatterns || [],
+				contextMenu[LinkOnPageTest.NO_TRIGGERS].createProperties.documentUrlPatterns || [],
+				0, 'triggers are turned off');
+			assert.deepEqual(contextMenu[LinkOnPageTest.TRIGGERS].createProperties.documentUrlPatterns || [],
 				CRMNodes[LinkOnPageTest.TRIGGERS].triggers.map((trigger) => {
 					return prepareTrigger(trigger.url);
-				}),
-				'triggers are turned on'
-			);
+				}), 'triggers are turned on');
 		});
 		it('should match the given content types', async () => {
 			const contextMenu = await getContextMenu();
 			for (let i = 0; i < CRMNodes.length; i++) {
-				assert.includeMembers(
-					contextMenu[i].currentProperties.contexts || [],
-					CRMNodes[i].onContentTypes
-						.map((enabled, index) => {
-							if (enabled) {
-								return getTypeName(index);
-							} else {
-								return null;
-							}
-						})
-						.filter((item) => item !== null),
-					`content types for ${i} match`
-				);
+				assert.includeMembers(contextMenu[i].currentProperties.contexts || [],
+					CRMNodes[i].onContentTypes.map((enabled, index) => {
+						if (enabled) {
+							return getTypeName(index);
+						} else {
+							return null;
+						}
+					}).filter(item => item !== null), `content types for ${i} match`);
 			}
 		});
-		it('should open the correct links when clicked for the default link', async function () {
+		it('should open the correct links when clicked for the default link', async function() {
 			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(
-				inlineAsyncFn(
-					(ondone, _onreject, REPLACE) => {
-						REPLACE.getTestData()._clearExecutedScripts();
-						REPLACE.getBackgroundPageTestData().then((testData) => {
-							ondone(
-								testData._currentContextMenu[0].children[
-									LinkOnPageTest.DEFAULT_LINKS
-								].currentProperties.onclick(
-									REPLACE.page,
-									REPLACE.tab
-								)
-							);
-						});
-					},
-					{
-						getTestData: getTestData(),
-						getBackgroundPageTestData: getBackgroundPageTestData(),
-						page: {
-							menuItemId:
-								contextMenu[LinkOnPageTest.DEFAULT_LINKS].id,
-							editable: false,
-							pageUrl: 'www.github.com',
-							modifiers: [],
-						},
-						tab: {
-							isArticle: false,
-							isInReaderMode: false,
-							lastAccessed: 0,
-							id: tabId,
-							index: 1,
-							windowId: windowId,
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.github.com',
-							title: 'GitHub',
-							incognito: false,
-						},
-					}
-				)
-			);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+				REPLACE.getTestData()._clearExecutedScripts();
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					ondone(testData._currentContextMenu[0]
+						.children[LinkOnPageTest.DEFAULT_LINKS]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
+			}, {
+				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
+				page: {
+					menuItemId: contextMenu[LinkOnPageTest.DEFAULT_LINKS].id,
+					editable: false,
+					pageUrl: 'www.github.com',
+					modifiers: []
+				},
+				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
+					id: tabId,
+					index: 1,
+					windowId: windowId,
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.github.com',
+					title: 'GitHub',
+					incognito: false
+				}
+			}));
 			await wait(5000);
 			const activeTabs = await getActiveTabs();
 			const expected = CRMNodes[LinkOnPageTest.DEFAULT_LINKS].value;
 
-			assert.lengthOf(
-				activeTabs,
-				expected.length,
-				'arrays have the same length'
-			);
+			assert.lengthOf(activeTabs, expected.length, 
+				'arrays have the same length');
 			for (let i = 0; i < activeTabs.length; i++) {
 				const activeTab = activeTabs[i];
 				if (!expected[i].newTab) {
-					assert.propertyVal(
-						activeTab,
-						'id',
-						tabId,
-						'current tab was updated on the right tab'
-					);
-					assert.propertyVal(
-						activeTab,
-						'type',
-						'update',
-						'change type was update'
-					);
-					assert.deepPropertyVal(
-						activeTab,
-						'data',
-						{
-							url: sanitizeUrl(expected[i].url),
-						},
-						'updated url is correct'
-					);
+					assert.propertyVal(activeTab, 'id', tabId,
+						'current tab was updated on the right tab');
+					assert.propertyVal(activeTab, 'type', 'update',
+						'change type was update');
+					assert.deepPropertyVal(activeTab, 'data', {
+						url: sanitizeUrl(expected[i].url)
+					}, 'updated url is correct');
 				} else {
-					assert.propertyVal(
-						activeTab,
-						'type',
-						'create',
-						'new tab was created'
-					);
-					assert.deepPropertyVal(
-						activeTab,
-						'data',
-						{
-							windowId: windowId,
-							url: sanitizeUrl(expected[i].url),
-							openerTabId: tabId,
-						},
-						'new tab has correct URL, window ID and tab opener id'
-					);
+					assert.propertyVal(activeTab, 'type', 'create',
+						'new tab was created');
+					assert.deepPropertyVal(activeTab, 'data', {
+						windowId: windowId,
+						url: sanitizeUrl(expected[i].url),
+						openerTabId: tabId
+					}, 'new tab has correct URL, window ID and tab opener id');
 				}
 			}
 		});
 		it('should open the correct links when clicked for multiple links', async () => {
 			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(
-				inlineAsyncFn(
-					(ondone, _onreject, REPLACE) => {
-						REPLACE.getBackgroundPageTestData().then((testData) => {
-							//Clear it without removing object-array-magic-address-linking
-							while (testData._activeTabs.length > 0) {
-								testData._activeTabs.pop();
-							}
-							ondone(
-								testData._currentContextMenu[0].children[
-									LinkOnPageTest.PRESET_LINKS
-								].currentProperties.onclick(
-									REPLACE.page,
-									REPLACE.tab
-								)
-							);
-						});
-					},
-					{
-						getBackgroundPageTestData: getBackgroundPageTestData(),
-						page: {
-							menuItemId:
-								contextMenu[LinkOnPageTest.PRESET_LINKS].id,
-							editable: false,
-							pageUrl: 'www.google.com',
-							modifiers: [],
-						},
-						tab: {
-							isArticle: false,
-							isInReaderMode: false,
-							lastAccessed: 0,
-							id: tabId,
-							index: 1,
-							windowId: windowId,
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false,
-						},
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					//Clear it without removing object-array-magic-address-linking
+					while (testData._activeTabs.length > 0) {
+						testData._activeTabs.pop();
 					}
-				)
-			);
+					ondone(testData._currentContextMenu[0]
+							.children[LinkOnPageTest.PRESET_LINKS]
+							.currentProperties.onclick(
+								REPLACE.page, REPLACE.tab
+							));
+				});
+			}, {
+				getBackgroundPageTestData: getBackgroundPageTestData(),
+				page: {
+					menuItemId: contextMenu[LinkOnPageTest.PRESET_LINKS].id,
+					editable: false,
+					pageUrl: 'www.google.com',
+					modifiers: []
+				},
+				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
+					id: tabId,
+					index: 1,
+					windowId: windowId,
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
 			await wait(5000);
 			const activeTabs = await getActiveTabs();
 			const expected = CRMNodes[LinkOnPageTest.PRESET_LINKS].value;
 
-			assert.lengthOf(
-				activeTabs,
-				expected.length,
-				'arrays have the same length'
-			);
+			assert.lengthOf(activeTabs, expected.length, 
+				'arrays have the same length');
 			for (let i = 0; i < activeTabs.length; i++) {
 				const activeTab = activeTabs[i];
 				if (!expected[i].newTab) {
-					assert.propertyVal(
-						activeTab,
-						'id',
-						tabId,
-						'current tab was updated on the right tab'
-					);
-					assert.propertyVal(
-						activeTab,
-						'type',
-						'update',
-						'change type was update'
-					);
-					assert.deepPropertyVal(
-						activeTab,
-						'data',
-						{
-							url: sanitizeUrl(expected[i].url),
-						},
-						'updated url is correct'
-					);
+					assert.propertyVal(activeTab, 'id', tabId,
+						'current tab was updated on the right tab');
+					assert.propertyVal(activeTab, 'type', 'update',
+						'change type was update');
+					assert.deepPropertyVal(activeTab, 'data', {
+						url: sanitizeUrl(expected[i].url)
+					}, 'updated url is correct');
 				} else {
-					assert.propertyVal(
-						activeTab,
-						'type',
-						'create',
-						'new tab was created'
-					);
-					assert.deepPropertyVal(
-						activeTab,
-						'data',
-						{
-							windowId: windowId,
-							url: sanitizeUrl(expected[i].url),
-							openerTabId: tabId,
-						},
-						'new tab has correct URL, window ID and tab opener id'
-					);
+					assert.propertyVal(activeTab, 'type', 'create',
+						'new tab was created');
+					assert.deepPropertyVal(activeTab, 'data', {
+						windowId: windowId,
+						url: sanitizeUrl(expected[i].url),
+						openerTabId: tabId
+					}, 'new tab has correct URL, window ID and tab opener id');
 				}
 			}
 		});
 	});
-	describe('Menu & Divider', function () {
+	describe('Menu & Divider', function() {
 		this.slow(2000 * TIME_MODIFIER);
 		this.timeout(3000 * TIME_MODIFIER);
 		const CRMNodes = [
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
-				id: getRandomId(),
+				id: getRandomId()
 			}),
 			templates.getDefaultDividerNode({
 				name: getRandomString(25),
-				id: getRandomId(),
+				id: getRandomId()
 			}),
 			templates.getDefaultDividerNode({
 				name: getRandomString(25),
-				id: getRandomId(),
+				id: getRandomId()
 			}),
 			templates.getDefaultMenuNode({
 				name: getRandomString(25),
@@ -5253,19 +3562,19 @@ describe('On-Page CRM', function () {
 				children: [
 					templates.getDefaultLinkNode({
 						name: getRandomString(25),
-						id: getRandomId(),
+						id: getRandomId()
 					}),
 					templates.getDefaultDividerNode({
 						name: getRandomString(25),
-						id: getRandomId(),
+						id: getRandomId()
 					}),
 					templates.getDefaultLinkNode({
 						name: getRandomString(25),
-						id: getRandomId(),
+						id: getRandomId()
 					}),
 					templates.getDefaultDividerNode({
 						name: getRandomString(25),
-						id: getRandomId(),
+						id: getRandomId()
 					}),
 					templates.getDefaultMenuNode({
 						name: getRandomString(25),
@@ -5281,57 +3590,52 @@ describe('On-Page CRM', function () {
 										children: [
 											templates.getDefaultLinkNode({
 												name: getRandomString(25),
-												id: getRandomId(),
+												id: getRandomId()
 											}),
 											templates.getDefaultLinkNode({
 												name: getRandomString(25),
-												id: getRandomId(),
+												id: getRandomId()
 											}),
 											templates.getDefaultLinkNode({
 												name: getRandomString(25),
-												id: getRandomId(),
+												id: getRandomId()
 											}),
 											templates.getDefaultLinkNode({
 												name: getRandomString(25),
-												id: getRandomId(),
+												id: getRandomId()
 											}),
-										],
+										]
 									}),
 									templates.getDefaultLinkNode({
 										name: getRandomString(25),
 										id: getRandomId(),
-										children: [],
-									}),
-								],
-							}),
-						],
-					}),
-				],
-			}),
+										children: []
+									})
+								]
+							})
+						]
+					})
+				]
+			})
 		];
 
-		it('should not throw when setting up the CRM', function (done) {
+		it('should not throw when setting up the CRM', function(done) {
 			this.timeout(10000 * TIME_MODIFIER);
 			this.slow(8000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
-				await driver.executeScript(
-					inlineFn(
-						(REPLACE) => {
-							window.app.settings.crm = REPLACE.crm;
-							window.app.upload();
-							return true;
-						},
-						{
-							crm: CRMNodes,
-						}
-					)
-				);
+				await driver.executeScript(inlineFn((REPLACE) => {
+					window.app.settings.crm = REPLACE.crm;
+					window.app.upload();
+					return true;
+				}, {
+					crm: CRMNodes
+				}));
 				await wait(1000);
 				done();
 			}, 'setting up the CRM does not throw');
 		});
-		it('should have the correct structure', async function () {
+		it('should have the correct structure', async function() {
 			this.retries(4);
 			this.slow(8000 * TIME_MODIFIER);
 			this.timeout(10000 * TIME_MODIFIER);
@@ -5341,7 +3645,7 @@ describe('On-Page CRM', function () {
 			assertContextMenuEquality(contextMenu, CRMNodes);
 		});
 	});
-	describe('Scripts', function () {
+	describe('Scripts', function() {
 		this.slow(5000 * TIME_MODIFIER);
 		this.timeout(10000 * TIME_MODIFIER);
 
@@ -5351,16 +3655,16 @@ describe('On-Page CRM', function () {
 				id: getRandomId(),
 				value: {
 					launchMode: CRMLaunchModes.ALWAYS_RUN,
-					script: "console.log('executed script');",
-				},
-			}),
+					script: 'console.log(\'executed script\');'
+				}
+			}), 
 			templates.getDefaultScriptNode({
 				name: getRandomString(25),
 				id: getRandomId(),
 				value: {
 					launchMode: CRMLaunchModes.RUN_ON_CLICKING,
-					script: "console.log('executed script');",
-				},
+					script: 'console.log(\'executed script\');'
+				}
 			}),
 			templates.getDefaultScriptNode({
 				name: getRandomString(25),
@@ -5368,13 +3672,13 @@ describe('On-Page CRM', function () {
 				triggers: [
 					{
 						url: 'http://www.example.com',
-						not: false,
-					},
+						not: false
+					}
 				],
 				value: {
 					launchMode: CRMLaunchModes.RUN_ON_SPECIFIED,
-					script: "console.log('executed script');",
-				},
+					script: 'console.log(\'executed script\');'
+				}
 			}),
 			templates.getDefaultScriptNode({
 				name: getRandomString(25),
@@ -5382,13 +3686,13 @@ describe('On-Page CRM', function () {
 				triggers: [
 					{
 						url: 'http://www.reddit.com',
-						not: false,
-					},
+						not: false
+					}
 				],
 				value: {
 					launchMode: CRMLaunchModes.SHOW_ON_SPECIFIED,
-					script: "console.log('executed script');",
-				},
+					script: 'console.log(\'executed script\');'
+				}
 			}),
 			templates.getDefaultScriptNode({
 				name: getRandomString(25),
@@ -5396,23 +3700,22 @@ describe('On-Page CRM', function () {
 				triggers: [
 					{
 						url: 'http://www.amazon.com',
-						not: false,
-					},
+						not: false
+					}
 				],
 				value: {
 					launchMode: CRMLaunchModes.RUN_ON_CLICKING,
-					backgroundScript:
-						"console.log('executed backgroundscript')",
-				},
+					backgroundScript: 'console.log(\'executed backgroundscript\')'
+				}
 			}),
 			templates.getDefaultScriptNode({
 				name: getRandomString(25),
 				id: getRandomId(),
 				value: {
 					launchMode: CRMLaunchModes.DISABLED,
-					script: "console.log('executed script');",
-				},
-			}),
+					script: 'console.log(\'executed script\');'
+				}
+			})
 		];
 
 		const enum ScriptOnPageTests {
@@ -5421,49 +3724,37 @@ describe('On-Page CRM', function () {
 			RUN_ON_SPECIFIED = 2,
 			SHOW_ON_SPECIFIED = 3,
 			BACKGROUNDSCRIPT = 4,
-			DISABLED = 5,
+			DISABLED = 5
 		}
 
 		before('Clear executed scripts', async () => {
-			await executeAsyncScript<void>(
-				inlineAsyncFn(
-					(ondone, _onreject, REPLACE) => {
-						REPLACE.getBackgroundPageTestData().then((testData) => {
-							testData._clearExecutedScripts();
-							ondone(null);
-						});
-					},
-					{
-						getBackgroundPageTestData: getBackgroundPageTestData(),
-					}
-				)
-			);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(null);
+				});
+			}, {
+				getBackgroundPageTestData: getBackgroundPageTestData()
+			}));
 		});
 		beforeEach('Close all tabs', async () => {
 			await closeOtherTabs();
 		});
-		it('should not throw when setting up the CRM', function (done) {
+		it('should not throw when setting up the CRM', function(done) {
 			this.timeout(10000 * TIME_MODIFIER);
 			this.slow(1000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
-				await executeAsyncScript<void>(
-					inlineAsyncFn(
-						(ondone, _onreject, REPLACE) => {
-							browserAPI.runtime
-								.getBackgroundPage()
-								.then((backgroundPage: GlobalObject) => {
-									backgroundPage.globals.crmValues.tabData = new window.Map();
-									window.app.settings.crm = REPLACE.crm;
-									window.app.upload();
-									ondone(null);
-								});
-						},
-						{
-							crm: CRMNodes,
-						}
-					)
-				);
+				await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+					browserAPI.runtime.getBackgroundPage().then((backgroundPage: GlobalObject) => {
+						backgroundPage.globals.crmValues.tabData = new window.Map();
+						window.app.settings.crm = REPLACE.crm;
+						window.app.upload();
+						ondone(null);
+					});
+				}, {
+					crm: CRMNodes
+				}));
 				await wait(1000);
 				done();
 			}, 'setting up the CRM does not throw');
@@ -5475,251 +3766,189 @@ describe('On-Page CRM', function () {
 			const activatedScripts = await getActivatedScripts();
 
 			assert.lengthOf(activatedScripts, 1, 'one script activated');
-			assert.strictEqual(
-				activatedScripts[0].id,
-				tabId,
-				'script was executed on right tab'
-			);
+			assert.strictEqual(activatedScripts[0].id, tabId, 
+				'script was executed on right tab');
 		});
-		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', async function () {
+		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', async function() {
 			this.timeout(10000 * TIME_MODIFIER);
 			this.slow(2500 * TIME_MODIFIER);
 			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(
-				inlineAsyncFn(
-					(ondone, _onreject, REPLACE) => {
-						REPLACE.getBackgroundPageTestData().then((testData) => {
-							testData._clearExecutedScripts();
-							ondone(
-								testData._currentContextMenu[0].children[
-									ScriptOnPageTests.RUN_ON_CLICKING
-								].currentProperties.onclick(
-									REPLACE.page,
-									REPLACE.tab
-								)
-							);
-						});
-					},
-					{
-						getTestData: getTestData(),
-						getBackgroundPageTestData: getBackgroundPageTestData(),
-						page: {
-							menuItemId: contextMenu[0].id,
-							editable: false,
-							pageUrl: 'www.google.com',
-							modifiers: [],
-						},
-						tab: {
-							isArticle: false,
-							isInReaderMode: false,
-							lastAccessed: 0,
-							id: tabId,
-							index: 1,
-							windowId: windowId,
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false,
-						},
-					}
-				)
-			);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(testData._currentContextMenu[0]
+						.children[ScriptOnPageTests.RUN_ON_CLICKING]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
+			}, {
+				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
+				page: {
+					menuItemId: contextMenu[0].id,
+					editable: false,
+					pageUrl: 'www.google.com',
+					modifiers: []
+				},
+				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
+					id: tabId,
+					index: 1,
+					windowId: windowId,
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
 			await wait(500);
 			const activatedScripts = await getActivatedScripts();
 
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
-			assert.strictEqual(
-				activatedScripts[0].id,
-				tabId,
-				'script was executed on the right tab'
-			);
+			assert.strictEqual(activatedScripts[0].id, tabId,
+				'script was executed on the right tab');
 		});
-		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', async function () {
+		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', async function() {
 			this.timeout(10000 * TIME_MODIFIER);
 			this.slow(10000 * TIME_MODIFIER);
 			const { tabId } = await createTab('http://www.example.com', true);
 			await wait(500);
 			const activatedScripts = await getActivatedScripts();
 
+
 			//First one is the ALWAYS_RUN script, ignore that
 			assert.lengthOf(activatedScripts, 2, 'two scripts activated');
-			assert.strictEqual(
-				activatedScripts[1].id,
-				tabId,
-				'new script was executed on right tab'
-			);
+			assert.strictEqual(activatedScripts[1].id, tabId, 
+				'new script was executed on right tab');
 		});
-		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', async function () {
+		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', async function() {
 			this.timeout(10000 * TIME_MODIFIER);
 			this.slow(20000 * TIME_MODIFIER);
-			const { tabId, windowId } = await createTab(
-				'http://www.reddit.com',
-				true
-			);
-
+			const { tabId, windowId } = await createTab('http://www.reddit.com', true);
+			
 			await wait(500);
 			const contextMenu = await getContextMenu();
 
-			assert.isAbove(
-				contextMenu.length,
-				2,
-				'contextmenu contains at least two items'
-			);
+			assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
 
-			await executeAsyncScript<void>(
-				inlineAsyncFn(
-					(ondone, _onreject, REPLACE) => {
-						REPLACE.getBackgroundPageTestData().then((testData) => {
-							testData._clearExecutedScripts();
-							ondone(
-								testData._currentContextMenu[0].children[1].currentProperties.onclick(
-									REPLACE.page,
-									REPLACE.tab
-								)
-							);
-						});
-					},
-					{
-						getTestData: getTestData(),
-						getBackgroundPageTestData: getBackgroundPageTestData(),
-						page: {
-							menuItemId: contextMenu[0].id,
-							editable: false,
-							pageUrl: 'www.google.com',
-							modifiers: [],
-						},
-						tab: {
-							isArticle: false,
-							isInReaderMode: false,
-							lastAccessed: 0,
-							id: tabId,
-							index: 1,
-							windowId: windowId,
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false,
-						},
-					}
-				)
-			);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(testData._currentContextMenu[0]
+						.children[1]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
+			}, {
+				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
+				page: {
+					menuItemId: contextMenu[0].id,
+					editable: false,
+					pageUrl: 'www.google.com',
+					modifiers: []
+				},
+				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
+					id: tabId,
+					index: 1,
+					windowId: windowId,
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
 			await wait(500);
 			const activatedScripts = await getActivatedScripts();
 
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
-			assert.strictEqual(
-				activatedScripts[0].id,
-				tabId,
-				'script was executed on the right tab'
-			);
+			assert.strictEqual(activatedScripts[0].id, tabId,
+				'script was executed on the right tab');
 		});
 		if (!TEST_EXTENSION) {
-			it('should have activated the backgroundscript', async function () {
-				const activatedBackgroundScripts = JSON.parse(
-					await driver.executeScript(
-						inlineFn(
-							(REPLACE) => {
-								return JSON.stringify(
-									REPLACE.getTestData()
-										._activatedBackgroundPages
-								);
-							},
-							{
-								getTestData: getTestData(),
-							}
-						)
-					)
-				);
-				assert.lengthOf(
-					activatedBackgroundScripts,
-					1,
-					'one backgroundscript was activated'
-				);
-				assert.strictEqual(
-					activatedBackgroundScripts[0],
+			it('should have activated the backgroundscript', async function() {
+				const activatedBackgroundScripts = JSON.parse(await driver
+					.executeScript(inlineFn((REPLACE) => {
+						return JSON.stringify(REPLACE.getTestData()._activatedBackgroundPages);
+					}, {
+						getTestData: getTestData()
+					})));
+				assert.lengthOf(activatedBackgroundScripts, 1,
+					'one backgroundscript was activated');
+				assert.strictEqual(activatedBackgroundScripts[0], 
 					CRMNodes[ScriptOnPageTests.BACKGROUNDSCRIPT].id,
-					'correct backgroundscript was executed'
-				);
+					'correct backgroundscript was executed');
 			});
 		}
 		it('should not show the disabled node', async () => {
 			const contextMenu = await getContextMenu();
-			assert.notInclude(
-				contextMenu.map((item) => {
-					return item.id;
-				}),
-				CRMNodes[ScriptOnPageTests.DISABLED].id,
-				'disabled node is not in the right-click menu'
-			);
+			assert.notInclude(contextMenu.map((item) => {
+				return item.id;
+			}), CRMNodes[ScriptOnPageTests.DISABLED].id,
+				'disabled node is not in the right-click menu');
 		});
 		it('should run the correct code when clicked', async () => {
 			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(
-				inlineAsyncFn(
-					(ondone, _onreject, REPLACE) => {
-						REPLACE.getBackgroundPageTestData().then((testData) => {
-							testData._clearExecutedScripts();
-							ondone(
-								testData._currentContextMenu[0].children[
-									ScriptOnPageTests.RUN_ON_CLICKING
-								].currentProperties.onclick(
-									REPLACE.page,
-									REPLACE.tab
-								)
-							);
-						});
-					},
-					{
-						getTestData: getTestData(),
-						getBackgroundPageTestData: getBackgroundPageTestData(),
-						page: {
-							menuItemId: contextMenu[0].id,
-							editable: false,
-							pageUrl: 'www.google.com',
-							modifiers: [],
-						},
-						tab: {
-							isArticle: false,
-							isInReaderMode: false,
-							lastAccessed: 0,
-							id: tabId,
-							index: 1,
-							windowId: windowId,
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false,
-						},
-					}
-				)
-			);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(testData._currentContextMenu[0]
+						.children[ScriptOnPageTests.RUN_ON_CLICKING]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
+			}, {
+				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
+				page: {
+					menuItemId: contextMenu[0].id,
+					editable: false,
+					pageUrl: 'www.google.com',
+					modifiers: []
+				},
+				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
+					id: tabId,
+					index: 1,
+					windowId: windowId,
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
 			await wait(500);
 			const activatedScripts = await getActivatedScripts();
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
-			assert.strictEqual(
-				activatedScripts[0].id,
-				tabId,
-				'script was executed on the right tab'
-			);
-			assert.include(
-				activatedScripts[0].code,
+			assert.strictEqual(activatedScripts[0].id, tabId,
+				'script was executed on the right tab');
+			assert.include(activatedScripts[0].code,
 				CRMNodes[ScriptOnPageTests.RUN_ON_CLICKING].value.script,
-				'executed code is the same as set code'
-			);
+				'executed code is the same as set code');
 		});
 	});
-	describe('Stylesheets', function () {
+	describe('Stylesheets', function() {
 		this.slow(5000 * TIME_MODIFIER);
 		this.timeout(10000 * TIME_MODIFIER);
 
@@ -5731,9 +3960,8 @@ describe('On-Page CRM', function () {
 					toggle: true,
 					defaultOn: false,
 					launchMode: CRMLaunchModes.RUN_ON_CLICKING,
-					stylesheet:
-						'#stylesheetTestDummy1 { width: 50px; height :50px; }',
-				},
+					stylesheet: '#stylesheetTestDummy1 { width: 50px; height :50px; }'
+				}
 			}),
 			templates.getDefaultStylesheetNode({
 				name: getRandomString(25),
@@ -5742,27 +3970,24 @@ describe('On-Page CRM', function () {
 					toggle: true,
 					defaultOn: true,
 					launchMode: CRMLaunchModes.RUN_ON_CLICKING,
-					stylesheet:
-						'#stylesheetTestDummy2 { width: 50px; height :50px; }',
-				},
+					stylesheet: '#stylesheetTestDummy2 { width: 50px; height :50px; }'
+				}
 			}),
 			templates.getDefaultStylesheetNode({
 				name: getRandomString(25),
 				id: getRandomId(),
 				value: {
 					launchMode: CRMLaunchModes.ALWAYS_RUN,
-					stylesheet:
-						'#stylesheetTestDummy { width: 50px; height :50px; }',
-				},
-			}),
+					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
+				}
+			}), 
 			templates.getDefaultStylesheetNode({
 				name: getRandomString(25),
 				id: getRandomId(),
 				value: {
 					launchMode: CRMLaunchModes.RUN_ON_CLICKING,
-					stylesheet:
-						'#stylesheetTestDummy { width: 50px; height :50px; }',
-				},
+					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
+				}
 			}),
 			templates.getDefaultStylesheetNode({
 				name: getRandomString(25),
@@ -5770,14 +3995,13 @@ describe('On-Page CRM', function () {
 				triggers: [
 					{
 						url: 'http://www.example.com',
-						not: false,
-					},
+						not: false
+					}
 				],
 				value: {
 					launchMode: CRMLaunchModes.RUN_ON_SPECIFIED,
-					stylesheet:
-						'#stylesheetTestDummy { width: 50px; height :50px; }',
-				},
+					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
+				}
 			}),
 			templates.getDefaultStylesheetNode({
 				name: getRandomString(25),
@@ -5785,24 +4009,22 @@ describe('On-Page CRM', function () {
 				triggers: [
 					{
 						url: 'http://www.reddit.com',
-						not: false,
-					},
+						not: false
+					}
 				],
 				value: {
 					launchMode: CRMLaunchModes.SHOW_ON_SPECIFIED,
-					stylesheet:
-						'#stylesheetTestDummy { width: 50px; height :50px; }',
-				},
+					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
+				}
 			}),
 			templates.getDefaultStylesheetNode({
 				name: getRandomString(25),
 				id: getRandomId(),
 				value: {
 					launchMode: CRMLaunchModes.DISABLED,
-					stylesheet:
-						'#stylesheetTestDummy { width: 50px; height :50px; }',
-				},
-			}),
+					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
+				}
+			})
 		];
 
 		const enum StylesheetOnPageTests {
@@ -5812,110 +4034,87 @@ describe('On-Page CRM', function () {
 			RUN_ON_CLICKING = 3,
 			RUN_ON_SPECIFIED = 4,
 			SHOW_ON_SPECIFIED = 5,
-			DISABLED = 6,
+			DISABLED = 6
 		}
 
 		beforeEach('Close all tabs', async () => {
 			await closeOtherTabs();
 		});
-		it('should not throw when setting up the CRM', function (done) {
+		it('should not throw when setting up the CRM', function(done) {
 			this.timeout(6000 * TIME_MODIFIER);
 			this.slow(10000 * TIME_MODIFIER);
 			assert.doesNotThrow(async () => {
 				await resetSettings(this);
-				await executeAsyncScript<void>(
-					inlineAsyncFn(
-						(ondone, _onreject, REPLACE) => {
-							browserAPI.runtime
-								.getBackgroundPage()
-								.then((backgroundPage: GlobalObject) => {
-									backgroundPage.globals.crmValues.tabData = new window.Map();
-									window.app.settings.crm = REPLACE.crm;
-									window.app.upload();
-									ondone(null);
-								});
-						},
-						{
-							crm: CRMNodes,
-						}
-					)
-				);
+				await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+					browserAPI.runtime.getBackgroundPage().then((backgroundPage: GlobalObject) => {
+						backgroundPage.globals.crmValues.tabData = new window.Map();
+						window.app.settings.crm = REPLACE.crm;
+						window.app.upload();
+						ondone(null);
+					});
+				}, {
+					crm: CRMNodes
+				}));
 				await wait(1000);
 				done();
 			}, 'setting up the CRM does not throw');
 		});
-		it('should always run when launchMode is set to ALWAYS_RUN', async function () {
+		it('should always run when launchMode is set to ALWAYS_RUN', async function() {
 			this.timeout(10000 * TIME_MODIFIER);
 			this.slow(20000 * TIME_MODIFIER);
 			const { tabId } = await createTab('http://www.twitter.com', true);
 			await wait(50);
 			const activatedScripts = await getActivatedScripts({
-				filterDummy: true,
+				filterDummy: true
 			});
 
 			//First one is the default on stylesheet, ignore that
 			assert.lengthOf(activatedScripts, 2, 'two stylesheets activated');
-			assert.strictEqual(
-				activatedScripts[1].id,
-				tabId,
-				'stylesheet was executed on right tab'
-			);
+			assert.strictEqual(activatedScripts[1].id, tabId, 
+				'stylesheet was executed on right tab');
 		});
 		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', async () => {
 			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(
-				inlineAsyncFn(
-					(ondone, _onreject, REPLACE) => {
-						REPLACE.getBackgroundPageTestData().then((testData) => {
-							testData._clearExecutedScripts();
-							ondone(
-								testData._currentContextMenu[0].children[2].currentProperties.onclick(
-									REPLACE.page,
-									REPLACE.tab
-								)
-							);
-						});
-					},
-					{
-						getTestData: getTestData(),
-						getBackgroundPageTestData: getBackgroundPageTestData(),
-						page: {
-							menuItemId: contextMenu[0].id,
-							editable: false,
-							pageUrl: 'www.google.com',
-							modifiers: [],
-						},
-						tab: {
-							isArticle: false,
-							isInReaderMode: false,
-							lastAccessed: 0,
-							id: tabId,
-							index: 1,
-							windowId: windowId,
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false,
-						},
-					}
-				)
-			);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(testData._currentContextMenu[0]
+						.children[2]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
+			}, {
+				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
+				page: {
+					menuItemId: contextMenu[0].id,
+					editable: false,
+					pageUrl: 'www.google.com',
+					modifiers: []
+				},
+				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
+					id: tabId,
+					index: 1,
+					windowId: windowId,
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
 			const activatedScripts = await getActivatedScripts();
 
-			assert.lengthOf(
-				activatedScripts,
-				1,
-				'one stylesheet was activated'
-			);
-			assert.strictEqual(
-				activatedScripts[0].id,
-				tabId,
-				'stylesheet was executed on the right tab'
-			);
+			assert.lengthOf(activatedScripts, 1, 'one stylesheet was activated');
+			assert.strictEqual(activatedScripts[0].id, tabId,
+				'stylesheet was executed on the right tab');
 		});
 		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', async () => {
 			const { tabId } = await createTab('http://www.example.com', true);
@@ -5924,193 +4123,144 @@ describe('On-Page CRM', function () {
 
 			//First one is the ALWAYS_RUN stylesheet, second one is the default on one ignore that
 			assert.lengthOf(activatedScripts, 3, 'three stylesheets activated');
-			assert.strictEqual(
-				activatedScripts[2].id,
-				tabId,
-				'new stylesheet was executed on right tab'
-			);
+			assert.strictEqual(activatedScripts[2].id, tabId, 
+				'new stylesheet was executed on right tab');
 		});
-		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', async function () {
-			const { tabId, windowId } = await createTab(
-				'http://www.reddit.com',
-				true
-			);
+		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', async function() {
+			const { tabId, windowId } = await createTab('http://www.reddit.com', true);
 			const contextMenu = await getContextMenu();
-			assert.isAbove(
-				contextMenu.length,
-				2,
-				'contextmenu contains at least two items'
-			);
+			assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
 
-			await executeAsyncScript<void>(
-				inlineAsyncFn(
-					(ondone, _onreject, REPLACE) => {
-						REPLACE.getBackgroundPageTestData().then((testData) => {
-							testData._clearExecutedScripts();
-							ondone(
-								testData._currentContextMenu[0].children[3].currentProperties.onclick(
-									REPLACE.page,
-									REPLACE.tab
-								)
-							);
-						});
-					},
-					{
-						getTestData: getTestData(),
-						getBackgroundPageTestData: getBackgroundPageTestData(),
-						page: {
-							menuItemId: contextMenu[0].id,
-							editable: false,
-							pageUrl: 'www.google.com',
-							modifiers: [],
-						},
-						tab: {
-							isArticle: false,
-							isInReaderMode: false,
-							lastAccessed: 0,
-							id: tabId,
-							index: 1,
-							windowId: windowId,
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false,
-						},
-					}
-				)
-			);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(testData._currentContextMenu[0]
+						.children[3]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
+			}, {
+				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
+				page: {
+					menuItemId: contextMenu[0].id,
+					editable: false,
+					pageUrl: 'www.google.com',
+					modifiers: []
+				},
+				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
+					id: tabId,
+					index: 1,
+					windowId: windowId,
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
 			const activatedScripts = await getActivatedScripts();
 			assert.lengthOf(activatedScripts, 1, 'one script was activated');
-			assert.strictEqual(
-				activatedScripts[0].id,
-				tabId,
-				'script was executed on the right tab'
-			);
+			assert.strictEqual(activatedScripts[0].id, tabId,
+				'script was executed on the right tab');
 		});
 		it('should not show the disabled node', async () => {
 			const contextMenu = await getContextMenu();
-			assert.notInclude(
-				contextMenu.map((item) => {
-					return item.id;
-				}),
-				CRMNodes[StylesheetOnPageTests.DISABLED].id,
-				'disabled node is not in the right-click menu'
-			);
+			assert.notInclude(contextMenu.map((item) => {
+				return item.id;
+			}), CRMNodes[StylesheetOnPageTests.DISABLED].id,
+				'disabled node is not in the right-click menu');
 		});
-		it('should run the correct code when clicked', async function () {
+		it('should run the correct code when clicked', async function() {
 			const { tabId, windowId } = await dummyTab.getTabId();
 			const contextMenu = await getContextMenu();
-			await executeAsyncScript<void>(
-				inlineAsyncFn(
-					(ondone, _onreject, REPLACE) => {
-						REPLACE.getBackgroundPageTestData().then((testData) => {
-							testData._clearExecutedScripts();
-							ondone(
-								testData._currentContextMenu[0].children[2].currentProperties.onclick(
-									REPLACE.page,
-									REPLACE.tab
-								)
-							);
-						});
-					},
-					{
-						getTestData: getTestData(),
-						getBackgroundPageTestData: getBackgroundPageTestData(),
-						page: {
-							menuItemId: contextMenu[0].id,
-							editable: false,
-							pageUrl: 'www.google.com',
-							modifiers: [],
-						},
-						tab: {
-							isArticle: false,
-							isInReaderMode: false,
-							lastAccessed: 0,
-							id: tabId,
-							index: 1,
-							windowId: windowId,
-							highlighted: false,
-							active: true,
-							pinned: false,
-							selected: false,
-							url: 'http://www.google.com',
-							title: 'Google',
-							incognito: false,
-						},
-					}
-				)
-			);
+			await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+				REPLACE.getBackgroundPageTestData().then((testData) => {
+					testData._clearExecutedScripts();
+					ondone(testData._currentContextMenu[0]
+						.children[2]
+						.currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						));
+				});
+			}, {
+				getTestData: getTestData(),
+				getBackgroundPageTestData: getBackgroundPageTestData(),
+				page: {
+					menuItemId: contextMenu[0].id,
+					editable: false,
+					pageUrl: 'www.google.com',
+					modifiers: []
+				},
+				tab: {
+					isArticle: false,
+					isInReaderMode: false,
+					lastAccessed: 0,
+					id: tabId,
+					index: 1,
+					windowId: windowId,
+					highlighted: false,
+					active: true,
+					pinned: false,
+					selected: false,
+					url: 'http://www.google.com',
+					title: 'Google',
+					incognito: false
+				}
+			}));
 			const executedScripts = await getActivatedScripts();
 
 			assert.lengthOf(executedScripts, 1, 'one script was activated');
-			assert.strictEqual(
-				executedScripts[0].id,
-				tabId,
-				'script was executed on the right tab'
-			);
-			assert.include(
-				executedScripts[0].code,
-				CRMNodes[
-					StylesheetOnPageTests.RUN_ON_CLICKING
-				].value.stylesheet.replace(/(\t|\s|\n)/g, ''),
-				'executed code is the same as set code'
-			);
+			assert.strictEqual(executedScripts[0].id, tabId,
+				'script was executed on the right tab');
+			assert.include(executedScripts[0].code,
+				CRMNodes[StylesheetOnPageTests.RUN_ON_CLICKING].value.stylesheet.replace(/(\t|\s|\n)/g, ''),
+				'executed code is the same as set code');
 		});
 		if (!TEST_EXTENSION) {
-			it('should actually be applied to the page', async function () {
-				await driver.executeScript(
-					inlineFn(() => {
-						const dummyEl = document.createElement('div');
-						dummyEl.id = 'stylesheetTestDummy';
+			it('should actually be applied to the page', async function() {
+				await driver.executeScript(inlineFn(() => {
+					const dummyEl = document.createElement('div');
+					dummyEl.id = 'stylesheetTestDummy';
 
-						window.dummyContainer.appendChild(dummyEl);
-					})
-				);
+					window.dummyContainer.appendChild(dummyEl);
+				}));
 				await wait(100);
-				const dummy = await findElement(
-					webdriver.By.id('stylesheetTestDummy')
-				);
+				const dummy = await findElement(webdriver.By.id('stylesheetTestDummy'));
 				const dimensions = await dummy.getSize();
 
-				assert.strictEqual(
-					dimensions.width,
-					50,
-					'dummy element is 50px wide'
-				);
-				assert.strictEqual(
-					dimensions.height,
-					50,
-					'dummy element is 50px high'
-				);
+				assert.strictEqual(dimensions.width, 50, 'dummy element is 50px wide');
+				assert.strictEqual(dimensions.height, 50, 'dummy element is 50px high');
 			});
 		}
-		describe('Toggling', function () {
+		describe('Toggling', function() {
 			let dummy1: FoundElement;
 			let dummy2: FoundElement;
 
 			let tabId: number;
 			let windowId: number;
 
-			before('Setting up dummy elements', async function () {
-				await driver.executeScript(
-					inlineFn(() => {
-						const dummy1 = document.createElement('div');
-						dummy1.id = 'stylesheetTestDummy1';
+			before('Setting up dummy elements', async function() {
+				await driver.executeScript(inlineFn(() => {
+					const dummy1 = document.createElement('div');
+					dummy1.id = 'stylesheetTestDummy1';
+					
+					const dummy2 = document.createElement('div');
+					dummy2.id = 'stylesheetTestDummy2';
 
-						const dummy2 = document.createElement('div');
-						dummy2.id = 'stylesheetTestDummy2';
-
-						window.dummyContainer.appendChild(dummy1);
-						window.dummyContainer.appendChild(dummy2);
-					})
-				);
+					window.dummyContainer.appendChild(dummy1);
+					window.dummyContainer.appendChild(dummy2); 
+				}));
 				await wait(50);
 				const results = await FoundElementPromise.all([
 					findElement(webdriver.By.id('stylesheetTestDummy1')),
-					findElement(webdriver.By.id('stylesheetTestDummy2')),
+					findElement(webdriver.By.id('stylesheetTestDummy2'))
 				]);
 				await wait(150);
 				dummy1 = results[0];
@@ -6121,145 +4271,111 @@ describe('On-Page CRM', function () {
 				tabId = result.tabId;
 			});
 			if (!TEST_EXTENSION) {
-				describe('Default off', function () {
+				describe('Default off', function() {
 					this.slow(600 * TIME_MODIFIER);
 					this.timeout(1600 * TIME_MODIFIER);
 					it('should be off by default', async () => {
 						await wait(150);
 						const dimensions = await dummy1.getSize();
-						assert.notStrictEqual(
-							dimensions.width,
-							50,
-							'dummy element is not 50px wide'
-						);
+						assert.notStrictEqual(dimensions.width, 50,
+							'dummy element is not 50px wide');
 					});
-					it('should be on when clicked', async function () {
+					it('should be on when clicked', async function() {
 						this.slow(2000 * TIME_MODIFIER);
 						this.timeout(4000 * TIME_MODIFIER);
 						const contextMenu = await getContextMenu();
-						await executeAsyncScript<void>(
-							inlineAsyncFn(
-								(ondone, _onreject, REPLACE) => {
-									REPLACE.getBackgroundPageTestData().then(
-										(testData) => {
-											testData._clearExecutedScripts();
-											ondone(
-												testData._currentContextMenu[0].children[
-													StylesheetOnPageTests
-														.TOGGLE_DEFAULT_OFF
-												].currentProperties.onclick(
-													REPLACE.page,
-													REPLACE.tab
-												)
-											);
-										}
-									);
-								},
-								{
-									getTestData: getTestData(),
-									getBackgroundPageTestData: getBackgroundPageTestData(),
-									page: {
-										menuItemId: contextMenu[0].id,
-										editable: false,
-										pageUrl: 'www.google.com',
-										wasChecked: false,
-										modifiers: [],
-									},
-									tab: {
-										isArticle: false,
-										isInReaderMode: false,
-										lastAccessed: 0,
-										id: tabId,
-										index: 1,
-										windowId: windowId,
-										highlighted: false,
-										active: true,
-										pinned: false,
-										selected: false,
-										url: 'http://www.google.com',
-										title: 'Google',
-										incognito: false,
-									},
-								}
-							)
-						);
+						await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+							REPLACE.getBackgroundPageTestData().then((testData) => {
+								testData._clearExecutedScripts();
+								ondone(testData._currentContextMenu[0]
+									.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
+									.currentProperties.onclick(
+										REPLACE.page, REPLACE.tab
+									));
+							});
+						}, {
+							getTestData: getTestData(),
+							getBackgroundPageTestData: getBackgroundPageTestData(),
+							page: {
+								menuItemId: contextMenu[0].id,
+								editable: false,
+								pageUrl: 'www.google.com',
+								wasChecked: false,
+								modifiers: []
+							},
+							tab: {
+								isArticle: false,
+								isInReaderMode: false,
+								lastAccessed: 0,
+								id: tabId,
+								index: 1,
+								windowId: windowId,
+								highlighted: false,
+								active: true,
+								pinned: false,
+								selected: false,
+								url: 'http://www.google.com',
+								title: 'Google',
+								incognito: false
+							}
+						}));
 						await wait(100);
 						const dimensions = await dummy1.getSize();
-						assert.strictEqual(
-							dimensions.width,
-							50,
-							'dummy element is 50px wide'
-						);
+						assert.strictEqual(dimensions.width, 50,
+							'dummy element is 50px wide');
 					});
-					it('should be off when clicked again', async function () {
+					it('should be off when clicked again', async function() {
 						this.slow(2000 * TIME_MODIFIER);
 						this.timeout(4000 * TIME_MODIFIER);
 						const contextMenu = await getContextMenu();
-						await executeAsyncScript<void>(
-							inlineAsyncFn(
-								(ondone, _onreject, REPLACE) => {
-									REPLACE.getBackgroundPageTestData().then(
-										(testData) => {
-											testData._clearExecutedScripts();
-											ondone(
-												testData._currentContextMenu[0].children[
-													StylesheetOnPageTests
-														.TOGGLE_DEFAULT_OFF
-												].currentProperties.onclick(
-													REPLACE.page,
-													REPLACE.tab
-												)
-											);
-										}
-									);
-								},
-								{
-									getTestData: getTestData(),
-									getBackgroundPageTestData: getBackgroundPageTestData(),
-									page: {
-										menuItemId: contextMenu[0].id,
-										editable: false,
-										pageUrl: 'www.google.com',
-										wasChecked: true,
-										modifiers: [],
-									},
-									tab: {
-										isArticle: false,
-										isInReaderMode: false,
-										lastAccessed: 0,
-										id: tabId,
-										index: 1,
-										windowId: windowId,
-										highlighted: false,
-										active: true,
-										pinned: false,
-										selected: false,
-										url: 'http://www.google.com',
-										title: 'Google',
-										incognito: false,
-									},
-								}
-							)
-						);
+						await executeAsyncScript<void>(inlineAsyncFn((ondone, _onreject, REPLACE) => {
+							REPLACE.getBackgroundPageTestData().then((testData) => {
+								testData._clearExecutedScripts();
+								ondone(testData._currentContextMenu[0]
+									.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
+									.currentProperties.onclick(
+										REPLACE.page, REPLACE.tab
+									));
+							});
+						}, {
+							getTestData: getTestData(),
+							getBackgroundPageTestData: getBackgroundPageTestData(),
+							page: {
+								menuItemId: contextMenu[0].id,
+								editable: false,
+								pageUrl: 'www.google.com',
+								wasChecked: true,
+								modifiers: []
+							},
+							tab: {
+								isArticle: false,
+								isInReaderMode: false,
+								lastAccessed: 0,
+								id: tabId,
+								index: 1,
+								windowId: windowId,
+								highlighted: false,
+								active: true,
+								pinned: false,
+								selected: false,
+								url: 'http://www.google.com',
+								title: 'Google',
+								incognito: false
+							}
+						}));
 						await wait(100);
 						const dimensions = await dummy1.getSize();
-						assert.notStrictEqual(
-							dimensions.width,
-							50,
-							'dummy element is not 50px wide'
-						);
+						assert.notStrictEqual(dimensions.width, 50,
+							'dummy element is not 50px wide');
 					});
 				});
-				describe('Default on', function () {
+				describe('Default on', function() {
 					this.slow(300 * TIME_MODIFIER);
 					this.timeout(1500 * TIME_MODIFIER);
 					it('should be on by default', async () => {
 						const dimensions = await dummy2.getSize();
-						assert.strictEqual(
-							dimensions.width,
-							50,
-							'dummy element is 50px wide'
-						);
+						assert.strictEqual(dimensions.width, 50,
+							'dummy element is 50px wide');
 					});
 				});
 			}
@@ -6267,7 +4383,7 @@ describe('On-Page CRM', function () {
 	});
 });
 
-after('quit driver', function () {
+after('quit driver', function() {
 	this.timeout(210000);
 	return new webdriver.promise.Promise<void>((resolve) => {
 		if (!WAIT_ON_DONE) {
@@ -6276,7 +4392,7 @@ after('quit driver', function () {
 				console.log('Resolving automatically');
 				resolve(null);
 			}, 15000);
-
+		
 			if (!driver) {
 				resolve(null);
 			}

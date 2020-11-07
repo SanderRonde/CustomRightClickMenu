@@ -1,132 +1,53 @@
-﻿<!DOCTYPE html>
+﻿<!DOCTYPE HTML>
 <dom-module id="crm-edit-page" attributes="item">
 	<template>
 		<!-- build:css inline ../../../elements/options/crm-edit-page/crm-edit-page.css -->
-		<link
-			rel="stylesheet"
-			href="../../elements/options/crm-edit-page/crm-edit-page.css"
-		/>
+		<link rel="stylesheet" href="../../elements/options/crm-edit-page/crm-edit-page.css" />
 		<!-- /build -->
 		<style is="custom-style" include="paper-material-styles"></style>
 		<div id="horizontalCenterer">
 			<div id="verticalCenterer">
 				<div id="overlayCont">
-					<div
-						id="scriptUpdateNotice"
-						hidden$="[[!showUpgradeNotice(hideUpdateMessage,item)]]"
-					>
+					<div id="scriptUpdateNotice" hidden$="[[!showUpgradeNotice(hideUpdateMessage,item)]]">
 						<div id="scriptUpdateWarningIcon">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewbox="0 0 24 24"
-							>
-								<path d="M0 0h24v24h-24z" fill="none" />
-								<path
-									d="M1 21h22l-11-19-11 19zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
-								/>
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24">
+								<path d="M0 0h24v24h-24z" fill="none"/>
+								<path d="M1 21h22l-11-19-11 19zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
 							</svg>
 						</div>
 						<div id="scriptUpdateMessage">
-							This script has been updated to use the new CRM API,
-							read up about it
-							<a
-								href="'http://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.crmapiinstance.html'"
-								rel="noopener"
-								target="_blank"
-								>over here</a
-							>. Depending on howmany chrome APIs you used, some
-							issues may have occurred.
-							<div id="scriptUpdateStatus">
-								[[getScriptUpdateStatus(item)]]
-							</div>
-							Click
-							<span
-								class="scriptUpdateTextButton"
-								id="scriptUpdateShowDiff"
-								on-tap="showScriptUpdateDiff"
-								>here</span
-							>
-							to compare the new and the old version and/or
-							resolve any issues migrating or click
-							<span
-								class="scriptUpdateTextButton"
-								id="scriptUpdateDismiss"
-								on-tap="hideUpdateMergeDialog"
-								>here</span
-							>
-							to dismiss this dialog permanently.
+							This script has been updated to use the new CRM API, read up about it <a href="'http://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.crmapiinstance.html'" rel="noopener" target="_blank">over here</a>. Depending on howmany chrome APIs you used, some issues may have occurred.
+							<div id="scriptUpdateStatus">[[getScriptUpdateStatus(item)]]</div> Click <span class="scriptUpdateTextButton" id="scriptUpdateShowDiff" on-tap="showScriptUpdateDiff">here</span> to compare the new and the old version and/or resolve any issues migrating or click <span class="scriptUpdateTextButton" id="scriptUpdateDismiss" on-tap="hideUpdateMergeDialog">here</span> to dismiss this dialog permanently.
 						</div>
 						<div id="scriptUpdateHideDialog">
-							<paper-icon-button
-								on-tap="hideUpdateMergeDialog"
-								id="scriptUpdateHideDialogButton"
-								icon="clear"
-							></paper-icon-button>
+							<paper-icon-button on-tap="hideUpdateMergeDialog" id="scriptUpdateHideDialogButton" icon="clear"></paper-icon-button>
 						</div>
 					</div>
 					<div class="paper-material" elevation="5" id="editPageCont">
-						<link-edit
-							hidden$="[[!isLink]]"
-							item="{{linkItem}}"
-						></link-edit>
-						<script-edit
-							hidden$="[[!isScript]]"
-							item="{{scriptItem}}"
-						></script-edit>
-						<stylesheet-edit
-							hidden$="[[!isStylesheet]]"
-							item="{{stylesheetItem}}"
-						></stylesheet-edit>
-						<divider-edit
-							hidden$="[[!isDivider]]"
-							item="{{dividerItem}}"
-						></divider-edit>
-						<menu-edit
-							hidden$="[[!isMenu]]"
-							item="{{menuItem}}"
-						></menu-edit>
+						<link-edit hidden$="[[!isLink]]" item="{{linkItem}}"></link-edit>
+						<script-edit hidden$="[[!isScript]]" item="{{scriptItem}}"></script-edit>
+						<stylesheet-edit hidden$="[[!isStylesheet]]" item="{{stylesheetItem}}"></stylesheet-edit>
+						<divider-edit hidden$="[[!isDivider]]" item="{{dividerItem}}"></divider-edit>
+						<menu-edit hidden$="[[!isMenu]]" item="{{menuItem}}"></menu-edit>
 					</div>
 					<div id="nodeInfo">
 						<div id="nodeInfoData">
 							<span id="nodeInfoName">
-								<b title$="[[item.name]]" id="nodeInfoNameCont"
-									>[[item.name]]</b
-								>
-								<b hidden$="[[!nodeInfo.version]]"
-									>V<span id="nodeInfoVersion" contenteditable
-										>[[nodeInfo.version]]</span
-									></b
-								>
+								<b title$="[[item.name]]" id="nodeInfoNameCont">[[item.name]]</b> 
+								<b hidden$="[[!nodeInfo.version]]">V<span id="nodeInfoVersion" contenteditable>[[nodeInfo.version]]</span></b>
 							</span>
 							<span hidden$="[[isLocal(nodeInfo.source)]]">
 								<span id="nodeInfoAuthor">
-									<echo-html
-										inline
-										html="[[__(lang, langReady, 'options_crmEditPage_createdBy', nodeInfo.source.author)]]"
-									></echo-html>
+									<echo-html inline html="[[__(lang, langReady, 'options_crmEditPage_createdBy', nodeInfo.source.author)]]"></echo-html>
 								</span>
-								<echo-html
-									inline
-									html="[[__(lang, langReady, 'options_crmEditPage_installedFrom', nodeInfo.source.url)]]"
-								></echo-html>
+								<echo-html inline html="[[__(lang, langReady, 'options_crmEditPage_installedFrom', nodeInfo.source.url)]]"></echo-html>
 							</span>
 							<span hidden$="[[!isLocal(nodeInfo.source)]]">
-								<echo-html
-									inline
-									html="[[getCreatedBy(lang, langReady)]]"
-								></echo-html>
+								<echo-html inline html="[[getCreatedBy(lang, langReady)]]"></echo-html>
 							</span>
 						</div>
-						<div
-							id="nodeInfoSource"
-							hidden$="[[!hasInstallDate(nodeInfo)]]"
-						>
-							<echo-html
-								inline
-								html="[[nodeInfoSource(lang, langReady, nodeInfo)]]"
-							></echo-html>
+						<div id="nodeInfoSource" hidden$="[[!hasInstallDate(nodeInfo)]]">
+							<echo-html inline html="[[nodeInfoSource(lang, langReady, nodeInfo)]]"></echo-html>
 						</div>
 					</div>
 				</div>

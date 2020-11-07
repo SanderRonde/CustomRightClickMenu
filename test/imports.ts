@@ -2,28 +2,17 @@ import * as webdriver from 'selenium-webdriver';
 import { exec } from 'child_process';
 import { readFile } from 'fs';
 import { join } from 'path';
-import {
-	GlobalObject,
-	ContextMenuCreateProperties,
-} from '../app/js/background/sharedTypes';
+import { GlobalObject, ContextMenuCreateProperties } from '../app/js/background/sharedTypes';
 import { EncodedString } from '../app/elements/elements';
 
 type StringifedFunction<RETVAL> = string & {
 	__fn: RETVAL;
-};
+}
 
 export declare class TypedWebdriver extends webdriver.WebDriver {
-	executeScript<T>(
-		script: StringifedFunction<T>
-	): webdriver.promise.Promise<T>;
-	executeScript<T>(
-		script: string,
-		...var_args: any[]
-	): webdriver.promise.Promise<T>;
-	executeScript<T>(
-		script: Function,
-		...var_args: any[]
-	): webdriver.promise.Promise<T>;
+	executeScript<T>(script: StringifedFunction<T>): webdriver.promise.Promise<T>;
+	executeScript<T>(script: string, ...var_args: any[]): webdriver.promise.Promise<T>;
+	executeScript<T>(script: Function, ...var_args: any[]): webdriver.promise.Promise<T>;
 }
 
 export interface ExecutedScript {
@@ -44,10 +33,10 @@ type ExecutedScripts = ExecutedScript[];
 
 export type DeepPartial<T> = {
 	[P in keyof T]?: DeepPartial<T[P]>;
-};
+}
 
 export type ActiveTabs = {
-	type: 'create' | 'update';
+	type: 'create'|'update';
 	data: any;
 	id?: number;
 }[];
@@ -63,21 +52,17 @@ export interface TestData {
 	_activeTabs: ActiveTabs;
 	_executedScripts: ExecutedScripts;
 	_activatedBackgroundPages: number[];
-	_tabUpdateListeners: ((
-		id: number,
-		updateData: {
-			status?: 'loading' | 'complete';
-			url?: string;
-			pinned?: boolean;
-			audible?: boolean;
-			discarded?: boolean;
-			autoDiscardable?: boolean;
-			mutedInfo?: any;
-			favIconUrl?: string;
-			title?: string;
-		},
-		tab: _browser.tabs.Tab
-	) => void)[];
+	_tabUpdateListeners: ((id: number, updateData: {
+		status?: 'loading'|'complete';
+		url?: string;
+		pinned?: boolean;
+		audible?: boolean;
+		discarded?: boolean;
+		autoDiscardable?: boolean;
+		mutedInfo?: any;
+		favIconUrl?: string;
+		title?: string;
+	}, tab: _browser.tabs.Tab) => void)[];
 	_clearExecutedScripts: () => void;
 	_fakeTabs: {
 		[id: number]: {
@@ -93,25 +78,22 @@ export interface TestData {
 	};
 }
 
-export interface AppChrome extends DeepPartial<Chrome>, TestData {}
+export interface AppChrome extends DeepPartial<Chrome>, TestData {};
 
-export type AsyncStates<T> =
-	| {
-			state: 'pending';
-			result: null;
-	  }
-	| {
-			state: 'complete';
-			result: T;
-	  }
-	| {
-			state: 'error';
-			result: Error;
-	  };
+export type AsyncStates<T> = {
+	state: 'pending';
+	result: null
+}|{
+	state: 'complete';
+	result: T;
+}|{
+	state: 'error';
+	result: Error;
+}
 
 export interface AppWindow extends Window {
 	logs: any[];
-	lastError: any | void;
+	lastError: any|void;
 	chrome: AppChrome;
 	BrowserAPI: BrowserAPI;
 	dummyContainer: HTMLDivElement;
@@ -121,7 +103,7 @@ export interface AppWindow extends Window {
 	_log: any[];
 	__asyncs: {
 		[index: number]: AsyncStates<any>;
-	};
+	}
 }
 
 declare const window: AppWindow;
@@ -139,20 +121,14 @@ export interface BrowserstackCapabilities {
 	'browserstack.key': string;
 	'browserstack.local': boolean;
 	'browserstack.debug': boolean;
-	'browserstack.localIdentifier'?: any;
+	'browserstack.localIdentifier'?: any;	
 	'browserstack.console'?: string;
 	'browserstack.networkLogs'?: boolean;
 }
 
-export function wait<T>(
-	time: number,
-	resolveParam: T
-): webdriver.promise.Promise<T>;
+export function wait<T>(time: number, resolveParam: T): webdriver.promise.Promise<T>;
 export function wait<T>(time: number): webdriver.promise.Promise<any>;
-export function wait<T>(
-	time: number,
-	resolveParam?: T
-): webdriver.promise.Promise<T> {
+export function wait<T>(time: number, resolveParam?: T): webdriver.promise.Promise<T> {
 	return new webdriver.promise.Promise((resolve) => {
 		setTimeout(() => {
 			if (resolveParam) {
@@ -173,151 +149,111 @@ export function getGitHash() {
 				if (err) {
 					resolve('?');
 				} else {
-					resolve(stdout.replace(/\n/, '').replace(/\r/, ''));
+					resolve(stdout
+						.replace(/\n/, '')
+						.replace(/\r/, ''));
 				}
 			});
 		}
 	});
 }
 
-export function tryReadManifest(
-	filePath: string
-): Promise<_chrome.runtime.Manifest> {
+export function tryReadManifest(filePath: string): Promise<_chrome.runtime.Manifest> {
 	return new Promise<_chrome.runtime.Manifest>((resolve) => {
-		readFile(
-			join(__dirname, '../', filePath),
-			{
-				encoding: 'utf8',
-			},
-			(err, data) => {
-				if (err) {
-					resolve(null);
-				} else {
-					resolve(JSON.parse(data));
-				}
+		readFile(join(__dirname, '../', filePath), {
+			encoding: 'utf8'
+		}, (err, data) => {
+			if (err) {
+				resolve(null);
+			} else {
+				resolve(JSON.parse(data));
 			}
-		);
+		});
 	});
 }
 
 function isThennable(value: any): value is Promise<any> {
-	return (
-		value && typeof value === 'object' && typeof value.then === 'function'
-	);
+	return value && typeof value === "object" && typeof value.then === "function";
 }
 
-export function waitFor<T>(
-	condition: () =>
-		| webdriver.promise.Promise<false | T>
-		| Promise<false | T>
-		| false
-		| T,
-	interval: number,
-	max: number
-): webdriver.promise.Promise<T> {
-	return new webdriver.promise.Promise<T>((resolve, reject) => {
-		let totalTime = 0;
-		let stop: boolean = false;
-		const fn = async () => {
-			let conditionResult = condition();
-			if (isThennable(conditionResult)) {
-				conditionResult = await conditionResult;
-			}
-
-			if (conditionResult !== false) {
-				resolve(conditionResult as T);
-				stop = true;
-			} else {
-				totalTime += interval;
-				if (totalTime >= max) {
-					reject(`Condition took longer than ${max}ms`);
-					stop = true;
+export function waitFor<T>(condition: () => webdriver.promise.Promise<false|T>|Promise<false|T>|false|T, interval: number, 
+	max: number): webdriver.promise.Promise<T> {
+		return new webdriver.promise.Promise<T>((resolve, reject) => {
+			let totalTime = 0;
+			let stop: boolean = false;
+			const fn = async () => {
+				let conditionResult = condition();
+				if (isThennable(conditionResult)) {
+					conditionResult = await conditionResult;
 				}
-			}
-			if (!stop) {
-				setTimeout(fn, interval);
-			}
-		};
-		fn();
-	});
-}
+
+				if (conditionResult !== false) {
+					resolve(conditionResult as T);
+					stop = true;
+				} else {
+					totalTime += interval;
+					if (totalTime >= max) {
+						reject(`Condition took longer than ${max}ms`)
+						stop = true;
+					}
+				}
+				if (!stop) {
+					setTimeout(fn, interval);
+				}
+			};
+			fn();
+		});
+	}
+
 
 function es3IfyFunction(str: string): string {
 	if (str.indexOf('=>') === -1) {
 		return str;
 	}
-	const [args, body] = str.split('=>').map((part) => part.trim());
+	const [ args, body ] = str.split('=>').map(part => part.trim());
 	return `function ${args} ${body}`;
 }
 
-export function inlineFn<
-	T extends {
-		[key: string]: any;
-	},
-	U
->(
-	fn: (REPLACE: T) => U | void,
-	args?: T,
-	...insertedFunctions: Function[]
-): StringifedFunction<U> {
-	args = args || ({} as T);
-	let str = `${insertedFunctions
-		.map((inserted) => inserted.toString())
-		.join('\n')}
-			try { return (${es3IfyFunction(
-				fn.toString()
-			)})(arguments) } catch(err) { throw new Error(err.name + '-' + err.stack); }`;
-	Object.getOwnPropertyNames(args).forEach((key) => {
-		let arg = args[key];
-		if (typeof arg === 'object') {
-			arg = JSON.stringify(arg);
-		}
-		if (typeof arg === 'function') {
-			str = str.replace(
-				new RegExp(`REPLACE\.${key}`, 'g'),
-				`(${arg.toString()})`
-			);
-		}
-		if (typeof arg === 'string' && arg.split('\n').length > 1) {
-			str = str.replace(
-				new RegExp(`REPLACE\.${key}`, 'g'),
-				`' + ${JSON.stringify(arg.split('\n'))}.join('\\n') + '`
-			);
-		} else {
-			str = str.replace(
-				new RegExp(`REPLACE\.${key}`, 'g'),
-				arg !== undefined && arg !== null && typeof arg === 'string'
-					? arg.replace(/\\\"/g, `\\\\\"`)
-					: arg
-			);
-		}
-	});
-	return str as StringifedFunction<U>;
-}
+export function inlineFn<T extends {
+	[key: string]: any;
+}, U>(fn: (REPLACE: T) => U|void, args?: T,
+	...insertedFunctions: Function[]): StringifedFunction<U> {
+		args = args || {} as T;
+		let str = `${insertedFunctions.map(inserted => inserted.toString()).join('\n')}
+			try { return (${es3IfyFunction(fn.toString())})(arguments) } catch(err) { throw new Error(err.name + '-' + err.stack); }`;
+		Object.getOwnPropertyNames(args).forEach((key) => {
+			let arg = args[key];
+			if (typeof arg === 'object') {
+				arg = JSON.stringify(arg);
+			}
+			if (typeof arg === 'function') {
+				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'),
+					`(${arg.toString()})`);
+			}
+			if (typeof arg === 'string' && arg.split('\n').length > 1) {
+				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), 
+					`' + ${JSON.stringify(arg.split('\n'))}.join('\\n') + '`);
+			} else {
+				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), arg !== undefined &&
+					arg !== null && typeof arg === 'string' ?
+						arg.replace(/\\\"/g, `\\\\\"`) : arg);
+			}
+		});
+		return str as StringifedFunction<U>;
+	}
 
 type StringifiedCallbackFunction<RETVAL, CALLBACKRES> = string & {
 	__fn: RETVAL;
 	__cb: CALLBACKRES;
-};
+}
 
-export function inlineAsyncFn<
-	T extends {
-		[key: string]: any;
-	},
-	U
->(
-	fn: (
-		resolve: (result: U) => void,
-		reject: (err: any) => void,
-		REPLACE: T
-	) => Promise<U> | void,
-	args?: T,
-	...insertedFunctions: Function[]
-): StringifiedCallbackFunction<number, U> {
-	args = args || ({} as T);
-	let str = `${insertedFunctions
-		.map((inserted) => inserted.toString())
-		.join('\n')}
+export function inlineAsyncFn<T extends {
+	[key: string]: any;
+}, U>(fn: (resolve: (result: U) => void, reject: (err: any) => void, 
+	REPLACE: T) => Promise<U>|void, args?: T,
+	...insertedFunctions: Function[]): StringifiedCallbackFunction<number, U> {
+		args = args || {} as T;
+		let str = `${insertedFunctions.map(inserted => inserted.toString()).join('\n')}
 			window.__asyncs = window.__asyncs || {};
 			window.__lastAsync = window.__lastAsync || 1;
 			var currentAsync = window.__lastAsync++;
@@ -350,67 +286,47 @@ export function inlineAsyncFn<
 				onFail(err.name + '-' + err.stack);
 			}
 			return currentAsync;`;
-	Object.getOwnPropertyNames(args).forEach((key) => {
-		let arg = args[key];
-		if (typeof arg === 'object') {
-			arg = JSON.stringify(arg);
-		}
-		if (typeof arg === 'function') {
-			str = str.replace(
-				new RegExp(`REPLACE\.${key}`, 'g'),
-				`(${arg.toString()})`
-			);
-		}
-		if (typeof arg === 'string' && arg.split('\n').length > 1) {
-			str = str.replace(
-				new RegExp(`REPLACE\.${key}`, 'g'),
-				`' + ${JSON.stringify(arg.split('\n'))}.join('\\n') + '`
-			);
-		} else {
-			str = str.replace(
-				new RegExp(`REPLACE\.${key}`, 'g'),
-				arg !== undefined && arg !== null && typeof arg === 'string'
-					? arg.replace(/\\\"/g, `\\\\\"`)
-					: arg
-			);
-		}
-	});
-	return str as StringifiedCallbackFunction<number, U>;
-}
+		Object.getOwnPropertyNames(args).forEach((key) => {
+			let arg = args[key];
+			if (typeof arg === 'object') {
+				arg = JSON.stringify(arg);
+			}
+			if (typeof arg === 'function') {
+				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'),
+					`(${arg.toString()})`);
+			}
+			if (typeof arg === 'string' && arg.split('\n').length > 1) {
+				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), 
+					`' + ${JSON.stringify(arg.split('\n'))}.join('\\n') + '`);
+			} else {
+				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), arg !== undefined &&
+					arg !== null && typeof arg === 'string' ?
+						arg.replace(/\\\"/g, `\\\\\"`) : arg);
+			}
+		});
+		return str as StringifiedCallbackFunction<number, U>;
+	}
 
-export function executeAsyncScript<T>(
-	script: StringifiedCallbackFunction<number, T>
-): webdriver.promise.Promise<T> {
+export function executeAsyncScript<T>(script: StringifiedCallbackFunction<number, T>): webdriver.promise.Promise<T> {
 	return new webdriver.promise.Promise<T>(async (resolve, reject) => {
 		const asyncIndex = await driver.executeScript(script);
-		const descr = await waitFor(
-			async () => {
-				const result = await driver.executeScript(
-					inlineFn(
-						(REPLACE) => {
-							const index = REPLACE.index;
-							if (window.__asyncs[index].state !== 'pending') {
-								const descr = window.__asyncs[
-									index
-								] as AsyncStates<T>;
-								delete window.__asyncs[index];
-								return descr;
-							}
-							return null;
-						},
-						{
-							index: asyncIndex,
-						}
-					)
-				);
-				if (result) {
-					return result;
+		const descr = await waitFor(async () => {
+			const result = await driver.executeScript(inlineFn((REPLACE) => {
+				const index = REPLACE.index;
+				if (window.__asyncs[index].state !== 'pending') {
+					const descr = window.__asyncs[index] as AsyncStates<T>;
+					delete window.__asyncs[index];
+					return descr;
 				}
-				return false;
-			},
-			15,
-			60000 * TIME_MODIFIER
-		);
+				return null;
+			}, {
+				index: asyncIndex
+			}));
+			if (result) {
+				return result;
+			}
+			return false;
+		}, 15, 60000 * TIME_MODIFIER);
 		if (descr.state === 'complete') {
 			resolve(descr.result);
 		} else if (descr.state === 'error') {
@@ -419,69 +335,40 @@ export function executeAsyncScript<T>(
 	});
 }
 
-export function getCRM<
-	T extends CRM.Node[] = CRM.Tree
->(): webdriver.promise.Promise<T> {
-	return new webdriver.promise.Promise<T>((resolve) => {
-		driver
-			.executeScript(
-				inlineFn(() => {
-					return JSON.stringify(window.app.settings.crm);
-				})
-			)
-			.then((str: EncodedString<T>) => {
-				resolve(JSON.parse(str));
-			});
+export function getCRM<T extends CRM.Node[] = CRM.Tree>(): webdriver.promise.Promise<T> {
+	return new webdriver.promise.Promise<T>((resolve) => { 
+		driver.executeScript(inlineFn(() => {
+			return JSON.stringify(window.app.settings.crm);
+		})).then((str: EncodedString<T>) => {
+			resolve(JSON.parse(str));
+		});
 	});
 }
 
 export async function waitForEditor() {
-	await waitFor(
-		() => {
-			return driver.executeScript(
-				inlineFn(() => {
-					if (!window.app.item) {
-						return true;
-					}
-					if (window.app.item.type === 'script') {
-						return (
-							window.scriptEdit.editorManager &&
-							window.scriptEdit.editorManager.getModel(
-								'default'
-							) &&
-							window.scriptEdit.editorManager.getModel('default')
-								.handlers &&
-							!!window.scriptEdit.editorManager.getModel(
-								'default'
-							).handlers[0]
-						);
-					} else if (window.app.item.type === 'stylesheet') {
-						return (
-							window.stylesheetEdit.editorManager &&
-							window.stylesheetEdit.editorManager.getModel(
-								'default'
-							) &&
-							window.stylesheetEdit.editorManager.getModel(
-								'default'
-							).handlers &&
-							!!window.stylesheetEdit.editorManager.getModel(
-								'default'
-							).handlers[0]
-						);
-					} else {
-						return true;
-					}
-				})
-			);
-		},
-		25,
-		60000 * TIME_MODIFIER
-	);
+	await waitFor(() => {
+		return driver.executeScript(inlineFn(() => {
+			if (!window.app.item) {
+				return true;
+			}
+			if (window.app.item.type === 'script') {
+				return window.scriptEdit.editorManager &&
+					window.scriptEdit.editorManager.getModel('default') &&
+					window.scriptEdit.editorManager.getModel('default').handlers && 
+					!!window.scriptEdit.editorManager.getModel('default').handlers[0]
+			} else if (window.app.item.type === 'stylesheet') {
+				return window.stylesheetEdit.editorManager &&
+					window.stylesheetEdit.editorManager.getModel('default') &&
+					window.stylesheetEdit.editorManager.getModel('default').handlers && 
+					!!window.stylesheetEdit.editorManager.getModel('default').handlers[0]
+			} else {
+				return true;
+			}
+		}));
+	}, 25, 60000 * TIME_MODIFIER);
 }
 
-export function saveDialog(
-	dialog: FoundElement
-): webdriver.promise.Promise<void> {
+export function saveDialog(dialog: FoundElement): webdriver.promise.Promise<void> {
 	return new webdriver.promise.Promise<void>(async (resolve) => {
 		await waitForEditor();
 		await dialog.findElement(webdriver.By.id('saveButton')).click();
@@ -489,73 +376,57 @@ export function saveDialog(
 	});
 }
 
-export type DialogType = 'link' | 'script' | 'divider' | 'menu' | 'stylesheet';
-export function getDialog(
-	type: DialogType
-): webdriver.promise.Promise<FoundElement> {
+export type DialogType = 'link'|'script'|'divider'|'menu'|'stylesheet';
+export function getDialog(type: DialogType): webdriver.promise.Promise<FoundElement> {
 	return new webdriver.promise.Promise<FoundElement>(async (resolve) => {
 		const el = await findElement(webdriver.By.tagName('crm-app'))
 			.findElement(webdriver.By.tagName('crm-edit-page'))
 			.findElement(webdriver.By.tagName(`${type}-edit`));
-
+			
 		await wait(500);
 		resolve(el);
 	});
 }
 
-function generatePromiseChain<T>(
-	data: T[],
+function generatePromiseChain<T>(data: T[],
 	fn: (data: T) => webdriver.promise.Promise<any>,
 	index: number,
-	resolve: webdriver.promise.IFulfilledCallback<{}>
-) {
-	if (index !== data.length) {
-		fn(data[index]).then(() => {
-			generatePromiseChain(data, fn, index + 1, resolve);
-		});
-	} else {
-		resolve(null);
+	resolve: webdriver.promise.IFulfilledCallback<{}>) {
+		if (index !== data.length) {
+			fn(data[index]).then(() => {
+				generatePromiseChain(data, fn, index + 1, resolve);
+			});
+		} else {
+			resolve(null);
+		}
 	}
-}
 
-export function forEachPromise<T>(
-	data: T[],
-	fn: (data: T) => webdriver.promise.Promise<any>
-): webdriver.promise.Promise<any> {
-	return new webdriver.promise.Promise((resolve) => {
-		generatePromiseChain(data, fn, 0, resolve);
-	});
-}
+export function forEachPromise<T>(data: T[],
+	fn: (data: T) => webdriver.promise.Promise<any>): 
+	webdriver.promise.Promise<any> {
+		return new webdriver.promise.Promise((resolve) => {
+			generatePromiseChain(data, fn, 0, resolve);
+		});
+	}
 
-type Resolver<T> = (
-	onFulfilled: webdriver.promise.IFulfilledCallback<T>,
-	onRejected: webdriver.promise.IRejectedCallback
-) => void;
+type Resolver<T> = (onFulfilled: webdriver.promise.IFulfilledCallback<T>, 
+	onRejected: webdriver.promise.IRejectedCallback) => void;
 
 class PromiseContainer<T> implements webdriver.promise.IThenable<T> {
 	_promise: webdriver.promise.Promise<T>;
 
-	constructor(
-		resolver?: Resolver<T>,
-		opt_flow?: webdriver.promise.ControlFlow
-	) {
+	constructor(resolver?: Resolver<T>, opt_flow?: webdriver.promise.ControlFlow) {
 		this._promise = new webdriver.promise.Promise<T>(resolver, opt_flow);
 	}
 
-	then<R>(
-		opt_callback?: (value: T) => Promise<R>,
-		opt_errback?: (error: any) => any
-	): webdriver.promise.Promise<R>;
-	then<R>(
-		opt_callback?: (value: T) => R,
-		opt_errback?: (error: any) => any
-	): webdriver.promise.Promise<R>;
-	then<R>(
-		opt_callback?: (value: T) => Promise<R> | R,
-		opt_errback?: (error: any) => any
-	): webdriver.promise.Promise<R> {
-		return this._promise.then(opt_callback, opt_errback) as any;
-	}
+	then<R>(opt_callback?: (value: T) => Promise<R>, 
+		opt_errback?: (error: any) => any): webdriver.promise.Promise<R>;
+	then<R>(opt_callback?: (value: T) => R, 
+		opt_errback?: (error: any) => any): webdriver.promise.Promise<R>;
+	then<R>(opt_callback?: (value: T) => Promise<R>|R, 
+		opt_errback?: (error: any) => any): webdriver.promise.Promise<R> {
+			return this._promise.then(opt_callback, opt_errback) as any;
+		}
 
 	catch<R>(errback: (error: any) => any): webdriver.promise.Promise<R> {
 		return this._promise.catch(errback);
@@ -572,34 +443,29 @@ export class FoundElementsPromise extends PromiseContainer<FoundElement[]> {
 	}[];
 	private _done: boolean;
 
-	constructor(
-		resolver?: Resolver<FoundElement[]>,
-		opt_flow?: webdriver.promise.ControlFlow
-	) {
-		//Wait until this is initialized before running the resolver
-		let readyResolve: webdriver.promise.IFulfilledCallback<void> = null;
-		const ready = new webdriver.promise.Promise<void>((resolve) => {
-			readyResolve = resolve;
-		});
-		super((onFulfilled, onRejected) => {
-			ready.then(() => {
-				resolver(onFulfilled, onRejected);
+	constructor(resolver?: Resolver<FoundElement[]>, 
+		opt_flow?: webdriver.promise.ControlFlow) {
+			//Wait until this is initialized before running the resolver
+			let readyResolve: webdriver.promise.IFulfilledCallback<void> = null;
+			const ready = new webdriver.promise.Promise<void>((resolve) => {
+				readyResolve = resolve;
 			});
-		}, opt_flow);
+			super((onFulfilled, onRejected) => {
+				ready.then(() => {
+					resolver(onFulfilled, onRejected);
+				});
+			}, opt_flow);
 
-		this._init();
-		readyResolve(null);
-	}
+			this._init();
+			readyResolve(null);
+		}
 
 	private _init() {
-		this.then(
-			(result) => {
-				this._onFulfill(result);
-			},
-			(err) => {
-				this._onReject(err);
-			}
-		);
+		this.then((result) => {
+			this._onFulfill(result);
+		}, (err) => {
+			this._onReject(err);
+		});
 
 		this._gotItems = [];
 		this._done = false;
@@ -619,7 +485,7 @@ export class FoundElementsPromise extends PromiseContainer<FoundElement[]> {
 	}
 
 	private _handlePreviousRequests() {
-		this._gotItems.forEach(({ index, resolve, reject }) => {
+		this._gotItems.forEach(({index, resolve, reject}) => {
 			resolve(this._handleGetRequest(index, reject));
 		});
 	}
@@ -663,7 +529,7 @@ export class FoundElementsPromise extends PromiseContainer<FoundElement[]> {
 		this._gotItems.push({
 			index,
 			resolve: _resolve,
-			reject: _reject,
+			reject: _reject
 		});
 
 		return prom;
@@ -681,26 +547,17 @@ export class FoundElementsPromise extends PromiseContainer<FoundElement[]> {
 		});
 	}
 
-	public map<T>(
-		fn: (element: FoundElement) => T
-	): webdriver.promise.Promise<T[]>;
-	public map<T>(
-		fn: (element: FoundElement) => T,
-		isElements?: false
-	): webdriver.promise.Promise<T[]>;
-	public map<T>(
-		fn: (element: FoundElement) => T,
-		isElements?: true
-	): FoundElementsPromise;
-	public map<T>(
-		fn: (element: FoundElement) => T,
-		isElements: boolean = false
-	) {
+	public map<T>(fn: (element: FoundElement) => T): webdriver.promise.Promise<T[]>;
+	public map<T>(fn: (element: FoundElement) => T, 
+		isElements?: false): webdriver.promise.Promise<T[]>;
+	public map<T>(fn: (element: FoundElement) => T, 
+		isElements?: true): FoundElementsPromise;
+	public map<T>(fn: (element: FoundElement) => T, isElements: boolean = false) {
 		if (isElements) {
 			return new FoundElementsPromise((resolve) => {
 				this.then((items) => {
 					resolve(items.map(fn) as any[]);
-				});
+				});	
 			});
 		}
 		return new webdriver.promise.Promise<T[]>((resolve) => {
@@ -720,55 +577,42 @@ export class FoundElementsPromise extends PromiseContainer<FoundElement[]> {
 	/**
 	 * Combines promise.all and map
 	 */
-	public mapWait(
-		fn: (element: FoundElement) => webdriver.promise.Promise<any>
-	): webdriver.promise.Promise<void> {
-		return new webdriver.promise.Promise<void>((resolve) => {
-			this.map(fn).then((mapped) => {
-				webdriver.promise.all(mapped).then(() => {
-					resolve(null);
+	public mapWait(fn: (element: FoundElement) => 
+		webdriver.promise.Promise<any>): webdriver.promise.Promise<void> {
+			return new webdriver.promise.Promise<void>((resolve) => {
+				this.map(fn).then((mapped) => {
+					webdriver.promise.all(mapped).then(() => {
+						resolve(null);
+					});
 				});
 			});
-		});
-	}
+		}
 
-	public mapWaitChain(
-		fn: (
-			element: FoundElement,
-			index: number
-		) => webdriver.promise.Promise<any>,
-		elements?: FoundElement[],
-		index = 0
-	): webdriver.promise.Promise<void> {
-		return new webdriver.promise.Promise<void>(async (resolve) => {
-			if (!elements) {
-				elements = await this._promise;
-			}
-			if (elements.length === 0) {
-				resolve(null);
-			} else {
-				const result = await fn(elements[0], index);
-				if (elements[1]) {
-					resolve(
-						await this.mapWaitChain(
-							fn,
-							elements.slice(1),
-							index + 1
-						)
-					);
-				} else {
-					resolve(result);
+	public mapWaitChain(fn: (element: FoundElement, index: number) => 
+		webdriver.promise.Promise<any>, elements?: FoundElement[], index = 0): webdriver.promise.Promise<void> {
+			return new webdriver.promise.Promise<void>(async (resolve) => {
+				if (!elements) {
+					elements = await this._promise;
 				}
-			}
-		});
-	}
+				if (elements.length === 0) {
+					resolve(null);
+				} else {
+					const result = await fn(elements[0], index);
+					if (elements[1]) {
+						resolve(await this.mapWaitChain(fn, elements.slice(1), index + 1));
+					} else {
+						resolve(result);
+					}
+				}
+			});
+		}
 
 	public waitFor(awaitable: webdriver.promise.Promise<any>) {
 		return new FoundElementsPromise(async (resolve) => {
-			const [elements] = (await webdriver.promise.all([
+			const [ elements ] = await webdriver.promise.all([
 				this._promise,
-				awaitable,
-			])) as [FoundElement[], any];
+				awaitable
+			]) as [ FoundElement[], any ];
 			resolve(elements);
 		});
 	}
@@ -783,13 +627,9 @@ export class FoundElementsPromise extends PromiseContainer<FoundElement[]> {
 }
 
 export class FoundElementPromise extends PromiseContainer<FoundElement> {
-	constructor(
-		resolver: (
-			onFulfilled: webdriver.promise.IFulfilledCallback<FoundElement>,
-			onRejected: webdriver.promise.IRejectedCallback
-		) => void,
-		opt_flow?: webdriver.promise.ControlFlow
-	) {
+	constructor(resolver: (onFulfilled: webdriver.promise.IFulfilledCallback<FoundElement>, 
+			onRejected: webdriver.promise.IRejectedCallback)=>void,
+			opt_flow?: webdriver.promise.ControlFlow) {
 		super(resolver, opt_flow);
 	}
 
@@ -820,9 +660,7 @@ export class FoundElementPromise extends PromiseContainer<FoundElement> {
 			});
 		});
 	}
-	sendKeys(
-		...args: (string | webdriver.promise.Promise<string> | InputKeys)[]
-	) {
+	sendKeys(...args: (string|webdriver.promise.Promise<string>|InputKeys)[]) {
 		return new webdriver.promise.Promise<void>((resolve) => {
 			this.then((element) => {
 				element.sendKeys(...args).then(() => {
@@ -860,10 +698,10 @@ export class FoundElementPromise extends PromiseContainer<FoundElement> {
 	}
 	waitFor(awaitable: webdriver.promise.Promise<any>) {
 		return new FoundElementPromise(async (resolve) => {
-			const [element] = (await webdriver.promise.all([
+			const [ element ] = await webdriver.promise.all([
 				this._promise,
-				awaitable,
-			])) as [FoundElement, any];
+				awaitable
+			]) as [ FoundElement, any ];
 			resolve(element);
 		});
 	}
@@ -884,9 +722,7 @@ export class FoundElementPromise extends PromiseContainer<FoundElement> {
 		});
 	}
 
-	static all(
-		promises: FoundElementPromise[]
-	): webdriver.promise.Promise<FoundElement[]> {
+	static all(promises: FoundElementPromise[]): webdriver.promise.Promise<FoundElement[]> {
 		return new webdriver.promise.Promise<FoundElement[]>((resolve) => {
 			const states: {
 				promise: FoundElementPromise;
@@ -896,21 +732,17 @@ export class FoundElementPromise extends PromiseContainer<FoundElement> {
 				promise.then((result) => {
 					states[index].done = true;
 					states[index].result = result;
-					if (
-						states.filter((state) => {
-							return !state.done;
-						}).length === 0
-					) {
-						resolve(
-							states.map((state) => {
-								return state.result;
-							})
-						);
+					if (states.filter((state) => {
+						return !state.done;
+					}).length === 0) {
+						resolve(states.map((state) => {
+							return state.result;
+						}));
 					}
 				});
 				return {
 					promise: promise,
-					done: false,
+					done: false
 				};
 			});
 		});
@@ -921,9 +753,8 @@ export interface FoundElement {
 	click(): webdriver.promise.Promise<void>;
 	findElement(by: webdriver.Locator): FoundElementPromise;
 	findElements(by: webdriver.Locator): FoundElementsPromise;
-	sendKeys(
-		...args: (string | webdriver.promise.Promise<string> | InputKeys)[]
-	): webdriver.promise.Promise<void>;
+	sendKeys(...args: (string|webdriver.promise.Promise<string>|InputKeys)[]
+			): webdriver.promise.Promise<void>;
 	getAttribute(attr: string): webdriver.promise.Promise<string>;
 	getProperty(prop: string): webdriver.promise.Promise<any>;
 	getSize(): webdriver.promise.Promise<ClientRect>;
@@ -931,7 +762,7 @@ export interface FoundElement {
 
 export const enum InputKeys {
 	CLEAR_ALL = 0,
-	BACK_SPACE = 1,
+	BACK_SPACE = 1
 }
 
 function findElementOnPage(selector: string): HTMLElement {
@@ -964,7 +795,7 @@ function getValueForType(type: string, value: string) {
 		case 'linkText':
 			return `*[href=${value}]`;
 		case 'name':
-			return `*[name="${value}"]`;
+			return  `*[name="${value}"]`;
 		case 'tagName':
 			return value;
 		default:
@@ -977,10 +808,10 @@ function getValueForType(type: string, value: string) {
 
 function locatorToCss(by: webdriver.Locator): string {
 	if (by instanceof webdriver.By) {
-		const byObj = by as {
+		const byObj = by as  {
 			using: string;
 			value: string;
-		};
+		}
 		return getValueForType(byObj.using, byObj.value);
 	} else if (typeof by === 'function') {
 		throw new Error('Unrecognized locator used');
@@ -991,12 +822,8 @@ function locatorToCss(by: webdriver.Locator): string {
 	}
 }
 
-function checkIfListContainsElement<T extends HTMLElement | Element>(
-	element: T
-): string {
-	const keys: Extract<keyof T, string>[] = Object.getOwnPropertyNames(
-		element
-	) as Extract<keyof T, string>[];
+function checkIfListContainsElement<T extends HTMLElement|Element>(element: T): string {
+	const keys: (Extract<keyof T, string>)[] = Object.getOwnPropertyNames(element) as (Extract<keyof T, string>)[];
 	for (let i = 0; i < keys.length; i++) {
 		if (keys[i].slice(0, 2) === '__' && element[keys[i]] !== null) {
 			return keys[i];
@@ -1010,11 +837,8 @@ export function quote<T extends string>(str: T): T {
 }
 
 export class FoundElement implements FoundElement {
-	constructor(
-		public selector: string,
-		public index: number,
-		public parent: FoundElement = null
-	) {}
+	constructor(public selector: string, public index: number,
+		public parent: FoundElement = null) { }
 
 	click(): webdriver.promise.Promise<void> {
 		const selectorList = [[this.selector, this.index]];
@@ -1024,21 +848,13 @@ export class FoundElement implements FoundElement {
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new webdriver.promise.Promise<void>((resolve) => {
-			driver
-				.executeScript(
-					inlineFn(
-						() => {
-							findElementOnPage('REPLACE.selector').click();
-						},
-						{
-							selector: JSON.stringify(selectorList.reverse()),
-						},
-						findElementOnPage
-					)
-				)
-				.then(() => {
-					resolve(undefined);
-				});
+			driver.executeScript(inlineFn(() => {
+				findElementOnPage('REPLACE.selector').click();
+			}, {
+				selector: JSON.stringify(selectorList.reverse())
+			}, findElementOnPage)).then(() => {
+				resolve(undefined);
+			});
 		});
 	}
 	findElement(by: webdriver.Locator): FoundElementPromise {
@@ -1050,43 +866,28 @@ export class FoundElement implements FoundElement {
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new FoundElementPromise((resolve, reject) => {
-			driver
-				.executeScript(
-					inlineFn(
-						() => {
-							const baseEl = findElementOnPage(
-								'REPLACE.selector'
-							) as Element;
-							if (!baseEl) {
-								return 'null';
-							}
-							const el =
-								baseEl.querySelector('REPLACE.css') ||
-								baseEl.shadowRoot.querySelector('REPLACE.css');
+			driver.executeScript(inlineFn(() => {
+				const baseEl = findElementOnPage('REPLACE.selector') as Element;
+				if (!baseEl) {
+					return 'null';
+				}
+				const el = baseEl.querySelector('REPLACE.css') ||
+					baseEl.shadowRoot.querySelector('REPLACE.css');
 
-							if (el === null) {
-								return 'null';
-							}
-							return 'exists';
-						},
-						{
-							css: css,
-							selector: JSON.stringify(selectorList.reverse()),
-						},
-						findElementOnPage
-					)
-				)
-				.then((index) => {
-					if (index === 'null') {
-						reject(
-							new Error(
-								`Failed to find element with selector ${css}`
-							)
-						);
-					} else {
-						resolve(new FoundElement(css, 0, this));
-					}
-				});
+				if (el === null) {
+					return 'null';
+				}
+				return 'exists';
+			}, {
+				css: css,
+				selector: JSON.stringify(selectorList.reverse())
+			}, findElementOnPage)).then((index) => {
+				if (index === 'null') {
+					reject(new Error(`Failed to find element with selector ${css}`));
+				} else {
+					resolve(new FoundElement(css, 0, this));
+				}
+			});
 		});
 	}
 	findElements(by: webdriver.Locator): FoundElementsPromise {
@@ -1099,142 +900,86 @@ export class FoundElement implements FoundElement {
 		}
 		const __this = this;
 		return new FoundElementsPromise((resolve) => {
-			driver
-				.executeScript(
-					inlineFn(
-						() => {
-							const baseEl = findElementOnPage(
-								'REPLACE.selector'
-							) as Element;
-							if (!baseEl) {
-								return JSON.stringify(
-									[] as ('null' | 'exists')[]
-								);
-							}
-							let elList = baseEl.querySelectorAll('REPLACE.css');
-							if (baseEl.shadowRoot) {
-								const candidate = baseEl.shadowRoot.querySelectorAll(
-									'REPLACE.css'
-								);
-								if (candidate.length > elList.length) {
-									elList = candidate;
-								}
-							}
-							return JSON.stringify(
-								Array.prototype.slice
-									.apply(elList)
-									.map(function (element: HTMLElement) {
-										if (element === null) {
-											return 'null';
-										}
-										return 'exists';
-									}) as ('null' | 'exists')[]
-							);
-						},
-						{
-							css: css,
-							selector: JSON.stringify(selectorList.reverse()),
-						},
-						findElementOnPage,
-						checkIfListContainsElement
-					)
-				)
-				.then((indexes) => {
-					resolve(
-						JSON.parse(indexes)
-							.map((found, index) => {
-								if (found === 'exists') {
-									return new FoundElement(css, index, __this);
-								}
-								return null;
-							})
-							.filter((item) => item !== null)
-					);
-				});
+			driver.executeScript(inlineFn(() => {
+				const baseEl = findElementOnPage('REPLACE.selector') as Element;
+				if (!baseEl) {
+					return JSON.stringify([] as ('null'|'exists')[]);
+				}
+				let elList = baseEl.querySelectorAll('REPLACE.css');
+				if (baseEl.shadowRoot) {
+					const candidate = baseEl.shadowRoot.querySelectorAll('REPLACE.css');
+					if (candidate.length > elList.length) {
+						elList = candidate;
+					}
+				}
+				return JSON.stringify(Array.prototype.slice.apply(elList)
+					.map(function(element: HTMLElement) {
+						if (element === null) {
+							return 'null';
+						}
+						return 'exists';
+					}) as ('null'|'exists')[]);
+			}, {
+				css: css,
+				selector: JSON.stringify(selectorList.reverse())
+			}, findElementOnPage, checkIfListContainsElement)).then((indexes) => {
+				resolve((JSON.parse(indexes)).map((found, index) => {
+					if (found === 'exists') {
+						return new FoundElement(css, index, __this);
+					}
+					return null;
+				}).filter(item => item !== null));
+			});
 		});
 	}
-	sendKeys(
-		...args: (string | webdriver.promise.Promise<string> | InputKeys)[]
-	): webdriver.promise.Promise<void> {
-		return new webdriver.promise.Promise<void>((resolve) => {
-			return webdriver.promise
-				.all(
-					args.map((arg) => {
-						if (webdriver.promise.isPromise(arg)) {
-							return arg as webdriver.promise.Promise<string>;
-						}
-						return new webdriver.promise.Promise(
-							(instantResolve) => {
-								instantResolve(arg);
-							}
-						);
-					})
-				)
-				.then((keys: (string | InputKeys)[]) => {
+	sendKeys(...args: (string|webdriver.promise.Promise<string>|InputKeys)[]):
+		webdriver.promise.Promise<void> {
+			return new webdriver.promise.Promise<void>((resolve) => {
+				return webdriver.promise.all(args.map((arg) => {
+					if (webdriver.promise.isPromise(arg)) {
+						return arg as webdriver.promise.Promise<string>;
+					}
+					return new webdriver.promise.Promise((instantResolve) => {
+						instantResolve(arg);
+					});
+				})).then((keys: (string|InputKeys)[]) => {
 					const selectorList = [[this.selector, this.index]];
 					let currentElement: FoundElement = this;
 					while (currentElement.parent) {
 						currentElement = currentElement.parent;
-						selectorList.push([
-							currentElement.selector,
-							currentElement.index,
-						]);
+						selectorList.push([currentElement.selector, currentElement.index]);
 					}
 					return new webdriver.promise.Promise((sentKeysResolve) => {
-						driver
-							.executeScript(
-								inlineFn(
-									(REPLACE) => {
-										const el = findElementOnPage(
-											'REPLACE.selector'
-										) as HTMLInputElement;
-										const keyPresses = REPLACE.keypresses as (
-											| string
-											| InputKeys
-										)[];
-										let currentValue = el.value || '';
-										for (
-											let i = 0;
-											i < keyPresses.length;
-											i++
-										) {
-											switch (keyPresses[i]) {
-												case InputKeys.CLEAR_ALL:
-													currentValue = '';
-													break;
-												case InputKeys.BACK_SPACE:
-													currentValue = currentValue.slice(
-														0,
-														-1
-													);
-													break;
-												default:
-													currentValue +=
-														keyPresses[i];
-													break;
-											}
-										}
-										el.value = currentValue;
-									},
-									{
-										selector: JSON.stringify(
-											selectorList.reverse()
-										),
-										keypresses: keys,
-									},
-									findElementOnPage
-								)
-							)
-							.then(() => {
-								sentKeysResolve(undefined);
-							});
+						driver.executeScript(inlineFn((REPLACE) => {
+							const el = findElementOnPage('REPLACE.selector') as HTMLInputElement;
+							const keyPresses = REPLACE.keypresses as (string|InputKeys)[];
+							let currentValue = el.value || '';
+							for (let i = 0; i < keyPresses.length; i++) {
+								switch (keyPresses[i]) {
+									case InputKeys.CLEAR_ALL:
+										currentValue = '';
+										break;
+									case InputKeys.BACK_SPACE:
+										currentValue = currentValue.slice(0, -1);
+										break;
+									default:
+										currentValue += keyPresses[i];
+										break;
+								}
+							}
+							el.value = currentValue;
+						}, {
+							selector: JSON.stringify(selectorList.reverse()),
+							keypresses: keys
+						}, findElementOnPage)).then(() => {
+							sentKeysResolve(undefined);
+						});
 					});
-				})
-				.then(() => {
+				}).then(() => {
 					resolve(undefined);
 				});
-		});
-	}
+			});
+		}
 	getProperty<T>(prop: string): webdriver.promise.Promise<T> {
 		const selectorList = [[this.selector, this.index]];
 		let currentElement: FoundElement = this;
@@ -1243,24 +988,16 @@ export class FoundElement implements FoundElement {
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new webdriver.promise.Promise<T>((resolve) => {
-			driver
-				.executeScript(
-					inlineFn(
-						() => {
-							const el = findElementOnPage('REPLACE.selector');
-							const val = el['REPLACE.prop' as keyof HTMLElement];
-							return JSON.stringify(val as any);
-						},
-						{
-							selector: JSON.stringify(selectorList.reverse()),
-							prop: prop,
-						},
-						findElementOnPage
-					)
-				)
-				.then((value: EncodedString<T>) => {
-					resolve(JSON.parse(value));
-				});
+			driver.executeScript(inlineFn(() => {
+				const el = findElementOnPage('REPLACE.selector');
+				const val = el['REPLACE.prop' as keyof HTMLElement];
+				return JSON.stringify(val as any);
+			}, {
+				selector: JSON.stringify(selectorList.reverse()),
+				prop: prop
+			}, findElementOnPage)).then((value: EncodedString<T>) => {
+				resolve(JSON.parse(value));
+			});
 		});
 	}
 	getAttribute(attr: keyof HTMLElement): webdriver.promise.Promise<string> {
@@ -1271,26 +1008,17 @@ export class FoundElement implements FoundElement {
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new webdriver.promise.Promise<string>((resolve) => {
-			driver
-				.executeScript(
-					inlineFn(
-						(REPLACE) => {
-							const el = findElementOnPage('REPLACE.selector');
-							const attr = el.getAttribute(REPLACE.attr);
-							return attr === undefined || attr === null
-								? el[REPLACE.attr]
-								: attr;
-						},
-						{
-							selector: selectorList.reverse(),
-							attr: quote(attr),
-						},
-						findElementOnPage
-					)
-				)
-				.then((value: string) => {
-					resolve(value);
-				});
+			driver.executeScript(inlineFn((REPLACE) => {
+				const el = findElementOnPage('REPLACE.selector');
+				const attr = el.getAttribute(REPLACE.attr);
+				return attr === undefined || attr === null ?
+					el[REPLACE.attr] : attr;
+			}, {
+				selector: selectorList.reverse(),
+				attr: quote(attr)
+			}, findElementOnPage)).then((value: string) => {
+				resolve(value);
+			});
 		});
 	}
 	getSize(): webdriver.promise.Promise<ClientRect> {
@@ -1301,38 +1029,22 @@ export class FoundElement implements FoundElement {
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new webdriver.promise.Promise<ClientRect>(async (resolve) => {
-			resolve(
-				JSON.parse(
-					await driver.executeScript(
-						inlineFn(
-							() => {
-								const bcr = findElementOnPage(
-									'REPLACE.selector'
-								).getBoundingClientRect();
-								return JSON.stringify({
-									bottom: bcr.bottom,
-									height: bcr.height,
-									left: bcr.left,
-									right: bcr.right,
-									top: bcr.top,
-									width: bcr.width,
-								});
-							},
-							{
-								selector: JSON.stringify(
-									selectorList.reverse()
-								),
-							},
-							findElementOnPage
-						)
-					)
-				)
-			);
+			resolve(JSON.parse(await driver.executeScript(inlineFn(() => {
+				const bcr = findElementOnPage('REPLACE.selector').getBoundingClientRect();
+				return JSON.stringify({
+					bottom: bcr.bottom,
+					height: bcr.height,
+					left: bcr.left,
+					right: bcr.right,
+					top: bcr.top,
+					width: bcr.width	
+				});
+			}, {
+				selector: JSON.stringify(selectorList.reverse())
+			}, findElementOnPage))));
 		});
 	}
-	waitFor(
-		awaitable: webdriver.promise.Promise<any>
-	): webdriver.promise.Promise<this> {
+	waitFor(awaitable: webdriver.promise.Promise<any>): webdriver.promise.Promise<this> {
 		return new webdriver.promise.Promise<this>(async (resolve) => {
 			await awaitable;
 			resolve(this);
@@ -1346,20 +1058,11 @@ export class FoundElement implements FoundElement {
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new webdriver.promise.Promise<string>(async (resolve) => {
-			resolve(
-				await driver.executeScript(
-					inlineFn(
-						() => {
-							return findElementOnPage('REPLACE.selector')
-								.innerText;
-						},
-						{
-							selector: JSON.stringify(selectorList.reverse()),
-						},
-						findElementOnPage
-					)
-				)
-			);
+			resolve(await driver.executeScript(inlineFn(() => {
+				return findElementOnPage('REPLACE.selector').innerText;
+			}, {
+				selector: JSON.stringify(selectorList.reverse())
+			}, findElementOnPage)));
 		});
 	}
 }
@@ -1367,26 +1070,19 @@ export class FoundElement implements FoundElement {
 export function findElement(by: webdriver.Locator): FoundElementPromise {
 	const selector = locatorToCss(by);
 	return new FoundElementPromise(async (resolve, reject) => {
-		const found = await driver.executeScript(
-			inlineFn(
-				() => {
-					const elContainer = document.querySelector('REPLACE.css');
-					if (elContainer === null) {
-						return 'null';
-					}
-					return 'exists';
-				},
-				{
-					css: selector,
-				}
-			)
-		);
+		const found = await driver.executeScript(inlineFn(() => {
+			const elContainer = document.querySelector('REPLACE.css');
+			if (elContainer === null) {
+				return 'null';
+			}
+			return 'exists';
+		}, {
+			css: selector
+		}));
 		if (found === 'exists') {
 			resolve(new FoundElement(selector, 0));
 		} else {
-			reject(
-				new Error(`Failed to find element with selector ${selector}`)
-			);
+			reject(new Error(`Failed to find element with selector ${selector}`));
 		}
 	});
 }
@@ -1400,37 +1096,21 @@ export function setTimeModifier(modifier: number) {
 }
 
 export async function waitForCRM(timeRemaining: number) {
-	await waitFor(
-		() => {
-			return driver.executeScript(
-				inlineFn(() => {
-					const crmItem = window.app.editCRM.shadowRoot.querySelectorAll(
-						'edit-crm-item:not([root-node])'
-					)[0];
-					return !!crmItem;
-				})
-			);
-		},
-		250,
-		timeRemaining
-	);
+	await waitFor(() => {
+		return driver.executeScript(inlineFn(() => {
+			const crmItem = window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item:not([root-node])')[0];
+			return !!crmItem;
+		}));
+	}, 250, timeRemaining);
 }
 
-export function resetSettings(
-	__this: Mocha.ISuiteCallbackContext | Mocha.IHookCallbackContext,
-	done: (...args: any[]) => void
-): void;
-export function resetSettings(
-	__this?: Mocha.ISuiteCallbackContext | Mocha.IHookCallbackContext
-): webdriver.promise.Promise<void>;
-export function resetSettings(
-	__this?: Mocha.ISuiteCallbackContext | Mocha.IHookCallbackContext,
-	done?: (...args: any[]) => void
-): webdriver.promise.Promise<any> | void {
-	__this && __this.timeout(30000 * TIME_MODIFIER);
-	const promise = new webdriver.promise.Promise<void>(async (resolve) => {
-		const result = await executeAsyncScript(
-			inlineAsyncFn((done) => {
+export function resetSettings(__this: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, done: (...args: any[]) => void): void;
+export function resetSettings(__this?: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext): webdriver.promise.Promise<void>; 
+export function resetSettings(__this?: Mocha.ISuiteCallbackContext|Mocha.IHookCallbackContext, 
+	done?: (...args: any[]) => void): webdriver.promise.Promise<any>|void {
+		__this && __this.timeout(30000 * TIME_MODIFIER);
+		const promise = new webdriver.promise.Promise<void>(async (resolve) => {
+			const result = await executeAsyncScript(inlineAsyncFn((done) => {
 				try {
 					window.browserAPI.storage.local.clear().then(() => {
 						window.browserAPI.storage.sync.clear().then(() => {
@@ -1439,25 +1119,24 @@ export function resetSettings(
 							});
 						});
 					});
-				} catch (e) {
+				} catch(e) {
 					done({
 						message: e.message,
-						stack: e.stack,
+						stack: e.stack
 					});
-				}
-			})
-		);
-		if (result) {
-			console.log(result);
-			throw result;
+				};
+			}));
+			if (result) {
+				console.log(result);
+				throw result;
+			}
+			await waitForCRM(5000);
+			await wait(1500);
+			resolve(null);
+		});
+		if (done) {
+			promise.then(done);
+		} else {
+			return promise;
 		}
-		await waitForCRM(5000);
-		await wait(1500);
-		resolve(null);
-	});
-	if (done) {
-		promise.then(done);
-	} else {
-		return promise;
 	}
-}

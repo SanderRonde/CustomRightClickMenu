@@ -9,7 +9,7 @@ a:focus {
 }
 
 a:focus::before {
-	background-color: rgba(0, 0, 0, 0.1);
+	background-color: rgba(0,0,0,.1);
 	border-radius: 2px;
 	bottom: -4px;
 	content: ' ';

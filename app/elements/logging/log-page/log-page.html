@@ -1,43 +1,16 @@
-﻿<!DOCTYPE html>
-<link
-	rel="import"
-	href="../../../elements/util/center-element/center-element.html"
-/>
-<link
-	rel="import"
-	href="../../../elements/logging/log-console/log-console.html"
-/>
-<link
-	rel="import"
-	href="../../../bower_components/app-layout/app-layout.html"
-/>
-<link
-	rel="import"
-	href="../../../bower_components/app-layout/app-header-layout/app-header-layout.html"
-/>
-<link
-	rel="import"
-	href="../../../bower_components/app-layout/app-header/app-header.html"
-/>
-<link
-	rel="import"
-	href="../../../bower_components/app-layout/app-toolbar/app-toolbar.html"
-/>
-<link
-	rel="import"
-	href="../../../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html"
-/>
-<link
-	rel="import"
-	href="../../../bower_components/paper-button/paper-button.html"
-/>
+﻿<!DOCTYPE HTML>
+<link rel="import" href="../../../elements/util/center-element/center-element.html" />
+<link rel="import" href="../../../elements/logging/log-console/log-console.html" />
+<link rel="import" href="../../../bower_components/app-layout/app-layout.html"/>
+<link rel="import" href="../../../bower_components/app-layout/app-header-layout/app-header-layout.html"/>
+<link rel="import" href="../../../bower_components/app-layout/app-header/app-header.html"/>
+<link rel="import" href="../../../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
+<link rel="import" href="../../../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html"/>
+<link rel="import" href="../../../bower_components/paper-button/paper-button.html"/>
 <dom-module id="log-page">
 	<template>
 		<!-- build:css inline ../../../elements/logging/log-page/log-page.css -->
-		<link
-			rel="stylesheet"
-			href="../../elements/logging/log-page/log-page.css"
-		/>
+		<link rel="stylesheet" href="../../elements/logging/log-page/log-page.css" />
 		<!-- /build -->
 		<style>
 			.title {
@@ -50,9 +23,7 @@
 			<app-header-layout>
 				<app-header slot="header" reveals effects="waterfall">
 					<app-toolbar>
-						<div main-title class="title">
-							[[__(lang, langReady, 'logging_logs')]]
-						</div>
+						<div main-title class="title">[[__(lang, langReady, 'logging_logs')]]</div>
 					</app-toolbar>
 				</app-header>
 				<div class="container">

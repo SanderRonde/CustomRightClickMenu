@@ -3,21 +3,17 @@ import { TypedWebdriver, BrowserstackCapabilities } from '../../imports';
 // import * as webdriver from 'selenium-webdriver';
 
 function throwErr(): never {
-	console.error(
-		'Firefox extension testing is not supported (yet), please try' +
-			' another browser or remove the --test-extension flag'
-	);
+	console.error('Firefox extension testing is not supported (yet), please try' +
+		' another browser or remove the --test-extension flag');
 	process.exit(1);
-	throw new Error(
-		'Firefox extension testing is not supported (yet), please try' +
-			' another browser or remove the --test-extension flag'
-	);
+	throw new Error('Firefox extension testing is not supported (yet), please try' +
+		' another browser or remove the --test-extension flag');
 }
 
 export function getCapabilities() {
 	// const profile = new firefoxDriver.Profile();
 	// profile.addExtension('dist/packed/Custom Right-Click Menu.firefox.xpi');
-
+	
 	// //Will only work when signed
 	// return new firefoxDriver.Options()
 	// 	.setProfile(profile)
@@ -26,10 +22,7 @@ export function getCapabilities() {
 	return throwErr();
 }
 
-export async function getExtensionURLPrefix(
-	_driver: TypedWebdriver,
-	_capabilities: BrowserstackCapabilities
-) {
+export async function getExtensionURLPrefix(_driver: TypedWebdriver, _capabilities: BrowserstackCapabilities) {
 	// await driver.get('about:debugging');
 	// const addons = await driver.findElements(
 	// 		webdriver.By.className('addon-target-container'));
@@ -47,10 +40,7 @@ export async function getExtensionURLPrefix(
 	// return null;
 }
 
-export async function openOptionsPage(
-	_driver: TypedWebdriver,
-	_capabilities: BrowserstackCapabilities
-) {
+export async function openOptionsPage(_driver: TypedWebdriver, _capabilities: BrowserstackCapabilities) {
 	// await driver.get('about:debugging');
 	// const addons = await driver.findElements(
 	// 		webdriver.By.className('addon-target-container'));
@@ -71,7 +61,4 @@ export async function openOptionsPage(
 	return throwErr();
 }
 
-export async function reloadBackgroundPage(
-	_driver: TypedWebdriver,
-	_capabilities: BrowserstackCapabilities
-) {}
+export async function reloadBackgroundPage(_driver: TypedWebdriver, _capabilities: BrowserstackCapabilities) { }

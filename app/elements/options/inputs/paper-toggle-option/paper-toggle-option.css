@@ -1,7 +1,7 @@
 :host {
 	display: block;
-	margin-top: 8px;
-	margin-bottom: 8px;
+	margin-top:8px;
+	margin-bottom:8px;
 }
 
 #disabledContainer {
@@ -20,15 +20,15 @@
 #disabledInfo > .infoDiv {
 	display: none;
 	position: absolute;
-	z-index: 10000;
-	margin-top: -24px;
-	margin-left: -263px;
-	width: 250px;
-	background-color: white;
-	border: 1px solid black;
-	padding: 5px;
-	font-size: 15.6px;
-	font-weight: normal;
+    z-index: 10000;
+    margin-top: -24px;
+	margin-left: -263px;	
+    width: 250px;
+    background-color: white;
+    border: 1px solid black;
+    padding: 5px;
+	font-size:15.6px;
+	font-weight:normal;
 }
 
 #disabledInfo > .infoDiv ul {
