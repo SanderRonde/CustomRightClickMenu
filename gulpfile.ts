@@ -10,7 +10,6 @@ import replace from 'gulp-replace';
 import gulpBabel from 'gulp-babel';
 import ts from 'gulp-typescript';
 import rename from 'gulp-rename';
-import uglify from 'gulp-uglify';
 import banner from 'gulp-banner';
 import * as rollup from 'rollup';
 import xpi from 'firefox-xpi';
@@ -342,7 +341,6 @@ class Tasks {
 								cwd: './node_modules/typescript/lib',
 								base: './node_modules/typescript/lib'
 							})
-							.pipe(uglify())
 							.pipe(gulp.dest('./app/js/libraries/'))
 					};
 			
@@ -1187,7 +1185,6 @@ class Tasks {
 											cwd: './node_modules/typescript/lib',
 											base: './node_modules/typescript/lib'
 										})
-										.pipe(uglify())
 								}).pipe(gulp.dest('./temp/js/libraries'));
 							}
 
@@ -1611,7 +1608,8 @@ class Tasks {
 															cwd: './build',
 															base: './build'
 														})
-													.pipe(banner(BANNERS.js))
+													.pipe(banner(BANNERS.js + '\n\nvar exports = {};'))
+													.pipe(replace(/export\s*\{\}/g, ''))
 													.pipe(gulp.dest('./build/'))
 											}
 											
@@ -1782,7 +1780,6 @@ class Tasks {
 									cwd: './temp',
 									base: './temp'
 							})
-							.pipe(uglify())
 							.pipe(gulp.dest('./build'));
 					}
 
@@ -1867,7 +1864,6 @@ class Tasks {
 									.src([
 										'./build/html/entrypointPrefix.js'
 									])
-									.pipe(uglify())
 									.pipe(gulp.dest('./build/html/'));
 							}
 						}
