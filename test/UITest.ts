@@ -868,7 +868,7 @@ function subtractStrings(biggest: string, smallest: string): string {
 function getEditorValue(type: DialogType): webdriver.promise.Promise<string> {
 	return driver.executeScript(inlineFn((REPLACE) => {
 		return window[(REPLACE.editor) as 'scriptEdit'|'stylesheetEdit']
-			.editorManager.getValue();
+			.getEditorInstance().getValue();
 	}, {
 		editor: quote(type === 'script' ? 'scriptEdit' : 'stylesheetEdit'),
 	}));
