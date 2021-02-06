@@ -41,8 +41,9 @@ namespace BrowserAPINS {
 		(apisWindow.browser as any) : apisWindow.chrome) || 
 			(typeof browser !== 'undefined' && browser) || apisWindow.chrome;
 	function checkReject(reject: (err: _chrome.runtime.LastError) => void) {
-		if (__srcBrowser.runtime.lastError) {
-			reject(__srcBrowser.runtime.lastError);
+		const lastError = __srcBrowser.runtime.lastError;
+		if (lastError) {
+			reject(lastError);
 			return true;
 		}
 		return false;
@@ -66,8 +67,9 @@ namespace BrowserAPINS {
 	}): ChromeCallbackHandler<T> {
 		const { resolve, reject } = prom;
 		const fn = ((...args: any[]) => {
-			if (__srcBrowser.runtime.lastError) {
-				reject(new CustomError(__srcBrowser.runtime.lastError, stackSrc));
+			const lastError = __srcBrowser.runtime.lastError;
+			if (lastError) {
+				reject(new CustomError(lastError, stackSrc));
 			}
 			else {
 				resolve(args[0]);
