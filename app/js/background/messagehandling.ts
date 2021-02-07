@@ -215,12 +215,6 @@ export namespace MessageHandling {
 				case 'logCrmAPIValue':
 					await modules.Logging.logHandler(message.data);
 					break;
-				case 'resource':
-					modules.Resources.Resource.handle(message.data);
-					break;
-				case 'anonymousLibrary':
-					modules.Resources.Anonymous.handle(message.data);
-					break;
 				case 'updateStorage':
 					await modules.Storages.applyChanges(message.data);
 					break;
