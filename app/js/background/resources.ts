@@ -5,46 +5,11 @@ import { ModuleData } from "./moduleTypes";
 declare const browserAPI: browserAPI;
 declare const window: BackgroundpageWindow;
 
-export namespace Resources.Resource {
-	export function handle(message: {
-		type: string;
-		name: string;
-		url: string;
-		scriptId: CRM.NodeId<CRM.ScriptNode>;
-	}) {
-		Resources.handle(message, message.name);
-	}
-}
-
-export namespace Resources.Anonymous {
-	export function handle(message: {
-		type: string;
-		name: string;
-		url: string;
-		scriptId: CRM.NodeId<CRM.ScriptNode>;
-	}) {
-		Resources.handle(message, message.url);
-	}
-}
-
 export namespace Resources {
 	export let modules: ModuleData;
 
 	export function initModule(_modules: ModuleData) {
 		modules = _modules;
-	}
-
-	export function handle(message: {
-		type: string;
-		name: string;
-		url: string;
-		scriptId: CRM.NodeId<CRM.ScriptNode>;
-	}, name: string) {
-		switch (message.type) {
-			case 'remove':
-				removeResource(name, message.scriptId);
-				break;
-		}
 	}
 
 	export function updateResourceValues() {
@@ -114,41 +79,6 @@ export namespace Resources {
 
 		}
 		return false;
-	}
-	function removeResource(name: string, scriptId: CRM.NodeId<CRM.ScriptNode>) {
-		for (let i = 0; i < modules.storages.resourceKeys.length; i++) {
-			if (modules.storages.resourceKeys[i].name === name &&
-				modules.storages.resourceKeys[i].scriptId === scriptId) {
-					modules.storages.resourceKeys.splice(i, 1);
-					break;
-				}
-		}
-		if (!modules.storages.resources.has(scriptId) ||
-			!modules.storages.resources.get(scriptId)[name] ||
-			!modules.storages.resources.get(scriptId)[name].sourceUrl) {
-				//It's already been removed, skip
-				return;
-			}
-		const { sourceUrl } = modules.storages.resources.get(scriptId)[name];
-		const urlDataLink = modules.storages.urlDataPairs.get(sourceUrl);
-		if (urlDataLink) {
-			urlDataLink.refs.splice(urlDataLink.refs.indexOf(scriptId), 1);
-			if (urlDataLink.refs.length === 0) {
-				//No more refs, clear it
-				modules.storages.urlDataPairs.delete(sourceUrl);
-			}
-		}
-		if (modules.storages.resources &&
-			modules.storages.resources.has(scriptId) &&
-			modules.storages.resources.get(scriptId)[name]) {
-				delete modules.storages.resources.get(scriptId)[name];
-			}
-
-		browserAPI.storage.local.set({
-			resourceKeys: modules.storages.resourceKeys,
-			resources: modules.Util.fromMap(modules.storages.resources),
-			urlDataPairs: modules.Util.fromMap(modules.storages.urlDataPairs)
-		});
 	}
 	function compareResource(key: {
 		name: string;

@@ -586,10 +586,13 @@ namespace PaperLibrariesSelectorElement {
 			container.style.padding = '10px';
 			window.setDisplayFlex(container);
 			const cancelButton = document.createElement('paper-button');
+			cancelButton.setAttribute('raised', '');
 			cancelButton.innerText = await this.___(I18NKeys.generic.cancel);
 			const saveButton = document.createElement('paper-button');
 			saveButton.innerText = await this.___(I18NKeys.generic.save);
+			saveButton.setAttribute('raised', '');
 			saveButton.style.marginLeft = '15px';
+			cancelButton.style.color = saveButton.style.color = 'rgb(38, 153, 244)';
 
 			cancelButton.addEventListener('click', () => {
 				this._discardLibEditChanges();
@@ -612,7 +615,7 @@ namespace PaperLibrariesSelectorElement {
 					},
 					getPosition() {
 						return {
-							preference: monaco.editor.OverlayWidgetPositionPreference.BOTTOM_RIGHT_CORNER
+							preference: monaco.editor.OverlayWidgetPositionPreference.TOP_RIGHT_CORNER
 						}
 					}
 				});
@@ -667,7 +670,7 @@ namespace PaperLibrariesSelectorElement {
 			this._openLibraryEditor(library);
 		}
 
-		static _remove(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
+		static async _remove(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
 			type LibraryElement = HTMLElement & {
 				dataLib: LibrarySelectorLibrary
 			}
@@ -680,21 +683,25 @@ namespace PaperLibrariesSelectorElement {
 				parentNode = e.target.parentElement as LibraryElement;
 			}
 			const library = parentNode.dataLib;
-			browserAPI.runtime.sendMessage({
-				type: 'resource',
-				data: {
-					type: 'remove',
-					name: library.name,
-					url: library.url,
-					scriptId: window.app.scriptItem.id
+			const index = (() => {
+				for (let i = 0 ; i <this.installedLibraries.length; i++) {
+					const installedLibrary = this.installedLibraries[i];
+					if (installedLibrary.name === library.name) {
+						return i;
+					}
 				}
+				return -1;
+			})();
+			this.installedLibraries.splice(index, 1);
+			await browserAPI.storage.local.set({
+				libraries: this.installedLibraries
 			});
 
 			//Remove it from view as well
 			this.splice('libraries', this.libraries.indexOf(library), 1);
 
 			const contentEl = this.$.dropdown;
-			contentEl.style.height = (~~contentEl.style.height.split('px')[0] - 48) + 'px';
+			contentEl.style.height = (~~contentEl.getBoundingClientRect().height - 48) + 'px';
 		}
 
 		static updateLibraries(this: PaperLibrariesSelector, libraries: LibrarySelectorLibrary[],
