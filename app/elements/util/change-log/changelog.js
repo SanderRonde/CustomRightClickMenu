@@ -219,9 +219,9 @@
 			'Removed permission API on chrome. See [this github issue](https://github.com/SanderRonde/CustomRightClickMenu/issues/44)' +
 				' for more info'
 		],
-		'2.2.13': {
+		'2.2.13': [
 			'Re-enable some permissions since they were causing core functionality to stop working'
-		}
+		]
 	};
 
 	return changelog;
