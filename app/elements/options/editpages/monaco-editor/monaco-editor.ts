@@ -2678,7 +2678,9 @@ namespace MonacoEditorElement {
 			for (const modelId in this._models) {
 				const model = this._models[modelId];
 				model.handlers.forEach((handler) => {
-					handler.destroy();
+					if (handler) {
+						handler.destroy();
+					}
 				});
 				model.handlers = null;
 				delete this._models[modelId];
