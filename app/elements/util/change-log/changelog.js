@@ -221,6 +221,11 @@
 		],
 		'2.2.13': [
 			'Re-enable some permissions since they were causing core functionality to stop working'
+		],
+		'2.2.14': [
+			'Fix bug where removing a library was not possible',
+			'Fix bug where exiting the editing screen of a library was not possible',
+			'Fix bug where the root item\'s name was not changeable'
 		]
 	};
 
