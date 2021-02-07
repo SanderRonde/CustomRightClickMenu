@@ -320,7 +320,7 @@ namespace CodeEditBehaviorNamespace {
 					duration: 500,
 					easing: ($ as CodeEditBehaviorNamespace.JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 					step: (now: number) => {
-						window.addCalcFn(window.doc.fullscreenEditorEditor, 'height', `100vw - ${now}px`);
+						window.addCalcFn(window.doc.fullscreenEditorEditor, 'height', `100vh - ${now}px`);
 						window.addCalcFn(window.doc.fullscreenEditorHorizontal, 'height', `100vh - ${now}px`);
 						this.fullscreenEditorManager.editor.layout();
 					}
@@ -394,7 +394,7 @@ namespace CodeEditBehaviorNamespace {
 					duration: 500,
 					easing: 'linear',
 					step: (now: number) => {
-						window.addCalcFn(window.doc.fullscreenEditorEditor, 'height', `100vw - ${now}px`);
+						window.addCalcFn(window.doc.fullscreenEditorEditor, 'height', `100vh - ${now}px`);
 						window.addCalcFn(window.doc.fullscreenEditorHorizontal, 'height', `100vh - ${now}px`);
 						this.fullscreenEditorManager.editor.layout();
 					}
