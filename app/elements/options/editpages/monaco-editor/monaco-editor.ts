@@ -2590,7 +2590,9 @@ namespace MonacoEditorElement {
 			const lang = enabled ? 'less' : 'javascript';
 			const oldModels = currentModel.models;
 			currentModel.handlers.forEach((handler) => {
-				handler.destroy();
+				if (handler) {
+					handler.destroy();
+				}
 			});
 
 			const newModels = oldModels.map((oldModel) => {
