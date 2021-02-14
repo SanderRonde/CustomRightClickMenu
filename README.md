@@ -56,14 +56,15 @@ you clicked on (page, link, selection, image, video or audio).
 
 ### Installing from your browser's web store
 
-> [2.2.11](https://github.com/SanderRonde/CustomRightClickMenu/releases/tag/2.2.11) is the current latest version. 
+> [2.2.14](https://github.com/SanderRonde/CustomRightClickMenu/releases/tag/2.2.14) is the current latest version on Chrome. 
+> [2.2.8](https://github.com/SanderRonde/CustomRightClickMenu/releases/tag/2.2.8) is the current latest version on other platforms.
 
-* [Chrome Webstore](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj) - On 2.2.11
+* [Chrome Webstore](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj) - On 2.2.14
 * [Firefox Add-on](https://addons.mozilla.org/nl/firefox/addon/custom-right-click-menu/) - On 2.2.8
 * [Edge Extension](https://www.microsoft.com/store/apps/9P6T9NZ0QML9) - On 2.2.8 certification in progress
 * Opera extension - Under certification for initial release (no changes in review status since submission in may 2018)
 
-**Note**: 2.2.11 (and 2.2.10 and 2.2.9) are downgrades of 2.2.8 to comply with Google's mysterious web store policies, I wouldn't recommend upgrading from 2.2.8 to 2.2.11 if you have the choice since some functionality is removed and some bugs may appear.
+**Note**: 2.2.9 and onwards are downgrades of 2.2.8 to comply with Google's mysterious web store policies, I wouldn't recommend upgrading from 2.2.8 to later versions if you have the choice since some functionality is removed (such as access to browser APIs) and some bugs may appear.
 
 ### Installing from repo
 
