@@ -5,12 +5,10 @@
 Create your own entry in the right-click menu. Add custom scripts, links, sub-menus or custom CSS in your right-click menu and
 do anything you want all from your right-click menu. Featuring full GreaseMonkey compatibility for userscripts and Stylish compatibility for userstyles.
 
-[![Build Status](https://travis-ci.org/SanderRonde/CustomRightClickMenu.svg?branch=master)](https://travis-ci.org/SanderRonde/CustomRightClickMenu)
 ![Chrome Web Store](https://img.shields.io/chrome-web-store/users/onnbmgmepodkilcbdodhfepllfmafmlj?label=chrome%20downloads)
 ![Mozilla Add-on](https://img.shields.io/amo/users/custom-right-click-menu?label=firefox%20downloads)
 
 [![Tested with BrowserStack](http://i.imgur.com/3Mi2Fja.png)](https://www.browserstack.com/)
-[![Join the chat at https://gitter.im/SanderRonde/CustomRightClickMenu](https://badges.gitter.im/SanderRonde/CustomRightClickMenu.svg)](https://gitter.im/SanderRonde/CustomRightClickMenu?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Demo
 
